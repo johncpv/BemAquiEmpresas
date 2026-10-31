@@ -23983,6 +23983,98 @@
         }
       }
     },
+    "/api/v1/finance/bank-statement-rules": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListBankStatementRules",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BankStatementRuleView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreateBankStatementRule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankStatementRuleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankStatementRuleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-statement-rules/{ruleId}": {
+      "put": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "UpdateBankStatementRule",
+        "parameters": [
+          {
+            "name": "ruleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankStatementRuleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankStatementRuleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/revenue-targets/{year}": {
       "get": {
         "tags": [
@@ -28083,6 +28175,555 @@
         }
       }
     },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetReconciliation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconciliationView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/candidates": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListReconciliationCandidates",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "outflow",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "paymentsOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReconTransaction"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/pending-lines": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListReconciliationPendingLines",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "outflow",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReconLine"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliations": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "Reconcile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReconcileInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconcileResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliations/accept-high": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "AcceptHighReconciliations",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptHighInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptHighResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliations/{rid}/undo": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "UndoReconciliation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "rid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UndoReconciliationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconcileResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/lines/{lineId}/bank-entry": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreateBankEntryFromLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LineBankEntryInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconcileResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/lines/{lineId}/settle": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "SettleFromLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LineSettlementInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconcileResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/lines/{lineId}/history": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetStatementLineHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconHistory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/transactions/{transactionId}/history": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetTransactionReconciliationHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "transactionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconHistory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/closing-preview": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetReconciliationClosingPreview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClosingPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/close": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CloseReconciliation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseReconciliationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconciliationClosingView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/billing-slips/pending-review": {
       "get": {
         "tags": [
@@ -30012,6 +30653,49 @@
           "Leave",
           "Both"
         ]
+      },
+      "AcceptHighInput": {
+        "required": [
+          "from",
+          "to",
+          "pairs"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "pairs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconcilePairInput"
+            }
+          }
+        }
+      },
+      "AcceptHighResult": {
+        "required": [
+          "reconciled",
+          "refused"
+        ],
+        "type": "object",
+        "properties": {
+          "reconciled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "refused": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RefusedPair"
+            }
+          }
+        }
       },
       "AcceptInviteRequest": {
         "required": [
@@ -33428,6 +34112,110 @@
           "batchId": {
             "type": "string",
             "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "BankStatementRuleInput": {
+        "required": [
+          "keyword",
+          "lineKind",
+          "entryKind",
+          "accountId"
+        ],
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lineKind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatementLineKind"
+              }
+            ]
+          },
+          "entryKind": {
+            "$ref": "#/components/schemas/BankEntryKind"
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32",
+            "default": 0
+          }
+        }
+      },
+      "BankStatementRuleView": {
+        "required": [
+          "id",
+          "keyword",
+          "lineKind",
+          "entryKind",
+          "accountId",
+          "accountName",
+          "isActive",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "keyword": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lineKind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatementLineKind"
+              }
+            ]
+          },
+          "entryKind": {
+            "$ref": "#/components/schemas/BankEntryKind"
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "accountName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
           },
           "version": {
             "type": "integer",
@@ -36944,6 +37732,95 @@
           }
         },
         "additionalProperties": false
+      },
+      "CloseReconciliationInput": {
+        "required": [
+          "until"
+        ],
+        "type": "object",
+        "properties": {
+          "until": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "ClosingPreview": {
+        "required": [
+          "until",
+          "from",
+          "allowed",
+          "refusal",
+          "lines",
+          "reconciled",
+          "ignored",
+          "credits",
+          "debits",
+          "bankBalance",
+          "systemBalance",
+          "difference"
+        ],
+        "type": "object",
+        "properties": {
+          "until": {
+            "type": "string",
+            "format": "date"
+          },
+          "from": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "allowed": {
+            "type": "boolean"
+          },
+          "refusal": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reconciled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ignored": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "credits": {
+            "type": "number",
+            "format": "double"
+          },
+          "debits": {
+            "type": "number",
+            "format": "double"
+          },
+          "bankBalance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "systemBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "difference": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
       },
       "CnpjAddress": {
         "required": [
@@ -42179,6 +43056,11 @@
             "type": "number",
             "format": "double",
             "default": 20
+          },
+          "ofxBankEntryCap": {
+            "type": "number",
+            "format": "double",
+            "default": 500
           }
         }
       },
@@ -42222,6 +43104,13 @@
             "default": 10000
           },
           "adjustedDefaultThresholdPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "ofxBankEntryCap": {
             "type": [
               "null",
               "number"
@@ -49269,6 +50158,199 @@
           }
         },
         "additionalProperties": false
+      },
+      "LineAction": {
+        "required": [
+          "kind",
+          "text",
+          "entryKind",
+          "accountId",
+          "accountName",
+          "ruleId",
+          "receivableId",
+          "receivableNumber",
+          "customerName",
+          "receivableBalance",
+          "receivableVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/LineActionKind"
+          },
+          "text": {
+            "type": "string"
+          },
+          "entryKind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BankEntryKind"
+              }
+            ]
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "accountName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ruleId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "receivableId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "receivableNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "customerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "receivableBalance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "receivableVersion": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "LineActionKind": {
+        "enum": [
+          "BankEntry",
+          "Settle",
+          "PaymentOrder"
+        ]
+      },
+      "LineBankEntryInput": {
+        "required": [
+          "kind",
+          "accountId",
+          "costCenterId",
+          "reason",
+          "backdateReason",
+          "lineVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/BankEntryKind"
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lineVersion": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "LineSettlementInput": {
+        "required": [
+          "receivableId",
+          "principal",
+          "interest",
+          "fine",
+          "discount",
+          "backdateReason",
+          "receivableVersion",
+          "lineVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "principal": {
+            "type": "number",
+            "format": "double"
+          },
+          "interest": {
+            "type": "number",
+            "format": "double"
+          },
+          "fine": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "receivableVersion": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "lineVersion": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "cancelBillingSlip": {
+            "type": "boolean",
+            "default": false
+          }
+        }
       },
       "LinkableUser": {
         "required": [
@@ -66628,6 +67710,58 @@
           "NonContributor"
         ]
       },
+      "ReconcileInput": {
+        "required": [
+          "lines",
+          "transactions"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VersionedRef"
+            }
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VersionedRef"
+            }
+          },
+          "accepted": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "ReconcilePairInput": {
+        "required": [
+          "lineId",
+          "lineVersion",
+          "transactionId",
+          "transactionVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lineVersion": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "transactionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "transactionVersion": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "ReconcileReport": {
         "required": [
           "from",
@@ -66677,6 +67811,643 @@
           "failed": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "ReconcileResult": {
+        "required": [
+          "reconciliationId",
+          "kind",
+          "lines",
+          "transactions",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "reconciliationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ReconciliationKind"
+          },
+          "lines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transactions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ReconciliationClosingView": {
+        "required": [
+          "id",
+          "until",
+          "lines",
+          "bankBalance",
+          "systemBalance",
+          "closedByName",
+          "closedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "until": {
+            "type": "string",
+            "format": "date"
+          },
+          "lines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bankBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "systemBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "closedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "closedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReconciliationConfidence": {
+        "enum": [
+          "High",
+          "Medium"
+        ]
+      },
+      "ReconciliationKind": {
+        "enum": [
+          "Suggested",
+          "Manual",
+          "BankEntry",
+          "Settlement"
+        ]
+      },
+      "ReconciliationView": {
+        "required": [
+          "accountId",
+          "accountName",
+          "from",
+          "to",
+          "hasStatement",
+          "pairs",
+          "bankOnly",
+          "systemOnly",
+          "done",
+          "totals",
+          "reconciledUntil",
+          "closedUntil",
+          "ofxBankEntryCap",
+          "counterpartyMasked"
+        ],
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "hasStatement": {
+            "type": "boolean"
+          },
+          "pairs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconPair"
+            }
+          },
+          "bankOnly": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconUnpairedLine"
+            }
+          },
+          "systemOnly": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconUnpairedTransaction"
+            }
+          },
+          "done": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconDone"
+            }
+          },
+          "totals": {
+            "$ref": "#/components/schemas/ReconTotals"
+          },
+          "reconciledUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "closedUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "ofxBankEntryCap": {
+            "type": "number",
+            "format": "double"
+          },
+          "counterpartyMasked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReconDone": {
+        "required": [
+          "id",
+          "kind",
+          "confidence",
+          "reason",
+          "lines",
+          "transactions",
+          "createdByName",
+          "createdAt",
+          "inClosedPeriod",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ReconciliationKind"
+          },
+          "confidence": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReconciliationConfidence"
+              }
+            ]
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconLine"
+            }
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconTransaction"
+            }
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "inClosedPeriod": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ReconHistory": {
+        "required": [
+          "importedByName",
+          "importedAt",
+          "source",
+          "entries"
+        ],
+        "type": "object",
+        "properties": {
+          "importedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "importedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatementSource"
+              }
+            ]
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconHistoryEntry"
+            }
+          }
+        }
+      },
+      "ReconHistoryEntry": {
+        "required": [
+          "reconciliationId",
+          "kind",
+          "confidence",
+          "reason",
+          "closedPeriodReason",
+          "createdByName",
+          "createdAt",
+          "undoneByName",
+          "undoneAt",
+          "undoReason",
+          "lines",
+          "transactions"
+        ],
+        "type": "object",
+        "properties": {
+          "reconciliationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ReconciliationKind"
+          },
+          "confidence": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReconciliationConfidence"
+              }
+            ]
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "closedPeriodReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "undoneByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "undoneAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "undoReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconLine"
+            }
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconTransaction"
+            }
+          }
+        }
+      },
+      "ReconLine": {
+        "required": [
+          "id",
+          "date",
+          "amount",
+          "description",
+          "kind",
+          "counterpartyName",
+          "counterpartyDocument",
+          "source",
+          "bankVerified",
+          "status",
+          "importedByName",
+          "blocked",
+          "blockedReason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/StatementLineKind"
+          },
+          "counterpartyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "counterpartyDocument": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/StatementSource"
+          },
+          "bankVerified": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StatementLineStatus"
+          },
+          "importedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "blocked": {
+            "type": "boolean"
+          },
+          "blockedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ReconPair": {
+        "required": [
+          "line",
+          "transaction",
+          "confidence",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "line": {
+            "$ref": "#/components/schemas/ReconLine"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/ReconTransaction"
+          },
+          "confidence": {
+            "$ref": "#/components/schemas/ReconciliationConfidence"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "ReconTotals": {
+        "required": [
+          "pending",
+          "reconciled",
+          "ignored",
+          "balanceDate",
+          "bankBalance",
+          "systemBalance",
+          "difference"
+        ],
+        "type": "object",
+        "properties": {
+          "pending": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reconciled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ignored": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "balanceDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "bankBalance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "systemBalance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "difference": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ReconTransaction": {
+        "required": [
+          "id",
+          "date",
+          "amount",
+          "description",
+          "type",
+          "origin",
+          "link",
+          "pendingReview",
+          "reconciled",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TransactionType"
+          },
+          "origin": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pendingReview": {
+            "type": "boolean"
+          },
+          "reconciled": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ReconUnpairedLine": {
+        "required": [
+          "line",
+          "action",
+          "canBankEntry",
+          "suggestRule"
+        ],
+        "type": "object",
+        "properties": {
+          "line": {
+            "$ref": "#/components/schemas/ReconLine"
+          },
+          "action": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LineAction"
+              }
+            ]
+          },
+          "canBankEntry": {
+            "type": "boolean"
+          },
+          "suggestRule": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReconUnpairedTransaction": {
+        "required": [
+          "transaction",
+          "daysWithoutBank",
+          "stale"
+        ],
+        "type": "object",
+        "properties": {
+          "transaction": {
+            "$ref": "#/components/schemas/ReconTransaction"
+          },
+          "daysWithoutBank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stale": {
+            "type": "boolean"
           }
         }
       },
@@ -66902,6 +68673,22 @@
               "string"
             ],
             "format": "date"
+          }
+        }
+      },
+      "RefusedPair": {
+        "required": [
+          "lineId",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string"
           }
         }
       },
@@ -72976,6 +74763,33 @@
           }
         }
       },
+      "StatementLineKind": {
+        "enum": [
+          "Pix",
+          "Boleto",
+          "Ted",
+          "Doc",
+          "Transfer",
+          "Fee",
+          "Interest",
+          "Yield",
+          "Tax",
+          "Card",
+          "Check",
+          "Deposit",
+          "Reversal",
+          "Other",
+          null
+        ]
+      },
+      "StatementLineStatus": {
+        "enum": [
+          "Pending",
+          "Reconciled",
+          "Ignored",
+          "Undone"
+        ]
+      },
       "StatementOfxForm": {
         "type": "object",
         "properties": {
@@ -73071,6 +74885,12 @@
             "$ref": "#/components/schemas/StatementPage"
           }
         }
+      },
+      "StatementSource": {
+        "enum": [
+          "Api",
+          "Ofx"
+        ]
       },
       "StepForecastInfo": {
         "required": [
@@ -77377,6 +79197,14 @@
           }
         }
       },
+      "TransactionType": {
+        "enum": [
+          "Receipt",
+          "Payment",
+          "Transfer",
+          "BankEntry"
+        ]
+      },
       "TransferInput": {
         "required": [
           "fromAccountId",
@@ -77496,6 +79324,22 @@
           "KeepSystem",
           null
         ]
+      },
+      "UndoReconciliationInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
       },
       "UndoStatementBatchInput": {
         "required": [
@@ -77803,6 +79647,23 @@
           "ephemeral": {
             "type": "boolean",
             "default": false
+          }
+        }
+      },
+      "VersionedRef": {
+        "required": [
+          "id",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },

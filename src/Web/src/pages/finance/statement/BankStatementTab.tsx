@@ -200,7 +200,8 @@ export function BankStatementTab({ accountId, from, to }: { accountId: string; f
   const imported = async (r: BankStatementImportResult) => {
     await refresh()
     const label = reconcileLabel(r.pendingCount)
-    setNext(label ? [{ label, onSelect: () => set({ situacao: 'Pending' }) }] : [])
+    // BNK-03b: o próximo passo leva à conciliação da conta, no período do extrato.
+    setNext(label ? [{ label, onSelect: () => void navigate({ to: '/app/financeiro/conciliacao', search: { conta: accountId, de: from, ate: to } } as never) }] : [])
   }
 
   const fetcher = useFetch(accountId, imported)
@@ -214,6 +215,7 @@ export function BankStatementTab({ accountId, from, to }: { accountId: string; f
       {canEdit && v.apiConnected ? <button type="button" onClick={() => void fetcher.run()} disabled={isBusy(fetcher.phase) || !!v.nextFetchAt} className={primary}>Buscar agora</button> : null}
       {canEdit && v.ofxAllowed ? <ImportOfx accountId={accountId} contingency={v.apiConnected} onDone={imported} trigger={importButton} /> : null}
       {canApprove && v.apiConnected && !v.contingency ? <GrantContingency accountId={accountId} onDone={refresh} /> : null}
+      {v.pendingCount > 0 ? <Link to={'/app/financeiro/conciliacao' as never} search={{ conta: accountId, de: from, ate: to } as never} className={secondary}>Conciliar</Link> : null}
     </span>
   )
 
