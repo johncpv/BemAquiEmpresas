@@ -502,7 +502,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-3, R-SEC-10, R-PRJ-5.
 - CA: cancelamento em uma etapa com `fiscal.approve` e 2FA de novo, "Pedir cancelamento" para os demais, prazo de 24 h com contagem no `ConfirmDialog`; cancelar não mexe no estoque (`InvoiceTaxReversal` no custo); carta de correção com `fiscal.edit`; inutilização pelo filtro "A inutilizar"; DANFE de nota cancelada com marca.
 
-**FIS-04a [ ] NF-e de entrada por XML: importação segura, de-para dos itens e conferência contra o pedido (M)** — 5.5, ordem 12 — `Ready` — [story](stories/FIS-04a-nfe-entrada-xml-importacao.md)
+**FIS-04a [x] NF-e de entrada por XML: importação segura, de-para dos itens e conferência contra o pedido (M)** — 5.5, ordem 12 — `Done` — [story](stories/FIS-04a-nfe-entrada-xml-importacao.md)
 - Requisitos: R-FIS-5, R-CMP-5, R-PRP-3, R-EST-3.
 - CA: XML sem DTD, XSD, um `infNFe` e uma assinatura com `Reference URI` igual ao `Id`, CNPJ do certificado igual ao do emitente, sem protocolo recusado; importação com `fiscal.import_incoming`; aviso "situação na SEFAZ não conferida"; chave duplicada recusada; de-para lembrado; nota sem pedido exige `purchasing.approve`.
 

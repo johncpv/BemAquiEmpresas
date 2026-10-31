@@ -29107,6 +29107,442 @@
         }
       }
     },
+    "/api/v1/fiscal/incoming-invoices": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ListIncomingInvoices",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/IncomingInvoiceStatus"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingInvoiceList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/import": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ImportIncomingInvoice",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/IncomingXmlForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingImportResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/item-options": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ListIncomingItemOptions",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IncomingItemOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/account-options": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ListIncomingAccountOptions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IncomingAccountOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetIncomingInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingInvoiceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/xml": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "DownloadIncomingInvoiceXml",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/history": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetIncomingInvoiceHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRelatedAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/supplier": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "RefreshIncomingInvoiceSupplier",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingInvoiceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/items/{itemId}/mapping": {
+      "put": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "MapIncomingInvoiceItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IncomingItemMappingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingInvoiceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/order": {
+      "put": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "SetIncomingInvoiceOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IncomingOrderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingInvoiceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/check": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "CheckIncomingInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckIncomingInvoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingInvoiceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/reject": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "RejectIncomingInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectIncomingInvoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingInvoiceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/import-runs": {
       "get": {
         "tags": [
@@ -36913,6 +37349,20 @@
           }
         }
       },
+      "CheckIncomingInvoiceRequest": {
+        "required": [
+          "withoutOrderReason"
+        ],
+        "type": "object",
+        "properties": {
+          "withoutOrderReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ChecklistResult": {
         "enum": [
           "Done",
@@ -39174,6 +39624,13 @@
             "format": "double"
           }
         }
+      },
+      "DivergenceLevel": {
+        "enum": [
+          "Ok",
+          "Warning",
+          "Critical"
+        ]
       },
       "DocumentCheck": {
         "required": [
@@ -45841,6 +46298,1234 @@
           }
         }
       },
+      "IncomingAccountOption": {
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "IncomingDivergence": {
+        "required": [
+          "sequence",
+          "poLineId",
+          "quantityDifference",
+          "priceDifference",
+          "pricePercent",
+          "quantityLevel",
+          "priceLevel"
+        ],
+        "type": "object",
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "poLineId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "quantityDifference": {
+            "type": "number",
+            "format": "double"
+          },
+          "priceDifference": {
+            "type": "number",
+            "format": "double"
+          },
+          "pricePercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "quantityLevel": {
+            "$ref": "#/components/schemas/DivergenceLevel"
+          },
+          "priceLevel": {
+            "$ref": "#/components/schemas/DivergenceLevel"
+          }
+        }
+      },
+      "IncomingDuplicate": {
+        "required": [
+          "number",
+          "dueDate",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "IncomingImportResult": {
+        "required": [
+          "id",
+          "accessKey",
+          "number",
+          "series",
+          "issuerName",
+          "total",
+          "items",
+          "remembered",
+          "supplierFound"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accessKey": {
+            "type": "string"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "series": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "issuerName": {
+            "type": "string"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remembered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "supplierFound": {
+            "type": "boolean"
+          }
+        }
+      },
+      "IncomingInvoiceItemView": {
+        "required": [
+          "id",
+          "sequence",
+          "supplierCode",
+          "description",
+          "ncm",
+          "cfop",
+          "unit",
+          "quantity",
+          "unitPrice",
+          "amount",
+          "taxes",
+          "lotNumber",
+          "orderNumber",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "stockUnit",
+          "conversionFactor",
+          "factorRequired",
+          "stockQuantity",
+          "stockUnitPrice",
+          "noStockItem",
+          "expenseAccountId",
+          "expenseAccountName",
+          "mappingSource",
+          "suggestions",
+          "poLineId",
+          "poLineSequence",
+          "comparison",
+          "resolved"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "supplierCode": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "ncm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cfop": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unit": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxes": {
+            "$ref": "#/components/schemas/IncomingItemTaxes"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "orderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "itemId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "itemName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stockUnit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "conversionFactor": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "factorRequired": {
+            "type": "boolean"
+          },
+          "stockQuantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "stockUnitPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "noStockItem": {
+            "type": "boolean"
+          },
+          "expenseAccountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "expenseAccountName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "mappingSource": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ItemMappingSource"
+              }
+            ]
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemSuggestion"
+            }
+          },
+          "poLineId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "poLineSequence": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "comparison": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ItemComparison"
+              }
+            ]
+          },
+          "resolved": {
+            "type": "boolean"
+          }
+        }
+      },
+      "IncomingInvoiceList": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total",
+          "canImport"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IncomingInvoiceSummary"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "canImport": {
+            "type": "boolean"
+          }
+        }
+      },
+      "IncomingInvoicePermissions": {
+        "required": [
+          "import",
+          "approveWithoutOrder",
+          "viewOrder",
+          "createParty",
+          "editParty",
+          "createItem",
+          "receive"
+        ],
+        "type": "object",
+        "properties": {
+          "import": {
+            "type": "boolean"
+          },
+          "approveWithoutOrder": {
+            "type": "boolean"
+          },
+          "viewOrder": {
+            "type": "boolean"
+          },
+          "createParty": {
+            "type": "boolean"
+          },
+          "editParty": {
+            "type": "boolean"
+          },
+          "createItem": {
+            "type": "boolean"
+          },
+          "receive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "IncomingInvoiceStatus": {
+        "enum": [
+          "Imported",
+          "Checked",
+          "Received",
+          "Rejected"
+        ]
+      },
+      "IncomingInvoiceSummary": {
+        "required": [
+          "id",
+          "number",
+          "series",
+          "accessKey",
+          "issuerName",
+          "issuerDocument",
+          "issuedAt",
+          "total",
+          "status",
+          "withoutOrder",
+          "hasOrder",
+          "itemsCount",
+          "pendingItems",
+          "importedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "series": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "accessKey": {
+            "type": "string"
+          },
+          "issuerName": {
+            "type": "string"
+          },
+          "issuerDocument": {
+            "type": "string"
+          },
+          "issuedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IncomingInvoiceStatus"
+          },
+          "withoutOrder": {
+            "type": "boolean"
+          },
+          "hasOrder": {
+            "type": "boolean"
+          },
+          "itemsCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingItems": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "importedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "IncomingInvoiceTotals": {
+        "required": [
+          "products",
+          "freight",
+          "insurance",
+          "discount",
+          "otherExpenses",
+          "ipi",
+          "icmsBase",
+          "icms",
+          "icmsStBase",
+          "icmsSt",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "products": {
+            "type": "number",
+            "format": "double"
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "insurance": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "otherExpenses": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipi": {
+            "type": "number",
+            "format": "double"
+          },
+          "icmsBase": {
+            "type": "number",
+            "format": "double"
+          },
+          "icms": {
+            "type": "number",
+            "format": "double"
+          },
+          "icmsStBase": {
+            "type": "number",
+            "format": "double"
+          },
+          "icmsSt": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "IncomingInvoiceView": {
+        "required": [
+          "id",
+          "accessKey",
+          "number",
+          "series",
+          "issuedAt",
+          "status",
+          "issuer",
+          "supplier",
+          "totals",
+          "duplicates",
+          "protocol",
+          "authorizedAt",
+          "signerDocument",
+          "sefazStatusChecked",
+          "order",
+          "withoutOrder",
+          "withoutOrderReason",
+          "withoutOrderApprovedByName",
+          "items",
+          "divergences",
+          "pendingItems",
+          "checkBlockedReason",
+          "importedByName",
+          "importedAt",
+          "checkedByName",
+          "checkedAt",
+          "rejectedReason",
+          "rejectedByName",
+          "rejectedAt",
+          "xmlAttachmentId",
+          "can"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accessKey": {
+            "type": "string"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "series": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "issuedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IncomingInvoiceStatus"
+          },
+          "issuer": {
+            "$ref": "#/components/schemas/IncomingIssuerView"
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/IncomingSupplierView"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/IncomingInvoiceTotals"
+          },
+          "duplicates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IncomingDuplicate"
+            }
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "authorizedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "signerDocument": {
+            "type": "string"
+          },
+          "sefazStatusChecked": {
+            "type": "boolean"
+          },
+          "order": {
+            "$ref": "#/components/schemas/IncomingOrderView"
+          },
+          "withoutOrder": {
+            "type": "boolean"
+          },
+          "withoutOrderReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "withoutOrderApprovedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IncomingInvoiceItemView"
+            }
+          },
+          "divergences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IncomingDivergence"
+            }
+          },
+          "pendingItems": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "checkBlockedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "importedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "importedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "checkedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "checkedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "rejectedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "rejectedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "rejectedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "xmlAttachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "can": {
+            "$ref": "#/components/schemas/IncomingInvoicePermissions"
+          }
+        }
+      },
+      "IncomingIssuerAddress": {
+        "required": [
+          "street",
+          "number",
+          "complement",
+          "district",
+          "city",
+          "ibgeCode",
+          "state",
+          "zipCode"
+        ],
+        "type": "object",
+        "properties": {
+          "street": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "complement": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "district": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ibgeCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "zipCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "IncomingIssuerView": {
+        "required": [
+          "document",
+          "name",
+          "tradeName",
+          "stateRegistration",
+          "address"
+        ],
+        "type": "object",
+        "properties": {
+          "document": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tradeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stateRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "address": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IncomingIssuerAddress"
+              }
+            ]
+          }
+        }
+      },
+      "IncomingItemMappingRequest": {
+        "required": [
+          "itemId",
+          "conversionFactor",
+          "noStockItem",
+          "expenseAccountId",
+          "poLineId"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "conversionFactor": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "noStockItem": {
+            "type": "boolean"
+          },
+          "expenseAccountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "poLineId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "suggested": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "IncomingItemOption": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "unitCode",
+          "ncm"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "ncm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "IncomingItemTaxes": {
+        "required": [
+          "icmsCst",
+          "icmsBase",
+          "icmsRate",
+          "icms",
+          "icmsStBase",
+          "icmsSt",
+          "ipiRate",
+          "ipi",
+          "pis",
+          "cofins"
+        ],
+        "type": "object",
+        "properties": {
+          "icmsCst": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "icmsBase": {
+            "type": "number",
+            "format": "double"
+          },
+          "icmsRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "icms": {
+            "type": "number",
+            "format": "double"
+          },
+          "icmsStBase": {
+            "type": "number",
+            "format": "double"
+          },
+          "icmsSt": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipi": {
+            "type": "number",
+            "format": "double"
+          },
+          "pis": {
+            "type": "number",
+            "format": "double"
+          },
+          "cofins": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "IncomingOrderLineOption": {
+        "required": [
+          "lineId",
+          "sequence",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "openQuantity",
+          "unitPrice"
+        ],
+        "type": "object",
+        "properties": {
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "itemName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "openQuantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "IncomingOrderOption": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "expectedDate",
+          "commonItems",
+          "suggested",
+          "citedInInvoice"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PurchaseOrderStatus"
+          },
+          "expectedDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "commonItems": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "suggested": {
+            "type": "boolean"
+          },
+          "citedInInvoice": {
+            "type": "boolean"
+          }
+        }
+      },
+      "IncomingOrderRequest": {
+        "required": [
+          "purchaseOrderId",
+          "withoutOrder"
+        ],
+        "type": "object",
+        "properties": {
+          "purchaseOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "withoutOrder": {
+            "type": "boolean"
+          }
+        }
+      },
+      "IncomingOrderView": {
+        "required": [
+          "purchaseOrderId",
+          "number",
+          "status",
+          "suggestedId",
+          "suggestedNumber",
+          "suggestionReason",
+          "valuesVisible",
+          "freight",
+          "ipi",
+          "options",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "purchaseOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PurchaseOrderStatus"
+              }
+            ]
+          },
+          "suggestedId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "suggestedNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "suggestionReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "valuesVisible": {
+            "type": "boolean"
+          },
+          "freight": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TotalComparison"
+              }
+            ]
+          },
+          "ipi": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TotalComparison"
+              }
+            ]
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IncomingOrderOption"
+            }
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IncomingOrderLineOption"
+            }
+          }
+        }
+      },
+      "IncomingSupplierState": {
+        "enum": [
+          "Found",
+          "NotFound",
+          "NotSupplier"
+        ]
+      },
+      "IncomingSupplierView": {
+        "required": [
+          "state",
+          "partyId",
+          "name",
+          "isActive"
+        ],
+        "type": "object",
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/IncomingSupplierState"
+          },
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "IncomingXmlForm": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IFormFile"
+              }
+            ]
+          }
+        }
+      },
       "InstallationAcceptInput": {
         "required": [
           "date",
@@ -47344,6 +49029,64 @@
           }
         }
       },
+      "ItemComparison": {
+        "required": [
+          "openQuantity",
+          "billedQuantity",
+          "quantityDifference",
+          "quantityLevel",
+          "orderPrice",
+          "invoicePrice",
+          "priceDifference",
+          "pricePercent",
+          "valueDifference",
+          "priceLevel"
+        ],
+        "type": "object",
+        "properties": {
+          "openQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "billedQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "quantityDifference": {
+            "type": "number",
+            "format": "double"
+          },
+          "quantityLevel": {
+            "$ref": "#/components/schemas/DivergenceLevel"
+          },
+          "orderPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "invoicePrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "priceDifference": {
+            "type": "number",
+            "format": "double"
+          },
+          "pricePercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "valueDifference": {
+            "type": "number",
+            "format": "double"
+          },
+          "priceLevel": {
+            "$ref": "#/components/schemas/DivergenceLevel"
+          }
+        }
+      },
       "ItemDetail": {
         "required": [
           "id",
@@ -47680,6 +49423,14 @@
           }
         }
       },
+      "ItemMappingSource": {
+        "enum": [
+          "Remembered",
+          "Suggested",
+          "Manual",
+          null
+        ]
+      },
       "ItemSearchHit": {
         "required": [
           "id",
@@ -47771,6 +49522,46 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "ItemSuggestion": {
+        "required": [
+          "itemId",
+          "code",
+          "name",
+          "unitId",
+          "unitCode",
+          "ncm",
+          "sameNcm"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "unitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "ncm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sameNcm": {
+            "type": "boolean"
           }
         }
       },
@@ -66916,6 +68707,20 @@
           }
         }
       },
+      "RejectIncomingInvoiceRequest": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "RelatedAuditEntryDto": {
         "required": [
           "id",
@@ -76904,6 +78709,40 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "TotalComparison": {
+        "required": [
+          "order",
+          "invoice",
+          "difference",
+          "percent",
+          "level"
+        ],
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": "number",
+            "format": "double"
+          },
+          "invoice": {
+            "type": "number",
+            "format": "double"
+          },
+          "difference": {
+            "type": "number",
+            "format": "double"
+          },
+          "percent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "level": {
+            "$ref": "#/components/schemas/DivergenceLevel"
           }
         }
       },

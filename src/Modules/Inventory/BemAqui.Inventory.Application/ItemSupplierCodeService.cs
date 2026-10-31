@@ -99,6 +99,35 @@ public sealed class ItemSupplierCodeService(IInventoryDb db, IParties parties, T
         return rows.GroupBy(r => r.ItemId).ToDictionary(g => g.Key, g => g.First());
     }
 
+    public async Task<Result> RememberAsync(SupplierCodeMemory memory, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(memory);
+        var code = (memory.SupplierCode ?? string.Empty).Trim();
+        if (!await db.Items.AnyAsync(i => i.Id == memory.ItemId, cancellationToken))
+        {
+            return Error.NotFound("item_not_found", "Item não encontrado.");
+        }
+
+        var row = await db.ItemSupplierCodes.FirstOrDefaultAsync(c => c.PartyId == memory.PartyId && c.SupplierCode == code, cancellationToken);
+        var unit = string.IsNullOrWhiteSpace(memory.SupplierUnit) ? null : memory.SupplierUnit.Trim().ToUpperInvariant();
+        if (row is not null && row.ItemId == memory.ItemId && row.SupplierUnit == unit && row.ConversionFactor == memory.ConversionFactor)
+        {
+            return Result.Success();
+        }
+
+        if (row is not null && row.ItemId != memory.ItemId)
+        {
+            // O código passou a ser de outro item: o vínculo antigo sai (exclusão lógica, gravada antes) e nasce o novo.
+            db.ItemSupplierCodes.Remove(row);
+            await db.SaveChangesAsync(cancellationToken);
+            row = null;
+        }
+
+        row ??= new ItemSupplierCode { ItemId = memory.ItemId, CreatedAt = clock.GetUtcNow() };
+        var saved = await SaveAsync(row, new SupplierCodeInput(memory.PartyId, code, unit, memory.ConversionFactor), cancellationToken);
+        return saved.IsSuccess ? Result.Success() : saved.Error!;
+    }
+
     /// <summary>Terceiro com código de fornecedor não é excluído, só inativado (CAD-01a CA 20).</summary>
     public async Task<string?> UsageAsync(Guid partyId, CancellationToken cancellationToken = default) =>
         await db.ItemSupplierCodes.AnyAsync(c => c.PartyId == partyId, cancellationToken) ? "códigos de fornecedor dos itens" : null;
