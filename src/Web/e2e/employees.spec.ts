@@ -9,7 +9,7 @@ const SENSITIVE = { id: 'e1', cpf: '52998224725', birthDate: '1990-05-10', baseS
 
 /** Afastamento como o /leaves/sensitive devolve (CAD-04c1b): estado calculado e rastro. */
 const leaveRow = (patch: Record<string, unknown>) => ({
-  id: 'l1', type: 'Other', healthProtected: false, state: 'Current', startDate: '2020-01-01', expectedEndDate: '2098-12-31', expectedReturnDate: '2099-01-01',
+  id: 'l1', type: 'JustifiedAbsence', healthProtected: false, state: 'Current', startDate: '2020-01-01', expectedEndDate: '2098-12-31', expectedReturnDate: '2099-01-01',
   reason: null, userId: 'u1', createdAt: '2026-10-22T12:00:00Z', cancelledAt: null, changes: [], ...patch,
 })
 
@@ -148,7 +148,7 @@ test.describe('Funcionários (CAD-04b)', () => {
     const box = await dialog.boundingBox()
     expect(box?.width).toBeGreaterThanOrEqual(399)
     await expect(dialog.getByText('Não informe CID nem diagnóstico.')).toBeVisible()
-    await dialog.getByRole('combobox', { name: /^Tipo/ }).selectOption('Illness')
+    await dialog.getByRole('combobox', { name: /^Tipo/ }).selectOption('MedicalCertificate')
     await dialog.getByRole('textbox', { name: /^Fim previsto/ }).focus()
     await page.keyboard.type('31122030')
     await expect(dialog.getByText('Volta prevista em 01/01/2031.')).toBeVisible()
@@ -156,11 +156,11 @@ test.describe('Funcionários (CAD-04b)', () => {
     await page.keyboard.type('Repouso')
     await press(page, 'Registrar afastamento', dialog)
     await expect(page.getByText('Afastamento registrado')).toBeVisible()
-    expect(posted[0]).toMatchObject({ type: 'Illness', expectedEndDate: '2030-12-31', reason: 'Repouso', version: 3 })
+    expect(posted[0]).toMatchObject({ type: 'MedicalCertificate', expectedEndDate: '2030-12-31', reason: 'Repouso', version: 3 })
     await expect(main.locator('[data-tone="warn"]', { hasText: 'Afastado' }).first()).toBeVisible()
     await page.getByRole('region', { name: 'Próximos passos' }).getByRole('button', { name: 'Ver na linha do tempo' }).click()
     const timeline = page.getByRole('tabpanel', { name: 'Linha do tempo' })
-    await expect(timeline.getByText('Afastamento: Doença')).toBeVisible()
+    await expect(timeline.getByText('Afastamento: Atestado médico')).toBeVisible()
     await expect(timeline.getByText(/volta prevista em 01\/01\/2031/)).toBeVisible()
   })
 
@@ -185,7 +185,7 @@ test.describe('Afastamentos: editar, encerrar e cancelar (CAD-04c1b)', () => {
   test('RH edita o previsto, encerra o em curso com a volta em hoje e cancela, a 400 px (CA 1, 4, 6 e 9)', async ({ page }) => {
     await page.setViewportSize({ width: 400, height: 860 })
     const current = leaveRow({ id: 'l1' })
-    const scheduled = leaveRow({ id: 'l2', type: 'Other', state: 'Scheduled', startDate: '2099-01-10', expectedEndDate: '2099-01-20', expectedReturnDate: '2099-01-21' })
+    const scheduled = leaveRow({ id: 'l2', type: 'JustifiedAbsence', state: 'Scheduled', startDate: '2099-01-10', expectedEndDate: '2099-01-20', expectedReturnDate: '2099-01-21' })
     const { api, posted } = employeesApi([{ ...EMPLOYEE, status: 'OnLeave', version: 5 }], [scheduled, current])
     await mockApi(page, { ...api, 'GET /api/v1/me/permissions': (r: Route) => json(r, { permissions: [], isOwner: true, version: '9', modules: withHr(['view', 'edit', 'view_sensitive', 'view_health']) }) })
     await page.goto('/app/rh/funcionarios/e1?aba=linha-do-tempo')
@@ -200,11 +200,11 @@ test.describe('Afastamentos: editar, encerrar e cancelar (CAD-04c1b)', () => {
     expect((await edit.boundingBox())?.width).toBeGreaterThanOrEqual(399)
     await expect(edit.getByRole('textbox', { name: /^Início/ })).toHaveValue('10/01/2099')
     await edit.getByRole('combobox', { name: /^Tipo/ }).selectOption('Military')
-    await expect(edit.getByRole('group', { name: 'Impacto' })).toContainText('Tipo: Outros → Serviço militar')
+    await expect(edit.getByRole('group', { name: 'Impacto' })).toContainText('Tipo: Falta justificada → Serviço militar')
     await press(page, 'Salvar afastamento', edit)
     await expect(page.getByText('Afastamento salvo')).toBeVisible()
     expect(posted.at(-1)).toMatchObject({ type: 'Military', startDate: '2099-01-10', expectedEndDate: '2099-01-20', version: 5 })
-    await expect(item('10/01/2099').getByText(/Editado em .*Outros → Serviço militar/)).toBeVisible()
+    await expect(item('10/01/2099').getByText(/Editado em .*Falta justificada → Serviço militar/)).toBeVisible()
 
     // Encerrar o em curso: a volta vem preenchida com hoje.
     await press(page, 'Encerrar afastamento', item('01/01/2020'))
@@ -252,6 +252,6 @@ test.describe('Afastamentos: editar, encerrar e cancelar (CAD-04c1b)', () => {
     await press(page, 'Registrar afastamento', page.getByRole('main'))
     const dialog = page.getByRole('alertdialog', { name: /Registrar afastamento de Joana Lima/ })
     const options = await dialog.getByRole('combobox', { name: /^Tipo/ }).locator('option').allTextContents()
-    expect(options).toEqual(['Escolha', 'Maternidade', 'Paternidade', 'Serviço militar', 'Outros'])
+    expect(options).toEqual(['Escolha', 'Maternidade', 'Paternidade', 'Serviço militar', 'Falta justificada'])
   })
 })

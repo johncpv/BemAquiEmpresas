@@ -36,13 +36,13 @@ public class EmployeeLeaveChangeRulesTests
         EmployeeLeaveRules.State(Start, End, cancelled, D(today)).Should().Be(expected);
 
     [Theory]
-    [InlineData(EmployeeLeaveType.Illness, true)]
-    [InlineData(EmployeeLeaveType.WorkAccident, true)]
-    [InlineData(EmployeeLeaveType.Maternity, false)]
-    [InlineData(EmployeeLeaveType.Paternity, false)]
-    [InlineData(EmployeeLeaveType.Military, false)]
-    [InlineData(EmployeeLeaveType.Other, false)]
-    public void Doenca_e_acidente_sao_dado_de_saude(EmployeeLeaveType type, bool health) => EmployeeLeaveRules.IsHealth(type).Should().Be(health);
+    [InlineData(AbsenceReason.MedicalCertificate, true)]
+    [InlineData(AbsenceReason.WorkAccident, true)]
+    [InlineData(AbsenceReason.Maternity, false)]
+    [InlineData(AbsenceReason.Paternity, false)]
+    [InlineData(AbsenceReason.Military, false)]
+    [InlineData(AbsenceReason.JustifiedAbsence, false)]
+    public void Doenca_e_acidente_sao_dado_de_saude(AbsenceReason type, bool health) => EmployeeLeaveRules.IsHealth(type).Should().Be(health);
 
     [Fact]
     public void Tipo_e_motivo_de_qualquer_afastamento_so_com_view_health()

@@ -29,7 +29,7 @@ Todos os arquivos: separador ponto e vírgula (`;`), UTF-8 com BOM (a planilha a
 - `cargo` e `cbo` (`9999-99`): na admissão (o cargo da admissão) e na troca de cargo (o cargo novo).
 - `salario`: na admissão (o salário da admissão) e no reajuste (o salário novo).
 - `data`: a admissão, o desligamento, a vigência do reajuste ou da troca, ou o início do afastamento.
-- `tipo_afastamento` (Doença, Acidente de trabalho, Maternidade, Paternidade, Serviço militar ou Outros) e `fim_previsto` (último dia previsto): só no afastamento.
+- `tipo_afastamento` (o motivo da lista única de ausências: Atestado médico, Acidente de trabalho, Maternidade, Paternidade, Serviço militar ou Falta justificada) e `fim_previsto` (último dia previsto): só no afastamento.
 
 Entram o afastamento que cobre algum dia do mês (inclusive o que começou antes) e o reajuste e a troca de cargo com vigência no mês. Afastamento cancelado não entra. O **motivo** do afastamento e das mudanças nunca sai.
 

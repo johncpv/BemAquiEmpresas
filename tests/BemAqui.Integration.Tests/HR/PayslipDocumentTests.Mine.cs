@@ -99,7 +99,7 @@ public partial class PayslipDocumentTests
         static string Iso(int days) => BemAqui.BuildingBlocks.Time.BusinessTime.Today(TimeProvider.System).AddDays(days).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
         var version = (await JsonAsync(await owner.Client.GetAsync($"/api/v1/hr/employees/{ana.Id}"))).GetProperty("version").GetUInt32();
         var leave = await owner.Client.PostAsJsonAsync($"/api/v1/hr/employees/{ana.Id}/leaves",
-            new { type = "Illness", startDate = Iso(-1), expectedEndDate = Iso(10), reason = "Repouso", version });
+            new { type = "MedicalCertificate", startDate = Iso(-1), expectedEndDate = Iso(10), reason = "Repouso", version });
         leave.IsSuccessStatusCode.Should().BeTrue(await leave.Content.ReadAsStringAsync());
         var me = await LinkedAsync(ana.Id);
 

@@ -48,18 +48,6 @@ public enum EmployeeLeaveState
     Cancelled,
 }
 
-/// <summary>Tipos de afastamento (CAD-04c1, decisão do PO de 21/10/2026). Férias não são afastamento (ficam para a folha).</summary>
-[JsonConverter(typeof(JsonStringEnumConverter<EmployeeLeaveType>))]
-public enum EmployeeLeaveType
-{
-    Illness,
-    WorkAccident,
-    Maternity,
-    Paternity,
-    Military,
-    Other,
-}
-
 /// <summary>
 /// Funcionário (<c>hr.employees</c>, CAD-04b). Nome, matrícula, cargo, jornada, sindicato, admissão, desligamento e situação não
 /// são sensíveis; documentos, nascimento, endereço, contatos pessoais e salário são <c>[PersonalData]</c> e só saem pela rota
@@ -266,7 +254,7 @@ public sealed class EmployeeHistoryEntry : Entity, IAuditable
 
     /// <summary>Tipo do afastamento (só no Leave): dado de saúde quando é doença ou acidente (LGPD art. 11).</summary>
     [PersonalData]
-    public EmployeeLeaveType? LeaveType { get; set; }
+    public AbsenceReason? LeaveType { get; set; }
 
     /// <summary>
     /// Fim previsto do afastamento (só no Leave), inclusive: a volta prevista é o dia seguinte. No encerramento antes do previsto
@@ -277,7 +265,7 @@ public sealed class EmployeeHistoryEntry : Entity, IAuditable
 
     /// <summary>Tipo anterior (só no LeaveChange de edição, CAD-04c1b): dado de saúde, como o tipo.</summary>
     [PersonalData]
-    public EmployeeLeaveType? PreviousLeaveType { get; init; }
+    public AbsenceReason? PreviousLeaveType { get; init; }
 
     /// <summary>Afastamento a que o LeaveChange se refere (CAD-04c1b).</summary>
     public Guid? LeaveId { get; init; }
@@ -318,8 +306,8 @@ public static class EmployeeLeaveRules
     public const string NotStartedCode = "leave_not_started";
     public const string StartedCode = "leave_started";
 
-    /// <summary>Doença e acidente de trabalho são dado de saúde: tipo e detalhes só com <c>hr.view_health</c> (CAD-04c1b, PO 22/10/2026).</summary>
-    public static bool IsHealth(EmployeeLeaveType? type) => type is EmployeeLeaveType.Illness or EmployeeLeaveType.WorkAccident;
+    /// <summary>Atestado médico e acidente de trabalho (lista única de ausências, RH-01b) são dado de saúde: tipo e detalhes só com <c>hr.view_health</c> (CAD-04c1b, PO 22/10/2026).</summary>
+    public static bool IsHealth(AbsenceReason? type) => AbsenceReasons.IsHealth(type);
 
     /// <summary>
     /// Tipo e motivo de qualquer afastamento só com <c>hr.view_health</c> (PO 22/10/2026, CAD-04c1b 1.1): mostrar os demais tipos

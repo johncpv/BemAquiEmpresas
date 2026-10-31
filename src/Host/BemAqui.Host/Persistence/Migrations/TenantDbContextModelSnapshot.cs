@@ -6182,6 +6182,117 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("payslip_lines", "hr");
                 });
 
+            modelBuilder.Entity("BemAqui.HR.Domain.TimeAdjustment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int?>("AbsenceMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("absence_minutes");
+
+                    b.Property<string>("AbsenceReason")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("absence_reason");
+
+                    b.Property<DateTimeOffset?>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.Property<Guid?>("CreatedEntryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_entry_id");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date")
+                        .HasColumnName("day");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at");
+
+                    b.Property<Guid?>("DecidedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("decided_by");
+
+                    b.Property<string>("DecisionComment")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("decision_comment");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<Guid?>("EntryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("entry_id");
+
+                    b.Property<string>("EntryType")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("entry_type");
+
+                    b.Property<string>("Justification")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("justification");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("requested_at");
+
+                    b.Property<Guid?>("RequestedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by");
+
+                    b.Property<bool>("SelfApproved")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_approved");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_time_adjustments");
+
+                    b.HasIndex("EntryId")
+                        .HasDatabaseName("ix_time_adjustments_entry");
+
+                    b.HasIndex("EmployeeId", "Day")
+                        .HasDatabaseName("ix_time_adjustments_employee_day");
+
+                    b.HasIndex("Status", "RequestedAt")
+                        .HasDatabaseName("ix_time_adjustments_status_requested");
+
+                    b.ToTable("time_adjustments", "hr");
+                });
+
             modelBuilder.Entity("BemAqui.HR.Domain.TimeClockGeoConsent", b =>
                 {
                     b.Property<Guid>("Id")
@@ -6227,6 +6338,14 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<int?>("AccuracyM")
                         .HasColumnType("integer")
                         .HasColumnName("accuracy_m");
+
+                    b.Property<Guid?>("AdjustmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("adjustment_id");
+
+                    b.Property<Guid?>("ApprovedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("approved_by");
 
                     b.Property<DateTimeOffset>("At")
                         .HasColumnType("timestamp with time zone")
@@ -6285,6 +6404,24 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("type");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<Guid?>("VoidAdjustmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("void_adjustment_id");
+
+                    b.Property<DateTimeOffset?>("VoidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("voided_at");
+
+                    b.Property<Guid?>("VoidedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("voided_by");
 
                     b.HasKey("Id")
                         .HasName("pk_time_entries");
@@ -13380,6 +13517,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_payslip_lines_payslips_payslip_id");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.TimeAdjustment", b =>
+                {
+                    b.HasOne("BemAqui.HR.Domain.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_time_adjustments_employees_employee_id");
                 });
 
             modelBuilder.Entity("BemAqui.HR.Domain.TimeClockGeoConsent", b =>

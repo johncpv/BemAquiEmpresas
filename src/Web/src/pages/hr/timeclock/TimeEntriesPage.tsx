@@ -7,6 +7,7 @@ import { PageHeading } from '@/shell/PageHeading'
 import { HrTabs } from '../HrTabs'
 import { InternalControlBanner } from './TimeClockPanel'
 import { defaultRange, todayInSaoPaulo } from './time-clock'
+import { TimeClockTabs } from './TimeClockTabs'
 import { TimeEntriesByDay } from './TimeEntriesView'
 
 const text = (v: unknown) => (typeof v === 'string' && v ? v : undefined)
@@ -64,6 +65,7 @@ export function TimeEntriesPage() {
       </PageHeading>
       <HrTabs />
       <div className="max-w-4xl space-y-4">
+        <TimeClockTabs />
         <InternalControlBanner />
         <form aria-label="Filtros das marcações" className="flex flex-wrap items-end gap-3" onSubmit={(e) => e.preventDefault()}>
           <label className="flex flex-col text-xs font-semibold">De

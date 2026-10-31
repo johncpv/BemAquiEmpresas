@@ -360,6 +360,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<TimeClockGeoConsent> TimeClockGeoConsents => Set<TimeClockGeoConsent>();
 
+    public DbSet<TimeAdjustment> TimeAdjustments => Set<TimeAdjustment>();
+
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
 
     public DbSet<ImportItem> ImportItems => Set<ImportItem>();

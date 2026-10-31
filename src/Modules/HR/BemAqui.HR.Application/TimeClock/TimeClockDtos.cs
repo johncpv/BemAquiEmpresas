@@ -60,9 +60,13 @@ public sealed record MyTimeEntry(
     Guid Id, DateTimeOffset At, DateOnly Day, TimeEntryType Type, TimeEntrySource Source, string? DeviceName, TimeEntryLocation Location, TimeEntryStatus Status,
     decimal? Latitude, decimal? Longitude, int? AccuracyM);
 
-/// <summary>Linha da consulta do RH (CA 12), com <c>hr.view</c>: nenhuma propriedade de localização, só a marca "Sem localização".</summary>
+/// <summary>
+/// Linha da consulta do RH (CA 12), com <c>hr.view</c>: nenhuma propriedade de localização, só a marca "Sem localização". RH-01b: o pedido
+/// que criou a marcação (origem Manual, com a marca "autoaprovado") e, na desconsiderada, "Desconsiderada por {aprovador} em {data}: {motivo}".
+/// </summary>
 public sealed record TimeEntryRow(
-    Guid Id, Guid EmployeeId, string EmployeeName, DateOnly Day, DateTimeOffset At, TimeEntryType Type, TimeEntrySource Source, string? DeviceName, TimeEntryLocation Location, TimeEntryStatus Status);
+    Guid Id, Guid EmployeeId, string EmployeeName, DateOnly Day, DateTimeOffset At, TimeEntryType Type, TimeEntrySource Source, string? DeviceName, TimeEntryLocation Location, TimeEntryStatus Status,
+    Guid? AdjustmentId = null, bool SelfApproved = false, Guid? VoidAdjustmentId = null, string? VoidedNote = null);
 
 /// <summary>Marcações do período; <c>Truncated</c> quando passou do limite de linhas (filtre por funcionário ou centro).</summary>
 public sealed record TimeEntryList(DateOnly From, DateOnly To, IReadOnlyList<TimeEntryRow> Items, bool Truncated);

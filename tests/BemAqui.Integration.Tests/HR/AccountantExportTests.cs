@@ -208,8 +208,8 @@ public class AccountantExportTests(TenancyFixture tenancy) : IClassFixture<Tenan
             db.EmployeeHistory.AddRange(
                 new EmployeeHistoryEntry { EmployeeId = changed.Id, Kind = EmployeeHistoryKind.Salary, EffectiveDate = new DateOnly(2024, 3, 1), OldValue = "3300.00", NewValue = "4000.00", Reason = $"Motivo {Canary}", CreatedAt = now },
                 new EmployeeHistoryEntry { EmployeeId = changed.Id, Kind = EmployeeHistoryKind.Position, EffectiveDate = new DateOnly(2024, 3, 10), OldValue = positionName, NewValue = newPosition, Reason = $"Motivo {Canary}", CreatedAt = now },
-                new EmployeeHistoryEntry { EmployeeId = changed.Id, Kind = EmployeeHistoryKind.Leave, EffectiveDate = new DateOnly(2024, 2, 25), LeaveEndDate = new DateOnly(2024, 3, 5), LeaveType = EmployeeLeaveType.Illness, NewValue = "Illness", Reason = $"Afastamento {Canary}", CreatedAt = now },
-                new EmployeeHistoryEntry { EmployeeId = other.Id, Kind = EmployeeHistoryKind.Leave, EffectiveDate = new DateOnly(2024, 3, 25), LeaveEndDate = new DateOnly(2024, 3, 28), LeaveType = EmployeeLeaveType.Other, NewValue = "Other", Reason = "Cancelado", CreatedAt = now, CancelledAt = now },
+                new EmployeeHistoryEntry { EmployeeId = changed.Id, Kind = EmployeeHistoryKind.Leave, EffectiveDate = new DateOnly(2024, 2, 25), LeaveEndDate = new DateOnly(2024, 3, 5), LeaveType = AbsenceReason.MedicalCertificate, NewValue = "Illness", Reason = $"Afastamento {Canary}", CreatedAt = now },
+                new EmployeeHistoryEntry { EmployeeId = other.Id, Kind = EmployeeHistoryKind.Leave, EffectiveDate = new DateOnly(2024, 3, 25), LeaveEndDate = new DateOnly(2024, 3, 28), LeaveType = AbsenceReason.JustifiedAbsence, NewValue = "Other", Reason = "Cancelado", CreatedAt = now, CancelledAt = now },
                 new EmployeeHistoryEntry { EmployeeId = other.Id, Kind = EmployeeHistoryKind.Salary, EffectiveDate = new DateOnly(2024, 4, 1), OldValue = "3300.00", NewValue = "3600.00", Reason = "Fora da competência", CreatedAt = now });
             (await db.Employees.SingleAsync(e => e.Id == deleted.Id)).MarkDeleted(now);
             await db.SaveChangesAsync();
@@ -242,7 +242,7 @@ public class AccountantExportTests(TenancyFixture tenancy) : IClassFixture<Tenan
         events.Single(r => r[1] == leaving.Registration).Should().Equal("desligamento", leaving.Registration, leaving.Name, Masked(leaving.Cpf), "", "", "", "", "", "20/03/2024", "", "");
         events.Single(r => r[0] == "reajuste" && r[1] == changed.Registration)[7..10].Should().Equal("4000,00", "", "01/03/2024");
         events.Single(r => r[0] == "troca_cargo" && r[1] == changed.Registration)[5..10].Should().Equal(newPosition, "7243-15", "", "", "10/03/2024");
-        events.Single(r => r[0] == "afastamento" && r[1] == changed.Registration)[9..].Should().Equal("25/02/2024", "Doença", "05/03/2024");
+        events.Single(r => r[0] == "afastamento" && r[1] == changed.Registration)[9..].Should().Equal("25/02/2024", "Atestado médico", "05/03/2024");
         events.Should().NotContain(r => r[1] == other.Registration, "o afastamento cancelado e o reajuste de abril ficam fora");
         events.Should().NotContain(r => r[1] == deleted.Registration, "funcionário excluído não entra");
 
@@ -327,7 +327,7 @@ public class AccountantExportTests(TenancyFixture tenancy) : IClassFixture<Tenan
         var employee = await EmployeeAsync(owner, positionId, "2020-01-02");
         await DbAsync(async db =>
         {
-            db.EmployeeHistory.Add(new EmployeeHistoryEntry { EmployeeId = employee.Id, Kind = EmployeeHistoryKind.Leave, EffectiveDate = new DateOnly(2024, 7, 1), LeaveEndDate = new DateOnly(2024, 7, 15), LeaveType = EmployeeLeaveType.WorkAccident, NewValue = "WorkAccident", Reason = "x", CreatedAt = DateTimeOffset.UtcNow });
+            db.EmployeeHistory.Add(new EmployeeHistoryEntry { EmployeeId = employee.Id, Kind = EmployeeHistoryKind.Leave, EffectiveDate = new DateOnly(2024, 7, 1), LeaveEndDate = new DateOnly(2024, 7, 15), LeaveType = AbsenceReason.WorkAccident, NewValue = "WorkAccident", Reason = "x", CreatedAt = DateTimeOffset.UtcNow });
             await db.SaveChangesAsync();
             return 0;
         });

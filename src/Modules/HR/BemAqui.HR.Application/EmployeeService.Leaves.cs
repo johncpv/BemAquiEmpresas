@@ -234,7 +234,7 @@ public sealed partial class EmployeeService
                 // PO 22/10/2026 (CAD-04c1b 1.1): sem hr.view_health, nenhum tipo nem motivo sai, de nenhum tipo, para não deixar
                 // inferir qual é de saúde; só "Afastado" e as datas.
                 var hidden = !EmployeeLeaveRules.ShowsDetails(health);
-                return new LeaveDetail(h.Id, hidden ? null : h.LeaveType ?? EmployeeLeaveType.Other, hidden,
+                return new LeaveDetail(h.Id, hidden ? null : h.LeaveType ?? AbsenceReason.JustifiedAbsence, hidden,
                     EmployeeLeaveRules.State(h.EffectiveDate, end, h.CancelledAt is not null, today), h.EffectiveDate, end, end.AddDays(1),
                     hidden ? null : h.Reason, h.UserId, h.CreatedAt, h.CancelledAt, own.Select(c => ChangeDetail(c, hidden)).ToList());
             }).ToList();
@@ -268,7 +268,7 @@ public sealed partial class EmployeeService
     }
 
     private EmployeeHistoryEntry Change(EmployeeHistoryEntry leave, EmployeeLeaveChangeKind kind, DateOnly effective, DateOnly oldStart, DateOnly oldEnd, DateOnly newStart, DateOnly newEnd,
-        EmployeeLeaveType? oldType, EmployeeLeaveType? newType, string reason, DateTimeOffset now) => new()
+        AbsenceReason? oldType, AbsenceReason? newType, string reason, DateTimeOffset now) => new()
     {
         EmployeeId = leave.EmployeeId, Kind = EmployeeHistoryKind.LeaveChange, LeaveId = leave.Id, LeaveChange = kind, EffectiveDate = effective,
         OldValue = Period(oldStart, oldEnd), NewValue = Period(newStart, newEnd), PreviousLeaveType = oldType, LeaveType = newType, Reason = reason,
@@ -307,9 +307,9 @@ public sealed partial class EmployeeService
 
     private static Error? LeaveError(LeaveInput input, Employee employee)
     {
-        if (input.Type is null || !Enum.IsDefined(input.Type.Value))
+        if (input.Type is null || !AbsenceReasons.ForLeave(input.Type.Value))
         {
-            return PositionService.Invalid("type", "Escolha o tipo do afastamento.");
+            return PositionService.Invalid("type", "Escolha o motivo do afastamento na lista de ausências.");
         }
 
         if (input.StartDate is null)

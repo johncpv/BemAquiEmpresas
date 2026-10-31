@@ -19,6 +19,14 @@ Registrar a sua entrada, a saída e a volta do intervalo e a saída do dia com u
 - Tocou duas vezes sem querer? Só a primeira vale: a segunda mostra "Você já registrou entrada às 08:02.".
 - **Minhas marcações** mostra as suas marcações dos últimos 60 dias, com a origem (App ou PIN no tablet) e, quando houver, a localização.
 
+## Pedir ajuste
+- **Incluir marcação esquecida**: informe a data, a hora, o tipo e a justificativa (10 a 200 caracteres, sem CID nem diagnóstico) e toque em **Pedir ajuste**. A mensagem diz "Pedido enviado para aprovação". O mesmo pedido abre no aviso "Esqueceu uma marcação?".
+- **Desconsiderar esta marcação**: em **Minhas marcações**, toque no botão ao lado da marcação errada e escreva a justificativa. A marcação continua guardada, só deixa de contar.
+- **Abonar ausência**: escolha o dia, o dia inteiro ou as horas, o motivo da lista (Atestado médico, Declaração de comparecimento, Falta justificada e outros) e a justificativa. Anexe o documento (PDF, PNG ou JPG até 10 MB) se tiver; dá para anexar depois em **Meus pedidos**, enquanto o pedido aguarda.
+- **Meus pedidos** mostra cada pedido com a situação: **Aguardando aprovação**, **Aprovado**, **Reprovado** (com o motivo) ou **Cancelado**. Enquanto aguarda, **Cancelar pedido** desiste dele.
+- O RH aprova antes de mudar o seu ponto, e você recebe o aviso da decisão. O motivo de saúde e o atestado só são vistos por você e por quem tem a permissão de dados de saúde no RH.
+- No tablet da fábrica (entrada por PIN) não dá para pedir ajuste: entre com e-mail e senha no celular ou no computador.
+
 ## Localização
 - A empresa pode ligar a localização do ponto em Configurações. Desligada, nada é pedido.
 - Ligada, antes do primeiro pedido aparece o aviso: "Para que serve a localização: registrar onde a marcação foi feita, como indício. Só o RH com permissão vê. Você pode negar." Toque em **Entendi e continuar** e o navegador pede a permissão. A sua ciência fica registrada; se o texto mudar, o aviso volta.
@@ -30,9 +38,9 @@ Registrar a sua entrada, a saída e a volta do intervalo e a saída do dia com u
 - Sem rede não existe marcação: a tela mostra "Sem conexão. O ponto precisa de rede para usar a hora do servidor. Tente de novo ou avise o RH." Nada fica guardado para enviar depois.
 
 ## Perguntas frequentes
-**Esqueci uma marcação. E agora?** Marque o que faltou em **Outra marcação** assim que lembrar e peça o ajuste ao RH. A marcação fora de ordem é aceita e aparece como inconsistência no espelho.
+**Esqueci uma marcação. E agora?** Se foi agora há pouco, marque em **Outra marcação**. Se passou, use **Pedir ajuste** → **Incluir marcação esquecida**, com a hora certa. A marcação fora de ordem é aceita e aparece como inconsistência no espelho.
 
-**Posso corrigir ou apagar uma marcação?** Não. A marcação não é editada nem apagada. O RH faz o ajuste com justificativa, e a marcação original fica no histórico como desconsiderada.
+**Posso corrigir ou apagar uma marcação?** Não. A marcação não é editada nem apagada. Peça o ajuste com justificativa; aprovado, a marcação original fica no histórico como desconsiderada.
 
 **Apareceu "Seu usuário não está ligado a um funcionário ativo".** O seu login ainda não está ligado ao seu cadastro de funcionário, ou o cadastro está desligado ou afastado. Fale com o RH.
 
