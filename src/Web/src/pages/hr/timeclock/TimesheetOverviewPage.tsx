@@ -63,6 +63,11 @@ export function TimesheetOverviewPage() {
   const period = text(search.mes) ?? query.data?.period.slice(0, 7) ?? ''
   const [closing, setClosing] = useState(false)
   const [check, setCheck] = useState<TimesheetCloseCheck | null>(null)
+  // O diálogo é controlado (aberto pelo botão), então o onOpen do ConfirmDialog não dispara: a conferência sai no clique.
+  const loadCheck = () => {
+    setCheck(null)
+    void getTimesheetCloseCheck(period).then(setCheck).catch(() => setCheck({ period, start: '', end: '', canClose: false, blockers: ['Não foi possível conferir as pendências. Feche e abra de novo.'], employees: [], employeeCount: 0 }))
+  }
   const [reopening, setReopening] = useState(false)
   const [reason, setReason] = useState('')
   const [steps, setSteps] = useState<Step[]>([])
@@ -167,14 +172,13 @@ export function TimesheetOverviewPage() {
               <button type="button" onClick={() => { setReason(''); setReopening(true) }} className="min-h-11 rounded-md border border-border px-3 text-sm font-semibold">Reabrir período</button>
             ) : null}
             {data?.closable && canEdit ? (
-              <button type="button" onClick={() => setClosing(true)} className="min-h-11 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground">Fechar o período {label}</button>
+              <button type="button" onClick={() => { loadCheck(); setClosing(true) }} className="min-h-11 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground">Fechar o período {label}</button>
             ) : null}
           </span>
         </div>
         {content}
       </div>
       <ConfirmDialog verb="Fechar período" done={`Período ${label} fechado`} title={`Fechar o período ${label}?`} size="lg" open={closing} onOpenChange={setClosing}
-        onOpen={() => { setCheck(null); void getTimesheetCloseCheck(period).then(setCheck).catch(() => setCheck({ period, start: '', end: '', canClose: false, blockers: ['Não foi possível conferir as pendências. Feche e abra de novo.'], employees: [], employeeCount: 0 })) }}
         description="Os totais de cada funcionário ficam congelados (esperado, trabalhado, extras, faltas, atrasos, abonado e banco de horas) e nenhum ajuste entra mais no período, até alguém reabrir."
         preconditions={preconditionsOf(check, navigate, period)}
         onConfirm={async () => {
