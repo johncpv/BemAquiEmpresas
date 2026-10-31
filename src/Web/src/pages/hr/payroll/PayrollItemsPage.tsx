@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { confirmPayrollItem, createPayrollItem, deletePayrollItem, getListPayrollItemsQueryKey, inactivatePayrollItem, reactivatePayrollItem, updatePayrollItem, useListPayrollItems } from '@/api/generated/bemaqui'
-import type { PayrollItemDetail, PayrollItemKind } from '@/api/generated/model'
+import type { PayrollItemDetail, PayrollItemKind, PayrollTimesheetSource } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { Field, FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
@@ -65,12 +65,12 @@ export function PayrollItemsPage() {
 }
 
 function ItemPanel({ item, canEdit, onClose, onSaved, onChanged }: { item: PayrollItemDetail | null; canEdit: boolean; onClose: () => void; onSaved: (close: boolean) => void; onChanged: (item: PayrollItemDetail) => void }) {
-  const start = { code: item?.code ?? '', name: item?.name ?? '', kind: (item?.kind ?? 'Earning') as PayrollItemKind, inssBase: item?.inssBase ?? false, fgtsBase: item?.fgtsBase ?? false, irrfBase: item?.irrfBase ?? false }
+  const start = { code: item?.code ?? '', name: item?.name ?? '', kind: (item?.kind ?? 'Earning') as PayrollItemKind, inssBase: item?.inssBase ?? false, fgtsBase: item?.fgtsBase ?? false, irrfBase: item?.irrfBase ?? false, timesheetSource: item?.timesheetSource ?? '' }
   const [draft, setDraft] = useState(start)
   const [error, setError] = useState<{ message: string; fields: Record<string, string[]> } | null>(null)
   const save = async () => {
     try {
-      const input = { ...draft, version: item?.version ?? null }
+      const input = { ...draft, timesheetSource: (draft.timesheetSource || null) as PayrollTimesheetSource | null, version: item?.version ?? null }
       if (item) await updatePayrollItem(item.id, input)
       else await createPayrollItem(input)
       notifySuccess('Rubrica salva')
@@ -147,6 +147,17 @@ function ItemPanel({ item, canEdit, onClose, onSaved, onChanged }: { item: Payro
             {check('fgtsBase', 'Base do FGTS')}
             {check('irrfBase', 'Base do IRRF')}
           </div>
+          <Field label="Origem no ponto" hint="Total do espelho de ponto fechado que preenche a referência desta rubrica no holerite (“Usar horas do espelho”). O valor continua vindo da contadora."
+            dica="Ligue a rubrica a um total do espelho: horas extras, faltas ou atrasos. No holerite, “Usar horas do espelho” preenche só a referência (as horas), nunca o valor.">
+            {(p) => (
+              <select {...p} value={draft.timesheetSource} onChange={(e) => setDraft({ ...draft, timesheetSource: e.target.value })} className={inputClass}>
+                <option value="">Sem ligação com o ponto</option>
+                <option value="Overtime">Horas extras do espelho</option>
+                <option value="Absence">Faltas do espelho</option>
+                <option value="Late">Atrasos do espelho</option>
+              </select>
+            )}
+          </Field>
         </fieldset>
         {item ? (
           <details className="text-sm">

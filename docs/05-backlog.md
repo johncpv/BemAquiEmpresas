@@ -561,7 +561,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - CA: lançamento do RH e pedido do funcionário como ajuste `Pending`, ambos com aprovação; lista única de ausências com os afastamentos; atestado só com `hr.view_health`; quem pede não aprova (Proprietário único com a marca); período fechado bloqueia.
 - **`hr.view_health` (decisão do PO de 22/10/2026):** a RH-01b usa a ação `hr.view_health` já entregue pela CAD-04c1b (catálogo e seed patch `hr-view-health` no grupo RH); não cria ação nem seed patch novo.
 
-**RH-01c [ ] Ponto: espelho mensal, banco de horas simples e fechamento do período (G)** — 6.1, ordem 8 — `Ready (pré-condição externa)` — [story](stories/RH-01c-espelho-banco-horas-fechamento.md)
+**RH-01c [x] Ponto: espelho mensal, banco de horas simples e fechamento do período (G)** — 6.1, ordem 8 — `Done` (pré-condição externa: conferência da contadora e do jurídico) — [story](stories/RH-01c-espelho-banco-horas-fechamento.md)
 - Requisitos: R-RH-4 (parte), R-RH-5, R-COM-3, PRD §6 (Desempenho, LGPD), R-SEC-5, R-PRP-2, R-PRP-5.
 - CA: espelho por dia pela jornada e pelo `IBusinessCalendar`; tolerância de 5/10 min, banco de horas só com acordo e apuração pelo mês civil, pré-configurados "a confirmar"; fecha quem tem `hr.edit`; "Li e confirmo" no Meu espelho; "Usar horas do espelho" na folha; PDF com a faixa de controle interno; 50 funcionários em menos de 1 s.
 

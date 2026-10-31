@@ -108,7 +108,9 @@ public static class HrInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExport, StandardAccountantExport>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExportSection, AccountantMovementsSection>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExportSection, AccountantPayrollSection>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExportSection, AccountantTimeclockPendingSection>());
+        // RH-01c: o layout padrão sobe para v2 (com o ponto.csv); o v1 continua para quem já conferiu com a contadora.
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExport, AccountantExportV1>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExportSection, AccountantTimesheetSection>());
 
         // Holerite em PDF, "Meus holerites" e aviso (RH-02b). Os PDFs guardados (dono Payslip) e o ZIP de "Baixar todos" (dono
         // PayslipBatch, a folha) são arquivos do sistema: ler com hr.view_sensitive, cada download grava SensitiveRead (AuditReads) e o
@@ -130,13 +132,27 @@ public static class HrInfrastructure
         // documento do abono (dono TimeAdjustmentDocument, ADR 0019 §7) lê e grava com hr.view_health, pdf, png e jpg até 10 MB, confere o
         // pedido e grava SensitiveRead no download; a rota genérica de anexos não grava (CanAttach): só a do pedido, que confere o registro.
         // O histórico do pedido abre com hr.view (justificativa, motivo e comentário mascarados, [PersonalData]).
-        services.TryAddScoped<BemAqui.HR.Application.TimeClock.ITimesheetPeriodLock, BemAqui.HR.Application.TimeClock.NoTimesheetClosings>();
+        services.TryAddScoped<BemAqui.HR.Application.TimeClock.ITimesheetPeriodLock, BemAqui.HR.Application.TimeClock.TimesheetClosings>();
         services.TryAddScoped<BemAqui.HR.Application.TimeClock.TimeAdjustmentService>();
         services.AddAuditableEntity<TimeAdjustment>("hr");
         services.AddAttachmentOwner(BemAqui.HR.Application.TimeClock.TimeAdjustmentService.DocumentOwner, new AttachmentOwnerRules("hr", ["application/pdf", "image/png", "image/jpeg"], 10 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IHrDb>().TimeAdjustments.AnyAsync(a => a.Id == id && a.Kind == TimeAdjustmentKind.Absence, ct),
             ReadAction: BemAqui.HR.Application.TimeClock.TimeAdjustmentService.HealthAction, WriteAction: BemAqui.HR.Application.TimeClock.TimeAdjustmentService.HealthAction,
             CanAttach: ByRequestOnly, AuditReads: true));
+        // Espelho, banco de horas e fechamento (RH-01c): o histórico do espelho e dos dias revisados abre com hr.view (os dias congelados e o
+        // comentário saem mascarados, [PersonalData]). O PDF do espelho fechado (dono Timesheet) e o ZIP do período (dono TimesheetBatch) são
+        // arquivos do sistema: ler com hr.view (o próprio funcionário pela rota dele), cada download auditado, e ninguém anexa nada a eles.
+        services.TryAddScoped<BemAqui.HR.Application.TimeClock.TimesheetService>();
+        services.TryAddScoped<BemAqui.HR.Application.TimeClock.TimesheetPdfService>();
+        services.AddAuditableEntity<Timesheet>("hr");
+        services.AddAuditableEntity<TimesheetDayReview>("hr");
+        services.AddAttachmentOwner(BemAqui.HR.Application.TimeClock.TimesheetPdfService.OwnerType, new AttachmentOwnerRules("hr", ["application/pdf"],
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IHrDb>().Timesheets.AnyAsync(t => t.Id == id, ct),
+            ReadAction: "view", WriteAction: "view", CanAttach: SystemOnly, AuditReads: true));
+        services.AddAttachmentOwner(BemAqui.HR.Application.TimeClock.TimesheetPdfService.BatchOwnerType, new AttachmentOwnerRules("hr", ["application/zip"],
+            OwnerExists: async (sp, id, ct) => BemAqui.HR.Application.TimeClock.TimesheetPdfService.PeriodOfBatchOwner(id) is { } period
+                && await sp.GetRequiredService<IHrDb>().Timesheets.AnyAsync(t => t.Period == period, ct),
+            ReadAction: "view", WriteAction: "view", CanAttach: SystemOnly, AuditReads: true));
         services.AddAuditableEntity<EmployeeDependent>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<Employee>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<EmployeeHistoryEntry>("hr", PositionService.SensitiveAction);

@@ -59,3 +59,34 @@ internal sealed class TimeAdjustmentConfiguration : IEntityTypeConfiguration<Tim
         b.HasIndex(e => e.EntryId).HasDatabaseName("ix_time_adjustments_entry");
     }
 }
+
+/// <summary>
+/// Espelho do período (RH-01c): único por (funcionário, período); os totais em minutos (<c>integer</c>); o índice por período serve à visão
+/// geral, ao fechamento e à trava do período fechado.
+/// </summary>
+internal sealed class TimesheetConfiguration : IEntityTypeConfiguration<Timesheet>
+{
+    public void Configure(EntityTypeBuilder<Timesheet> b)
+    {
+        b.ToTable("timesheets", HrSchema.Name);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.JustifiedByReason).HasMaxLength(500);
+        b.Property(e => e.ReopenReason).HasMaxLength(TimesheetRules.ReasonMax);
+        b.Property(e => e.EmployeeAckSummary).HasMaxLength(500);
+        b.HasOne<Employee>().WithMany().HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.EmployeeId, e.Period }).IsUnique().HasDatabaseName("ix_timesheets_employee_period");
+        b.HasIndex(e => new { e.Period, e.Status }).HasDatabaseName("ix_timesheets_period_status");
+    }
+}
+
+/// <summary>Dia inconsistente revisado (RH-01c CA 11): um por funcionário e dia.</summary>
+internal sealed class TimesheetDayReviewConfiguration : IEntityTypeConfiguration<TimesheetDayReview>
+{
+    public void Configure(EntityTypeBuilder<TimesheetDayReview> b)
+    {
+        b.ToTable("timesheet_day_reviews", HrSchema.Name);
+        b.Property(e => e.Comment).HasMaxLength(TimesheetRules.CommentMax);
+        b.HasOne<Employee>().WithMany().HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.EmployeeId, e.Day }).IsUnique().HasDatabaseName("ix_timesheet_day_reviews_employee_day");
+    }
+}

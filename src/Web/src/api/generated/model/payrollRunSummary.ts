@@ -29,4 +29,6 @@ export interface PayrollRunSummary {
   reopenReason?: string | null;
   /** @nullable */
   payableCount?: number | null;
+  /** @nullable */
+  timesheetNotice?: string | null;
 }
