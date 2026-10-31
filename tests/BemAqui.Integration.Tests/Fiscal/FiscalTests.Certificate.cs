@@ -62,20 +62,21 @@ public partial class FiscalTests
         var (_, owner, code) = await OwnerWithTotpAsync();
         var pfx = TestCertificates.Pfx();
         var canary = Convert.ToBase64String(pfx)[..40];
+        var sentBefore = fake.Count("certificado");
 
         var noCode = await owner.PostAsync(Certificate, CertificateForm(pfx));
         noCode.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         (await JsonAsync(noCode)).GetProperty("code").GetString().Should().Be("two_factor_required");
-        fake.Count("certificado").Should().Be(0, "sem o código nada é enviado");
+        fake.Count("certificado").Should().Be(sentBefore, "sem o código nada é enviado");
 
         var inQuery = await owner.PostAsync(Certificate + "?password=" + TestCertificates.Password, CertificateForm(pfx, password: null, code: await code()));
         inQuery.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity, "a senha só vale no corpo do formulário");
-        fake.Count("certificado").Should().Be(0);
+        fake.Count("certificado").Should().Be(sentBefore);
 
         var response = await owner.PostAsync(Certificate, CertificateForm(pfx, code: await code()));
         var body = await response.Content.ReadAsStringAsync();
         var view = await CertificateViewAsync(response);
-        fake.Count("certificado").Should().Be(1);
+        fake.Count("certificado").Should().Be(sentBefore + 1);
         fake.LastUpload.Should().Be((pfx.Length, "47225005000186"));
         view.Status.Should().Be("Valid");
         view.Document.Should().Be("47225005000186");
@@ -91,7 +92,7 @@ public partial class FiscalTests
         var audit = await fixture.QueryAsync(tenant, db => db.AuditEntries.AsNoTracking().Where(a => a.Entity == nameof(FiscalSettings)).Select(a => a.Changes).ToListAsync());
         var auditText = string.Join("\n", audit);
         auditText.Should().NotContain(TestCertificates.Password).And.NotContain(canary).And.NotContain(view.Thumbprint!);
-        auditText.Should().Contain("CertificateNotAfter", "a troca aparece como \"válido até\"");
+        auditText.Should().Contain("certificateNotAfter", "a troca aparece como \"válido até\"");
         var outbox = await fixture.QueryAsync(tenant, db => db.OutboxMessages.AsNoTracking().Select(m => m.Payload).ToListAsync());
         string.Join("\n", outbox).Should().NotContain(TestCertificates.Password).And.NotContain(canary);
         var stored = await fixture.QueryAsync(tenant, db => db.Database.SqlQueryRaw<string>("SELECT row_to_json(s)::text AS \"Value\" FROM fiscal.fiscal_settings s").ToListAsync());
@@ -106,6 +107,7 @@ public partial class FiscalTests
         await ClearCertificateAsync(tenant);
         var fake = fixture.Fake(tenant);
         var (_, owner, code) = await OwnerWithTotpAsync();
+        var sentBefore = fake.Count("certificado");
 
         async Task<string> RefusedAsync(byte[] pfx)
         {
@@ -119,7 +121,7 @@ public partial class FiscalTests
         (await RefusedAsync(TestCertificates.Pfx(privateKey: false))).Should().Be(FiscalCertificateInspector.NoPrivateKey);
         (await RefusedAsync(TestCertificates.Pfx(policy: TestCertificates.A3Policy))).Should().Be(FiscalCertificateInspector.NotA1);
         (await RefusedAsync(TestCertificates.Pfx(password: "outra"))).Should().Be(FiscalCertificateInspector.OpenFailed);
-        fake.Count("certificado").Should().Be(0, "o BemAqui confere antes de repassar");
+        fake.Count("certificado").Should().Be(sentBefore, "o BemAqui confere antes de repassar");
 
         fake.RejectCertificate = true;
         (await RefusedAsync(TestCertificates.Pfx())).Should().StartWith("O Emissor Fiscal recusou o certificado:");

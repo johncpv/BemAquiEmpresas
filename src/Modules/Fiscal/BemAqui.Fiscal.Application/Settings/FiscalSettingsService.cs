@@ -206,11 +206,27 @@ public sealed class FiscalSettingsService(
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Values);
+        // A conferência do 2FA grava no mesmo contexto: ela roda antes de qualquer valor ser aplicado à linha rastreada.
+        var storedEnvironment = await db.FiscalSettings.AsNoTracking().Select(s => (FiscalEnvironment?)s.Environment).FirstOrDefaultAsync(cancellationToken) ?? FiscalEnvironment.Homologation;
+        var turningOnProduction = storedEnvironment != FiscalEnvironment.Production && request.Values.Environment == FiscalEnvironment.Production;
+        if (turningOnProduction)
+        {
+            // CA 8 (D6, ADR 0034, ADR 0042 §2): só com a marca do catálogo, com 2FA de novo e com os campos críticos conferidos.
+            if (await catalog.FiscalEnvironmentAllowedAsync(TenantId(), cancellationToken) != FiscalEnvironmentAllowance.Production)
+            {
+                return Error.Forbidden(FiscalErrorCodes.EnvironmentNotAllowed, FiscalEmitterAccess.EnvironmentMessage);
+            }
+
+            if (currentUser.UserId is not { } actor || !await stepUp.VerifyAsync(actor, request.Code, cancellationToken))
+            {
+                return Error.Forbidden(string.IsNullOrWhiteSpace(request.Code) ? FiscalSettingsErrors.TwoFactorRequired : FiscalSettingsErrors.TwoFactorInvalid, ProductionStepUpMessage);
+            }
+        }
+
         var (settings, stored) = await LoadAsync(true, cancellationToken);
         var before = FiscalSettingKeys.All.ToDictionary(k => k.Key, k => k.Canonical(settings), StringComparer.Ordinal);
         var oldRegime = settings.Regime;
         var oldSeries = settings.NfeSeries;
-        var oldEnvironment = settings.Environment;
         FiscalSettingsMapping.Apply(settings, request.Values);
         if (!Enum.IsDefined(request.Values.Environment))
         {
@@ -225,19 +241,8 @@ public sealed class FiscalSettingsService(
         }
 
         var confirmations = await db.SettingConfirmations.ToListAsync(cancellationToken);
-        if (oldEnvironment != FiscalEnvironment.Production && settings.Environment == FiscalEnvironment.Production)
+        if (turningOnProduction)
         {
-            // CA 8 (D6, ADR 0034, ADR 0042 §2): só com a marca do catálogo, com 2FA de novo e com os campos críticos conferidos.
-            if (await catalog.FiscalEnvironmentAllowedAsync(TenantId(), cancellationToken) != FiscalEnvironmentAllowance.Production)
-            {
-                return Error.Forbidden(FiscalErrorCodes.EnvironmentNotAllowed, FiscalEmitterAccess.EnvironmentMessage);
-            }
-
-            if (currentUser.UserId is not { } actor || !await stepUp.VerifyAsync(actor, request.Code, cancellationToken))
-            {
-                return Error.Forbidden(string.IsNullOrWhiteSpace(request.Code) ? FiscalSettingsErrors.TwoFactorRequired : FiscalSettingsErrors.TwoFactorInvalid, ProductionStepUpMessage);
-            }
-
             var byKey = confirmations.ToDictionary(c => c.SettingKey, StringComparer.Ordinal);
             var pending = FiscalSettingKeys.All.Where(k => k.Critical is FiscalCriticality.All or FiscalCriticality.Nfe && Confirmed(k, settings, byKey) is null).ToList();
             if (pending.Count > 0)

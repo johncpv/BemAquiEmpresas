@@ -194,7 +194,7 @@ public partial class FiscalTests
         (await fixture.FiscalAsync(tenant, db => db.SettingConfirmations.AnyAsync(c => c.SettingKey == "pisRate"))).Should().BeFalse("a conferência daquele campo é limpa");
 
         var audit = await fixture.QueryAsync(tenant, db => db.AuditEntries.AsNoTracking().Where(a => a.Entity == nameof(FiscalSettings) && a.Action == "Updated").Select(a => a.Changes).ToListAsync());
-        string.Join("\n", audit).Should().Contain("PisRate").And.Contain("1.65");
+        string.Join("\n", audit).Should().Contain("pisRate").And.Contain("1.65");
         var outbox = await fixture.QueryAsync(tenant, db => db.OutboxMessages.AsNoTracking().Where(m => m.Type == typeof(BemAqui.Fiscal.Contracts.FiscalSettingsChanged).FullName).Select(m => m.Payload).ToListAsync());
         outbox.Should().Contain(p => p.Contains("pisRate") && !p.Contains("1.65"), "o aviso leva só as chaves, nunca os valores");
         await ResetSettingsAsync(tenant);
