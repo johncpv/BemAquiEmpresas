@@ -5,13 +5,17 @@ import { Money } from '@/components/ui/money'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { formatDate, formatDateTime } from '@/lib/format'
+import { Tag } from '@/components/ui/tag'
+import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
-import { ReverseDialog } from './ReceivableDialogs'
+import { REVIEW_DICAS } from './payment-review'
+import { BankReverseDialog, ReverseDialog } from './ReceivableDialogs'
 
 /** Aba Baixas (CA 16 e 27): baixas, quitações e estornos com usuário e data; estornar com motivo. */
 export function ReceivableSettlements({ receivable, onDone, onReload }: { receivable: ReceivableDetail; onDone: (r: ReceivableDetail) => void; onReload: () => Promise<unknown> }) {
   const query = useListReceivableSettlements(receivable.id)
   const canEdit = useCan('finance.edit')
+  const canApprove = useCan('finance.approve')
   const [reversing, setReversing] = useState<SettlementView | null>(null)
   if (query.isPending) return <Skeleton className="h-40" />
   if (query.isError) return <ErrorState onRetry={() => query.refetch()} />
@@ -37,7 +41,7 @@ export function ReceivableSettlements({ receivable, onDone, onReload }: { receiv
             {query.data.map((s) => (
               <tr key={s.id} className="border-b border-border last:border-0">
                 <td className="px-3 py-2 tabular-nums">{formatDate(s.date)}</td>
-                <td className="px-3 py-2">{s.kind === 'DiscountWriteOff' ? 'Quitação com desconto' : 'Recebimento'}</td>
+                <td className="px-3 py-2">{s.kind === 'DiscountWriteOff' ? 'Quitação com desconto' : 'Recebimento'}{s.source === 'Bank' ? <span className="ml-1 inline-flex items-center"><Tag>Banco Inter</Tag><Dica nome="Banco Inter" texto={REVIEW_DICAS.banco} /></span> : null}</td>
                 <td className="hidden px-3 py-2 sm:table-cell">{s.bankAccountName ?? '—'}</td>
                 <td className="px-3 py-2 text-right"><Money value={s.principal} /></td>
                 <td className="hidden px-3 py-2 text-right sm:table-cell"><Money value={s.interest + s.fine} /></td>
@@ -48,14 +52,15 @@ export function ReceivableSettlements({ receivable, onDone, onReload }: { receiv
                   <span className="block text-xs text-muted-foreground">{formatDateTime(s.createdAt)}{s.reversalReason ? ` · ${s.reversalReason}` : ''}</span>
                 </td>
                 <td className="px-3 py-2 text-right">
-                  {canEdit && !s.reversedAt ? <button type="button" onClick={() => setReversing(s)} className="rounded-md border border-border px-2.5 py-1 text-sm font-semibold text-crit-ink">Estornar baixa</button> : null}
+                  {(s.source === 'Bank' ? canApprove : canEdit) && !s.reversedAt ? <button type="button" onClick={() => setReversing(s)} className="rounded-md border border-border px-2.5 py-1 text-sm font-semibold text-crit-ink">Estornar baixa</button> : null}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {reversing ? <ReverseDialog receivable={receivable} settlement={reversing} open onOpenChange={(o) => { if (!o) setReversing(null) }} onDone={(r) => { setReversing(null); onDone(r); void query.refetch() }} onReload={onReload} /> : null}
+      {reversing?.source === 'Bank' ? <BankReverseDialog receivable={receivable} settlement={reversing} open onOpenChange={(o) => { if (!o) setReversing(null) }} onDone={(r) => { setReversing(null); onDone(r); void query.refetch() }} onReload={onReload} /> : null}
+      {reversing && reversing.source !== 'Bank' ? <ReverseDialog receivable={receivable} settlement={reversing} open onOpenChange={(o) => { if (!o) setReversing(null) }} onDone={(r) => { setReversing(null); onDone(r); void query.refetch() }} onReload={onReload} /> : null}
     </>
   )
 }

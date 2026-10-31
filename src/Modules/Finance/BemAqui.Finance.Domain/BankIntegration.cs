@@ -108,7 +108,65 @@ public sealed class BankIntegration : Entity, IAuditable, IConcurrencyVersioned
 
     public Guid? DisabledBy { get; private set; }
 
+    /// <summary>Aviso de pagamento cadastrado no Inter (BNK-02 CA 1): desde quando e por quem.</summary>
+    public DateTimeOffset? WebhookRegisteredAt { get; private set; }
+
+    public Guid? WebhookRegisteredBy { get; private set; }
+
+    /// <summary>Última troca do endereço do aviso (CA 3).</summary>
+    public DateTimeOffset? WebhookRotatedAt { get; private set; }
+
+    /// <summary>Onde vai o token do aviso: <c>Query</c> (<c>?t=</c>) ou <c>PathToken</c> (último segmento), CA 2.</summary>
+    public string? WebhookMode { get; private set; }
+
+    /// <summary>Última conferência diária com sucesso (CA 11): a próxima consulta começa 2 dias antes.</summary>
+    public DateTimeOffset? LastReconcileAt { get; private set; }
+
+    /// <summary>Relatório da última conferência (JSONB: consultados, baixados, divergentes, sem dado do pagador).</summary>
+    public string? LastReconcileReport { get; private set; }
+
+    /// <summary>Execuções seguidas da conferência sem sucesso (CA 12: na 3ª, alerta e aviso).</summary>
+    public int ReconcileFailures { get; private set; }
+
+    /// <summary>Motivo da última falha da conferência, em PT-BR, sem segredo.</summary>
+    public string? LastReconcileError { get; private set; }
+
     public uint Version { get; set; }
+
+    public bool WebhookActive => IsActive && WebhookRegisteredAt is not null;
+
+    /// <summary>Aviso cadastrado no Inter (ativar ou trocar o endereço).</summary>
+    public void RegisterWebhook(string mode, Guid? by, DateTimeOffset at)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(mode);
+        if (WebhookRegisteredAt is null)
+        {
+            WebhookRegisteredAt = at;
+            WebhookRegisteredBy = by;
+        }
+        else
+        {
+            WebhookRotatedAt = at;
+        }
+
+        WebhookMode = mode;
+    }
+
+    public void RecordReconcile(DateTimeOffset at, string report)
+    {
+        LastReconcileAt = at;
+        LastReconcileReport = report;
+        ReconcileFailures = 0;
+        LastReconcileError = null;
+    }
+
+    /// <summary>Conferência sem sucesso; devolve quantas seguidas.</summary>
+    public int RecordReconcileFailure(string message)
+    {
+        ReconcileFailures++;
+        LastReconcileError = message is { Length: > 300 } ? message[..300] : message;
+        return ReconcileFailures;
+    }
 
     public bool IsActive => Status == BankIntegrationStatus.Active;
 
@@ -169,6 +227,10 @@ public sealed class BankIntegration : Entity, IAuditable, IConcurrencyVersioned
         CertificateThumbprint = null;
         CertificateSubject = null;
         GrantedScopes = null;
+        WebhookRegisteredAt = null;
+        WebhookRegisteredBy = null;
+        WebhookRotatedAt = null;
+        WebhookMode = null;
         Status = BankIntegrationStatus.Disabled;
         DisabledAt = at;
         DisabledBy = by;

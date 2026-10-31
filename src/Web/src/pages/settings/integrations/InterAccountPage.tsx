@@ -21,6 +21,7 @@ import { SettingsTabs } from '../SettingsTabs'
 import { useCanSettings } from '../use-can-settings'
 import { InterCredentialsForm } from './InterCredentialsForm'
 import { IntegrationsNav } from './IntegrationsNav'
+import { PaymentNoticeSection } from './PaymentNoticeSection'
 import { environmentLabel, expiryText, HINTS, scopeLabel, situationOf, SLOW_AFTER_MS, TEST_PHASE_TEXT, type TestPhase, WAITING_AFTER_MS } from './inter'
 
 function Section({ title, dica, children }: { title: string; dica?: string; children: React.ReactNode }) {
@@ -234,9 +235,7 @@ export function InterAccountPage() {
               </dl>
             ) : <p className="text-sm text-muted-foreground">—</p>}
           </Section>
-          <Section title="Aviso de pagamento">
-            <p className="text-sm text-muted-foreground">O aviso automático de pagamento do Inter é ligado aqui depois que a conexão estiver funcionando.</p>
-          </Section>
+          <PaymentNoticeSection bankAccountId={contaId} canEdit={canEdit} tested={detail.lastTest?.outcome === 'Ok'} />
           {canEdit ? (
             <div className="flex flex-wrap items-start gap-2 lg:col-span-2">
               <button type="button" onClick={() => setEditing('rotate')} className="min-h-11 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground">Trocar credenciais</button>

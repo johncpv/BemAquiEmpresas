@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { cancelReceivable, changeReceivableDueDate, reverseReceivableSettlement, useGetFinanceLimits, writeOffReceivable } from '@/api/generated/bemaqui'
+import { cancelReceivable, changeReceivableDueDate, reverseBankSettlement, reverseReceivableSettlement, useGetFinanceLimits, writeOffReceivable } from '@/api/generated/bemaqui'
 import type { ReceivableDetail, SettlementView } from '@/api/generated/model'
 import { Field } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
@@ -9,6 +9,7 @@ import { DialogMessage } from '@/components/ui/dialog-message'
 import { Money } from '@/components/ui/money'
 import { useCan } from '@/pages/use-can'
 import { BILLING_SLIP_OPEN } from './billing-slips'
+import { BANK_REVERSE_WARNING } from './payment-review'
 import { today } from './receivables'
 
 interface Base { receivable: ReceivableDetail; open: boolean; onOpenChange: (o: boolean) => void; onDone: (r: ReceivableDetail) => void; onReload: () => Promise<unknown> }
@@ -78,6 +79,22 @@ export function ReverseDialog({ receivable, settlement, open, onOpenChange, onDo
       title="Estornar esta baixa?" description="A baixa fica marcada como estornada e, se movimentou a conta, uma saída igual é lançada hoje." onReload={onReload}
       impact={<dl className="grid grid-cols-2 gap-1"><dt>Principal que volta ao saldo</dt><dd className="text-right"><Money value={settlement.principal} /></dd><dt>Sai da conta</dt><dd className="text-right"><Money value={settlement.total} /></dd></dl>}
       onConfirm={async () => onDone(await reverseReceivableSettlement(receivable.id, settlement.id, { reason: required(reason), version: receivable.version }))}>
+      <Reason value={reason} onChange={setReason} />
+    </ConfirmDialog>
+  )
+}
+
+/**
+ * Estornar a baixa feita pelo Inter (BNK-02 CA 14, D6): só para quem aprova, com motivo e o 2FA de novo (o passo do código abre sozinho
+ * na recusa). O Proprietário é avisado.
+ */
+export function BankReverseDialog({ receivable, settlement, open, onOpenChange, onDone, onReload }: Base & { settlement: SettlementView }) {
+  const [reason, setReason] = useState('')
+  return (
+    <ConfirmDialog size="lg" destructive open={open} onOpenChange={(o) => { if (o) setReason(''); onOpenChange(o) }} verb="Estornar baixa" done="Baixa estornada"
+      title="Estornar a baixa do Inter?" description={BANK_REVERSE_WARNING} onReload={onReload}
+      impact={<dl className="grid grid-cols-2 gap-1"><dt>Principal que volta ao saldo</dt><dd className="text-right"><Money value={settlement.principal} /></dd><dt>Sai da conta</dt><dd className="text-right"><Money value={settlement.total} /></dd></dl>}
+      onConfirm={async () => onDone(await reverseBankSettlement(receivable.id, settlement.id, { reason: required(reason), version: receivable.version }))}>
       <Reason value={reason} onChange={setReason} />
     </ConfirmDialog>
   )

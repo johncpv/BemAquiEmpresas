@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace BemAqui.Finance.Endpoints;
 
-/// <summary>Ordens de pagamento (FIN-03a): criar com <c>finance.create</c>, decidir com <c>finance.approve</c>, pagar e estornar com <c>finance.pay</c>.</summary>
+/// <summary>Ordens de pagamento (FIN-03a): criar com <c>finance.create</c>, decidir com <c>finance.approve</c>, pagar com <c>finance.pay</c>; estornar com <c>finance.approve</c> (BNK-02 CA 15).</summary>
 internal static partial class FinanceEndpoints
 {
     private static void MapPaymentOrders(RouteGroupBuilder orders)
@@ -38,7 +38,8 @@ internal static partial class FinanceEndpoints
         orders.MapPost("/{id:guid}/pay",async (Guid id, PayInput input, PaymentOrderService service, CancellationToken ct) => (await service.PayAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("finance.pay").RequireRecentTwoFactor().RequireIdempotencyKey().WithName("PayPaymentOrder").Produces<PaymentResult>();
         // Pagar e estornar pedem o 2FA de novo (D6, P-19; BNK-01a CA 2): sem a prova recente, 403 two_factor_required e nada é gravado.
+        // Estornar pede finance.approve desde a BNK-02 (CA 15, P-20): antes, finance.pay.
         orders.MapPost("/{id:guid}/reverse", async (Guid id, ReasonInput input, PaymentOrderService service, CancellationToken ct) => (await service.ReverseAsync(id, input, ct)).ToHttpResult())
-            .RequirePermission("finance.pay").RequireRecentTwoFactor().WithName("ReversePaymentOrder").Produces<PaymentOrderDetail>();
+            .RequirePermission("finance.approve").RequireRecentTwoFactor().WithName("ReversePaymentOrder").Produces<PaymentOrderDetail>();
     }
 }

@@ -173,7 +173,7 @@ public partial class WebhookTests(WebhookFixture fixture) : IClassFixture<Webhoo
             scope.ServiceProvider.GetService(provider.HandlerType).Should().NotBeNull(provider.Code);
         }
 
-        // O build publicado só registra os provedores reais: o emissor-fiscal (FIS-01); os de teste só existem aqui.
-        fixture.Tenancy.Factory.Services.GetRequiredService<WebhookProviderRegistry>().All.Select(p => p.Code).Should().Equal("emissor-fiscal");
+        // O build publicado só registra os provedores reais: o inter (BNK-02) e o emissor-fiscal (FIS-01); os de teste só existem aqui.
+        fixture.Tenancy.Factory.Services.GetRequiredService<WebhookProviderRegistry>().All.Select(p => p.Code).Should().BeEquivalentTo("inter", "emissor-fiscal");
     }
 }
