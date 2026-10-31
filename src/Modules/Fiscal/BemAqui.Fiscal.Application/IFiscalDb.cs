@@ -21,6 +21,11 @@ public interface IFiscalDb
     /// <summary>Regras fiscais por operação, uma linha por versão (FIS-02b).</summary>
     DbSet<TaxRule> TaxRules { get; }
 
+    /// <summary>NF-e de entrada e os itens (FIS-04a).</summary>
+    DbSet<IncomingInvoice> IncomingInvoices { get; }
+
+    DbSet<IncomingInvoiceItem> IncomingInvoiceItems { get; }
+
     ChangeTracker ChangeTracker { get; }
 
     /// <summary>Trava da nota na conferência de pendentes (<c>FOR UPDATE SKIP LOCKED</c>, CA 14).</summary>

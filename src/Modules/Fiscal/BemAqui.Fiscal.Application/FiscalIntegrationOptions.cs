@@ -52,6 +52,9 @@ public sealed class FiscalIntegrationOptions
 
     /// <summary>"Simular" das regras fiscais por minuto e usuário (política <c>fiscal-simulate</c>, FIS-02b CA 10).</summary>
     public int SimulationsPerMinute { get; set; } = 30;
+
+    /// <summary>Arquivos XML de nota de entrada por hora e usuário (política <c>fiscal-incoming-import</c>, FIS-04a CA 1): um arquivo por requisição.</summary>
+    public int IncomingImportsPerHour { get; set; } = 60;
 }
 
 /// <summary>Conferência do endereço do Emissor (CA 7): HTTPS, porta padrão e host da lista; o endereço vem só da configuração.</summary>

@@ -4917,6 +4917,339 @@ namespace BemAqui.Host.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BemAqui.Fiscal.Domain.IncomingInvoice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AccessKey")
+                        .IsRequired()
+                        .HasMaxLength(44)
+                        .HasColumnType("character varying(44)")
+                        .HasColumnName("access_key");
+
+                    b.Property<DateTimeOffset?>("AuthorizedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("authorized_at");
+
+                    b.Property<DateTimeOffset?>("CheckedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("checked_at");
+
+                    b.Property<Guid?>("CheckedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("checked_by");
+
+                    b.Property<string>("Divergences")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("divergences");
+
+                    b.Property<string>("Duplicates")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("duplicates");
+
+                    b.Property<Guid?>("GoodsReceiptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("goods_receipt_id");
+
+                    b.Property<DateTimeOffset>("ImportedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("imported_at");
+
+                    b.Property<Guid?>("ImportedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imported_by");
+
+                    b.Property<DateTimeOffset>("IssuedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("issued_at");
+
+                    b.Property<string>("IssuerAddress")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("issuer_address");
+
+                    b.Property<string>("IssuerDocument")
+                        .IsRequired()
+                        .HasMaxLength(14)
+                        .HasColumnType("character varying(14)")
+                        .HasColumnName("issuer_document");
+
+                    b.Property<string>("IssuerName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("issuer_name");
+
+                    b.Property<string>("IssuerStateRegistration")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("issuer_state_registration");
+
+                    b.Property<string>("IssuerTradeName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("issuer_trade_name");
+
+                    b.Property<long>("Number")
+                        .HasColumnType("bigint")
+                        .HasColumnName("number");
+
+                    b.PrimitiveCollection<string[]>("OrderReferences")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("order_references");
+
+                    b.Property<Guid?>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<Guid?>("PdfAttachmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pdf_attachment_id");
+
+                    b.Property<string>("Protocol")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("protocol");
+
+                    b.Property<Guid?>("PurchaseOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("purchase_order_id");
+
+                    b.Property<DateTimeOffset?>("RejectedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("rejected_at");
+
+                    b.Property<Guid?>("RejectedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("rejected_by");
+
+                    b.Property<string>("RejectedReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("rejected_reason");
+
+                    b.Property<bool>("SefazStatusChecked")
+                        .HasColumnType("boolean")
+                        .HasColumnName("sefaz_status_checked");
+
+                    b.Property<int>("Series")
+                        .HasColumnType("integer")
+                        .HasColumnName("series");
+
+                    b.Property<bool>("SignatureValid")
+                        .HasColumnType("boolean")
+                        .HasColumnName("signature_valid");
+
+                    b.Property<string>("SignerDocument")
+                        .IsRequired()
+                        .HasMaxLength(14)
+                        .HasColumnType("character varying(14)")
+                        .HasColumnName("signer_document");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total");
+
+                    b.Property<string>("Totals")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("totals");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<bool>("WithoutOrder")
+                        .HasColumnType("boolean")
+                        .HasColumnName("without_order");
+
+                    b.Property<Guid?>("WithoutOrderApprovedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("without_order_approved_by");
+
+                    b.Property<string>("WithoutOrderReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("without_order_reason");
+
+                    b.Property<Guid?>("XmlAttachmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("xml_attachment_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_incoming_invoices");
+
+                    b.HasIndex("AccessKey")
+                        .IsUnique()
+                        .HasDatabaseName("ux_incoming_invoices_access_key")
+                        .HasFilter("status <> 'Rejected'");
+
+                    b.HasIndex("PartyId")
+                        .HasDatabaseName("ix_incoming_invoices_party_id");
+
+                    b.HasIndex("Status", "ImportedAt")
+                        .HasDatabaseName("ix_incoming_invoices_status_imported_at");
+
+                    b.ToTable("incoming_invoices", "fiscal", t =>
+                        {
+                            t.HasCheckConstraint("ck_incoming_invoices_access_key", "length(access_key) = 44");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Fiscal.Domain.IncomingInvoiceItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("Cfop")
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("cfop");
+
+                    b.Property<decimal?>("ConversionFactor")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("conversion_factor");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("description");
+
+                    b.Property<decimal>("Discount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("discount");
+
+                    b.Property<Guid?>("ExpenseAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("expense_account_id");
+
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<Guid?>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("LotNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("lot_number");
+
+                    b.Property<string>("MappingSource")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("mapping_source");
+
+                    b.Property<string>("Ncm")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("ncm");
+
+                    b.Property<bool>("NoStockItem")
+                        .HasColumnType("boolean")
+                        .HasColumnName("no_stock_item");
+
+                    b.Property<string>("OrderItem")
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)")
+                        .HasColumnName("order_item");
+
+                    b.Property<string>("OrderNumber")
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)")
+                        .HasColumnName("order_number");
+
+                    b.Property<Guid?>("PoLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("po_line_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<decimal?>("StockQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("stock_quantity");
+
+                    b.Property<decimal?>("StockUnitPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("stock_unit_price");
+
+                    b.Property<string>("SupplierCode")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("supplier_code");
+
+                    b.Property<string>("Taxes")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("taxes");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)")
+                        .HasColumnName("unit");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(24, 10)
+                        .HasColumnType("numeric(24,10)")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_incoming_invoice_items");
+
+                    b.HasIndex("InvoiceId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ux_incoming_invoice_items_invoice_sequence");
+
+                    b.ToTable("incoming_invoice_items", "fiscal");
+                });
+
             modelBuilder.Entity("BemAqui.Fiscal.Domain.OutgoingInvoice", b =>
                 {
                     b.Property<Guid>("Id")
@@ -13626,6 +13959,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_receivable_settlements_receivables_receivable_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Fiscal.Domain.IncomingInvoiceItem", b =>
+                {
+                    b.HasOne("BemAqui.Fiscal.Domain.IncomingInvoice", null)
+                        .WithMany()
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_incoming_invoice_items_incoming_invoices_invoice_id");
                 });
 
             modelBuilder.Entity("BemAqui.HR.Domain.Employee", b =>

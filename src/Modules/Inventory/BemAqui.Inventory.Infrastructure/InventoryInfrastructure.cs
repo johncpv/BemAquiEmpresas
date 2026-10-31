@@ -37,6 +37,8 @@ public static class InventoryInfrastructure
         services.TryAddScoped<ItemSupplierCodeService>();
         services.TryAddScoped<IItemSupplierCodes>(sp => sp.GetRequiredService<ItemSupplierCodeService>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IPartyUsageProvider, ItemSupplierCodeService>());
+        // Sugestão de item para a linha da nota de entrada sem de-para (FIS-04a CA 7).
+        services.TryAddScoped<IItemSuggestions, ItemSuggestionsContract>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, UnitSeeder>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, WarrantyDefaultSeeder>());
         services.AddAuditableEntity<Location>("inventory");

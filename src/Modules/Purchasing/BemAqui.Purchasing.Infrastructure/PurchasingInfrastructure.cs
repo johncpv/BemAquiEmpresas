@@ -36,6 +36,8 @@ public static class PurchasingInfrastructure
         services.TryAddScoped<PurchaseOrdersContract>();
         services.TryAddScoped<IPurchaseOrders>(sp => sp.GetRequiredService<PurchaseOrdersContract>());
         services.TryAddScoped<IOpenPurchaseOrderQuantities>(sp => sp.GetRequiredService<PurchaseOrdersContract>());
+        // Pedidos com as linhas para a conferência da nota de entrada (FIS-04a).
+        services.TryAddScoped<IPurchaseOrderLines>(sp => sp.GetRequiredService<PurchaseOrdersContract>());
         services.TryAddScoped<GoodsReceiptService>();
         services.TryAddScoped<PurchasingUsage>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IPartyUsageProvider, PurchasingUsage>());
