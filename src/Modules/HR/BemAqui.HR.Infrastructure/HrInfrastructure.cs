@@ -153,6 +153,8 @@ public static class HrInfrastructure
             OwnerExists: async (sp, id, ct) => BemAqui.HR.Application.TimeClock.TimesheetPdfService.PeriodOfBatchOwner(id) is { } period
                 && await sp.GetRequiredService<IHrDb>().Timesheets.AnyAsync(t => t.Period == period, ct),
             ReadAction: "view", WriteAction: "view", CanAttach: SystemOnly, AuditReads: true));
+        // LGPD-01a: titular funcionário (identificação, seletor e exportação, com o sensível pelas ações do RH).
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Privacy.IPersonalDataProvider, HrPersonalDataProvider>());
         services.AddAuditableEntity<EmployeeDependent>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<Employee>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<EmployeeHistoryEntry>("hr", PositionService.SensitiveAction);

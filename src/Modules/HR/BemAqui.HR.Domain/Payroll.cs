@@ -153,7 +153,8 @@ public sealed class PayrollRun : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>Todos os títulos pagos (RH-02c CA 12).</summary>
     public DateTimeOffset? PaidAt { get; set; }
 
-    /// <summary>Motivo da última reabertura (RH-02c CA 13).</summary>
+    /// <summary>Motivo da última reabertura (RH-02c CA 13). Texto livre do RH: <c>[PersonalData]</c> (LGPD-01a CA 7, ADR 0037 §3).</summary>
+    [PersonalData]
     public string? ReopenReason { get; set; }
 
     public DateTimeOffset? ReopenedAt { get; set; }
@@ -204,6 +205,8 @@ public sealed class PayrollForecast : Entity, IAuditable
 
     public DateTimeOffset? CancelledAt { get; set; }
 
+    /// <summary>Texto livre do RH: <c>[PersonalData]</c> (LGPD-01a CA 7).</summary>
+    [PersonalData]
     public string? CancelReason { get; set; }
 
     /// <summary>Chave da linha: mês, tipo e o funcionário ou a guia.</summary>

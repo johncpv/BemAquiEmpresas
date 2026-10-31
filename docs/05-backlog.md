@@ -565,7 +565,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-RH-4 (parte), R-RH-5, R-COM-3, PRD §6 (Desempenho, LGPD), R-SEC-5, R-PRP-2, R-PRP-5.
 - CA: espelho por dia pela jornada e pelo `IBusinessCalendar`; tolerância de 5/10 min, banco de horas só com acordo e apuração pelo mês civil, pré-configurados "a confirmar"; fecha quem tem `hr.edit`; "Li e confirmo" no Meu espelho; "Usar horas do espelho" na folha; PDF com a faixa de controle interno; 50 funcionários em menos de 1 s.
 
-**LGPD-01a [ ] Direitos do titular: registro do pedido, inventário do dado pessoal e exportação dos dados (JSON e PDF) (M)** — 6.3, ordem 9 — `Ready (pré-condição externa)` — [story](stories/LGPD-01a-pedido-titular-exportacao.md)
+**LGPD-01a [x] Direitos do titular: registro do pedido, inventário do dado pessoal e exportação dos dados (JSON e PDF) (M)** — 6.3, ordem 9 — `Done (pré-condição externa: jurídico)` — [story](stories/LGPD-01a-pedido-titular-exportacao.md)
 - Requisitos: PRD §6 LGPD, ADR 0018, R-SEC-5, R-COM-3.
 - CA: pedido do titular em Configurações → Privacidade, só o Proprietário, prazo de 15 dias; identidade conferida antes de exportar; exportação JSON e PDF por `IPersonalDataProvider` em cada módulo, com o inventário da ADR 0037; dependentes mascarados; usuários do sistema como titulares; arquivo por 30 dias, download autenticado de uso único.
 

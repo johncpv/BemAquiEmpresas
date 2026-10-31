@@ -3058,6 +3058,506 @@
         }
       }
     },
+    "/api/v1/settings/privacy-requests": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ListPrivacyRequests",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PrivacyRequestStatus"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PrivacyRequestKind"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfPrivacyRequestRow"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "CreatePrivacyRequest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePrivacyRequestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequestDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/subjects": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SearchPrivacySubjects",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/PersonalDataSubjectKind"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PersonalDataSubjectMatch"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/settings": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetPrivacySettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacySettingsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SavePrivacySettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacySettingsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacySettingsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetPrivacyRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequestDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/history": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetPrivacyRequestHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PrivacyHistoryEntry"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/identity": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "VerifyPrivacySubjectIdentity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyIdentityInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequestDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/conclude": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ConcludePrivacyRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConcludePrivacyRequestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequestDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/refuse": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "RefusePrivacyRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefusePrivacyRequestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequestDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/correction": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "OpenPrivacyCorrection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyCorrectionTarget"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/export": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ExportPrivacySubjectData",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyExportStarted"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/export/link": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "CreatePrivacyExportLink",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyDownloadLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/export/download": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "DownloadPrivacyExport",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/parties": {
       "get": {
         "tags": [
@@ -40891,6 +41391,31 @@
           }
         }
       },
+      "ConcludePrivacyRequestInput": {
+        "required": [
+          "respondedOn",
+          "response",
+          "fileSent",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "respondedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "response": {
+            "type": "string"
+          },
+          "fileSent": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "ConfirmFiscalSettingsRequest": {
         "required": [
           "keys"
@@ -41786,6 +42311,59 @@
           },
           "confirmation": {
             "type": "string"
+          }
+        }
+      },
+      "CreatePrivacyRequestInput": {
+        "required": [
+          "subjectType",
+          "subjectId",
+          "subjectName",
+          "subjectContact",
+          "kind",
+          "requestedOn",
+          "channel",
+          "notes"
+        ],
+        "type": "object",
+        "properties": {
+          "subjectType": {
+            "$ref": "#/components/schemas/PersonalDataSubjectKind"
+          },
+          "subjectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "subjectName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "subjectContact": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PrivacyRequestKind"
+          },
+          "requestedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/PrivacyRequestChannel"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -48849,6 +49427,15 @@
             "format": "double"
           }
         }
+      },
+      "IdentityCheckMethod": {
+        "enum": [
+          "DocumentPresented",
+          "RegisteredEmail",
+          "RegisteredPhone",
+          "InPerson",
+          null
+        ]
       },
       "IFormFile": {
         "type": "string",
@@ -58725,6 +59312,35 @@
           }
         }
       },
+      "PagedListOfPrivacyRequestRow": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrivacyRequestRow"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfPurchaseItemRow": {
         "required": [
           "items",
@@ -63380,6 +63996,42 @@
           }
         }
       },
+      "PersonalDataSubjectKind": {
+        "enum": [
+          "Party",
+          "Contact",
+          "Employee",
+          "User",
+          "Unknown"
+        ]
+      },
+      "PersonalDataSubjectMatch": {
+        "required": [
+          "kind",
+          "id",
+          "name",
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/PersonalDataSubjectKind"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "PickingRow": {
         "required": [
           "productionOrderId",
@@ -64412,6 +65064,439 @@
         "properties": {
           "mode": {
             "$ref": "#/components/schemas/PricingMode"
+          }
+        }
+      },
+      "PrivacyCorrectionTarget": {
+        "required": [
+          "link",
+          "request"
+        ],
+        "type": "object",
+        "properties": {
+          "link": {
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/PrivacyRequestDetail"
+          }
+        }
+      },
+      "PrivacyDownloadLink": {
+        "required": [
+          "url",
+          "expiresAt",
+          "fileName"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fileName": {
+            "type": "string"
+          }
+        }
+      },
+      "PrivacyExportStarted": {
+        "required": [
+          "request",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/PrivacyRequestDetail"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "PrivacyExportStatus": {
+        "enum": [
+          "None",
+          "Running",
+          "Ready",
+          "Failed",
+          "Expired"
+        ]
+      },
+      "PrivacyHistoryEntry": {
+        "required": [
+          "id",
+          "at",
+          "action",
+          "userName",
+          "ip",
+          "changes"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "action": {
+            "type": "string"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "ip": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "changes": {
+            "type": "string"
+          }
+        }
+      },
+      "PrivacyRequestChannel": {
+        "enum": [
+          "Email",
+          "Phone",
+          "InPerson",
+          "Letter",
+          "Other"
+        ]
+      },
+      "PrivacyRequestDetail": {
+        "required": [
+          "id",
+          "number",
+          "subjectType",
+          "subjectId",
+          "subjectName",
+          "subjectContact",
+          "kind",
+          "requestedOn",
+          "channel",
+          "notes",
+          "dueOn",
+          "dueChip",
+          "status",
+          "requiresIdentity",
+          "identityVerified",
+          "identityVerifiedAt",
+          "identityVerifiedByName",
+          "identityMethod",
+          "identityCheckedOn",
+          "identityNotes",
+          "response",
+          "respondedOn",
+          "fileSent",
+          "refusalReason",
+          "closedAt",
+          "correctionLink",
+          "canExport",
+          "exportStatus",
+          "exportedAt",
+          "exportError",
+          "exportExpiresAt",
+          "createdAt",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "subjectType": {
+            "$ref": "#/components/schemas/PersonalDataSubjectKind"
+          },
+          "subjectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "subjectName": {
+            "type": "string"
+          },
+          "subjectContact": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PrivacyRequestKind"
+          },
+          "requestedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/PrivacyRequestChannel"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "dueChip": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/PrivacyRequestStatus"
+          },
+          "requiresIdentity": {
+            "type": "boolean"
+          },
+          "identityVerified": {
+            "type": "boolean"
+          },
+          "identityVerifiedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "identityVerifiedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "identityMethod": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IdentityCheckMethod"
+              }
+            ]
+          },
+          "identityCheckedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "identityNotes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "response": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "respondedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "fileSent": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "refusalReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "correctionLink": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "canExport": {
+            "type": "boolean"
+          },
+          "exportStatus": {
+            "$ref": "#/components/schemas/PrivacyExportStatus"
+          },
+          "exportedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "exportError": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "exportExpiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PrivacyRequestKind": {
+        "enum": [
+          "Confirmation",
+          "Access",
+          "Correction",
+          "Anonymization",
+          "Deletion",
+          "Portability",
+          "ConsentRevocation",
+          "SharingInformation"
+        ]
+      },
+      "PrivacyRequestRow": {
+        "required": [
+          "id",
+          "number",
+          "subjectType",
+          "subjectMasked",
+          "kind",
+          "requestedOn",
+          "dueOn",
+          "status",
+          "dueChip",
+          "identityVerified",
+          "exportStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "subjectType": {
+            "$ref": "#/components/schemas/PersonalDataSubjectKind"
+          },
+          "subjectMasked": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PrivacyRequestKind"
+          },
+          "requestedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PrivacyRequestStatus"
+          },
+          "dueChip": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "identityVerified": {
+            "type": "boolean"
+          },
+          "exportStatus": {
+            "$ref": "#/components/schemas/PrivacyExportStatus"
+          }
+        }
+      },
+      "PrivacyRequestStatus": {
+        "enum": [
+          "Open",
+          "Done",
+          "Refused"
+        ]
+      },
+      "PrivacySettingsDto": {
+        "required": [
+          "responseDays",
+          "settingId"
+        ],
+        "type": "object",
+        "properties": {
+          "responseDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "settingId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "PrivacySettingsInput": {
+        "required": [
+          "responseDays"
+        ],
+        "type": "object",
+        "properties": {
+          "responseDays": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PrivacyVersionInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -72554,6 +73639,22 @@
           },
           "reason": {
             "type": "string"
+          }
+        }
+      },
+      "RefusePrivacyRequestInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -84305,6 +85406,34 @@
           },
           "inviteOpen": {
             "type": "boolean"
+          }
+        }
+      },
+      "VerifyIdentityInput": {
+        "required": [
+          "method",
+          "checkedOn",
+          "notes",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "method": {
+            "$ref": "#/components/schemas/IdentityCheckMethod"
+          },
+          "checkedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
