@@ -41,6 +41,8 @@ public static class FiscalInfrastructure
         services.TryAddScoped<OutgoingInvoiceReconciler>();
         services.TryAddScoped<NfeSubmissionService>();
         services.TryAddScoped<IOutgoingNfePayloads, NoOutgoingNfePayloads>();
+        // PAT-01a CA 7: seletor da NF de entrada do bem; sem notas até a FIS-04a (que troca este registro).
+        services.TryAddScoped<BemAqui.Fiscal.Contracts.IIncomingInvoices, NoIncomingInvoices>();
         services.TryAddScoped<FiscalPendingChecker>();
         services.TryAddTransient<FiscalPendingCheckJob>();
         services.AddWebhookProvider(EmissorFiscalWebhook.Provider);
@@ -71,7 +73,7 @@ public static class FiscalInfrastructure
         services.TryAddSingleton<BemAqui.Fiscal.Application.Incoming.INfeTrustAnchors, BemAqui.Fiscal.Application.Incoming.IcpBrasilTrustAnchors>();
         services.TryAddScoped<BemAqui.Fiscal.Application.Incoming.IncomingInvoiceService>();
         // FIS-04b: o recebimento pela nota (Purchasing) lê a nota conferida e faz as transições pelo contrato, na transação dele.
-        services.TryAddScoped<BemAqui.Fiscal.Contracts.IIncomingInvoices, BemAqui.Fiscal.Application.Incoming.IncomingInvoicesContract>();
+        services.TryAddScoped<BemAqui.Fiscal.Contracts.IIncomingInvoiceReceipts, BemAqui.Fiscal.Application.Incoming.IncomingInvoicesContract>();
         services.AddAuditableEntity<IncomingInvoice>("fiscal");
         services.AddAuditableEntity<IncomingInvoiceItem>("fiscal");
         services.AddAttachmentOwner(BemAqui.Fiscal.Application.Incoming.IncomingInvoiceService.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml"],

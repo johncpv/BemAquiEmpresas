@@ -40,7 +40,7 @@ public class PurchasingRulesTests
         others.Should().BeEquivalentTo([
             "BemAqui.Inventory.Contracts", "BemAqui.Commercial.Contracts", "BemAqui.Production.Contracts", "BemAqui.Finance.Contracts", "BemAqui.Parties.Contracts",
             "BemAqui.Identity.Contracts", // CMP-03b: dados da empresa para o PDF (ICompanyIdentity) e o limite por usuário (ITenantParameters)
-            "BemAqui.Fiscal.Contracts", // FIS-04b: o recebimento pela nota lê a nota conferida e faz a transição dela (IIncomingInvoices)
+            "BemAqui.Fiscal.Contracts", // FIS-04b: o recebimento pela nota lê a nota conferida e faz a transição dela (IIncomingInvoiceReceipts)
         ]);
     }
 

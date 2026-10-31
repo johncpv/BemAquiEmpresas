@@ -23,6 +23,192 @@ namespace BemAqui.Host.Persistence.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("BemAqui.Assets.Domain.Asset", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateOnly?>("AcquisitionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("acquisition_date");
+
+                    b.Property<decimal?>("AcquisitionValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("acquisition_value");
+
+                    b.Property<string>("Brand")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("brand");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("IncomingInvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("incoming_invoice_id");
+
+                    b.Property<string>("InvoiceRef")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("invoice_ref");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Model")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("model");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid?>("ResponsibleEmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("responsible_employee_id");
+
+                    b.Property<string>("SerialNumber")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("serial_number");
+
+                    b.Property<Guid?>("SiteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("site_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("SupplierPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("supplier_party_id");
+
+                    b.Property<string>("Tag")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("tag");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("type");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<Guid?>("WorkCenterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("work_center_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_assets");
+
+                    b.HasIndex("ResponsibleEmployeeId")
+                        .HasDatabaseName("ix_assets_responsible_employee_id")
+                        .HasFilter("NOT is_deleted");
+
+                    b.HasIndex("SerialNumber")
+                        .HasDatabaseName("ix_assets_serial_number")
+                        .HasFilter("serial_number IS NOT NULL AND NOT is_deleted");
+
+                    b.HasIndex("SiteId")
+                        .HasDatabaseName("ix_assets_site_id");
+
+                    b.HasIndex("SupplierPartyId")
+                        .HasDatabaseName("ix_assets_supplier_party_id")
+                        .HasFilter("NOT is_deleted");
+
+                    b.HasIndex("Tag")
+                        .IsUnique()
+                        .HasDatabaseName("ix_assets_tag");
+
+                    b.HasIndex("WorkCenterId")
+                        .HasDatabaseName("ix_assets_work_center_id")
+                        .HasFilter("NOT is_deleted");
+
+                    b.HasIndex("Status", "Type")
+                        .HasDatabaseName("ix_assets_status_type")
+                        .HasFilter("NOT is_deleted");
+
+                    b.ToTable("assets", "assets");
+                });
+
+            modelBuilder.Entity("BemAqui.Assets.Domain.AssetSite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("seed_key");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sites");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sites_name")
+                        .HasFilter("NOT is_deleted");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sites_seed_key")
+                        .HasFilter("seed_key IS NOT NULL");
+
+                    b.ToTable("sites", "assets");
+                });
+
             modelBuilder.Entity("BemAqui.BuildingBlocks.Attachments.Attachment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -13807,6 +13993,15 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ux_rfq_suppliers_rfq_party");
 
                     b.ToTable("rfq_suppliers", "purchasing");
+                });
+
+            modelBuilder.Entity("BemAqui.Assets.Domain.Asset", b =>
+                {
+                    b.HasOne("BemAqui.Assets.Domain.AssetSite", null)
+                        .WithMany()
+                        .HasForeignKey("SiteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_assets_asset_sites_site_id");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.Contract", b =>

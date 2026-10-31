@@ -7,10 +7,10 @@ using Microsoft.EntityFrameworkCore;
 namespace BemAqui.Fiscal.Application.Incoming;
 
 /// <summary>
-/// <see cref="IIncomingInvoices"/> para o recebimento pela nota (FIS-04b): lê a nota conferida e faz as transições na transação do
+/// <see cref="IIncomingInvoiceReceipts"/> para o recebimento pela nota (FIS-04b): lê a nota conferida e faz as transições na transação do
 /// Purchasing (o mesmo <c>DbContext</c> do request); a versão (<c>xmin</c>) da nota segura dois recebimentos ao mesmo tempo (CA 13).
 /// </summary>
-internal sealed class IncomingInvoicesContract(IFiscalDb db, TimeProvider clock) : IIncomingInvoices
+internal sealed class IncomingInvoicesContract(IFiscalDb db, TimeProvider clock) : IIncomingInvoiceReceipts
 {
     public async Task<IncomingInvoiceForReceipt?> FindForReceiptAsync(Guid id, CancellationToken cancellationToken = default)
     {

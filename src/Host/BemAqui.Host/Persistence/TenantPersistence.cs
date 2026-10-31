@@ -32,6 +32,7 @@ public static class TenantPersistence
         services.AddScoped<BemAqui.Commercial.Application.ICommercialDb>(sp => sp.GetRequiredService<TenantDbContext>());
         services.AddScoped<BemAqui.Purchasing.Application.IPurchasingDb>(sp => sp.GetRequiredService<TenantDbContext>());
         services.AddScoped<BemAqui.Fiscal.Application.IFiscalDb>(sp => sp.GetRequiredService<TenantDbContext>());
+        services.AddScoped<BemAqui.Assets.Application.IAssetsDb>(sp => sp.GetRequiredService<TenantDbContext>());
         services.AddScoped<BemAqui.Migrations.Application.IMigrationDb>(sp => sp.GetRequiredService<TenantDbContext>());
         return services;
     }

@@ -573,7 +573,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: PRD §6 LGPD, ADR 0018, R-SEC-5, R-PRP-7.
 - CA: tabela de retenção pré-configurada e editável; prévia por módulo; anonimização irreversível com confirmação digitada e 2FA de novo, uma transação por módulo, retomável; preserva documentos com movimento e a auditoria; canário em todas as tabelas.
 
-**PAT-01a [ ] Patrimônio: cadastro de bens (M)** — 6.4, ordem 11 — `Ready` — [story](stories/PAT-01a-cadastro-bens.md)
+**PAT-01a [x] Patrimônio: cadastro de bens (M)** — 6.4, ordem 11 — `Done` (NF de entrada pelo `IIncomingInvoices` sem notas até a FIS-04a; "Imprimir etiqueta" com a PAT-01b) — [story](stories/PAT-01a-cadastro-bens.md)
 - Requisitos: R-PAT-1, R-COM-3, R-COM-4, R-SEC-5, R-PRP-1, R-PRP-3.
 - CA: permissões do `assets` por seed patch; bem com etiqueta `PAT-00001`, responsável, centro e local em `assets.sites`; valor de aquisição com `assets.edit`; foto sem EXIF/GPS; lista com 5 mil bens em menos de 1 s; excluir × baixar.
 

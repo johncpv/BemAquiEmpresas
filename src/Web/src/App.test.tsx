@@ -24,7 +24,7 @@ describe('shell do backoffice (FND-09b)', () => {
   // Sessão em memória e API respondendo vazio: o guarda de /app deixa passar.
   beforeEach(() => {
     setAccessToken('token-de-teste')
-    const body = (url: string) => (url.startsWith('/api/v1/me/permissions') ? { permissions: [], isOwner: true, version: '1', modules: SAMPLE_MODULES } : url.startsWith('/api/v1/ajuda') ? [] : {})
+    const body = (url: string) => (url.startsWith('/api/v1/me/permissions') ? { permissions: [], isOwner: true, version: '1', modules: SAMPLE_MODULES } : url.startsWith('/api/v1/ajuda') || url.startsWith('/api/v1/assets/sites') ? [] : {})
     vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify(body(url)), { status: 200, headers: { 'Content-Type': 'application/json' } })))
   })
 
@@ -52,9 +52,9 @@ describe('shell do backoffice (FND-09b)', () => {
   it('título da página e foco no h1 na troca de rota (CA 11)', async () => {
     const router = renderAt('/app')
     await screen.findByRole('heading', { level: 1, name: 'Início' })
-    await act(() => router.navigate({ to: '/app/$module', params: { module: 'patrimonio' } }))
-    const heading = await screen.findByRole('heading', { level: 1, name: 'Patrimônio' })
-    await waitFor(() => expect(document.title).toBe('Patrimônio · Empresa · BemAqui Empresas'))
+    await act(() => router.navigate({ to: '/app/patrimonio/locais' }))
+    const heading = await screen.findByRole('heading', { level: 1, name: 'Patrimônio: Locais' })
+    await waitFor(() => expect(document.title).toBe('Patrimônio: Locais · Empresa · BemAqui Empresas'))
     expect(document.activeElement).toBe(heading)
   })
 

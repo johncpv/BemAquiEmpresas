@@ -41,7 +41,7 @@ public sealed record IncomingInvoiceForReceipt(
 /// na transação de quem chama (o recebimento da CMP-04). A transição confere a versão (<c>xmin</c>): dois recebimentos da mesma nota, só um
 /// passa. Nenhum outro módulo grava nas tabelas do Fiscal.
 /// </summary>
-public interface IIncomingInvoices
+public interface IIncomingInvoiceReceipts
 {
     /// <summary>A nota com os itens conferidos e a regra de crédito em uso; null se não existe no tenant.</summary>
     Task<IncomingInvoiceForReceipt?> FindForReceiptAsync(Guid id, CancellationToken cancellationToken = default);
@@ -63,4 +63,22 @@ public static class IncomingInvoiceReceiptCodes
     public const string Received = "incoming_invoice_received";
     public const string NotChecked = "incoming_invoice_not_checked";
     public const string ScreenLink = "/app/fiscal/entrada/";
+}
+
+/// <summary>
+/// NF-e de entrada para os outros módulos (PAT-01a CA 7): id, número, série, emitente (o fornecedor no <c>IParties</c>, quando
+/// identificado), nome do emitente e data de emissão. Sem valor nem itens.
+/// </summary>
+public sealed record IncomingInvoiceSummary(Guid Id, string Number, string Series, Guid? IssuerPartyId, string IssuerName, DateOnly IssueDate);
+
+/// <summary>
+/// Notas de entrada importadas pela FIS-04a, para o seletor da NF de entrada do bem (PAT-01a CA 7, R-PRP-3: o fornecedor e a data
+/// de aquisição vêm da nota). Só notas importadas; sem permissão do Fiscal no request (quem chama confere a própria).
+/// </summary>
+public interface IIncomingInvoices
+{
+    /// <summary>Busca por número, série ou emitente, das mais novas às mais antigas.</summary>
+    Task<IReadOnlyList<IncomingInvoiceSummary>> SearchAsync(string? term, int limit = 20, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<IncomingInvoiceSummary>> FindAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
 }

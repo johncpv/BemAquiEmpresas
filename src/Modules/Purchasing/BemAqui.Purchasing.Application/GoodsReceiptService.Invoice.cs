@@ -10,7 +10,7 @@ namespace BemAqui.Purchasing.Application;
 
 /// <summary>
 /// Recebimento pela NF-e de entrada conferida (FIS-04b, ADR 0024 §1): é o recebimento da CMP-04 com os valores da nota. A nota é lida e
-/// passa a <c>Received</c> pelo <see cref="IIncomingInvoices"/>; os títulos nascem pelo <see cref="IPayables.CreateOpenInstallmentsAsync"/>
+/// passa a <c>Received</c> pelo <see cref="IIncomingInvoiceReceipts"/>; os títulos nascem pelo <see cref="IPayables.CreateOpenInstallmentsAsync"/>
 /// com as duplicatas da nota, na mesma transação da entrada no estoque. Preço: o do pedido; diferença só pelo "Corrigir preço" (CA 3).
 /// </summary>
 public sealed partial class GoodsReceiptService

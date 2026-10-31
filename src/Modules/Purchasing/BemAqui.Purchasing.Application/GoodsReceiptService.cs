@@ -24,7 +24,7 @@ public sealed partial class GoodsReceiptService(
     IStockReservations reservations, BemAqui.Production.Contracts.IProductionOrders productionOrders, IItemSupplierCodes supplierCodes, BemAqui.Parties.Contracts.IParties parties,
     BemAqui.Commercial.Contracts.IProjects projects, IPaymentTerms terms, IPayables payables, INumberSequence numbers, PurchasingParametersService parameters,
     IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, INotificationService notifications, IEventPublisher events, TimeProvider clock,
-    BemAqui.Fiscal.Contracts.IIncomingInvoices incomingInvoices, IChartOfAccounts accounts)
+    BemAqui.Fiscal.Contracts.IIncomingInvoiceReceipts incomingInvoices, IChartOfAccounts accounts)
 {
     public const string NotificationType = "purchasing.goods_receipt";
     public const string ReversedCode = "goods_receipt_reversed";
