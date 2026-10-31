@@ -40,7 +40,7 @@ public sealed record TaxLine(string Code, string? Cst, decimal Base, decimal Rat
 public sealed record TaxItemResult(
     int Index, string? Description, string? Ncm, Guid RuleId, Guid RuleVersionId, int RuleVersion, string RuleName, string? Cfop,
     decimal Quantity, decimal UnitPrice, decimal GrossAmount, decimal Discount, decimal Freight, decimal OtherExpenses,
-    IReadOnlyList<TaxLine> Taxes, decimal ItemTotal, decimal ProjectCost);
+    IReadOnlyList<TaxLine> Taxes, decimal ItemTotal, decimal CostTax);
 
 /// <summary>Total de um tributo na nota: soma das bases e dos valores dos itens.</summary>
 public sealed record TaxTotal(string Code, decimal Base, decimal Amount);
@@ -51,7 +51,7 @@ public sealed record TaxTotal(string Code, decimal Base, decimal Amount);
 /// </summary>
 public sealed record TaxCalculation(
     IReadOnlyList<TaxItemResult> Items, decimal Products, decimal Discount, decimal Freight, decimal OtherExpenses, IReadOnlyList<TaxTotal> Totals,
-    decimal InvoiceTotal, decimal ProjectCost, IReadOnlyList<string> Blocks);
+    decimal InvoiceTotal, decimal CostTax, IReadOnlyList<string> Blocks);
 
 /// <summary>
 /// Motor de cálculo dos tributos (FIS-02b CA 7 a 9, puro: sem banco, sem relógio, sem Emissor). Recebe a operação, o emitente, o destinatário,
@@ -127,7 +127,7 @@ public static class TaxCalculator
             .Select(x => new TaxTotal(x.code, x.lines.Sum(l => l.Base), x.lines.Sum(l => l.Amount)))
             .ToList();
         return new TaxCalculation(results, results.Sum(r => r.GrossAmount), results.Sum(r => r.Discount), results.Sum(r => r.Freight), results.Sum(r => r.OtherExpenses),
-            totals, results.Sum(r => r.ItemTotal), results.Sum(r => r.ProjectCost), blocks);
+            totals, results.Sum(r => r.ItemTotal), results.Sum(r => r.CostTax), blocks);
     }
 
     /// <summary>Um item com a sua regra.</summary>

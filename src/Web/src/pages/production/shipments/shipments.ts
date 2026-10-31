@@ -32,7 +32,7 @@ export const SHIPMENT_TEXTS = {
   estornada: 'Expedição estornada',
   aguardando: 'Enviado para a confirmação do estoque geral',
   vazio: 'Nada pronto para expedir. As OS concluídas aparecem aqui.',
-  nfe: 'Emitir NF-e: disponível na Fase 5',
+  nfe: 'A NF-e do equipamento sai deste romaneio expedido',
 } as const
 
 export const quantity = (v: number) => v.toLocaleString('pt-BR', { maximumFractionDigits: 4 })

@@ -29,7 +29,9 @@ public sealed record ItemSummary(
     bool TracksSerial,
     int? WarrantyMonths,
     bool IsActive,
-    bool IsDeleted);
+    bool IsDeleted,
+    string? Cest = null,
+    int Origin = 0);
 
 /// <summary>
 /// Itens para Commercial, Engineering, Purchasing, Production e Fiscal (CA 21): busca só com ativos; resolução por id inclusive

@@ -1,14 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import { useRef, useState } from 'react'
-import { getDownloadAttachmentUrl, getListAttachmentsQueryKey, uploadAttachment, useListAttachments } from '@/api/generated/bemaqui'
+import { getDownloadAttachmentUrl, getListAttachmentsQueryKey, uploadAttachment, useListAttachments, useListOutgoingInvoices } from '@/api/generated/bemaqui'
 import type { AttachmentDto } from '@/api/generated/model'
 import { ApiError, apiDownload } from '@/api/http'
 import { FormError } from '@/components/form/form'
 import { notifySuccess } from '@/components/ui/messages'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
-import { formatDateTime } from '@/lib/format'
+import { formatDate, formatDateTime, formatMoney } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
+import { INVOICE_STATUS, invoiceLabel } from '../fiscal/outgoing-invoices'
 
 function Files({ items }: { items: AttachmentDto[] }) {
   return (
@@ -29,6 +31,7 @@ export function ProjectDocumentsTab({ projectId, contractId }: { projectId: stri
   const signed = useListAttachments('Contract', contractId)
   const client = useQueryClient()
   const canEdit = useCan('projects.edit')
+  const canFiscal = useCan('fiscal.view')
   const input = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | undefined>()
   const [sending, setSending] = useState(false)
@@ -62,10 +65,31 @@ export function ProjectDocumentsTab({ projectId, contractId }: { projectId: stri
         <h3 className="text-sm font-semibold">Documentos do projeto</h3>
         {own.isPending ? <Skeleton className="h-20" /> : own.isError ? <ErrorState onRetry={() => own.refetch()} /> : own.data.length === 0 ? <EmptyState title="Nenhum documento do projeto ainda." action={action} /> : <><Files items={own.data} />{action}</>}
       </section>
+      {canFiscal ? <ProjectInvoices projectId={projectId} /> : null}
       <section className="space-y-2">
         <h3 className="text-sm font-semibold">Contrato assinado</h3>
         {signed.isPending ? <Skeleton className="h-12" /> : signed.isError ? <ErrorState onRetry={() => signed.refetch()} /> : signed.data.length === 0 ? <p className="text-sm text-muted-foreground">Ainda não anexado. Anexe na tela do contrato.</p> : <Files items={signed.data} />}
       </section>
     </div>
+  )
+}
+
+/** Notas do projeto (FIS-03a CA 7 e 15): número com link; o XML e o DANFE ficam na aba Documentos da nota. */
+function ProjectInvoices({ projectId }: { projectId: string }) {
+  const list = useListOutgoingInvoices({ projectId, pageSize: 50 })
+  return (
+    <section className="space-y-2">
+      <h3 className="text-sm font-semibold">Notas fiscais</h3>
+      {list.isPending ? <Skeleton className="h-12" /> : list.isError ? <ErrorState onRetry={() => void list.refetch()} /> : list.data.items.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma nota do projeto ainda. Use Faturar.</p> : (
+        <ul className="divide-y divide-border rounded-md border border-border bg-card text-sm">
+          {list.data.items.map((n) => (
+            <li key={n.id} className="flex flex-wrap items-center justify-between gap-2 p-3">
+              <Link to={'/app/fiscal/saida/$id' as never} params={{ id: n.id } as never} search={{ aba: 'documentos' } as never} className="font-semibold text-primary tabular-nums hover:underline">{invoiceLabel(n.series, n.number)}</Link>
+              <span className="flex items-center gap-2 text-xs tabular-nums text-muted-foreground">{n.issuedOn ? formatDate(n.issuedOn) : null}{formatMoney(n.totalAmount)}<StatusChip tone={INVOICE_STATUS[n.status].tone}>{INVOICE_STATUS[n.status].label}</StatusChip></span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }

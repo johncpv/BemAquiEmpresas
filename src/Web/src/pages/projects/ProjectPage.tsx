@@ -12,6 +12,7 @@ import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { PROJECT_LETTERS, PROJECT_STAGES, projectStage } from '../contracts/contracts'
 import { ProjectGanttTab } from '../production/planning/GanttTab'
+import { ProjectBillingPanel } from './ProjectBillingPanel'
 import { ProjectCostsTab } from './ProjectCostsTab'
 import { ProjectDocumentsTab } from './ProjectDocumentsTab'
 import { ProjectEventDialog } from './ProjectEventDialog'
@@ -29,6 +30,7 @@ export function ProjectPage() {
   const canEdit = useCan('projects.edit')
   const canApprove = useCan('projects.approve')
   const canProduction = useCan('production.view')
+  const canBill = useCan('fiscal.create')
   const client = useQueryClient()
   const query = useGetProject(id)
   if (query.isPending) return <Skeleton className="h-96" />
@@ -57,6 +59,7 @@ export function ProjectPage() {
           {canEdit && active ? <Link to={'/app/contratos/$id/aditivos/$aditivoId' as never} params={{ id: p.contractId, aditivoId: 'novo' } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Aditivo</Link> : null}
           {canFabricate ? <ProjectEventDialog project={p} kind="fabrication" onDone={refresh} /> : null}
           {canDeliver ? <ProjectEventDialog project={p} kind="delivery" onDone={refresh} /> : null}
+          {canBill && stage >= 0 ? <ProjectBillingPanel projectId={p.id} /> : null}
         </div>
       </PageHeading>
       {active && inProduction && byOrders ? (

@@ -73,7 +73,9 @@ public static class FinanceInfrastructure
         // romaneio), parâmetros "A confirmar com a contadora" e o resumo da receita para o painel do dono.
         services.TryAddScoped<DreParametersService>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IRevenueRecognition, TitleRevenueRecognition>());
-        services.TryAddScoped<IRevenueCutover, NoRevenueCutover>();
+        // FIS-03a CA 13: a receita pela nota e a data de corte do Fiscal (sem corte, tudo segue provisório pelo título).
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IRevenueRecognition, InvoiceRevenueRecognition>());
+        services.TryAddScoped<IRevenueCutover, FiscalRevenueCutover>();
         services.TryAddScoped<IProjectShipments, NoProjectShipments>();
         services.TryAddScoped<RevenueRecognitionRouter>();
         services.TryAddScoped<DreService>();

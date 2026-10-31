@@ -26,11 +26,12 @@ public sealed record ShipmentLineView(
 
 /// <summary>
 /// Próximos passos do romaneio (CA 8): a OS de instalação do projeto (COM-06) ou o registro de entrega (COM-04b) e o motivo que impede
-/// confirmar ou confirmar o estoque geral (botão desabilitado com o motivo).
+/// confirmar ou confirmar o estoque geral (botão desabilitado com o motivo). FIS-03a CA 1 e 15: a NF-e ativa do romaneio (com link) ou, sem nota,
+/// o "Emitir NF-e" no romaneio expedido.
 /// </summary>
 public sealed record ShipmentNext(
     bool CanConfirm, string? ConfirmBlocker, bool CanConfirmStock, string? ConfirmStockBlocker, Guid? InstallationOrderId, string? InstallationOrderNumber, bool ProjectDelivered,
-    string ProjectStatus);
+    string ProjectStatus, Guid? InvoiceId = null, string? InvoiceLabel = null, string? InvoiceStatus = null);
 
 /// <summary>Romaneio (CA 1 a 17): cabeçalho, entrega, transporte (placa e motorista só aqui, nunca na lista), linhas, quem montou e quem confirmou.</summary>
 public sealed record ShipmentDetail(

@@ -21,6 +21,15 @@ public interface IFiscalDb
     /// <summary>Regras fiscais por operação, uma linha por versão (FIS-02b).</summary>
     DbSet<TaxRule> TaxRules { get; }
 
+    /// <summary>Itens da NF-e de saída (FIS-03a).</summary>
+    DbSet<OutgoingInvoiceItem> OutgoingInvoiceItems { get; }
+
+    /// <summary>Parcelas do contrato referenciadas pela nota (só referência, FIS-03a).</summary>
+    DbSet<OutgoingInvoiceReceivable> OutgoingInvoiceReceivables { get; }
+
+    /// <summary>Números gastos sem nota válida (rejeitada ou denegada, FIS-03a; a inutilização é da FIS-03b).</summary>
+    DbSet<NumberGap> NumberGaps { get; }
+
     ChangeTracker ChangeTracker { get; }
 
     /// <summary>Trava da nota na conferência de pendentes (<c>FOR UPDATE SKIP LOCKED</c>, CA 14).</summary>

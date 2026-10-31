@@ -17,6 +17,12 @@ public static class HostEvents
             .AddEvent<BemAqui.HR.Contracts.HourlyCostChanged>()
             // FIS-02a → FIS-02b CA 6: valores fiscais mudaram; as regras afetadas ganham o aviso "A revisar" (nenhuma muda sozinha).
             .AddHandler<BemAqui.Fiscal.Contracts.FiscalSettingsChanged, BemAqui.Fiscal.Application.TaxRules.TaxRuleReviewConsumer>()
+            // FIS-03a CA 11 e 12 (ADR 0025 adendo, D4): a NF-e autorizada vira o imposto realizado na razão do projeto (InvoiceTax); nenhum
+            // consumidor no Inventory (a nota só referencia o romaneio). Rejeitada e denegada são só aviso.
+            .AddHandler<BemAqui.Fiscal.Contracts.InvoiceAuthorized, BemAqui.Commercial.Application.InvoiceTaxConsumer>()
+            .AddHandler<BemAqui.Fiscal.Contracts.InvoiceAuthorized, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            .AddEvent<BemAqui.Fiscal.Contracts.InvoiceRejected>()
+            .AddEvent<BemAqui.Fiscal.Contracts.InvoiceDenied>()
             .AddEvent<BemAqui.HR.Contracts.EmployeeTerminated>()
             .AddEvent<BemAqui.HR.Contracts.EmployeeSalaryChanged>()
             // Orçamentos e contratos (COM-01b a COM-04b).

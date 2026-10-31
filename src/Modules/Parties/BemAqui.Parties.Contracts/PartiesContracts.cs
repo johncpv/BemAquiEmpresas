@@ -71,7 +71,17 @@ public interface IParties
 
     /// <summary>Endereços do terceiro (endereço da obra do orçamento).</summary>
     Task<IReadOnlyList<PartyAddressInfo>> AddressesAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Dados fiscais do terceiro para o destinatário da nota (FIS-03a CA 1): tipo, documento, razão social, IE, e-mail e telefone do
+    /// cadastro. Dado pessoal: só para montar o documento fiscal, nunca para evento ou log.
+    /// </summary>
+    async Task<PartyFiscalInfo?> FiscalInfoAsync(Guid id, CancellationToken cancellationToken = default) =>
+        await FindAsync(id, cancellationToken) is { } p ? new PartyFiscalInfo(p.Id, p.Kind, p.LegalName, p.Document, null, null, null) : null;
 }
+
+/// <summary>Destinatário da nota fiscal (FIS-03a): tipo, razão social, documento normalizado, IE, e-mail e telefone do cadastro.</summary>
+public sealed record PartyFiscalInfo(Guid Id, PartyKind Kind, string LegalName, string? Document, string? StateRegistration, string? Email, string? Phone);
 
 /// <summary>
 /// Quem usa um terceiro (CAD-01a CA 20): cada módulo que guarda o id de um terceiro implementa e registra no DI.
