@@ -5,7 +5,7 @@
 | ID | FIS-02a |
 | Título | Telas **Configurações → Fiscal** e **Configurações → Fiscal → Certificado digital**: regime, CRT, CNAE, série exclusiva, ambiente, CFOP/CST padrão por cenário, alíquotas, tributos no custo do projeto, código de serviço, ISS e retenções da NFS-e, IBS/CBS, prazo de cancelamento e `transp`/volumes, tudo pré-configurado com os valores propostos e o chip "A confirmar com a contadora" com "Marcar como conferido" auditado; envio do A1 direto ao cofre do EmissorFiscal (o BemAqui guarda só validade, titular/CNPJ e thumbprint), alerta de vencimento; ações `fiscal.approve` e `fiscal.import_incoming` no catálogo e seed patch `fiscal-permissions` |
 | Tamanho | G (re-estimada de M: passa a entregar as duas telas de Configurações com todos os parâmetros fiscais pré-configurados e a conferência auditada, e o envio do A1 ao Emissor) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (validação real no `demo` e conferência da contadora: pré-condição externa) |
 | Requisitos | R-FIS-2 (cadastro fiscal do tenant: certificado A1, regime, IE, série, ambiente) · R-FIS-4 · R-FIS-7 · R-FIS-8 · R-COM-2 · R-PRP-1 · R-PRP-5 · R-SEC-10 · R-SEC-5 |
 | Dependências | FIS-01 (`IFiscalEmitter`, `GetAccountAsync`, `UploadCertificateAsync`, `fiscal_environment_allowed`), CAD-06 (`company_profile`: IE, IM, endereço, `city_ibge`), CAD-01b (consulta do cartão CNPJ), FND-06 (`ModuleCatalog`), CAD-01a (seed patch), FND-09e (`ConfirmDialog` com 2FA), BNK-01a (`EnvironmentBanner`), BNK-01b (`ToConfirmChip` "A confirmar com a contadora" com "Marcar como conferido", reutilizado aqui, sem criar outro); ADR 0042 aceita |
 | Bloqueia | FIS-02b (regras nascem do mesmo seed), FIS-03a (emissão), FIS-04a (`fiscal.import_incoming`), FIS-06 (NFS-e) |
@@ -126,22 +126,22 @@ Decisões da revisão aplicadas: novo requisito do PO (telas de Configurações 
 **Pré-condição externa:** conteúdo da contadora (P-01, P-02, P-03, série, códigos da NFS-e de Caçapava), que **não bloqueia** o `Ready` porque os valores vêm pré-configurados e a conferência é feita na tela; e-CNPJ A1 da Konebras (compra) e a rota de certificado sem `admin` no Emissor (lacuna L-h, dono PO) para o envio real; em homologação, o `demo` usa o A1 da Konebras no próprio tenant do Emissor.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva; `certificate_secret` deixa de ser usado sem apagar coluna), testada sobre cópia do banco do tenant `konebras`; seeds `fiscal-defaults` e `fiscal-permissions` idempotentes.
-- [ ] Permissões só do `ModuleCatalog` (`fiscal.approve`, `fiscal.import_incoming`).
-- [ ] Telas com estados, inclusive a 400 px.
-- [ ] Ajudas escritas; teste de cobertura passando.
-- [ ] Padrões pré-configurados, conferência e próximo passo avaliados; alertas acionáveis (vencimento com link).
-- [ ] Auditoria ligada (sem segredo; certificado só como "trocado").
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` (`fiscal_settings`, `setting_confirmations`) atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers) e E2E passando.
+- [x] Migration criada (não destrutiva; `certificate_secret` deixa de ser usado sem apagar coluna), testada sobre cópia do banco do tenant `konebras`; seeds `fiscal-defaults` e `fiscal-permissions` idempotentes.
+- [x] Permissões só do `ModuleCatalog` (`fiscal.approve`, `fiscal.import_incoming`).
+- [x] Telas com estados, inclusive a 400 px.
+- [x] Ajudas escritas; teste de cobertura passando.
+- [x] Padrões pré-configurados, conferência e próximo passo avaliados; alertas acionáveis (vencimento com link).
+- [x] Auditoria ligada (sem segredo; certificado só como "trocado").
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` (`fiscal_settings`, `setting_confirmations`) atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `FiscalSettings`, `FiscalSettingKeys` (críticos por documento) e `SettingConfirmation` (Domain); `fiscal.approve` e `fiscal.import_incoming` no `ModuleCatalog`; seeds `fiscal-defaults` e `fiscal-permissions`.
-- [ ] `IFiscalSettings` com `ReadinessAsync`; endpoints `/api/v1/fiscal/settings` (+ `/confirmations`, `/certificate` multipart, `/export-pdf`).
-- [ ] Telas, chip de conferência, PDF para a contadora, recorrente `fiscal-certificate-expiry`, fonte da pauta.
-- [ ] Ajudas e Dicas.
+- [x] `FiscalSettings`, `FiscalSettingKeys` (críticos por documento) e `SettingConfirmation` (Domain); `fiscal.approve` e `fiscal.import_incoming` no `ModuleCatalog`; seeds `fiscal-defaults` e `fiscal-permissions`.
+- [x] `IFiscalSettings` com `ReadinessAsync`; endpoints `/api/v1/fiscal/settings` (+ `/confirmations`, `/certificate` multipart, `/export-pdf`).
+- [x] Telas, chip de conferência, PDF para a contadora, recorrente `fiscal-certificate-expiry`, fonte da pauta.
+- [x] Ajudas e Dicas.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (certificado, produção, 2FA), @qa, contadora (conferência dos valores, fora do código).
