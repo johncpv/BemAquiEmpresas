@@ -486,7 +486,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-1, R-FIS-8, R-FIS-6, R-FIS-7, PRD §6 Segurança, R-SEC-5.
 - CA: ADR 0027 aceita; `IFiscalEmitter` sem DTO do EmissorFiscal e fake para os testes; `nfe-{invoiceId}-{tentativa}` com o hash do payload; chave por tenant sem escopo `admin`; webhook HMAC que só dispara reconsulta; job de pendentes; rede `bqe-fiscal`; lacunas do Emissor (P-27) como pré-condição externa.
 
-**FIS-02a [ ] Configurações → Fiscal e Certificado digital: parâmetros pré-configurados "a confirmar", A1 direto ao Emissor, permissões do módulo `fiscal` (G)** — 5.4, ordem 8 — re-estimada de M — `Ready (pré-condição externa)` — [story](stories/FIS-02a-configuracao-fiscal-tenant.md)
+**FIS-02a [x] Configurações → Fiscal e Certificado digital: parâmetros pré-configurados "a confirmar", A1 direto ao Emissor, permissões do módulo `fiscal` (G)** — 5.4, ordem 8 — re-estimada de M — `Done` (validação real no `demo` e conteúdo da contadora: pré-condição externa) — [story](stories/FIS-02a-configuracao-fiscal-tenant.md)
 - Requisitos: R-FIS-2, R-COM-2, R-SEC-10.
 - CA: Configurações → Fiscal pré-configurada (Lucro Presumido, série exclusiva, CFOP/CST e alíquotas por cenário, tributos no custo, NFS-e, IBS/CBS, prazos) com "A confirmar com a contadora" e "Marcar como conferido"; Configurações → Fiscal → Certificado digital com o A1 direto ao cofre do EmissorFiscal, `settings.edit` e 2FA de novo; `fiscal.approve` (reservada) e `fiscal.import_incoming` no catálogo, seed `fiscal-permissions`; produção só com os campos críticos conferidos; alerta de vencimento 30/15/7/1 dias.
 
@@ -556,7 +556,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-RH-4 (parte), PRD §6 (LGPD, Usabilidade), R-SEC-5, R-PRP-1, R-PRP-2.
 - CA: "Meu ponto" no tablet e no celular em `/api/v1/me/hr/*` (ADR 0035), com a faixa "Controle interno de jornada" (não substitui o registro legal); marcar no tablet encerra a sessão por PIN; geolocalização desligada por padrão, com ciência registrada; intervalo mínimo de 1 min; sem marcação offline; marcação nunca editada nem apagada.
 
-**RH-01b [ ] Ponto: lançamento manual, pedido de ajuste, abono de ausência e aprovação (M)** — 6.1, ordem 7 — `Ready` — [story](stories/RH-01b-ajustes-ponto-aprovacao.md)
+**RH-01b [x] Ponto: lançamento manual, pedido de ajuste, abono de ausência e aprovação (M)** — 6.1, ordem 7 — `Done` — [story](stories/RH-01b-ajustes-ponto-aprovacao.md)
 - Requisitos: R-RH-4 (parte), PRD §6 LGPD, R-SEC-5, R-COM-2, R-COM-3, R-PRP-2, R-PRP-5, R-PRP-6 (D).
 - CA: lançamento do RH e pedido do funcionário como ajuste `Pending`, ambos com aprovação; lista única de ausências com os afastamentos; atestado só com `hr.view_health`; quem pede não aprova (Proprietário único com a marca); período fechado bloqueia.
 - **`hr.view_health` (decisão do PO de 22/10/2026):** a RH-01b usa a ação `hr.view_health` já entregue pela CAD-04c1b (catálogo e seed patch `hr-view-health` no grupo RH); não cria ação nem seed patch novo.

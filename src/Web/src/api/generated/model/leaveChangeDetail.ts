@@ -4,8 +4,8 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { AbsenceReason } from './absenceReason';
 import type { EmployeeLeaveChangeKind } from './employeeLeaveChangeKind';
-import type { EmployeeLeaveType } from './employeeLeaveType';
 
 export interface LeaveChangeDetail {
   id: string;
@@ -14,8 +14,8 @@ export interface LeaveChangeDetail {
   oldExpectedEndDate: string;
   newStartDate: string;
   newExpectedEndDate: string;
-  oldType: null | EmployeeLeaveType;
-  newType: null | EmployeeLeaveType;
+  oldType: null | AbsenceReason;
+  newType: null | AbsenceReason;
   /** @nullable */
   reason: string | null;
   /** @nullable */

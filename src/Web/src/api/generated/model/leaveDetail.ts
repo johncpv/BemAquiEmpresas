@@ -4,13 +4,13 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { AbsenceReason } from './absenceReason';
 import type { EmployeeLeaveState } from './employeeLeaveState';
-import type { EmployeeLeaveType } from './employeeLeaveType';
 import type { LeaveChangeDetail } from './leaveChangeDetail';
 
 export interface LeaveDetail {
   id: string;
-  type: null | EmployeeLeaveType;
+  type: null | AbsenceReason;
   healthProtected: boolean;
   state: EmployeeLeaveState;
   startDate: string;

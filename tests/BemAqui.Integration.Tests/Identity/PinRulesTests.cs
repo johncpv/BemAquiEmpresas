@@ -148,6 +148,7 @@ public class PinRulesTests
     [InlineData("fiscal.approve")]
     [InlineData("finance.pay")]
     [InlineData("hr.view_sensitive")]
+    [InlineData("hr.view_health")]
     [InlineData("identity.edit")]
     [InlineData("settings.edit")]
     public void Perfil_com_acao_reservada_nao_usa_PIN(string reserved)

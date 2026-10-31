@@ -108,6 +108,11 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
         ["/api/v1/me/hr/time-entries"] = "Meu ponto: marcar (POST, hora do servidor) e Minhas marcações dos últimos 60 dias (GET), só do funcionário da sessão (RH-01a CA 3 e 13)",
         ["/api/v1/me/hr/time-entries/today"] = "Meu ponto: hoje, a jornada e a próxima marcação sugerida (RH-01a CA 2)",
         ["/api/v1/me/hr/time-entries/geo-consent"] = "ciência do aviso da geolocalização do próprio funcionário (RH-01a CA 10)",
+        ["/api/v1/me/hr/absence-reasons"] = "a lista única de ausências para o pedido de abono, sem dado pessoal (RH-01b CA 7)",
+        ["/api/v1/me/hr/time-adjustments"] = "Pedir ajuste (POST) e Meus pedidos (GET), só do funcionário da sessão; desconsiderar só marcação dele (RH-01b CA 5 e 6)",
+        ["/api/v1/me/hr/time-adjustments/{id:guid}/cancel"] = "cancelar o próprio pedido pendente; o de outro funcionário responde 404 (RH-01b CA 5)",
+        ["/api/v1/me/hr/time-adjustments/{id:guid}/documents"] = "anexar o documento ao próprio abono; ClamAV e prefixo do tenant (RH-01b CA 8)",
+        ["/api/v1/me/hr/time-adjustments/{id:guid}/documents/{attachmentId:guid}"] = "baixar só o documento que o próprio funcionário enviou ao pedido dele (RH-01b CA 8)",
     };
 
     private static bool IsSelfService(RouteEndpoint e) =>

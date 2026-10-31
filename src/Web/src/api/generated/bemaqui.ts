@@ -24,6 +24,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AbsenceReasonOption,
   AcceptInviteRequest,
   AccessTokenResponse,
   AccountBalances,
@@ -60,6 +61,8 @@ import type {
   ApproveStepInput,
   ApproverOption,
   AskHelpRequest,
+  AttachMyTimeAdjustmentDocumentBody,
+  AttachTimeAdjustmentDocumentBody,
   AttachmentDto,
   BacklogCard,
   BalancesCard,
@@ -129,6 +132,7 @@ import type {
   CompleteOrderInput,
   CompleteStepInput,
   CompleteStockOpeningInput,
+  ConfirmFiscalSettingsRequest,
   ConfirmTwoFactorRequest,
   ConfirmWithChallengeRequest,
   ContactInput,
@@ -199,8 +203,12 @@ import type {
   FinanceLimitsInput,
   FinanceProjectOption,
   FinanceSupplierOption,
+  FiscalCertificateForm,
+  FiscalCertificateView,
   FiscalConnectionTest,
   FiscalIntegrationView,
+  FiscalSettingsSaved,
+  FiscalSettingsView,
   ForgotPasswordRequest,
   FoundLineInput,
   GanttCentersView,
@@ -221,9 +229,11 @@ import type {
   GetDreCellParams,
   GetDreChangesParams,
   GetDreParams,
+  GetEmployeeScheduleDayParams,
   GetFabricationOrderHistoryParams,
   GetFactoryLoadCellParams,
   GetFactoryLoadParams,
+  GetFiscalCertificateParams,
   GetGoodsReceiptHistoryParams,
   GetInstallationDefaultsParams,
   GetInventoryCountDivergencesParams,
@@ -408,6 +418,7 @@ import type {
   ListStockShortagesParams,
   ListSupplierOptionsParams,
   ListTenantsParams,
+  ListTimeAdjustmentsParams,
   ListTimeEntriesParams,
   ListUnitsParams,
   ListWebhookEventsParams,
@@ -725,8 +736,10 @@ import type {
   RoutingWorkCenterOption,
   SalaryChangeInput,
   SaveFiscalIntegrationRequest,
+  SaveFiscalSettingsRequest,
   SaveGroupRequest,
   SaveModuleReleaseRequest,
+  ScheduleDayProposal,
   ScheduleDetail,
   ScheduleInput,
   ScheduleRecalculation,
@@ -796,6 +809,14 @@ import type {
   TenantParametersDto,
   TenantPublicContext,
   TerminationInput,
+  TimeAdjustmentBatchInput,
+  TimeAdjustmentBatchResult,
+  TimeAdjustmentDayInput,
+  TimeAdjustmentDecisionInput,
+  TimeAdjustmentDetail,
+  TimeAdjustmentInput,
+  TimeAdjustmentList,
+  TimeAdjustmentView,
   TimeEntryInput,
   TimeEntryList,
   TimeEntryLocationRow,
@@ -16873,6 +16894,664 @@ export function useListEmployeeTimeEntryLocations<TData = Awaited<ReturnType<typ
 
 
 
+export const getListEmployeeTimeAdjustmentsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/time-adjustments`
+}
+
+export const listEmployeeTimeAdjustments = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<TimeAdjustmentList> => {
+
+  return apiFetch<TimeAdjustmentList>(getListEmployeeTimeAdjustmentsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEmployeeTimeAdjustmentsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/time-adjustments`
+    ] as const;
+    }
+
+
+export const getListEmployeeTimeAdjustmentsQueryOptions = <TData = Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEmployeeTimeAdjustmentsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>> = ({ signal }) => listEmployeeTimeAdjustments(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListEmployeeTimeAdjustmentsQueryResult = NonNullable<Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>>
+export type ListEmployeeTimeAdjustmentsQueryError = unknown
+
+
+export function useListEmployeeTimeAdjustments<TData = Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>,
+          TError,
+          Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEmployeeTimeAdjustments<TData = Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>,
+          TError,
+          Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEmployeeTimeAdjustments<TData = Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListEmployeeTimeAdjustments<TData = Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployeeTimeAdjustments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListEmployeeTimeAdjustmentsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateEmployeeTimeAdjustmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/time-adjustments`
+}
+
+export const createEmployeeTimeAdjustment = async (id: string,
+    timeAdjustmentInput: TimeAdjustmentInput, options?: Parameters<typeof apiFetch>[1]): Promise<TimeAdjustmentView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TimeAdjustmentView>(getCreateEmployeeTimeAdjustmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(timeAdjustmentInput)
+  }
+);}
+
+
+
+
+
+export const getCreateEmployeeTimeAdjustmentMutationKey = () => ['createEmployeeTimeAdjustment'] as const;
+
+export const getCreateEmployeeTimeAdjustmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmployeeTimeAdjustment>>, TError,CreateEmployeeTimeAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createEmployeeTimeAdjustment>>, TError,CreateEmployeeTimeAdjustmentMutationVariables, TContext> => {
+
+const mutationKey = getCreateEmployeeTimeAdjustmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createEmployeeTimeAdjustment>>, CreateEmployeeTimeAdjustmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createEmployeeTimeAdjustment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateEmployeeTimeAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof createEmployeeTimeAdjustment>>>
+    export type CreateEmployeeTimeAdjustmentMutationBody = TimeAdjustmentInput
+    export type CreateEmployeeTimeAdjustmentMutationError = unknown
+    export type CreateEmployeeTimeAdjustmentMutationVariables = {id: string;data: TimeAdjustmentInput}
+
+    export const useCreateEmployeeTimeAdjustment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmployeeTimeAdjustment>>, TError,CreateEmployeeTimeAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createEmployeeTimeAdjustment>>,
+        TError,
+        CreateEmployeeTimeAdjustmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateEmployeeTimeAdjustmentMutationOptions(options), queryClient);
+    }
+
+export const getGetEmployeeScheduleDayUrl = (id: string,
+    params: GetEmployeeScheduleDayParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/hr/employees/${id}/time-adjustments/schedule-day?${stringifiedParams}` : `/api/v1/hr/employees/${id}/time-adjustments/schedule-day`
+}
+
+export const getEmployeeScheduleDay = async (id: string,
+    params: GetEmployeeScheduleDayParams, options?: Parameters<typeof apiFetch>[1]): Promise<ScheduleDayProposal> => {
+
+  return apiFetch<ScheduleDayProposal>(getGetEmployeeScheduleDayUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmployeeScheduleDayQueryKey = (id: string,
+    params?: GetEmployeeScheduleDayParams,) => {
+    return [
+    `/api/v1/hr/employees/${id}/time-adjustments/schedule-day`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetEmployeeScheduleDayQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeScheduleDay>>, TError = unknown>(id: string,
+    params: GetEmployeeScheduleDayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeScheduleDay>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeScheduleDayQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeScheduleDay>>> = ({ signal }) => getEmployeeScheduleDay(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeScheduleDay>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEmployeeScheduleDayQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeScheduleDay>>>
+export type GetEmployeeScheduleDayQueryError = unknown
+
+
+export function useGetEmployeeScheduleDay<TData = Awaited<ReturnType<typeof getEmployeeScheduleDay>>, TError = unknown>(
+ id: string,
+    params: GetEmployeeScheduleDayParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeScheduleDay>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeScheduleDay>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeScheduleDay>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeScheduleDay<TData = Awaited<ReturnType<typeof getEmployeeScheduleDay>>, TError = unknown>(
+ id: string,
+    params: GetEmployeeScheduleDayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeScheduleDay>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeScheduleDay>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeScheduleDay>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeScheduleDay<TData = Awaited<ReturnType<typeof getEmployeeScheduleDay>>, TError = unknown>(
+ id: string,
+    params: GetEmployeeScheduleDayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeScheduleDay>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEmployeeScheduleDay<TData = Awaited<ReturnType<typeof getEmployeeScheduleDay>>, TError = unknown>(
+ id: string,
+    params: GetEmployeeScheduleDayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeScheduleDay>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEmployeeScheduleDayQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetEmployeeTimeAdjustmentUrl = (id: string,
+    adjustmentId: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/time-adjustments/${adjustmentId}`
+}
+
+export const getEmployeeTimeAdjustment = async (id: string,
+    adjustmentId: string, options?: Parameters<typeof apiFetch>[1]): Promise<TimeAdjustmentDetail> => {
+
+  return apiFetch<TimeAdjustmentDetail>(getGetEmployeeTimeAdjustmentUrl(id,adjustmentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmployeeTimeAdjustmentQueryKey = (id: string,
+    adjustmentId: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/time-adjustments/${adjustmentId}`
+    ] as const;
+    }
+
+
+export const getGetEmployeeTimeAdjustmentQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>, TError = unknown>(id: string,
+    adjustmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeTimeAdjustmentQueryKey(id,adjustmentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>> = ({ signal }) => getEmployeeTimeAdjustment(id,adjustmentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && adjustmentId !== null && adjustmentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEmployeeTimeAdjustmentQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>>
+export type GetEmployeeTimeAdjustmentQueryError = unknown
+
+
+export function useGetEmployeeTimeAdjustment<TData = Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>, TError = unknown>(
+ id: string,
+    adjustmentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeTimeAdjustment<TData = Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>, TError = unknown>(
+ id: string,
+    adjustmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeTimeAdjustment<TData = Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>, TError = unknown>(
+ id: string,
+    adjustmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEmployeeTimeAdjustment<TData = Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>, TError = unknown>(
+ id: string,
+    adjustmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeAdjustment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEmployeeTimeAdjustmentQueryOptions(id,adjustmentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateEmployeeTimeAdjustmentDayUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/time-adjustments/day`
+}
+
+export const createEmployeeTimeAdjustmentDay = async (id: string,
+    timeAdjustmentDayInput: TimeAdjustmentDayInput, options?: Parameters<typeof apiFetch>[1]): Promise<TimeAdjustmentView[]> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TimeAdjustmentView[]>(getCreateEmployeeTimeAdjustmentDayUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(timeAdjustmentDayInput)
+  }
+);}
+
+
+
+
+
+export const getCreateEmployeeTimeAdjustmentDayMutationKey = () => ['createEmployeeTimeAdjustmentDay'] as const;
+
+export const getCreateEmployeeTimeAdjustmentDayMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmployeeTimeAdjustmentDay>>, TError,CreateEmployeeTimeAdjustmentDayMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createEmployeeTimeAdjustmentDay>>, TError,CreateEmployeeTimeAdjustmentDayMutationVariables, TContext> => {
+
+const mutationKey = getCreateEmployeeTimeAdjustmentDayMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createEmployeeTimeAdjustmentDay>>, CreateEmployeeTimeAdjustmentDayMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createEmployeeTimeAdjustmentDay(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateEmployeeTimeAdjustmentDayMutationResult = NonNullable<Awaited<ReturnType<typeof createEmployeeTimeAdjustmentDay>>>
+    export type CreateEmployeeTimeAdjustmentDayMutationBody = TimeAdjustmentDayInput
+    export type CreateEmployeeTimeAdjustmentDayMutationError = unknown
+    export type CreateEmployeeTimeAdjustmentDayMutationVariables = {id: string;data: TimeAdjustmentDayInput}
+
+    export const useCreateEmployeeTimeAdjustmentDay = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmployeeTimeAdjustmentDay>>, TError,CreateEmployeeTimeAdjustmentDayMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createEmployeeTimeAdjustmentDay>>,
+        TError,
+        CreateEmployeeTimeAdjustmentDayMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateEmployeeTimeAdjustmentDayMutationOptions(options), queryClient);
+    }
+
+export const getAttachTimeAdjustmentDocumentUrl = (id: string,
+    adjustmentId: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/time-adjustments/${adjustmentId}/documents`
+}
+
+export const attachTimeAdjustmentDocument = async (id: string,
+    adjustmentId: string,
+    attachTimeAdjustmentDocumentBody: AttachTimeAdjustmentDocumentBody, options?: Parameters<typeof apiFetch>[1]): Promise<AttachmentDto> => {
+    const formData = new FormData();
+formData.append(`file`, attachTimeAdjustmentDocumentBody.file);
+
+  return apiFetch<AttachmentDto>(getAttachTimeAdjustmentDocumentUrl(id,adjustmentId),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getAttachTimeAdjustmentDocumentMutationKey = () => ['attachTimeAdjustmentDocument'] as const;
+
+export const getAttachTimeAdjustmentDocumentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof attachTimeAdjustmentDocument>>, TError,AttachTimeAdjustmentDocumentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof attachTimeAdjustmentDocument>>, TError,AttachTimeAdjustmentDocumentMutationVariables, TContext> => {
+
+const mutationKey = getAttachTimeAdjustmentDocumentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof attachTimeAdjustmentDocument>>, AttachTimeAdjustmentDocumentMutationVariables> = (props) => {
+          const {id,adjustmentId,data} = props ?? {};
+
+          return  attachTimeAdjustmentDocument(id,adjustmentId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AttachTimeAdjustmentDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof attachTimeAdjustmentDocument>>>
+    export type AttachTimeAdjustmentDocumentMutationBody = AttachTimeAdjustmentDocumentBody
+    export type AttachTimeAdjustmentDocumentMutationError = unknown
+    export type AttachTimeAdjustmentDocumentMutationVariables = {id: string;adjustmentId: string;data: AttachTimeAdjustmentDocumentBody}
+
+    export const useAttachTimeAdjustmentDocument = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof attachTimeAdjustmentDocument>>, TError,AttachTimeAdjustmentDocumentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof attachTimeAdjustmentDocument>>,
+        TError,
+        AttachTimeAdjustmentDocumentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAttachTimeAdjustmentDocumentMutationOptions(options), queryClient);
+    }
+
+export const getDownloadTimeAdjustmentDocumentUrl = (id: string,
+    adjustmentId: string,
+    attachmentId: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/time-adjustments/${adjustmentId}/documents/${attachmentId}`
+}
+
+export const downloadTimeAdjustmentDocument = async (id: string,
+    adjustmentId: string,
+    attachmentId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadTimeAdjustmentDocumentUrl(id,adjustmentId,attachmentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadTimeAdjustmentDocumentQueryKey = (id: string,
+    adjustmentId: string,
+    attachmentId: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/time-adjustments/${adjustmentId}/documents/${attachmentId}`
+    ] as const;
+    }
+
+
+export const getDownloadTimeAdjustmentDocumentQueryOptions = <TData = Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>, TError = unknown>(id: string,
+    adjustmentId: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadTimeAdjustmentDocumentQueryKey(id,adjustmentId,attachmentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>> = ({ signal }) => downloadTimeAdjustmentDocument(id,adjustmentId,attachmentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && adjustmentId !== null && adjustmentId !== undefined && attachmentId !== null && attachmentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadTimeAdjustmentDocumentQueryResult = NonNullable<Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>>
+export type DownloadTimeAdjustmentDocumentQueryError = unknown
+
+
+export function useDownloadTimeAdjustmentDocument<TData = Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>, TError = unknown>(
+ id: string,
+    adjustmentId: string,
+    attachmentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>,
+          TError,
+          Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadTimeAdjustmentDocument<TData = Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>, TError = unknown>(
+ id: string,
+    adjustmentId: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>,
+          TError,
+          Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadTimeAdjustmentDocument<TData = Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>, TError = unknown>(
+ id: string,
+    adjustmentId: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadTimeAdjustmentDocument<TData = Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>, TError = unknown>(
+ id: string,
+    adjustmentId: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTimeAdjustmentDocument>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadTimeAdjustmentDocumentQueryOptions(id,adjustmentId,attachmentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListPayrollItemsUrl = () => {
 
 
@@ -20443,6 +21122,629 @@ export function useListTimeEntries<TData = Awaited<ReturnType<typeof listTimeEnt
 
 
 
+export const getListAbsenceReasonsUrl = () => {
+
+
+
+
+  return `/api/v1/hr/absence-reasons`
+}
+
+export const listAbsenceReasons = async ( options?: Parameters<typeof apiFetch>[1]): Promise<AbsenceReasonOption[]> => {
+
+  return apiFetch<AbsenceReasonOption[]>(getListAbsenceReasonsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAbsenceReasonsQueryKey = () => {
+    return [
+    `/api/v1/hr/absence-reasons`
+    ] as const;
+    }
+
+
+export const getListAbsenceReasonsQueryOptions = <TData = Awaited<ReturnType<typeof listAbsenceReasons>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAbsenceReasons>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAbsenceReasonsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAbsenceReasons>>> = ({ signal }) => listAbsenceReasons({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAbsenceReasons>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAbsenceReasonsQueryResult = NonNullable<Awaited<ReturnType<typeof listAbsenceReasons>>>
+export type ListAbsenceReasonsQueryError = unknown
+
+
+export function useListAbsenceReasons<TData = Awaited<ReturnType<typeof listAbsenceReasons>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAbsenceReasons>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAbsenceReasons>>,
+          TError,
+          Awaited<ReturnType<typeof listAbsenceReasons>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAbsenceReasons<TData = Awaited<ReturnType<typeof listAbsenceReasons>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAbsenceReasons>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAbsenceReasons>>,
+          TError,
+          Awaited<ReturnType<typeof listAbsenceReasons>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAbsenceReasons<TData = Awaited<ReturnType<typeof listAbsenceReasons>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAbsenceReasons>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListAbsenceReasons<TData = Awaited<ReturnType<typeof listAbsenceReasons>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAbsenceReasons>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAbsenceReasonsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListTimeAdjustmentsUrl = (params?: ListTimeAdjustmentsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/hr/time-adjustments?${stringifiedParams}` : `/api/v1/hr/time-adjustments`
+}
+
+export const listTimeAdjustments = async (params?: ListTimeAdjustmentsParams, options?: Parameters<typeof apiFetch>[1]): Promise<TimeAdjustmentList> => {
+
+  return apiFetch<TimeAdjustmentList>(getListTimeAdjustmentsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTimeAdjustmentsQueryKey = (params?: ListTimeAdjustmentsParams,) => {
+    return [
+    `/api/v1/hr/time-adjustments`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListTimeAdjustmentsQueryOptions = <TData = Awaited<ReturnType<typeof listTimeAdjustments>>, TError = unknown>(params?: ListTimeAdjustmentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTimeAdjustments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTimeAdjustmentsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTimeAdjustments>>> = ({ signal }) => listTimeAdjustments(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTimeAdjustments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListTimeAdjustmentsQueryResult = NonNullable<Awaited<ReturnType<typeof listTimeAdjustments>>>
+export type ListTimeAdjustmentsQueryError = unknown
+
+
+export function useListTimeAdjustments<TData = Awaited<ReturnType<typeof listTimeAdjustments>>, TError = unknown>(
+ params: undefined |  ListTimeAdjustmentsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTimeAdjustments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTimeAdjustments>>,
+          TError,
+          Awaited<ReturnType<typeof listTimeAdjustments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTimeAdjustments<TData = Awaited<ReturnType<typeof listTimeAdjustments>>, TError = unknown>(
+ params?: ListTimeAdjustmentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTimeAdjustments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTimeAdjustments>>,
+          TError,
+          Awaited<ReturnType<typeof listTimeAdjustments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTimeAdjustments<TData = Awaited<ReturnType<typeof listTimeAdjustments>>, TError = unknown>(
+ params?: ListTimeAdjustmentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTimeAdjustments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListTimeAdjustments<TData = Awaited<ReturnType<typeof listTimeAdjustments>>, TError = unknown>(
+ params?: ListTimeAdjustmentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTimeAdjustments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListTimeAdjustmentsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetTimeAdjustmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/time-adjustments/${id}`
+}
+
+export const getTimeAdjustment = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<TimeAdjustmentDetail> => {
+
+  return apiFetch<TimeAdjustmentDetail>(getGetTimeAdjustmentUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTimeAdjustmentQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/time-adjustments/${id}`
+    ] as const;
+    }
+
+
+export const getGetTimeAdjustmentQueryOptions = <TData = Awaited<ReturnType<typeof getTimeAdjustment>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimeAdjustment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTimeAdjustmentQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTimeAdjustment>>> = ({ signal }) => getTimeAdjustment(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTimeAdjustment>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTimeAdjustmentQueryResult = NonNullable<Awaited<ReturnType<typeof getTimeAdjustment>>>
+export type GetTimeAdjustmentQueryError = unknown
+
+
+export function useGetTimeAdjustment<TData = Awaited<ReturnType<typeof getTimeAdjustment>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimeAdjustment>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTimeAdjustment>>,
+          TError,
+          Awaited<ReturnType<typeof getTimeAdjustment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTimeAdjustment<TData = Awaited<ReturnType<typeof getTimeAdjustment>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimeAdjustment>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTimeAdjustment>>,
+          TError,
+          Awaited<ReturnType<typeof getTimeAdjustment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTimeAdjustment<TData = Awaited<ReturnType<typeof getTimeAdjustment>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimeAdjustment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTimeAdjustment<TData = Awaited<ReturnType<typeof getTimeAdjustment>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimeAdjustment>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTimeAdjustmentQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getApproveTimeAdjustmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/time-adjustments/${id}/approve`
+}
+
+export const approveTimeAdjustment = async (id: string,
+    timeAdjustmentDecisionInput: TimeAdjustmentDecisionInput, options?: Parameters<typeof apiFetch>[1]): Promise<TimeAdjustmentView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TimeAdjustmentView>(getApproveTimeAdjustmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(timeAdjustmentDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getApproveTimeAdjustmentMutationKey = () => ['approveTimeAdjustment'] as const;
+
+export const getApproveTimeAdjustmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveTimeAdjustment>>, TError,ApproveTimeAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof approveTimeAdjustment>>, TError,ApproveTimeAdjustmentMutationVariables, TContext> => {
+
+const mutationKey = getApproveTimeAdjustmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveTimeAdjustment>>, ApproveTimeAdjustmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  approveTimeAdjustment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApproveTimeAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof approveTimeAdjustment>>>
+    export type ApproveTimeAdjustmentMutationBody = TimeAdjustmentDecisionInput
+    export type ApproveTimeAdjustmentMutationError = unknown
+    export type ApproveTimeAdjustmentMutationVariables = {id: string;data: TimeAdjustmentDecisionInput}
+
+    export const useApproveTimeAdjustment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveTimeAdjustment>>, TError,ApproveTimeAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof approveTimeAdjustment>>,
+        TError,
+        ApproveTimeAdjustmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApproveTimeAdjustmentMutationOptions(options), queryClient);
+    }
+
+export const getRejectTimeAdjustmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/time-adjustments/${id}/reject`
+}
+
+export const rejectTimeAdjustment = async (id: string,
+    timeAdjustmentDecisionInput: TimeAdjustmentDecisionInput, options?: Parameters<typeof apiFetch>[1]): Promise<TimeAdjustmentView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TimeAdjustmentView>(getRejectTimeAdjustmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(timeAdjustmentDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getRejectTimeAdjustmentMutationKey = () => ['rejectTimeAdjustment'] as const;
+
+export const getRejectTimeAdjustmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectTimeAdjustment>>, TError,RejectTimeAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rejectTimeAdjustment>>, TError,RejectTimeAdjustmentMutationVariables, TContext> => {
+
+const mutationKey = getRejectTimeAdjustmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rejectTimeAdjustment>>, RejectTimeAdjustmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  rejectTimeAdjustment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RejectTimeAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof rejectTimeAdjustment>>>
+    export type RejectTimeAdjustmentMutationBody = TimeAdjustmentDecisionInput
+    export type RejectTimeAdjustmentMutationError = unknown
+    export type RejectTimeAdjustmentMutationVariables = {id: string;data: TimeAdjustmentDecisionInput}
+
+    export const useRejectTimeAdjustment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectTimeAdjustment>>, TError,RejectTimeAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rejectTimeAdjustment>>,
+        TError,
+        RejectTimeAdjustmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRejectTimeAdjustmentMutationOptions(options), queryClient);
+    }
+
+export const getCancelTimeAdjustmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/time-adjustments/${id}/cancel`
+}
+
+export const cancelTimeAdjustment = async (id: string,
+    timeAdjustmentDecisionInput: TimeAdjustmentDecisionInput, options?: Parameters<typeof apiFetch>[1]): Promise<TimeAdjustmentView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TimeAdjustmentView>(getCancelTimeAdjustmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(timeAdjustmentDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getCancelTimeAdjustmentMutationKey = () => ['cancelTimeAdjustment'] as const;
+
+export const getCancelTimeAdjustmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelTimeAdjustment>>, TError,CancelTimeAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelTimeAdjustment>>, TError,CancelTimeAdjustmentMutationVariables, TContext> => {
+
+const mutationKey = getCancelTimeAdjustmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelTimeAdjustment>>, CancelTimeAdjustmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelTimeAdjustment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelTimeAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof cancelTimeAdjustment>>>
+    export type CancelTimeAdjustmentMutationBody = TimeAdjustmentDecisionInput
+    export type CancelTimeAdjustmentMutationError = unknown
+    export type CancelTimeAdjustmentMutationVariables = {id: string;data: TimeAdjustmentDecisionInput}
+
+    export const useCancelTimeAdjustment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelTimeAdjustment>>, TError,CancelTimeAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelTimeAdjustment>>,
+        TError,
+        CancelTimeAdjustmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelTimeAdjustmentMutationOptions(options), queryClient);
+    }
+
+export const getApproveTimeAdjustmentsUrl = () => {
+
+
+
+
+  return `/api/v1/hr/time-adjustments/approve-batch`
+}
+
+export const approveTimeAdjustments = async (timeAdjustmentBatchInput: TimeAdjustmentBatchInput, options?: Parameters<typeof apiFetch>[1]): Promise<TimeAdjustmentBatchResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TimeAdjustmentBatchResult>(getApproveTimeAdjustmentsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(timeAdjustmentBatchInput)
+  }
+);}
+
+
+
+
+
+export const getApproveTimeAdjustmentsMutationKey = () => ['approveTimeAdjustments'] as const;
+
+export const getApproveTimeAdjustmentsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveTimeAdjustments>>, TError,ApproveTimeAdjustmentsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof approveTimeAdjustments>>, TError,ApproveTimeAdjustmentsMutationVariables, TContext> => {
+
+const mutationKey = getApproveTimeAdjustmentsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveTimeAdjustments>>, ApproveTimeAdjustmentsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  approveTimeAdjustments(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApproveTimeAdjustmentsMutationResult = NonNullable<Awaited<ReturnType<typeof approveTimeAdjustments>>>
+    export type ApproveTimeAdjustmentsMutationBody = TimeAdjustmentBatchInput
+    export type ApproveTimeAdjustmentsMutationError = unknown
+    export type ApproveTimeAdjustmentsMutationVariables = {data: TimeAdjustmentBatchInput}
+
+    export const useApproveTimeAdjustments = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveTimeAdjustments>>, TError,ApproveTimeAdjustmentsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof approveTimeAdjustments>>,
+        TError,
+        ApproveTimeAdjustmentsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApproveTimeAdjustmentsMutationOptions(options), queryClient);
+    }
+
 export const getGetMyEmployeeLinkUrl = () => {
 
 
@@ -20716,6 +22018,101 @@ export function useDownloadMyPayslipPdf<TData = Awaited<ReturnType<typeof downlo
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getDownloadMyPayslipPdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListMyAbsenceReasonsUrl = () => {
+
+
+
+
+  return `/api/v1/me/hr/absence-reasons`
+}
+
+export const listMyAbsenceReasons = async ( options?: Parameters<typeof apiFetch>[1]): Promise<AbsenceReasonOption[]> => {
+
+  return apiFetch<AbsenceReasonOption[]>(getListMyAbsenceReasonsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMyAbsenceReasonsQueryKey = () => {
+    return [
+    `/api/v1/me/hr/absence-reasons`
+    ] as const;
+    }
+
+
+export const getListMyAbsenceReasonsQueryOptions = <TData = Awaited<ReturnType<typeof listMyAbsenceReasons>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyAbsenceReasons>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMyAbsenceReasonsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyAbsenceReasons>>> = ({ signal }) => listMyAbsenceReasons({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyAbsenceReasons>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListMyAbsenceReasonsQueryResult = NonNullable<Awaited<ReturnType<typeof listMyAbsenceReasons>>>
+export type ListMyAbsenceReasonsQueryError = unknown
+
+
+export function useListMyAbsenceReasons<TData = Awaited<ReturnType<typeof listMyAbsenceReasons>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyAbsenceReasons>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyAbsenceReasons>>,
+          TError,
+          Awaited<ReturnType<typeof listMyAbsenceReasons>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyAbsenceReasons<TData = Awaited<ReturnType<typeof listMyAbsenceReasons>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyAbsenceReasons>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyAbsenceReasons>>,
+          TError,
+          Awaited<ReturnType<typeof listMyAbsenceReasons>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyAbsenceReasons<TData = Awaited<ReturnType<typeof listMyAbsenceReasons>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyAbsenceReasons>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListMyAbsenceReasons<TData = Awaited<ReturnType<typeof listMyAbsenceReasons>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyAbsenceReasons>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListMyAbsenceReasonsQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -21067,6 +22464,440 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getAcceptMyGeoConsentMutationOptions(options), queryClient);
     }
+
+export const getListMyTimeAdjustmentsUrl = () => {
+
+
+
+
+  return `/api/v1/me/hr/time-adjustments`
+}
+
+export const listMyTimeAdjustments = async ( options?: Parameters<typeof apiFetch>[1]): Promise<TimeAdjustmentView[]> => {
+
+  return apiFetch<TimeAdjustmentView[]>(getListMyTimeAdjustmentsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMyTimeAdjustmentsQueryKey = () => {
+    return [
+    `/api/v1/me/hr/time-adjustments`
+    ] as const;
+    }
+
+
+export const getListMyTimeAdjustmentsQueryOptions = <TData = Awaited<ReturnType<typeof listMyTimeAdjustments>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimeAdjustments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMyTimeAdjustmentsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyTimeAdjustments>>> = ({ signal }) => listMyTimeAdjustments({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyTimeAdjustments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListMyTimeAdjustmentsQueryResult = NonNullable<Awaited<ReturnType<typeof listMyTimeAdjustments>>>
+export type ListMyTimeAdjustmentsQueryError = unknown
+
+
+export function useListMyTimeAdjustments<TData = Awaited<ReturnType<typeof listMyTimeAdjustments>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimeAdjustments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyTimeAdjustments>>,
+          TError,
+          Awaited<ReturnType<typeof listMyTimeAdjustments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyTimeAdjustments<TData = Awaited<ReturnType<typeof listMyTimeAdjustments>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimeAdjustments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyTimeAdjustments>>,
+          TError,
+          Awaited<ReturnType<typeof listMyTimeAdjustments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyTimeAdjustments<TData = Awaited<ReturnType<typeof listMyTimeAdjustments>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimeAdjustments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListMyTimeAdjustments<TData = Awaited<ReturnType<typeof listMyTimeAdjustments>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimeAdjustments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListMyTimeAdjustmentsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateMyTimeAdjustmentUrl = () => {
+
+
+
+
+  return `/api/v1/me/hr/time-adjustments`
+}
+
+export const createMyTimeAdjustment = async (timeAdjustmentInput: TimeAdjustmentInput, options?: Parameters<typeof apiFetch>[1]): Promise<TimeAdjustmentView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TimeAdjustmentView>(getCreateMyTimeAdjustmentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(timeAdjustmentInput)
+  }
+);}
+
+
+
+
+
+export const getCreateMyTimeAdjustmentMutationKey = () => ['createMyTimeAdjustment'] as const;
+
+export const getCreateMyTimeAdjustmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMyTimeAdjustment>>, TError,CreateMyTimeAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createMyTimeAdjustment>>, TError,CreateMyTimeAdjustmentMutationVariables, TContext> => {
+
+const mutationKey = getCreateMyTimeAdjustmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createMyTimeAdjustment>>, CreateMyTimeAdjustmentMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createMyTimeAdjustment(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateMyTimeAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof createMyTimeAdjustment>>>
+    export type CreateMyTimeAdjustmentMutationBody = TimeAdjustmentInput
+    export type CreateMyTimeAdjustmentMutationError = unknown
+    export type CreateMyTimeAdjustmentMutationVariables = {data: TimeAdjustmentInput}
+
+    export const useCreateMyTimeAdjustment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMyTimeAdjustment>>, TError,CreateMyTimeAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createMyTimeAdjustment>>,
+        TError,
+        CreateMyTimeAdjustmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateMyTimeAdjustmentMutationOptions(options), queryClient);
+    }
+
+export const getCancelMyTimeAdjustmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/me/hr/time-adjustments/${id}/cancel`
+}
+
+export const cancelMyTimeAdjustment = async (id: string,
+    timeAdjustmentDecisionInput: TimeAdjustmentDecisionInput, options?: Parameters<typeof apiFetch>[1]): Promise<TimeAdjustmentView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TimeAdjustmentView>(getCancelMyTimeAdjustmentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(timeAdjustmentDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getCancelMyTimeAdjustmentMutationKey = () => ['cancelMyTimeAdjustment'] as const;
+
+export const getCancelMyTimeAdjustmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelMyTimeAdjustment>>, TError,CancelMyTimeAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelMyTimeAdjustment>>, TError,CancelMyTimeAdjustmentMutationVariables, TContext> => {
+
+const mutationKey = getCancelMyTimeAdjustmentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelMyTimeAdjustment>>, CancelMyTimeAdjustmentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelMyTimeAdjustment(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelMyTimeAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof cancelMyTimeAdjustment>>>
+    export type CancelMyTimeAdjustmentMutationBody = TimeAdjustmentDecisionInput
+    export type CancelMyTimeAdjustmentMutationError = unknown
+    export type CancelMyTimeAdjustmentMutationVariables = {id: string;data: TimeAdjustmentDecisionInput}
+
+    export const useCancelMyTimeAdjustment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelMyTimeAdjustment>>, TError,CancelMyTimeAdjustmentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelMyTimeAdjustment>>,
+        TError,
+        CancelMyTimeAdjustmentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelMyTimeAdjustmentMutationOptions(options), queryClient);
+    }
+
+export const getAttachMyTimeAdjustmentDocumentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/me/hr/time-adjustments/${id}/documents`
+}
+
+export const attachMyTimeAdjustmentDocument = async (id: string,
+    attachMyTimeAdjustmentDocumentBody: AttachMyTimeAdjustmentDocumentBody, options?: Parameters<typeof apiFetch>[1]): Promise<AttachmentDto> => {
+    const formData = new FormData();
+formData.append(`file`, attachMyTimeAdjustmentDocumentBody.file);
+
+  return apiFetch<AttachmentDto>(getAttachMyTimeAdjustmentDocumentUrl(id),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getAttachMyTimeAdjustmentDocumentMutationKey = () => ['attachMyTimeAdjustmentDocument'] as const;
+
+export const getAttachMyTimeAdjustmentDocumentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof attachMyTimeAdjustmentDocument>>, TError,AttachMyTimeAdjustmentDocumentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof attachMyTimeAdjustmentDocument>>, TError,AttachMyTimeAdjustmentDocumentMutationVariables, TContext> => {
+
+const mutationKey = getAttachMyTimeAdjustmentDocumentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof attachMyTimeAdjustmentDocument>>, AttachMyTimeAdjustmentDocumentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  attachMyTimeAdjustmentDocument(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AttachMyTimeAdjustmentDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof attachMyTimeAdjustmentDocument>>>
+    export type AttachMyTimeAdjustmentDocumentMutationBody = AttachMyTimeAdjustmentDocumentBody
+    export type AttachMyTimeAdjustmentDocumentMutationError = unknown
+    export type AttachMyTimeAdjustmentDocumentMutationVariables = {id: string;data: AttachMyTimeAdjustmentDocumentBody}
+
+    export const useAttachMyTimeAdjustmentDocument = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof attachMyTimeAdjustmentDocument>>, TError,AttachMyTimeAdjustmentDocumentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof attachMyTimeAdjustmentDocument>>,
+        TError,
+        AttachMyTimeAdjustmentDocumentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAttachMyTimeAdjustmentDocumentMutationOptions(options), queryClient);
+    }
+
+export const getDownloadMyTimeAdjustmentDocumentUrl = (id: string,
+    attachmentId: string,) => {
+
+
+
+
+  return `/api/v1/me/hr/time-adjustments/${id}/documents/${attachmentId}`
+}
+
+export const downloadMyTimeAdjustmentDocument = async (id: string,
+    attachmentId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadMyTimeAdjustmentDocumentUrl(id,attachmentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadMyTimeAdjustmentDocumentQueryKey = (id: string,
+    attachmentId: string,) => {
+    return [
+    `/api/v1/me/hr/time-adjustments/${id}/documents/${attachmentId}`
+    ] as const;
+    }
+
+
+export const getDownloadMyTimeAdjustmentDocumentQueryOptions = <TData = Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>, TError = unknown>(id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadMyTimeAdjustmentDocumentQueryKey(id,attachmentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>> = ({ signal }) => downloadMyTimeAdjustmentDocument(id,attachmentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && attachmentId !== null && attachmentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadMyTimeAdjustmentDocumentQueryResult = NonNullable<Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>>
+export type DownloadMyTimeAdjustmentDocumentQueryError = unknown
+
+
+export function useDownloadMyTimeAdjustmentDocument<TData = Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>,
+          TError,
+          Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadMyTimeAdjustmentDocument<TData = Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>,
+          TError,
+          Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadMyTimeAdjustmentDocument<TData = Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadMyTimeAdjustmentDocument<TData = Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>, TError = unknown>(
+ id: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyTimeAdjustmentDocument>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadMyTimeAdjustmentDocumentQueryOptions(id,attachmentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListQuotesUrl = (params?: ListQuotesParams,) => {
   const normalizedParams = new URLSearchParams();
@@ -70042,6 +71873,608 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getTestFiscalIntegrationMutationOptions(options), queryClient);
+    }
+
+export const getGetFiscalSettingsUrl = () => {
+
+
+
+
+  return `/api/v1/fiscal/settings`
+}
+
+export const getFiscalSettings = async ( options?: Parameters<typeof apiFetch>[1]): Promise<FiscalSettingsView> => {
+
+  return apiFetch<FiscalSettingsView>(getGetFiscalSettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFiscalSettingsQueryKey = () => {
+    return [
+    `/api/v1/fiscal/settings`
+    ] as const;
+    }
+
+
+export const getGetFiscalSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getFiscalSettings>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFiscalSettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFiscalSettings>>> = ({ signal }) => getFiscalSettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFiscalSettings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFiscalSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getFiscalSettings>>>
+export type GetFiscalSettingsQueryError = unknown
+
+
+export function useGetFiscalSettings<TData = Awaited<ReturnType<typeof getFiscalSettings>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalSettings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFiscalSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getFiscalSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFiscalSettings<TData = Awaited<ReturnType<typeof getFiscalSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalSettings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFiscalSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getFiscalSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFiscalSettings<TData = Awaited<ReturnType<typeof getFiscalSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetFiscalSettings<TData = Awaited<ReturnType<typeof getFiscalSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalSettings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFiscalSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveFiscalSettingsUrl = () => {
+
+
+
+
+  return `/api/v1/fiscal/settings`
+}
+
+export const saveFiscalSettings = async (saveFiscalSettingsRequest: SaveFiscalSettingsRequest, options?: Parameters<typeof apiFetch>[1]): Promise<FiscalSettingsSaved> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<FiscalSettingsSaved>(getSaveFiscalSettingsUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(saveFiscalSettingsRequest)
+  }
+);}
+
+
+
+
+
+export const getSaveFiscalSettingsMutationKey = () => ['saveFiscalSettings'] as const;
+
+export const getSaveFiscalSettingsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveFiscalSettings>>, TError,SaveFiscalSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveFiscalSettings>>, TError,SaveFiscalSettingsMutationVariables, TContext> => {
+
+const mutationKey = getSaveFiscalSettingsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveFiscalSettings>>, SaveFiscalSettingsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveFiscalSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveFiscalSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof saveFiscalSettings>>>
+    export type SaveFiscalSettingsMutationBody = SaveFiscalSettingsRequest
+    export type SaveFiscalSettingsMutationError = unknown
+    export type SaveFiscalSettingsMutationVariables = {data: SaveFiscalSettingsRequest}
+
+    export const useSaveFiscalSettings = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveFiscalSettings>>, TError,SaveFiscalSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveFiscalSettings>>,
+        TError,
+        SaveFiscalSettingsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveFiscalSettingsMutationOptions(options), queryClient);
+    }
+
+export const getConfirmFiscalSettingsUrl = () => {
+
+
+
+
+  return `/api/v1/fiscal/settings/confirmations`
+}
+
+export const confirmFiscalSettings = async (confirmFiscalSettingsRequest: ConfirmFiscalSettingsRequest, options?: Parameters<typeof apiFetch>[1]): Promise<FiscalSettingsView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<FiscalSettingsView>(getConfirmFiscalSettingsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(confirmFiscalSettingsRequest)
+  }
+);}
+
+
+
+
+
+export const getConfirmFiscalSettingsMutationKey = () => ['confirmFiscalSettings'] as const;
+
+export const getConfirmFiscalSettingsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmFiscalSettings>>, TError,ConfirmFiscalSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmFiscalSettings>>, TError,ConfirmFiscalSettingsMutationVariables, TContext> => {
+
+const mutationKey = getConfirmFiscalSettingsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmFiscalSettings>>, ConfirmFiscalSettingsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  confirmFiscalSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmFiscalSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof confirmFiscalSettings>>>
+    export type ConfirmFiscalSettingsMutationBody = ConfirmFiscalSettingsRequest
+    export type ConfirmFiscalSettingsMutationError = unknown
+    export type ConfirmFiscalSettingsMutationVariables = {data: ConfirmFiscalSettingsRequest}
+
+    export const useConfirmFiscalSettings = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmFiscalSettings>>, TError,ConfirmFiscalSettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof confirmFiscalSettings>>,
+        TError,
+        ConfirmFiscalSettingsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConfirmFiscalSettingsMutationOptions(options), queryClient);
+    }
+
+export const getUndoFiscalSettingConfirmationUrl = (key: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/settings/confirmations/${key}`
+}
+
+export const undoFiscalSettingConfirmation = async (key: string, options?: Parameters<typeof apiFetch>[1]): Promise<FiscalSettingsView> => {
+
+  return apiFetch<FiscalSettingsView>(getUndoFiscalSettingConfirmationUrl(key),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getUndoFiscalSettingConfirmationMutationKey = () => ['undoFiscalSettingConfirmation'] as const;
+
+export const getUndoFiscalSettingConfirmationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof undoFiscalSettingConfirmation>>, TError,UndoFiscalSettingConfirmationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof undoFiscalSettingConfirmation>>, TError,UndoFiscalSettingConfirmationMutationVariables, TContext> => {
+
+const mutationKey = getUndoFiscalSettingConfirmationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof undoFiscalSettingConfirmation>>, UndoFiscalSettingConfirmationMutationVariables> = (props) => {
+          const {key} = props ?? {};
+
+          return  undoFiscalSettingConfirmation(key,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UndoFiscalSettingConfirmationMutationResult = NonNullable<Awaited<ReturnType<typeof undoFiscalSettingConfirmation>>>
+
+    export type UndoFiscalSettingConfirmationMutationError = unknown
+    export type UndoFiscalSettingConfirmationMutationVariables = {key: string}
+
+    export const useUndoFiscalSettingConfirmation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof undoFiscalSettingConfirmation>>, TError,UndoFiscalSettingConfirmationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof undoFiscalSettingConfirmation>>,
+        TError,
+        UndoFiscalSettingConfirmationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUndoFiscalSettingConfirmationMutationOptions(options), queryClient);
+    }
+
+export const getExportFiscalSettingsPdfUrl = () => {
+
+
+
+
+  return `/api/v1/fiscal/settings/export-pdf`
+}
+
+export const exportFiscalSettingsPdf = async ( options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getExportFiscalSettingsPdfUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportFiscalSettingsPdfQueryKey = () => {
+    return [
+    `/api/v1/fiscal/settings/export-pdf`
+    ] as const;
+    }
+
+
+export const getExportFiscalSettingsPdfQueryOptions = <TData = Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportFiscalSettingsPdfQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>> = ({ signal }) => exportFiscalSettingsPdf({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportFiscalSettingsPdfQueryResult = NonNullable<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>>
+export type ExportFiscalSettingsPdfQueryError = unknown
+
+
+export function useExportFiscalSettingsPdf<TData = Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportFiscalSettingsPdf>>,
+          TError,
+          Awaited<ReturnType<typeof exportFiscalSettingsPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportFiscalSettingsPdf<TData = Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportFiscalSettingsPdf>>,
+          TError,
+          Awaited<ReturnType<typeof exportFiscalSettingsPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportFiscalSettingsPdf<TData = Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useExportFiscalSettingsPdf<TData = Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportFiscalSettingsPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExportFiscalSettingsPdfQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetFiscalCertificateUrl = (params?: GetFiscalCertificateParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/fiscal/settings/certificate?${stringifiedParams}` : `/api/v1/fiscal/settings/certificate`
+}
+
+export const getFiscalCertificate = async (params?: GetFiscalCertificateParams, options?: Parameters<typeof apiFetch>[1]): Promise<FiscalCertificateView> => {
+
+  return apiFetch<FiscalCertificateView>(getGetFiscalCertificateUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFiscalCertificateQueryKey = (params?: GetFiscalCertificateParams,) => {
+    return [
+    `/api/v1/fiscal/settings/certificate`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFiscalCertificateQueryOptions = <TData = Awaited<ReturnType<typeof getFiscalCertificate>>, TError = unknown>(params?: GetFiscalCertificateParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalCertificate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFiscalCertificateQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFiscalCertificate>>> = ({ signal }) => getFiscalCertificate(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFiscalCertificate>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFiscalCertificateQueryResult = NonNullable<Awaited<ReturnType<typeof getFiscalCertificate>>>
+export type GetFiscalCertificateQueryError = unknown
+
+
+export function useGetFiscalCertificate<TData = Awaited<ReturnType<typeof getFiscalCertificate>>, TError = unknown>(
+ params: undefined |  GetFiscalCertificateParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalCertificate>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFiscalCertificate>>,
+          TError,
+          Awaited<ReturnType<typeof getFiscalCertificate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFiscalCertificate<TData = Awaited<ReturnType<typeof getFiscalCertificate>>, TError = unknown>(
+ params?: GetFiscalCertificateParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalCertificate>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFiscalCertificate>>,
+          TError,
+          Awaited<ReturnType<typeof getFiscalCertificate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFiscalCertificate<TData = Awaited<ReturnType<typeof getFiscalCertificate>>, TError = unknown>(
+ params?: GetFiscalCertificateParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalCertificate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetFiscalCertificate<TData = Awaited<ReturnType<typeof getFiscalCertificate>>, TError = unknown>(
+ params?: GetFiscalCertificateParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFiscalCertificate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFiscalCertificateQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUploadFiscalCertificateUrl = () => {
+
+
+
+
+  return `/api/v1/fiscal/settings/certificate`
+}
+
+export const uploadFiscalCertificate = async (fiscalCertificateForm: FiscalCertificateForm, options?: Parameters<typeof apiFetch>[1]): Promise<FiscalCertificateView> => {
+    const formData = new FormData();
+if(fiscalCertificateForm.pfx !== undefined && fiscalCertificateForm.pfx !== null) {
+ formData.append(`pfx`, fiscalCertificateForm.pfx);
+ }
+if(fiscalCertificateForm.password !== undefined && fiscalCertificateForm.password !== null) {
+ formData.append(`password`, fiscalCertificateForm.password);
+ }
+if(fiscalCertificateForm.code !== undefined && fiscalCertificateForm.code !== null) {
+ formData.append(`code`, fiscalCertificateForm.code);
+ }
+
+  return apiFetch<FiscalCertificateView>(getUploadFiscalCertificateUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getUploadFiscalCertificateMutationKey = () => ['uploadFiscalCertificate'] as const;
+
+export const getUploadFiscalCertificateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadFiscalCertificate>>, TError,UploadFiscalCertificateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadFiscalCertificate>>, TError,UploadFiscalCertificateMutationVariables, TContext> => {
+
+const mutationKey = getUploadFiscalCertificateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadFiscalCertificate>>, UploadFiscalCertificateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  uploadFiscalCertificate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadFiscalCertificateMutationResult = NonNullable<Awaited<ReturnType<typeof uploadFiscalCertificate>>>
+    export type UploadFiscalCertificateMutationBody = FiscalCertificateForm
+    export type UploadFiscalCertificateMutationError = unknown
+    export type UploadFiscalCertificateMutationVariables = {data: FiscalCertificateForm}
+
+    export const useUploadFiscalCertificate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadFiscalCertificate>>, TError,UploadFiscalCertificateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof uploadFiscalCertificate>>,
+        TError,
+        UploadFiscalCertificateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUploadFiscalCertificateMutationOptions(options), queryClient);
     }
 
 export const getListImportRunsUrl = (params?: ListImportRunsParams,) => {

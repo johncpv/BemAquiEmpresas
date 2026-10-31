@@ -42,6 +42,7 @@ internal static class FiscalEndpoints
             .RequirePermission("settings.edit").RequireRateLimiting(FiscalIntegrationService.TestRateLimitPolicy)
             .WithName("TestFiscalIntegration").Produces<FiscalConnectionTest>();
 
+        api.MapFiscalSettingsEndpoints();
         return api;
     }
 }

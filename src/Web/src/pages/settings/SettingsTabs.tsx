@@ -12,6 +12,8 @@ const TABS = [
   { to: '/app/configuracoes/integracoes', label: 'Integrações', slug: 'integracoes' },
   // BNK-01b: com finance.view ou settings.view; módulo Financeiro não liberado mostra a tela padrão.
   { to: '/app/configuracoes/cobranca', label: 'Cobrança', slug: 'cobranca' },
+  // FIS-02a: com fiscal.view ou settings.view; módulo Fiscal não liberado mostra a tela padrão.
+  { to: '/app/configuracoes/fiscal', label: 'Fiscal', slug: 'fiscal' },
 ] as const
 
 /** Abas de Configurações: cada aba é uma rota própria (FND-09b CA 8). */

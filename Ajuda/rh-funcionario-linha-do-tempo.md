@@ -15,7 +15,7 @@ Ver os afastamentos, as trocas de cargo e os reajustes de salário do funcionár
 
 ## Afastamentos
 - **Registrar afastamento** pede o tipo, o início (já vem com a data de hoje), o fim previsto (o último dia afastado) e um motivo curto, opcional.
-- Os tipos são: Doença, Acidente de trabalho, Maternidade, Paternidade, Serviço militar e Outros. Férias não são afastamento: ficam para a folha.
+- Os tipos vêm da lista única de ausências, a mesma do abono do ponto: Atestado médico, Acidente de trabalho, Maternidade, Paternidade, Serviço militar e Falta justificada. Férias não são afastamento: ficam para a folha.
 - A situação **Afastado** é calculada todo dia: aparece do início ao fim previsto e volta a **Ativo** sozinha no dia seguinte, que é a volta prevista. Desligado prevalece sobre Afastado.
 - Enquanto está afastado, o funcionário não aponta horas na fábrica.
 - Dois afastamentos do mesmo funcionário não podem ter dias em comum.
@@ -32,7 +32,7 @@ Ver os afastamentos, as trocas de cargo e os reajustes de salário do funcionár
 
 ## Tipo, motivo e dados de saúde
 - O tipo e o motivo dos afastamentos podem revelar dado de saúde. Por isso, **de todos os afastamentos**, eles só aparecem para quem tem a permissão **Ver dados de saúde** do RH.
-- Quem não tem a permissão vê só **Afastado** e as datas, em qualquer afastamento. Pode encerrar e cancelar, mas não edita nenhum afastamento (quem não vê o tipo não o altera) e não registra Doença nem Acidente de trabalho: esses tipos não aparecem na lista.
+- Quem não tem a permissão vê só **Afastado** e as datas, em qualquer afastamento. Pode encerrar e cancelar, mas não edita nenhum afastamento (quem não vê o tipo não o altera) e não registra Atestado médico nem Acidente de trabalho: esses tipos não aparecem na lista.
 
 ## Perguntas frequentes
 **Por que não vejo os reajustes nem os afastamentos?** Reajustes mostram o salário e afastamentos mostram o tipo e as datas. Os dois só aparecem para quem tem a permissão Ver dados sensíveis do RH; os demais veem só a situação Afastado. O tipo e o motivo do afastamento pedem também a permissão Ver dados de saúde. As trocas de cargo aparecem para todos que veem o RH.

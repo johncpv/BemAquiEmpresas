@@ -36,7 +36,7 @@ public sealed record UserLinkInput(Guid UserId);
 /// <c>Version</c> é o <c>xmin</c> do funcionário (ADR 0019 §2). O motivo não leva CID nem diagnóstico.
 /// </summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LeaveInput(EmployeeLeaveType? Type, DateOnly? StartDate, DateOnly? ExpectedEndDate, string? Reason, uint Version);
+public sealed record LeaveInput(AbsenceReason? Type, DateOnly? StartDate, DateOnly? ExpectedEndDate, string? Reason, uint Version);
 
 /// <summary>Encerrar antes do previsto (CAD-04c1b CA 4): <c>ReturnDate</c> é o dia da volta, entre o início e o fim previsto, até hoje.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -53,7 +53,7 @@ public sealed record LeaveCancelInput(string? Reason, uint Version);
 /// </summary>
 public sealed record LeaveDetail(
     Guid Id,
-    EmployeeLeaveType? Type,
+    AbsenceReason? Type,
     bool HealthProtected,
     EmployeeLeaveState State,
     DateOnly StartDate,
@@ -76,8 +76,8 @@ public sealed record LeaveChangeDetail(
     DateOnly OldExpectedEndDate,
     DateOnly NewStartDate,
     DateOnly NewExpectedEndDate,
-    EmployeeLeaveType? OldType,
-    EmployeeLeaveType? NewType,
+    AbsenceReason? OldType,
+    AbsenceReason? NewType,
     string? Reason,
     Guid? UserId,
     DateTimeOffset CreatedAt);

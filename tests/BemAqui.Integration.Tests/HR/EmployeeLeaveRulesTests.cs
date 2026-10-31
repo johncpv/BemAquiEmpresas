@@ -51,7 +51,7 @@ public class EmployeeLeaveRulesTests
     public void Eventos_saem_no_inicio_e_no_dia_seguinte_ao_fim_uma_vez_so()
     {
         var publisher = new Recorder();
-        var leave = new EmployeeHistoryEntry { EmployeeId = Guid.CreateVersion7(), Kind = EmployeeHistoryKind.Leave, EffectiveDate = Start, LeaveEndDate = End, LeaveType = EmployeeLeaveType.Illness, Reason = "Repouso" };
+        var leave = new EmployeeHistoryEntry { EmployeeId = Guid.CreateVersion7(), Kind = EmployeeHistoryKind.Leave, EffectiveDate = Start, LeaveEndDate = End, LeaveType = AbsenceReason.MedicalCertificate, Reason = "Repouso" };
         var now = DateTimeOffset.UtcNow;
 
         LeaveEvents.PublishDue(publisher, leave, Start.AddDays(-1), now).Should().BeFalse("início futuro: nada sai no registro");

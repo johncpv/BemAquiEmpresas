@@ -5927,6 +5927,300 @@
         }
       }
     },
+    "/api/v1/hr/employees/{id}/time-adjustments": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListEmployeeTimeAdjustments",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CreateEmployeeTimeAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/time-adjustments/schedule-day": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployeeScheduleDay",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleDayProposal"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/time-adjustments/{adjustmentId}": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployeeTimeAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "adjustmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/time-adjustments/day": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CreateEmployeeTimeAdjustmentDay",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentDayInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TimeAdjustmentView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/time-adjustments/{adjustmentId}/documents": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "AttachTimeAdjustmentDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "adjustmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/time-adjustments/{adjustmentId}/documents/{attachmentId}": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadTimeAdjustmentDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "adjustmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/hr/payroll-items": {
       "get": {
         "tags": [
@@ -7312,6 +7606,250 @@
         }
       }
     },
+    "/api/v1/hr/absence-reasons": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListAbsenceReasons",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AbsenceReasonOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/time-adjustments": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListTimeAdjustments",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/TimeAdjustmentStatus"
+            }
+          },
+          {
+            "name": "employeeId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/time-adjustments/{id}": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetTimeAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/time-adjustments/{id}/approve": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ApproveTimeAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/time-adjustments/{id}/reject": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "RejectTimeAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/time-adjustments/{id}/cancel": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CancelTimeAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/time-adjustments/approve-batch": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ApproveTimeAdjustments",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentBatchInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentBatchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/me/hr/link": {
       "get": {
         "tags": [
@@ -7375,6 +7913,29 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/absence-reasons": {
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "ListMyAbsenceReasons",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AbsenceReasonOption"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -7466,6 +8027,180 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/time-adjustments": {
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "ListMyTimeAdjustments",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TimeAdjustmentView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "CreateMyTimeAdjustment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/time-adjustments/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "CancelMyTimeAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/time-adjustments/{id}/documents": {
+      "post": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "AttachMyTimeAdjustmentDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/time-adjustments/{id}/documents/{attachmentId}": {
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "DownloadMyTimeAdjustmentDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -27867,6 +28602,184 @@
         }
       }
     },
+    "/api/v1/fiscal/settings": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetFiscalSettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalSettingsView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "SaveFiscalSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveFiscalSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalSettingsSaved"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/settings/confirmations": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ConfirmFiscalSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmFiscalSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalSettingsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/settings/confirmations/{key}": {
+      "delete": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "UndoFiscalSettingConfirmation",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalSettingsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/settings/export-pdf": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ExportFiscalSettingsPdf",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/settings/certificate": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetFiscalCertificate",
+        "parameters": [
+          {
+            "name": "refresh",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalCertificateView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "UploadFiscalCertificate",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/FiscalCertificateForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalCertificateView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/import-runs": {
       "get": {
         "tags": [
@@ -28725,6 +29638,54 @@
   },
   "components": {
     "schemas": {
+      "AbsenceReason": {
+        "enum": [
+          "MedicalCertificate",
+          "WorkAccident",
+          "Maternity",
+          "Paternity",
+          "Military",
+          "AttendanceNote",
+          "TimeBankOff",
+          "JustifiedAbsence",
+          "UnjustifiedAbsence",
+          null
+        ]
+      },
+      "AbsenceReasonOption": {
+        "required": [
+          "code",
+          "label",
+          "appliesTo",
+          "isHealth",
+          "justifies"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/AbsenceReason"
+          },
+          "label": {
+            "type": "string"
+          },
+          "appliesTo": {
+            "$ref": "#/components/schemas/AbsenceReasonUse"
+          },
+          "isHealth": {
+            "type": "boolean"
+          },
+          "justifies": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AbsenceReasonUse": {
+        "enum": [
+          "Absence",
+          "Leave",
+          "Both"
+        ]
+      },
       "AcceptInviteRequest": {
         "required": [
           "token",
@@ -36460,6 +37421,21 @@
           }
         }
       },
+      "ConfirmFiscalSettingsRequest": {
+        "required": [
+          "keys"
+        ],
+        "type": "object",
+        "properties": {
+          "keys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "ConfirmTwoFactorRequest": {
         "required": [
           "code"
@@ -39375,17 +40351,6 @@
           "Cancelled"
         ]
       },
-      "EmployeeLeaveType": {
-        "enum": [
-          "Illness",
-          "WorkAccident",
-          "Maternity",
-          "Paternity",
-          "Military",
-          "Other",
-          null
-        ]
-      },
       "EmployeePaymentDetail": {
         "required": [
           "employeeId",
@@ -40994,6 +41959,253 @@
           }
         }
       },
+      "FiscalCertificateChange": {
+        "required": [
+          "at",
+          "source",
+          "subject",
+          "thumbprint",
+          "notAfter",
+          "byName"
+        ],
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string"
+          },
+          "subject": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "thumbprint": {
+            "type": "string"
+          },
+          "notAfter": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "byName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "FiscalCertificateForm": {
+        "type": "object",
+        "properties": {
+          "pfx": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IFormFile"
+              }
+            ]
+          },
+          "password": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "FiscalCertificateSummary": {
+        "required": [
+          "notAfter",
+          "daysLeft",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "notAfter": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "daysLeft": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "FiscalCertificateView": {
+        "required": [
+          "integrationReady",
+          "integrationMessage",
+          "status",
+          "subject",
+          "document",
+          "thumbprint",
+          "notAfter",
+          "daysLeft",
+          "uploadedAt",
+          "uploadedByName",
+          "changedOutsideAt",
+          "emitterCheckedAt",
+          "emitterUnavailable",
+          "canEdit",
+          "history"
+        ],
+        "type": "object",
+        "properties": {
+          "integrationReady": {
+            "type": "boolean"
+          },
+          "integrationMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "subject": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "thumbprint": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "notAfter": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "daysLeft": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "uploadedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "uploadedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "changedOutsideAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "emitterCheckedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "emitterUnavailable": {
+            "type": "boolean"
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FiscalCertificateChange"
+            }
+          }
+        }
+      },
+      "FiscalCompanyView": {
+        "required": [
+          "legalName",
+          "document",
+          "stateRegistration",
+          "municipalRegistration",
+          "address",
+          "cityIbge"
+        ],
+        "type": "object",
+        "properties": {
+          "legalName": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stateRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "municipalRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "address": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cityIbge": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "FiscalConnectionTest": {
         "required": [
           "ok",
@@ -41016,6 +42228,20 @@
             "$ref": "#/components/schemas/FiscalIntegrationView"
           }
         }
+      },
+      "FiscalCriticality": {
+        "enum": [
+          "None",
+          "All",
+          "Nfe",
+          "Nfse"
+        ]
+      },
+      "FiscalEnvironment": {
+        "enum": [
+          "Homologation",
+          "Production"
+        ]
       },
       "FiscalIntegrationView": {
         "required": [
@@ -41174,6 +42400,418 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "FiscalPrecondition": {
+        "required": [
+          "key",
+          "message",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          }
+        }
+      },
+      "FiscalReviewState": {
+        "enum": [
+          "ToConfirm",
+          "Confirmed"
+        ]
+      },
+      "FiscalSettingReview": {
+        "required": [
+          "key",
+          "section",
+          "label",
+          "critical",
+          "reviewState",
+          "reviewedByName",
+          "reviewedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "critical": {
+            "$ref": "#/components/schemas/FiscalCriticality"
+          },
+          "reviewState": {
+            "$ref": "#/components/schemas/FiscalReviewState"
+          },
+          "reviewedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reviewedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "FiscalSettingSectionView": {
+        "required": [
+          "code",
+          "title",
+          "total",
+          "pending",
+          "firstPendingKey"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pending": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "firstPendingKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "FiscalSettingsSaved": {
+        "required": [
+          "settings",
+          "changedKeys",
+          "notice",
+          "rulesToReview"
+        ],
+        "type": "object",
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/FiscalSettingsView"
+          },
+          "changedKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notice": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "rulesToReview": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "FiscalSettingsValues": {
+        "required": [
+          "regime",
+          "cnaeMain",
+          "cnaeSecondary",
+          "nfeSeries",
+          "environment",
+          "cfopSaleInStateContributor",
+          "cfopSaleInStateFinal",
+          "cfopSaleInterstateContributor",
+          "cfopSaleInterstateFinal",
+          "cfopResaleInState",
+          "cfopResaleInterstate",
+          "mixedSale",
+          "cstIcms",
+          "cstPisCofins",
+          "cstIpi",
+          "icmsInternalRate",
+          "icmsInterstateSouthSoutheastRate",
+          "icmsInterstateOtherRate",
+          "icmsImportedRate",
+          "pisRate",
+          "cofinsRate",
+          "ipiFromNcm",
+          "costTaxes",
+          "nfseServiceItem",
+          "nfseMunicipalCode",
+          "nfseCtn",
+          "nfseNbs",
+          "nfseIssRate",
+          "nfseIssLocation",
+          "nfseIssWithheld",
+          "nfseFederalWithholding",
+          "ibsCbsCst",
+          "ibsCbsClassification",
+          "cbsRate",
+          "ibsRate",
+          "ibsCityRate",
+          "cancellationWindowHours",
+          "freightMode",
+          "volumeSpecies",
+          "includeDuplicates"
+        ],
+        "type": "object",
+        "properties": {
+          "regime": {
+            "$ref": "#/components/schemas/TaxRegime"
+          },
+          "cnaeMain": {
+            "type": "string"
+          },
+          "cnaeSecondary": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "nfeSeries": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/FiscalEnvironment"
+          },
+          "cfopSaleInStateContributor": {
+            "type": "string"
+          },
+          "cfopSaleInStateFinal": {
+            "type": "string"
+          },
+          "cfopSaleInterstateContributor": {
+            "type": "string"
+          },
+          "cfopSaleInterstateFinal": {
+            "type": "string"
+          },
+          "cfopResaleInState": {
+            "type": "string"
+          },
+          "cfopResaleInterstate": {
+            "type": "string"
+          },
+          "mixedSale": {
+            "$ref": "#/components/schemas/MixedSaleMode"
+          },
+          "cstIcms": {
+            "type": "string"
+          },
+          "cstPisCofins": {
+            "type": "string"
+          },
+          "cstIpi": {
+            "type": "string"
+          },
+          "icmsInternalRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "icmsInterstateSouthSoutheastRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "icmsInterstateOtherRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "icmsImportedRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "pisRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "cofinsRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiFromNcm": {
+            "type": "boolean"
+          },
+          "costTaxes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "nfseServiceItem": {
+            "type": "string"
+          },
+          "nfseMunicipalCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nfseCtn": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nfseNbs": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nfseIssRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "nfseIssLocation": {
+            "$ref": "#/components/schemas/IssLocation"
+          },
+          "nfseIssWithheld": {
+            "type": "boolean"
+          },
+          "nfseFederalWithholding": {
+            "type": "boolean"
+          },
+          "ibsCbsCst": {
+            "type": "string"
+          },
+          "ibsCbsClassification": {
+            "type": "string"
+          },
+          "cbsRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "ibsRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "ibsCityRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "cancellationWindowHours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "freightMode": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "volumeSpecies": {
+            "type": "string"
+          },
+          "includeDuplicates": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "FiscalSettingsView": {
+        "required": [
+          "id",
+          "values",
+          "crt",
+          "reviews",
+          "sections",
+          "confirmedCount",
+          "totalCount",
+          "firstConfiguration",
+          "company",
+          "preconditions",
+          "certificate",
+          "allowedEnvironment",
+          "canEdit",
+          "pendingCriticalNfe"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "values": {
+            "$ref": "#/components/schemas/FiscalSettingsValues"
+          },
+          "crt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reviews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FiscalSettingReview"
+            }
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FiscalSettingSectionView"
+            }
+          },
+          "confirmedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "firstConfiguration": {
+            "type": "boolean"
+          },
+          "company": {
+            "$ref": "#/components/schemas/FiscalCompanyView"
+          },
+          "preconditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FiscalPrecondition"
+            }
+          },
+          "certificate": {
+            "$ref": "#/components/schemas/FiscalCertificateSummary"
+          },
+          "allowedEnvironment": {
+            "type": "string"
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "pendingCriticalNfe": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -45191,6 +46829,12 @@
           }
         }
       },
+      "IssLocation": {
+        "enum": [
+          "WorkSite",
+          "Company"
+        ]
+      },
       "ItemDetail": {
         "required": [
           "id",
@@ -46935,7 +48579,7 @@
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/EmployeeLeaveType"
+                "$ref": "#/components/schemas/AbsenceReason"
               }
             ]
           },
@@ -46945,7 +48589,7 @@
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/EmployeeLeaveType"
+                "$ref": "#/components/schemas/AbsenceReason"
               }
             ]
           },
@@ -46995,7 +48639,7 @@
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/EmployeeLeaveType"
+                "$ref": "#/components/schemas/AbsenceReason"
               }
             ]
           },
@@ -47086,7 +48730,7 @@
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/EmployeeLeaveType"
+                "$ref": "#/components/schemas/AbsenceReason"
               }
             ]
           },
@@ -48268,6 +49912,11 @@
             "type": "boolean"
           }
         }
+      },
+      "MixedSaleMode": {
+        "enum": [
+          "EquipmentNfeServiceNfse"
+        ]
       },
       "ModuleRelease": {
         "required": [
@@ -67937,6 +69586,28 @@
           }
         }
       },
+      "SaveFiscalSettingsRequest": {
+        "required": [
+          "values"
+        ],
+        "type": "object",
+        "properties": {
+          "values": {
+            "$ref": "#/components/schemas/FiscalSettingsValues"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmSeriesChange": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      },
       "SaveGroupRequest": {
         "required": [
           "name",
@@ -68003,6 +69674,34 @@
             "type": "string"
           },
           "breakMinutes": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ScheduleDayProposal": {
+        "required": [
+          "day",
+          "schedule",
+          "entries",
+          "existingEntries"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "schedule": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeAdjustmentDayEntry"
+            }
+          },
+          "existingEntries": {
             "type": "integer",
             "format": "int32"
           }
@@ -72922,6 +74621,547 @@
         },
         "additionalProperties": false
       },
+      "TimeAdjustmentBatchInput": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeAdjustmentBatchItem"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "TimeAdjustmentBatchItem": {
+        "required": [
+          "id",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "TimeAdjustmentBatchResult": {
+        "required": [
+          "approved",
+          "failed",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "approved": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeAdjustmentBatchResultItem"
+            }
+          }
+        }
+      },
+      "TimeAdjustmentBatchResultItem": {
+        "required": [
+          "id",
+          "approved",
+          "code",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "approved": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "TimeAdjustmentDayEntry": {
+        "required": [
+          "type",
+          "time"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/TimeEntryType"
+          },
+          "time": {
+            "type": "string"
+          }
+        }
+      },
+      "TimeAdjustmentDayEntryView": {
+        "required": [
+          "id",
+          "at",
+          "type",
+          "label",
+          "source",
+          "changed"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TimeEntryType"
+          },
+          "label": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/TimeEntrySource"
+          },
+          "changed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TimeAdjustmentDayImpact": {
+        "required": [
+          "before",
+          "after",
+          "workedMinutesBefore",
+          "workedMinutesAfter",
+          "absenceMinutesAfter",
+          "fullDayAbsence"
+        ],
+        "type": "object",
+        "properties": {
+          "before": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeAdjustmentDayEntryView"
+            }
+          },
+          "after": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeAdjustmentDayEntryView"
+            }
+          },
+          "workedMinutesBefore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "workedMinutesAfter": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "absenceMinutesAfter": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "fullDayAbsence": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TimeAdjustmentDayInput": {
+        "required": [
+          "day",
+          "entries",
+          "justification"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeAdjustmentDayEntry"
+            }
+          },
+          "justification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "TimeAdjustmentDecisionInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "comment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "TimeAdjustmentDetail": {
+        "required": [
+          "adjustment",
+          "impact"
+        ],
+        "type": "object",
+        "properties": {
+          "adjustment": {
+            "$ref": "#/components/schemas/TimeAdjustmentView"
+          },
+          "impact": {
+            "$ref": "#/components/schemas/TimeAdjustmentDayImpact"
+          }
+        }
+      },
+      "TimeAdjustmentInput": {
+        "required": [
+          "kind"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/TimeAdjustmentKind"
+          },
+          "day": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "time": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "entryType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TimeEntryType"
+              }
+            ]
+          },
+          "entryId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "absenceMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "absenceReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AbsenceReason"
+              }
+            ]
+          },
+          "justification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "TimeAdjustmentKind": {
+        "enum": [
+          "AddEntry",
+          "VoidEntry",
+          "Absence"
+        ]
+      },
+      "TimeAdjustmentList": {
+        "required": [
+          "items",
+          "truncated"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeAdjustmentView"
+            }
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TimeAdjustmentSource": {
+        "enum": [
+          "Employee",
+          "HR"
+        ]
+      },
+      "TimeAdjustmentStatus": {
+        "enum": [
+          "Pending",
+          "Approved",
+          "Rejected",
+          "Cancelled"
+        ]
+      },
+      "TimeAdjustmentView": {
+        "required": [
+          "id",
+          "employeeId",
+          "employeeName",
+          "kind",
+          "status",
+          "statusLabel",
+          "day",
+          "summary",
+          "at",
+          "entryType",
+          "entryId",
+          "absenceMinutes",
+          "absenceReason",
+          "absenceReasonLabel",
+          "justification",
+          "protected",
+          "hasDocument",
+          "documents",
+          "source",
+          "requestedBy",
+          "requestedByName",
+          "requestedAt",
+          "decidedBy",
+          "decidedByName",
+          "decidedAt",
+          "decisionComment",
+          "selfApproved",
+          "createdEntryId",
+          "canDecide",
+          "canCancel",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/TimeAdjustmentKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TimeAdjustmentStatus"
+          },
+          "statusLabel": {
+            "type": "string"
+          },
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "entryType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TimeEntryType"
+              }
+            ]
+          },
+          "entryId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "absenceMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "absenceReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AbsenceReason"
+              }
+            ]
+          },
+          "absenceReasonLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "justification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "protected": {
+            "type": "boolean"
+          },
+          "hasDocument": {
+            "type": "boolean"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentDto"
+            }
+          },
+          "source": {
+            "$ref": "#/components/schemas/TimeAdjustmentSource"
+          },
+          "requestedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "requestedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "decidedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "decidedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "decisionComment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "selfApproved": {
+            "type": "boolean"
+          },
+          "createdEntryId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "canDecide": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "TimeClockGeolocation": {
         "enum": [
           "Off",
@@ -73157,6 +75397,30 @@
           },
           "status": {
             "$ref": "#/components/schemas/TimeEntryStatus"
+          },
+          "adjustmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "selfApproved": {
+            "type": "boolean",
+            "default": false
+          },
+          "voidAdjustmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "voidedNote": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

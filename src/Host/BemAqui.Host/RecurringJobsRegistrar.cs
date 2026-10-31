@@ -59,6 +59,9 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
         // Conferência de notas fiscais pendentes (FIS-01 CA 14): a cada 10 min, um job por tenant com o módulo fiscal liberado.
         recurring.AddOrUpdate<BemAqui.Fiscal.Application.Invoices.FiscalPendingCheckRecurringJob>(BemAqui.Fiscal.Application.Invoices.FiscalPendingCheckRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Fiscal.Application.Invoices.FiscalPendingCheckRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // FIS-02a CA 14: aviso do vencimento do certificado A1, diário às 08:00 de São Paulo.
+        recurring.AddOrUpdate<BemAqui.Fiscal.Application.Certificates.FiscalCertificateExpiryRecurringJob>(BemAqui.Fiscal.Application.Certificates.FiscalCertificateExpiryRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Fiscal.Application.Certificates.FiscalCertificateExpiryRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         // 07:00 de São Paulo como valor inicial; o horário é parâmetro (Jobs:Cron:production-late-orders).
         recurring.AddOrUpdate<BemAqui.Production.Application.LateOrdersRecurringJob>(BemAqui.Production.Application.LateOrdersRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             configuration["Jobs:Cron:" + BemAqui.Production.Application.LateOrdersRecurringJob.Id] is { Length: > 0 } cron ? cron : BemAqui.Production.Application.LateOrdersRecurringJob.Cron,

@@ -143,7 +143,7 @@ public partial class TimeClockTests(TenancyFixture tenancy) : IClassFixture<Tena
                     db.EmployeeHistory.Add(new EmployeeHistoryEntry
                     {
                         EmployeeId = e.Id, Kind = EmployeeHistoryKind.Leave, EffectiveDate = today.AddDays(-1), LeaveEndDate = today.AddDays(5),
-                        LeaveType = EmployeeLeaveType.Illness, NewValue = "Afastado", Reason = "Atestado", CreatedAt = DateTimeOffset.UtcNow,
+                        LeaveType = AbsenceReason.MedicalCertificate, NewValue = "Afastado", Reason = "Atestado", CreatedAt = DateTimeOffset.UtcNow,
                     });
                 }
 

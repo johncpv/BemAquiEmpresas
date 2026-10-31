@@ -5,7 +5,7 @@
 | ID | RH-01b |
 | Título | Lançamento manual de marcações pelo RH e pedido de ajuste pelo funcionário (incluir marcação esquecida ou desconsiderar uma errada), ambos com aprovação; abono de ausência com motivo da lista única de ausências (a mesma dos afastamentos) e documento opcional protegido por `hr.view_health`; aprovação ou reprovação com `hr.approve`, sem aprovar o próprio pedido (exceção do Proprietário único, com a marca); a marcação original nunca é apagada |
 | Tamanho | M (quebra da RH-01) |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-RH-4 (parte: lançamento manual pelo RH, ajustes com justificativa e aprovação) · PRD §6 LGPD · R-SEC-5 · R-COM-2 · R-COM-3 · R-PRP-2 · R-PRP-5 · R-PRP-6 (D) |
 | Dependências | RH-01a (marcações, "Meu ponto"), CAD-04c1 (afastamentos e motivos), DSH-04 (`IAgendaSource`), FND-09e; Fase 0 (FND-06c, FND-07 anexos e notificações) |
 | Bloqueia | RH-01c (o espelho usa só marcações válidas e abonos aprovados) |
@@ -106,20 +106,20 @@ Decisões da revisão aplicadas: §4.3 (anexo autorizado pelo registro e storage
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva; migração dos tipos de afastamento para a lista única sem perda).
-- [ ] Permissões só do `ModuleCatalog` (`hr.view_health` com seed patch); dono de anexo `TimeAdjustmentDocument` registrado com `OwnerExists`.
-- [ ] Telas com estados; ajuda escrita; teste de cobertura passando.
-- [ ] Próximo passo e alertas acionáveis aplicados.
-- [ ] Auditoria ligada, com `[PersonalData]` e `SensitiveRead`.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers) e E2E passando.
+- [x] Migration criada (não destrutiva; migração dos tipos de afastamento para a lista única sem perda).
+- [x] Permissões só do `ModuleCatalog` (`hr.view_health` com seed patch); dono de anexo `TimeAdjustmentDocument` registrado com `OwnerExists`.
+- [x] Telas com estados; ajuda escrita; teste de cobertura passando.
+- [x] Próximo passo e alertas acionáveis aplicados.
+- [x] Auditoria ligada, com `[PersonalData]` e `SensitiveRead`.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `TimeAdjustment` (Domain) com as transições e a segregação; `AbsenceReason` único.
-- [ ] Endpoints `/api/v1/hr/employees/{id}/time-adjustments`, `/api/v1/hr/time-adjustments` (aprovar, reprovar, lote) e `/api/v1/me/hr/time-adjustments`.
-- [ ] Seed patch `hr-view-health`; dono de anexo, notificações, `IAgendaSource`; telas e ajuda.
+- [x] `TimeAdjustment` (Domain) com as transições e a segregação; `AbsenceReason` único.
+- [x] Endpoints `/api/v1/hr/employees/{id}/time-adjustments`, `/api/v1/hr/time-adjustments` (aprovar, reprovar, lote) e `/api/v1/me/hr/time-adjustments`.
+- [x] Seed patch `hr-view-health`; dono de anexo, notificações, `IAgendaSource`; telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (segregação, IDOR, dado de saúde), @qa.
@@ -153,3 +153,16 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (tabela 3.3 pontos 6–9, adendos às ADRs 0003 e 0026, ADR 0035, §4.3, §4.4 padrão 8); nova ordem (Marco 6.1, ordem 7); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 27/10/2026 | 1.0 | Implementação (Done): `hr.time_adjustments` e as colunas do ajuste em `hr.time_entries` (migration `TimeAdjustmentsRh01b`, com a migração dos tipos de afastamento para a lista única), `AbsenceReason` no Domain, `TimeAdjustmentService` (lançar, dia pela jornada, pedir, abonar, aprovar, reprovar, cancelar, lote, documento), rotas `/api/v1/hr/time-adjustments`, `/api/v1/hr/employees/{id}/time-adjustments` e `/api/v1/me/hr/time-adjustments`, dono de anexo `TimeAdjustmentDocument`, categoria `hr.time_adjustments_pending` da Minha pauta, telas RH → Ponto → Ajustes para aprovar, aba Ponto (lançamentos e pedidos) e "Meu ponto" (Pedir ajuste e Meus pedidos), ajudas, testes e E2E | Dev (agente) |
+
+## Notas de implementação (27/10/2026)
+- **CA 1:** `hr.view_health`, o seed patch `hr-view-health` e a perda do PIN já vinham da CAD-04c1b e da PRD-03b (`PinProfile` reserva a ação e o PIN é apagado na próxima entrada); a RH-01b só acrescentou o caso ao teste do perfil do PIN.
+- **Período em aberto (CA 4 e 16):** a RH-01c ainda não existe; o período fechado e o mais antigo em aberto vêm do contrato `ITimesheetPeriodLock` do HR, hoje com a implementação "nenhum período fechado" (`NoTimesheetClosings`). A RH-01c registra a real; os testes provam os textos e os 409 com um período fechado simulado. Até lá, a data também precisa estar dentro do vínculo (admissão e desligamento). O atalho "Ver fechamento" entra com a RH-01c. Recomendação aceita (PO 24/10).
+- **Dado de saúde (CA 9):** sem `hr.view_health`, todo abono sai protegido (motivo, justificativa, comentário e arquivo fora do JSON), e não só o de motivo de saúde, pela mesma regra dos afastamentos (PO 22/10/2026, CAD-04c1b 1.1): mostrar os outros motivos deixaria inferir qual é de saúde. O próprio funcionário vê tudo o que informou. Recomendação aceita (PO 24/10).
+- **Proprietário único (CA 13):** vale quando nenhum outro usuário ativo tem `hr.approve`; o envolvido é quem pediu ou o usuário ligado ao funcionário dono das marcações.
+- **"Lançar o dia pela jornada" (CA 3):** a jornada guarda só a duração do intervalo; a saída para o intervalo sai às 12:00 quando cabe e, senão, na metade do dia. O diálogo vem no último dia útil e todas as horas são editáveis. Recomendação aceita (PO 24/10).
+- **Documento (CA 8):** a rota genérica `/attachments/TimeAdjustmentDocument` não grava (`CanAttach`); o envio é pela rota do pedido (RH com `hr.view_health` ou o próprio funcionário), que confere o registro, passa pelo ClamAV e grava com o prefixo do tenant (`UploadCheckedAsync`). O funcionário baixa só o que ele mesmo enviou.
+- **Justificativa:** fica só no pedido (fonte única, `[PersonalData]`); a marcação criada guarda `approved_by` e `adjustment_id`, e a desconsiderada, `void_adjustment_id`, `voided_by` e `voided_at`.
+- **Lista única de ausências (CA 7):** Maternidade vale só para afastamento; Declaração de comparecimento, Folga compensada e Falta não justificada, só para abono; os demais para os dois. O nome no `movimentacao.csv` da contadora passou a ser o da lista ("Atestado médico" no lugar de "Doença").
+- **Notificação (CA 17):** síncrona, `NotifyOnceAsync` com `time-adjustment:{id}`, para quem tem `hr.approve` menos quem pediu (salvo se for o único); o texto leva só o nome do funcionário.
+- **No tablet (PIN):** pedir ajuste exige login completo; o "Pedir ajuste" aparece só em `/app/meu-ponto`.

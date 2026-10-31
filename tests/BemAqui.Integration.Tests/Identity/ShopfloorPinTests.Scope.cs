@@ -196,7 +196,7 @@ public partial class ShopfloorPinTests
             db.EmployeeHistory.Add(new BemAqui.HR.Domain.EmployeeHistoryEntry
             {
                 EmployeeId = employeeId, Kind = BemAqui.HR.Domain.EmployeeHistoryKind.Leave, EffectiveDate = Today, LeaveEndDate = Today.AddDays(3),
-                LeaveType = BemAqui.HR.Domain.EmployeeLeaveType.Illness, NewValue = "Afastado", Reason = "Atestado", CreatedAt = DateTimeOffset.UtcNow,
+                LeaveType = BemAqui.HR.Domain.AbsenceReason.MedicalCertificate, NewValue = "Afastado", Reason = "Atestado", CreatedAt = DateTimeOffset.UtcNow,
             });
             await db.SaveChangesAsync();
         });
