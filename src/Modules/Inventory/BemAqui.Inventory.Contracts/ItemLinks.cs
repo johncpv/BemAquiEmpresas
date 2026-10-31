@@ -25,6 +25,25 @@ public interface IItemSupplierCodes
     /// antigo); item sem código do fornecedor fica fora; fornecedor excluído não casa.
     /// </summary>
     Task<IReadOnlyDictionary<Guid, SupplierCodeMatch>> ForItemsAsync(Guid partyId, IReadOnlyCollection<Guid> itemIds, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Grava o de-para da nota de entrada para a próxima vez (FIS-04a CA 7): (fornecedor, código) → item, unidade e fator do fornecedor. Já
+    /// existe: atualiza item, unidade e fator; senão cria. Valida como o cadastro (CAD-02b): fornecedor com o papel, código até 60, unidade
+    /// até 10, fator &gt; 0 com até 6 casas. Grava (<c>SaveChanges</c>) no contexto do request: quem chama abre a transação.
+    /// </summary>
+    Task<Result> RememberAsync(SupplierCodeMemory memory, CancellationToken cancellationToken = default);
+}
+
+/// <summary>De-para lembrado da nota de entrada (FIS-04a): fornecedor, código dele, nosso item, a unidade dele e quanto 1 dela vale na de estoque.</summary>
+public sealed record SupplierCodeMemory(Guid PartyId, string SupplierCode, Guid ItemId, string? SupplierUnit, decimal ConversionFactor);
+
+/// <summary>Item sugerido para uma linha da nota sem de-para (FIS-04a CA 7): mesmo NCM primeiro, depois o nome mais parecido (pg_trgm).</summary>
+public sealed record ItemSuggestion(Guid ItemId, string Code, string Name, Guid UnitId, string UnitCode, string? Ncm, bool SameNcm);
+
+/// <summary>Sugestões de item pela descrição e pelo NCM da nota do fornecedor (FIS-04a CA 7); só ativos, fora Serviço.</summary>
+public interface IItemSuggestions
+{
+    Task<IReadOnlyList<ItemSuggestion>> SuggestAsync(string? ncm, string description, int limit = 3, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Unidade em que um item pode ser informado: a de estoque ou outra com conversão cadastrada (ENG-02 CA 2); <c>ToStock</c> é quanto 1 desta unidade vale na de estoque (prévia ao vivo na tela; a conta gravada é do <see cref="IUnitConversion"/>).</summary>

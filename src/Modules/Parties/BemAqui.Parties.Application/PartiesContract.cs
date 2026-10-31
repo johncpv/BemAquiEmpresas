@@ -43,6 +43,19 @@ public sealed class PartiesContract(IPartiesDb db) : IParties
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<PartySummary?> FindByDocumentAsync(string document, CancellationToken cancellationToken = default)
+    {
+        var doc = BemAqui.SharedKernel.BrazilianDocuments.Normalize(document);
+        if (!BemAqui.SharedKernel.BrazilianDocuments.IsValid(doc))
+        {
+            return null;
+        }
+
+        return await db.Parties.AsNoTracking().Where(p => p.Document == doc).OrderByDescending(p => p.IsActive)
+            .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(r => r.Role).ToList(), p.IsActive, false, p.DefaultPaymentTermId, p.CreatedAt))
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public Task<bool> HasRoleAsync(Guid id, PartyRoleKind role, CancellationToken cancellationToken = default) =>
         db.PartyRoles.AnyAsync(r => r.PartyId == id && r.Role == role, cancellationToken);
 

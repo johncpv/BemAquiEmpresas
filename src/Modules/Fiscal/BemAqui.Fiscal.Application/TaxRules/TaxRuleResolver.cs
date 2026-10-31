@@ -64,9 +64,28 @@ public sealed class TaxRuleResolver(IFiscalDb db)
 /// </summary>
 public sealed class TaxRuleReviewConsumer(IFiscalDb db) : IIntegrationEventConsumer<FiscalSettingsChanged>
 {
+    private const int Attempts = 3;
+
     public async Task HandleAsync(FiscalSettingsChanged integrationEvent, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(integrationEvent);
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                await FlagAsync(integrationEvent, cancellationToken);
+                return;
+            }
+            catch (DbUpdateConcurrencyException) when (attempt < Attempts)
+            {
+                // Outro aviso marcou a mesma regra ao mesmo tempo (xmin): relê, e a que já está "A revisar" fica de fora.
+                db.ChangeTracker.Clear();
+            }
+        }
+    }
+
+    private async Task FlagAsync(FiscalSettingsChanged integrationEvent, CancellationToken cancellationToken)
+    {
         var rules = await db.TaxRules.Where(r => r.Status != TaxRuleStatus.Inactive && !r.NeedsReview).ToListAsync(cancellationToken);
         var changed = false;
         foreach (var rule in rules.Where(r => TaxRuleRules.AffectedBy(r, integrationEvent.ChangedKeys, integrationEvent.RegimeChanged)))
