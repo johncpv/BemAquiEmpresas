@@ -28,14 +28,15 @@ test.describe('menu por permissão (FND-06d)', () => {
     let version = '1'
     let modules = allModules()
     await mockApi(page, {
-      'GET /api/v1/me/permissions': (r) => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'X-Perm-Version': version }, body: JSON.stringify({ permissions: [], isOwner: false, version, modules }) }),
+      'GET /api/v1/me/permissions': (r) => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'X-Perm-Version': version }, body: JSON.stringify({ permissions: ['assets.view'], isOwner: false, version, modules }) }),
       'GET /api/v1/notifications/': (r) => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'X-Perm-Version': version }, body: JSON.stringify({ page: { items: [], page: 1, pageSize: 10, total: 0 }, unread: 0 }) }),
+      'GET /api/v1/assets/sites': (r) => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'X-Perm-Version': version }, body: '[]' }),
     })
-    await page.goto('/app/operador')
-    await expect(page.getByText('Esta tela está em construção.')).toBeVisible()
+    await page.goto('/app/patrimonio/locais')
+    await expect(page.getByRole('heading', { level: 1, name: 'Patrimônio: Locais' })).toBeVisible()
 
     version = '2'
-    modules = allModules({ shopfloor: { enabled: false } })
+    modules = allModules({ assets: { enabled: false } })
     await page.getByRole('button', { name: 'Notificações' }).click() // qualquer request traz a versão nova
     await expect(page.getByRole('heading', { name: 'Sem acesso a esta tela' })).toBeVisible()
   })
