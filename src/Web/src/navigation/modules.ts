@@ -76,7 +76,8 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'garantia', label: 'Garantia padrão', group: STOCK_SETUP },
   ] },
   purchasing: { slug: 'compras', icon: ShoppingCart, tabs: [{ slug: 'solicitacoes', label: 'Solicitações' }, { slug: 'cotacoes', label: 'Cotações' }, { slug: 'pedidos', label: 'Pedidos' }, { slug: 'recebimentos', label: 'Recebimentos' }] },
-  assets: { slug: 'patrimonio', icon: Tag },
+  // PAT-01a: bens e locais do patrimônio (área Fábrica).
+  assets: { slug: 'patrimonio', icon: Tag, tabs: [{ slug: 'bens', label: 'Bens' }, { slug: 'locais', label: 'Locais' }] },
   finance: { slug: 'financeiro', icon: Wallet, tabs: [
     { slug: 'receber', label: 'A receber', group: CASH },
     { slug: 'pagar', label: 'A pagar', group: CASH },
