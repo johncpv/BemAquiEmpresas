@@ -33,7 +33,7 @@ public partial class EmployeesTests
 
     private static string Emp(Guid id, string suffix = "") => "/api/v1/hr/employees/" + id + suffix;
 
-    private static object Leave(DateOnly? start, DateOnly? end, uint version, string? type = "Illness", string? reason = "Repouso") =>
+    private static object Leave(DateOnly? start, DateOnly? end, uint version, string? type = "MedicalCertificate", string? reason = "Repouso") =>
         new { type, startDate = start is { } s ? Iso(s) : null, expectedEndDate = end is { } e ? Iso(e) : null, reason, version };
 
     private static async Task<uint> VersionAsync(HttpClient client, Guid id) => (await JsonAsync(await client.GetAsync(Emp(id)))).GetProperty("version").GetUInt32();
@@ -65,7 +65,7 @@ public partial class EmployeesTests
         detail.GetProperty("status").GetString().Should().Be("OnLeave", "hoje está entre o início e o fim previsto (CA 2)");
         var current = detail.GetProperty("version").GetUInt32();
 
-        var overlap = await owner.PostAsJsonAsync(leaves, Leave(Today.AddDays(5), Today.AddDays(9), current, type: "Other"));
+        var overlap = await owner.PostAsJsonAsync(leaves, Leave(Today.AddDays(5), Today.AddDays(9), current, type: "JustifiedAbsence"));
         overlap.StatusCode.Should().Be(HttpStatusCode.Conflict, "sobreposto (CA 1)");
         (await CodeAsync(overlap)).Should().Be(EmployeeService.LeaveOverlapCode);
 

@@ -45,6 +45,7 @@ public abstract class TimeAdjustmentTestBase(TenancyFixture tenancy) : IDisposab
     {
         s.AddSingleton<ILogEventSink>(_sink);
         s.AddSingleton<ITimesheetPeriodLock>(Periods);
+        s.AddSingleton<BemAqui.BuildingBlocks.Attachments.IVirusScanner>(new Attachments.FakeScanner());
     }));
 
     public void Dispose()

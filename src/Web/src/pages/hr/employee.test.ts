@@ -39,7 +39,7 @@ describe('afastamento (CAD-04c1)', () => {
     expect(leaveDraftError({ ...d, type: 'MedicalCertificate' })).toBe('Informe o fim previsto do afastamento.')
     expect(leaveDraftError({ ...d, type: 'MedicalCertificate', expectedEndDate: '2026-10-21' })).toBe('O fim previsto precisa ser igual ou depois do início.')
     expect(leaveDraftError({ ...d, type: 'MedicalCertificate', expectedEndDate: '2026-10-22' })).toBeUndefined()
-    expect(leaveDraftError({ ...d, type: 'Other', expectedEndDate: '2026-10-30', reason: 'x'.repeat(201) })).toBe('O motivo aceita até 200 caracteres.')
+    expect(leaveDraftError({ ...d, type: 'JustifiedAbsence', expectedEndDate: '2026-10-30', reason: 'x'.repeat(201) })).toBe('O motivo aceita até 200 caracteres.')
   })
 
   it('a volta prevista é o dia seguinte ao fim, inclusive na virada do mês', () => {

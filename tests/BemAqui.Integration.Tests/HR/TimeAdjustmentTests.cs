@@ -53,14 +53,17 @@ public class TimeAdjustmentTests(TenancyFixture tenancy) : TimeAdjustmentTestBas
         var notices = await DbAsync(db => db.Notifications.AsNoTracking().Where(n => n.Link.EndsWith(id.ToString())).ToListAsync());
         notices.Should().ContainSingle(n => n.UserId == owner.UserId);
         notices.Should().NotContain(n => n.UserId == hr.UserId);
-        notices.Single().Title.Should().Be("Ajuste de ponto de Bruno Lima para aprovar");
-        notices.Single().DedupKey.Should().Be("time-adjustment:" + id);
-        notices.Single().Link.Should().Be("/app/rh/ponto/ajustes?pedido=" + id);
+        var notice = notices.Single(n => n.UserId == owner.UserId);
+        notice.Title.Should().Be("Ajuste de ponto de Bruno Lima para aprovar");
+        notice.DedupKey.Should().Be("time-adjustment:" + id);
+        notice.Link.Should().Be("/app/rh/ponto/ajustes?pedido=" + id);
 
         // Pauta (DSH-04): o Proprietário vê o pedido para decidir; quem pediu não tem hr.approve.
         var agenda = await JsonAsync(await owner.Client.GetAsync("/api/v1/me/agenda"));
         var item = agenda.GetProperty("items").EnumerateArray().Single(i => i.GetProperty("category").GetString() == "hr.time_adjustments_pending");
-        item.GetProperty("entries").EnumerateArray().Should().Contain(e => e.GetProperty("link").GetString() == "/app/rh/ponto/ajustes?pedido=" + id);
+        var entries = item.GetProperty("entries").EnumerateArray().ToList();
+        (entries.Any(e => e.GetProperty("link").GetString() == "/app/rh/ponto/ajustes?pedido=" + id) || item.GetProperty("count").GetInt32() > entries.Count)
+            .Should().BeTrue("o pedido entra na pauta (as linhas mostram só os primeiros da classe)");
         item.GetRawText().Should().NotContain(Canary);
         LogText().Should().NotContain(Canary, "a justificativa nunca vai para o log");
         (await AuditAsync(nameof(TimeAdjustment), id.ToString())).Should().ContainSingle(a => a.Action == AuditActions.Created && !a.Changes.Contains(Canary), "auditoria com a justificativa mascarada");
@@ -152,6 +155,7 @@ public class TimeAdjustmentTests(TenancyFixture tenancy) : TimeAdjustmentTestBas
     [Fact]
     public async Task Abono_de_saude_com_atestado_protegido_por_view_health()
     {
+        const string Saude = "Atestado da Dra Saude 88";
         var ana = await PersonAsync(name: "Ana Souza");
         var viewer = await PersonAsync("hr:view,create", employee: false);
         var health = await PersonAsync("hr:view,create,view_health", employee: false);
@@ -162,7 +166,7 @@ public class TimeAdjustmentTests(TenancyFixture tenancy) : TimeAdjustmentTestBas
         (await ana.Client.SendAsync(Post(Mine, new { kind = "Absence", day, absenceReason = "Maternity", justification = "Licença registrada no ponto" })))
             .StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity, "Maternidade é só afastamento");
 
-        var created = await ana.Client.SendAsync(Post(Mine, new { kind = "Absence", day, absenceReason = "MedicalCertificate", absenceMinutes = 240, justification = Canary }));
+        var created = await ana.Client.SendAsync(Post(Mine, new { kind = "Absence", day, absenceReason = "MedicalCertificate", absenceMinutes = 240, justification = Saude }));
         created.StatusCode.Should().Be(HttpStatusCode.Created, await created.Content.ReadAsStringAsync());
         var request = await JsonAsync(created);
         var id = request.GetProperty("id").GetGuid();
@@ -188,18 +192,18 @@ public class TimeAdjustmentTests(TenancyFixture tenancy) : TimeAdjustmentTestBas
         var hidden = await viewer.Client.GetAsync($"{Of(ana.EmployeeId)}/{id}");
         var hiddenText = await hidden.Content.ReadAsStringAsync();
         hidden.StatusCode.Should().Be(HttpStatusCode.OK, hiddenText);
-        hiddenText.Should().NotContain(Canary).And.NotContain("MedicalCertificate").And.NotContain("Atestado médico").And.NotContain("atestado.pdf");
+        hiddenText.Should().NotContain(Saude).And.NotContain("MedicalCertificate").And.NotContain("Atestado médico").And.NotContain("atestado.pdf");
         var adjustment = (await JsonAsync(hidden)).GetProperty("adjustment");
         adjustment.GetProperty("protected").GetBoolean().Should().BeTrue();
         adjustment.GetProperty("hasDocument").GetBoolean().Should().BeTrue();
         adjustment.GetProperty("absenceReasonLabel").GetString().Should().Be("Ausência justificada");
         adjustment.GetProperty("summary").GetString().Should().Be("Abonar 4 h: Ausência justificada");
         (await viewer.Client.GetAsync($"{Of(ana.EmployeeId)}/{id}/documents/{attachmentId}")).StatusCode.Should().Be(HttpStatusCode.Forbidden);
-        (await (await viewer.Client.GetAsync(Adjustments + "?status=Pending")).Content.ReadAsStringAsync()).Should().NotContain(Canary);
+        (await (await viewer.Client.GetAsync(Adjustments + "?status=Pending")).Content.ReadAsStringAsync()).Should().NotContain(Saude);
 
         var shown = (await JsonAsync(await health.Client.GetAsync($"{Of(ana.EmployeeId)}/{id}"))).GetProperty("adjustment");
         shown.GetProperty("absenceReason").GetString().Should().Be("MedicalCertificate");
-        shown.GetProperty("justification").GetString().Should().Be(Canary);
+        shown.GetProperty("justification").GetString().Should().Be(Saude);
         shown.GetProperty("documents").EnumerateArray().Single().GetProperty("id").GetGuid().Should().Be(attachmentId);
         var download = await health.Client.GetAsync($"{Of(ana.EmployeeId)}/{id}/documents/{attachmentId}");
         download.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -209,7 +213,7 @@ public class TimeAdjustmentTests(TenancyFixture tenancy) : TimeAdjustmentTestBas
         var second = await JsonAsync(await ana.Client.SendAsync(Post(Mine, new { kind = "Absence", day = day.AddDays(-7), absenceReason = "AttendanceNote", justification = "Declaração do cartório" })));
         (await health.Client.GetAsync($"{Of(ana.EmployeeId)}/{second.GetProperty("id").GetGuid()}/documents/{attachmentId}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
         (await health.Client.GetAsync($"{Of(await EmployeeAsync())}/{id}/documents/{attachmentId}")).StatusCode.Should().Be(HttpStatusCode.NotFound, "pedido de outro funcionário");
-        LogText().Should().NotContain(Canary);
+        LogText().Should().NotContain(Saude);
     }
 
     /// <summary>
@@ -303,6 +307,7 @@ public class TimeAdjustmentTests(TenancyFixture tenancy) : TimeAdjustmentTestBas
     public async Task Lote_parcial_e_periodo_fechado()
     {
         var paula = await PersonAsync(Group.OwnerSeedKey, employee: false, name: "Paula Dona");
+        await PersonAsync(Group.OwnerSeedKey, employee: false, name: "Outra Dona");
         var hr = await PersonAsync("hr:view,create", employee: false);
         var employee = await EmployeeAsync();
         var day = LastWorkday();

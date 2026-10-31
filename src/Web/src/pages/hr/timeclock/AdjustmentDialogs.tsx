@@ -50,7 +50,7 @@ export function AdjustmentDialog({ mode, open, onOpenChange, verb, done, title, 
   const [type, setType] = useState<TimeEntryType>('In')
   const [fullDay, setFullDay] = useState(true)
   const [hours, setHours] = useState('')
-  const [reason, setReason] = useState<AbsenceReason | ''>('')
+  const [reason, setReason] = useState<NonNullable<AbsenceReason> | ''>('')
   const [justification, setJustification] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const reset = () => { setDay(today); setTime(''); setType('In'); setFullDay(true); setHours(''); setReason(''); setJustification(''); setFile(null) }
@@ -107,9 +107,9 @@ export function AdjustmentDialog({ mode, open, onOpenChange, verb, done, title, 
         <>
           <Field label="Motivo" required dica={ADJUSTMENT_DICAS.abono}>
             {(p) => (
-              <select {...p} value={reason} onChange={(e) => setReason(e.target.value as AbsenceReason | '')} className={inputClass}>
+              <select {...p} value={reason} onChange={(e) => setReason(e.target.value as NonNullable<AbsenceReason> | '')} className={inputClass}>
                 <option value="">Escolha</option>
-                {options.map((o) => <option key={o.code} value={o.code}>{o.label}</option>)}
+                {options.map((o) => <option key={o.code ?? ''} value={o.code ?? ''}>{o.label}</option>)}
               </select>
             )}
           </Field>

@@ -106,20 +106,20 @@ Decisões da revisão aplicadas: §4.3 (anexo autorizado pelo registro e storage
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva; migração dos tipos de afastamento para a lista única sem perda).
-- [ ] Permissões só do `ModuleCatalog` (`hr.view_health` com seed patch); dono de anexo `TimeAdjustmentDocument` registrado com `OwnerExists`.
-- [ ] Telas com estados; ajuda escrita; teste de cobertura passando.
-- [ ] Próximo passo e alertas acionáveis aplicados.
-- [ ] Auditoria ligada, com `[PersonalData]` e `SensitiveRead`.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers) e E2E passando.
+- [x] Migration criada (não destrutiva; migração dos tipos de afastamento para a lista única sem perda).
+- [x] Permissões só do `ModuleCatalog` (`hr.view_health` com seed patch); dono de anexo `TimeAdjustmentDocument` registrado com `OwnerExists`.
+- [x] Telas com estados; ajuda escrita; teste de cobertura passando.
+- [x] Próximo passo e alertas acionáveis aplicados.
+- [x] Auditoria ligada, com `[PersonalData]` e `SensitiveRead`.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `TimeAdjustment` (Domain) com as transições e a segregação; `AbsenceReason` único.
-- [ ] Endpoints `/api/v1/hr/employees/{id}/time-adjustments`, `/api/v1/hr/time-adjustments` (aprovar, reprovar, lote) e `/api/v1/me/hr/time-adjustments`.
-- [ ] Seed patch `hr-view-health`; dono de anexo, notificações, `IAgendaSource`; telas e ajuda.
+- [x] `TimeAdjustment` (Domain) com as transições e a segregação; `AbsenceReason` único.
+- [x] Endpoints `/api/v1/hr/employees/{id}/time-adjustments`, `/api/v1/hr/time-adjustments` (aprovar, reprovar, lote) e `/api/v1/me/hr/time-adjustments`.
+- [x] Seed patch `hr-view-health`; dono de anexo, notificações, `IAgendaSource`; telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (segregação, IDOR, dado de saúde), @qa.

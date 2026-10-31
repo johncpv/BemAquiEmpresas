@@ -243,7 +243,8 @@ public sealed partial class TimeAdjustmentService(
 
         await transaction.CommitAsync(ct);
         var ids = built.Select(b => b.Id).ToList();
-        return Result<IReadOnlyList<TimeAdjustmentView>>.Success(await ViewsAsync(db.TimeAdjustments.AsNoTracking().Where(a => ids.Contains(a.Id)), self ? employeeId : null, ct));
+        var views = await ViewsAsync(db.TimeAdjustments.AsNoTracking().Where(a => ids.Contains(a.Id)), self ? employeeId : null, ct);
+        return Result<IReadOnlyList<TimeAdjustmentView>>.Success(views.OrderBy(v => ids.IndexOf(v.Id)).ToList());
     }
 
     /// <summary>Pedidos para a aprovação (CA 10, <c>hr.view</c>): por situação e funcionário; os pendentes primeiro, do mais antigo.</summary>

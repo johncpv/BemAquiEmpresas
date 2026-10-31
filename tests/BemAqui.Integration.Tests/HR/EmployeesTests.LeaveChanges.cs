@@ -25,7 +25,7 @@ public partial class EmployeesTests
 {
     private static string LeaveUrl(Guid id, Guid leaveId, string suffix = "") => Emp(id, "/leaves/" + leaveId + suffix);
 
-    private async Task<(Guid Id, HttpClient Owner)> OnLeaveEmployeeAsync(DateOnly start, DateOnly end, string type = "Other", string? reason = "Repouso")
+    private async Task<(Guid Id, HttpClient Owner)> OnLeaveEmployeeAsync(DateOnly start, DateOnly end, string type = "JustifiedAbsence", string? reason = "Repouso")
     {
         var (_, owner) = await ActorAsync(Group.OwnerSeedKey);
         var position = await PositionAsync(owner);
@@ -92,7 +92,7 @@ public partial class EmployeesTests
         var (id, owner) = await OnLeaveEmployeeAsync(Today.AddDays(10), Today.AddDays(12));
         var leaveId = await OnlyLeaveIdAsync(owner, id);
         (await owner.PostAsJsonAsync(Emp(id, "/termination"), new { terminationDate = Iso(Today) })).EnsureSuccessStatusCode();
-        var refused = await owner.PutAsJsonAsync(LeaveUrl(id, leaveId), Leave(Today.AddDays(11), Today.AddDays(12), await VersionAsync(owner, id), "Other"));
+        var refused = await owner.PutAsJsonAsync(LeaveUrl(id, leaveId), Leave(Today.AddDays(11), Today.AddDays(12), await VersionAsync(owner, id), "JustifiedAbsence"));
         refused.StatusCode.Should().Be(HttpStatusCode.Conflict);
         (await CodeAsync(refused)).Should().Be("employee_terminated");
     }
@@ -131,7 +131,7 @@ public partial class EmployeesTests
         var again = await owner.PostAsJsonAsync(LeaveUrl(id, leaveId, "/end"), new { returnDate = Iso(Today), version = await VersionAsync(owner, id) });
         again.StatusCode.Should().Be(HttpStatusCode.Conflict);
         (await CodeAsync(again)).Should().Be(EmployeeLeaveRules.EndedCode);
-        (await owner.PutAsJsonAsync(LeaveUrl(id, leaveId), Leave(Today.AddDays(-3), Today.AddDays(5), await VersionAsync(owner, id), "Other"))).StatusCode.Should().Be(HttpStatusCode.Conflict, "encerrado não se edita");
+        (await owner.PutAsJsonAsync(LeaveUrl(id, leaveId), Leave(Today.AddDays(-3), Today.AddDays(5), await VersionAsync(owner, id), "JustifiedAbsence"))).StatusCode.Should().Be(HttpStatusCode.Conflict, "encerrado não se edita");
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public partial class EmployeesTests
         (await OutboxForAsync(id)).Should().BeEmpty("cancelado nunca publica");
 
         // O cancelado não bloqueia outro afastamento no mesmo período nem conta na situação.
-        (await owner.PostAsJsonAsync(Emp(id, "/leaves"), Leave(Today.AddDays(5), Today.AddDays(8), await VersionAsync(owner, id), "Other"))).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await owner.PostAsJsonAsync(Emp(id, "/leaves"), Leave(Today.AddDays(5), Today.AddDays(8), await VersionAsync(owner, id), "JustifiedAbsence"))).StatusCode.Should().Be(HttpStatusCode.OK);
         var again = await owner.PostAsJsonAsync(LeaveUrl(id, leaveId, "/cancel"), new { reason = "De novo", version = await VersionAsync(owner, id) });
         again.StatusCode.Should().Be(HttpStatusCode.Conflict);
         (await CodeAsync(again)).Should().Be(EmployeeLeaveRules.CancelledCode);
@@ -168,12 +168,12 @@ public partial class EmployeesTests
     [Fact]
     public async Task Sem_view_health_nenhum_tipo_nem_motivo_so_afastado_e_as_datas()
     {
-        var (id, owner) = await OnLeaveEmployeeAsync(Today.AddDays(-1), Today.AddDays(4), "Illness", Canary);
+        var (id, owner) = await OnLeaveEmployeeAsync(Today.AddDays(-1), Today.AddDays(4), "MedicalCertificate", Canary);
         (await owner.PostAsJsonAsync(Emp(id, "/leaves"), Leave(Today.AddDays(30), Today.AddDays(35), await VersionAsync(owner, id), "Maternity", "Licença"))).EnsureSuccessStatusCode();
         var (_, rh) = await ActorAsync("hr:view,edit,view_sensitive");
 
         var raw = await rh.GetStringAsync(Emp(id, "/leaves/sensitive"));
-        raw.Should().NotContain(Canary).And.NotContain("Illness").And.NotContain("Maternity").And.NotContain("Licença", "sem hr.view_health, nenhum tipo nem motivo (CA 8, PO 22/10/2026)");
+        raw.Should().NotContain(Canary).And.NotContain("MedicalCertificate").And.NotContain("Maternity").And.NotContain("Licença", "sem hr.view_health, nenhum tipo nem motivo (CA 8, PO 22/10/2026)");
         var leaves = await LeavesOfAsync(rh, id);
         var illness = leaves.Single(l => l.GetProperty("startDate").GetString() == Iso(Today.AddDays(-1)));
         illness.GetProperty("healthProtected").GetBoolean().Should().BeTrue();
@@ -186,14 +186,14 @@ public partial class EmployeesTests
         maternity.GetProperty("healthProtected").GetBoolean().Should().BeTrue();
         maternity.GetProperty("startDate").GetString().Should().Be(Iso(Today.AddDays(30)), "as datas aparecem");
         var ownerView = await LeavesOfAsync(owner, id);
-        ownerView.Should().Contain(l => l.GetProperty("type").GetString() == "Illness", "o Proprietário tem a ação");
+        ownerView.Should().Contain(l => l.GetProperty("type").GetString() == "MedicalCertificate", "o Proprietário tem a ação");
         ownerView.Should().Contain(l => l.GetProperty("type").GetString() == "Maternity" && l.GetProperty("reason").GetString() == "Licença");
 
         var illnessId = illness.GetProperty("id").GetGuid();
         var maternityId = maternity.GetProperty("id").GetGuid();
         (await rh.PostAsJsonAsync(Emp(id, "/leaves"), Leave(Today.AddDays(50), Today.AddDays(51), await VersionAsync(rh, id), "WorkAccident"))).StatusCode.Should().Be(HttpStatusCode.Forbidden, "registrar tipo de saúde exige hr.view_health");
-        (await rh.PutAsJsonAsync(LeaveUrl(id, illnessId), Leave(Today.AddDays(-1), Today.AddDays(6), await VersionAsync(rh, id), "Other"))).StatusCode.Should().Be(HttpStatusCode.Forbidden, "alterar o de saúde exige hr.view_health");
-        (await rh.PutAsJsonAsync(LeaveUrl(id, maternityId), Leave(Today.AddDays(30), Today.AddDays(35), await VersionAsync(rh, id), "Illness"))).StatusCode.Should().Be(HttpStatusCode.Forbidden, "passar a saúde exige hr.view_health");
+        (await rh.PutAsJsonAsync(LeaveUrl(id, illnessId), Leave(Today.AddDays(-1), Today.AddDays(6), await VersionAsync(rh, id), "JustifiedAbsence"))).StatusCode.Should().Be(HttpStatusCode.Forbidden, "alterar o de saúde exige hr.view_health");
+        (await rh.PutAsJsonAsync(LeaveUrl(id, maternityId), Leave(Today.AddDays(30), Today.AddDays(35), await VersionAsync(rh, id), "MedicalCertificate"))).StatusCode.Should().Be(HttpStatusCode.Forbidden, "passar a saúde exige hr.view_health");
         var blind = await rh.PutAsJsonAsync(LeaveUrl(id, maternityId), Leave(Today.AddDays(31), Today.AddDays(36), await VersionAsync(rh, id), "Maternity", "Licença"));
         blind.StatusCode.Should().Be(HttpStatusCode.Forbidden, "editar exige hr.view_health para qualquer tipo: quem não vê o tipo não o altera (PO 22/10/2026)");
         (await CodeAsync(blind)).Should().Be("forbidden");
