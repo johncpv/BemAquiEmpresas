@@ -340,4 +340,32 @@ public class FiscalRulesTests
         FiscalBaseUrl.Configured(new FiscalIntegrationOptions()).Value.Should().Be(new Uri("https://api.fiscal.bemaquiapp.com.br/"));
         new FiscalIntegrationOptions().AllowedHosts.Should().Equal("api.fiscal.bemaquiapp.com.br");
     }
+
+    // ---------- FIS-03a CA 12 e 20 ----------
+
+    /// <summary>CA 20: nota nunca é apagada; nenhuma rota DELETE nas notas de saída (o rascunho é descartado, a nota com número é cancelada ou inutilizada).</summary>
+    [Fact]
+    public void Nenhuma_rota_DELETE_nas_notas_de_saida()
+    {
+        var endpoints = Path.Combine(Solution.RootDirectory, "src", "Modules", "Fiscal", "BemAqui.Fiscal.Endpoints");
+        File.ReadAllText(Path.Combine(endpoints, "FiscalEndpoints.OutgoingInvoices.cs"))
+            .Should().NotContain("MapDelete", "a nota fiscal nunca é apagada (CA 20)");
+    }
+
+    /// <summary>CA 12 (D4): nenhum consumidor do Inventory reage à nota autorizada; a baixa foi no romaneio.</summary>
+    [Fact]
+    public void Nenhum_consumidor_do_Inventory_para_a_nota_autorizada()
+    {
+        var consumers = Solution.Assemblies.Where(a => (a.GetName().Name ?? string.Empty).StartsWith("BemAqui.Inventory", StringComparison.Ordinal))
+            .SelectMany(a => a.GetTypes())
+            .Where(t => t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericArguments().Any(g => g == typeof(BemAqui.Fiscal.Contracts.InvoiceAuthorized))))
+            .ToList();
+        consumers.Should().BeEmpty("a NF-e só referencia o romaneio e nunca baixa o estoque de novo (D4)");
+    }
+
+    /// <summary>CA 7: o evento da nota autorizada não leva dado do destinatário.</summary>
+    [Fact]
+    public void InvoiceAuthorized_sem_dado_pessoal() =>
+        typeof(BemAqui.Fiscal.Contracts.InvoiceAuthorized).GetProperties().Select(p => p.Name).Should()
+            .NotContain(n => n.Contains("Name", StringComparison.Ordinal) || n.Contains("Document", StringComparison.Ordinal) || n.Contains("Email", StringComparison.Ordinal));
 }

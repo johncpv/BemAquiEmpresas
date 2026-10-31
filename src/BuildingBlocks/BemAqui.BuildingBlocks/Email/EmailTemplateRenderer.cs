@@ -22,7 +22,7 @@ public sealed class EmailTemplateRenderer
     private static readonly FluidParser Parser = new();
     private readonly ConcurrentDictionary<string, IFluidTemplate> _cache = new(StringComparer.Ordinal);
 
-    public static IReadOnlyCollection<string> SystemTemplates { get; } = ["invite", "password-reset", "account-locked", "payment-order-pending", "quote-sent", "purchase-order-pending", "purchase-order-sent", "bank-account-changed", "billing-slip-issued", "payslip-available"];
+    public static IReadOnlyCollection<string> SystemTemplates { get; } = ["invite", "password-reset", "account-locked", "payment-order-pending", "quote-sent", "purchase-order-pending", "purchase-order-sent", "bank-account-changed", "billing-slip-issued", "payslip-available", "invoice-authorized"];
 
     public RenderedEmail Render(string template, IReadOnlyDictionary<string, object?> model)
     {

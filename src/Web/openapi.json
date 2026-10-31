@@ -29107,6 +29107,589 @@
         }
       }
     },
+    "/api/v1/fiscal/outgoing-invoices": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ListOutgoingInvoices",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/OutgoingInvoiceStatus"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutgoingInvoicePage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "CreateOutgoingInvoice",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOutgoingInvoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutgoingInvoiceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/to-issue": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ListInvoicesToIssue",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InvoiceQueueRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/billing": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetProjectBilling",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectBillingView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetOutgoingInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutgoingInvoiceView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "UpdateOutgoingInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOutgoingInvoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutgoingInvoiceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/items/{itemId}": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetOutgoingInvoiceItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutgoingInvoiceItemView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/issue-check": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "CheckOutgoingInvoiceIssue",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueCheckView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/preview": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "PreviewOutgoingInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/issue": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "IssueOutgoingInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutgoingInvoiceVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueResultView"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueResultView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/reopen": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ReopenOutgoingInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutgoingInvoiceVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutgoingInvoiceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/discard": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "DiscardOutgoingInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutgoingInvoiceVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutgoingInvoiceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/resend": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ResendOutgoingInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutgoingInvoiceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/xml": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "DownloadOutgoingInvoiceXml",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/danfe": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "DownloadOutgoingInvoiceDanfe",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/history": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetOutgoingInvoiceHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRelatedAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/import-runs": {
       "get": {
         "tags": [
@@ -33835,6 +34418,36 @@
           }
         }
       },
+      "BillingItemView": {
+        "required": [
+          "projectItemId",
+          "description",
+          "kind",
+          "quantity",
+          "shipped"
+        ],
+        "type": "object",
+        "properties": {
+          "projectItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "shipped": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "BillingPrecondition": {
         "required": [
           "code",
@@ -34008,6 +34621,60 @@
             "format": "int32"
           },
           "canEdit": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BillingShipmentView": {
+        "required": [
+          "shipmentId",
+          "number",
+          "status",
+          "shippedAt",
+          "invoiceId",
+          "invoiceLabel",
+          "invoiceStatus",
+          "canIssue"
+        ],
+        "type": "object",
+        "properties": {
+          "shipmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "shippedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "invoiceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "invoiceLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "invoiceStatus": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "canIssue": {
             "type": "boolean"
           }
         }
@@ -38009,6 +38676,46 @@
           }
         }
       },
+      "ContractInstallmentView": {
+        "required": [
+          "id",
+          "number",
+          "description",
+          "dueDate",
+          "amount",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
       "ContractMilestoneView": {
         "required": [
           "id",
@@ -38525,6 +39232,18 @@
           },
           "code": {
             "type": "string"
+          }
+        }
+      },
+      "CreateOutgoingInvoiceRequest": {
+        "required": [
+          "shipmentId"
+        ],
+        "type": "object",
+        "properties": {
+          "shipmentId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -47290,6 +48009,117 @@
           }
         }
       },
+      "InvoiceQueueRow": {
+        "required": [
+          "shipmentId",
+          "shipmentNumber",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "partyId",
+          "partyName",
+          "shippedOn",
+          "daysSinceShipment",
+          "late",
+          "estimatedAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "shipmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "shipmentNumber": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "shippedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "daysSinceShipment": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "late": {
+            "type": "boolean"
+          },
+          "estimatedAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "InvoiceTotals": {
+        "required": [
+          "products",
+          "discount",
+          "freight",
+          "otherExpenses",
+          "taxes",
+          "invoiceTotal",
+          "costTax"
+        ],
+        "type": "object",
+        "properties": {
+          "products": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "otherExpenses": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxTotal"
+            }
+          },
+          "invoiceTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "costTax": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "InvoiceType": {
+        "enum": [
+          "NFe",
+          "NFSe"
+        ]
+      },
       "IpiParameters": {
         "required": [
           "cst",
@@ -47341,6 +48171,132 @@
           },
           "withheld": {
             "type": "boolean"
+          }
+        }
+      },
+      "IssueCheckView": {
+        "required": [
+          "invoiceId",
+          "environment",
+          "preconditions",
+          "warnings",
+          "recipientName",
+          "items",
+          "totals",
+          "totalAmount",
+          "costTaxAmount",
+          "projectNumber",
+          "projectCostApplies",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/FiscalEnvironment"
+          },
+          "preconditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IssuePrecondition"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recipientName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/InvoiceTotals"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "costTaxAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectCostApplies": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "IssuePrecondition": {
+        "required": [
+          "key",
+          "ok",
+          "text",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "text": {
+            "type": "string"
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "IssueResultView": {
+        "required": [
+          "invoiceId",
+          "status",
+          "idempotencyKey",
+          "message",
+          "invoice"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OutgoingInvoiceStatus"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "invoice": {
+            "$ref": "#/components/schemas/OutgoingInvoiceView"
           }
         }
       },
@@ -53149,6 +54105,875 @@
             "items": {
               "$ref": "#/components/schemas/OrderConsumedLotRow"
             }
+          }
+        }
+      },
+      "OutgoingInvoiceActions": {
+        "required": [
+          "canEdit",
+          "canIssue",
+          "canPreview",
+          "canReopen",
+          "canDiscard",
+          "canResend",
+          "canDownload"
+        ],
+        "type": "object",
+        "properties": {
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canIssue": {
+            "type": "boolean"
+          },
+          "canPreview": {
+            "type": "boolean"
+          },
+          "canReopen": {
+            "type": "boolean"
+          },
+          "canDiscard": {
+            "type": "boolean"
+          },
+          "canResend": {
+            "type": "boolean"
+          },
+          "canDownload": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OutgoingInvoiceItemInput": {
+        "required": [
+          "id",
+          "quantity",
+          "unitPrice",
+          "discount",
+          "description",
+          "additionalInfo",
+          "taxRuleId",
+          "ipiRate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "additionalInfo": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "taxRuleId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "ipiRate": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "OutgoingInvoiceItemView": {
+        "required": [
+          "id",
+          "sequence",
+          "itemId",
+          "code",
+          "description",
+          "ncm",
+          "cest",
+          "origin",
+          "unit",
+          "quoteItemKind",
+          "operation",
+          "shippedQuantity",
+          "quantity",
+          "unitPrice",
+          "discount",
+          "freight",
+          "otherExpenses",
+          "ipiRate",
+          "needsIpiRate",
+          "additionalInfo",
+          "serialNumbers",
+          "chosenRuleId",
+          "taxRuleId",
+          "taxRuleVersion",
+          "taxRuleName",
+          "cfop",
+          "taxes",
+          "grossAmount",
+          "total",
+          "costTax",
+          "ruleOptions"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "ncm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cest": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "origin": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "quoteItemKind": {
+            "type": "string"
+          },
+          "operation": {
+            "$ref": "#/components/schemas/TaxOperation"
+          },
+          "shippedQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "otherExpenses": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiRate": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "needsIpiRate": {
+            "type": "boolean"
+          },
+          "additionalInfo": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "serialNumbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "chosenRuleId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "taxRuleId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "taxRuleVersion": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "taxRuleName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cfop": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "taxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxLine"
+            }
+          },
+          "grossAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "costTax": {
+            "type": "number",
+            "format": "double"
+          },
+          "ruleOptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxRuleOption"
+            }
+          }
+        }
+      },
+      "OutgoingInvoicePage": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalAmount",
+          "taxAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OutgoingInvoiceRow"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "OutgoingInvoiceRecipientView": {
+        "required": [
+          "name",
+          "document",
+          "type",
+          "finalConsumer",
+          "stateRegistration",
+          "email",
+          "street",
+          "number",
+          "complement",
+          "district",
+          "cityName",
+          "cityCode",
+          "state",
+          "postalCode"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "type": {
+            "$ref": "#/components/schemas/RecipientType"
+          },
+          "finalConsumer": {
+            "type": "boolean"
+          },
+          "stateRegistration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "street": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "complement": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "district": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cityName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cityCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "postalCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "OutgoingInvoiceRow": {
+        "required": [
+          "id",
+          "series",
+          "number",
+          "issuedOn",
+          "createdAt",
+          "partyId",
+          "partyName",
+          "projectId",
+          "projectNumber",
+          "shipmentNumber",
+          "totalAmount",
+          "taxAmount",
+          "environment",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "series": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "number": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "issuedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "shipmentNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/FiscalEnvironment"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OutgoingInvoiceStatus"
+          }
+        }
+      },
+      "OutgoingInvoiceStatus": {
+        "enum": [
+          "Draft",
+          "Processing",
+          "ContingencyPending",
+          "Authorized",
+          "Rejected",
+          "Denied",
+          "Cancelled"
+        ]
+      },
+      "OutgoingInvoiceVersionRequest": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "OutgoingInvoiceView": {
+        "required": [
+          "id",
+          "type",
+          "status",
+          "environment",
+          "operation",
+          "natureOfOperation",
+          "series",
+          "number",
+          "accessKey",
+          "protocol",
+          "authorizedAt",
+          "issuedOn",
+          "attempt",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "shipmentId",
+          "shipmentNumber",
+          "partyId",
+          "recipient",
+          "freightMode",
+          "carrierPartyId",
+          "carrierName",
+          "volumes",
+          "grossWeight",
+          "volumeSpecies",
+          "freight",
+          "otherExpenses",
+          "additionalInformation",
+          "items",
+          "totals",
+          "totalAmount",
+          "costTaxAmount",
+          "calculationError",
+          "rejectionCode",
+          "rejectionReason",
+          "suggestedAction",
+          "guidance",
+          "processingSince",
+          "contingencySince",
+          "xmlAttachmentId",
+          "danfeAttachmentId",
+          "sendToCustomer",
+          "emailCc",
+          "emailedAt",
+          "installments",
+          "actions",
+          "createdAt",
+          "createdByName",
+          "discardedAt",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/InvoiceType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OutgoingInvoiceStatus"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/FiscalEnvironment"
+          },
+          "operation": {
+            "$ref": "#/components/schemas/TaxOperation"
+          },
+          "natureOfOperation": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "series": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "number": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "accessKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "protocol": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "authorizedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "issuedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "attempt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "shipmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "shipmentNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "recipient": {
+            "$ref": "#/components/schemas/OutgoingInvoiceRecipientView"
+          },
+          "freightMode": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "carrierPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "carrierName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "volumes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "grossWeight": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "volumeSpecies": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "otherExpenses": {
+            "type": "number",
+            "format": "double"
+          },
+          "additionalInformation": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OutgoingInvoiceItemView"
+            }
+          },
+          "totals": {
+            "$ref": "#/components/schemas/InvoiceTotals"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "costTaxAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "calculationError": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "rejectionCode": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "rejectionReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "suggestedAction": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "guidance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "processingSince": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "contingencySince": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "xmlAttachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "danfeAttachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "sendToCustomer": {
+            "type": "boolean"
+          },
+          "emailCc": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "emailedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "installments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContractInstallmentView"
+            }
+          },
+          "actions": {
+            "$ref": "#/components/schemas/OutgoingInvoiceActions"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "discardedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -59853,6 +61678,45 @@
           },
           "band": {
             "$ref": "#/components/schemas/FactoryLoadBand"
+          }
+        }
+      },
+      "ProjectBillingView": {
+        "required": [
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "shipments",
+          "pendingItems",
+          "serviceItems"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "shipments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BillingShipmentView"
+            }
+          },
+          "pendingItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BillingItemView"
+            }
+          },
+          "serviceItems": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -71485,6 +73349,25 @@
           },
           "projectStatus": {
             "type": "string"
+          },
+          "invoiceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "invoiceLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "invoiceStatus": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -75022,7 +76905,7 @@
           "otherExpenses",
           "totals",
           "invoiceTotal",
-          "projectCost",
+          "costTax",
           "blocks"
         ],
         "type": "object",
@@ -75059,7 +76942,7 @@
             "type": "number",
             "format": "double"
           },
-          "projectCost": {
+          "costTax": {
             "type": "number",
             "format": "double"
           },
@@ -75154,7 +77037,7 @@
           "otherExpenses",
           "taxes",
           "itemTotal",
-          "projectCost"
+          "costTax"
         ],
         "type": "object",
         "properties": {
@@ -75229,7 +77112,7 @@
             "type": "number",
             "format": "double"
           },
-          "projectCost": {
+          "costTax": {
             "type": "number",
             "format": "double"
           }
@@ -75362,6 +77245,31 @@
             "type": "boolean"
           },
           "canApprove": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TaxRuleOption": {
+        "required": [
+          "ruleId",
+          "name",
+          "version",
+          "confirmed"
+        ],
+        "type": "object",
+        "properties": {
+          "ruleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "confirmed": {
             "type": "boolean"
           }
         }
@@ -77616,6 +79524,53 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "UpdateOutgoingInvoiceRequest": {
+        "required": [
+          "items",
+          "freight",
+          "otherExpenses",
+          "additionalInformation",
+          "sendToCustomer",
+          "emailCc",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OutgoingInvoiceItemInput"
+            }
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "otherExpenses": {
+            "type": "number",
+            "format": "double"
+          },
+          "additionalInformation": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sendToCustomer": {
+            "type": "boolean"
+          },
+          "emailCc": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },

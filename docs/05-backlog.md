@@ -494,7 +494,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-4, R-FIS-3, R-FIS-8, R-PRJ-5.
 - CA: regras por operação com versão e ativação por outra pessoa, nascidas do seed pré-configurado "a confirmar"; motor puro de ICMS, ST, IPI, PIS, COFINS e IBS/CBS batendo com os casos de referência; "Simular" em painel lateral; sem regra, sem nota; DIFAL bloqueado; tributos que entram no custo do projeto (ICMS, PIS, COFINS, ISS, IBS/CBS; IPI fora).
 
-**FIS-03a [ ] NF-e de saída: rascunho a partir do romaneio, emissão, autorização, rejeição, DANFE e XML ao cliente, impostos e receita pela nota (G)** — 5.4, ordem 10 — `Ready (pré-condição externa)` — [story](stories/FIS-03a-nfe-saida-emissao.md)
+**FIS-03a [x] NF-e de saída: rascunho a partir do romaneio, emissão, autorização, rejeição, DANFE e XML ao cliente, impostos e receita pela nota (G)** — 5.4, ordem 10 — `Done` (homologação SEFAZ dos 3 cenários no `demo`, A1 real e conferência da contadora: pré-condição externa) — [story](stories/FIS-03a-nfe-saida-emissao.md)
 - Requisitos: R-FIS-3, R-PRD-8, R-PRJ-5, R-FIS-4, R-COM-1, R-COM-3.
 - CA: rascunho a partir do romaneio (a nota só referencia o romaneio, sem baixar estoque); venda mista pela D4 (equipamento em NF-e, instalação em NFS-e, parcela é só cobrança); saneamento pelos limites do esquema antes de reservar o número; emissão idempotente com reconciliação no Emissor; `InvoiceAuthorized` lança o imposto como `InvoiceTax`; imposto nunca digitado; os 3 cenários em homologação SEFAZ no `demo`.
 

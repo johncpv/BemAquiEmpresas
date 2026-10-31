@@ -31,7 +31,8 @@ public sealed record ShipmentListQuery(Guid? ProjectId, string? Filter, string? 
 public sealed partial class ShipmentService(
     IProductionDb db, IProjects projects, IParties parties, IItems items, ILocations locations, IFinishedGoodsStock finished, IStockSerials serials, IStockMovements stock,
     IStockBalances balances, INumberSequence numbers, IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, INotificationService notifications,
-    IEventPublisher events, TimeProvider clock, IPdfRenderer renderer, AttachmentService attachments, ICompanyIdentity company, IFileStorage storage)
+    IEventPublisher events, TimeProvider clock, IPdfRenderer renderer, AttachmentService attachments, ICompanyIdentity company, IFileStorage storage,
+    BemAqui.Fiscal.Contracts.IOutgoingInvoices invoices)
 {
     public const string Link = "/app/producao/expedicao/";
     public const string AwaitingType = "production.shipment_stock_pending";
@@ -100,7 +101,9 @@ public sealed partial class ShipmentService(
         var (canConfirm, confirmBlocker) = shipment.Status == ShipmentState.Draft ? (true, (string?)null) : (false, ShipmentRules.NotDraft);
         var (canStock, stockBlocker) = await StockDecisionAsync(shipment, cancellationToken);
         var status = project?.Status ?? string.Empty;
-        var next = new ShipmentNext(canConfirm, confirmBlocker, canStock, stockBlocker, installation?.Id, installation?.Number, status is "Delivered" or "Closed", status);
+        var invoice = shipment.Status == ShipmentState.Shipped ? await invoices.ActiveForShipmentAsync(shipment.Id, cancellationToken) : null;
+        var next = new ShipmentNext(canConfirm, confirmBlocker, canStock, stockBlocker, installation?.Id, installation?.Number, status is "Delivered" or "Closed", status,
+            invoice?.Id, invoice?.Label, invoice?.Status);
         return new ShipmentDetail(
             shipment.Id, shipment.Number, shipment.Status, shipment.ProjectId, project?.Number ?? string.Empty, project?.Name ?? string.Empty, shipment.PartyId, Name(party),
             shipment.DeliveryAddress, shipment.CarrierPartyId, carrier is null ? null : Name(carrier), shipment.VehiclePlate, shipment.DriverName, shipment.Volumes, shipment.GrossWeight,
