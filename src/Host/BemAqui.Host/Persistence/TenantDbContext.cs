@@ -324,6 +324,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Fiscal.Domain.OutgoingInvoice> OutgoingInvoices => Set<BemAqui.Fiscal.Domain.OutgoingInvoice>();
 
+    public DbSet<BemAqui.Fiscal.Domain.FiscalSettings> FiscalSettings => Set<BemAqui.Fiscal.Domain.FiscalSettings>();
+
+    public DbSet<BemAqui.Fiscal.Domain.SettingConfirmation> SettingConfirmations => Set<BemAqui.Fiscal.Domain.SettingConfirmation>();
+
+    public DbSet<BemAqui.Fiscal.Domain.CertificateUpload> CertificateUploads => Set<BemAqui.Fiscal.Domain.CertificateUpload>();
+
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 
     public DbSet<WorkSchedule> WorkSchedules => Set<WorkSchedule>();
