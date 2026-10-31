@@ -62,7 +62,7 @@ public partial class FabricationTests
             {
                 db.EmployeeHistory.Add(new EmployeeHistoryEntry
                 {
-                    EmployeeId = employee.Id, Kind = EmployeeHistoryKind.Leave, EffectiveDate = Today.AddDays(-1), LeaveEndDate = Today.AddDays(5), LeaveType = EmployeeLeaveType.Illness,
+                    EmployeeId = employee.Id, Kind = EmployeeHistoryKind.Leave, EffectiveDate = Today.AddDays(-1), LeaveEndDate = Today.AddDays(5), LeaveType = AbsenceReason.MedicalCertificate,
                     NewValue = "Afastado", Reason = "Atestado", CreatedAt = DateTimeOffset.UtcNow,
                 });
             }

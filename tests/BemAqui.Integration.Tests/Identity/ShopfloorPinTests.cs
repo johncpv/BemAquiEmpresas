@@ -146,7 +146,7 @@ public partial class ShopfloorPinTests(TenancyFixture tenancy) : IClassFixture<T
                 db.EmployeeHistory.Add(new EmployeeHistoryEntry
                 {
                     EmployeeId = person.Id, Kind = EmployeeHistoryKind.Leave, EffectiveDate = Today.AddDays(-1), LeaveEndDate = Today.AddDays(5),
-                    LeaveType = EmployeeLeaveType.Illness, NewValue = "Afastado", Reason = "Atestado", CreatedAt = DateTimeOffset.UtcNow,
+                    LeaveType = AbsenceReason.MedicalCertificate, NewValue = "Afastado", Reason = "Atestado", CreatedAt = DateTimeOffset.UtcNow,
                 });
             }
 

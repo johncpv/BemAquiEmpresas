@@ -454,7 +454,8 @@ public partial class EmployeesTests
 
         string[] parts = ["/dependents", "/payment", "/bank-account", "/additional", "/documents"];
         var endpoints = tenancy.Factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>()
-            .Where(e => e.RoutePattern.RawText?.StartsWith("/api/v1/hr/employees", StringComparison.Ordinal) == true && parts.Any(p => e.RoutePattern.RawText.Contains(p, StringComparison.Ordinal))).ToList();
+            .Where(e => e.RoutePattern.RawText?.StartsWith("/api/v1/hr/employees", StringComparison.Ordinal) == true && parts.Any(p => e.RoutePattern.RawText.Contains(p, StringComparison.Ordinal))
+                && !e.RoutePattern.RawText.Contains("/time-adjustments", StringComparison.Ordinal)).ToList();
         endpoints.Should().HaveCount(14);
         foreach (var endpoint in endpoints)
         {

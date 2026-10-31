@@ -68,7 +68,12 @@ public class PersonalDataTests
         ["HrParameter"] = ["Id", "Key", "Value", "Text", "ConfirmedAt", "ConfirmedBy", "UpdatedAt"],
         // RH-01a: a marcação (quem, quando, tipo, origem, aparelho e se tem localização) é dado de jornada, não sensível; a latitude, a
         // longitude e a precisão são [PersonalData] (LGPD: localização). A ciência da geolocalização não tem dado pessoal.
-        ["TimeEntry"] = ["Id", "EmployeeId", "At", "Day", "Type", "Source", "Status", "RecordedByUserId", "DeviceId", "Location", "CreatedAt"],
+        // RH-01b: quem aprovou, o pedido que criou ou desconsiderou a marcação e quando não são dado pessoal; no pedido de ajuste, a
+        // justificativa, o motivo da ausência (pode ser de saúde) e o comentário da decisão são [PersonalData].
+        ["TimeEntry"] = ["Id", "EmployeeId", "At", "Day", "Type", "Source", "Status", "RecordedByUserId", "DeviceId", "Location", "CreatedAt", "Version",
+            "ApprovedBy", "AdjustmentId", "VoidAdjustmentId", "VoidedBy", "VoidedAt"],
+        ["TimeAdjustment"] = ["Id", "EmployeeId", "Kind", "Day", "EntryId", "At", "EntryType", "AbsenceMinutes", "Source", "RequestedBy", "RequestedAt", "Status",
+            "DecidedBy", "DecidedAt", "SelfApproved", "CreatedEntryId", "Version"],
         ["TimeClockGeoConsent"] = ["Id", "EmployeeId", "UserId", "AcceptedAt", "TextVersion"],
     };
 

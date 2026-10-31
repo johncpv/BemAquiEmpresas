@@ -1,4 +1,4 @@
-import type { EmployeeLeaveState, EmployeeLeaveType as GeneratedLeaveType, EmployeeStatus, LeaveDetail } from '@/api/generated/model'
+import type { EmployeeLeaveState, AbsenceReason as GeneratedLeaveType, EmployeeStatus, LeaveDetail } from '@/api/generated/model'
 import type { StatusTone } from '@/components/ui/status-chip'
 import { formatMoney } from '@/lib/format'
 
@@ -7,29 +7,38 @@ export const STATUS_LABELS: Record<EmployeeStatus, string> = { Active: 'Ativo', 
 /** Afastado em âmbar (alerta), desligado neutro (CAD-04c1). */
 export const STATUS_TONES: Record<EmployeeStatus, StatusTone> = { Active: 'ok', OnLeave: 'warn', Terminated: 'neutral' }
 
-/** Tipos de afastamento (CAD-04c1, decisão do PO de 21/10/2026). Férias ficam para a folha. */
-/** O cliente gerado admite nulo no enum; nas telas o tipo é sempre um dos seis. */
+/**
+ * Lista única de ausências (RH-01b CA 7, PO 21/10/2026): o afastamento usa os motivos que valem para afastamento; o abono do ponto, os que
+ * valem para abono. Doença virou "Atestado médico" e Outros, "Falta justificada". Férias ficam para a folha.
+ */
+/** O cliente gerado admite nulo no enum; nas telas o tipo é sempre um da lista. */
 export type LeaveType = NonNullable<GeneratedLeaveType>
 
 export const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
-  Illness: 'Doença',
+  MedicalCertificate: 'Atestado médico',
   WorkAccident: 'Acidente de trabalho',
   Maternity: 'Maternidade',
   Paternity: 'Paternidade',
   Military: 'Serviço militar',
-  Other: 'Outros',
+  AttendanceNote: 'Declaração de comparecimento',
+  TimeBankOff: 'Folga compensada pelo banco de horas',
+  JustifiedAbsence: 'Falta justificada',
+  UnjustifiedAbsence: 'Falta não justificada',
 }
+
+/** Os motivos que valem para afastamento, na ordem da lista única. */
+export const LEAVE_TYPES: readonly LeaveType[] = ['MedicalCertificate', 'WorkAccident', 'Maternity', 'Paternity', 'Military', 'JustifiedAbsence']
 
 export const LEAVE_REASON_MAX = 200
 
-/** Doença e acidente de trabalho são dado de saúde: só com hr.view_health (CAD-04c1b, PO 22/10/2026). */
-export const HEALTH_LEAVE_TYPES: readonly LeaveType[] = ['Illness', 'WorkAccident']
+/** Atestado médico e acidente de trabalho são dado de saúde: só com hr.view_health (CAD-04c1b, PO 22/10/2026). */
+export const HEALTH_LEAVE_TYPES: readonly LeaveType[] = ['MedicalCertificate', 'WorkAccident']
 
 export const isHealthLeave = (type: LeaveType | '' | null | undefined) => !!type && HEALTH_LEAVE_TYPES.includes(type)
 
 /** Tipos que o usuário pode escolher: sem hr.view_health, os de saúde não aparecem (o servidor recusa com 403). */
 export const leaveTypeOptions = (canHealth: boolean) =>
-  (Object.keys(LEAVE_TYPE_LABELS) as LeaveType[]).filter((t) => canHealth || !isHealthLeave(t)).map((value) => ({ value, label: LEAVE_TYPE_LABELS[value] }))
+  LEAVE_TYPES.filter((t) => canHealth || !isHealthLeave(t)).map((value) => ({ value, label: LEAVE_TYPE_LABELS[value] }))
 
 /** Estado do afastamento no dia (CAD-04c1b): o servidor calcula; em curso em âmbar, previsto informativo. */
 export const LEAVE_STATE_LABELS: Record<EmployeeLeaveState, string> = { Scheduled: 'Previsto', Current: 'Vigente', Ended: 'Encerrado', Cancelled: 'Cancelado' }
@@ -110,7 +119,7 @@ export const EMPLOYEE_DICAS = {
   matricula: 'Código do funcionário na empresa, se houver. É único e aparece nas listas e no ponto.',
   afastado: 'Há um afastamento vigente hoje. A situação volta a Ativo sozinha no dia seguinte ao fim previsto. As datas aparecem com a permissão Ver dados sensíveis; o tipo e o motivo, só com Ver dados de saúde.',
   motivoAfastamento: 'Texto curto para o RH se lembrar do caso. Não informe CID nem diagnóstico: dado de saúde é sensível pela LGPD.',
-  saude: 'O tipo e o motivo dos afastamentos só aparecem para quem tem a permissão Ver dados de saúde, porque podem revelar dado de saúde (LGPD). Sem ela, você vê só as datas e não escolhe Doença nem Acidente de trabalho.',
+  saude: 'O tipo e o motivo dos afastamentos só aparecem para quem tem a permissão Ver dados de saúde, porque podem revelar dado de saúde (LGPD). Sem ela, você vê só as datas e não escolhe Atestado médico nem Acidente de trabalho.',
   volta: 'Primeiro dia de trabalho depois do afastamento. O último dia afastado passa a ser a véspera da volta.',
 }
 

@@ -47,7 +47,11 @@ const offline = (e: unknown) => (e instanceof ApiError && e.code === OFFLINE_COD
  * interno, "Olá, {nome}", a hora do servidor, a jornada do dia, as marcações de hoje e o botão grande da próxima marcação; "Outra
  * marcação"; o comprovante de controle interno. Com a geolocalização ligada (só fora do tablet), o aviso antes do primeiro pedido.
  */
-export function TimeClockPanel({ onSessionEnded }: { onSessionEnded?: (receipt: TimeEntryReceipt) => void }) {
+export function TimeClockPanel({ onSessionEnded, onRequestAdjustment }: {
+  onSessionEnded?: (receipt: TimeEntryReceipt) => void
+  /** RH-01b: no /app/meu-ponto, o "Esqueceu uma marcação?" abre o pedido de ajuste; no tablet (PIN) o pedido exige o login completo. */
+  onRequestAdjustment?: () => void
+}) {
   const client = useQueryClient()
   const query = useGetMyTimeClock({ query: { retry: (count, error) => !(error instanceof ApiError && error.status === 403) && count < 2 } })
   const idempotency = useIdempotencyKey()
@@ -148,7 +152,10 @@ export function TimeClockPanel({ onSessionEnded }: { onSessionEnded?: (receipt: 
       )}
 
       {clock.outOfSequence && clock.hint ? (
-        <p className="rounded-md border border-warn-soft bg-warn-soft p-3 text-sm font-semibold text-warn-ink">{clock.hint}</p>
+        <p className="flex flex-wrap items-center gap-2 rounded-md border border-warn-soft bg-warn-soft p-3 text-sm font-semibold text-warn-ink">
+          {clock.hint}
+          {onRequestAdjustment ? <button type="button" onClick={onRequestAdjustment} className="min-h-11 rounded-md border border-warn-ink px-3 underline">Pedir ajuste</button> : null}
+        </p>
       ) : null}
 
       <section aria-labelledby="marcacoes-hoje">
@@ -178,6 +185,7 @@ export function TimeClockPanel({ onSessionEnded }: { onSessionEnded?: (receipt: 
           ))}
         </div>
         <p className="text-[16px] text-muted-foreground">{clock.hint ?? 'Esqueceu uma marcação? Peça o ajuste ao RH.'}</p>
+        {onRequestAdjustment ? <FloorButton tone="secondary" className="w-full" onClick={() => { setChoosing(false); onRequestAdjustment() }}>Pedir ajuste</FloorButton> : null}
         <FloorButton tone="secondary" className="w-full" onClick={() => setChoosing(false)}>Voltar</FloorButton>
       </FloorSheet>
 

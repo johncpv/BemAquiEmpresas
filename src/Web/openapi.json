@@ -5927,6 +5927,300 @@
         }
       }
     },
+    "/api/v1/hr/employees/{id}/time-adjustments": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListEmployeeTimeAdjustments",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CreateEmployeeTimeAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/time-adjustments/schedule-day": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployeeScheduleDay",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleDayProposal"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/time-adjustments/{adjustmentId}": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployeeTimeAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "adjustmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/time-adjustments/day": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CreateEmployeeTimeAdjustmentDay",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentDayInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TimeAdjustmentView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/time-adjustments/{adjustmentId}/documents": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "AttachTimeAdjustmentDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "adjustmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/time-adjustments/{adjustmentId}/documents/{attachmentId}": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadTimeAdjustmentDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "adjustmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/hr/payroll-items": {
       "get": {
         "tags": [
@@ -7312,6 +7606,250 @@
         }
       }
     },
+    "/api/v1/hr/absence-reasons": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListAbsenceReasons",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AbsenceReasonOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/time-adjustments": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListTimeAdjustments",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/TimeAdjustmentStatus"
+            }
+          },
+          {
+            "name": "employeeId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/time-adjustments/{id}": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetTimeAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/time-adjustments/{id}/approve": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ApproveTimeAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/time-adjustments/{id}/reject": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "RejectTimeAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/time-adjustments/{id}/cancel": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CancelTimeAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/time-adjustments/approve-batch": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ApproveTimeAdjustments",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentBatchInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentBatchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/me/hr/link": {
       "get": {
         "tags": [
@@ -7375,6 +7913,29 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/absence-reasons": {
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "ListMyAbsenceReasons",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AbsenceReasonOption"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -7466,6 +8027,180 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/time-adjustments": {
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "ListMyTimeAdjustments",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TimeAdjustmentView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "CreateMyTimeAdjustment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/time-adjustments/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "CancelMyTimeAdjustment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeAdjustmentDecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeAdjustmentView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/time-adjustments/{id}/documents": {
+      "post": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "AttachMyTimeAdjustmentDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/time-adjustments/{id}/documents/{attachmentId}": {
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "DownloadMyTimeAdjustmentDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -28494,6 +29229,54 @@
   },
   "components": {
     "schemas": {
+      "AbsenceReason": {
+        "enum": [
+          "MedicalCertificate",
+          "WorkAccident",
+          "Maternity",
+          "Paternity",
+          "Military",
+          "AttendanceNote",
+          "TimeBankOff",
+          "JustifiedAbsence",
+          "UnjustifiedAbsence",
+          null
+        ]
+      },
+      "AbsenceReasonOption": {
+        "required": [
+          "code",
+          "label",
+          "appliesTo",
+          "isHealth",
+          "justifies"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/AbsenceReason"
+          },
+          "label": {
+            "type": "string"
+          },
+          "appliesTo": {
+            "$ref": "#/components/schemas/AbsenceReasonUse"
+          },
+          "isHealth": {
+            "type": "boolean"
+          },
+          "justifies": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AbsenceReasonUse": {
+        "enum": [
+          "Absence",
+          "Leave",
+          "Both"
+        ]
+      },
       "AcceptInviteRequest": {
         "required": [
           "token",
@@ -39143,17 +39926,6 @@
           "Cancelled"
         ]
       },
-      "EmployeeLeaveType": {
-        "enum": [
-          "Illness",
-          "WorkAccident",
-          "Maternity",
-          "Paternity",
-          "Military",
-          "Other",
-          null
-        ]
-      },
       "EmployeePaymentDetail": {
         "required": [
           "employeeId",
@@ -46703,7 +47475,7 @@
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/EmployeeLeaveType"
+                "$ref": "#/components/schemas/AbsenceReason"
               }
             ]
           },
@@ -46713,7 +47485,7 @@
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/EmployeeLeaveType"
+                "$ref": "#/components/schemas/AbsenceReason"
               }
             ]
           },
@@ -46763,7 +47535,7 @@
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/EmployeeLeaveType"
+                "$ref": "#/components/schemas/AbsenceReason"
               }
             ]
           },
@@ -46854,7 +47626,7 @@
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/EmployeeLeaveType"
+                "$ref": "#/components/schemas/AbsenceReason"
               }
             ]
           },
@@ -67367,6 +68139,34 @@
           }
         }
       },
+      "ScheduleDayProposal": {
+        "required": [
+          "day",
+          "schedule",
+          "entries",
+          "existingEntries"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "schedule": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeAdjustmentDayEntry"
+            }
+          },
+          "existingEntries": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "ScheduleDetail": {
         "required": [
           "id",
@@ -72264,6 +73064,547 @@
         },
         "additionalProperties": false
       },
+      "TimeAdjustmentBatchInput": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeAdjustmentBatchItem"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "TimeAdjustmentBatchItem": {
+        "required": [
+          "id",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "TimeAdjustmentBatchResult": {
+        "required": [
+          "approved",
+          "failed",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "approved": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeAdjustmentBatchResultItem"
+            }
+          }
+        }
+      },
+      "TimeAdjustmentBatchResultItem": {
+        "required": [
+          "id",
+          "approved",
+          "code",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "approved": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "TimeAdjustmentDayEntry": {
+        "required": [
+          "type",
+          "time"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/TimeEntryType"
+          },
+          "time": {
+            "type": "string"
+          }
+        }
+      },
+      "TimeAdjustmentDayEntryView": {
+        "required": [
+          "id",
+          "at",
+          "type",
+          "label",
+          "source",
+          "changed"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TimeEntryType"
+          },
+          "label": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/TimeEntrySource"
+          },
+          "changed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TimeAdjustmentDayImpact": {
+        "required": [
+          "before",
+          "after",
+          "workedMinutesBefore",
+          "workedMinutesAfter",
+          "absenceMinutesAfter",
+          "fullDayAbsence"
+        ],
+        "type": "object",
+        "properties": {
+          "before": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeAdjustmentDayEntryView"
+            }
+          },
+          "after": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeAdjustmentDayEntryView"
+            }
+          },
+          "workedMinutesBefore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "workedMinutesAfter": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "absenceMinutesAfter": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "fullDayAbsence": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TimeAdjustmentDayInput": {
+        "required": [
+          "day",
+          "entries",
+          "justification"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeAdjustmentDayEntry"
+            }
+          },
+          "justification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "TimeAdjustmentDecisionInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "comment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "TimeAdjustmentDetail": {
+        "required": [
+          "adjustment",
+          "impact"
+        ],
+        "type": "object",
+        "properties": {
+          "adjustment": {
+            "$ref": "#/components/schemas/TimeAdjustmentView"
+          },
+          "impact": {
+            "$ref": "#/components/schemas/TimeAdjustmentDayImpact"
+          }
+        }
+      },
+      "TimeAdjustmentInput": {
+        "required": [
+          "kind"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/TimeAdjustmentKind"
+          },
+          "day": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "time": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "entryType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TimeEntryType"
+              }
+            ]
+          },
+          "entryId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "absenceMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "absenceReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AbsenceReason"
+              }
+            ]
+          },
+          "justification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "TimeAdjustmentKind": {
+        "enum": [
+          "AddEntry",
+          "VoidEntry",
+          "Absence"
+        ]
+      },
+      "TimeAdjustmentList": {
+        "required": [
+          "items",
+          "truncated"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeAdjustmentView"
+            }
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TimeAdjustmentSource": {
+        "enum": [
+          "Employee",
+          "HR"
+        ]
+      },
+      "TimeAdjustmentStatus": {
+        "enum": [
+          "Pending",
+          "Approved",
+          "Rejected",
+          "Cancelled"
+        ]
+      },
+      "TimeAdjustmentView": {
+        "required": [
+          "id",
+          "employeeId",
+          "employeeName",
+          "kind",
+          "status",
+          "statusLabel",
+          "day",
+          "summary",
+          "at",
+          "entryType",
+          "entryId",
+          "absenceMinutes",
+          "absenceReason",
+          "absenceReasonLabel",
+          "justification",
+          "protected",
+          "hasDocument",
+          "documents",
+          "source",
+          "requestedBy",
+          "requestedByName",
+          "requestedAt",
+          "decidedBy",
+          "decidedByName",
+          "decidedAt",
+          "decisionComment",
+          "selfApproved",
+          "createdEntryId",
+          "canDecide",
+          "canCancel",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/TimeAdjustmentKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TimeAdjustmentStatus"
+          },
+          "statusLabel": {
+            "type": "string"
+          },
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "entryType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TimeEntryType"
+              }
+            ]
+          },
+          "entryId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "absenceMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "absenceReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AbsenceReason"
+              }
+            ]
+          },
+          "absenceReasonLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "justification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "protected": {
+            "type": "boolean"
+          },
+          "hasDocument": {
+            "type": "boolean"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentDto"
+            }
+          },
+          "source": {
+            "$ref": "#/components/schemas/TimeAdjustmentSource"
+          },
+          "requestedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "requestedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "decidedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "decidedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "decisionComment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "selfApproved": {
+            "type": "boolean"
+          },
+          "createdEntryId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "canDecide": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "TimeClockGeolocation": {
         "enum": [
           "Off",
@@ -72499,6 +73840,30 @@
           },
           "status": {
             "$ref": "#/components/schemas/TimeEntryStatus"
+          },
+          "adjustmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "selfApproved": {
+            "type": "boolean",
+            "default": false
+          },
+          "voidAdjustmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "voidedNote": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

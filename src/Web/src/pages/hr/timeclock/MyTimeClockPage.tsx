@@ -1,4 +1,5 @@
 import { Lock, MapPin, MapPinOff } from 'lucide-react'
+import { useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useListMyTimeEntries } from '@/api/generated/bemaqui'
 import { ApiError } from '@/api/http'
@@ -9,10 +10,12 @@ import { useNavigation } from '@/navigation/navigation-context'
 import { PageHeading } from '@/shell/PageHeading'
 import { ModuleNotReleased } from '../../ModulePage'
 import { dayLabel, entryLabel, formatTime, groupByDay, locationText, NOT_LINKED, sourceLabel, TIME_CLOCK_DICAS } from './time-clock'
+import type { AdjustmentMode, VoidTarget } from './AdjustmentDialogs'
+import { MyAdjustmentDialog, MyTimeAdjustments } from './MyTimeAdjustments'
 import { TimeClockPanel } from './TimeClockPanel'
 
 /** "Minhas marcações" (CA 13): as próprias dos últimos 60 dias, com a própria localização; só carrega quando a pessoa abre. */
-function MyEntries() {
+function MyEntries({ onVoid }: { onVoid: (target: VoidTarget) => void }) {
   const query = useListMyTimeEntries({ query: { retry: (count, error) => !(error instanceof ApiError && error.status === 403) && count < 2 } })
   if (query.isPending) return <div className="space-y-2"><Skeleton className="h-16" /><Skeleton className="h-16" /></div>
   if (query.isError) {
@@ -35,6 +38,7 @@ function MyEntries() {
                   {e.status === 'Voided' ? <StatusChip tone="neutral">Desconsiderada</StatusChip> : null}
                   {e.location === 'Captured' ? <span className="inline-flex items-center gap-1 tabular-nums"><MapPin aria-hidden="true" className="size-3.5" />{locationText(e.latitude, e.longitude, e.accuracyM)}</span> : null}
                   {e.location === 'Missing' ? <StatusChip tone="neutral"><MapPinOff aria-hidden="true" className="size-3" />Sem localização</StatusChip> : null}
+                  {e.status === 'Valid' ? <button type="button" onClick={() => onVoid({ id: e.id, type: e.type, at: e.at })} className="min-h-11 rounded-md border border-border px-2 text-xs font-semibold text-foreground">Desconsiderar esta marcação</button> : null}
                 </span>
               </li>
             ))}
@@ -46,13 +50,16 @@ function MyEntries() {
 }
 
 /**
- * "Meu ponto" no backoffice e no celular (/app/meu-ponto, RH-01a, ADR 0035): o mesmo painel do tablet e, abaixo, "Minhas marcações".
+ * "Meu ponto" no backoffice e no celular (/app/meu-ponto, RH-01a, ADR 0035): o mesmo painel do tablet e, abaixo, "Minhas marcações" e
+ * (RH-01b) "Pedir ajuste" e "Meus pedidos" (?aba=pedidos abre os pedidos).
  * Do funcionário, sem ação no grupo; a página confere o módulo liberado e o vínculo vem da API.
  */
 export function MyTimeClockPage() {
   const { all, status } = useNavigation()
   const hr = all.find((m) => m.code === 'hr')
+  const search = useSearch({ strict: false }) as Record<string, unknown>
   const [showMine, setShowMine] = useState(false)
+  const [request, setRequest] = useState<{ mode: AdjustmentMode; target?: VoidTarget } | null>(null)
   if (status === 'loading') return null
   if (hr?.locked) return <ModuleNotReleased module={hr} />
   return (
@@ -65,7 +72,7 @@ export function MyTimeClockPage() {
         </p>
       </PageHeading>
       <div className="max-w-xl space-y-6">
-        <TimeClockPanel />
+        <TimeClockPanel onRequestAdjustment={() => setRequest({ mode: 'add' })} />
         <section aria-labelledby="minhas-marcacoes" className="space-y-2">
           <div className="flex items-center justify-between gap-2">
             <h2 id="minhas-marcacoes" className="text-lg font-bold">Minhas marcações</h2>
@@ -73,8 +80,10 @@ export function MyTimeClockPage() {
               {showMine ? 'Ocultar' : 'Ver os últimos 60 dias'}
             </button>
           </div>
-          {showMine ? <MyEntries /> : null}
+          {showMine ? <MyEntries onVoid={(target) => setRequest({ mode: 'void', target })} /> : null}
         </section>
+        <MyTimeAdjustments initiallyOpen={search.aba === 'pedidos'} />
+        <MyAdjustmentDialog mode={request?.mode ?? null} target={request?.target} onClose={() => setRequest(null)} />
       </div>
     </>
   )

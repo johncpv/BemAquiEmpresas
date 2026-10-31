@@ -21,4 +21,11 @@ export interface TimeEntryRow {
   deviceName: string | null;
   location: TimeEntryLocation;
   status: TimeEntryStatus;
+  /** @nullable */
+  adjustmentId?: string | null;
+  selfApproved?: boolean;
+  /** @nullable */
+  voidAdjustmentId?: string | null;
+  /** @nullable */
+  voidedNote?: string | null;
 }
