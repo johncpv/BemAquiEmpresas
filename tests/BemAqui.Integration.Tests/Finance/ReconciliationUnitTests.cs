@@ -13,7 +13,7 @@ public class ReconciliationUnitTests
     private static readonly DateOnly Day = new(2026, 10, 15);
     private const string Supplier = "47225005000186";
 
-    private static string? Plain(string? text) => text?.Replace(" ", " ", StringComparison.Ordinal).Replace(" ", " ", StringComparison.Ordinal);
+    private static string? Plain(string? text) => text?.Replace((char)0xA0, (char)0x20).Replace((char)0x202F, (char)0x20);
 
     private static SuggestionLine Line(decimal amount, int day = 0, string description = "PIX", string? document = null, string? externalId = null, bool verified = true) =>
         new(Guid.NewGuid(), Day.AddDays(day), amount, description, document, externalId ?? Guid.NewGuid().ToString("N"), verified);
@@ -120,8 +120,8 @@ public class ReconciliationUnitTests
     {
         ReconciliationRules.SumError([-300m], [-100m, -200m]).Should().BeNull();
         ReconciliationRules.SumError([150m, 50m], [200m]).Should().BeNull();
-        Plain(ReconciliationRules.SumError([-300m], [-100m, -150m])).Should().Be("A soma das transações (-R$ 250,00) não bate com a linha (-R$ 300,00).");
-        Plain(ReconciliationRules.SumError([150m, 40m], [200m])).Should().Be("A soma das linhas (R$ 190,00) não bate com a transação (R$ 200,00).");
+        Plain(ReconciliationRules.SumError([-300m], [-100m, -150m])).Should().Be("A soma das transações (-R$ 250,00) não bate com a linha (-R$ 300,00).");
+        Plain(ReconciliationRules.SumError([150m, 40m], [200m])).Should().Be("A soma das linhas (R$ 190,00) não bate com a transação (R$ 200,00).");
         ReconciliationRules.SumError([1m, 1m], [1m, 1m]).Should().NotBeNull();
     }
 }

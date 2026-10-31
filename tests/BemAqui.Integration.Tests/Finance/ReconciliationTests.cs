@@ -25,7 +25,7 @@ public partial class ReconciliationTests(BankIntegrationFixture fixture) : IClas
 
     private static string Account(Guid id) => $"/api/v1/finance/bank-accounts/{id}";
 
-    private static string? Plain(string? text) => text?.Replace(" ", " ", StringComparison.Ordinal).Replace(" ", " ", StringComparison.Ordinal);
+    private static string? Plain(string? text) => text?.Replace((char)0xA0, (char)0x20).Replace((char)0x202F, (char)0x20);
 
     private static string Iso(DateOnly d) => d.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
 
@@ -153,7 +153,7 @@ public partial class ReconciliationTests(BankIntegrationFixture fixture) : IClas
         // CA 4: soma diferente recusada com a mensagem; a certa concilia 1×N.
         var wrong = await ProblemAsync(await ReconcileAsync(editor, account, view, [lines[2]], [part1, other]), HttpStatusCode.UnprocessableEntity);
         wrong.GetProperty("code").GetString().Should().Be("reconciliation_sum_mismatch");
-        Plain(wrong.GetProperty("detail").GetString()).Should().Be("A soma das transações (-R$ 350,00) não bate com a linha (-R$ 300,00).");
+        Plain(wrong.GetProperty("detail").GetString()).Should().Be("A soma das transações (-R$ 350,00) não bate com a linha (-R$ 300,00).");
         var manual = await OkAsync(await ReconcileAsync(editor, account, view, [lines[2]], [part1, part2]));
         manual.GetProperty("kind").GetString().Should().Be("Manual");
         manual.GetProperty("transactions").GetInt32().Should().Be(2);

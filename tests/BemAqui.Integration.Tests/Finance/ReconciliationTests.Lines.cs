@@ -145,7 +145,7 @@ public partial class ReconciliationTests
 
         // CA 7: o total precisa ser o valor da linha; desconto acima do limite (10%) sem finance.approve é recusado e nada fica gravado.
         Plain((await ProblemAsync(await editor.PostAsJsonAsync(Account(account) + $"/reconciliation/lines/{lines[0]}/settle", Settle(title, lines[0], 1000m, 0m)), HttpStatusCode.UnprocessableEntity))
-            .GetProperty("detail").GetString()).Should().Be("O total da baixa (R$ 1.000,00) precisa ser o valor da linha (R$ 1.500,00).");
+            .GetProperty("detail").GetString()).Should().Be("O total da baixa (R$ 1.000,00) precisa ser o valor da linha (R$ 1.500,00).");
         (await ProblemAsync(await editor.PostAsJsonAsync(Account(account) + $"/reconciliation/lines/{lines[1]}/settle", Settle(discounted, lines[1], 2000m, 200m)), HttpStatusCode.Forbidden))
             .GetProperty("code").GetString().Should().Be("discount_requires_approval");
         (await DbAsync(db => db.FinancialTransactions.CountAsync(t => t.BankAccountId == account))).Should().Be(0);
