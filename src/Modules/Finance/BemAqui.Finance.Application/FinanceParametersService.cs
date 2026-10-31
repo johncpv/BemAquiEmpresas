@@ -23,6 +23,7 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
     public const string PaymentTolerance = "finance.payment_tolerance";
     public const string TransferNotifyAmount = "finance.transfer_notify_amount";
     public const string AdjustedDefaultThreshold = "finance.adjusted_default_threshold_pct";
+    public const string OfxBankEntryCap = "finance.ofx_bank_entry_cap";
 
     /// <summary>Padrões aprovados pelo PO (D8): 5,00%, R$ 500,00, R$ 1.000,00 e 7 dias.</summary>
     public static readonly IReadOnlyDictionary<string, decimal> Defaults = new Dictionary<string, decimal>(StringComparer.Ordinal)
@@ -35,13 +36,14 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
         [PaymentTolerance] = 0m,
         [TransferNotifyAmount] = 10_000m,
         [AdjustedDefaultThreshold] = 20m, // FIN-07 CA 3 e 15
+        [OfxBankEntryCap] = 500m, // BNK-03b CA 6: lançar sem OP a partir de linha de OFX acima disto exige finance.approve
     };
 
     public async Task<FinanceLimits> LimitsAsync(CancellationToken cancellationToken = default)
     {
         var values = await db.FinanceParameters.AsNoTracking().ToDictionaryAsync(p => p.Key, p => p.Value, cancellationToken);
         decimal Get(string key) => values.TryGetValue(key, out var v) ? v : Defaults[key];
-        return new FinanceLimits(Get(DiscountPct), Get(DiscountAmount), Get(CancelAmount), (int)Get(BackdateDays), Get(OwnerCanApproveOwn) != 0, Get(PaymentTolerance), Get(TransferNotifyAmount), Get(AdjustedDefaultThreshold));
+        return new FinanceLimits(Get(DiscountPct), Get(DiscountAmount), Get(CancelAmount), (int)Get(BackdateDays), Get(OwnerCanApproveOwn) != 0, Get(PaymentTolerance), Get(TransferNotifyAmount), Get(AdjustedDefaultThreshold), Get(OfxBankEntryCap));
     }
 
     public async Task<Result<FinanceLimits>> UpdateAsync(FinanceLimitsInput input, CancellationToken cancellationToken = default)
@@ -77,6 +79,11 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
             return ReceivableService.Invalid("adjustedDefaultThresholdPct", "Informe um limite de inadimplência entre 0,00% e 100,00%.");
         }
 
+        if (input.OfxBankEntryCap is < 0)
+        {
+            return ReceivableService.Invalid("ofxBankEntryCap", "Informe um valor maior ou igual a zero.");
+        }
+
         if (input.BackdateDays is < 0 or > 365)
         {
             return ReceivableService.Invalid("backdateDays", "Informe de 0 a 365 dias.");
@@ -95,6 +102,8 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
         var before = await LimitsAsync(cancellationToken);
         // FIN-07 CA 15: sem o campo (telas antigas), o limite do ajustado fica como está.
         values[AdjustedDefaultThreshold] = Math.Round(input.AdjustedDefaultThresholdPct ?? before.AdjustedDefaultThresholdPct, 2, MidpointRounding.AwayFromZero);
+        // BNK-03b CA 6: teto do lançamento sem OP a partir de linha de OFX; sem o campo, fica como está.
+        values[OfxBankEntryCap] = Math.Round(input.OfxBankEntryCap ?? before.OfxBankEntryCap, 2, MidpointRounding.AwayFromZero);
         var existing = await db.FinanceParameters.Where(p => values.Keys.Contains(p.Key)).ToDictionaryAsync(p => p.Key, cancellationToken);
         foreach (var (key, value) in values)
         {

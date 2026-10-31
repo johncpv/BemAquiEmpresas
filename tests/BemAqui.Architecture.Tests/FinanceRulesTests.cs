@@ -42,6 +42,23 @@ public class FinanceRulesTests
     public void So_o_pagamento_da_OP_cria_transacao_Payment() =>
         FilesContaining("Type = TransactionType.Payment").Should().BeSubsetOf(PaymentWriters, "pagamento só pela ordem de pagamento aprovada (R-FIN-6)");
 
+    /// <summary>
+    /// BNK-03b CA 8 (R-FIN-5): a conciliação nunca cria pagamento nem transação. Ela só vincula, chama a baixa de recebimento (FIN-01) e o
+    /// lançamento sem OP (FIN-04); saída sem par vai para "Vincular a uma OP paga" ou "Abrir OP para regularizar".
+    /// </summary>
+    [Fact]
+    public void A_conciliacao_nao_chama_o_pagamento_nem_cria_transacao()
+    {
+        var folder = Path.Combine(Solution.RootDirectory, "src", "Modules", "Finance", "BemAqui.Finance.Application", "Reconciliation");
+        var files = Directory.GetFiles(folder, "*.cs");
+        files.Should().NotBeEmpty();
+        foreach (var file in files)
+        {
+            var text = File.ReadAllText(file);
+            text.Should().NotContainAny(new[] { "PaymentOrderService", "PayAsync(", "new FinancialTransaction", "TransactionType.Payment", "BankTransfer" }, $"{Path.GetFileName(file)} não paga nem cria transação");
+        }
+    }
+
     [Fact]
     public void So_a_OP_muda_o_titulo_para_aguardando_aprovado_ou_pago() =>
         FilesContaining("Status = PayableStatus.AwaitingApproval", "Status = PayableStatus.Approved", "? PayableStatus.Paid", "Status = PayableStatus.Paid")

@@ -72,6 +72,12 @@ public sealed partial class ReceivableService
             return overLimit;
         }
 
+        // BNK-03b CA 11: recebimento com data no período de conciliação fechado da conta.
+        if (await period.CheckAsync(account.Id, input.Date, input.BackdateReason, "backdateReason", "baixar um título", cancellationToken) is { } closed)
+        {
+            return closed;
+        }
+
         if (await billing.SettlementGuardAsync(receivable, input.CancelBillingSlip, cancellationToken) is { } slipOpen)
         {
             return slipOpen;
@@ -181,6 +187,12 @@ public sealed partial class ReceivableService
         if (ReasonError(input.Reason) is { } missing)
         {
             return missing;
+        }
+
+        if (settlement.TransactionId is not null && settlement.BankAccountId is { } reversedAccount
+            && await period.CheckAsync(reversedAccount, Today, input.Reason, "reason", "estornar uma baixa", cancellationToken) is { } closed)
+        {
+            return closed;
         }
 
         Expect(receivable, input.Version);
