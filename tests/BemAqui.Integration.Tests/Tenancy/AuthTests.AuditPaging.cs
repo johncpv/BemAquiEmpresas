@@ -10,6 +10,7 @@ namespace BemAqui.Integration.Tests.Tenancy;
 public partial class AuthTests
 {
     [Fact]
+    [Trait(LoadTest.Trait, LoadTest.Value)]
     public async Task Pagina_com_50_mil_registros_responde_em_menos_de_1_segundo()
     {
         var owner = await ActorAsync(Group.OwnerSeedKey);

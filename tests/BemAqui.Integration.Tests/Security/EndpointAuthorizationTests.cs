@@ -203,12 +203,13 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
     }
 
     /// <summary>
-    /// Camadas 1 e 2 em todo endpoint de negócio: a permissão <c>modulo.acao</c> é do catálogo e o endpoint declara o mesmo
-    /// módulo (é ele que responde <c>module_not_released</c>). O comportamento HTTP das três camadas é testado uma vez em
+    /// Camadas 1 e 2 em todo endpoint de negócio: a permissão <c>modulo.acao</c> é do catálogo e o endpoint declara o módulo
+    /// (é ele que responde <c>module_not_released</c>). A permissão pode ser de outro módulo (ex.: <c>settings.edit</c> na
+    /// configuração do módulo, aprovações nos cards do painel). O comportamento HTTP das três camadas é testado uma vez em
     /// <c>AuthTests</c>; módulo novo não precisa repetir, só testa regra própria (ação específica, seed patch, IDOR).
     /// </summary>
     [Fact]
-    public void Permissao_do_endpoint_e_do_catalogo_e_do_mesmo_modulo_que_ele_declara()
+    public void Endpoint_com_permissao_declara_o_modulo_e_a_permissao_e_do_catalogo()
     {
         var problems = new List<string>();
         foreach (var endpoint in Endpoints().Where(HasPermission))
@@ -223,9 +224,9 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
                 {
                     problems.Add("permissão fora do catálogo: " + permission + " em " + Key(endpoint));
                 }
-                else if (module is null || !permission.StartsWith(module + ".", StringComparison.Ordinal))
+                else if (module is null)
                 {
-                    problems.Add("módulo declarado (" + (module ?? "nenhum") + ") não é o da permissão " + permission + ": " + Key(endpoint));
+                    problems.Add("sem RequireModule (" + permission + "): " + Key(endpoint));
                 }
             }
         }

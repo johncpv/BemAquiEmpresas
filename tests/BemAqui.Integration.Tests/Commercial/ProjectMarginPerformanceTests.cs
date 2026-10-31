@@ -17,6 +17,7 @@ namespace BemAqui.Integration.Tests.Commercial;
 /// de 1 s, consolidado em menos de 2 s e aba Custos de um projeto em menos de 300 ms. A suíte roda sob carga, então o teste afere com 50% de
 /// folga (1,5 s, 3 s e 450 ms). Banco próprio, para não pesar nas outras classes.
 /// </summary>
+[Trait(LoadTest.Trait, LoadTest.Value)]
 public class ProjectMarginPerformanceTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>
 {
     private const string Host = "a.localhost";

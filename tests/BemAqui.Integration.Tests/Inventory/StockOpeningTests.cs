@@ -152,6 +152,7 @@ public class StockDigestTests(TenancyFixture tenancy) : StockTenantTests(tenancy
 public class StockPerformanceTests(TenancyFixture tenancy) : StockTenantTests(tenancy), IClassFixture<TenancyFixture>
 {
     [Fact]
+    [Trait(LoadTest.Trait, LoadTest.Value)]
     public async Task Saldos_com_50_mil_posicoes_e_kardex_com_10_mil_movimentos_abaixo_de_1_segundo()
     {
         await using var scope = await ScopeAsync();
