@@ -30,6 +30,8 @@ public static class FiscalInfrastructure
         ArgumentNullException.ThrowIfNull(configuration);
         services.Configure<FiscalIntegrationOptions>(configuration.GetSection(FiscalIntegrationOptions.Section));
         services.TryAddSingleton(TimeProvider.System);
+        // LGPD-01a: provedor do Fiscal (a NF-e ainda não guarda o destinatário; a FIS-03a exporta as notas do titular).
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Privacy.IPersonalDataProvider, FiscalPersonalDataProvider>());
         services.AddHttpClient(EmissorFiscalEmitterFactory.ClientName)
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, AutomaticDecompression = DecompressionMethods.All, UseProxy = false })
             .RemoveAllLoggers();

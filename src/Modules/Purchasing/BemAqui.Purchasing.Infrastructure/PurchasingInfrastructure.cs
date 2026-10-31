@@ -23,6 +23,8 @@ public static class PurchasingInfrastructure
     public static IServiceCollection AddPurchasingInfrastructure(this IServiceCollection services)
     {
         services.TryAddSingleton(TimeProvider.System);
+        // LGPD-01a: pedidos do fornecedor PF e envios por e-mail ao titular.
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Privacy.IPersonalDataProvider, PurchasingPersonalDataProvider>());
         services.TryAddScoped<PurchasingParametersService>();
         services.TryAddScoped<PurchaseRequestService>();
         services.TryAddScoped<ShortageRecomposer>();

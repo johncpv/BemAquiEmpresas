@@ -31,6 +31,8 @@ export interface Tab {
   action?: string
   /** A aba só aparece com uma destas permissões (ex.: Integrações em Configurações, FND-16 CA 16: sem ver o módulo dono, a aba some). */
   requiresAny?: readonly string[]
+  /** Só membro do Proprietário vê a aba (Privacidade, LGPD-01a CA 2). */
+  ownerOnly?: boolean
   /** Ações do módulo que trazem a aba para a primeira posição (o Painel do supervisor com production.approve ou approve_quality, DSH-03). */
   firstFor?: readonly string[]
 }
@@ -98,7 +100,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   kiosk: { slug: 'painel-tv', icon: MonitorPlay },
   shopfloor: { slug: 'operador', icon: HardHat, href: '/fab' },
   identity: { slug: 'acessos', icon: ShieldCheck, tabs: [{ slug: 'usuarios', label: 'Usuários' }, { slug: 'grupos', label: 'Grupos' }] },
-  settings: { slug: 'configuracoes', icon: Settings, tabs: [{ slug: 'empresa', label: 'Empresa' }, { slug: 'numeracao', label: 'Numeração' }, { slug: 'parametros', label: 'Parâmetros' }, { slug: 'seguranca', label: 'Segurança' }, { slug: 'ia', label: 'Inteligência artificial' }, { slug: 'importacao', label: 'Importação do Dolibarr' }, { slug: 'integracoes', label: 'Integrações', requiresAny: ['finance.view', 'fiscal.view'] }, { slug: 'cobranca', label: 'Cobrança', requiresAny: ['finance.view', 'settings.view'] }, { slug: 'fiscal', label: 'Fiscal', requiresAny: ['fiscal.view', 'settings.view'] }] },
+  settings: { slug: 'configuracoes', icon: Settings, tabs: [{ slug: 'empresa', label: 'Empresa' }, { slug: 'numeracao', label: 'Numeração' }, { slug: 'parametros', label: 'Parâmetros' }, { slug: 'seguranca', label: 'Segurança' }, { slug: 'ia', label: 'Inteligência artificial' }, { slug: 'importacao', label: 'Importação do Dolibarr' }, { slug: 'integracoes', label: 'Integrações', requiresAny: ['finance.view', 'fiscal.view'] }, { slug: 'cobranca', label: 'Cobrança', requiresAny: ['finance.view', 'settings.view'] }, { slug: 'fiscal', label: 'Fiscal', requiresAny: ['fiscal.view', 'settings.view'] }, { slug: 'privacidade', label: 'Privacidade (LGPD)', ownerOnly: true }] },
 }
 
 /** Mesmo formato de MyModule em GET /api/v1/me/permissions (FND-06c/06d). */
@@ -142,10 +144,10 @@ const grants = (modules: readonly PermissionModule[], permission: string) => {
   return !!module && module.released && module.actions.includes(action)
 }
 
-const toNav = (m: PermissionModule, modules: readonly PermissionModule[]): NavModule | null => {
+const toNav = (m: PermissionModule, modules: readonly PermissionModule[], isOwner: boolean): NavModule | null => {
   const ui = MODULE_UI[m.code]
   const allowed = (ui?.tabs ?? []).filter(
-    (t) => (!t.action || m.actions.includes(t.action)) && (!t.requiresAny || t.requiresAny.some((p) => grants(modules, p))),
+    (t) => (!t.action || m.actions.includes(t.action)) && (!t.requiresAny || t.requiresAny.some((p) => grants(modules, p))) && (!t.ownerOnly || isOwner),
   )
   const first = (t: Tab) => !!t.firstFor?.some((a) => m.actions.includes(a))
   const tabs = [...allowed.filter(first), ...allowed.filter((t) => !first(t))]
@@ -155,8 +157,8 @@ const toNav = (m: PermissionModule, modules: readonly PermissionModule[]): NavMo
 /** Visível no menu: liberado com acesso, ou não liberado (com cadeado). Liberado sem acesso fica oculto (CA 3). */
 export const isVisible = (m: NavModule) => m.locked || m.enabled
 
-export function buildNavigation(modules: readonly PermissionModule[]): Navigation {
-  const all = modules.map((m) => toNav(m, modules)).filter((m): m is NavModule => m !== null)
+export function buildNavigation(modules: readonly PermissionModule[], isOwner = false): Navigation {
+  const all = modules.map((m) => toNav(m, modules, isOwner)).filter((m): m is NavModule => m !== null)
   const areas = AREAS.map((area) => ({
     ...area,
     modules: all.filter((m) => m.area === area.name && isVisible(m)).sort((x, y) => (x.order ?? 0) - (y.order ?? 0)),

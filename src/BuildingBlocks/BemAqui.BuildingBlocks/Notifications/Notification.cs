@@ -9,6 +9,8 @@ public sealed class Notification
 
     public required string Type { get; init; }
 
+    /// <summary>Texto sem dado pessoal além do primeiro nome (ADR 0037 §2); sai na exportação do usuário titular (LGPD-01a).</summary>
+    [BemAqui.SharedKernel.PersonalData]
     public required string Title { get; init; }
 
     /// <summary>Rota relativa do app (ex.: <c>/app/finance/payment-orders/…</c>) onde a ação acontece.</summary>

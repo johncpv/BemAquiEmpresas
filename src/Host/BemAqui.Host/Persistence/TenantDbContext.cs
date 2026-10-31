@@ -67,6 +67,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<SeedPatch> SeedPatches => Set<SeedPatch>();
 
+    public DbSet<PrivacyRequest> PrivacyRequests => Set<PrivacyRequest>();
+
     public DbSet<Party> Parties => Set<Party>();
 
     public DbSet<PartyRole> PartyRoles => Set<PartyRole>();

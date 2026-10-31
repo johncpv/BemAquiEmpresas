@@ -27,7 +27,7 @@ public sealed partial class AttachmentService
             return Error.NotFound(Error.Codes.NotFound, "Este tipo de documento não aceita anexos.");
         }
 
-        if (!await permissions.HasPermissionAsync(rules.Module, rules.WriteAction, cancellationToken))
+        if (!await AllowedAsync(rules, rules.WriteAction, cancellationToken))
         {
             return Forbidden();
         }

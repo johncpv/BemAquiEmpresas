@@ -33,6 +33,23 @@ public sealed partial class AttachmentService
         return attachment;
     }
 
+    /// <summary>
+    /// Apaga um arquivo do sistema do dono (LGPD-01a CA 10: a exportação do titular sai 30 dias depois da conclusão, ou quando é refeita): o
+    /// arquivo no storage e a linha (a exclusão fica na auditoria do anexo). Só arquivo gerado pelo sistema; o chamador salva.
+    /// </summary>
+    public async Task<bool> DeleteSystemFileAsync(string ownerType, Guid ownerId, Guid attachmentId, CancellationToken cancellationToken = default)
+    {
+        var attachment = await db.Attachments.FirstOrDefaultAsync(a => a.Id == attachmentId && a.OwnerType == ownerType && a.OwnerId == ownerId && a.Origin == AttachmentOrigin.System, cancellationToken);
+        if (attachment is null)
+        {
+            return false;
+        }
+
+        await storage.DeleteAsync(attachment.StoragePath, cancellationToken);
+        db.Attachments.Remove(attachment);
+        return true;
+    }
+
     /// <summary>Anexo por id, para quem já conferiu a permissão do dono (ex.: o PDF atual do orçamento).</summary>
     public Task<Attachment?> FindAsync(Guid id, CancellationToken cancellationToken = default) =>
         db.Attachments.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);

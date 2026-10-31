@@ -87,8 +87,24 @@ public static class IdentityInfrastructure
         services.TryAddScoped<BemAqui.BuildingBlocks.Identity.IKioskSessionValidator>(sp => sp.GetRequiredService<Application.Kiosk.KioskSessionService>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, KioskLegacyRouteSeeder>());
         services.AddAuditableEntity<KioskScreen>("kiosk");
+
+        // Configurações → Privacidade (LGPD-01a, ADR 0018 e 0037): pedido do titular só do Proprietário, provedor do Identity, exportação
+        // pelo job e o ZIP como arquivo do sistema do pedido. O dono PrivacyRequest não grava nem lê pela rota genérica de anexos (só o
+        // Proprietário, pelo link de uso único); o histórico do pedido sai pela rota própria (com o IP), não pela genérica.
+        services.TryAddScoped<Application.Privacy.PrivacyRequestService>();
+        services.TryAddScoped<Application.Privacy.PrivacyExportService>();
+        services.TryAddScoped<Application.Privacy.PrivacyDueNotices>();
+        services.TryAddScoped<Application.Privacy.PrivacyExportPurge>();
+        services.TryAddSingleton<BemAqui.BuildingBlocks.Pdf.IPdfRenderer, BemAqui.BuildingBlocks.Pdf.QuestPdfRenderer>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Privacy.IPersonalDataProvider, Application.Privacy.IdentityPersonalDataProvider>());
+        services.AddAttachmentOwner(PrivacyRequest.OwnerType, new AttachmentOwnerRules("settings", ["application/zip"],
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IIdentityDb>().PrivacyRequests.AnyAsync(r => r.Id == id, ct),
+            CanAttach: SystemOnly, CheckedOnly: true));
         return services;
     }
+
+    private static Task<BemAqui.SharedKernel.Error?> SystemOnly(IServiceProvider services, Guid ownerId, CancellationToken cancellationToken) =>
+        Task.FromResult<BemAqui.SharedKernel.Error?>(BemAqui.SharedKernel.Error.Validation("attachment.system_only", "Este documento é gerado pelo sistema e não aceita anexos."));
 
     /// <summary>Pergunte ao BemAqui (FND-15): um HttpClient por provedor, sem log de requisição (o corpo leva a pergunta).</summary>
     private static void AddAi(IServiceCollection services)

@@ -137,6 +137,8 @@ public static class HrInfrastructure
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IHrDb>().TimeAdjustments.AnyAsync(a => a.Id == id && a.Kind == TimeAdjustmentKind.Absence, ct),
             ReadAction: BemAqui.HR.Application.TimeClock.TimeAdjustmentService.HealthAction, WriteAction: BemAqui.HR.Application.TimeClock.TimeAdjustmentService.HealthAction,
             CanAttach: ByRequestOnly, AuditReads: true));
+        // LGPD-01a: titular funcionário (identificação, seletor e exportação, com o sensível pelas ações do RH).
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Privacy.IPersonalDataProvider, HrPersonalDataProvider>());
         services.AddAuditableEntity<EmployeeDependent>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<Employee>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<EmployeeHistoryEntry>("hr", PositionService.SensitiveAction);
