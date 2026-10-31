@@ -41,6 +41,8 @@ public static class FiscalInfrastructure
         services.TryAddScoped<OutgoingInvoiceReconciler>();
         services.TryAddScoped<NfeSubmissionService>();
         services.TryAddScoped<IOutgoingNfePayloads, NoOutgoingNfePayloads>();
+        // PAT-01a CA 7: seletor da NF de entrada do bem; sem notas até a FIS-04a (que troca este registro).
+        services.TryAddScoped<BemAqui.Fiscal.Contracts.IIncomingInvoices, NoIncomingInvoices>();
         services.TryAddScoped<FiscalPendingChecker>();
         services.TryAddTransient<FiscalPendingCheckJob>();
         services.AddWebhookProvider(EmissorFiscalWebhook.Provider);

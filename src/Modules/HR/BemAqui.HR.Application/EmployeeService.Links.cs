@@ -21,6 +21,15 @@ public sealed partial class EmployeeService
             return Error.Conflict("employee_has_history", "Funcionário com histórico não pode ser excluído. Registre o desligamento.");
         }
 
+        // PAT-01a CA 14: outro módulo guarda o id (ex.: responsável por bem do patrimônio): só desliga.
+        foreach (var usage in usages)
+        {
+            if (await usage.UsageAsync(id, cancellationToken) is { } used)
+            {
+                return Error.Conflict("employee_in_use", $"Funcionário em uso ({used}) não pode ser excluído. Registre o desligamento.");
+            }
+        }
+
         db.Employees.Remove(employee);
         await db.SaveChangesAsync(cancellationToken);
         return Result.Success();

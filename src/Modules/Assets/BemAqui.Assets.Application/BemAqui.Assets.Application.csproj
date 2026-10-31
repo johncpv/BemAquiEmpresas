@@ -3,5 +3,9 @@
     <ProjectReference Include="..\..\..\BuildingBlocks\BemAqui.BuildingBlocks\BemAqui.BuildingBlocks.csproj" />
     <ProjectReference Include="..\BemAqui.Assets.Domain\BemAqui.Assets.Domain.csproj" />
     <ProjectReference Include="..\BemAqui.Assets.Contracts\BemAqui.Assets.Contracts.csproj" />
+    <ProjectReference Include="..\..\HR\BemAqui.HR.Contracts\BemAqui.HR.Contracts.csproj" />
+    <ProjectReference Include="..\..\Production\BemAqui.Production.Contracts\BemAqui.Production.Contracts.csproj" />
+    <ProjectReference Include="..\..\Parties\BemAqui.Parties.Contracts\BemAqui.Parties.Contracts.csproj" />
+    <ProjectReference Include="..\..\Fiscal\BemAqui.Fiscal.Contracts\BemAqui.Fiscal.Contracts.csproj" />
   </ItemGroup>
 </Project>

@@ -19,6 +19,8 @@ public sealed record AttachmentContent(Stream Content, string ContentType, strin
 /// ADR 0019 §7 adendo). <c>AuditReads</c>: dono com dado pessoal (ex.: <c>EmployeeDocument</c>, CAD-04c2 CA 12), cujo download
 /// grava leitura sensível na auditoria, com o dono, o anexo, quem, quando e o IP.
 /// <c>ExtraTypes</c> são tipos fora da lista geral aceitos só por este dono (o OFX do <c>BankStatementBatch</c>, ADR 0009 adendo).
+/// <c>StripImageMetadata</c>: a imagem (PNG, JPEG, WebP) é regravada sem EXIF, GPS e textos antes do hash, do storage e do antivírus
+/// (<see cref="ImageMetadata"/>, PAT-01a CA 8); imagem que não dá para percorrer é recusada.
 /// </summary>
 public sealed record AttachmentOwnerRules(
     string Module,
@@ -32,7 +34,8 @@ public sealed record AttachmentOwnerRules(
     Func<IServiceProvider, Guid, AttachmentFile, CancellationToken, Task<Error?>>? CheckFile = null,
     string? AlternateWriteAction = null,
     bool AuditReads = false,
-    IReadOnlyCollection<AllowedFileType>? ExtraTypes = null);
+    IReadOnlyCollection<AllowedFileType>? ExtraTypes = null,
+    bool StripImageMetadata = false);
 
 /// <summary>Arquivo já aceito pela allowlist, para a regra do dono que depende do documento (ex.: tipo da OS, PRD-01 CA 12).</summary>
 public sealed record AttachmentFile(string ContentType, long Size);
@@ -127,6 +130,11 @@ public sealed partial class AttachmentService(
         if (await CheckRulesAsync(rules, ownerId, type, buffer, cancellationToken) is { } refused)
         {
             return refused;
+        }
+
+        if (StripMetadata(rules, type, buffer) is { } unreadable)
+        {
+            return unreadable;
         }
 
         buffer.Position = 0;
@@ -273,6 +281,25 @@ public sealed partial class AttachmentService(
         }
 
         return rules.CanAttach is { } can ? await can(services, ownerId, ct) : null;
+    }
+
+    /// <summary>Dono com <c>StripImageMetadata</c>: troca o conteúdo da imagem pelo regravado sem metadados (PAT-01a CA 8).</summary>
+    private static Error? StripMetadata(AttachmentOwnerRules rules, AllowedFileType type, MemoryStream buffer)
+    {
+        if (!rules.StripImageMetadata || !ImageMetadata.Supports(type.ContentType))
+        {
+            return null;
+        }
+
+        var clean = ImageMetadata.Strip(buffer.GetBuffer().AsSpan(0, (int)buffer.Length), type.ContentType);
+        if (clean is null)
+        {
+            return Error.Validation("attachment.image_unreadable", "Não foi possível ler esta imagem. Envie outra foto em PNG, JPG ou WEBP.");
+        }
+
+        buffer.SetLength(0);
+        buffer.Write(clean);
+        return null;
     }
 
     /// <summary>Limite de envios por usuário numa hora (ADR 0019 §7 adendo); só os enviados pelo usuário contam.</summary>
