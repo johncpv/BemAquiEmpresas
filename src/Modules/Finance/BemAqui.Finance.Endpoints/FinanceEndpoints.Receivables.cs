@@ -47,6 +47,10 @@ internal static partial class FinanceEndpoints
         receivables.MapPost("/{id:guid}/settlements/{settlementId:guid}/reverse", async (Guid id, Guid settlementId, ReasonInput input, ReceivableService service, CancellationToken ct) =>
                 (await service.ReverseAsync(id, settlementId, input, ct)).ToHttpResult())
             .RequirePermission("finance.edit").WithName("ReverseReceivableSettlement").Produces<ReceivableDetail>();
+        // Baixa feita pelo banco (BNK-02 CA 14, D6): estorno com finance.approve e o 2FA de novo; pela rota comum, 403.
+        receivables.MapPost("/{id:guid}/settlements/{settlementId:guid}/reverse-bank", async (Guid id, Guid settlementId, ReasonInput input, ReceivableService service, CancellationToken ct) =>
+                (await service.ReverseAsync(id, settlementId, input, bankReversal: true, ct)).ToHttpResult())
+            .RequirePermission("finance.approve").RequireRecentTwoFactor().WithName("ReverseBankSettlement").Produces<ReceivableDetail>();
         receivables.MapPost("/{id:guid}/cancel", async (Guid id, ReasonInput input, ReceivableService service, CancellationToken ct) => (await service.CancelAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("finance.edit").WithName("CancelReceivable").Produces<ReceivableDetail>();
     }

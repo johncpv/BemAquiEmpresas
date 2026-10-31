@@ -15,7 +15,7 @@ internal sealed class BillingSlipConfiguration : IEntityTypeConfiguration<Billin
     {
         b.ToTable("billing_slips", FinanceSchema.Name);
         b.Property(e => e.Provider).HasConversion<string>().HasMaxLength(16);
-        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(24);
         b.Property(e => e.CancelReason).HasConversion<string>().HasMaxLength(24);
         b.Property(e => e.OurReference).HasMaxLength(BillingReference.MaxLength);
         b.Property(e => e.OurNumber).HasMaxLength(40);
@@ -36,6 +36,8 @@ internal sealed class BillingSlipConfiguration : IEntityTypeConfiguration<Billin
         b.Property(e => e.ProviderPayload).HasColumnType("jsonb");
         b.Property(e => e.ScheduledEmailTo).HasMaxLength(254);
         b.Property(e => e.ScheduledEmailCc).HasMaxLength(800);
+        b.Property(e => e.ReviewReason).HasMaxLength(300);
+        b.Property(e => e.ReviewDecision).HasMaxLength(16);
         b.Ignore(e => e.IsActive);
         b.Ignore(e => e.HoldsReceivable);
         b.Ignore(e => e.CancelPending);

@@ -83,7 +83,8 @@ public partial class PaymentOrderTests
     {
         var order = await JsonAsync(await owner.GetAsync($"{Base}/{orderId}"));
         (await owner.PostAsJsonAsync($"{Base}/{orderId}/cancel", new { reason = "Erro", version = Version(order) })).StatusCode.Should().Be(HttpStatusCode.Conflict, "OP paga não é cancelada (CA 20)");
-        var reversed = await finance.PostAsJsonAsync($"{Base}/{orderId}/reverse", new { reason = "Pix devolvido", version = Version(order) });
+        (await finance.PostAsJsonAsync($"{Base}/{orderId}/reverse", new { reason = "Pix devolvido", version = Version(order) })).StatusCode.Should().Be(HttpStatusCode.Forbidden, "estornar pede finance.approve (BNK-02 CA 15)");
+        var reversed = await owner.PostAsJsonAsync($"{Base}/{orderId}/reverse", new { reason = "Pix devolvido", version = Version(order) });
         reversed.StatusCode.Should().Be(HttpStatusCode.OK, await reversed.Content.ReadAsStringAsync());
         (await JsonAsync(reversed)).GetProperty("summary").GetProperty("status").GetString().Should().Be("Reversed");
         var payableId = order.GetProperty("items")[0].GetProperty("payableId").GetGuid();
