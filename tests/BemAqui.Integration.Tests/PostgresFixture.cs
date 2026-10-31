@@ -3,11 +3,15 @@ using Testcontainers.PostgreSql;
 
 namespace BemAqui.Integration.Tests;
 
-/// <summary>PostgreSQL 17 real (Testcontainers), compartilhado pelos testes da coleção.</summary>
+/// <summary>
+/// PostgreSQL 17 real (Testcontainers), compartilhado pelos testes da coleção. Os dados ficam em memória (tmpfs) e sem
+/// fsync: cada <see cref="Tenancy.TenancyFixture"/> sobe o seu container, e no disco eles inflavam o disco virtual do Docker.
+/// </summary>
 public sealed class PostgresFixture : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:17-alpine")
-        .WithCommand("-c", "max_connections=500")
+        .WithTmpfsMount("/var/lib/postgresql/data")
+        .WithCommand("-c", "max_connections=500", "-c", "fsync=off", "-c", "synchronous_commit=off", "-c", "full_page_writes=off")
         .WithDatabase("catalog")
         .Build();
 

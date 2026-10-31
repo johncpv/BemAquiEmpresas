@@ -90,6 +90,9 @@ O protótipo aprovado é a referência de layout, hierarquia e comportamento. Ab
 1. Pegue a próxima story do `docs/05-backlog.md` na fase atual. Uma story por branch/PR.
 2. Antes de codar: releia as regras do módulo no PRD e as entidades no modelo de dados.
 3. Escreva testes de regra de negócio (unidade) e de integração com Testcontainers para todo caso de uso que movimenta estoque, financeiro ou fiscal.
+   - **Não repita teste de padrão.** As três camadas de acesso (por endpoint), as rotas anônimas, a cobertura de ajuda e a arquitetura já são verificadas por varredura (`EndpointAuthorizationTests`, teste de cobertura da ajuda, `Architecture.Tests`). Story nova não escreve `Tres_camadas_*`; teste de acesso só para regra própria do módulo (ação específica, seed patch, IDOR, dado mascarado).
+   - **Teste de carga** (milhares de linhas, tempo de resposta) leva `[Trait(LoadTest.Trait, LoadTest.Value)]`. O `scripts/test-docker.sh` pula esses testes (`BQ_CARGA=1` inclui); o CI roda todos.
+   - No dia a dia, rode só as classes do módulo tocado (`--filter-class "*Fabrication*"`). A suíte inteira fica com o CI.
 4. Critério de pronto: critérios de aceite atendidos, testes passando, migration criada, permissão registrada no seed, tela com estados de vazio/carregando/erro, ajuda da tela escrita ou atualizada, padrões e próximo passo propositivos avaliados, auditoria ligada.
 5. Marque a story como concluída no backlog e registre decisões em ADR.
 

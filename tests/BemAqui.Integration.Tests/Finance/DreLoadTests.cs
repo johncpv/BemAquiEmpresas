@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace BemAqui.Integration.Tests.Finance;
 
 /// <summary>FIN-08 CA 17: 50 mil títulos a receber, 50 mil a pagar, 100 mil baixas e 24 meses; o DRE mensal em menos de 2 s.</summary>
+[Trait(LoadTest.Trait, LoadTest.Value)]
 public class DreLoadTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>
 {
     private const string Host = "a.localhost";

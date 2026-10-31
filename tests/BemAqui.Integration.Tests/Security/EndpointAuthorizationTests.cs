@@ -202,6 +202,38 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
         problems.Should().BeEmpty("endpoint precisa de RequirePermission (ou entrar numa lista com motivo):\n" + string.Join("\n", problems.Order(StringComparer.Ordinal)));
     }
 
+    /// <summary>
+    /// Camadas 1 e 2 em todo endpoint de negócio: a permissão <c>modulo.acao</c> é do catálogo e o endpoint declara o módulo
+    /// (é ele que responde <c>module_not_released</c>). A permissão pode ser de outro módulo (ex.: <c>settings.edit</c> na
+    /// configuração do módulo, aprovações nos cards do painel). O comportamento HTTP das três camadas é testado uma vez em
+    /// <c>AuthTests</c>; módulo novo não precisa repetir, só testa regra própria (ação específica, seed patch, IDOR).
+    /// </summary>
+    [Fact]
+    public void Endpoint_com_permissao_declara_o_modulo_e_a_permissao_e_do_catalogo()
+    {
+        var problems = new List<string>();
+        foreach (var endpoint in Endpoints().Where(HasPermission))
+        {
+            var module = endpoint.Metadata.GetMetadata<RequiresModuleMetadata>()?.ModuleCode;
+            foreach (var permission in endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>()
+                         .Select(a => a.Policy)
+                         .Where(p => p?.StartsWith(ModuleEndpoints.PermissionPolicyPrefix, StringComparison.Ordinal) == true)
+                         .SelectMany(p => p![ModuleEndpoints.PermissionPolicyPrefix.Length..].Split('|')))
+            {
+                if (!BemAqui.BuildingBlocks.Modules.ModuleCatalog.IsKnownPermission(permission))
+                {
+                    problems.Add("permissão fora do catálogo: " + permission + " em " + Key(endpoint));
+                }
+                else if (module is null)
+                {
+                    problems.Add("sem RequireModule (" + permission + "): " + Key(endpoint));
+                }
+            }
+        }
+
+        problems.Should().BeEmpty(string.Join("\n", problems.Distinct().Order(StringComparer.Ordinal)));
+    }
+
     [Fact]
     public void Listas_nao_guardam_rota_que_nao_existe_mais()
     {

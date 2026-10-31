@@ -18,6 +18,7 @@ namespace BemAqui.Integration.Tests.Dashboard;
 /// 2 s. A suíte roda sob carga (como no DSH-02 CA 18), então o teste afere a melhor de três medições, cada uma com um usuário novo (cache frio),
 /// com 50% de folga. Banco próprio.
 /// </summary>
+[Trait(LoadTest.Trait, LoadTest.Value)]
 public class OwnerPanelPerformanceTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>
 {
     private const string Host = "a.localhost";

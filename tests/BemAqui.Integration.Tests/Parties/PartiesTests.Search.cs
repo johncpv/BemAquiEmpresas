@@ -54,6 +54,7 @@ public partial class PartiesTests
     }
 
     [Fact]
+    [Trait(LoadTest.Trait, LoadTest.Value)]
     public async Task Com_50_mil_terceiros_a_busca_por_parte_do_nome_responde_em_menos_de_1_segundo()
     {
         var perf = await tenancy.ProvisionAsync("parties-perf", "Desempenho Ltda", "perf.localhost");

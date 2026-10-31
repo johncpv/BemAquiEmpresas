@@ -19,6 +19,7 @@ namespace BemAqui.Integration.Tests.Dashboard;
 /// 2 s (cada card em menos de 1,5 s) e com cache em menos de 300 ms. Banco próprio; o aquecimento (JIT e planos) é feito com
 /// outro usuário, e a medição usa um usuário novo, então o cache dele começa frio.
 /// </summary>
+[Trait(LoadTest.Trait, LoadTest.Value)]
 public class DashboardPerformanceTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>
 {
     private const string Host = "a.localhost";

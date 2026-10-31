@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace BemAqui.Integration.Tests.Inventory;
 
 /// <summary>CAD-02a CA 19: com 50 mil itens, a primeira página da lista responde em menos de 1 s (tenant próprio da classe).</summary>
+[Trait(LoadTest.Trait, LoadTest.Value)]
 public class ItemPerformanceTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>
 {
     [Fact]

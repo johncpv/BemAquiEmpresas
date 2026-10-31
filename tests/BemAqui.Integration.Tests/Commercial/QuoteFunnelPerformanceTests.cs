@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace BemAqui.Integration.Tests.Commercial;
 
 /// <summary>COM-08 CA 7: funil com 50 mil orçamentos em menos de 1 s. Banco próprio, para não pesar nas outras classes.</summary>
+[Trait(LoadTest.Trait, LoadTest.Value)]
 public class QuoteFunnelPerformanceTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>
 {
     private const string Host = "a.localhost";
