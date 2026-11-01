@@ -56,6 +56,15 @@ public interface IHrDb
     // Histórico do cálculo da folha (FLH-02a CA 19).
     DbSet<PayrollCalculationLog> PayrollCalculationLogs { get; }
 
+    // Conferência paralela e virada da folha calculada (FLH-06).
+    DbSet<PayrollParallelRun> PayrollParallelRuns { get; }
+
+    DbSet<PayrollParallelDifference> PayrollParallelDifferences { get; }
+
+    DbSet<PayrollItemMapping> PayrollItemMappings { get; }
+
+    DbSet<PayrollModeChange> PayrollModeChanges { get; }
+
     // Férias (FLH-03): períodos aquisitivos e programações.
     DbSet<VacationPeriod> VacationPeriods { get; }
 

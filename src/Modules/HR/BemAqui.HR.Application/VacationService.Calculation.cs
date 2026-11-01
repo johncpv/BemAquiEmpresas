@@ -108,7 +108,8 @@ public sealed partial class VacationService
             return Error.Validation("vacation_calculation_blocked", PayrollService.Capitalize(blocking.Message));
         }
 
-        var official = await parameters.OfficialForAsync(PayrollRunType.Vacation, cancellationToken);
+        // FLH-06: a única fonte do "a calculada é a oficial" (a Mensal virada e o tipo Férias virado, a partir da competência).
+        var official = await parameters.CalculatedOfficialAsync(PayrollRunType.Vacation, new DateOnly(schedule.StartsOn.Year, schedule.StartsOn.Month, 1), cancellationToken);
         var now = clock.GetUtcNow();
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         var action = run?.CalculatedAt is null ? PayrollCalculationAction.Calculated : PayrollCalculationAction.Recalculated;

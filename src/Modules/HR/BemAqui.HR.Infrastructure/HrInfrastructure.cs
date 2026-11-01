@@ -177,6 +177,8 @@ public static class HrInfrastructure
         services.AddAuditableEntity<JobPosition>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<WorkSchedule>("hr", PositionService.SensitiveAction);
         services.AddAuditableEntity<LaborUnion>("hr", PositionService.SensitiveAction);
+        // Conferência paralela e virada da folha calculada (FLH-06).
+        services.AddPayrollParallel();
         return services;
     }
 

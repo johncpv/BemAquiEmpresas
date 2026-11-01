@@ -98,6 +98,15 @@ public class PersonalDataTests
             "CreatedBy", "CreatedAt", "EditedBy", "EditedAt", "CheckedBy", "CheckedAt", "CheckedNote", "CheckedWithDatasetId", "SupersededAt", "Version", "IsCurrent"],
         ["PayrollTaxTableDataset"] = ["Id", "TableId", "Cases", "CaseCount", "CreatedBy", "CreatedAt"],
 
+        // FLH-06: a conferência (competência, tipo, folhas, situação, contagens, quem aceitou, a contadora responsável e o termo) não é dado pessoal;
+        // os totais do líquido são. Na diferença, a chave, a rubrica e a classificação ficam fora; valores, justificativa e o caso de correção são
+        // [PersonalData]. O de-para e a virada (o motivo é sobre a folha, não sobre um funcionário) não têm dado pessoal.
+        ["PayrollParallelRun"] = ["Id", "Period", "RunType", "PayrollType", "EnteredRunId", "CalculatedRunId", "Status", "ComparedAt", "ComparedBy", "Differences", "Employees",
+            "AcceptedBy", "AcceptedAt", "AccountantName", "AccountantCrc", "SignedTermAttachmentId", "CreatedAt", "Version"],
+        ["PayrollParallelDifference"] = ["Id", "ParallelRunId", "EmployeeId", "PayrollItemCode", "ItemName", "Kind", "Classification", "ClassifiedBy", "ClassifiedAt"],
+        ["PayrollItemMapping"] = ["Id", "EnteredCode", "CalculatedCode", "CreatedAt", "UpdatedAt"],
+        ["PayrollModeChange"] = ["Id", "RunType", "Mode", "FromPeriod", "ChangedAt", "ChangedBy", "Reason", "ParallelRunIds", "AccountantName", "AccountantCrc"],
+
         // FLH-03: datas, dias e situação das férias são dado de jornada (saem com hr.view, sem valor); o motivo do reinício (fala do
         // afastamento), a divisão do INSS e o motivo do cancelamento são [PersonalData].
         ["VacationPeriod"] = ["Id", "EmployeeId", "Sequence", "StartsOn", "EndsOn", "Absences", "EntitledDays", "TakenDays", "SoldDays", "ConcessionEndsOn", "Status", "RestartedOn",
@@ -122,6 +131,8 @@ public class PersonalDataTests
             (typeof(BemAqui.HR.Domain.PayrollRunCharge), ["Amount"]),
             (typeof(BemAqui.HR.Domain.PayrollRun), ["ClosedNet", "ClosedCharges"]),
             (typeof(BemAqui.HR.Domain.PayrollForecast), ["Amount"]),
+            (typeof(BemAqui.HR.Domain.PayrollParallelDifference), ["EnteredAmount", "CalculatedAmount", "Difference", "DifferencePct", "Justification", "CorrectionCase"]),
+            (typeof(BemAqui.HR.Domain.PayrollParallelRun), ["EnteredNet", "CalculatedNet"]),
         })
         {
             foreach (var name in props)
@@ -143,7 +154,8 @@ public class PersonalDataTests
         // RH-02b CA 1, 8 e 12: o aviso, o lote e o argumento do job não levam valor; o funcionário no PDF não tem CPF completo, endereço,
         // dados bancários nem dependentes.
         foreach (var dto in new[] { "PayslipNoticeRow", "PayslipNotices", "PayslipNoticePerson", "PayslipNotifyResult", "PayslipBatchResult", "PayslipBatchArgs", "MyEmployeeLink",
-            "PayrollCalculationArgs", "PayrollCalculationStatus", "PayrollCalculationEntry", "PayrollCalcEmployeeIssue" })
+            "PayrollCalculationArgs", "PayrollCalculationStatus", "PayrollCalculationEntry", "PayrollCalcEmployeeIssue",
+            "PayrollParallelOverview", "PayrollParallelMonthRow", "PayrollParallelPending", "PayrollParallelHistoryEntry" })
         {
             application.GetTypes().Single(t => t.Name == dto).GetProperties().Select(p => p.Name).Should().NotIntersectWith(values, dto + " não leva valor do holerite");
         }

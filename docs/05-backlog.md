@@ -625,7 +625,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-7--folha-calculad
 - Requisitos: R-RH-6, R-RH-3, R-RH-5, R-FIN-10, R-PRP-2, R-PRP-7, R-SEC-5.
 - CA: simulação com custo total sem gravar; verbas pela matriz parametrizada por tipo de desligamento; multa do FGTS como encargo; termo de conferência; prazo de pagamento com aviso.
 
-**FLH-06 [ ] Folha calculada: conferência paralela com a contadora e virada (M)** — 7.3, ordem 7 — `Ready (pré-condição externa)` — [story](stories/FLH-06-conferencia-paralela.md)
+**FLH-06 [x] Folha calculada: conferência paralela com a contadora e virada (M)** — 7.3, ordem 7 — `Done (pré-condição externa: dataset da contadora e assinatura para a virada)` — [story](stories/FLH-06-conferencia-paralela.md)
 - Requisitos: R-RH-6, `06` Riscos, R-SEC-5, R-PRP-2.
 - CA: lançada × calculada por funcionário e rubrica; diferenças classificadas; aceite da competência; virada pelo Proprietário só depois de 3 competências seguidas aceitas, com volta possível.
 

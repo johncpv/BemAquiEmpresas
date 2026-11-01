@@ -119,7 +119,7 @@ public sealed record PayrollChargeDefault(PayrollChargeKind Kind, string Label, 
 /// (30 dias, CAD-04c2). Os vencimentos são legais: "A confirmar com a contadora" até "Marcar como conferido". Editar e conferir exigem
 /// <c>settings.edit</c>; toda mudança é auditada com antes e depois.
 /// </summary>
-public sealed class HrParametersService(
+public sealed partial class HrParametersService(
     IHrDb db, IParties parties, IBusinessCalendar calendar, IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, BemAqui.Finance.Contracts.IChartOfAccounts chart,
     TimeProvider clock)
 {
@@ -183,6 +183,9 @@ public sealed class HrParametersService(
             HrParameterKind.MonthDay, 1220m, 101m, 1231m, true),
         new(ForecastMonths, "Meses da folha prevista", "Quantos meses depois da última folha Mensal fechada a folha prevista entra no fluxo de caixa, com o 13º e as férias.",
             HrParameterKind.Months, PayrollForecastRules.DefaultMonths, 1m, PayrollForecastRules.MaxMonths, false),
+        // FLH-06: quantas competências seguidas aceitas pela contadora antes da virada para a folha calculada (no mínimo 3, ADR 0039 §5).
+        new(ParallelMonthsKey, "Competências da conferência paralela", "Quantas competências seguidas a folha calculada precisa bater com a da contadora (diferença zero, aceita e assinada) antes de o Proprietário poder virar para a folha calculada. O mínimo são 3.",
+            HrParameterKind.Months, PayrollParallelRules.DefaultMonths, PayrollParallelRules.DefaultMonths, PayrollParallelRules.MaxMonths, false),
         new(AccountDirect, "Conta da mão de obra direta", "Conta dos salários de quem tem cargo com centro de trabalho (produção).", HrParameterKind.Account, null, null, null, true, "2.2"),
         new(CostCenterDirect, "Centro de custo da mão de obra direta", "Centro de custo dos salários de quem tem cargo com centro de trabalho.", HrParameterKind.CostCenter, null, null, null, true, "3"),
         new(AccountAdmin, "Conta do pessoal administrativo", "Conta dos salários dos demais cargos.", HrParameterKind.Account, null, null, null, true, "3.1"),
@@ -283,12 +286,6 @@ public sealed class HrParametersService(
     public const string VacationAverages = "hr.vacation_averages";
     public const string VacationTaxationKey = "hr.vacation_taxation";
 
-    /// <summary>
-    /// Primeiro caso de férias conferido (FLH-06, ADR 0039 §5): enquanto não for 1, a folha de férias calculada é só simulação, mesmo depois
-    /// da virada da mensal. Não aparece em Configurações; quem grava é a conferência da FLH-06 (ponto de extensão).
-    /// </summary>
-    public const string VacationOfficialKey = "hr.vacation_calculated_official";
-
     private static readonly int[] VacationBracketDays = [30, 24, 18, 12];
 
     /// <summary>As chaves que as férias leem (a folha de férias guarda os ids delas).</summary>
@@ -315,13 +312,6 @@ public sealed class HrParametersService(
             Number(VacationNoticeDays), Number(VacationPaymentDaysBefore), Number(VacationAverages), Number(VacationTaxationKey) == 2 ? VacationTaxation.StartMonth : VacationTaxation.SplitByMonth);
         return (parameters, stored.Where(p => VacationKeys.Contains(p.Key)).OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => p.Id).ToList());
     }
-
-    /// <summary>
-    /// A folha calculada do tipo é oficial (ADR 0039 §5): a mensal depois da virada (FLH-06); as férias, depois da virada e do primeiro caso de
-    /// férias conferido.
-    /// </summary>
-    public async Task<bool> OfficialForAsync(PayrollRunType type, CancellationToken cancellationToken = default) =>
-        await CalculatedOfficialAsync(cancellationToken) && (type != PayrollRunType.Vacation || await NumberAsync(VacationOfficialKey, cancellationToken) == 1m);
 
 
     // FLH-02b: horas extras, adicional noturno e DSR ("A confirmar com a contadora").

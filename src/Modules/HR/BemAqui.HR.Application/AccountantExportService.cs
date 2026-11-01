@@ -79,7 +79,7 @@ public sealed class AccountantExportService(
 
         var (export, confirmed) = await LayoutAsync(cancellationToken);
         var sections = await export.BuildAsync(new AccountantExportContext(start, await CanHealthAsync(cancellationToken)), cancellationToken);
-        var drafts = await db.PayrollRuns.AsNoTracking().Where(r => r.Period == start && r.Status == PayrollRunStatus.Draft).OrderBy(r => r.Type)
+        var drafts = await db.PayrollRuns.AsNoTracking().Where(r => r.Period == start && r.Status == PayrollRunStatus.Draft && !r.IsSimulation).OrderBy(r => r.Type)
             .Select(r => new AccountantDraftRun(r.Id, r.Type)).ToListAsync(cancellationToken);
         var history = await HistoryAsync(cancellationToken);
         return new AccountantExportOverview(start, suggested, export.Layout, LayoutName(export.Layout), confirmed,

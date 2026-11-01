@@ -153,3 +153,9 @@ public sealed record EmployeeVacationCancelled(Guid EmployeeId, DateOnly From, D
 /// (o motor da FLH-02a marca as folhas em rascunho); sem valores.
 /// </summary>
 public sealed record PayrollTaxTableActivated(string Kind, DateOnly ValidFrom, Guid TableId) : IIntegrationEvent;
+
+/// <summary>
+/// Modo oficial da folha mudou (FLH-06 CA 5 a 7): o tipo (<c>Monthly</c>, <c>Vacation</c>, <c>Thirteenth</c>, <c>Termination</c>), o modo
+/// (<c>Calculated</c> na virada, <c>Entered</c> na volta) e a competência a partir da qual vale. Dentro do HR; sem valores.
+/// </summary>
+public sealed record PayrollModeChanged(string RunType, string Mode, DateOnly FromPeriod) : IIntegrationEvent;

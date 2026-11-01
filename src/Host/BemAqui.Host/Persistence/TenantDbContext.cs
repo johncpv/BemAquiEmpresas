@@ -425,6 +425,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<PayrollCalculationLog> PayrollCalculationLogs => Set<PayrollCalculationLog>();
 
+    public DbSet<PayrollParallelRun> PayrollParallelRuns => Set<PayrollParallelRun>();
+
+    public DbSet<PayrollParallelDifference> PayrollParallelDifferences => Set<PayrollParallelDifference>();
+
+    public DbSet<PayrollItemMapping> PayrollItemMappings => Set<PayrollItemMapping>();
+
+    public DbSet<PayrollModeChange> PayrollModeChanges => Set<PayrollModeChange>();
+
     public DbSet<VacationPeriod> VacationPeriods => Set<VacationPeriod>();
 
     public DbSet<VacationSchedule> VacationSchedules => Set<VacationSchedule>();

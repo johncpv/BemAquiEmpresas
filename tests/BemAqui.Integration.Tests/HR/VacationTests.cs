@@ -286,7 +286,7 @@ public class VacationTests(TenancyFixture tenancy) : IClassFixture<TenancyFixtur
             }
 
             db.HrParameters.Add(new HrParameter { Key = HrParametersService.CalculatedOfficialKey, Value = 1m, UpdatedAt = DateTimeOffset.UtcNow });
-            db.HrParameters.Add(new HrParameter { Key = HrParametersService.VacationOfficialKey, Value = 1m, UpdatedAt = DateTimeOffset.UtcNow });
+            db.HrParameters.Add(new HrParameter { Key = HrParametersService.ModeKey(PayrollParallelType.Vacation), Value = 1m, UpdatedAt = DateTimeOffset.UtcNow });
         });
         foreach (var t in await DbAsync(tenant, db => db.PayrollTaxTables.AsNoTracking().Where(t => t.SeedPackage == 2026).ToListAsync()))
         {
