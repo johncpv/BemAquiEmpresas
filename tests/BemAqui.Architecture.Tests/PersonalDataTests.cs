@@ -84,7 +84,7 @@ public class PersonalDataTests
         // RH-01c: os totais do espelho (minutos) e o fechamento não são dado pessoal; os dias congelados e o abono por motivo (podem trazer o
         // tipo do afastamento e o motivo de saúde), a data do acordo de banco e o comentário da revisão são [PersonalData].
         ["Timesheet"] = ["Id", "EmployeeId", "Period", "PeriodStart", "PeriodEnd", "Status", "ExpectedMinutes", "WorkedMinutes", "OvertimeMinutes", "AbsenceMinutes", "LateMinutes",
-            "JustifiedMinutes", "BankMonthMinutes", "BankBalanceMinutes", "WorkedDays", "AbsenceDays", "ClosedAt", "ClosedBy", "ReopenedAt", "ReopenedBy", "ReopenReason",
+            "JustifiedMinutes", "BankMonthMinutes", "BankBalanceMinutes", "BankPayoutMinutes", "WorkedDays", "AbsenceDays", "ClosedAt", "ClosedBy", "ReopenedAt", "ReopenedBy", "ReopenReason",
             "EmployeeAckAt", "EmployeeAckBy", "EmployeeAckSummary", "PdfAttachmentId", "CreatedAt", "Version"],
         ["TimesheetDayReview"] = ["Id", "EmployeeId", "Day", "ReviewedBy", "ReviewedAt"],
 
@@ -104,7 +104,7 @@ public class PersonalDataTests
     {
         foreach (var (type, props) in new (Type, string[])[]
         {
-            (typeof(BemAqui.HR.Domain.Payslip), ["Gross", "Deductions", "Net", "InssBase", "FgtsBase", "IrrfBase", "FgtsAmount", "InputsSnapshot", "EmployerCharges", "CalculationIssues"]),
+            (typeof(BemAqui.HR.Domain.Payslip), ["Gross", "Deductions", "Net", "InssBase", "FgtsBase", "IrrfBase", "FgtsAmount", "InputsSnapshot", "EmployerCharges", "CalculationIssues", "HourBankDecisionMinutes", "HourBankDecisionNote"]),
             (typeof(BemAqui.HR.Domain.PayslipLine), ["Amount", "Reference", "Memory", "Note"]),
             (typeof(BemAqui.HR.Domain.PayrollCalculationLog), ["GrossBefore", "NetBefore", "GrossAfter", "NetAfter"]),
             (typeof(BemAqui.HR.Domain.EmployeeDependent), ["FamilyAllowanceDocsOk"]),

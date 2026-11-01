@@ -19,4 +19,6 @@ export interface PayslipCalculationInfo {
   issues: string[];
   employerCharges: number;
   employerChargesMemory: string[];
+  /** @nullable */
+  timesheetLink?: string | null;
 }

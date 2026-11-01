@@ -165,6 +165,9 @@ public sealed class PayrollClosingService(
         run.ClosedPayables = created;
         db.Entry(run).Property(r => r.Version).OriginalValue = input.Version;
 
+        // FLH-02b CA 2: a decisão "Pagar" ou "Descontar" do banco de horas baixa o saldo do espelho da competência.
+        await calculation.ApplyHourBankAsync(run, cancellationToken);
+
         // A previsão do mês e do tipo é substituída pela folha real, e a dos meses seguintes é refeita (CA 15), na mesma transação.
         // RH-02b CA 10: holerite já avisado que mudou depois do aviso ganha "Alterado depois do aviso".
         var changedAfterNotice = await documents.MarkChangedAfterNoticeAsync(run.Id, cancellationToken);
@@ -255,6 +258,7 @@ public sealed class PayrollClosingService(
         run.ReopenedBy = currentUser.UserId;
         // RH-02b CA 10: os PDFs guardados deixam de valer; fechada de novo, o próximo download refaz.
         await documents.InvalidateAsync(run.Id, cancellationToken);
+        await calculation.RevertHourBankAsync(run, cancellationToken);
         db.Entry(run).Property(r => r.Version).OriginalValue = input.Version;
         var refreshed = await forecast.RefreshAsync(cancellationToken);
         if (refreshed.IsFailure)

@@ -8,6 +8,7 @@ import type { PayrollRunSummary } from '@/api/generated/model'
 import { Money } from '@/components/ui/money'
 import { NextSteps } from '@/components/ui/next-steps'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
+import { HourBankSection } from './HourBankSection'
 import { ImportDialog } from './ImportDialog'
 import { PayslipPanel } from './PayslipPanel'
 import { BatchButton, BatchReady, NoticeCell, NotifyDialog } from './PayslipNotices'
@@ -57,6 +58,7 @@ export function PayslipsTab({ run, editable, canNotify, importing, onImportingCh
         </div>
       </div>
       {!closed && rows.length > 0 ? <p className="text-sm text-muted-foreground">{run.isSimulation ? 'Na simulação, o holerite sai só como prévia, com a marca "Simulação: não é o holerite oficial", e nunca vai para o funcionário.' : "Com a folha em lançamento, o holerite sai com a marca d'água “RASCUNHO — folha não fechada”. Avise os funcionários depois de fechar a folha."}</p> : null}
+      {run.mode === 'Calculated' && !run.rectifiesRunId ? <HourBankSection run={run} editable={editable} onChanged={refresh} /> : null}
       {closed && notices.isError ? <ErrorState title="Não foi possível carregar a situação dos avisos." onRetry={() => notices.refetch()} /> : null}
       {rows.length === 0 ? (
         <EmptyState title="Nenhum holerite nesta folha." description="A folha não tem funcionário ativo na competência. Confira as admissões no cadastro." />
