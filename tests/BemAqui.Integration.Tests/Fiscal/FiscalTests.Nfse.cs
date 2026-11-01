@@ -146,6 +146,23 @@ public partial class FiscalTests
     private Task<List<string>> OutboxAsync(string type) =>
         fixture.QueryAsync(fixture.Tenancy.TenantA, db => db.OutboxMessages.AsNoTracking().Where(m => m.Type.Contains(type)).Select(m => m.Payload).ToListAsync());
 
+    /// <summary>
+    /// Entrega o evento ao consumidor como a inbox faria, num escopo novo. O despachante do outbox do Host pode entregar o mesmo evento ao mesmo
+    /// tempo: a segunda gravação para no índice único (source, source_id, seq), que é a idempotência esperada.
+    /// </summary>
+    private async Task DeliverAsync(Func<IServiceProvider, Task> handle)
+    {
+        await using var scope = await fixture.ScopeAsync(fixture.Tenancy.TenantA);
+        try
+        {
+            await handle(scope.ServiceProvider);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("ix_project_costs_source_source_id_seq", StringComparison.Ordinal) == true)
+        {
+            // entregue em paralelo pelo despachante: só uma linha gravada
+        }
+    }
+
     private static long NewNumber() => Random.Shared.NextInt64(100_000, 999_999_999);
 
     private async Task<(HttpClient Owner, Installation Installation, JsonElement Draft)> NfseDraftAsync()
@@ -344,12 +361,8 @@ public partial class FiscalTests
         var authorized = JsonSerializer.Deserialize<InvoiceAuthorized>((await OutboxAsync(nameof(InvoiceAuthorized))).Single(p => p.Contains(id.ToString(), StringComparison.Ordinal)), Web)!;
         authorized.Type.Should().Be(InvoiceType.NFSe);
         authorized.ProjectTaxApplies.Should().BeTrue("nota de produção a partir da data de corte (ADR 0025 adendo)");
-        await using (var scope = await fixture.ScopeAsync(tenant))
-        {
-            var consumer = ActivatorUtilities.CreateInstance<InvoiceTaxConsumer>(scope.ServiceProvider);
-            await consumer.HandleAsync(authorized, CancellationToken.None);
-            await consumer.HandleAsync(authorized, CancellationToken.None);
-        }
+        await DeliverAsync(sp => ActivatorUtilities.CreateInstance<InvoiceTaxConsumer>(sp).HandleAsync(authorized, CancellationToken.None));
+        await DeliverAsync(sp => ActivatorUtilities.CreateInstance<InvoiceTaxConsumer>(sp).HandleAsync(authorized, CancellationToken.None));
 
         var ledger = await fixture.QueryAsync(tenant, db => db.Set<ProjectCost>().AsNoTracking().Where(c => c.ProjectId == installation.Project).ToListAsync());
         ledger.Should().ContainSingle("idempotente (CA 8)").Which.Should().Match<ProjectCost>(c => c.Source == ProjectCostSource.InvoiceTax && c.Amount == 965m && c.InvoiceAmount == 10_000m);
@@ -375,10 +388,7 @@ public partial class FiscalTests
         cancelled.GetProperty("cancellation").GetProperty("protocol").GetString().Should().Be("CANC-123");
         var cancelledEvent = JsonSerializer.Deserialize<InvoiceCancelled>((await OutboxAsync(nameof(InvoiceCancelled))).Single(p => p.Contains(id.ToString(), StringComparison.Ordinal)), Web)!;
         cancelledEvent.ProjectTaxApplies.Should().BeTrue();
-        await using (var scope = await fixture.ScopeAsync(tenant))
-        {
-            await ActivatorUtilities.CreateInstance<InvoiceTaxReversalConsumer>(scope.ServiceProvider).HandleAsync(cancelledEvent, CancellationToken.None);
-        }
+        await DeliverAsync(sp => ActivatorUtilities.CreateInstance<InvoiceTaxReversalConsumer>(sp).HandleAsync(cancelledEvent, CancellationToken.None));
 
         ledger = await fixture.QueryAsync(tenant, db => db.Set<ProjectCost>().AsNoTracking().Where(c => c.ProjectId == installation.Project).ToListAsync());
         ledger.Sum(c => c.Amount).Should().Be(0m, "o reverso fecha o imposto da nota cancelada");
