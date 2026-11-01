@@ -75,6 +75,11 @@ public class PersonalDataTests
         ["TimeAdjustment"] = ["Id", "EmployeeId", "Kind", "Day", "EntryId", "At", "EntryType", "AbsenceMinutes", "Source", "RequestedBy", "RequestedAt", "Status",
             "DecidedBy", "DecidedAt", "SelfApproved", "CreatedEntryId", "Version"],
         ["TimeClockGeoConsent"] = ["Id", "EmployeeId", "UserId", "AcceptedAt", "TextVersion"],
+        // FLH-01: tabela legal da folha não é dado pessoal (CA 14); o dataset da contadora são casos "base → esperado" montados ou
+        // anonimizados, sem funcionário.
+        ["PayrollTaxTable"] = ["Id", "Kind", "ValidFrom", "Status", "RectifiesId", "RectifyReason", "Content", "SchemaVersion", "Rounding", "Source", "SeedPackage",
+            "CreatedBy", "CreatedAt", "EditedBy", "EditedAt", "CheckedBy", "CheckedAt", "CheckedNote", "CheckedWithDatasetId", "SupersededAt", "Version", "IsCurrent"],
+        ["PayrollTaxTableDataset"] = ["Id", "TableId", "Cases", "CaseCount", "CreatedBy", "CreatedAt"],
     };
 
     /// <summary>
