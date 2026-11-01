@@ -227,6 +227,14 @@ public class PersonalDataTests
         ["AssetParameter"] = ["Id", "Key", "Value", "UpdatedAt"],
         ["AssetMovement"] = ["Id", "AssetId", "Kind", "FromSiteId", "ToSiteId", "FromEmployeeId", "ToEmployeeId", "FromWorkCenterId", "ToWorkCenterId", "MovedOn", "DisposalReason",
             "DisposalValue", "BuyerPartyId", "CreatedBy", "CreatedAt"],
+        // PAT-03a: plano, checklist e horímetro são dados da máquina; na OS, o problema, o que foi feito e o motivo do cancelamento (texto livre,
+        // pode citar pessoas) são [PersonalData] e entram no arquivo do titular (quem escreveu); ids, datas e situação não.
+        ["MaintenancePlan"] = ["Id", "AssetId", "Description", "FrequencyType", "FrequencyValue", "LeadDays", "DefaultSupplierPartyId", "Checklist", "LastDoneAt", "LastDoneMeter",
+            "NextDueAt", "NextDueMeter", "IsActive", "CreatedAt", "Version"],
+        ["AssetMeterReading"] = ["Id", "AssetId", "ReadOn", "Value", "CreatedBy", "CreatedAt"],
+        ["MaintenanceOrder"] = ["Id", "Number", "AssetId", "PlanId", "DueKey", "Type", "Status", "MachineStopped", "ScheduledOn", "SupplierPartyId", "StartedAt", "StartedBy",
+            "DoneAt", "DoneBy", "CancelledAt", "CancelledBy", "CreatedBy", "CreatedAt", "Version"],
+        ["MaintenanceOrderChecklistItem"] = ["Id", "OrderId", "Sequence", "Text", "Result", "MarkedAt", "MarkedBy"],
     };
 
     [Fact]

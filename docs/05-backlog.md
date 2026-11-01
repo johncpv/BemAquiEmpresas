@@ -585,7 +585,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-PAT-3, R-PRP-1, R-PRP-6 (D), R-SEC-5.
 - CA: transferência de local, responsável e centro com histórico imutável; lote; baixa com motivo e reativação; venda do bem com "Lançar título a receber" pré-preenchido.
 
-**PAT-03a [ ] Patrimônio: planos de manutenção preventiva e OS de manutenção (M)** — 6.4, ordem 14 — `Ready (pré-condição externa)` — [story](stories/PAT-03a-planos-os-manutencao.md)
+**PAT-03a [x] Patrimônio: planos de manutenção preventiva e OS de manutenção (M)** — 6.4, ordem 14 — `Done` (pré-condição externa: lista das máquinas com plano e horímetro da Konebras; E2E no fechamento da feature) — [story](stories/PAT-03a-planos-os-manutencao.md)
 - Requisitos: R-PAT-4, R-COM-2, R-COM-3, R-COM-4, R-PRP-2, R-PRP-5, R-SEC-5.
 - CA: plano por dias ou por horas (horímetro digitado), próximo vencimento a partir da conclusão; job com `tenantId` que avisa e abre a OS uma vez; OS de manutenção no Assets (ADR 0038), aberta com `assets.create`; baixa recusada com OS aberta.
 

@@ -366,6 +366,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Assets.Domain.AssetMovement> AssetMovements => Set<BemAqui.Assets.Domain.AssetMovement>();
 
+    public DbSet<BemAqui.Assets.Domain.MaintenancePlan> MaintenancePlans => Set<BemAqui.Assets.Domain.MaintenancePlan>();
+
+    public DbSet<BemAqui.Assets.Domain.AssetMeterReading> AssetMeterReadings => Set<BemAqui.Assets.Domain.AssetMeterReading>();
+
+    public DbSet<BemAqui.Assets.Domain.MaintenanceOrder> MaintenanceOrders => Set<BemAqui.Assets.Domain.MaintenanceOrder>();
+
+    public DbSet<BemAqui.Assets.Domain.MaintenanceOrderChecklistItem> MaintenanceOrderChecklist => Set<BemAqui.Assets.Domain.MaintenanceOrderChecklistItem>();
+
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 
     public DbSet<WorkSchedule> WorkSchedules => Set<WorkSchedule>();

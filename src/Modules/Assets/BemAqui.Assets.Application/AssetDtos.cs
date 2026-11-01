@@ -36,7 +36,7 @@ public sealed record AssetInvoiceView(Guid Id, string Number, string Series, str
 
 /// <summary>
 /// Ficha do bem (CA 2, 4, 9 e 10). Valor de aquisição só com <c>assets.edit</c> (fora do JSON sem a ação). <c>Version</c> é o
-/// <c>xmin</c> para a gravação (409 <c>concurrency_conflict</c>).
+/// <c>xmin</c> para a gravação (409 <c>concurrency_conflict</c>). <c>NextMaintenanceOn</c>: "Próxima preventiva" (PAT-03a CA 1).
 /// </summary>
 public sealed record AssetDetail(
     Guid Id,
@@ -64,6 +64,7 @@ public sealed record AssetDetail(
     Guid? PhotoId,
     DateTimeOffset CreatedAt,
     uint Version,
+    DateOnly? NextMaintenanceOn,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] decimal? AcquisitionValue);
 
 /// <summary>
