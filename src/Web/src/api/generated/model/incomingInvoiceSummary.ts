@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { IncomingInvoiceSource } from './incomingInvoiceSource';
 import type { IncomingInvoiceStatus } from './incomingInvoiceStatus';
 
 export interface IncomingInvoiceSummary {
@@ -21,4 +22,5 @@ export interface IncomingInvoiceSummary {
   itemsCount: number;
   pendingItems: number;
   importedAt: string;
+  source: IncomingInvoiceSource;
 }

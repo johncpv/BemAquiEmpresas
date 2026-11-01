@@ -41,6 +41,9 @@ public interface IFiscalDb
 
     DbSet<IncomingInvoiceItem> IncomingInvoiceItems { get; }
 
+    /// <summary>Rascunhos da leitura do PDF da DANFE e das notas digitadas (FIS-05).</summary>
+    DbSet<IncomingInvoiceReading> IncomingInvoiceReadings { get; }
+
     ChangeTracker ChangeTracker { get; }
 
     /// <summary>Trava da nota na conferência de pendentes (<c>FOR UPDATE SKIP LOCKED</c>, CA 14).</summary>

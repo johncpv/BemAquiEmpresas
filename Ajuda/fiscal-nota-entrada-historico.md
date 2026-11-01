@@ -7,7 +7,7 @@ modulo: fiscal
 ---
 
 ## Para que serve
-Mostra quem fez o quê e quando na nota: a importação, o fornecedor ligado, o de-para de cada item, o pedido escolhido, a conferência e a recusa.
+Mostra quem fez o quê e quando na nota: a importação, o fornecedor ligado, o de-para de cada item, o pedido escolhido, a conferência e a recusa. Na nota lida do PDF ou digitada, mostra também a leitura: o que foi lido, o que foi corrigido e quem conferiu.
 
 ## Como usar
 - Cada linha traz a ação, quem fez e quando (horário de Brasília), com o que mudou.

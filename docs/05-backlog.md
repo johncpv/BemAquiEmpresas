@@ -510,7 +510,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-CMP-5, R-EST-7, R-FIN-4, R-FIN-10.
 - CA: recebimento da CMP-04 preenchido pela nota, chamada síncrona com `purchasing.receive`; duplicatas pelo `CreateOpenInstallmentsAsync` na transação do recebimento (ADR 0024); sem duplicatas, vale a condição do pedido; crédito de impostos pré-configurado "Nenhum" até a P-01; uma vez só.
 
-**FIS-05 [ ] NF-e de entrada por PDF (DANFE): chave, leitura assistida em worker isolado, "Digitar a nota" e conferência obrigatória (M)** — 5.5, ordem 14 — `Ready` — [story](stories/FIS-05-nfe-entrada-pdf.md)
+**FIS-05 [x] NF-e de entrada por PDF (DANFE): chave, leitura assistida em worker isolado, "Digitar a nota" e conferência obrigatória (M)** — 5.5, ordem 14 — `Done` — [story](stories/FIS-05-nfe-entrada-pdf.md)
 - Requisitos: R-FIS-6, R-PRP-3.
 - CA: extração de texto num worker isolado (`network_mode: none`, memória limitada, kill no tempo limite); sem OCR: PDF sem texto oferece "Digitar a nota"; chave com DV; conferência de todo campo, incertos com texto e foco no primeiro; nota marcada "Lida do PDF" e substituível pelo XML.
 

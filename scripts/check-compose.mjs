@@ -66,6 +66,40 @@ for (const [name, s] of Object.entries(services)) {
   if (isApi && String(env.ASPNETCORE_ENVIRONMENT ?? 'Production') === 'Development') problems.push(`${name}: ASPNETCORE_ENVIRONMENT=Development expõe o OpenAPI`)
 }
 
+// Worker de leitura do PDF da DANFE (FIS-05 CA 2, ADR 0043): sem rede, sem escrita no sistema de arquivos (só tmpfs e o volume do socket),
+// não-root, sem capabilities e com memória limitada (até 256 MB). A API é a única outra a montar o volume do socket.
+const reader = services['fiscal-pdf-reader']
+const bytes = (v) => {
+  if (v === undefined || v === null || v === '') return NaN
+  if (typeof v === 'number') return v
+  const m = /^(\d+(?:\.\d+)?)\s*([kmg]?)b?$/i.exec(String(v).trim())
+  if (!m) return NaN
+  return Number(m[1]) * { '': 1, k: 1024, m: 1024 ** 2, g: 1024 ** 3 }[m[2].toLowerCase()]
+}
+if (!reader) problems.push('fiscal-pdf-reader: serviço ausente (FIS-05: a leitura do PDF roda só no worker isolado)')
+else {
+  if (reader.network_mode !== 'none') problems.push(`fiscal-pdf-reader: precisa de network_mode: none (está "${reader.network_mode ?? 'padrão'}")`)
+  if (Object.keys(reader.networks ?? {}).length > 0) problems.push('fiscal-pdf-reader: não pode estar em nenhuma rede')
+  if (reader.read_only !== true) problems.push('fiscal-pdf-reader: precisa de read_only: true')
+  const user = String(reader.user ?? '')
+  if (!user || /^(0|root)(:|$)/.test(user)) problems.push(`fiscal-pdf-reader: precisa de "user:" não-root (está "${user || 'vazio'}")`)
+  if (!(reader.cap_drop ?? []).includes('ALL')) problems.push('fiscal-pdf-reader: precisa de cap_drop: [ALL]')
+  if ((reader.cap_add ?? []).length > 0) problems.push('fiscal-pdf-reader: não pode ter cap_add')
+  if (!(reader.security_opt ?? []).some((o) => /^no-new-privileges(:true)?$/.test(o))) problems.push('fiscal-pdf-reader: precisa de security_opt no-new-privileges')
+  if (reader.privileged) problems.push('fiscal-pdf-reader: não pode ser privileged')
+  const memory = bytes(reader.deploy?.resources?.limits?.memory ?? reader.mem_limit)
+  if (!(memory > 0) || memory > 256 * 1024 ** 2) problems.push('fiscal-pdf-reader: precisa de limite de memória de até 256 MB')
+  if (!reader.deploy?.resources?.limits?.cpus) problems.push('fiscal-pdf-reader: precisa de limite de CPU')
+  const mounts = reader.volumes ?? []
+  const socketMounts = mounts.filter((v) => v.type === 'volume' && v.target === '/run/pdf-reader')
+  if (mounts.length !== socketMounts.length || socketMounts.length !== 1) problems.push('fiscal-pdf-reader: o único volume é o do socket (/run/pdf-reader); nada de bind nem outro volume gravável')
+  const socketVolume = socketMounts[0]?.source
+  if (socketVolume) {
+    const others = Object.entries(services).filter(([name, s]) => name !== 'fiscal-pdf-reader' && (s.volumes ?? []).some((v) => v.source === socketVolume)).map(([name]) => name)
+    if (others.some((name) => !/^bqe-[a-z0-9]+-api$/.test(name))) problems.push(`fiscal-pdf-reader: o volume do socket só pode ser montado na API (está também em ${others.join(', ')})`)
+  }
+}
+
 if (!stackNetwork) problems.push('rede externa stack_stack não declarada')
 if (Object.keys(services).filter(isEdge).length !== 2) problems.push('esperado um serviço bqe-<ambiente>-api e um bqe-<ambiente>-web')
 

@@ -380,7 +380,7 @@ public sealed partial class GoodsReceiptService
         var defaults = await parameters.PayableDefaultsAsync(ct);
         var number = c.Invoice.Number;
         var plan = new OpenPayables(order.PartyId, order.ProjectId, accountId, defaults.CostType, c.Plan.Receipt.Select(i => new OpenInstallment(
-            (short)i.Number, i.Amount, i.DueDate, InvoiceReceiptRules.InstallmentDescription(number, receipt.Number, i.Number, c.Count, c.Plan.Mismatch))).ToList());
+            (short)i.Number, i.Amount, i.DueDate, InvoiceReceiptRules.InstallmentDescription(number, receipt.Number, i.Number, c.Count, c.Plan.Mismatch, c.Invoice.SourceMark))).ToList());
         var created = await payables.CreateOpenInstallmentsAsync(DocumentOrigin.GoodsReceipt, receipt.Id, plan, ct);
         if (created.IsFailure)
         {
@@ -391,7 +391,7 @@ public sealed partial class GoodsReceiptService
         {
             var name = c.AccountNames.GetValueOrDefault(expense) ?? "despesa";
             var part = new OpenPayables(order.PartyId, order.ProjectId, expense, CostType.Other, installments.Select(i => new OpenInstallment(
-                (short)i.Number, i.Amount, i.DueDate, InvoiceReceiptRules.NoStockDescription(number, name, Position(i.Number, c.Count), c.Count, c.Plan.Mismatch))).ToList());
+                (short)i.Number, i.Amount, i.DueDate, InvoiceReceiptRules.NoStockDescription(number, name, Position(i.Number, c.Count), c.Count, c.Plan.Mismatch, c.Invoice.SourceMark))).ToList());
             var made = await payables.CreateOpenInstallmentsAsync(DocumentOrigin.IncomingInvoice, c.Invoice.Id, part, ct);
             if (made.IsFailure)
             {

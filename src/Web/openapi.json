@@ -33076,6 +33076,279 @@
         }
       }
     },
+    "/api/v1/fiscal/incoming-invoices/pdf": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "UploadIncomingInvoicePdf",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/IncomingXmlForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingReadingView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/manual": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "StartManualIncomingInvoice",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingReadingView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetIncomingInvoiceReading",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingReadingView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading/pdf": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "DownloadIncomingInvoiceReadingPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading/manual": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "SwitchIncomingInvoiceReadingToManual",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingReadingView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading/xml-request": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "RequestIncomingInvoiceXml",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/XmlRequestResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading/check": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "CheckIncomingInvoiceReading",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckReadingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckReadingResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "DownloadIncomingInvoicePdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/replace-xml": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ReplaceIncomingInvoiceWithXml",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/IncomingXmlForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingInvoiceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assets/assets": {
       "get": {
         "tags": [
@@ -35185,6 +35458,49 @@
           },
           "password": {
             "type": "string"
+          }
+        }
+      },
+      "AccessKeyView": {
+        "required": [
+          "key",
+          "stateCode",
+          "year",
+          "month",
+          "issuerDocument",
+          "model",
+          "series",
+          "number"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "stateCode": {
+            "type": "string"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "month": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "issuerDocument": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "series": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -43872,6 +44188,122 @@
           "NonConforming",
           null
         ]
+      },
+      "CheckReadingRequest": {
+        "required": [
+          "accessKey",
+          "issuedOn",
+          "issuerName",
+          "recipientDocument",
+          "totals",
+          "items",
+          "confirmed"
+        ],
+        "type": "object",
+        "properties": {
+          "accessKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issuedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "issuerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "recipientDocument": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "totals": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReadingTotalsInput"
+              }
+            ]
+          },
+          "items": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ReadingItemInput"
+            }
+          },
+          "confirmed": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CheckReadingResult": {
+        "required": [
+          "invoiceId",
+          "accessKey",
+          "number",
+          "series",
+          "issuerName",
+          "total",
+          "items",
+          "remembered",
+          "source"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accessKey": {
+            "type": "string"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "series": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "issuerName": {
+            "type": "string"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remembered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "source": {
+            "$ref": "#/components/schemas/IncomingInvoiceSource"
+          }
+        }
       },
       "CloseInventoryCountInput": {
         "required": [
@@ -54167,7 +54599,8 @@
           "page",
           "pageSize",
           "total",
-          "canImport"
+          "canImport",
+          "readings"
         ],
         "type": "object",
         "properties": {
@@ -54191,6 +54624,12 @@
           },
           "canImport": {
             "type": "boolean"
+          },
+          "readings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IncomingReadingSummary"
+            }
           }
         }
       },
@@ -54229,6 +54668,13 @@
           }
         }
       },
+      "IncomingInvoiceSource": {
+        "enum": [
+          "Xml",
+          "Pdf",
+          "Manual"
+        ]
+      },
       "IncomingInvoiceStage": {
         "enum": [
           "Imported",
@@ -54260,7 +54706,8 @@
           "hasOrder",
           "itemsCount",
           "pendingItems",
-          "importedAt"
+          "importedAt",
+          "source"
         ],
         "type": "object",
         "properties": {
@@ -54313,6 +54760,9 @@
           "importedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "source": {
+            "$ref": "#/components/schemas/IncomingInvoiceSource"
           }
         }
       },
@@ -54576,6 +55026,58 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "source": {
+            "$ref": "#/components/schemas/IncomingInvoiceSource"
+          },
+          "sourceMark": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pdfAttachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "xmlDifferences": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/IncomingXmlDifference"
+            }
+          },
+          "replacedByXmlAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "replacedByXmlByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "readingId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "xmlRequestedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -55023,6 +55525,231 @@
           }
         }
       },
+      "IncomingReadingPermissions": {
+        "required": [
+          "import",
+          "createParty"
+        ],
+        "type": "object",
+        "properties": {
+          "import": {
+            "type": "boolean"
+          },
+          "createParty": {
+            "type": "boolean"
+          }
+        }
+      },
+      "IncomingReadingStatus": {
+        "enum": [
+          "Reading",
+          "Ready",
+          "Failed",
+          "Checked"
+        ]
+      },
+      "IncomingReadingSummary": {
+        "required": [
+          "id",
+          "source",
+          "status",
+          "result",
+          "fileName",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "$ref": "#/components/schemas/IncomingInvoiceSource"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IncomingReadingStatus"
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PdfReadingOutcome"
+              }
+            ]
+          },
+          "fileName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "IncomingReadingView": {
+        "required": [
+          "id",
+          "source",
+          "status",
+          "result",
+          "message",
+          "hasPdf",
+          "fileName",
+          "pages",
+          "durationMs",
+          "fields",
+          "warnings",
+          "key",
+          "supplier",
+          "tenantDocument",
+          "duplicateInvoiceId",
+          "duplicateMessage",
+          "xmlByKeyAvailable",
+          "xmlByKeyMessage",
+          "xmlRequestedAt",
+          "invoiceId",
+          "createdAt",
+          "can"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "$ref": "#/components/schemas/IncomingInvoiceSource"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IncomingReadingStatus"
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PdfReadingOutcome"
+              }
+            ]
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hasPdf": {
+            "type": "boolean"
+          },
+          "fileName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pages": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "durationMs": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReadingField"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "key": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AccessKeyView"
+              }
+            ]
+          },
+          "supplier": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IncomingSupplierView"
+              }
+            ]
+          },
+          "tenantDocument": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "duplicateInvoiceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "duplicateMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "xmlByKeyAvailable": {
+            "type": "boolean"
+          },
+          "xmlByKeyMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "xmlRequestedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "invoiceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "can": {
+            "$ref": "#/components/schemas/IncomingReadingPermissions"
+          }
+        }
+      },
       "IncomingReceiptDuplicate": {
         "required": [
           "number",
@@ -55081,6 +55808,25 @@
           },
           "isActive": {
             "type": "boolean"
+          }
+        }
+      },
+      "IncomingXmlDifference": {
+        "required": [
+          "field",
+          "checked",
+          "xml"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "checked": {
+            "type": "string"
+          },
+          "xml": {
+            "type": "string"
           }
         }
       },
@@ -70819,6 +71565,18 @@
           }
         }
       },
+      "PdfReadingOutcome": {
+        "enum": [
+          "Read",
+          "NoText",
+          "Unsafe",
+          "TooManyPages",
+          "Invalid",
+          "Failed",
+          "TimedOut",
+          null
+        ]
+      },
       "PendingFabricationItem": {
         "required": [
           "projectItemId",
@@ -79329,6 +80087,189 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "ReadingField": {
+        "required": [
+          "key",
+          "value",
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "$ref": "#/components/schemas/ReadingFieldState"
+          }
+        }
+      },
+      "ReadingFieldState": {
+        "enum": [
+          "Read",
+          "Uncertain",
+          "NotFound"
+        ]
+      },
+      "ReadingItemInput": {
+        "required": [
+          "code",
+          "description",
+          "ncm",
+          "unit",
+          "quantity",
+          "unitPrice",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ncm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ReadingTotalsInput": {
+        "required": [
+          "products",
+          "freight",
+          "insurance",
+          "discount",
+          "otherExpenses",
+          "ipi",
+          "icmsBase",
+          "icms",
+          "icmsStBase",
+          "icmsSt",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "products": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "freight": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "insurance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "discount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "otherExpenses": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "ipi": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "icmsBase": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "icms": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "icmsStBase": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "icmsSt": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "total": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -93409,6 +94350,22 @@
           }
         },
         "additionalProperties": false
+      },
+      "XmlRequestResult": {
+        "required": [
+          "to",
+          "requestedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string"
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     }
   },

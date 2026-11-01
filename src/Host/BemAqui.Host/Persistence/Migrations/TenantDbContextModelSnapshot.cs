@@ -6046,6 +6046,14 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("rejected_reason");
 
+                    b.Property<DateTimeOffset?>("ReplacedByXmlAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("replaced_by_xml_at");
+
+                    b.Property<Guid?>("ReplacedByXmlBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("replaced_by_xml_by");
+
                     b.Property<bool>("SefazStatusChecked")
                         .HasColumnType("boolean")
                         .HasColumnName("sefaz_status_checked");
@@ -6112,6 +6120,11 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid?>("XmlAttachmentId")
                         .HasColumnType("uuid")
                         .HasColumnName("xml_attachment_id");
+
+                    b.Property<string>("XmlDifferences")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("xml_differences");
 
                     b.HasKey("Id")
                         .HasName("pk_incoming_invoices");
@@ -6264,6 +6277,134 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ux_incoming_invoice_items_invoice_sequence");
 
                     b.ToTable("incoming_invoice_items", "fiscal");
+                });
+
+            modelBuilder.Entity("BemAqui.Fiscal.Domain.IncomingInvoiceReading", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AccessKey")
+                        .HasMaxLength(44)
+                        .HasColumnType("character varying(44)")
+                        .HasColumnName("access_key");
+
+                    b.Property<DateTimeOffset?>("CheckedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("checked_at");
+
+                    b.Property<Guid?>("CheckedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("checked_by");
+
+                    b.Property<Guid?>("CorrectedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("corrected_by");
+
+                    b.Property<string>("CorrectedFields")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("corrected_fields");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<int?>("DurationMs")
+                        .HasColumnType("integer")
+                        .HasColumnName("duration_ms");
+
+                    b.Property<string>("Fields")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("fields");
+
+                    b.Property<string>("FileName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("file_name");
+
+                    b.Property<Guid?>("InvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<int?>("Pages")
+                        .HasColumnType("integer")
+                        .HasColumnName("pages");
+
+                    b.Property<Guid?>("PdfAttachmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pdf_attachment_id");
+
+                    b.Property<DateTimeOffset?>("ReadAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("read_at");
+
+                    b.Property<string>("Result")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("result");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<string>("Warnings")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("warnings");
+
+                    b.Property<DateTimeOffset?>("XmlRequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("xml_requested_at");
+
+                    b.Property<Guid?>("XmlRequestedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("xml_requested_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_incoming_invoice_readings");
+
+                    b.HasIndex("AccessKey")
+                        .HasDatabaseName("ix_incoming_invoice_readings_access_key")
+                        .HasFilter("access_key IS NOT NULL");
+
+                    b.HasIndex("InvoiceId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_incoming_invoice_readings_invoice_id")
+                        .HasFilter("invoice_id IS NOT NULL");
+
+                    b.HasIndex("Status", "CreatedAt")
+                        .HasDatabaseName("ix_incoming_invoice_readings_status_created_at");
+
+                    b.ToTable("incoming_invoice_readings", "fiscal", t =>
+                        {
+                            t.HasCheckConstraint("ck_incoming_invoice_readings_access_key", "access_key IS NULL OR length(access_key) = 44");
+                        });
                 });
 
             modelBuilder.Entity("BemAqui.Fiscal.Domain.NumberGap", b =>
