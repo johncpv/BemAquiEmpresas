@@ -3723,6 +3723,179 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("billing_slips", "finance");
                 });
 
+            modelBuilder.Entity("BemAqui.Finance.Domain.CollectionNotice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("EmailLogId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("email_log_id");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<DateTimeOffset?>("QueuedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("queued_at");
+
+                    b.Property<Guid>("ReceivableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receivable_id");
+
+                    b.Property<DateOnly>("ScheduledFor")
+                        .HasColumnType("date")
+                        .HasColumnName("scheduled_for");
+
+                    b.Property<string>("SkipReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("skip_reason");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("status");
+
+                    b.Property<int>("Step")
+                        .HasColumnType("integer")
+                        .HasColumnName("step");
+
+                    b.HasKey("Id")
+                        .HasName("pk_collection_notices");
+
+                    b.HasIndex("EmailLogId")
+                        .HasDatabaseName("ix_collection_notices_email_log_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_collection_notices_deferred")
+                        .HasFilter("status = 'Deferred'");
+
+                    b.HasIndex("PartyId", "CreatedAt")
+                        .HasDatabaseName("ix_collection_notices_party_id_created_at");
+
+                    b.HasIndex("ReceivableId", "Step")
+                        .IsUnique()
+                        .HasDatabaseName("ux_collection_notices_receivable_step");
+
+                    b.ToTable("collection_notices", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.CollectionPause", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("From")
+                        .HasColumnType("date")
+                        .HasColumnName("from");
+
+                    b.Property<Guid?>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reason");
+
+                    b.Property<Guid?>("ReceivableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receivable_id");
+
+                    b.Property<DateTimeOffset?>("ResumedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resumed_at");
+
+                    b.Property<Guid?>("ResumedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resumed_by");
+
+                    b.Property<DateOnly?>("Until")
+                        .HasColumnType("date")
+                        .HasColumnName("until");
+
+                    b.HasKey("Id")
+                        .HasName("pk_collection_pauses");
+
+                    b.HasIndex("PartyId")
+                        .HasDatabaseName("ix_collection_pauses_party_id")
+                        .HasFilter("resumed_at IS NULL");
+
+                    b.HasIndex("ReceivableId")
+                        .HasDatabaseName("ix_collection_pauses_receivable_id")
+                        .HasFilter("resumed_at IS NULL");
+
+                    b.ToTable("collection_pauses", "finance", t =>
+                        {
+                            t.HasCheckConstraint("ck_collection_pauses_target", "(party_id IS NULL) <> (receivable_id IS NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.CollectionRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("ReplyTo")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("reply_to");
+
+                    b.Property<TimeOnly>("SendTime")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("send_time");
+
+                    b.Property<string>("Steps")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("steps");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_collection_rules");
+
+                    b.ToTable("collection_rules", "finance");
+                });
+
             modelBuilder.Entity("BemAqui.Finance.Domain.CostCenter", b =>
                 {
                     b.Property<Guid>("Id")
@@ -15862,6 +16035,25 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_billing_slips_receivables_receivable_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.CollectionNotice", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.Receivable", null)
+                        .WithMany()
+                        .HasForeignKey("ReceivableId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_collection_notices_receivables_receivable_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.CollectionPause", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.Receivable", null)
+                        .WithMany()
+                        .HasForeignKey("ReceivableId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_collection_pauses_receivables_receivable_id");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.CostCenter", b =>

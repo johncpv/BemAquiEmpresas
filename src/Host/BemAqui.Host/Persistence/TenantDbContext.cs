@@ -149,6 +149,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BillingReferenceSequence> BillingReferenceSequences => Set<BillingReferenceSequence>();
 
+    public DbSet<CollectionRule> CollectionRules => Set<CollectionRule>();
+
+    public DbSet<CollectionNotice> CollectionNotices => Set<CollectionNotice>();
+
+    public DbSet<CollectionPause> CollectionPauses => Set<CollectionPause>();
+
     public DbSet<BemAqui.Commercial.Domain.Quote> Quotes => Set<BemAqui.Commercial.Domain.Quote>();
 
     public DbSet<BemAqui.Commercial.Domain.QuoteItem> QuoteItems => Set<BemAqui.Commercial.Domain.QuoteItem>();
