@@ -6721,6 +6721,188 @@
         }
       }
     },
+    "/api/v1/hr/employees/{id}/timesheets/{period}": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployeeTimesheet",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "period",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/timesheets/reviews": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ReviewTimesheetDay",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimesheetDayReviewInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetDayView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/timesheets/{period}/pdf": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadEmployeeTimesheetPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "period",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/hour-bank-agreement": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetHourBankAgreement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HourBankAgreementView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "SetHourBankAgreement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HourBankAgreementInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HourBankAgreementView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/payroll-items": {
       "get": {
         "tags": [
@@ -8299,6 +8481,46 @@
         }
       }
     },
+    "/api/v1/hr/payroll-runs/{id}/payslips/{payslipId}/timesheet": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayslipTimesheetHours",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "payslipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayslipTimesheetHours"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/accountant-exports": {
       "get": {
         "tags": [
@@ -8648,6 +8870,197 @@
         }
       }
     },
+    "/api/v1/hr/timesheets": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetTimesheetOverview",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/timesheets/{period}/close-check": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetTimesheetCloseCheck",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetCloseCheck"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/timesheets/{period}/close": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CloseTimesheetPeriod",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetCloseResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/timesheets/{period}/reopen": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ReopenTimesheetPeriod",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimesheetReopenInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetReopenResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/timesheets/{period}/pdfs": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GenerateTimesheetBatch",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetBatchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/timesheets/{period}/pdfs/{attachmentId}": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadTimesheetBatch",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/me/hr/link": {
       "get": {
         "tags": [
@@ -8993,6 +9406,112 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/timesheets": {
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "ListMyTimesheets",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MyTimesheetPeriod"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/timesheets/{period}": {
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "GetMyTimesheet",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/timesheets/{period}/ack": {
+      "post": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "AcknowledgeMyTimesheet",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetAckResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/timesheets/{period}/pdf": {
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "DownloadMyTimesheetPdf",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -24305,6 +24824,150 @@
         }
       }
     },
+    "/api/v1/purchasing/incoming-invoices/{id}/receipt-defaults": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetInvoiceReceiptDefaults",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceReceiptDefaults"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/incoming-invoices/{id}/receipt/preview": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "PreviewInvoiceReceipt",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceReceiptInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceReceiptPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/incoming-invoices/{id}/receipt": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "RegisterInvoiceReceipt",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceReceiptInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoodsReceiptDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/incoming-invoices/{id}/price-correction-request": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "RequestInvoicePriceCorrection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriceCorrectionRequestResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/purchasing/locations": {
       "get": {
         "tags": [
@@ -31385,6 +32048,217 @@
         }
       }
     },
+    "/api/v1/assets/assets/by-tag/{tag}": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetAssetByTag",
+        "parameters": [
+          {
+            "name": "tag",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetCardView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/{id}/card": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetAssetCard",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetCardView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/{id}/label": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "PrintAssetLabel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/{id}/label/reprint": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ReprintAssetLabel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/label-batches": {
+      "post": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "StartAssetLabelBatch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLabelBatchInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLabelBatchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/label-batches/{attachmentId}": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "DownloadAssetLabelBatch",
+        "parameters": [
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/parameters": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetAssetParameters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetParametersView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "UpdateAssetParameters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetParametersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assets/choices/responsibles": {
       "get": {
         "tags": [
@@ -34731,6 +35605,83 @@
           }
         }
       },
+      "AssetCardView": {
+        "required": [
+          "id",
+          "tag",
+          "name",
+          "type",
+          "status",
+          "siteName",
+          "responsibleName",
+          "responsibleTerminated",
+          "workCenterName",
+          "photoId",
+          "nextMaintenanceDate",
+          "lastMaintenanceDate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/AssetType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AssetStatus"
+          },
+          "siteName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "responsibleName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "responsibleTerminated": {
+            "type": "boolean"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "photoId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "nextMaintenanceDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "lastMaintenanceDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
       "AssetDetail": {
         "required": [
           "id",
@@ -35117,6 +36068,136 @@
           }
         }
       },
+      "AssetLabelBatchInput": {
+        "required": [
+          "assetIds"
+        ],
+        "type": "object",
+        "properties": {
+          "assetIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "allFromFilter": {
+            "type": "boolean",
+            "default": false
+          },
+          "filter": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssetLabelFilter"
+              }
+            ]
+          },
+          "layout": {
+            "$ref": "#/components/schemas/AssetLabelLayout"
+          }
+        }
+      },
+      "AssetLabelBatchResult": {
+        "required": [
+          "queued",
+          "count",
+          "attachmentId",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "queued": {
+            "type": "boolean"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AssetLabelFilter": {
+        "required": [
+          "q",
+          "type",
+          "siteId",
+          "workCenterId",
+          "responsibleEmployeeId",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "type": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssetType"
+              }
+            ]
+          },
+          "siteId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "responsibleEmployeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssetStatus"
+              }
+            ]
+          }
+        }
+      },
+      "AssetLabelLayout": {
+        "enum": [
+          "Label",
+          "A4Sheet"
+        ],
+        "default": "Label"
+      },
       "AssetListItem": {
         "required": [
           "id",
@@ -35214,6 +36295,48 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "AssetParametersInput": {
+        "required": [
+          "labelWidthMm",
+          "labelHeightMm"
+        ],
+        "type": "object",
+        "properties": {
+          "labelWidthMm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "labelHeightMm": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "AssetParametersView": {
+        "required": [
+          "labelWidthMm",
+          "labelHeightMm",
+          "labelSizeId"
+        ],
+        "type": "object",
+        "properties": {
+          "labelWidthMm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "labelHeightMm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "labelSizeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -42734,7 +43857,8 @@
           "Payroll",
           "Maintenance",
           "GoodsReceipt",
-          "PayrollForecast"
+          "PayrollForecast",
+          "IncomingInvoice"
         ]
       },
       "DreAccountOption": {
@@ -46681,6 +47805,15 @@
           },
           "includeDuplicates": {
             "type": "boolean"
+          },
+          "inputTaxCredit": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         },
         "additionalProperties": false
@@ -47963,6 +49096,31 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/GoodsReceiptOrigin"
+          },
+          "incomingInvoiceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "insurance": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "otherExpenses": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "taxCredit": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -48213,8 +49371,30 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "insuranceShare": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "otherShare": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "taxCreditShare": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
+      },
+      "GoodsReceiptOrigin": {
+        "enum": [
+          "Manual",
+          "Invoice"
+        ],
+        "default": "Manual"
       },
       "GoodsReceiptPayableView": {
         "required": [
@@ -48343,6 +49523,21 @@
           },
           "soleOwner": {
             "type": "boolean"
+          },
+          "insurance": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "otherExpenses": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "taxCredit": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -48408,6 +49603,21 @@
               "number"
             ],
             "format": "double"
+          },
+          "insuranceShare": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "otherShare": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "taxCreditShare": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -48818,6 +50028,58 @@
           }
         }
       },
+      "HourBankAgreementInput": {
+        "required": [
+          "agreementOn",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "agreementOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "HourBankAgreementView": {
+        "required": [
+          "employeeId",
+          "agreementOn",
+          "bankEnabled",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agreementOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "bankEnabled": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "HourlyCostInput": {
         "required": [
           "value"
@@ -49008,7 +50270,9 @@
           "Account",
           "CostCenter",
           "ExportLayout",
-          "Geolocation"
+          "Geolocation",
+          "Minutes",
+          "Toggle"
         ]
       },
       "HrParametersInput": {
@@ -49847,6 +51111,14 @@
           }
         }
       },
+      "IncomingInvoiceStage": {
+        "enum": [
+          "Imported",
+          "Checked",
+          "Received",
+          "Rejected"
+        ]
+      },
       "IncomingInvoiceStatus": {
         "enum": [
           "Imported",
@@ -50168,6 +51440,24 @@
           },
           "can": {
             "$ref": "#/components/schemas/IncomingInvoicePermissions"
+          },
+          "goodsReceiptId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "inputTaxCreditApplied": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "inputTaxCreditAmount": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -50612,6 +51902,30 @@
             "items": {
               "$ref": "#/components/schemas/IncomingOrderLineOption"
             }
+          }
+        }
+      },
+      "IncomingReceiptDuplicate": {
+        "required": [
+          "number",
+          "dueDate",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -52127,6 +53441,448 @@
               "type": "string",
               "format": "uuid"
             }
+          }
+        }
+      },
+      "InvoiceNoStockInstallmentPreview": {
+        "required": [
+          "accountName",
+          "number",
+          "count",
+          "dueDate",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "accountName": {
+            "type": "string"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "InvoiceNoStockLine": {
+        "required": [
+          "sequence",
+          "description",
+          "accountId",
+          "accountName",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "accountName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "InvoiceReceiptDefaultLine": {
+        "required": [
+          "poLineId",
+          "sequence",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "tracksLot",
+          "quantity",
+          "open",
+          "maxQuantity",
+          "orderPrice",
+          "invoicePrice",
+          "priceDiffers",
+          "suggestedLot",
+          "invoiceItems"
+        ],
+        "type": "object",
+        "properties": {
+          "poLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "tracksLot": {
+            "type": "boolean"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "open": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "orderPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "invoicePrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "priceDiffers": {
+            "type": "boolean"
+          },
+          "suggestedLot": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "invoiceItems": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        }
+      },
+      "InvoiceReceiptDefaults": {
+        "required": [
+          "invoiceId",
+          "invoiceNumber",
+          "series",
+          "supplierName",
+          "issuedOn",
+          "stage",
+          "goodsReceiptId",
+          "invoiceVersion",
+          "orderId",
+          "orderNumber",
+          "orderVersion",
+          "projectNumber",
+          "today",
+          "defaultLocationId",
+          "locations",
+          "lines",
+          "noStock",
+          "freight",
+          "insurance",
+          "otherExpenses",
+          "ipiAmount",
+          "freightMax",
+          "ipiMax",
+          "total",
+          "duplicates",
+          "creditRule",
+          "creditConfirmed",
+          "priceBlocked",
+          "soleOwner",
+          "blocker",
+          "blockerCode"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "invoiceNumber": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "series": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "issuedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/IncomingInvoiceStage"
+          },
+          "goodsReceiptId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "invoiceVersion": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "orderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "orderVersion": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "defaultLocationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceiptLocationOption"
+            }
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceReceiptDefaultLine"
+            }
+          },
+          "noStock": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceNoStockLine"
+            }
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "insurance": {
+            "type": "number",
+            "format": "double"
+          },
+          "otherExpenses": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "freightMax": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiMax": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "duplicates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IncomingReceiptDuplicate"
+            }
+          },
+          "creditRule": {
+            "type": "string"
+          },
+          "creditConfirmed": {
+            "type": "boolean"
+          },
+          "priceBlocked": {
+            "type": "boolean"
+          },
+          "soleOwner": {
+            "type": "boolean"
+          },
+          "blocker": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "blockerCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "InvoiceReceiptInput": {
+        "required": [
+          "receivedOn",
+          "notes",
+          "lines",
+          "orderVersion",
+          "invoiceVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "receivedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/InvoiceReceiptLineInput"
+            }
+          },
+          "orderVersion": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "invoiceVersion": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "InvoiceReceiptLineInput": {
+        "required": [
+          "poLineId",
+          "lotNumber",
+          "lotExpiry",
+          "locationId"
+        ],
+        "type": "object",
+        "properties": {
+          "poLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lotExpiry": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "locationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "InvoiceReceiptPreview": {
+        "required": [
+          "receipt",
+          "noStock",
+          "creditRule",
+          "fromDuplicates",
+          "duplicatesMismatch",
+          "invoiceTotal"
+        ],
+        "type": "object",
+        "properties": {
+          "receipt": {
+            "$ref": "#/components/schemas/GoodsReceiptPreview"
+          },
+          "noStock": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceNoStockInstallmentPreview"
+            }
+          },
+          "creditRule": {
+            "type": "string"
+          },
+          "fromDuplicates": {
+            "type": "boolean"
+          },
+          "duplicatesMismatch": {
+            "type": "boolean"
+          },
+          "invoiceTotal": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -56313,6 +58069,48 @@
           },
           "location": {
             "$ref": "#/components/schemas/TimeEntryLocation"
+          }
+        }
+      },
+      "MyTimesheetPeriod": {
+        "required": [
+          "period",
+          "start",
+          "end",
+          "status",
+          "closedAt",
+          "employeeAckAt"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "end": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TimesheetStatus"
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "employeeAckAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -62553,6 +64351,16 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "timesheetSource": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollTimesheetSource"
+              }
+            ]
           }
         }
       },
@@ -62605,6 +64413,16 @@
               "integer"
             ],
             "format": "uint32"
+          },
+          "timesheetSource": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollTimesheetSource"
+              }
+            ]
           }
         }
       },
@@ -63139,6 +64957,12 @@
               "integer"
             ],
             "format": "int32"
+          },
+          "timesheetNotice": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -63826,6 +65650,14 @@
           }
         }
       },
+      "PayrollTimesheetSource": {
+        "enum": [
+          "Overtime",
+          "Absence",
+          "Late",
+          null
+        ]
+      },
       "PayslipBatchResult": {
         "required": [
           "queued",
@@ -64320,6 +66152,105 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          }
+        }
+      },
+      "PayslipTimesheetHours": {
+        "required": [
+          "available",
+          "message",
+          "period",
+          "closedAt",
+          "overtimeMinutes",
+          "absenceMinutes",
+          "lateMinutes",
+          "bankMonthMinutes",
+          "bankBalanceMinutes",
+          "references"
+        ],
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "overtimeMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "absenceMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lateMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bankMonthMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "bankBalanceMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayslipTimesheetReference"
+            }
+          }
+        }
+      },
+      "PayslipTimesheetReference": {
+        "required": [
+          "payrollItemId",
+          "code",
+          "name",
+          "source",
+          "minutes",
+          "reference"
+        ],
+        "type": "object",
+        "properties": {
+          "payrollItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/PayrollTimesheetSource"
+          },
+          "minutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reference": {
+            "type": "string"
           }
         }
       },
@@ -65473,6 +67404,26 @@
         "properties": {
           "theme": {
             "type": "string"
+          }
+        }
+      },
+      "PriceCorrectionRequestResult": {
+        "required": [
+          "notified",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "notified": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         }
       },
@@ -84155,6 +86106,780 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "TimesheetAbsenceView": {
+        "required": [
+          "minutes",
+          "reason",
+          "label",
+          "protected"
+        ],
+        "type": "object",
+        "properties": {
+          "minutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "reason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AbsenceReason"
+              }
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "protected": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TimesheetAckResult": {
+        "required": [
+          "period",
+          "at",
+          "summary"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "summary": {
+            "type": "string"
+          }
+        }
+      },
+      "TimesheetBatchResult": {
+        "required": [
+          "queued",
+          "count",
+          "attachmentId",
+          "fileName",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "queued": {
+            "type": "boolean"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "TimesheetCloseCheck": {
+        "required": [
+          "period",
+          "start",
+          "end",
+          "canClose",
+          "blockers",
+          "employees",
+          "employeeCount"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "end": {
+            "type": "string",
+            "format": "date"
+          },
+          "canClose": {
+            "type": "boolean"
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "employees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimesheetClosePrecondition"
+            }
+          },
+          "employeeCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TimesheetClosePrecondition": {
+        "required": [
+          "employeeId",
+          "name",
+          "pendingAdjustments",
+          "inconsistentDays"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "pendingAdjustments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "inconsistentDays": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        }
+      },
+      "TimesheetCloseResult": {
+        "required": [
+          "period",
+          "closed",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "closed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "TimesheetDayReviewInput": {
+        "required": [
+          "day",
+          "comment"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "comment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "TimesheetDayStatus": {
+        "enum": [
+          "Normal",
+          "Overtime",
+          "Late",
+          "Absent",
+          "Justified",
+          "Compensated",
+          "OnLeave",
+          "Holiday",
+          "DayOff",
+          "Inconsistent",
+          "NotEmployed",
+          "Upcoming"
+        ]
+      },
+      "TimesheetDayView": {
+        "required": [
+          "day",
+          "status",
+          "statusLabel",
+          "expectedMinutes",
+          "workedMinutes",
+          "overtimeMinutes",
+          "lateMinutes",
+          "absenceMinutes",
+          "justifiedMinutes",
+          "compensatedMinutes",
+          "bankMinutes",
+          "issues",
+          "reviewed",
+          "reviewComment",
+          "entries",
+          "absences",
+          "holiday",
+          "leaveLabel"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TimesheetDayStatus"
+          },
+          "statusLabel": {
+            "type": "string"
+          },
+          "expectedMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "workedMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "overtimeMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lateMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "absenceMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "justifiedMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "compensatedMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bankMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reviewed": {
+            "type": "boolean"
+          },
+          "reviewComment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimesheetEntryView"
+            }
+          },
+          "absences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimesheetAbsenceView"
+            }
+          },
+          "holiday": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "leaveLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "TimesheetDetail": {
+        "required": [
+          "employeeId",
+          "employeeName",
+          "registration",
+          "positionName",
+          "period",
+          "start",
+          "end",
+          "status",
+          "closedAt",
+          "closedByName",
+          "closedBanner",
+          "reopenedAt",
+          "reopenReason",
+          "employeeAckAt",
+          "employeeAckSummary",
+          "banner",
+          "scheduleText",
+          "days",
+          "totals",
+          "hasEntries",
+          "pendingAdjustments"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "positionName": {
+            "type": "string"
+          },
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "end": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TimesheetStatus"
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "closedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "closedBanner": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reopenedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "reopenReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "employeeAckAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "employeeAckSummary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "banner": {
+            "type": "string"
+          },
+          "scheduleText": {
+            "type": "string"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimesheetDayView"
+            }
+          },
+          "totals": {
+            "$ref": "#/components/schemas/TimesheetTotalsView"
+          },
+          "hasEntries": {
+            "type": "boolean"
+          },
+          "pendingAdjustments": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TimesheetEntryView": {
+        "required": [
+          "id",
+          "time",
+          "type",
+          "typeLabel",
+          "source"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "time": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TimeEntryType"
+          },
+          "typeLabel": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/TimeEntrySource"
+          }
+        }
+      },
+      "TimesheetOverview": {
+        "required": [
+          "period",
+          "start",
+          "end",
+          "suggestedPeriod",
+          "status",
+          "closedAt",
+          "closedByName",
+          "closedBanner",
+          "closable",
+          "banner",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "end": {
+            "type": "string",
+            "format": "date"
+          },
+          "suggestedPeriod": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TimesheetStatus"
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "closedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "closedBanner": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "closable": {
+            "type": "boolean"
+          },
+          "banner": {
+            "type": "string"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimesheetOverviewRow"
+            }
+          }
+        }
+      },
+      "TimesheetOverviewRow": {
+        "required": [
+          "employeeId",
+          "name",
+          "registration",
+          "status",
+          "expectedMinutes",
+          "workedMinutes",
+          "overtimeMinutes",
+          "absenceMinutes",
+          "lateMinutes",
+          "justifiedMinutes",
+          "bankMonthMinutes",
+          "bankBalanceMinutes",
+          "inconsistentDays",
+          "pendingAdjustments",
+          "employeeAckAt",
+          "ackLabel",
+          "situationLabel",
+          "situationTone"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/TimesheetStatus"
+          },
+          "expectedMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "workedMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "overtimeMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "absenceMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lateMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "justifiedMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bankMonthMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "bankBalanceMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "inconsistentDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingAdjustments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "employeeAckAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "ackLabel": {
+            "type": "string"
+          },
+          "situationLabel": {
+            "type": "string"
+          },
+          "situationTone": {
+            "type": "string"
+          }
+        }
+      },
+      "TimesheetReopenInput": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "TimesheetReopenResult": {
+        "required": [
+          "periods",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "periods": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "TimesheetStatus": {
+        "enum": [
+          "Open",
+          "Closed"
+        ]
+      },
+      "TimesheetTotalsView": {
+        "required": [
+          "expectedMinutes",
+          "workedMinutes",
+          "overtimeMinutes",
+          "absenceMinutes",
+          "lateMinutes",
+          "justifiedMinutes",
+          "compensatedMinutes",
+          "workedDays",
+          "absenceDays",
+          "inconsistentDays",
+          "bankApplies",
+          "bankMonthMinutes",
+          "bankBalanceMinutes",
+          "bankText"
+        ],
+        "type": "object",
+        "properties": {
+          "expectedMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "workedMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "overtimeMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "absenceMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lateMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "justifiedMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "compensatedMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "workedDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "absenceDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "inconsistentDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bankApplies": {
+            "type": "boolean"
+          },
+          "bankMonthMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "bankBalanceMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "bankText": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
