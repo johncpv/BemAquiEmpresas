@@ -298,6 +298,7 @@ import type {
   GetSupervisorIndicatorsParams,
   GetSupervisorQualityParams,
   GetSupervisorShortagesParams,
+  GetTimesheetOverviewParams,
   GoodsReceiptDefaults,
   GoodsReceiptDetail,
   GoodsReceiptInput,
@@ -312,6 +313,8 @@ import type {
   HelpAnswer,
   HelpDocument,
   HolidaySuggestion,
+  HourBankAgreementInput,
+  HourBankAgreementView,
   HourlyCostInput,
   HrParameterConfirmInput,
   HrParametersInput,
@@ -500,6 +503,7 @@ import type {
   MyPin,
   MyTimeClock,
   MyTimeEntry,
+  MyTimesheetPeriod,
   NonConformityActionInput,
   NonConformityCloseInput,
   NonConformityCostInput,
@@ -621,6 +625,7 @@ import type {
   PayslipNotifyResult,
   PayslipPrevious,
   PayslipRow,
+  PayslipTimesheetHours,
   PendingFabricationPage,
   PersonalDataSubjectMatch,
   PickingRow,
@@ -902,6 +907,16 @@ import type {
   TimeEntryLocationRow,
   TimeEntryReceipt,
   TimelineEntry,
+  TimesheetAckResult,
+  TimesheetBatchResult,
+  TimesheetCloseCheck,
+  TimesheetCloseResult,
+  TimesheetDayReviewInput,
+  TimesheetDayView,
+  TimesheetDetail,
+  TimesheetOverview,
+  TimesheetReopenInput,
+  TimesheetReopenResult,
   TotpSetup,
   TraceSearchResult,
   TransferInput,
@@ -18882,6 +18897,473 @@ export function useDownloadTimeAdjustmentDocument<TData = Awaited<ReturnType<typ
 
 
 
+export const getGetEmployeeTimesheetUrl = (id: string,
+    period: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/timesheets/${period}`
+}
+
+export const getEmployeeTimesheet = async (id: string,
+    period: string, options?: Parameters<typeof apiFetch>[1]): Promise<TimesheetDetail> => {
+
+  return apiFetch<TimesheetDetail>(getGetEmployeeTimesheetUrl(id,period),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmployeeTimesheetQueryKey = (id: string,
+    period: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/timesheets/${period}`
+    ] as const;
+    }
+
+
+export const getGetEmployeeTimesheetQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeTimesheet>>, TError = unknown>(id: string,
+    period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimesheet>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeTimesheetQueryKey(id,period);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeTimesheet>>> = ({ signal }) => getEmployeeTimesheet(id,period, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && period !== null && period !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimesheet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEmployeeTimesheetQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeTimesheet>>>
+export type GetEmployeeTimesheetQueryError = unknown
+
+
+export function useGetEmployeeTimesheet<TData = Awaited<ReturnType<typeof getEmployeeTimesheet>>, TError = unknown>(
+ id: string,
+    period: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimesheet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeTimesheet>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeTimesheet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeTimesheet<TData = Awaited<ReturnType<typeof getEmployeeTimesheet>>, TError = unknown>(
+ id: string,
+    period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimesheet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeTimesheet>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeTimesheet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeTimesheet<TData = Awaited<ReturnType<typeof getEmployeeTimesheet>>, TError = unknown>(
+ id: string,
+    period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimesheet>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEmployeeTimesheet<TData = Awaited<ReturnType<typeof getEmployeeTimesheet>>, TError = unknown>(
+ id: string,
+    period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimesheet>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEmployeeTimesheetQueryOptions(id,period,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReviewTimesheetDayUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/timesheets/reviews`
+}
+
+export const reviewTimesheetDay = async (id: string,
+    timesheetDayReviewInput: TimesheetDayReviewInput, options?: Parameters<typeof apiFetch>[1]): Promise<TimesheetDayView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TimesheetDayView>(getReviewTimesheetDayUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(timesheetDayReviewInput)
+  }
+);}
+
+
+
+
+
+export const getReviewTimesheetDayMutationKey = () => ['reviewTimesheetDay'] as const;
+
+export const getReviewTimesheetDayMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewTimesheetDay>>, TError,ReviewTimesheetDayMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewTimesheetDay>>, TError,ReviewTimesheetDayMutationVariables, TContext> => {
+
+const mutationKey = getReviewTimesheetDayMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewTimesheetDay>>, ReviewTimesheetDayMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reviewTimesheetDay(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewTimesheetDayMutationResult = NonNullable<Awaited<ReturnType<typeof reviewTimesheetDay>>>
+    export type ReviewTimesheetDayMutationBody = TimesheetDayReviewInput
+    export type ReviewTimesheetDayMutationError = unknown
+    export type ReviewTimesheetDayMutationVariables = {id: string;data: TimesheetDayReviewInput}
+
+    export const useReviewTimesheetDay = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewTimesheetDay>>, TError,ReviewTimesheetDayMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reviewTimesheetDay>>,
+        TError,
+        ReviewTimesheetDayMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReviewTimesheetDayMutationOptions(options), queryClient);
+    }
+
+export const getDownloadEmployeeTimesheetPdfUrl = (id: string,
+    period: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/timesheets/${period}/pdf`
+}
+
+export const downloadEmployeeTimesheetPdf = async (id: string,
+    period: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadEmployeeTimesheetPdfUrl(id,period),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadEmployeeTimesheetPdfQueryKey = (id: string,
+    period: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/timesheets/${period}/pdf`
+    ] as const;
+    }
+
+
+export const getDownloadEmployeeTimesheetPdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>, TError = unknown>(id: string,
+    period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadEmployeeTimesheetPdfQueryKey(id,period);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>> = ({ signal }) => downloadEmployeeTimesheetPdf(id,period, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && period !== null && period !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadEmployeeTimesheetPdfQueryResult = NonNullable<Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>>
+export type DownloadEmployeeTimesheetPdfQueryError = unknown
+
+
+export function useDownloadEmployeeTimesheetPdf<TData = Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>, TError = unknown>(
+ id: string,
+    period: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadEmployeeTimesheetPdf<TData = Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>, TError = unknown>(
+ id: string,
+    period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadEmployeeTimesheetPdf<TData = Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>, TError = unknown>(
+ id: string,
+    period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadEmployeeTimesheetPdf<TData = Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>, TError = unknown>(
+ id: string,
+    period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadEmployeeTimesheetPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadEmployeeTimesheetPdfQueryOptions(id,period,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetHourBankAgreementUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/hour-bank-agreement`
+}
+
+export const getHourBankAgreement = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<HourBankAgreementView> => {
+
+  return apiFetch<HourBankAgreementView>(getGetHourBankAgreementUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetHourBankAgreementQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/hour-bank-agreement`
+    ] as const;
+    }
+
+
+export const getGetHourBankAgreementQueryOptions = <TData = Awaited<ReturnType<typeof getHourBankAgreement>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHourBankAgreement>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetHourBankAgreementQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getHourBankAgreement>>> = ({ signal }) => getHourBankAgreement(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getHourBankAgreement>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetHourBankAgreementQueryResult = NonNullable<Awaited<ReturnType<typeof getHourBankAgreement>>>
+export type GetHourBankAgreementQueryError = unknown
+
+
+export function useGetHourBankAgreement<TData = Awaited<ReturnType<typeof getHourBankAgreement>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHourBankAgreement>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getHourBankAgreement>>,
+          TError,
+          Awaited<ReturnType<typeof getHourBankAgreement>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetHourBankAgreement<TData = Awaited<ReturnType<typeof getHourBankAgreement>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHourBankAgreement>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getHourBankAgreement>>,
+          TError,
+          Awaited<ReturnType<typeof getHourBankAgreement>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetHourBankAgreement<TData = Awaited<ReturnType<typeof getHourBankAgreement>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHourBankAgreement>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetHourBankAgreement<TData = Awaited<ReturnType<typeof getHourBankAgreement>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getHourBankAgreement>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetHourBankAgreementQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSetHourBankAgreementUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/hour-bank-agreement`
+}
+
+export const setHourBankAgreement = async (id: string,
+    hourBankAgreementInput: HourBankAgreementInput, options?: Parameters<typeof apiFetch>[1]): Promise<HourBankAgreementView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<HourBankAgreementView>(getSetHourBankAgreementUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(hourBankAgreementInput)
+  }
+);}
+
+
+
+
+
+export const getSetHourBankAgreementMutationKey = () => ['setHourBankAgreement'] as const;
+
+export const getSetHourBankAgreementMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setHourBankAgreement>>, TError,SetHourBankAgreementMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setHourBankAgreement>>, TError,SetHourBankAgreementMutationVariables, TContext> => {
+
+const mutationKey = getSetHourBankAgreementMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setHourBankAgreement>>, SetHourBankAgreementMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  setHourBankAgreement(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetHourBankAgreementMutationResult = NonNullable<Awaited<ReturnType<typeof setHourBankAgreement>>>
+    export type SetHourBankAgreementMutationBody = HourBankAgreementInput
+    export type SetHourBankAgreementMutationError = unknown
+    export type SetHourBankAgreementMutationVariables = {id: string;data: HourBankAgreementInput}
+
+    export const useSetHourBankAgreement = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setHourBankAgreement>>, TError,SetHourBankAgreementMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setHourBankAgreement>>,
+        TError,
+        SetHourBankAgreementMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetHourBankAgreementMutationOptions(options), queryClient);
+    }
+
 export const getListPayrollItemsUrl = () => {
 
 
@@ -22146,6 +22628,109 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getNotifyPayslipAgainMutationOptions(options), queryClient);
     }
 
+export const getGetPayslipTimesheetHoursUrl = (id: string,
+    payslipId: string,) => {
+
+
+
+
+  return `/api/v1/hr/payroll-runs/${id}/payslips/${payslipId}/timesheet`
+}
+
+export const getPayslipTimesheetHours = async (id: string,
+    payslipId: string, options?: Parameters<typeof apiFetch>[1]): Promise<PayslipTimesheetHours> => {
+
+  return apiFetch<PayslipTimesheetHours>(getGetPayslipTimesheetHoursUrl(id,payslipId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPayslipTimesheetHoursQueryKey = (id: string,
+    payslipId: string,) => {
+    return [
+    `/api/v1/hr/payroll-runs/${id}/payslips/${payslipId}/timesheet`
+    ] as const;
+    }
+
+
+export const getGetPayslipTimesheetHoursQueryOptions = <TData = Awaited<ReturnType<typeof getPayslipTimesheetHours>>, TError = unknown>(id: string,
+    payslipId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPayslipTimesheetHours>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPayslipTimesheetHoursQueryKey(id,payslipId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPayslipTimesheetHours>>> = ({ signal }) => getPayslipTimesheetHours(id,payslipId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && payslipId !== null && payslipId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPayslipTimesheetHours>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPayslipTimesheetHoursQueryResult = NonNullable<Awaited<ReturnType<typeof getPayslipTimesheetHours>>>
+export type GetPayslipTimesheetHoursQueryError = unknown
+
+
+export function useGetPayslipTimesheetHours<TData = Awaited<ReturnType<typeof getPayslipTimesheetHours>>, TError = unknown>(
+ id: string,
+    payslipId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPayslipTimesheetHours>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPayslipTimesheetHours>>,
+          TError,
+          Awaited<ReturnType<typeof getPayslipTimesheetHours>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPayslipTimesheetHours<TData = Awaited<ReturnType<typeof getPayslipTimesheetHours>>, TError = unknown>(
+ id: string,
+    payslipId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPayslipTimesheetHours>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPayslipTimesheetHours>>,
+          TError,
+          Awaited<ReturnType<typeof getPayslipTimesheetHours>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPayslipTimesheetHours<TData = Awaited<ReturnType<typeof getPayslipTimesheetHours>>, TError = unknown>(
+ id: string,
+    payslipId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPayslipTimesheetHours>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPayslipTimesheetHours<TData = Awaited<ReturnType<typeof getPayslipTimesheetHours>>, TError = unknown>(
+ id: string,
+    payslipId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPayslipTimesheetHours>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPayslipTimesheetHoursQueryOptions(id,payslipId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetAccountantExportOverviewUrl = (params?: GetAccountantExportOverviewParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -23074,6 +23659,525 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getApproveTimeAdjustmentsMutationOptions(options), queryClient);
     }
+
+export const getGetTimesheetOverviewUrl = (params?: GetTimesheetOverviewParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/hr/timesheets?${stringifiedParams}` : `/api/v1/hr/timesheets`
+}
+
+export const getTimesheetOverview = async (params?: GetTimesheetOverviewParams, options?: Parameters<typeof apiFetch>[1]): Promise<TimesheetOverview> => {
+
+  return apiFetch<TimesheetOverview>(getGetTimesheetOverviewUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTimesheetOverviewQueryKey = (params?: GetTimesheetOverviewParams,) => {
+    return [
+    `/api/v1/hr/timesheets`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetTimesheetOverviewQueryOptions = <TData = Awaited<ReturnType<typeof getTimesheetOverview>>, TError = unknown>(params?: GetTimesheetOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimesheetOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTimesheetOverviewQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTimesheetOverview>>> = ({ signal }) => getTimesheetOverview(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTimesheetOverview>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTimesheetOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getTimesheetOverview>>>
+export type GetTimesheetOverviewQueryError = unknown
+
+
+export function useGetTimesheetOverview<TData = Awaited<ReturnType<typeof getTimesheetOverview>>, TError = unknown>(
+ params: undefined |  GetTimesheetOverviewParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimesheetOverview>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTimesheetOverview>>,
+          TError,
+          Awaited<ReturnType<typeof getTimesheetOverview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTimesheetOverview<TData = Awaited<ReturnType<typeof getTimesheetOverview>>, TError = unknown>(
+ params?: GetTimesheetOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimesheetOverview>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTimesheetOverview>>,
+          TError,
+          Awaited<ReturnType<typeof getTimesheetOverview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTimesheetOverview<TData = Awaited<ReturnType<typeof getTimesheetOverview>>, TError = unknown>(
+ params?: GetTimesheetOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimesheetOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTimesheetOverview<TData = Awaited<ReturnType<typeof getTimesheetOverview>>, TError = unknown>(
+ params?: GetTimesheetOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimesheetOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTimesheetOverviewQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetTimesheetCloseCheckUrl = (period: string,) => {
+
+
+
+
+  return `/api/v1/hr/timesheets/${period}/close-check`
+}
+
+export const getTimesheetCloseCheck = async (period: string, options?: Parameters<typeof apiFetch>[1]): Promise<TimesheetCloseCheck> => {
+
+  return apiFetch<TimesheetCloseCheck>(getGetTimesheetCloseCheckUrl(period),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTimesheetCloseCheckQueryKey = (period: string,) => {
+    return [
+    `/api/v1/hr/timesheets/${period}/close-check`
+    ] as const;
+    }
+
+
+export const getGetTimesheetCloseCheckQueryOptions = <TData = Awaited<ReturnType<typeof getTimesheetCloseCheck>>, TError = unknown>(period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimesheetCloseCheck>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTimesheetCloseCheckQueryKey(period);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTimesheetCloseCheck>>> = ({ signal }) => getTimesheetCloseCheck(period, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: period !== null && period !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTimesheetCloseCheck>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTimesheetCloseCheckQueryResult = NonNullable<Awaited<ReturnType<typeof getTimesheetCloseCheck>>>
+export type GetTimesheetCloseCheckQueryError = unknown
+
+
+export function useGetTimesheetCloseCheck<TData = Awaited<ReturnType<typeof getTimesheetCloseCheck>>, TError = unknown>(
+ period: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimesheetCloseCheck>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTimesheetCloseCheck>>,
+          TError,
+          Awaited<ReturnType<typeof getTimesheetCloseCheck>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTimesheetCloseCheck<TData = Awaited<ReturnType<typeof getTimesheetCloseCheck>>, TError = unknown>(
+ period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimesheetCloseCheck>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTimesheetCloseCheck>>,
+          TError,
+          Awaited<ReturnType<typeof getTimesheetCloseCheck>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTimesheetCloseCheck<TData = Awaited<ReturnType<typeof getTimesheetCloseCheck>>, TError = unknown>(
+ period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimesheetCloseCheck>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTimesheetCloseCheck<TData = Awaited<ReturnType<typeof getTimesheetCloseCheck>>, TError = unknown>(
+ period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTimesheetCloseCheck>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTimesheetCloseCheckQueryOptions(period,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCloseTimesheetPeriodUrl = (period: string,) => {
+
+
+
+
+  return `/api/v1/hr/timesheets/${period}/close`
+}
+
+export const closeTimesheetPeriod = async (period: string, options?: Parameters<typeof apiFetch>[1]): Promise<TimesheetCloseResult> => {
+
+  return apiFetch<TimesheetCloseResult>(getCloseTimesheetPeriodUrl(period),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCloseTimesheetPeriodMutationKey = () => ['closeTimesheetPeriod'] as const;
+
+export const getCloseTimesheetPeriodMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeTimesheetPeriod>>, TError,CloseTimesheetPeriodMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof closeTimesheetPeriod>>, TError,CloseTimesheetPeriodMutationVariables, TContext> => {
+
+const mutationKey = getCloseTimesheetPeriodMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof closeTimesheetPeriod>>, CloseTimesheetPeriodMutationVariables> = (props) => {
+          const {period} = props ?? {};
+
+          return  closeTimesheetPeriod(period,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CloseTimesheetPeriodMutationResult = NonNullable<Awaited<ReturnType<typeof closeTimesheetPeriod>>>
+
+    export type CloseTimesheetPeriodMutationError = unknown
+    export type CloseTimesheetPeriodMutationVariables = {period: string}
+
+    export const useCloseTimesheetPeriod = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeTimesheetPeriod>>, TError,CloseTimesheetPeriodMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof closeTimesheetPeriod>>,
+        TError,
+        CloseTimesheetPeriodMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCloseTimesheetPeriodMutationOptions(options), queryClient);
+    }
+
+export const getReopenTimesheetPeriodUrl = (period: string,) => {
+
+
+
+
+  return `/api/v1/hr/timesheets/${period}/reopen`
+}
+
+export const reopenTimesheetPeriod = async (period: string,
+    timesheetReopenInput: TimesheetReopenInput, options?: Parameters<typeof apiFetch>[1]): Promise<TimesheetReopenResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TimesheetReopenResult>(getReopenTimesheetPeriodUrl(period),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(timesheetReopenInput)
+  }
+);}
+
+
+
+
+
+export const getReopenTimesheetPeriodMutationKey = () => ['reopenTimesheetPeriod'] as const;
+
+export const getReopenTimesheetPeriodMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenTimesheetPeriod>>, TError,ReopenTimesheetPeriodMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reopenTimesheetPeriod>>, TError,ReopenTimesheetPeriodMutationVariables, TContext> => {
+
+const mutationKey = getReopenTimesheetPeriodMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reopenTimesheetPeriod>>, ReopenTimesheetPeriodMutationVariables> = (props) => {
+          const {period,data} = props ?? {};
+
+          return  reopenTimesheetPeriod(period,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReopenTimesheetPeriodMutationResult = NonNullable<Awaited<ReturnType<typeof reopenTimesheetPeriod>>>
+    export type ReopenTimesheetPeriodMutationBody = TimesheetReopenInput
+    export type ReopenTimesheetPeriodMutationError = unknown
+    export type ReopenTimesheetPeriodMutationVariables = {period: string;data: TimesheetReopenInput}
+
+    export const useReopenTimesheetPeriod = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenTimesheetPeriod>>, TError,ReopenTimesheetPeriodMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reopenTimesheetPeriod>>,
+        TError,
+        ReopenTimesheetPeriodMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReopenTimesheetPeriodMutationOptions(options), queryClient);
+    }
+
+export const getGenerateTimesheetBatchUrl = (period: string,) => {
+
+
+
+
+  return `/api/v1/hr/timesheets/${period}/pdfs`
+}
+
+export const generateTimesheetBatch = async (period: string, options?: Parameters<typeof apiFetch>[1]): Promise<TimesheetBatchResult> => {
+
+  return apiFetch<TimesheetBatchResult>(getGenerateTimesheetBatchUrl(period),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getGenerateTimesheetBatchMutationKey = () => ['generateTimesheetBatch'] as const;
+
+export const getGenerateTimesheetBatchMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateTimesheetBatch>>, TError,GenerateTimesheetBatchMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateTimesheetBatch>>, TError,GenerateTimesheetBatchMutationVariables, TContext> => {
+
+const mutationKey = getGenerateTimesheetBatchMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateTimesheetBatch>>, GenerateTimesheetBatchMutationVariables> = (props) => {
+          const {period} = props ?? {};
+
+          return  generateTimesheetBatch(period,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateTimesheetBatchMutationResult = NonNullable<Awaited<ReturnType<typeof generateTimesheetBatch>>>
+
+    export type GenerateTimesheetBatchMutationError = unknown
+    export type GenerateTimesheetBatchMutationVariables = {period: string}
+
+    export const useGenerateTimesheetBatch = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateTimesheetBatch>>, TError,GenerateTimesheetBatchMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof generateTimesheetBatch>>,
+        TError,
+        GenerateTimesheetBatchMutationVariables,
+        TContext
+      > => {
+      return useMutation(getGenerateTimesheetBatchMutationOptions(options), queryClient);
+    }
+
+export const getDownloadTimesheetBatchUrl = (period: string,
+    attachmentId: string,) => {
+
+
+
+
+  return `/api/v1/hr/timesheets/${period}/pdfs/${attachmentId}`
+}
+
+export const downloadTimesheetBatch = async (period: string,
+    attachmentId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadTimesheetBatchUrl(period,attachmentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadTimesheetBatchQueryKey = (period: string,
+    attachmentId: string,) => {
+    return [
+    `/api/v1/hr/timesheets/${period}/pdfs/${attachmentId}`
+    ] as const;
+    }
+
+
+export const getDownloadTimesheetBatchQueryOptions = <TData = Awaited<ReturnType<typeof downloadTimesheetBatch>>, TError = unknown>(period: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTimesheetBatch>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadTimesheetBatchQueryKey(period,attachmentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadTimesheetBatch>>> = ({ signal }) => downloadTimesheetBatch(period,attachmentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: period !== null && period !== undefined && attachmentId !== null && attachmentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadTimesheetBatch>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadTimesheetBatchQueryResult = NonNullable<Awaited<ReturnType<typeof downloadTimesheetBatch>>>
+export type DownloadTimesheetBatchQueryError = unknown
+
+
+export function useDownloadTimesheetBatch<TData = Awaited<ReturnType<typeof downloadTimesheetBatch>>, TError = unknown>(
+ period: string,
+    attachmentId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTimesheetBatch>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadTimesheetBatch>>,
+          TError,
+          Awaited<ReturnType<typeof downloadTimesheetBatch>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadTimesheetBatch<TData = Awaited<ReturnType<typeof downloadTimesheetBatch>>, TError = unknown>(
+ period: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTimesheetBatch>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadTimesheetBatch>>,
+          TError,
+          Awaited<ReturnType<typeof downloadTimesheetBatch>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadTimesheetBatch<TData = Awaited<ReturnType<typeof downloadTimesheetBatch>>, TError = unknown>(
+ period: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTimesheetBatch>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadTimesheetBatch<TData = Awaited<ReturnType<typeof downloadTimesheetBatch>>, TError = unknown>(
+ period: string,
+    attachmentId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTimesheetBatch>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadTimesheetBatchQueryOptions(period,attachmentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetMyEmployeeLinkUrl = () => {
 
@@ -24217,6 +25321,359 @@ export function useDownloadMyTimeAdjustmentDocument<TData = Awaited<ReturnType<t
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getDownloadMyTimeAdjustmentDocumentQueryOptions(id,attachmentId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListMyTimesheetsUrl = () => {
+
+
+
+
+  return `/api/v1/me/hr/timesheets`
+}
+
+export const listMyTimesheets = async ( options?: Parameters<typeof apiFetch>[1]): Promise<MyTimesheetPeriod[]> => {
+
+  return apiFetch<MyTimesheetPeriod[]>(getListMyTimesheetsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMyTimesheetsQueryKey = () => {
+    return [
+    `/api/v1/me/hr/timesheets`
+    ] as const;
+    }
+
+
+export const getListMyTimesheetsQueryOptions = <TData = Awaited<ReturnType<typeof listMyTimesheets>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimesheets>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMyTimesheetsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyTimesheets>>> = ({ signal }) => listMyTimesheets({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyTimesheets>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListMyTimesheetsQueryResult = NonNullable<Awaited<ReturnType<typeof listMyTimesheets>>>
+export type ListMyTimesheetsQueryError = unknown
+
+
+export function useListMyTimesheets<TData = Awaited<ReturnType<typeof listMyTimesheets>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimesheets>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyTimesheets>>,
+          TError,
+          Awaited<ReturnType<typeof listMyTimesheets>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyTimesheets<TData = Awaited<ReturnType<typeof listMyTimesheets>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimesheets>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyTimesheets>>,
+          TError,
+          Awaited<ReturnType<typeof listMyTimesheets>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyTimesheets<TData = Awaited<ReturnType<typeof listMyTimesheets>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimesheets>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListMyTimesheets<TData = Awaited<ReturnType<typeof listMyTimesheets>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyTimesheets>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListMyTimesheetsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetMyTimesheetUrl = (period: string,) => {
+
+
+
+
+  return `/api/v1/me/hr/timesheets/${period}`
+}
+
+export const getMyTimesheet = async (period: string, options?: Parameters<typeof apiFetch>[1]): Promise<TimesheetDetail> => {
+
+  return apiFetch<TimesheetDetail>(getGetMyTimesheetUrl(period),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMyTimesheetQueryKey = (period: string,) => {
+    return [
+    `/api/v1/me/hr/timesheets/${period}`
+    ] as const;
+    }
+
+
+export const getGetMyTimesheetQueryOptions = <TData = Awaited<ReturnType<typeof getMyTimesheet>>, TError = unknown>(period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyTimesheet>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMyTimesheetQueryKey(period);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyTimesheet>>> = ({ signal }) => getMyTimesheet(period, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: period !== null && period !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyTimesheet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMyTimesheetQueryResult = NonNullable<Awaited<ReturnType<typeof getMyTimesheet>>>
+export type GetMyTimesheetQueryError = unknown
+
+
+export function useGetMyTimesheet<TData = Awaited<ReturnType<typeof getMyTimesheet>>, TError = unknown>(
+ period: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyTimesheet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyTimesheet>>,
+          TError,
+          Awaited<ReturnType<typeof getMyTimesheet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyTimesheet<TData = Awaited<ReturnType<typeof getMyTimesheet>>, TError = unknown>(
+ period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyTimesheet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyTimesheet>>,
+          TError,
+          Awaited<ReturnType<typeof getMyTimesheet>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyTimesheet<TData = Awaited<ReturnType<typeof getMyTimesheet>>, TError = unknown>(
+ period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyTimesheet>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMyTimesheet<TData = Awaited<ReturnType<typeof getMyTimesheet>>, TError = unknown>(
+ period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyTimesheet>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMyTimesheetQueryOptions(period,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAcknowledgeMyTimesheetUrl = (period: string,) => {
+
+
+
+
+  return `/api/v1/me/hr/timesheets/${period}/ack`
+}
+
+export const acknowledgeMyTimesheet = async (period: string, options?: Parameters<typeof apiFetch>[1]): Promise<TimesheetAckResult> => {
+
+  return apiFetch<TimesheetAckResult>(getAcknowledgeMyTimesheetUrl(period),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getAcknowledgeMyTimesheetMutationKey = () => ['acknowledgeMyTimesheet'] as const;
+
+export const getAcknowledgeMyTimesheetMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acknowledgeMyTimesheet>>, TError,AcknowledgeMyTimesheetMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acknowledgeMyTimesheet>>, TError,AcknowledgeMyTimesheetMutationVariables, TContext> => {
+
+const mutationKey = getAcknowledgeMyTimesheetMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acknowledgeMyTimesheet>>, AcknowledgeMyTimesheetMutationVariables> = (props) => {
+          const {period} = props ?? {};
+
+          return  acknowledgeMyTimesheet(period,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcknowledgeMyTimesheetMutationResult = NonNullable<Awaited<ReturnType<typeof acknowledgeMyTimesheet>>>
+
+    export type AcknowledgeMyTimesheetMutationError = unknown
+    export type AcknowledgeMyTimesheetMutationVariables = {period: string}
+
+    export const useAcknowledgeMyTimesheet = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acknowledgeMyTimesheet>>, TError,AcknowledgeMyTimesheetMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof acknowledgeMyTimesheet>>,
+        TError,
+        AcknowledgeMyTimesheetMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAcknowledgeMyTimesheetMutationOptions(options), queryClient);
+    }
+
+export const getDownloadMyTimesheetPdfUrl = (period: string,) => {
+
+
+
+
+  return `/api/v1/me/hr/timesheets/${period}/pdf`
+}
+
+export const downloadMyTimesheetPdf = async (period: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadMyTimesheetPdfUrl(period),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadMyTimesheetPdfQueryKey = (period: string,) => {
+    return [
+    `/api/v1/me/hr/timesheets/${period}/pdf`
+    ] as const;
+    }
+
+
+export const getDownloadMyTimesheetPdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadMyTimesheetPdf>>, TError = unknown>(period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyTimesheetPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadMyTimesheetPdfQueryKey(period);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadMyTimesheetPdf>>> = ({ signal }) => downloadMyTimesheetPdf(period, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: period !== null && period !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadMyTimesheetPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadMyTimesheetPdfQueryResult = NonNullable<Awaited<ReturnType<typeof downloadMyTimesheetPdf>>>
+export type DownloadMyTimesheetPdfQueryError = unknown
+
+
+export function useDownloadMyTimesheetPdf<TData = Awaited<ReturnType<typeof downloadMyTimesheetPdf>>, TError = unknown>(
+ period: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyTimesheetPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadMyTimesheetPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadMyTimesheetPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadMyTimesheetPdf<TData = Awaited<ReturnType<typeof downloadMyTimesheetPdf>>, TError = unknown>(
+ period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyTimesheetPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadMyTimesheetPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadMyTimesheetPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadMyTimesheetPdf<TData = Awaited<ReturnType<typeof downloadMyTimesheetPdf>>, TError = unknown>(
+ period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyTimesheetPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadMyTimesheetPdf<TData = Awaited<ReturnType<typeof downloadMyTimesheetPdf>>, TError = unknown>(
+ period: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMyTimesheetPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadMyTimesheetPdfQueryOptions(period,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

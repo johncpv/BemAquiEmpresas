@@ -113,6 +113,10 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
         ["/api/v1/me/hr/time-adjustments/{id:guid}/cancel"] = "cancelar o próprio pedido pendente; o de outro funcionário responde 404 (RH-01b CA 5)",
         ["/api/v1/me/hr/time-adjustments/{id:guid}/documents"] = "anexar o documento ao próprio abono; ClamAV e prefixo do tenant (RH-01b CA 8)",
         ["/api/v1/me/hr/time-adjustments/{id:guid}/documents/{attachmentId:guid}"] = "baixar só o documento que o próprio funcionário enviou ao pedido dele (RH-01b CA 8)",
+        ["/api/v1/me/hr/timesheets"] = "Meu espelho: os períodos (o em aberto e os fechados) só do funcionário da sessão (RH-01c CA 8)",
+        ["/api/v1/me/hr/timesheets/{period}"] = "Meu espelho do período, só do funcionário da sessão; employeeId na query responde 400 (RH-01c CA 8)",
+        ["/api/v1/me/hr/timesheets/{period}/ack"] = "\"Li e confirmo\" do próprio espelho fechado, ciência sem valor legal (RH-01c CA 15)",
+        ["/api/v1/me/hr/timesheets/{period}/pdf"] = "o próprio espelho fechado em PDF, sem CPF, salário, motivo de saúde nem localização (RH-01c CA 18)",
     };
 
     private static bool IsSelfService(RouteEndpoint e) =>

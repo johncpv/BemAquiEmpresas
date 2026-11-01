@@ -21,4 +21,6 @@ export const HrParameterKind = {
   CostCenter: 'CostCenter',
   ExportLayout: 'ExportLayout',
   Geolocation: 'Geolocation',
+  Minutes: 'Minutes',
+  Toggle: 'Toggle',
 } as const;

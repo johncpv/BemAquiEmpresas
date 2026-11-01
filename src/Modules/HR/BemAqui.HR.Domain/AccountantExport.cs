@@ -188,10 +188,92 @@ public static class AccountantLayoutV1
     }
 }
 
-/// <summary>Layouts do pacote para a contadora disponíveis (P-06): o padrão <c>v1</c>; os adicionais entram aqui como plug-ins.</summary>
+/// <summary>Espelho fechado de um funcionário para o <c>ponto.csv</c> (RH-01c CA 17): os totais congelados, em minutos.</summary>
+public sealed record AccountantTimesheet(
+    string EmployeeKey,
+    string Name,
+    DateOnly Start,
+    DateOnly End,
+    int WorkedDays,
+    int ExpectedMinutes,
+    int WorkedMinutes,
+    int OvertimeMinutes,
+    int AbsenceDays,
+    int AbsenceMinutes,
+    int LateMinutes,
+    int JustifiedMinutes,
+    IReadOnlyDictionary<AbsenceReason, int> JustifiedByReason,
+    int? BankMonthMinutes,
+    int? BankBalanceMinutes);
+
+/// <summary>
+/// Layout padrão do sistema <c>v2</c> (RH-01c CA 17): o <c>v1</c> mais o <c>ponto.csv</c>, um funcionário por linha, com os totais do espelho
+/// fechado. Horas em "hh:mm" (176:00, -3:20). O motivo de saúde do abono nunca sai pelo nome: entra como "Ausência justificada".
+/// </summary>
+public static class AccountantLayoutV2
+{
+    public const string Version = "v2";
+    public const string TimesheetFile = "ponto.csv";
+
+    public static IReadOnlyList<string> TimesheetHeader { get; } =
+    [
+        "matricula_ou_cpf", "nome", "inicio", "fim", "dias_trabalhados", "horas_esperadas", "horas_trabalhadas", "horas_extras", "faltas_dias", "faltas_horas",
+        "atrasos_horas", "horas_abonadas", "abonos_por_motivo", "banco_periodo", "banco_acumulado",
+    ];
+
+    /// <summary>"Falta justificada 4:00 | Ausência justificada 8:48": motivos na ordem da lista única, os de saúde somados como "Ausência justificada".</summary>
+    public static string? ByReason(IReadOnlyDictionary<AbsenceReason, int> byReason)
+    {
+        ArgumentNullException.ThrowIfNull(byReason);
+        var groups = new List<(string Label, int Minutes)>();
+        var health = 0;
+        foreach (var r in AbsenceReasons.All)
+        {
+            var minutes = byReason.GetValueOrDefault(r.Code);
+            if (minutes <= 0)
+            {
+                continue;
+            }
+
+            if (r.IsHealth)
+            {
+                health += minutes;
+            }
+            else
+            {
+                groups.Add((r.Label, minutes));
+            }
+        }
+
+        if (health > 0)
+        {
+            groups.Add((TimeAdjustmentRules.ProtectedLabel, health));
+        }
+
+        return groups.Count == 0 ? null : string.Join(" | ", groups.Select(g => $"{g.Label} {TimesheetRules.Clock(g.Minutes)}"));
+    }
+
+    public static IReadOnlyList<IReadOnlyList<string?>> TimesheetRows(IEnumerable<AccountantTimesheet> sheets)
+    {
+        ArgumentNullException.ThrowIfNull(sheets);
+        return sheets.OrderBy(s => s.Name, StringComparer.Ordinal).ThenBy(s => s.EmployeeKey, StringComparer.Ordinal).Select(s => (IReadOnlyList<string?>)
+        [
+            s.EmployeeKey, s.Name, AccountantLayoutV1.Date(s.Start), AccountantLayoutV1.Date(s.End), s.WorkedDays.ToString(CultureInfo.InvariantCulture),
+            TimesheetRules.Clock(s.ExpectedMinutes), TimesheetRules.Clock(s.WorkedMinutes), TimesheetRules.Clock(s.OvertimeMinutes), s.AbsenceDays.ToString(CultureInfo.InvariantCulture),
+            TimesheetRules.Clock(s.AbsenceMinutes), TimesheetRules.Clock(s.LateMinutes), TimesheetRules.Clock(s.JustifiedMinutes), ByReason(s.JustifiedByReason),
+            s.BankMonthMinutes is { } month ? TimesheetRules.Clock(month) : null, s.BankBalanceMinutes is { } balance ? TimesheetRules.Clock(balance) : null,
+        ]).ToList();
+    }
+}
+
+/// <summary>
+/// Layouts do pacote para a contadora disponíveis (P-06): o padrão <c>v2</c> (RH-01c, com o <c>ponto.csv</c>) e o <c>v1</c> (sem o ponto,
+/// para quem já conferiu o v1 com a contadora); os adicionais entram aqui como plug-ins.
+/// </summary>
 public static class AccountantLayouts
 {
-    public const string Default = AccountantLayoutV1.Version;
+    public const string Default = AccountantLayoutV2.Version;
 
-    public static IReadOnlyList<(string Code, string Name)> Available { get; } = [(AccountantLayoutV1.Version, "Layout padrão do sistema v1")];
+    public static IReadOnlyList<(string Code, string Name)> Available { get; } =
+        [(AccountantLayoutV2.Version, "Layout padrão do sistema v2 (com o ponto)"), (AccountantLayoutV1.Version, "Layout padrão do sistema v1 (sem o ponto)")];
 }
