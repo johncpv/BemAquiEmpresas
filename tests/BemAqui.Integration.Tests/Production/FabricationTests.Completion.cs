@@ -14,22 +14,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// PRD-06a1, conclusão da OS e fabricação concluída do projeto: "Pronta para concluir" gravada e a migration (CA 1), diálogo e conclusão com o
-/// evento na mesma transação (CA 2, 3 e 5), bloqueios (CA 4), a ação da qualidade recusada (CA 6), a cadeia até a parcela (CA 7), projeto já
-/// fabricado à mão (CA 8), registro manual com e sem OS (CA 9), estorno com aviso e reconclusão (CA 10), estorno recusado (CA 11), consulta
-/// (CA 12), três camadas e IDOR (CA 13), concorrência (CA 14) e histórico (CA 15). Cada teste filtra pelos ids que criou.
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private static readonly object[] FabricationMilestones =
+    protected static readonly object[] FabricationMilestones =
     [
         new { description = "Sinal", percent = 60m, trigger = "Event", triggerEvent = "Signature", dueDate = (string?)null, daysAfterEvent = 0 },
         new { description = "Fabricação concluída", percent = 40m, trigger = "Event", triggerEvent = "FabricationDone", dueDate = (string?)null, daysAfterEvent = 10 },
     ];
 
     /// <summary>Projeto com {n} equipamentos (uma OS de fabricação cada, roteiro C → M sem qualidade) e a parcela "fabricação concluída".</summary>
-    private async Task<(HttpClient Owner, Guid Project, Guid Contract, List<Guid> Orders)> CompletionDatasetAsync(int equipments = 1, object[]? milestones = null)
+    protected async Task<(HttpClient Owner, Guid Project, Guid Contract, List<Guid> Orders)> CompletionDatasetAsync(int equipments = 1, object[]? milestones = null)
     {
         var (_, owner) = await ActorAsync(Group.OwnerSeedKey);
         var center = await CenterAsync("Montagem");
@@ -51,7 +45,7 @@ public partial class FabricationTests
     }
 
     /// <summary>O supervisor conclui as etapas que faltam pelo "Concluir etapa" (PRD-02), até a OS ficar pronta para concluir.</summary>
-    private static async Task FinishStepsAsync(HttpClient supervisor, Guid orderId)
+    protected static async Task FinishStepsAsync(HttpClient supervisor, Guid orderId)
     {
         for (var round = 0; round < 10; round++)
         {
@@ -68,19 +62,19 @@ public partial class FabricationTests
     }
 
     /// <summary>"Concluir OS" com a confirmação do custo zerado (PRD-06a2 CA 7): estas OS não têm horas nem material.</summary>
-    private static async Task<HttpResponseMessage> CompleteOrderAsync(HttpClient client, Guid orderId, uint version) =>
+    protected static async Task<HttpResponseMessage> CompleteOrderAsync(HttpClient client, Guid orderId, uint version) =>
         await client.SendAsync(Post($"{Base}/{orderId}/complete", new { version, confirmZeroCost = true }));
 
-    private static async Task<HttpResponseMessage> ReverseOrderAsync(HttpClient client, Guid orderId, uint version, string? reason = "Medida errada na cabine") =>
+    protected static async Task<HttpResponseMessage> ReverseOrderAsync(HttpClient client, Guid orderId, uint version, string? reason = "Medida errada na cabine") =>
         await client.SendAsync(Post($"{Base}/{orderId}/reverse-completion", new { reason, version }));
 
-    private Task<List<BemAqui.Finance.Domain.Receivable>> FabricationTitlesAsync(Guid contract) =>
+    protected Task<List<BemAqui.Finance.Domain.Receivable>> FabricationTitlesAsync(Guid contract) =>
         WithDbAsync(db => db.Receivables.AsNoTracking().Where(r => r.ContractId == contract && r.TriggerEvent == TriggerEvent.FabricationDone).ToListAsync());
 
-    private Task<BemAqui.Commercial.Domain.Project> ProjectAsync(Guid project) => WithDbAsync(db => db.Projects.AsNoTracking().SingleAsync(p => p.Id == project));
+    protected Task<BemAqui.Commercial.Domain.Project> ProjectAsync(Guid project) => WithDbAsync(db => db.Projects.AsNoTracking().SingleAsync(p => p.Id == project));
 
     /// <summary>Todos os textos de uma resposta JSON, já sem o escape de acentos, para conferir mensagens.</summary>
-    private static async Task<string> TextsAsync(HttpClient client, string url)
+    protected static async Task<string> TextsAsync(HttpClient client, string url)
     {
         var root = await OkAsync(await client.GetAsync(url));
         var texts = new List<string>();
@@ -98,7 +92,16 @@ public partial class FabricationTests
         Walk(root);
         return string.Join('\n', texts);
     }
+}
 
+/// <summary>
+/// PRD-06a1, conclusão da OS e fabricação concluída do projeto: "Pronta para concluir" gravada e a migration (CA 1), diálogo e conclusão com o
+/// evento na mesma transação (CA 2, 3 e 5), bloqueios (CA 4), a ação da qualidade recusada (CA 6), a cadeia até a parcela (CA 7), projeto já
+/// fabricado à mão (CA 8), registro manual com e sem OS (CA 9), estorno com aviso e reconclusão (CA 10), estorno recusado (CA 11), consulta
+/// (CA 12), três camadas e IDOR (CA 13), concorrência (CA 14) e histórico (CA 15). Cada teste filtra pelos ids que criou.
+/// </summary>
+public partial class FabricationDeliveryTests
+{
     [Fact]
     public async Task Ultima_etapa_grava_pronta_para_concluir_no_filtro_aguardando_voce_e_a_migration_ajusta_as_antigas()
     {

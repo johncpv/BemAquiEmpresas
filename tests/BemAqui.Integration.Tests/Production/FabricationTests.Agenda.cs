@@ -7,23 +7,26 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// DSH-04 CA 2 e 13 na Produção: "Qualidade para decidir" segue a fila "aguardando" da PRD-05 (quem apontou etapa da tentativa não vê,
-/// salvo a "Autoinspeção") e some depois da decisão. O banco desta classe tem dados de outros testes: as conferências são por contagem
-/// relativa entre dois usuários criados aqui, não pelas 5 primeiras linhas.
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private const string QualityCategory = "production.quality_pending";
+    protected const string QualityCategory = "production.quality_pending";
 
-    private static async Task<(int Count, string Why)> QualityAgendaAsync(HttpClient client)
+    protected static async Task<(int Count, string Why)> QualityAgendaAsync(HttpClient client)
     {
         var view = await OkAsync(await client.GetAsync("/api/v1/me/agenda?categories=" + QualityCategory));
         view.GetProperty("failures").GetArrayLength().Should().Be(0, view.GetProperty("failures").ToString());
         var item = view.GetProperty("items").EnumerateArray().Where(i => i.GetProperty("category").GetString() == QualityCategory).Select(i => (JsonElement?)i).FirstOrDefault();
         return item is { } found ? (found.GetProperty("count").GetInt32(), found.GetProperty("why").GetString()!) : (0, string.Empty);
     }
+}
 
+/// <summary>
+/// DSH-04 CA 2 e 13 na Produção: "Qualidade para decidir" segue a fila "aguardando" da PRD-05 (quem apontou etapa da tentativa não vê,
+/// salvo a "Autoinspeção") e some depois da decisão. O banco desta classe tem dados de outros testes: as conferências são por contagem
+/// relativa entre dois usuários criados aqui, não pelas 5 primeiras linhas.
+/// </summary>
+public partial class FabricationShopfloorTests
+{
     [Fact]
     public async Task Pauta_qualidade_segrega_quem_apontou_mostra_autoinspecao_e_some_depois_de_decidir()
     {

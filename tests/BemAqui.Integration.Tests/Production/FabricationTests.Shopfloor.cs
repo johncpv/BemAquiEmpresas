@@ -13,17 +13,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// PRD-03a, app do operador e apontamento: fila e busca (CA 1 a 3), funcionário ativo (CA 4), anexos pela fila (CA 6), iniciar,
-/// pausar, retomar, sair e finalizar (CA 7 a 17), supervisor (CA 18 a 22), tempo real (CA 23), DTO sem custo (CA 25), três camadas e
-/// IDOR (CA 28, 29), toques repetidos (CA 30) e auditoria (CA 31). Dados no banco desta classe; cada teste usa o próprio roteiro.
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private const string Shopfloor = "/api/v1/shopfloor";
+    protected const string Shopfloor = "/api/v1/shopfloor";
 
     /// <summary>Dois centros (o do operador e outro) e um roteiro C (outro centro) → M (centro do operador, checklist) → Q (qualidade).</summary>
-    private async Task<(HttpClient Owner, Guid MyCenter, Guid OtherCenter, Guid Project, List<Guid> Orders)> ShopfloorDatasetAsync(int orders = 1, bool approval = false, string[]? checklist = null)
+    protected async Task<(HttpClient Owner, Guid MyCenter, Guid OtherCenter, Guid Project, List<Guid> Orders)> ShopfloorDatasetAsync(int orders = 1, bool approval = false, string[]? checklist = null)
     {
         var (_, owner) = await ActorAsync(Group.OwnerSeedKey);
         var mine = await CenterAsync("Montagem", "Linha 1");
@@ -44,7 +39,7 @@ public partial class FabricationTests
     }
 
     /// <summary>Usuário no grupo dado (Operadores por padrão), ligado a um funcionário ativo cujo cargo tem o centro padrão.</summary>
-    private async Task<(Guid UserId, Guid EmployeeId, HttpClient Client, string Name)> OperatorAsync(Guid? center, string group = "operators", bool link = true, bool onLeave = false)
+    protected async Task<(Guid UserId, Guid EmployeeId, HttpClient Client, string Name)> OperatorAsync(Guid? center, string group = "operators", bool link = true, bool onLeave = false)
     {
         var (userId, client) = await ActorAsync(group);
         var name = "Diego " + Guid.NewGuid().ToString("N")[..6];
@@ -80,30 +75,30 @@ public partial class FabricationTests
         return (userId, employeeId, client, name);
     }
 
-    private static HttpRequestMessage Tap(string url, object? body = null, Guid? key = null) => Post(url, body ?? new { }, key);
+    protected static HttpRequestMessage Tap(string url, object? body = null, Guid? key = null) => Post(url, body ?? new { }, key);
 
-    private static async Task<JsonElement> OkAsync(HttpResponseMessage response)
+    protected static async Task<JsonElement> OkAsync(HttpResponseMessage response)
     {
         response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
         return await JsonAsync(response);
     }
 
-    private static async Task<JsonElement> QueueAsync(HttpClient client) => await OkAsync(await client.GetAsync(Shopfloor + "/queue"));
+    protected static async Task<JsonElement> QueueAsync(HttpClient client) => await OkAsync(await client.GetAsync(Shopfloor + "/queue"));
 
-    private async Task<Guid> StepIdAsync(Guid orderId, int sequence) =>
+    protected async Task<Guid> StepIdAsync(Guid orderId, int sequence) =>
         await WithDbAsync(db => db.ProductionOrderSteps.AsNoTracking().Where(s => s.OrderId == orderId && s.Sequence == sequence).Select(s => s.Id).SingleAsync());
 
-    private async Task<ProductionOrderStep> StepAsync(Guid stepId) => await WithDbAsync(db => db.ProductionOrderSteps.AsNoTracking().SingleAsync(s => s.Id == stepId));
+    protected async Task<ProductionOrderStep> StepAsync(Guid stepId) => await WithDbAsync(db => db.ProductionOrderSteps.AsNoTracking().SingleAsync(s => s.Id == stepId));
 
-    private async Task<ProductionOrder> OrderAsync(Guid orderId) => await WithDbAsync(db => db.ProductionOrders.AsNoTracking().SingleAsync(o => o.Id == orderId));
+    protected async Task<ProductionOrder> OrderAsync(Guid orderId) => await WithDbAsync(db => db.ProductionOrders.AsNoTracking().SingleAsync(o => o.Id == orderId));
 
-    private async Task<List<LaborEntry>> EntriesAsync(Guid stepId) =>
+    protected async Task<List<LaborEntry>> EntriesAsync(Guid stepId) =>
         await WithDbAsync(db => db.LaborEntries.AsNoTracking().Where(e => e.OrderStepId == stepId).OrderBy(e => e.StartedAt).ToListAsync());
 
-    private async Task<int> OutboxAsync<T>(Guid id) => (await WithDbAsync(db => db.OutboxMessages.AsNoTracking().Where(m => m.Type == typeof(T).FullName).ToListAsync())).Count(m => m.Payload.Contains(id.ToString()));
+    protected async Task<int> OutboxAsync<T>(Guid id) => (await WithDbAsync(db => db.OutboxMessages.AsNoTracking().Where(m => m.Type == typeof(T).FullName).ToListAsync())).Count(m => m.Payload.Contains(id.ToString()));
 
     /// <summary>Marca todos os itens do checklist da etapa pelo app (CA 13).</summary>
-    private static async Task CheckAllAsync(HttpClient client, Guid stepId)
+    protected static async Task CheckAllAsync(HttpClient client, Guid stepId)
     {
         var detail = await OkAsync(await client.GetAsync($"{Shopfloor}/steps/{stepId}"));
         foreach (var item in detail.GetProperty("checklist").EnumerateArray())
@@ -112,7 +107,7 @@ public partial class FabricationTests
         }
     }
 
-    private async Task SetModuleReleasedAsync(string module, bool released)
+    protected async Task SetModuleReleasedAsync(string module, bool released)
     {
         await using (var scope = tenancy.Factory.Services.CreateAsyncScope())
         {
@@ -123,7 +118,15 @@ public partial class FabricationTests
         tenancy.Factory.Services.GetRequiredService<BemAqui.BuildingBlocks.Tenancy.ITenantResolver>().Invalidate();
         Factory.Services.GetRequiredService<BemAqui.BuildingBlocks.Tenancy.ITenantResolver>().Invalidate();
     }
+}
 
+/// <summary>
+/// PRD-03a, app do operador e apontamento: fila e busca (CA 1 a 3), funcionário ativo (CA 4), anexos pela fila (CA 6), iniciar,
+/// pausar, retomar, sair e finalizar (CA 7 a 17), supervisor (CA 18 a 22), tempo real (CA 23), DTO sem custo (CA 25), três camadas e
+/// IDOR (CA 28, 29), toques repetidos (CA 30) e auditoria (CA 31). Dados no banco desta classe; cada teste usa o próprio roteiro.
+/// </summary>
+public partial class FabricationShopfloorTests
+{
     private sealed class ClosedBom : IBomGate
     {
         public Task<bool> IsReleasedAsync(Guid productionOrderId, CancellationToken cancellationToken = default) => Task.FromResult(false);
