@@ -267,6 +267,7 @@ public partial class AssetTests
         order.GetProperty("downtimeTo").GetString().Should().Be(Iso(day), "4 h no total, 4 h por dia: um dia útil");
 
         await WithScopeAsync(sp => sp.GetRequiredService<BemAquiDbContext>().Database.ExecuteSqlAsync($"DELETE FROM production.schedule_runs WHERE status = 'Pending'"));
+        var runsBefore = await WithScopeAsync(sp => sp.GetRequiredService<IProductionDb>().ScheduleRunsView.CountAsync());
         await DrainAssetsOutboxAsync();
         var stored = (await DowntimesOfAsync(orderId)).Should().ContainSingle().Subject;
         stored.WorkCenterId.Should().Be(center);
@@ -274,8 +275,9 @@ public partial class AssetTests
         stored.StartsOn.Should().Be(from);
         var capacity = await WithScopeAsync(sp => sp.GetRequiredService<IWorkCenterCapacity>().GetAvailableHoursAsync(center, from, from));
         capacity!.Days.Single().Hours.Should().Be(full - 4m, "CA 8: as horas do centro − 4 h paradas");
-        (await WithScopeAsync(sp => sp.GetRequiredService<IProductionDb>().ScheduleRunsView.AnyAsync(r => r.Status == ScheduleRunStatus.Pending)))
-            .Should().BeTrue("CA 10: a parada pede o recálculo agrupado do plano");
+        // O job de recálculo pode já ter pegado o pedido (sai de Pending): vale qualquer pedido feito depois da parada.
+        (await WithScopeAsync(sp => sp.GetRequiredService<IProductionDb>().ScheduleRunsView.CountAsync()))
+            .Should().BeGreaterThan(runsBefore, "CA 10: a parada pede o recálculo agrupado do plano");
         var listed = await OkAsync(await (await ActorAsync("owner")).GetAsync($"/api/v1/production/work-centers/{center}/downtimes"));
         listed.EnumerateArray().Single(d => d.GetProperty("orderId").GetGuid() == orderId).GetProperty("orderNumber").GetString().Should().Be(order.GetProperty("number").GetString());
 
