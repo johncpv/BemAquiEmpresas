@@ -99,7 +99,7 @@ export function FabAssetPage() {
             <Link to="/app/patrimonio/bens/$id" params={{ id: asset.id }} search={{ aba: 'manutencao' } as never} data-floor-target="" className={shortcut + ' bg-primary text-primary-foreground'}>Abrir OS de manutenção corretiva</Link>
           </Can>
           <Can perm="assets.edit">
-            <Link to="/app/patrimonio/bens/$id" params={{ id: asset.id }} search={{ aba: 'movimentacoes' } as never} data-floor-target="" className={shortcut + ' border-2 border-input bg-card'}>Registrar movimentação</Link>
+            <Link to="/app/patrimonio/bens/$id" params={{ id: asset.id }} search={{ aba: 'movimentacoes', acao: 'movimentar' } as never} data-floor-target="" className={shortcut + ' border-2 border-input bg-card'}>Registrar movimentação</Link>
           </Can>
           <Link to="/app/patrimonio/bens/$id" params={{ id: asset.id }} data-floor-target="" className={shortcut + ' border-2 border-input bg-card'}>Ver ficha completa</Link>
           <div className="sm:hidden"><ReadTagEntry tone="button" /></div>

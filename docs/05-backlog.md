@@ -581,7 +581,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-PAT-2, R-PRP-6 (D), R-COM-3, R-SEC-5.
 - CA: QR gerado no servidor só com a URL `/b/{etiqueta}`; PDF de etiqueta no tamanho do parâmetro (seed 50 × 25 mm) e em grade A4; leitura pelo `BarcodeDetector` e "Ler etiqueta" no `/fab`, depois do login, com `assets.view` conferido antes; `returnUrl` só relativo; 404 uniforme.
 
-**PAT-02 [ ] Patrimônio: movimentação de bens e baixa (P)** — 6.4, ordem 13 — `Ready` — [story](stories/PAT-02-movimentacao-bens.md)
+**PAT-02 [x] Patrimônio: movimentação de bens e baixa (P)** — 6.4, ordem 13 — `Done` (E2E no fechamento da feature) — [story](stories/PAT-02-movimentacao-bens.md)
 - Requisitos: R-PAT-3, R-PRP-1, R-PRP-6 (D), R-SEC-5.
 - CA: transferência de local, responsável e centro com histórico imutável; lote; baixa com motivo e reativação; venda do bem com "Lançar título a receber" pré-preenchido.
 

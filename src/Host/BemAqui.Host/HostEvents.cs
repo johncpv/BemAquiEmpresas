@@ -120,6 +120,8 @@ public static class HostEvents
             .AddHandler<BemAqui.Inventory.Contracts.StockIssued, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
             .AddHandler<BemAqui.Inventory.Contracts.StockReturned, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
             .AddHandler<BemAqui.Production.Contracts.LaborEntryClosed, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
-            .AddHandler<BemAqui.Production.Contracts.LaborEntryCorrected, BemAqui.Dashboard.Application.DashboardGenerationConsumer>();
+            .AddHandler<BemAqui.Production.Contracts.LaborEntryCorrected, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            // PAT-02: o bem baixado sai da capacidade pelo IAssets; o evento é só aviso (sem consumidor obrigatório).
+            .AddEvent<BemAqui.Assets.Contracts.AssetDisposed>();
     }
 }

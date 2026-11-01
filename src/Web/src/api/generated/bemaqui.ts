@@ -63,20 +63,29 @@ import type {
   ApproveStepInput,
   ApproverOption,
   AskHelpRequest,
+  AssetBuyerChoice,
   AssetCardView,
   AssetDetail,
+  AssetDisposalInput,
   AssetFiles,
   AssetInput,
   AssetInvoiceChoice,
   AssetLabelBatchInput,
   AssetLabelBatchResult,
+  AssetMovementInput,
+  AssetMovementResult,
+  AssetMovementView,
   AssetParametersInput,
   AssetParametersView,
+  AssetReactivationInput,
   AssetResponsibleChoice,
   AssetSiteInput,
   AssetSiteView,
   AssetSuggestionView,
   AssetSupplierChoice,
+  AssetTransferInput,
+  AssetTransferPreview,
+  AssetTransferResult,
   AssetWorkCenterChoice,
   AttachMyTimeAdjustmentDocumentBody,
   AttachTimeAdjustmentDocumentBody,
@@ -400,6 +409,7 @@ import type {
   LinkedUserView,
   ListApprovalApproversParams,
   ListApprovalRulesParams,
+  ListAssetBuyerChoicesParams,
   ListAssetInvoiceChoicesParams,
   ListAssetSitesParams,
   ListAssetSupplierChoicesParams,
@@ -81202,6 +81212,617 @@ export function useDownloadAssetFile<TData = Awaited<ReturnType<typeof downloadA
 
 
 
+export const getListAssetMovementsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/assets/assets/${id}/movements`
+}
+
+export const listAssetMovements = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<AssetMovementView[]> => {
+
+  return apiFetch<AssetMovementView[]>(getListAssetMovementsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAssetMovementsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/assets/assets/${id}/movements`
+    ] as const;
+    }
+
+
+export const getListAssetMovementsQueryOptions = <TData = Awaited<ReturnType<typeof listAssetMovements>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetMovements>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAssetMovementsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAssetMovements>>> = ({ signal }) => listAssetMovements(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAssetMovements>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAssetMovementsQueryResult = NonNullable<Awaited<ReturnType<typeof listAssetMovements>>>
+export type ListAssetMovementsQueryError = unknown
+
+
+export function useListAssetMovements<TData = Awaited<ReturnType<typeof listAssetMovements>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetMovements>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAssetMovements>>,
+          TError,
+          Awaited<ReturnType<typeof listAssetMovements>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAssetMovements<TData = Awaited<ReturnType<typeof listAssetMovements>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetMovements>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAssetMovements>>,
+          TError,
+          Awaited<ReturnType<typeof listAssetMovements>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAssetMovements<TData = Awaited<ReturnType<typeof listAssetMovements>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetMovements>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListAssetMovements<TData = Awaited<ReturnType<typeof listAssetMovements>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetMovements>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAssetMovementsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMoveAssetUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/assets/assets/${id}/movements`
+}
+
+export const moveAsset = async (id: string,
+    assetMovementInput: AssetMovementInput, options?: Parameters<typeof apiFetch>[1]): Promise<AssetMovementResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AssetMovementResult>(getMoveAssetUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(assetMovementInput)
+  }
+);}
+
+
+
+
+
+export const getMoveAssetMutationKey = () => ['moveAsset'] as const;
+
+export const getMoveAssetMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveAsset>>, TError,MoveAssetMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof moveAsset>>, TError,MoveAssetMutationVariables, TContext> => {
+
+const mutationKey = getMoveAssetMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof moveAsset>>, MoveAssetMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  moveAsset(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MoveAssetMutationResult = NonNullable<Awaited<ReturnType<typeof moveAsset>>>
+    export type MoveAssetMutationBody = AssetMovementInput
+    export type MoveAssetMutationError = unknown
+    export type MoveAssetMutationVariables = {id: string;data: AssetMovementInput}
+
+    export const useMoveAsset = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveAsset>>, TError,MoveAssetMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof moveAsset>>,
+        TError,
+        MoveAssetMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMoveAssetMutationOptions(options), queryClient);
+    }
+
+export const getGetAssetMovementUrl = (id: string,
+    movementId: string,) => {
+
+
+
+
+  return `/api/v1/assets/assets/${id}/movements/${movementId}`
+}
+
+export const getAssetMovement = async (id: string,
+    movementId: string, options?: Parameters<typeof apiFetch>[1]): Promise<AssetMovementView> => {
+
+  return apiFetch<AssetMovementView>(getGetAssetMovementUrl(id,movementId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAssetMovementQueryKey = (id: string,
+    movementId: string,) => {
+    return [
+    `/api/v1/assets/assets/${id}/movements/${movementId}`
+    ] as const;
+    }
+
+
+export const getGetAssetMovementQueryOptions = <TData = Awaited<ReturnType<typeof getAssetMovement>>, TError = unknown>(id: string,
+    movementId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetMovement>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAssetMovementQueryKey(id,movementId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAssetMovement>>> = ({ signal }) => getAssetMovement(id,movementId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && movementId !== null && movementId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAssetMovement>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAssetMovementQueryResult = NonNullable<Awaited<ReturnType<typeof getAssetMovement>>>
+export type GetAssetMovementQueryError = unknown
+
+
+export function useGetAssetMovement<TData = Awaited<ReturnType<typeof getAssetMovement>>, TError = unknown>(
+ id: string,
+    movementId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetMovement>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAssetMovement>>,
+          TError,
+          Awaited<ReturnType<typeof getAssetMovement>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAssetMovement<TData = Awaited<ReturnType<typeof getAssetMovement>>, TError = unknown>(
+ id: string,
+    movementId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetMovement>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAssetMovement>>,
+          TError,
+          Awaited<ReturnType<typeof getAssetMovement>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAssetMovement<TData = Awaited<ReturnType<typeof getAssetMovement>>, TError = unknown>(
+ id: string,
+    movementId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetMovement>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetAssetMovement<TData = Awaited<ReturnType<typeof getAssetMovement>>, TError = unknown>(
+ id: string,
+    movementId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetMovement>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAssetMovementQueryOptions(id,movementId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDisposeAssetUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/assets/assets/${id}/dispose`
+}
+
+export const disposeAsset = async (id: string,
+    assetDisposalInput: AssetDisposalInput, options?: Parameters<typeof apiFetch>[1]): Promise<AssetMovementResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AssetMovementResult>(getDisposeAssetUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(assetDisposalInput)
+  }
+);}
+
+
+
+
+
+export const getDisposeAssetMutationKey = () => ['disposeAsset'] as const;
+
+export const getDisposeAssetMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disposeAsset>>, TError,DisposeAssetMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof disposeAsset>>, TError,DisposeAssetMutationVariables, TContext> => {
+
+const mutationKey = getDisposeAssetMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof disposeAsset>>, DisposeAssetMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  disposeAsset(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DisposeAssetMutationResult = NonNullable<Awaited<ReturnType<typeof disposeAsset>>>
+    export type DisposeAssetMutationBody = AssetDisposalInput
+    export type DisposeAssetMutationError = unknown
+    export type DisposeAssetMutationVariables = {id: string;data: AssetDisposalInput}
+
+    export const useDisposeAsset = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disposeAsset>>, TError,DisposeAssetMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof disposeAsset>>,
+        TError,
+        DisposeAssetMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDisposeAssetMutationOptions(options), queryClient);
+    }
+
+export const getReactivateAssetUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/assets/assets/${id}/reactivate`
+}
+
+export const reactivateAsset = async (id: string,
+    assetReactivationInput: AssetReactivationInput, options?: Parameters<typeof apiFetch>[1]): Promise<AssetMovementResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AssetMovementResult>(getReactivateAssetUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(assetReactivationInput)
+  }
+);}
+
+
+
+
+
+export const getReactivateAssetMutationKey = () => ['reactivateAsset'] as const;
+
+export const getReactivateAssetMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateAsset>>, TError,ReactivateAssetMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reactivateAsset>>, TError,ReactivateAssetMutationVariables, TContext> => {
+
+const mutationKey = getReactivateAssetMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reactivateAsset>>, ReactivateAssetMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reactivateAsset(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReactivateAssetMutationResult = NonNullable<Awaited<ReturnType<typeof reactivateAsset>>>
+    export type ReactivateAssetMutationBody = AssetReactivationInput
+    export type ReactivateAssetMutationError = unknown
+    export type ReactivateAssetMutationVariables = {id: string;data: AssetReactivationInput}
+
+    export const useReactivateAsset = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivateAsset>>, TError,ReactivateAssetMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reactivateAsset>>,
+        TError,
+        ReactivateAssetMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReactivateAssetMutationOptions(options), queryClient);
+    }
+
+export const getPreviewAssetTransferUrl = () => {
+
+
+
+
+  return `/api/v1/assets/assets/transfer/preview`
+}
+
+export const previewAssetTransfer = async (assetTransferInput: AssetTransferInput, options?: Parameters<typeof apiFetch>[1]): Promise<AssetTransferPreview> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AssetTransferPreview>(getPreviewAssetTransferUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(assetTransferInput)
+  }
+);}
+
+
+
+
+
+export const getPreviewAssetTransferMutationKey = () => ['previewAssetTransfer'] as const;
+
+export const getPreviewAssetTransferMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewAssetTransfer>>, TError,PreviewAssetTransferMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewAssetTransfer>>, TError,PreviewAssetTransferMutationVariables, TContext> => {
+
+const mutationKey = getPreviewAssetTransferMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewAssetTransfer>>, PreviewAssetTransferMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewAssetTransfer(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewAssetTransferMutationResult = NonNullable<Awaited<ReturnType<typeof previewAssetTransfer>>>
+    export type PreviewAssetTransferMutationBody = AssetTransferInput
+    export type PreviewAssetTransferMutationError = unknown
+    export type PreviewAssetTransferMutationVariables = {data: AssetTransferInput}
+
+    export const usePreviewAssetTransfer = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewAssetTransfer>>, TError,PreviewAssetTransferMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof previewAssetTransfer>>,
+        TError,
+        PreviewAssetTransferMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPreviewAssetTransferMutationOptions(options), queryClient);
+    }
+
+export const getTransferAssetsUrl = () => {
+
+
+
+
+  return `/api/v1/assets/assets/transfer`
+}
+
+export const transferAssets = async (assetTransferInput: AssetTransferInput, options?: Parameters<typeof apiFetch>[1]): Promise<AssetTransferResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AssetTransferResult>(getTransferAssetsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(assetTransferInput)
+  }
+);}
+
+
+
+
+
+export const getTransferAssetsMutationKey = () => ['transferAssets'] as const;
+
+export const getTransferAssetsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transferAssets>>, TError,TransferAssetsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof transferAssets>>, TError,TransferAssetsMutationVariables, TContext> => {
+
+const mutationKey = getTransferAssetsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof transferAssets>>, TransferAssetsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  transferAssets(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TransferAssetsMutationResult = NonNullable<Awaited<ReturnType<typeof transferAssets>>>
+    export type TransferAssetsMutationBody = AssetTransferInput
+    export type TransferAssetsMutationError = unknown
+    export type TransferAssetsMutationVariables = {data: AssetTransferInput}
+
+    export const useTransferAssets = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transferAssets>>, TError,TransferAssetsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof transferAssets>>,
+        TError,
+        TransferAssetsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTransferAssetsMutationOptions(options), queryClient);
+    }
+
 export const getGetAssetByTagUrl = (tag: string,) => {
 
 
@@ -82216,6 +82837,108 @@ export function useListAssetSupplierChoices<TData = Awaited<ReturnType<typeof li
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListAssetSupplierChoicesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListAssetBuyerChoicesUrl = (params?: ListAssetBuyerChoicesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/assets/choices/buyers?${stringifiedParams}` : `/api/v1/assets/choices/buyers`
+}
+
+export const listAssetBuyerChoices = async (params?: ListAssetBuyerChoicesParams, options?: Parameters<typeof apiFetch>[1]): Promise<AssetBuyerChoice[]> => {
+
+  return apiFetch<AssetBuyerChoice[]>(getListAssetBuyerChoicesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAssetBuyerChoicesQueryKey = (params?: ListAssetBuyerChoicesParams,) => {
+    return [
+    `/api/v1/assets/choices/buyers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAssetBuyerChoicesQueryOptions = <TData = Awaited<ReturnType<typeof listAssetBuyerChoices>>, TError = unknown>(params?: ListAssetBuyerChoicesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetBuyerChoices>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAssetBuyerChoicesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAssetBuyerChoices>>> = ({ signal }) => listAssetBuyerChoices(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAssetBuyerChoices>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAssetBuyerChoicesQueryResult = NonNullable<Awaited<ReturnType<typeof listAssetBuyerChoices>>>
+export type ListAssetBuyerChoicesQueryError = unknown
+
+
+export function useListAssetBuyerChoices<TData = Awaited<ReturnType<typeof listAssetBuyerChoices>>, TError = unknown>(
+ params: undefined |  ListAssetBuyerChoicesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetBuyerChoices>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAssetBuyerChoices>>,
+          TError,
+          Awaited<ReturnType<typeof listAssetBuyerChoices>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAssetBuyerChoices<TData = Awaited<ReturnType<typeof listAssetBuyerChoices>>, TError = unknown>(
+ params?: ListAssetBuyerChoicesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetBuyerChoices>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAssetBuyerChoices>>,
+          TError,
+          Awaited<ReturnType<typeof listAssetBuyerChoices>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAssetBuyerChoices<TData = Awaited<ReturnType<typeof listAssetBuyerChoices>>, TError = unknown>(
+ params?: ListAssetBuyerChoicesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetBuyerChoices>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListAssetBuyerChoices<TData = Awaited<ReturnType<typeof listAssetBuyerChoices>>, TError = unknown>(
+ params?: ListAssetBuyerChoicesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssetBuyerChoices>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAssetBuyerChoicesQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

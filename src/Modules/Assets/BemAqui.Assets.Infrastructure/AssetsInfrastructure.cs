@@ -34,6 +34,13 @@ public static class AssetsInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, AssetSiteSeeder>());
         services.AddAuditableEntity<Asset>(AssetService.Module, "view", new Dictionary<string, string> { ["acquisitionValue"] = "edit" });
         services.AddAuditableEntity<AssetSite>(AssetService.Module);
+
+        // Movimentação e baixa (PAT-02): movimento imutável e auditado (quem, quando, IP; o valor da venda no histórico só com assets.edit);
+        // o movimento dá histórico ao bem (sem exclusão, CA 12 da PAT-01a); o motivo, texto livre, entra no arquivo do titular (LGPD).
+        services.TryAddScoped<AssetMovementService>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IAssetUsageProvider, AssetMovementUsage>());
+        services.AddAuditableEntity<AssetMovement>(AssetService.Module, "view", new Dictionary<string, string> { ["disposalValue"] = "edit" });
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Privacy.IPersonalDataProvider, AssetsPersonalDataProvider>());
         services.AddAttachmentOwner(AssetService.PhotoOwner, new AttachmentOwnerRules(AssetService.Module, ["image/png", "image/jpeg", "image/webp"], 5 * 1024 * 1024,
             OwnerExists: AssetExists, CanAttach: ByAssetOnly, StripImageMetadata: true));
         services.AddAttachmentOwner(AssetService.DocumentOwner, new AttachmentOwnerRules(AssetService.Module, ["application/pdf", "image/png", "image/jpeg"], 10 * 1024 * 1024,
