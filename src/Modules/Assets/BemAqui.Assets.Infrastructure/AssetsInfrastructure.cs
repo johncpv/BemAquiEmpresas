@@ -52,6 +52,20 @@ public static class AssetsInfrastructure
         services.TryAddScoped<AssetParametersService>();
         services.TryAddScoped<AssetLabelService>();
         services.AddAuditableEntity<AssetParameter>("settings");
+
+        // Manutenção (PAT-03a, ADR 0038 §1): planos, horímetro e OS auditados (antes e depois, CA 14); a OS dá histórico ao bem; o job diário
+        // (MaintenanceDueRecurringJob) avisa e abre a preventiva; a Minha pauta pelo IAgendaSource; fotos e relatório do prestador no dono
+        // MaintenanceOrder (PNG, JPG, PDF até 10 MB, foto sem EXIF/GPS), gravados só pela rota da OS (CA 13).
+        services.TryAddScoped<MaintenanceService>();
+        services.TryAddScoped<MaintenanceDueNotifier>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IAssetUsageProvider, MaintenanceUsage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, AssetsAgendaSource>());
+        services.AddAuditableEntity<MaintenancePlan>(AssetService.Module);
+        services.AddAuditableEntity<AssetMeterReading>(AssetService.Module);
+        services.AddAuditableEntity<MaintenanceOrder>(AssetService.Module);
+        services.AddAuditableEntity<MaintenanceOrderChecklistItem>(AssetService.Module);
+        services.AddAttachmentOwner(MaintenanceService.AttachmentOwner, new AttachmentOwnerRules(AssetService.Module, ["application/pdf", "image/png", "image/jpeg"], 10 * 1024 * 1024,
+            OwnerExists: MaintenanceOrderExists, CanAttach: ByOrderOnly, StripImageMetadata: true));
         services.AddAttachmentOwner(AssetLabelService.BatchOwner, new AttachmentOwnerRules(AssetService.Module, [AssetLabelService.PdfContentType],
             OwnerExists: (_, _, _) => Task.FromResult(false), CanAttach: SystemOnly));
         return services;
@@ -62,6 +76,12 @@ public static class AssetsInfrastructure
 
     private static async Task<bool> AssetExists(IServiceProvider services, Guid id, CancellationToken cancellationToken) =>
         await services.GetRequiredService<IAssetsDb>().Assets.AnyAsync(a => a.Id == id, cancellationToken);
+
+    private static async Task<bool> MaintenanceOrderExists(IServiceProvider services, Guid id, CancellationToken cancellationToken) =>
+        await services.GetRequiredService<IAssetsDb>().MaintenanceOrders.AnyAsync(o => o.Id == id, cancellationToken);
+
+    private static Task<Error?> ByOrderOnly(IServiceProvider services, Guid ownerId, CancellationToken cancellationToken) =>
+        Task.FromResult<Error?>(Error.Validation("attachment.by_maintenance_order_only", "Anexe a foto ou o relatório pela OS de manutenção."));
 
     // A rota genérica de anexos não grava foto nem documento do bem: o envio é pela rota do bem, autorizado pelo registro (CA 8).
     private static Task<Error?> ByAssetOnly(IServiceProvider services, Guid ownerId, CancellationToken cancellationToken) =>

@@ -10,9 +10,10 @@ namespace BemAqui.Assets.Application;
 /// <summary>
 /// Onde o titular aparece no Patrimônio (LGPD-01a, ADR 0037 §2; PAT-02): o funcionário nos bens de que é responsável e nos movimentos em
 /// que entregou ou recebeu o bem (com o motivo, texto livre); o terceiro comprador nas baixas por venda; o usuário nos movimentos que
-/// registrou. Só etiqueta, nome do bem, datas e o dado dele; o valor da venda só para o comprador.
+/// registrou; as OS de manutenção que o usuário abriu, executou ou cancelou (com o texto dele, PAT-03a) e as que o prestador executou. Só etiqueta,
+/// nome do bem, datas e o dado dele; o valor da venda só para o comprador.
 /// </summary>
-[PersonalDataCovers(typeof(AssetMovement))]
+[PersonalDataCovers(typeof(AssetMovement), typeof(MaintenanceOrder))]
 public sealed class AssetsPersonalDataProvider(IAssetsDb db) : IPersonalDataProvider
 {
     public string Module => "assets";
@@ -66,6 +67,30 @@ public sealed class AssetsPersonalDataProvider(IAssetsDb db) : IPersonalDataProv
                                     select new { a.Tag, m.Kind, m.MovedOn, m.CreatedAt }).ToListAsync(cancellationToken);
             blocks.Add(new PersonalDataBlock("Movimentações registradas", "assets.asset_movements", registered.Select(m => PersonalDataRecord.Of(m.CreatedAt,
                 ("Etiqueta", m.Tag), ("Tipo", Kinds[m.Kind]), ("Data", Date(m.MovedOn)), ("Registrada em", PersonalDataMask.At(m.CreatedAt)))).ToList()));
+
+            // PAT-03a: as OS de manutenção que a pessoa abriu, iniciou, concluiu ou cancelou, com o texto que ela escreveu em cada passo.
+            var orders = await (from o in db.MaintenanceOrders.AsNoTracking()
+                                join a in db.Assets.IgnoreQueryFilters().AsNoTracking() on o.AssetId equals a.Id
+                                where o.CreatedBy == user || o.StartedBy == user || o.DoneBy == user || o.CancelledBy == user
+                                orderby o.CreatedAt
+                                select new { o.Number, a.Tag, o.Type, o.CreatedBy, o.DoneBy, o.CancelledBy, o.Problem, o.WorkDone, o.CancelReason, o.CreatedAt }).ToListAsync(cancellationToken);
+            blocks.Add(new PersonalDataBlock("OS de manutenção registradas", "assets.maintenance_orders", orders.Select(o => PersonalDataRecord.Of(o.CreatedAt,
+                ("Número", o.Number), ("Etiqueta", o.Tag), ("Tipo", o.Type == MaintenanceOrderType.Preventive ? "Preventiva" : "Corretiva"),
+                ("Problema", o.CreatedBy == user ? o.Problem : null), ("O que foi feito", o.DoneBy == user ? o.WorkDone : null),
+                ("Motivo do cancelamento", o.CancelledBy == user ? o.CancelReason : null), ("Aberta em", PersonalDataMask.At(o.CreatedAt)))).ToList()));
+        }
+
+        if (subject.Kind == PersonalDataSubjectKind.Party && subject.PartyId is { } supplier)
+        {
+            // PAT-03a: as OS de manutenção executadas pelo prestador (sem os textos de quem registrou).
+            var served = await (from o in db.MaintenanceOrders.AsNoTracking()
+                                join a in db.Assets.IgnoreQueryFilters().AsNoTracking() on o.AssetId equals a.Id
+                                where o.SupplierPartyId == supplier
+                                orderby o.ScheduledOn
+                                select new { o.Number, a.Tag, a.Name, o.Type, o.Status, o.ScheduledOn, o.CreatedAt }).ToListAsync(cancellationToken);
+            blocks.Add(new PersonalDataBlock("Manutenções como prestador", "assets.maintenance_orders", served.Select(o => PersonalDataRecord.Of(o.CreatedAt,
+                ("Número", o.Number), ("Etiqueta", o.Tag), ("Bem", o.Name), ("Tipo", o.Type == MaintenanceOrderType.Preventive ? "Preventiva" : "Corretiva"),
+                ("Situação", o.Status.ToString()), ("Agendada para", Date(o.ScheduledOn)))).ToList()));
         }
 
         return blocks.Count == 0 ? null : new PersonalDataSection(Module, Title, blocks);

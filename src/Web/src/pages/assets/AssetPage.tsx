@@ -9,7 +9,8 @@ import { RecordHistory } from '@/components/history/RecordHistory'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { notifySuccess } from '@/components/ui/messages'
 import { NextSteps } from '@/components/ui/next-steps'
-import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
+import { ErrorState, Skeleton } from '@/components/ui/states'
+import { formatDate } from '@/lib/format'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
 import { useUrlTab } from '@/components/ui/url-tab'
@@ -19,6 +20,7 @@ import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { AssetDocuments } from './AssetDocuments'
+import { AssetMaintenance } from './AssetMaintenance'
 import { AssetMovements, DisposeAssetDialog, MoveAssetDialog, Notice, ReactivateAssetDialog } from './AssetMovements'
 import { AssetLabelButtons } from './AssetLabelActions'
 import { printLabel } from './label-downloads'
@@ -79,6 +81,7 @@ export function AssetPage() {
             <span className="inline-flex items-center text-sm font-semibold tabular-nums">{asset.tag}<Dica nome="Etiqueta" texto={ASSET_DICAS.etiqueta} /></span>
             <StatusChip tone={STATUS_TONES[asset.status]}>{STATUS_LABELS[asset.status]}</StatusChip>
             <Tag>{TYPE_LABELS[asset.type]}</Tag>
+            {asset.nextMaintenanceOn ? <span className="text-sm text-muted-foreground">Próxima preventiva: <b className="tabular-nums text-foreground">{formatDate(asset.nextMaintenanceOn)}</b></span> : null}
             <Link to="/app/patrimonio/bens" className="ml-2 inline-flex min-h-11 items-center text-sm font-semibold text-primary">Voltar à lista</Link>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -135,7 +138,7 @@ export function AssetPage() {
         },
         {
           id: 'manutencao', label: 'Manutenção',
-          content: <EmptyState title="Sem plano de manutenção." description={hasMaintenancePlan(asset.type) ? 'O plano preventivo e as ordens de manutenção desta máquina aparecem aqui.' : 'Os planos de manutenção são para máquinas e veículos.'} />,
+          content: <AssetMaintenance asset={asset} highlightPlan={typeof search.plano === 'string' ? search.plano : undefined} startOrder={search.acao === 'nova-os'} fromFloor={search.origem === 'fab'} />,
         },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Asset" id={asset.id} /> },
       ]} />

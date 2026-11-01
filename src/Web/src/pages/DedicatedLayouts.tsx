@@ -17,8 +17,9 @@ import { ModuleGate, ReleasedGate } from './ModuleGate'
  */
 export function ShopfloorLayout() {
   const quality = useRouterState({ select: (s) => s.location.pathname.startsWith('/fab/qualidade') })
-  // PAT-01b: a ficha do bem pela leitura da etiqueta (/fab/bens) é do módulo assets, não do app do operador.
-  const asset = useRouterState({ select: (s) => s.location.pathname.startsWith('/fab/bens') })
+  // PAT-01b e PAT-03a: a ficha do bem pela leitura da etiqueta (/fab/bens) e a OS de manutenção no celular (/fab/manutencao) são do módulo
+  // assets, não do app do operador.
+  const asset = useRouterState({ select: (s) => s.location.pathname.startsWith('/fab/bens') || s.location.pathname.startsWith('/fab/manutencao') })
   // RH-01a: "Meu ponto" (/fab/ponto) é autoatendimento do RH (ADR 0035): basta o módulo hr liberado; o vínculo vem da API.
   const timeClock = useRouterState({ select: (s) => s.location.pathname.startsWith('/fab/ponto') })
   const device = useFloorDevice()

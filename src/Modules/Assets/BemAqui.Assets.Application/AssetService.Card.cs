@@ -1,3 +1,4 @@
+using BemAqui.Assets.Contracts;
 using BemAqui.Assets.Domain;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
@@ -33,15 +34,22 @@ public sealed partial class AssetService
         var photos = await attachments.LatestCleanAsync(PhotoOwner, [a.Id], ct);
         var employee = a.ResponsibleEmployeeId is { } r ? names.Employees.GetValueOrDefault(r) : null;
 
-        // Próxima manutenção prevista e última feita: da PAT-03a (planos e OS de manutenção); até lá, vazias.
+        // Próxima manutenção prevista (o vencimento mais próximo dos planos ativos) e a última feita (a OS concluída mais recente), PAT-03a.
+        var next = await NextMaintenanceAsync(a.Id, ct);
+        var lastDone = await db.MaintenanceOrders.AsNoTracking().Where(o => o.AssetId == a.Id && o.Status == MaintenanceOrderStatus.Done)
+            .MaxAsync(o => o.DoneAt, ct);
         return new AssetCardView(
             a.Id, a.Tag, a.Name, a.Type, a.Status,
             a.SiteId is { } s ? names.Sites.GetValueOrDefault(s) : null,
             employee?.Name, employee is { IsActive: false },
             a.WorkCenterId is { } c ? names.Centers.GetValueOrDefault(c) : null,
             photos.TryGetValue(a.Id, out var photo) ? photo : null,
-            null, null);
+            next, lastDone is { } done ? DateOnly.FromDateTime(BemAqui.BuildingBlocks.Time.BusinessTime.ToBusiness(done).DateTime) : null);
     }
+
+    /// <summary>"Próxima preventiva" (PAT-03a CA 1): o vencimento mais próximo dos planos ativos do bem (a data estimada no plano por horas).</summary>
+    private async Task<DateOnly?> NextMaintenanceAsync(Guid assetId, CancellationToken ct) =>
+        await db.MaintenancePlans.AsNoTracking().Where(p => p.AssetId == assetId && p.IsActive && p.NextDueAt != null).MinAsync(p => p.NextDueAt, ct);
 
     internal static Error TagNotFound() => Error.NotFound(TagNotFoundCode, "Etiqueta não encontrada.");
 }
