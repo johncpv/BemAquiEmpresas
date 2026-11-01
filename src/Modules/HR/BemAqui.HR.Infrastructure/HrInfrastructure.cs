@@ -50,6 +50,8 @@ public sealed class PayrollSeeder : ITenantSeeder
         var clock = tenantScope.GetRequiredService<TimeProvider>();
         await PayrollItemService.SeedAsync(db, clock, cancellationToken);
         await HrParametersService.SeedAsync(db, clock, cancellationToken);
+        // FLH-01 CA 1: o pacote de tabelas legais do ano, "A confirmar com a contadora", uma vez por tenant.
+        await PayrollTaxTableService.SeedAsync(db, clock, cancellationToken);
     }
 }
 
@@ -103,6 +105,13 @@ public static class HrInfrastructure
         services.TryAddScoped<PayrollClosingService>();
         services.TryAddScoped<IEmployeeBankAccounts, EmployeeBankAccountsContract>();
         services.AddAuditableEntity<PayrollForecast>("hr", PositionService.SensitiveAction);
+        // Tabelas legais da folha por vigência (FLH-01, ADR 0039 §1): o histórico abre com hr.view (tabela legal não é dado pessoal); as
+        // mudanças desde o último fechamento vão para o diálogo de fechamento (CA 12).
+        services.TryAddScoped<PayrollTaxTableService>();
+        services.TryAddScoped<IPayrollTaxTables>(sp => sp.GetRequiredService<PayrollTaxTableService>());
+        services.TryAddScoped<PayrollChangeNotices>();
+        services.AddAuditableEntity<PayrollTaxTable>("hr");
+        services.AddAuditableEntity<PayrollTaxTableDataset>("hr");
         // Pacote para a contadora (RH-03): um layout (o padrão v1) e as seções dele; a RH-01c registra a do ponto.
         services.TryAddScoped<AccountantExportService>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExport, StandardAccountantExport>());

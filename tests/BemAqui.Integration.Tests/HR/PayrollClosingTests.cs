@@ -198,8 +198,8 @@ public partial class PayrollClosingTests(TenancyFixture tenancy) : IClassFixture
 
     private static async Task<uint> RunVersionAsync(HttpClient client, Guid run) => (await JsonAsync(await client.GetAsync($"{Runs}/{run}"))).GetProperty("version").GetUInt32();
 
-    private static async Task<HttpResponseMessage> CloseAsync(Actor actor, Guid run, string? paymentDate, Guid? key = null, bool code = true) =>
-        await actor.Client.SendAsync(Post($"{Runs}/{run}/close", new { paymentDate, twoFactorCode = code ? actor.Codes?.Next() : null, version = await RunVersionAsync(actor.Client, run) }, key));
+    private static async Task<HttpResponseMessage> CloseAsync(Actor actor, Guid run, string? paymentDate, Guid? key = null, bool code = true, bool ack = true) =>
+        await actor.Client.SendAsync(Post($"{Runs}/{run}/close", new { paymentDate, twoFactorCode = code ? actor.Codes?.Next() : null, version = await RunVersionAsync(actor.Client, run), acknowledgedChanges = ack }, key));
 
     /// <summary>Títulos ativos da folha (salários e guias) no Finance.</summary>
     private Task<List<BemAqui.Finance.Domain.Payable>> PayrollPayablesAsync(Guid run, Tenant? tenant = null) =>

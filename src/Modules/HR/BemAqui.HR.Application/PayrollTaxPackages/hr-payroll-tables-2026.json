@@ -1,0 +1,45 @@
+{
+  "package": 2026,
+  "description": "Pacote de tabelas legais da folha de 2026 (FLH-01, ADR 0039 §1). Cada versão entra em cada tenant uma vez, \"A confirmar com a contadora\"; só vale como oficial depois da conferência. Entrada com \"pending\" não é criada: falta a fonte oficial no repositório (preencha \"content\", \"validFrom\" e \"source\" e apague \"pending\"; o próximo deploy cria a versão).",
+  "tables": [
+    {
+      "kind": "Inss",
+      "pending": "Faixas e teto do INSS de 2026 (portaria interministerial anual) ainda sem fonte oficial registrada no repositório. Cadastre pela tela ou preencha este pacote."
+    },
+    {
+      "kind": "Irrf",
+      "pending": "Tabela mensal do IRRF de 2026, dedução por dependente, desconto simplificado e a redução adicional da norma vigente ainda sem fonte oficial registrada no repositório. Cadastre pela tela ou preencha este pacote."
+    },
+    {
+      "kind": "FamilyAllowance",
+      "pending": "Remuneração máxima e cota do salário-família de 2026 ainda sem fonte oficial registrada no repositório."
+    },
+    {
+      "kind": "MinimumWage",
+      "pending": "Salário mínimo nacional de 2026 (decreto anual) ainda sem fonte oficial registrada no repositório."
+    },
+    {
+      "kind": "Fgts",
+      "pending": "Alíquotas do FGTS (mensal, multa da rescisão e aprendiz) ainda sem fonte registrada no repositório."
+    },
+    {
+      "kind": "TransportVoucher",
+      "pending": "Percentual máximo de desconto do vale-transporte ainda sem fonte registrada no repositório."
+    },
+    {
+      "kind": "EmployerCharges",
+      "validFrom": "2026-01-01",
+      "rounding": "AwayFromZero",
+      "source": "Proposta da plataforma para Lucro Presumido (decisão P-01; FLH-01 CA 4; revisão pré-Fases 4 a 8 de 21/10/2026): patronal 20%, RAT sugerido 3% pelo CNAE preponderante × FAP sugerido 1,0000, terceiros pelo FPAS sugerido 5,8%. A confirmar com a contadora.",
+      "content": {
+        "employerCharges": {
+          "taxRegime": "Lucro Presumido",
+          "employerRate": 20,
+          "ratRate": 3,
+          "fap": 1.0,
+          "thirdPartiesRate": 5.8
+        }
+      }
+    }
+  ]
+}

@@ -16,6 +16,7 @@ Lançar, para cada funcionário, os proventos e descontos que a contadora calcul
 - **Copiar do mês anterior** traz as rubricas e os valores do holerite anterior do mesmo tipo como rascunho: confira e clique em **Salvar holerite**.
 - **Importar lançamentos** recebe o arquivo da contadora no layout padrão do sistema (abaixo). O sistema mostra a prévia antes de gravar.
 - Com tudo lançado e conferido, use **Fechar folha**: os títulos a pagar dos salários e das guias aparecem na aba **Pagamentos**. Folha fechada fica só para consulta: "Folha fechada em {data}. Para mudar, reabra a folha."
+- Se alguma tabela da folha (RH → Tabelas da folha) ou parâmetro do RH mudou desde o último fechamento, o diálogo de fechamento lista cada mudança (o quê, antes e depois, quem e quando) e pede que você marque a ciência antes de fechar.
 
 ## Holerite em PDF
 - **Baixar** (na linha do funcionário) gera o holerite em PDF no layout padrão: empresa, funcionário (com o CPF mascarado: só os 3 primeiros e os 2 últimos dígitos), cargo, CBO, admissão, competência, proventos, descontos, bases do INSS, do FGTS e do IRRF, FGTS do mês e o líquido. O PDF não traz CPF completo, endereço, dados bancários nem dependentes.

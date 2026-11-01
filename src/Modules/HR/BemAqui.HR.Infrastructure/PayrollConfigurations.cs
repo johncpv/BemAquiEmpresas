@@ -115,3 +115,40 @@ internal sealed class HrParameterConfiguration : IEntityTypeConfiguration<HrPara
         b.HasIndex(e => e.Key).IsUnique().HasDatabaseName("ix_hr_parameters_key");
     }
 }
+
+/// <summary>
+/// Tabelas legais da folha (FLH-01, ADR 0039 §1): uma vigente por tipo e mês (a conferida ou a "A confirmar" que não é retificação),
+/// uma retificação pendente por versão e uma versão por tipo em cada pacote do seed. Conteúdo em jsonb; quem editou em uuid[].
+/// </summary>
+internal sealed class PayrollTaxTableConfiguration : IEntityTypeConfiguration<PayrollTaxTable>
+{
+    public void Configure(EntityTypeBuilder<PayrollTaxTable> b)
+    {
+        b.ToTable("payroll_tax_tables", HrSchema.Name);
+        b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(30);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.Rounding).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.Content).HasColumnType("jsonb");
+        b.Property(e => e.Source).HasMaxLength(PayrollTaxRules.SourceMaxLength);
+        b.Property(e => e.RectifyReason).HasMaxLength(PayrollTaxRules.ReasonMaxLength);
+        b.Property(e => e.CheckedNote).HasMaxLength(300);
+        b.Ignore(e => e.IsCurrent);
+        b.HasOne<PayrollTaxTable>().WithMany().HasForeignKey(e => e.RectifiesId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.Kind, e.ValidFrom }).IsUnique()
+            .HasFilter("status = 'Active' OR (status = 'Unconfirmed' AND rectifies_id IS NULL)").HasDatabaseName(PayrollTaxTableService.CurrentIndex);
+        b.HasIndex(e => e.RectifiesId).IsUnique().HasFilter("status = 'Unconfirmed' AND rectifies_id IS NOT NULL").HasDatabaseName(PayrollTaxTableService.PendingRectifyIndex);
+        b.HasIndex(e => new { e.SeedPackage, e.Kind }).IsUnique().HasFilter("seed_package IS NOT NULL").HasDatabaseName(PayrollTaxTableService.SeedIndex);
+    }
+}
+
+/// <summary>Dataset da contadora usado na conferência pelo Proprietário único (FLH-01 CA 6): os casos em jsonb.</summary>
+internal sealed class PayrollTaxTableDatasetConfiguration : IEntityTypeConfiguration<PayrollTaxTableDataset>
+{
+    public void Configure(EntityTypeBuilder<PayrollTaxTableDataset> b)
+    {
+        b.ToTable("payroll_tax_table_datasets", HrSchema.Name);
+        b.Property(e => e.Cases).HasColumnType("jsonb");
+        b.HasOne<PayrollTaxTable>().WithMany().HasForeignKey(e => e.TableId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => e.TableId);
+    }
+}
