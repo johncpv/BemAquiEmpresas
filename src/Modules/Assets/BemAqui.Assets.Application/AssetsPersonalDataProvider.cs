@@ -71,5 +71,53 @@ public sealed class AssetsPersonalDataProvider(IAssetsDb db) : IPersonalDataProv
         return blocks.Count == 0 ? null : new PersonalDataSection(Module, Title, blocks);
     }
 
+    public Task<PersonalDataAnonymizationPlan?> PlanAnonymizationAsync(PersonalDataAnonymizationContext context, CancellationToken cancellationToken = default) =>
+        RunAsync(context, false, cancellationToken);
+
+    public Task<PersonalDataAnonymizationPlan?> AnonymizeAsync(PersonalDataAnonymizationContext context, CancellationToken cancellationToken = default) =>
+        RunAsync(context, true, cancellationToken);
+
+    /// <summary>
+    /// LGPD-01b CA 2 e 4: os bens e os movimentos ficam (histórico imutável do patrimônio, com etiqueta, datas, locais e valores; o titular
+    /// aparece só pelo id). O motivo do movimento é texto livre que pode citar o titular: nos movimentos em que o funcionário entregou ou
+    /// recebeu o bem, ou em que o terceiro comprou o bem, ele vira o marcador, como os outros textos livres. Sem obrigação legal, sai já.
+    /// </summary>
+    private async Task<PersonalDataAnonymizationPlan?> RunAsync(PersonalDataAnonymizationContext context, bool apply, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        var subject = context.Subject;
+        var employee = subject.EmployeeId;
+        var party = subject.Kind == PersonalDataSubjectKind.Party ? subject.PartyId : null;
+        if (employee is null && party is null)
+        {
+            return null;
+        }
+
+        var plan = new PersonalDataPlanBuilder(Module, Title);
+        if (employee is not null)
+        {
+            plan.Keep("Bens sob responsabilidade: mantidos, com o responsável", "assets.assets", await db.Assets.CountAsync(a => a.ResponsibleEmployeeId == employee, ct));
+        }
+
+        var movements = await db.AssetMovements
+            .Where(m => (employee != null && (m.FromEmployeeId == employee || m.ToEmployeeId == employee)) || (party != null && m.BuyerPartyId == party))
+            .ToListAsync(ct);
+        plan.Keep("Movimentações de bens: mantidas, com etiqueta, datas, locais e valores", "assets.asset_movements", movements.Count);
+        var withReason = movements.Where(m => !string.IsNullOrWhiteSpace(m.Reason) && m.Reason != AssetMovementRules.TerminatedReason).ToList();
+        if (apply)
+        {
+            foreach (var m in withReason.Where(m => m.Reason != context.Marker))
+            {
+                db.Entry(m).Property(x => x.Reason).CurrentValue = context.Marker;
+            }
+
+            await db.SaveChangesAsync(ct);
+        }
+
+        plan.Anonymize("Motivo das movimentações (texto livre)", "assets.asset_movements", withReason.Count);
+        var built = plan.Build();
+        return built.Items.Count == 0 ? null : built;
+    }
+
     private static string Date(DateOnly date) => date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
 }

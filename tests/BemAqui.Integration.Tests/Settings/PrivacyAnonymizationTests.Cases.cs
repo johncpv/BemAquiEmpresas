@@ -9,6 +9,8 @@ using BemAqui.BuildingBlocks.Privacy;
 using BemAqui.Finance.Application;
 using BemAqui.Finance.Contracts;
 using BemAqui.Finance.Domain;
+using BemAqui.Fiscal.Application;
+using BemAqui.Fiscal.Domain;
 using BemAqui.HR.Application;
 using BemAqui.HR.Application.TimeClock;
 using BemAqui.HR.Contracts;
@@ -359,6 +361,127 @@ public partial class PrivacyAnonymizationTests
         // Canário: o comentário da revisão e o motivo da reabertura do desligado não sobram em nenhuma tabela fora da auditoria.
         (await CanaryHitsAsync(comment + " " + gone.Employee.ToString("N")[^6..], gone.Name)).Should().BeEmpty();
         (await CanaryHitsAsync(reopen)).Should().Equal(["hr.timesheets.reopen_reason"], "só o espelho do funcionário ativo continua com o motivo, retido");
+    }
+
+    [Fact]
+    public async Task NFe_emitida_fica_com_o_destinatario_ate_o_prazo_fiscal_e_perde_o_contato_ja_e_o_rascunho_descartado_sai_inteiro()
+    {
+        var owner = await ActorAsync(Group.OwnerSeedKey, totp: true);
+        var tag = Guid.NewGuid().ToString("N")[..8];
+        var name = $"Canario{tag} Nota Pereira";
+        var email = $"nota.{tag}@exemplo.com";
+        var oldStreet = $"Rua Canario {tag} Antiga";
+        var draftStreet = $"Rua Canario {tag} Rascunho";
+        var phone = "11" + string.Concat(tag.Where(char.IsAsciiDigit).Concat("987654321").Take(9));
+        var cpf = NewCpf();
+        var today = DateOnly.Parse(Today, System.Globalization.CultureInfo.InvariantCulture);
+        Guid old = default, recent = default, discarded = default, rejected = default;
+        var partyId = await InTenantAsync(async sp =>
+        {
+            var parties = sp.GetRequiredService<IPartiesDb>();
+            var party = new Party { Kind = PartyKind.PF, LegalName = name, Document = cpf, Email = email, CreatedAt = DateTimeOffset.UtcNow };
+            parties.Parties.Add(party);
+            await parties.SaveChangesAsync();
+
+            var fiscal = sp.GetRequiredService<IFiscalDb>();
+            OutgoingInvoice Note(string street, OutgoingInvoiceStatus status, DateOnly? issuedOn, long? number, bool discard = false)
+            {
+                var invoice = new OutgoingInvoice
+                {
+                    PartyId = party.Id, RecipientName = name, RecipientDocument = cpf, RecipientStateRegistration = "ISENTO", RecipientEmail = email, RecipientPhone = phone,
+                    RecipientStreet = street, RecipientNumber = "10", RecipientDistrict = "Centro", RecipientPostalCode = "01001000", RecipientCityName = "São Paulo", RecipientState = "SP",
+                    EmailCc = $"{email}, fiscal.outra@exemplo.com", TotalAmount = 4_321.09m, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow,
+                };
+                fiscal.OutgoingInvoices.Add(invoice);
+                var entry = fiscal.Entry(invoice);
+                entry.Property(i => i.Status).CurrentValue = status;
+                entry.Property(i => i.IssuedOn).CurrentValue = issuedOn;
+                entry.Property(i => i.Number).CurrentValue = number;
+                entry.Property(i => i.Series).CurrentValue = number is null ? null : 1;
+                entry.Property(i => i.AccessKey).CurrentValue = number is null ? null : "3519" + tag + number;
+                entry.Property(i => i.DiscardedAt).CurrentValue = discard ? DateTimeOffset.UtcNow : null;
+                return invoice;
+            }
+
+            // Autorizada em 2019 (exercício + 5 anos já passou), autorizada hoje (retida), rascunho descartado e rejeitada à espera da correção.
+            old = Note(oldStreet, OutgoingInvoiceStatus.Authorized, new DateOnly(2019, 3, 10), 101).Id;
+            recent = Note("Rua Atual 1", OutgoingInvoiceStatus.Authorized, today, 102).Id;
+            discarded = Note(draftStreet, OutgoingInvoiceStatus.Draft, null, null, discard: true).Id;
+            rejected = Note("Rua Atual 1", OutgoingInvoiceStatus.Rejected, null, 103).Id;
+            await fiscal.SaveChangesAsync();
+            return party.Id;
+        });
+
+        var request = await RequestAsync(owner.Client, "Party", partyId);
+        var id = request.GetProperty("id").GetGuid();
+        var items = Items(await PreviewAsync(owner.Client, id), "fiscal");
+        var until = new DateOnly(today.Year + 5, 12, 31).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        items.Should().Contain(i => i.Action == "Keep" && i.Label.StartsWith("Notas fiscais de saída emitidas", StringComparison.Ordinal) && i.Count == 2);
+        items.Should().Contain(i => i.Action == "Anonymize" && i.Label.StartsWith("Nome, CPF", StringComparison.Ordinal) && i.Count == 1);
+        items.Should().Contain(i => i.Action == "Retain" && i.Label.StartsWith("Nome, CPF", StringComparison.Ordinal) && i.Count == 1 && i.Until == until, "fim do exercício da nota + 5 anos");
+        items.Should().Contain(i => i.Action == "Retain" && i.Label.StartsWith("Endereço", StringComparison.Ordinal) && i.Count == 1 && i.Until == until);
+        items.Should().Contain(i => i.Action == "Anonymize" && i.Label.StartsWith("E-mail e telefone", StringComparison.Ordinal) && i.Count == 2);
+        items.Should().Contain(i => i.Action == "Anonymize" && i.Label.StartsWith("Destinatário dos rascunhos", StringComparison.Ordinal) && i.Count == 1);
+        items.Should().Contain(i => i.Action == "Retain" && i.Label.StartsWith("Destinatário das notas em andamento", StringComparison.Ordinal) && i.Count == 1);
+
+        (await AnonymizeAsync(owner, request, name, owner.Codes!.Next())).StatusCode.Should().Be(HttpStatusCode.Accepted);
+        (await RunJobAsync(owner, id)).GetProperty("anonymizationStatus").GetString().Should().Be("Done");
+        var marker = "Titular anonimizado " + request.GetProperty("number").GetString();
+        var notes = await InTenantAsync(sp => sp.GetRequiredService<IFiscalDb>().OutgoingInvoices.AsNoTracking().Where(i => i.PartyId == partyId).ToDictionaryAsync(i => i.Id));
+
+        var o = notes[old];
+        (o.Number, o.Status, o.TotalAmount, o.AccessKey).Should().Be((101L, OutgoingInvoiceStatus.Authorized, 4_321.09m, "3519" + tag + "101"), "a nota emitida continua existindo");
+        (o.RecipientName, o.RecipientDocument, o.RecipientStateRegistration, o.RecipientStreet, o.RecipientPostalCode).Should().Be((marker, (string?)null, (string?)null, (string?)null, (string?)null));
+        (o.RecipientCityName, o.RecipientState).Should().Be(("São Paulo", "SP"), "município e UF não identificam");
+        var r = notes[recent];
+        (r.RecipientName, r.RecipientDocument, r.RecipientStreet).Should().Be((name, cpf, "Rua Atual 1"), "retido até o fim do prazo fiscal");
+        foreach (var n in new[] { o, r })
+        {
+            (n.RecipientEmail, n.RecipientPhone, n.EmailCc).Should().Be(((string?)null, (string?)null, $"{marker}, fiscal.outra@exemplo.com"), "contato não é exigido no XML");
+        }
+
+        var d = notes[discarded];
+        (d.RecipientName, d.RecipientDocument, d.RecipientStreet, d.RecipientEmail, d.RecipientPhone).Should().Be((marker, (string?)null, (string?)null, (string?)null, (string?)null));
+        var j = notes[rejected];
+        (j.RecipientName, j.RecipientEmail).Should().Be((name, email), "nota em andamento fica até o desfecho");
+
+        // Canário: o endereço da nota antiga e o do rascunho não sobram em nenhuma tabela fora da auditoria; o telefone e o e-mail, só na nota em andamento.
+        (await CanaryHitsAsync(oldStreet, draftStreet)).Should().BeEmpty();
+        (await CanaryHitsAsync(phone, email)).Should().BeEquivalentTo(["fiscal.outgoing_invoices.recipient_email", "fiscal.outgoing_invoices.recipient_phone", "fiscal.outgoing_invoices.email_cc"],
+            "o contato sai do cadastro e das notas emitidas; fica só na nota em andamento");
+    }
+
+    [Fact]
+    public async Task Movimentacao_de_bem_fica_e_o_motivo_em_texto_livre_vira_o_marcador()
+    {
+        var owner = await ActorAsync(Group.OwnerSeedKey, totp: true);
+        var tag = Guid.NewGuid().ToString("N")[..8];
+        var reason = $"Entregue a canario {tag} na obra";
+        var employee = await EmployeeAsync(owner.Client);
+        var (assetId, movementId) = await InTenantAsync(async sp =>
+        {
+            var assets = sp.GetRequiredService<BemAqui.Assets.Application.IAssetsDb>();
+            var asset = new BemAqui.Assets.Domain.Asset { Name = "Furadeira " + tag, Type = BemAqui.Assets.Contracts.AssetType.Tool, CreatedAt = DateTimeOffset.UtcNow };
+            assets.Assets.Add(asset);
+            assets.Entry(asset).Property(a => a.Tag).CurrentValue = "LG" + tag;
+            var movement = BemAqui.Assets.Domain.AssetMovement.Transfer(asset, new BemAqui.Assets.Domain.AssetPlacement(null, employee.Id, null), new DateOnly(2026, 1, 5), reason, null, DateTimeOffset.UtcNow);
+            assets.AssetMovements.Add(movement);
+            await assets.SaveChangesAsync();
+            return (asset.Id, movement.Id);
+        });
+
+        var request = await RequestAsync(owner.Client, "Employee", employee.Id);
+        var items = Items(await PreviewAsync(owner.Client, request.GetProperty("id").GetGuid()), "assets");
+        items.Should().Contain(i => i.Action == "Keep" && i.Label.StartsWith("Bens sob responsabilidade", StringComparison.Ordinal) && i.Count == 1);
+        items.Should().Contain(i => i.Action == "Keep" && i.Label.StartsWith("Movimentações de bens", StringComparison.Ordinal) && i.Count == 1);
+        items.Should().Contain(i => i.Action == "Anonymize" && i.Label.StartsWith("Motivo das movimentações", StringComparison.Ordinal) && i.Count == 1);
+        (await AnonymizeAsync(owner, request, employee.Name, owner.Codes!.Next())).StatusCode.Should().Be(HttpStatusCode.Accepted);
+        (await RunJobAsync(owner, request.GetProperty("id").GetGuid())).GetProperty("anonymizationStatus").GetString().Should().Be("Done");
+
+        var moved = await InTenantAsync(sp => sp.GetRequiredService<BemAqui.Assets.Application.IAssetsDb>().AssetMovements.AsNoTracking().SingleAsync(m => m.Id == movementId));
+        (moved.Reason, moved.ToEmployeeId, moved.AssetId, moved.MovedOn).Should().Be(("Titular anonimizado " + request.GetProperty("number").GetString(), (Guid?)employee.Id, assetId, new DateOnly(2026, 1, 5)),
+            "o movimento fica; só o texto livre sai");
+        (await CanaryHitsAsync(reason)).Should().BeEmpty();
     }
 
     [Fact]
