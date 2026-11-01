@@ -15,22 +15,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// EST-03, requisição de material da OS e devolução, com PostgreSQL real (movimenta estoque e custo): BOM liberada pela ENG-02, reserva
-/// pela EST-02, baixa síncrona pelo motor com a reserva consumida e o evento na mesma transação (CA 1, 2), excedente e material extra
-/// (CA 3), aprovação acima de R$ 1.000,00 (CA 4), pedido do operador (CA 5 a 7), razão do projeto pelo consumidor (CA 8, 9), Custos da
-/// OS (CA 10), recomposição (CA 11), devolução pelo custo original (CA 12), OS cancelada (CA 13), estorno (CA 14), três camadas e IDOR
-/// (CA 15), concorrência (CA 16) e histórico (CA 17). Cada teste cria a própria OS, os itens e os locais e filtra pelos ids dele.
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private const string Inventory = "/api/v1/inventory";
+    protected const string Inventory = "/api/v1/inventory";
 
     /// <summary>
     /// OS com BOM liberada de um item de estoque (necessidade = <paramref name="perUnit"/> × 2), estoque recebido a <paramref name="unitCost"/>
     /// num local novo e as reservas já feitas (consumidor do BomReleased pela inbox). Devolve o dono, a OS, o projeto, o item e a reserva.
     /// </summary>
-    private async Task<(HttpClient Owner, Guid Order, Guid Project, Guid Item, JsonElement Line)> ReservedOrderAsync(decimal perUnit = 6m, decimal stock = 20m, decimal unitCost = 100m)
+    protected async Task<(HttpClient Owner, Guid Order, Guid Project, Guid Item, JsonElement Line)> ReservedOrderAsync(decimal perUnit = 6m, decimal stock = 20m, decimal unitCost = 100m)
     {
         var (owner, order, _, _) = await BomOrderAsync(quantity: 2m);
         var (_, engineer) = await ActorAsync("engineering");
@@ -43,37 +36,52 @@ public partial class FabricationTests
         return (owner, order, (await OrderAsync(order)).ProjectId, steel, line);
     }
 
-    private static object ReqLine(JsonElement draftLine, decimal quantity, string? overReason = null, Guid? lot = null) => new
+    protected static object ReqLine(JsonElement draftLine, decimal quantity, string? overReason = null, Guid? lot = null) => new
     {
         reservationId = draftLine.GetProperty("reservationId").GetGuid(), itemId = draftLine.GetProperty("itemId").GetGuid(),
         locationId = draftLine.GetProperty("locationId").GetGuid(), lotId = lot, quantity, overReason,
     };
 
-    private static Task<HttpResponseMessage> IssueAsync(HttpClient client, Guid order, Guid? key = null, params object[] lines) =>
+    protected static Task<HttpResponseMessage> IssueAsync(HttpClient client, Guid order, Guid? key = null, params object[] lines) =>
         client.SendAsync(Post($"{Inventory}/production-orders/{order}/requisitions", new { lines }, key));
 
-    private static async Task<JsonElement> CreatedAsync(HttpResponseMessage response)
+    protected static async Task<JsonElement> CreatedAsync(HttpResponseMessage response)
     {
         response.StatusCode.Should().Be(HttpStatusCode.Created, await response.Content.ReadAsStringAsync());
         return await JsonAsync(response);
     }
 
-    private async Task<List<StockMovement>> MovementsOfAsync(Guid order) =>
+    protected async Task<List<StockMovement>> MovementsOfAsync(Guid order) =>
         await WithDbAsync(db => db.StockMovements.AsNoTracking().Where(m => m.ProductionOrderId == order).OrderBy(m => m.PostedSeq).ToListAsync());
 
-    private async Task<List<Reservation>> ReservationsOfAsync(Guid order) =>
+    protected async Task<List<Reservation>> ReservationsOfAsync(Guid order) =>
         await WithDbAsync(db => db.Reservations.AsNoTracking().Where(r => r.ProductionOrderId == order).ToListAsync());
 
-    private async Task<List<ProjectCost>> MaterialLedgerAsync(Guid project) =>
+    protected async Task<List<ProjectCost>> MaterialLedgerAsync(Guid project) =>
         await WithDbAsync(db => db.ProjectCosts.AsNoTracking().Where(c => c.ProjectId == project && (c.Source == ProjectCostSource.StockIssue || c.Source == ProjectCostSource.StockReturn))
             .OrderBy(c => c.RecordedAt).ToListAsync());
 
-    private static async Task<decimal> RealizedMaterialAsync(HttpClient owner, Guid project)
+    protected static async Task<decimal> RealizedMaterialAsync(HttpClient owner, Guid project)
     {
         var costs = await OkAsync(await owner.GetAsync($"/api/v1/projects/{project}/costs"));
         return costs.GetProperty("lines").EnumerateArray().Single(l => l.GetProperty("costType").GetString() == "Material").GetProperty("realized").GetDecimal();
     }
 
+    protected sealed class FixedClock(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
+    }
+}
+
+/// <summary>
+/// EST-03, requisição de material da OS e devolução, com PostgreSQL real (movimenta estoque e custo): BOM liberada pela ENG-02, reserva
+/// pela EST-02, baixa síncrona pelo motor com a reserva consumida e o evento na mesma transação (CA 1, 2), excedente e material extra
+/// (CA 3), aprovação acima de R$ 1.000,00 (CA 4), pedido do operador (CA 5 a 7), razão do projeto pelo consumidor (CA 8, 9), Custos da
+/// OS (CA 10), recomposição (CA 11), devolução pelo custo original (CA 12), OS cancelada (CA 13), estorno (CA 14), três camadas e IDOR
+/// (CA 15), concorrência (CA 16) e histórico (CA 17). Cada teste cria a própria OS, os itens e os locais e filtra pelos ids dele.
+/// </summary>
+public partial class FabricationOrdersTests
+{
     [Fact]
     public async Task Baixa_sincrona_consome_a_reserva_grava_o_movimento_e_o_evento_na_mesma_transacao()
     {
@@ -468,10 +476,5 @@ public partial class FabricationTests
         var timeline = await OkAsync(await owner.GetAsync($"/api/v1/projects/{project}/timeline"));
         var number = (await OrderAsync(order)).Number;
         timeline.EnumerateArray().Select(e => e.GetProperty("title").GetString()).Should().Contain($"Material baixado para a {number}: R$ 1.200,00");
-    }
-
-    private sealed class FixedClock(DateTimeOffset now) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => now;
     }
 }

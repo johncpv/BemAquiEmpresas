@@ -33,6 +33,13 @@ export const DICAS = {
   semItem: 'Serviço ou despesa na mesma nota: não entra no estoque e vai para a conta do plano escolhida.',
 } as const
 
+/** Textos das `<Dica>` do "Receber pela nota" (FIS-04b). */
+export const RECEIVE_DICAS = {
+  duplicatas: 'Duplicatas são as parcelas de cobrança que o fornecedor pôs na nota, cada uma com número, vencimento e valor. Cada duplicata vira um título a pagar.',
+  semDuplicatas: 'A nota não trouxe duplicatas: os vencimentos vêm da condição do pedido.',
+  credito: 'Crédito de impostos é o tributo da nota que a empresa recupera na apuração. O padrão é nenhum: ICMS, IPI, PIS e COFINS ficam no custo, até a contadora confirmar em Configurações → Fiscal, seção Entrada.',
+} as const
+
 /** Chave de acesso em blocos de 4, para ler e conferir no portal. */
 export function formatAccessKey(key: string) {
   return key.replace(/(\d{4})(?=\d)/g, '$1 ')

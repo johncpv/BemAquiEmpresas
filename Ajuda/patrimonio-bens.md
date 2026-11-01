@@ -14,12 +14,28 @@ Ver tudo o que a empresa tem (máquinas, ferramentas, mobiliário, veículos e T
 - Filtre por tipo, local, centro de trabalho, responsável e situação. Os filtros ficam no endereço da página: dá para salvar ou mandar o link.
 - Clique na etiqueta para abrir a ficha do bem.
 - Clique em **Novo bem** para cadastrar.
+- Para imprimir as etiquetas com QR code, marque os bens (ou filtre a lista) e clique em **Imprimir etiquetas**. Até 50 o PDF baixa na hora; acima disso, o sino avisa quando estiver pronto.
+
+**Transferir em lote**
+- Marque os bens e clique em **Transferir selecionados**. Escolha o local, o responsável ou o centro de destino (o que ficar em "Manter o de cada bem" não muda), a data e o motivo.
+- O diálogo mostra cada bem, de → para, antes de confirmar. Um bem baixado ou que já está no destino aparece com o motivo, e nada é transferido até você tirá-lo da seleção.
+- Com o filtro **Responsável desligado**, a lista mostra só os bens de funcionários que saíram da empresa e o motivo já vem "Responsável desligado".
+
+**Baixar bem**
+- A baixa é feita na ficha do bem, em **Baixar bem**: escolha o motivo (Venda, Descarte, Perda ou roubo, Doação ou Outro) e a data.
+- O bem baixado some desta lista e dos seletores. Para vê-lo, use o filtro de situação **Baixados**.
+
+**Venda do bem**
+- Na baixa por **Venda**, informe o valor e, se quiser, o comprador (um cliente do cadastro).
+- Depois de baixar, o próximo passo **Lançar título a receber** abre o título já preenchido. Nada é gravado no Financeiro sem a sua confirmação lá.
 
 ## Perguntas frequentes
 **O que é a etiqueta?** O código do bem, gerado ao salvar. Ele não muda e não é reaproveitado, nem quando o bem é excluído. É ele que vai na etiqueta com QR code.
 
 **Por que não vejo a coluna Valor de aquisição?** O valor só aparece para quem tem a permissão de editar o patrimônio.
 
-**O que quer dizer cada situação?** Ativo: em uso. Em manutenção: com uma ordem de manutenção aberta. Baixado: o bem saiu da empresa (venda, descarte ou perda).
+**O que quer dizer cada situação?** Ativo: em uso. Em manutenção: com uma ordem de manutenção aberta. Baixado: o bem saiu da empresa (venda, descarte, perda, doação ou outro motivo).
 
-**O que é a marca "Desligado" no responsável?** O funcionário responsável pelo bem foi desligado. Abra o bem e troque o responsável.
+**Sumiu um bem da lista.** Ele pode ter sido baixado. Filtre a situação por **Baixados**.
+
+**O que é a marca "Desligado" no responsável?** O funcionário responsável pelo bem foi desligado. Use o filtro **Responsável desligado** e **Transferir selecionados** para passar os bens a outra pessoa.

@@ -172,12 +172,12 @@ public sealed class AccountantExportService(
         {
             using var json = JsonDocument.Parse(changes);
             return json.RootElement.TryGetProperty("reference", out var reference) && reference.TryGetProperty("new", out var value) && value.ValueKind == JsonValueKind.String
-                ? value.GetString() ?? AccountantLayouts.Default
-                : AccountantLayouts.Default;
+                ? value.GetString() ?? AccountantLayoutV1.Version
+                : AccountantLayoutV1.Version;
         }
         catch (JsonException)
         {
-            return AccountantLayouts.Default;
+            return AccountantLayoutV1.Version;
         }
     }
 

@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace BemAqui.Integration.Tests.Assets;
 
@@ -56,6 +57,8 @@ public partial class AssetTests(TenancyFixture tenancy) : IClassFixture<TenancyF
             Task.FromResult<IReadOnlyList<IncomingInvoiceSummary>>(ids.Where(Invoices.ContainsKey).Select(id => Invoices[id]).ToList());
     }
 
+    private readonly Messaging.CapturingJobClient _jobs = new();
+
     private WebApplicationFactory<Program>? _factory;
 
     private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s =>
@@ -63,6 +66,8 @@ public partial class AssetTests(TenancyFixture tenancy) : IClassFixture<TenancyF
         s.AddScoped<IAssetUsageProvider, FakeUsage>();
         s.AddScoped<IIncomingInvoices, FakeInvoices>();
         s.AddSingleton<IVirusScanner>(new FakeScanner());
+        s.RemoveAll<Hangfire.IBackgroundJobClient>();
+        s.AddSingleton<Hangfire.IBackgroundJobClient>(_jobs);
     }));
 
     private static async Task<JsonElement> JsonAsync(HttpResponseMessage response) => await response.Content.ReadFromJsonAsync<JsonElement>();

@@ -54,4 +54,6 @@ export interface FiscalSettingsValues {
   freightMode: number;
   volumeSpecies: string;
   includeDuplicates: boolean;
+  /** @nullable */
+  inputTaxCredit?: string[] | null;
 }

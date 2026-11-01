@@ -65,7 +65,7 @@ public sealed record IncomingInvoiceView(
     IncomingOrderView Order, bool WithoutOrder, string? WithoutOrderReason, string? WithoutOrderApprovedByName, IReadOnlyList<IncomingInvoiceItemView> Items,
     IReadOnlyList<IncomingDivergence> Divergences, int PendingItems, string? CheckBlockedReason,
     string? ImportedByName, DateTimeOffset ImportedAt, string? CheckedByName, DateTimeOffset? CheckedAt, string? RejectedReason, string? RejectedByName, DateTimeOffset? RejectedAt,
-    Guid? XmlAttachmentId, IncomingInvoicePermissions Can);
+    Guid? XmlAttachmentId, IncomingInvoicePermissions Can, Guid? GoodsReceiptId = null, string? InputTaxCreditApplied = null, decimal InputTaxCreditAmount = 0m);
 
 /// <summary>
 /// De-para de um item (CA 7, 8 e 9): o nosso item (com o fator, obrigatório quando a unidade do fornecedor não tem conversão) ou "Sem item

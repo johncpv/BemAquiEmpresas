@@ -17,6 +17,12 @@ public static class HostEvents
             .AddEvent<BemAqui.HR.Contracts.HourlyCostChanged>()
             // FIS-02a → FIS-02b CA 6: valores fiscais mudaram; as regras afetadas ganham o aviso "A revisar" (nenhuma muda sozinha).
             .AddHandler<BemAqui.Fiscal.Contracts.FiscalSettingsChanged, BemAqui.Fiscal.Application.TaxRules.TaxRuleReviewConsumer>()
+            // FIS-03a CA 11 e 12 (ADR 0025 adendo, D4): a NF-e autorizada vira o imposto realizado na razão do projeto (InvoiceTax); nenhum
+            // consumidor no Inventory (a nota só referencia o romaneio). Rejeitada e denegada são só aviso.
+            .AddHandler<BemAqui.Fiscal.Contracts.InvoiceAuthorized, BemAqui.Commercial.Application.InvoiceTaxConsumer>()
+            .AddHandler<BemAqui.Fiscal.Contracts.InvoiceAuthorized, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            .AddEvent<BemAqui.Fiscal.Contracts.InvoiceRejected>()
+            .AddEvent<BemAqui.Fiscal.Contracts.InvoiceDenied>()
             .AddEvent<BemAqui.HR.Contracts.EmployeeTerminated>()
             .AddEvent<BemAqui.HR.Contracts.EmployeeSalaryChanged>()
             // Orçamentos e contratos (COM-01b a COM-04b).
@@ -83,6 +89,9 @@ public static class HostEvents
             // fica paga (ou volta a fechada no estorno) pela fonte, no consumidor da OP.
             .AddEvent<BemAqui.HR.Contracts.PayrollClosed>()
             .AddEvent<BemAqui.HR.Contracts.PayrollReopened>()
+            // RH-01c: fechamento e reabertura do período de ponto, só aviso (a folha lê o espelho fechado pela tabela do próprio HR).
+            .AddEvent<BemAqui.HR.Contracts.TimesheetPeriodClosed>()
+            .AddEvent<BemAqui.HR.Contracts.TimesheetPeriodReopened>()
             .AddHandler<BemAqui.Finance.Contracts.PaymentOrderPaid, BemAqui.HR.Application.PayrollPaymentConsumers>()
             .AddHandler<BemAqui.Finance.Contracts.PaymentOrderReversed, BemAqui.HR.Application.PayrollPaymentConsumers>()
             // CMP-03a (ADR 0024 §1): eventos do pedido de compra só para aviso e projeção; os títulos previstos nascem na transação da aprovação.
@@ -111,6 +120,8 @@ public static class HostEvents
             .AddHandler<BemAqui.Inventory.Contracts.StockIssued, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
             .AddHandler<BemAqui.Inventory.Contracts.StockReturned, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
             .AddHandler<BemAqui.Production.Contracts.LaborEntryClosed, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
-            .AddHandler<BemAqui.Production.Contracts.LaborEntryCorrected, BemAqui.Dashboard.Application.DashboardGenerationConsumer>();
+            .AddHandler<BemAqui.Production.Contracts.LaborEntryCorrected, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            // PAT-02: o bem baixado sai da capacidade pelo IAssets; o evento é só aviso (sem consumidor obrigatório).
+            .AddEvent<BemAqui.Assets.Contracts.AssetDisposed>();
     }
 }

@@ -38,6 +38,19 @@ internal sealed class AssetConfiguration : IEntityTypeConfiguration<Asset>
     }
 }
 
+/// <summary><c>assets.parameters</c> (PAT-01b): chave única, valor em texto (<c>50x25</c>).</summary>
+internal sealed class AssetParameterConfiguration : IEntityTypeConfiguration<AssetParameter>
+{
+    public void Configure(EntityTypeBuilder<AssetParameter> b)
+    {
+        b.ToTable("parameters", AssetsSchema.Name);
+        b.HasKey(e => e.Id).HasName("pk_assets_parameters");
+        b.Property(e => e.Key).HasMaxLength(64);
+        b.Property(e => e.Value).HasMaxLength(100);
+        b.HasIndex(e => e.Key).IsUnique().HasDatabaseName("ix_assets_parameters_key");
+    }
+}
+
 /// <summary><c>assets.sites</c> (ADR 0038 §2): nome único entre os não excluídos e <c>seed_key</c> única.</summary>
 internal sealed class AssetSiteConfiguration : IEntityTypeConfiguration<AssetSite>
 {
@@ -48,5 +61,30 @@ internal sealed class AssetSiteConfiguration : IEntityTypeConfiguration<AssetSit
         b.Property(e => e.SeedKey).HasMaxLength(50);
         b.HasIndex(e => e.Name).IsUnique().HasFilter("NOT is_deleted").HasDatabaseName("ix_sites_name");
         b.HasIndex(e => e.SeedKey).IsUnique().HasFilter("seed_key IS NOT NULL").HasDatabaseName("ix_sites_seed_key");
+    }
+}
+
+/// <summary>
+/// <c>assets.asset_movements</c> (PAT-02): movimento imutável do bem, com antes e depois; data de negócio em <c>date</c>, valor da venda em
+/// <c>numeric(18,2)</c>; índice pelo bem e data para a aba Movimentações (do mais recente ao mais antigo).
+/// </summary>
+internal sealed class AssetMovementConfiguration : IEntityTypeConfiguration<AssetMovement>
+{
+    public void Configure(EntityTypeBuilder<AssetMovement> b)
+    {
+        b.ToTable("asset_movements", AssetsSchema.Name, t =>
+        {
+            t.HasCheckConstraint("ck_asset_movements_disposal_value", "disposal_value IS NULL OR disposal_value >= 0");
+            t.HasCheckConstraint("ck_asset_movements_kind", "kind IN ('Transfer', 'Disposal', 'Reactivation')");
+        });
+        b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.DisposalReason).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.Reason).HasMaxLength(AssetMovementRules.ReasonMax);
+        b.Property(e => e.DisposalValue).HasPrecision(18, 2);
+        b.HasOne<Asset>().WithMany().HasForeignKey(e => e.AssetId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.AssetId, e.MovedOn, e.CreatedAt }).HasDatabaseName("ix_asset_movements_asset_id_moved_on");
+        b.HasIndex(e => e.FromEmployeeId).HasFilter("from_employee_id IS NOT NULL").HasDatabaseName("ix_asset_movements_from_employee_id");
+        b.HasIndex(e => e.ToEmployeeId).HasFilter("to_employee_id IS NOT NULL").HasDatabaseName("ix_asset_movements_to_employee_id");
+        b.HasIndex(e => e.BuyerPartyId).HasFilter("buyer_party_id IS NOT NULL").HasDatabaseName("ix_asset_movements_buyer_party_id");
     }
 }

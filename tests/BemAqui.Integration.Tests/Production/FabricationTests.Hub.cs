@@ -23,16 +23,11 @@ using Serilog.Events;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// PRD-02, tempo real: <c>ProductionHub</c> com grupos do tenant pela permissão (CA 10, 15, 16), aviso só com o id e só depois do
-/// commit, também no consumidor do outbox (CA 12), conexão fechada ao perder a permissão ou mudar o stamp (CA 17) e o token fora
-/// do log (CA 18). As conexões e os escopos usam o mesmo host (<see cref="Factory"/>), dono do registro de conexões.
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private static readonly TimeSpan PushWindow = TimeSpan.FromSeconds(2);
+    protected static readonly TimeSpan PushWindow = TimeSpan.FromSeconds(2);
 
-    private static HubConnection ProductionHubFor(WebApplicationFactory<Program> factory, string host, string token) =>
+    protected static HubConnection ProductionHubFor(WebApplicationFactory<Program> factory, string host, string token) =>
         new HubConnectionBuilder()
             .WithUrl($"http://{host}{ProductionHub.Path}", o =>
             {
@@ -42,17 +37,17 @@ public partial class FabricationTests
             })
             .Build();
 
-    private static string TokenOf(HttpClient client) => client.DefaultRequestHeaders.Authorization!.Parameter!;
+    protected static string TokenOf(HttpClient client) => client.DefaultRequestHeaders.Authorization!.Parameter!;
 
     /// <summary>Escopo do tenant A no host das conexões (o registro de conexões é dele).</summary>
-    private async Task<AsyncServiceScope> HubScopeAsync(Guid? tenantId = null)
+    protected async Task<AsyncServiceScope> HubScopeAsync(Guid? tenantId = null)
     {
         var info = (await Factory.Services.GetRequiredService<ITenantDirectory>().FindAsync(tenantId ?? tenancy.TenantA.Id))!;
         return await Factory.Services.GetRequiredService<ITenantScopeFactory>().CreateScopeAsync(info);
     }
 
     /// <summary>Recebe os ids do OrderBoardChanged e guarda o corpo bruto para conferir que só leva o id.</summary>
-    private static (List<Guid> Ids, List<JsonElement> Raw) Listen(HubConnection hub)
+    protected static (List<Guid> Ids, List<JsonElement> Raw) Listen(HubConnection hub)
     {
         var ids = new List<Guid>();
         var raw = new List<JsonElement>();
@@ -67,7 +62,7 @@ public partial class FabricationTests
         return (ids, raw);
     }
 
-    private static async Task<bool> ReceivedAsync(List<Guid> ids, Guid id, TimeSpan within)
+    protected static async Task<bool> ReceivedAsync(List<Guid> ids, Guid id, TimeSpan within)
     {
         var until = DateTime.UtcNow + within;
         while (DateTime.UtcNow < until)
@@ -87,7 +82,7 @@ public partial class FabricationTests
     }
 
     /// <summary>Usuário do tenant B no grupo Proprietário de B, com token para b.localhost.</summary>
-    private async Task<string> TenantBOwnerTokenAsync()
+    protected async Task<string> TenantBOwnerTokenAsync()
     {
         var (id, stamp) = await tenancy.SeedUserAsync(tenancy.TenantB, "b" + Guid.NewGuid().ToString("N")[..10] + "@teste.com");
         await using var scope = await HubScopeAsync(tenancy.TenantB.Id);
@@ -99,6 +94,50 @@ public partial class FabricationTests
         return TestTokens.Create(tenancy.TenantB.Id, "b.localhost", userId: id, stamp: stamp);
     }
 
+    protected sealed class CapturingSink : ILogEventSink
+    {
+        private readonly List<string> _lines = [];
+
+        public int Count
+        {
+            get
+            {
+                lock (_lines)
+                {
+                    return _lines.Count;
+                }
+            }
+        }
+
+        public string Text
+        {
+            get
+            {
+                lock (_lines)
+                {
+                    return string.Join('\n', _lines);
+                }
+            }
+        }
+
+        public void Emit(LogEvent logEvent)
+        {
+            var line = logEvent.RenderMessage(System.Globalization.CultureInfo.InvariantCulture) + " " + string.Join(';', logEvent.Properties.Values);
+            lock (_lines)
+            {
+                _lines.Add(line);
+            }
+        }
+    }
+}
+
+/// <summary>
+/// PRD-02, tempo real: <c>ProductionHub</c> com grupos do tenant pela permissão (CA 10, 15, 16), aviso só com o id e só depois do
+/// commit, também no consumidor do outbox (CA 12), conexão fechada ao perder a permissão ou mudar o stamp (CA 17) e o token fora
+/// do log (CA 18). As conexões e os escopos usam o mesmo host (<see cref="Factory"/>), dono do registro de conexões.
+/// </summary>
+public partial class FabricationShopfloorTests
+{
     [Fact]
     public async Task Hub_avisa_o_cartao_so_com_o_id_e_so_no_proprio_tenant()
     {
@@ -216,12 +255,12 @@ public partial class FabricationTests
         await hub.StartAsync();
         // O OnConnectedAsync roda depois da resposta do handshake: espera o registro da conexão.
         var registry = Factory.Services.GetRequiredService<HubConnectionRegistry>();
-        for (var i = 0; i < 40 && registry.CountFor(tenancy.TenantA.Id, userId) == 0; i++)
+        for (var i = 0; i < 40 && registry.CountFor(Tenancy.TenantA.Id, userId) == 0; i++)
         {
             await Task.Delay(50);
         }
 
-        registry.CountFor(tenancy.TenantA.Id, userId).Should().Be(1);
+        registry.CountFor(Tenancy.TenantA.Id, userId).Should().Be(1);
 
         await using (var scope = await HubScopeAsync())
         {
@@ -262,7 +301,7 @@ public partial class FabricationTests
     public async Task Token_do_hub_nao_aparece_no_log()
     {
         var sink = new CapturingSink();
-        await using var logged = tenancy.Factory.WithWebHostBuilder(b => b
+        await using var logged = Tenancy.Factory.WithWebHostBuilder(b => b
             .UseSetting("Serilog:MinimumLevel:Override:Microsoft.AspNetCore", "Information")
             .ConfigureTestServices(s => s.AddSingleton<ILogEventSink>(sink)));
         var (_, viewer) = await ActorAsync("production:view");
@@ -274,41 +313,5 @@ public partial class FabricationTests
 
         sink.Count.Should().BeGreaterThan(0, "o request do hub foi logado");
         sink.Text.Should().NotContain(token);
-    }
-
-    private sealed class CapturingSink : ILogEventSink
-    {
-        private readonly List<string> _lines = [];
-
-        public int Count
-        {
-            get
-            {
-                lock (_lines)
-                {
-                    return _lines.Count;
-                }
-            }
-        }
-
-        public string Text
-        {
-            get
-            {
-                lock (_lines)
-                {
-                    return string.Join('\n', _lines);
-                }
-            }
-        }
-
-        public void Emit(LogEvent logEvent)
-        {
-            var line = logEvent.RenderMessage(System.Globalization.CultureInfo.InvariantCulture) + " " + string.Join(';', logEvent.Properties.Values);
-            lock (_lines)
-            {
-                _lines.Add(line);
-            }
-        }
     }
 }

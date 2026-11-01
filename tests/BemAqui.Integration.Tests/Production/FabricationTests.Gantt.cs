@@ -7,31 +7,24 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// PLN-03 com o banco real e projetos do Commercial: a visão por projeto na ordem da fila com as OS e as etapas do plano, prometido,
-/// previsto, folga e risco (CA 1); concluída com as datas reais e em andamento com a parte feita (CA 2); "Define a entrega" no projeto em
-/// risco (CA 3); a OS de instalação só de leitura com as datas digitadas (CA 4); os filtros (CA 9); a rota do projeto para o Projeto 360,
-/// com e sem <c>production.view</c> e <c>projects.view</c> (CA 11); as três camadas, o IDOR, a allowlist e nenhum custo na resposta (CA 14).
-/// A fila e o plano são do tenant inteiro: cada teste usa projetos próprios, com datas prometidas bem no futuro, e filtra pelos ids que criou.
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private const string Gantt = "/api/v1/production/planning/gantt";
+    protected const string Gantt = "/api/v1/production/planning/gantt";
 
-    private static DateOnly DateOf(JsonElement value) => DateOnly.Parse(value.GetString()!, CultureInfo.InvariantCulture);
+    protected static DateOnly DateOf(JsonElement value) => DateOnly.Parse(value.GetString()!, CultureInfo.InvariantCulture);
 
-    private static async Task<JsonElement> GanttAsync(HttpClient client, string url)
+    protected static async Task<JsonElement> GanttAsync(HttpClient client, string url)
     {
         var response = await client.GetAsync(url);
         response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
         return await JsonAsync(response);
     }
 
-    private static JsonElement? GanttRow(JsonElement view, Guid project) =>
+    protected static JsonElement? GanttRow(JsonElement view, Guid project) =>
         view.GetProperty("projects").EnumerateArray().Where(p => p.GetProperty("projectId").GetGuid() == project).Select(p => (JsonElement?)p).FirstOrDefault();
 
     /// <summary>Um projeto com uma OS do roteiro P-C-M-Q, o prometido bem no futuro e o plano calculado.</summary>
-    private async Task<(HttpClient Owner, Guid Project, Guid Order, string Line)> GanttProjectAsync(int promisedInDays = 3000)
+    protected async Task<(HttpClient Owner, Guid Project, Guid Order, string Line)> GanttProjectAsync(int promisedInDays = 3000)
     {
         var (owner, _, project, orders, line) = await KanbanDatasetAsync(1);
         await SetPromisedAsync(project, Today.AddDays(promisedInDays));
@@ -39,7 +32,17 @@ public partial class FabricationTests
         await DrainAsync();
         return (owner, project, orders[0], line);
     }
+}
 
+/// <summary>
+/// PLN-03 com o banco real e projetos do Commercial: a visão por projeto na ordem da fila com as OS e as etapas do plano, prometido,
+/// previsto, folga e risco (CA 1); concluída com as datas reais e em andamento com a parte feita (CA 2); "Define a entrega" no projeto em
+/// risco (CA 3); a OS de instalação só de leitura com as datas digitadas (CA 4); os filtros (CA 9); a rota do projeto para o Projeto 360,
+/// com e sem <c>production.view</c> e <c>projects.view</c> (CA 11); as três camadas, o IDOR, a allowlist e nenhum custo na resposta (CA 14).
+/// A fila e o plano são do tenant inteiro: cada teste usa projetos próprios, com datas prometidas bem no futuro, e filtra pelos ids que criou.
+/// </summary>
+public partial class FabricationBoardTests
+{
     [Fact]
     public async Task Por_projeto_mostra_a_fila_com_as_OS_as_etapas_reais_e_previstas()
     {

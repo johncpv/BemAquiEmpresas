@@ -1,8 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
+import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useRef, useState } from 'react'
 import {
-  cancelShipment, confirmShipment, confirmShipmentGeneralStock, getDownloadAttachmentUrl, getDownloadShipmentPdfUrl, getGetShipmentImpactQueryKey, getGetShipmentQueryKey,
+  cancelShipment, confirmShipment, createOutgoingInvoice, confirmShipmentGeneralStock, getDownloadAttachmentUrl, getDownloadShipmentPdfUrl, getGetShipmentImpactQueryKey, getGetShipmentQueryKey,
   getListAttachmentsQueryKey, getListReadyToShipQueryKey, getListShipmentsQueryKey, reverseShipment, uploadAttachment, useGetShipment, useGetShipmentHistory, useGetShipmentImpact,
   useListAttachments,
 } from '@/api/generated/bemaqui'
@@ -22,6 +22,7 @@ import { Tag } from '@/components/ui/tag'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime } from '@/lib/format'
+import { useIdempotencyKey } from '@/api/idempotency'
 import { useCan } from '@/pages/use-can'
 import { impactLines, quantity, SHIPMENT_DICAS, SHIPMENT_STATUS, SHIPMENT_TEXTS, shipmentActions, shippedNext } from './shipments'
 
@@ -94,9 +95,9 @@ export function ShipmentPage() {
             : step === 'entrega'
               ? { label: 'Registrar entrega', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: s.projectId }, search: { aba: 'resumo' } } as never) }
               : { label: 'Ver projeto', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: s.projectId }, search: { aba: 'linha-do-tempo' } } as never) })} />
-          <p className="text-xs text-muted-foreground">{SHIPMENT_TEXTS.nfe}.</p>
         </div>
       ) : null}
+      {s.status === 'Shipped' ? <ShipmentInvoice shipment={s} /> : null}
       {s.status === 'AwaitingStockApproval' ? (
         <p role="note" className="mb-4 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">
           Aguardando a confirmação do estoque geral por outra pessoa com aprovação no Estoque{s.stockApprovalRequestedAt ? ` (pedida em ${formatDateTime(s.stockApprovalRequestedAt)})` : ''}.
@@ -298,6 +299,49 @@ function ShipmentHistory({ id }: { id: string }) {
           <button type="button" disabled={page >= pages} onClick={() => setPage(page + 1)} className="rounded-md border border-border px-3 py-1.5 font-semibold disabled:opacity-50">Próxima</button>
         </div>
       ) : null}
+    </div>
+  )
+}
+
+/**
+ * NF-e do romaneio expedido (FIS-03a CA 1 e 15): a nota ativa com link ou, sem nota e com fiscal.create, "Emitir NF-e" (nasce o rascunho
+ * preenchido e a tela da nota abre). A nota só referencia o romaneio: o estorno da expedição espera o cancelamento dela.
+ */
+function ShipmentInvoice({ shipment: s }: { shipment: ShipmentDetail }) {
+  const navigate = useNavigate()
+  const canIssue = useCan('fiscal.create')
+  const canView = useCan('fiscal.view')
+  const idempotency = useIdempotencyKey()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  if (s.next.invoiceId) {
+    return (
+      <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">
+        Nota do romaneio: {canView ? <Link to={'/app/fiscal/saida/$id' as never} params={{ id: s.next.invoiceId } as never} className="font-semibold text-primary hover:underline">{s.next.invoiceLabel}</Link> : s.next.invoiceLabel}
+      </p>
+    )
+  }
+
+  if (!canIssue) return <p className="mb-4 text-xs text-muted-foreground">{SHIPMENT_TEXTS.nfe}.</p>
+  const issue = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      const created = await createOutgoingInvoice({ shipmentId: s.id }, idempotency.options)
+      idempotency.renew()
+      void navigate({ to: '/app/fiscal/saida/$id', params: { id: created.id } } as never)
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Não foi possível criar a nota. Tente de novo.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-2 rounded-md border border-primary-soft bg-primary-soft px-3 py-2 text-sm">
+      <span>{SHIPMENT_TEXTS.nfe}.</span>
+      <button type="button" disabled={busy} onClick={() => void issue()} className={primary}>{busy ? 'Criando…' : 'Emitir NF-e'}</button>
+      {error ? <span role="alert" className="text-crit-ink">{error}</span> : null}
     </div>
   )
 }

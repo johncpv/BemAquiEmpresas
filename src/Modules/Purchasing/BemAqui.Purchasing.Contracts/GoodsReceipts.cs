@@ -11,6 +11,14 @@ public enum GoodsReceiptStatus
     Reversed,
 }
 
+/// <summary>De onde veio o recebimento (FIS-04b): digitado contra o pedido (CMP-04) ou pela NF-e de entrada conferida.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<GoodsReceiptOrigin>))]
+public enum GoodsReceiptOrigin
+{
+    Manual,
+    Invoice,
+}
+
 /// <summary>Última compra do item (CMP-04 CA 15): o preço e o fornecedor do último pedido aprovado (ou além), para a CMP-02 e a CMP-03a.</summary>
 public sealed record LastPurchaseInfo(Guid ItemId, Guid PurchaseOrderId, string PurchaseOrderNumber, Guid PartyId, decimal UnitPrice, DateTimeOffset ApprovedAt);
 
@@ -20,10 +28,11 @@ public sealed record GoodsReceivedLine(Guid PoLineId, decimal Quantity, decimal 
 /// <summary>
 /// Recebimento registrado (CMP-04 CA 5): <b>só aviso e projeção</b> (notificação, fluxo de caixa ao vivo, comprometido do projeto). A
 /// entrada no estoque e os títulos já foram gravados na mesma transação (ADR 0023 §1, ADR 0024 §1); nenhum consumidor do Finance cria,
-/// confirma ou cancela título por este evento.
+/// confirma ou cancela título por este evento. <paramref name="IncomingInvoiceId"/>: a NF-e de entrada do recebimento pela nota (FIS-04b).
 /// </summary>
 public sealed record GoodsReceived(
-    Guid GoodsReceiptId, Guid PurchaseOrderId, Guid PartyId, Guid? ProjectId, DateOnly ReceivedOn, decimal Amount, IReadOnlyList<GoodsReceivedLine> Lines) : IIntegrationEvent;
+    Guid GoodsReceiptId, Guid PurchaseOrderId, Guid PartyId, Guid? ProjectId, DateOnly ReceivedOn, decimal Amount, IReadOnlyList<GoodsReceivedLine> Lines,
+    Guid? IncomingInvoiceId = null) : IIntegrationEvent;
 
 /// <summary>Recebimento estornado (CA 12): só aviso; os títulos, o estoque e o previsto do pedido já mudaram na mesma transação.</summary>
 public sealed record GoodsReceiptReversed(Guid GoodsReceiptId, Guid PurchaseOrderId, decimal Amount) : IIntegrationEvent;

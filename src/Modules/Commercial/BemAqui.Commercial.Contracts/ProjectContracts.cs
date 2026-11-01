@@ -128,10 +128,11 @@ public enum ProjectItemKind
 
 /// <summary>
 /// Item do projeto (COM-06; PRD-01 CA 22): produto (<c>ItemId</c>), tipo, se o contrato é de implantação e o roteiro do item
-/// (herdado do item do orçamento).
+/// (herdado do item do orçamento). FIS-03a: o preço unitário do item do orçamento aprovado (o valor da NF-e vem do contrato).
 /// </summary>
 public sealed record ProjectItemInfo(
-    Guid Id, Guid ProjectId, int Sequence, string Description, decimal Quantity, Guid? ItemId, ProjectItemKind Kind, bool IsOnboarding, Guid? RoutingTemplateId);
+    Guid Id, Guid ProjectId, int Sequence, string Description, decimal Quantity, Guid? ItemId, ProjectItemKind Kind, bool IsOnboarding, Guid? RoutingTemplateId,
+    decimal UnitPrice = 0m);
 
 /// <summary>Marco do contrato no evento (sem dado pessoal).</summary>
 public sealed record ContractMilestoneInfo(Guid MilestoneId, int Sequence, string Description, decimal Amount, MilestoneTrigger Trigger, TriggerEvent? TriggerEvent, DateOnly? DueDate, int? DaysAfterEvent, decimal Percent = 0,

@@ -38,7 +38,7 @@ public sealed record GoodsReceiptInput(DateOnly? ReceivedOn, decimal? Freight, d
 /// <summary>Impacto por item (CA 5): quantidade, rateio, custo unitário de entrada e o custo médio antes → depois (com <c>inventory.view</c>).</summary>
 public sealed record GoodsReceiptPreviewLine(
     Guid PoLineId, string ItemCode, string ItemName, string UnitCode, decimal Quantity, decimal LineAmount, decimal FreightShare, decimal IpiShare, decimal UnitCost,
-    decimal? AverageCostBefore, decimal? AverageCostAfter);
+    decimal? AverageCostBefore, decimal? AverageCostAfter, decimal InsuranceShare = 0m, decimal OtherShare = 0m, decimal TaxCreditShare = 0m);
 
 /// <summary>Título a pagar que nasce com o recebimento (CA 5, 8): parcela, vencimento e valor.</summary>
 public sealed record GoodsReceiptInstallmentPreview(int Number, DateOnly DueDate, decimal Amount);
@@ -50,12 +50,12 @@ public sealed record GoodsReceiptInstallmentPreview(int Number, DateOnly DueDate
 public sealed record GoodsReceiptPreview(
     DateOnly ReceivedOn, decimal Subtotal, decimal Freight, decimal IpiAmount, decimal Amount, decimal FreightMax, decimal IpiMax, decimal Ceiling, decimal ReceivedAmountAfter,
     IReadOnlyList<GoodsReceiptPreviewLine> Lines, IReadOnlyList<GoodsReceiptInstallmentPreview> Installments, decimal PlannedBefore, decimal PlannedAfter, bool OrderCompletes,
-    bool SoleOwner);
+    bool SoleOwner, decimal Insurance = 0m, decimal OtherExpenses = 0m, decimal TaxCredit = 0m);
 
 public sealed record GoodsReceiptLineView(
     Guid Id, int Sequence, Guid PoLineId, Guid ItemId, string ItemCode, string ItemName, string UnitCode, decimal Quantity, string? SupplierUnit, decimal? SupplierQuantity,
     string? LotNumber, DateOnly? LotExpiry, Guid LocationId, string LocationName, decimal UnitPrice, decimal LineAmount, decimal FreightShare, decimal IpiShare, decimal UnitCost,
-    Guid? MovementId, string? MovementNumber, Guid? ReversalMovementId);
+    Guid? MovementId, string? MovementNumber, Guid? ReversalMovementId, decimal InsuranceShare = 0m, decimal OtherShare = 0m, decimal TaxCreditShare = 0m);
 
 /// <summary>OS que recebeu material desta entrada (CA 7, "Ver OS que receberam material").</summary>
 public sealed record ServedOrderRef(Guid Id, string Number);
@@ -65,7 +65,8 @@ public sealed record GoodsReceiptDetail(
     Guid Id, string Number, GoodsReceiptStatus Status, Guid PurchaseOrderId, string PurchaseOrderNumber, Guid PartyId, string PartyName, Guid? ProjectId, string? ProjectNumber,
     DateOnly ReceivedOn, decimal Subtotal, decimal Freight, decimal IpiAmount, decimal Amount, string? Notes, Guid? ReceivedBy, string? ReceivedByName, bool SoleOwner,
     DateTimeOffset CreatedAt, DateTimeOffset? ReversedAt, string? ReversedByName, string? ReversalReason, IReadOnlyList<GoodsReceiptLineView> Lines,
-    IReadOnlyList<ServedOrderRef> ServedOrders, bool CanReverse, uint Version);
+    IReadOnlyList<ServedOrderRef> ServedOrders, bool CanReverse, uint Version, GoodsReceiptOrigin Origin = GoodsReceiptOrigin.Manual, Guid? IncomingInvoiceId = null,
+    decimal Insurance = 0m, decimal OtherExpenses = 0m, decimal TaxCredit = 0m);
 
 /// <summary>Linha da aba "Recebidos" e da aba Recebimentos do pedido (CA 15).</summary>
 public sealed record GoodsReceiptSummary(

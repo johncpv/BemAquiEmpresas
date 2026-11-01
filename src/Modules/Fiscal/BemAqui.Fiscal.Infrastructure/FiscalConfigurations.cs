@@ -55,6 +55,127 @@ internal sealed class OutgoingInvoiceConfiguration : IEntityTypeConfiguration<Ou
         b.Ignore(e => e.IdempotencyKey);
         b.Ignore(e => e.IsPending);
         b.Ignore(e => e.IsFinal);
+        b.Ignore(e => e.IsEditableDraft);
+        b.Ignore(e => e.IsActive);
+
+        // FIS-03a: vínculos (só ids, ADR 0006), destinatário copiado, transporte, totais em jsonb e o descarte do rascunho.
+        b.Property(e => e.Type).HasConversion<string>().HasMaxLength(8).HasDefaultValue(BemAqui.Fiscal.Contracts.InvoiceType.NFe);
+        b.Property(e => e.Operation).HasConversion<string>().HasMaxLength(24).HasDefaultValue(TaxOperation.OwnProductionSale);
+        b.Property(e => e.Environment).HasConversion<string>().HasMaxLength(16).HasDefaultValue(FiscalEnvironment.Homologation);
+        b.Property(e => e.NatureOfOperation).HasMaxLength(TaxRule.NatureMaxLength);
+        b.Property(e => e.ShipmentNumber).HasMaxLength(20);
+        b.Property(e => e.RecipientName).HasMaxLength(200);
+        b.Property(e => e.RecipientDocument).HasMaxLength(14);
+        b.Property(e => e.RecipientType).HasConversion<string>().HasMaxLength(16).HasDefaultValue(RecipientType.Contributor);
+        b.Property(e => e.RecipientStateRegistration).HasMaxLength(20);
+        b.Property(e => e.RecipientEmail).HasMaxLength(OutgoingInvoice.EmailMaxLength);
+        b.Property(e => e.RecipientPhone).HasMaxLength(20);
+        b.Property(e => e.RecipientStreet).HasMaxLength(200);
+        b.Property(e => e.RecipientNumber).HasMaxLength(60);
+        b.Property(e => e.RecipientComplement).HasMaxLength(200);
+        b.Property(e => e.RecipientDistrict).HasMaxLength(200);
+        b.Property(e => e.RecipientPostalCode).HasMaxLength(8);
+        b.Property(e => e.RecipientCityName).HasMaxLength(200);
+        b.Property(e => e.RecipientCityCode).HasMaxLength(7);
+        b.Property(e => e.RecipientState).HasMaxLength(2);
+        b.Property(e => e.GrossWeight).HasPrecision(18, 4);
+        b.Property(e => e.VolumeSpecies).HasMaxLength(60);
+        b.Property(e => e.Freight).HasPrecision(18, 2);
+        b.Property(e => e.OtherExpenses).HasPrecision(18, 2);
+        b.Property(e => e.AdditionalInformation).HasMaxLength(20000);
+        b.Property(e => e.CostTaxAmount).HasPrecision(18, 2);
+        b.Property(e => e.TaxAmount).HasPrecision(18, 2);
+        b.Property(e => e.CalculationError).HasMaxLength(OutgoingInvoice.ReasonMaxLength);
+        b.Property(e => e.SendToCustomer).HasDefaultValue(true);
+        b.Property(e => e.EmailCc).HasMaxLength(OutgoingInvoice.EmailMaxLength);
+        b.Property(e => e.Totals).HasColumnType("jsonb").HasConversion(
+            v => System.Text.Json.JsonSerializer.Serialize(v, Json),
+            s => System.Text.Json.JsonSerializer.Deserialize<InvoiceTotals>(s, Json) ?? InvoiceTotals.Empty,
+            new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<InvoiceTotals>(
+                (x, y) => System.Text.Json.JsonSerializer.Serialize(x, Json) == System.Text.Json.JsonSerializer.Serialize(y, Json),
+                v => System.Text.Json.JsonSerializer.Serialize(v, Json).GetHashCode(StringComparison.Ordinal),
+                v => System.Text.Json.JsonSerializer.Deserialize<InvoiceTotals>(System.Text.Json.JsonSerializer.Serialize(v, Json), Json)!))
+            .HasDefaultValueSql("'{\"products\":0,\"discount\":0,\"freight\":0,\"otherExpenses\":0,\"taxes\":[],\"invoiceTotal\":0,\"costTax\":0}'::jsonb");
+        b.HasIndex(e => e.ProjectId).HasDatabaseName("ix_outgoing_invoices_project_id");
+        b.HasIndex(e => e.PartyId).HasDatabaseName("ix_outgoing_invoices_party_id");
+        b.HasIndex(e => new { e.Status, e.IssuedOn }).HasDatabaseName("ix_outgoing_invoices_status_issued_on");
+        b.HasIndex(e => e.CreatedAt).HasDatabaseName("ix_outgoing_invoices_created_at");
+        // CA 19: uma nota ativa por romaneio (rascunho, processando, contingência ou autorizada, sem descarte).
+        b.HasIndex(e => e.ShipmentId, "ux_outgoing_invoices_active_shipment").IsUnique()
+            .HasFilter("shipment_id IS NOT NULL AND discarded_at IS NULL AND status NOT IN ('Cancelled', 'Rejected', 'Denied')")
+            .HasDatabaseName("ux_outgoing_invoices_active_shipment");
+    }
+
+    private static readonly System.Text.Json.JsonSerializerOptions Json = new(System.Text.Json.JsonSerializerDefaults.Web);
+}
+
+/// <summary>Itens da NF-e de saída (FIS-03a): tributos do cálculo em jsonb, séries em <c>uuid[]</c>/<c>text[]</c>; sequência única na nota.</summary>
+internal sealed class OutgoingInvoiceItemConfiguration : IEntityTypeConfiguration<OutgoingInvoiceItem>
+{
+    private static readonly System.Text.Json.JsonSerializerOptions Json = new(System.Text.Json.JsonSerializerDefaults.Web);
+
+    public void Configure(EntityTypeBuilder<OutgoingInvoiceItem> b)
+    {
+        b.ToTable("outgoing_invoice_items", FiscalSchema.Name, t =>
+        {
+            t.HasCheckConstraint("ck_outgoing_invoice_items_quantity", "quantity >= 0");
+            t.HasCheckConstraint("ck_outgoing_invoice_items_values", "unit_price >= 0 AND discount >= 0 AND freight >= 0 AND other_expenses >= 0");
+        });
+        b.HasOne<OutgoingInvoice>().WithMany().HasForeignKey(e => e.InvoiceId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.InvoiceId, e.Sequence }).IsUnique().HasDatabaseName("ux_outgoing_invoice_items_sequence");
+        b.Property(e => e.Code).HasMaxLength(60);
+        b.Property(e => e.Description).HasMaxLength(1000);
+        b.Property(e => e.Ncm).HasMaxLength(8);
+        b.Property(e => e.Cest).HasMaxLength(7);
+        b.Property(e => e.Unit).HasMaxLength(6);
+        b.Property(e => e.QuoteItemKind).HasMaxLength(16);
+        b.Property(e => e.Operation).HasConversion<string>().HasMaxLength(24);
+        b.Property(e => e.ShippedQuantity).HasPrecision(18, 4);
+        b.Property(e => e.Quantity).HasPrecision(18, 4);
+        b.Property(e => e.UnitPrice).HasPrecision(18, 6);
+        b.Property(e => e.Discount).HasPrecision(18, 2);
+        b.Property(e => e.Freight).HasPrecision(18, 2);
+        b.Property(e => e.OtherExpenses).HasPrecision(18, 2);
+        b.Property(e => e.IpiRate).HasPrecision(7, 4);
+        b.Property(e => e.AdditionalInfo).HasMaxLength(4000);
+        b.Property(e => e.TaxRuleName).HasMaxLength(TaxRule.NameMaxLength);
+        b.Property(e => e.Cfop).HasMaxLength(4);
+        b.Property(e => e.IbsCbsClassification).HasMaxLength(6);
+        b.Property(e => e.IpiFramework).HasMaxLength(3);
+        b.Property(e => e.GrossAmount).HasPrecision(18, 2);
+        b.Property(e => e.Total).HasPrecision(18, 2);
+        b.Property(e => e.CostTaxAmount).HasPrecision(18, 2);
+        b.Property(e => e.Taxes).HasColumnType("jsonb").HasConversion(
+            v => System.Text.Json.JsonSerializer.Serialize(v, Json),
+            s => System.Text.Json.JsonSerializer.Deserialize<List<TaxLine>>(s, Json) ?? new List<TaxLine>(),
+            new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<IReadOnlyList<TaxLine>>(
+                (x, y) => System.Text.Json.JsonSerializer.Serialize(x, Json) == System.Text.Json.JsonSerializer.Serialize(y, Json),
+                v => System.Text.Json.JsonSerializer.Serialize(v, Json).GetHashCode(StringComparison.Ordinal),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<TaxLine>>(System.Text.Json.JsonSerializer.Serialize(v, Json), Json)!));
+    }
+}
+
+/// <summary>Parcelas do contrato referenciadas pela nota (só referência, D4).</summary>
+internal sealed class OutgoingInvoiceReceivableConfiguration : IEntityTypeConfiguration<OutgoingInvoiceReceivable>
+{
+    public void Configure(EntityTypeBuilder<OutgoingInvoiceReceivable> b)
+    {
+        b.ToTable("outgoing_invoice_receivables", FiscalSchema.Name);
+        b.HasOne<OutgoingInvoice>().WithMany().HasForeignKey(e => e.InvoiceId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.InvoiceId, e.ReceivableId }).IsUnique().HasDatabaseName("ux_outgoing_invoice_receivables");
+        b.HasIndex(e => e.ReceivableId).HasDatabaseName("ix_outgoing_invoice_receivables_receivable_id");
+    }
+}
+
+/// <summary>Números gastos sem nota válida (FIS-03a CA 8 e 9; a inutilização é da FIS-03b): um por série e número.</summary>
+internal sealed class NumberGapConfiguration : IEntityTypeConfiguration<NumberGap>
+{
+    public void Configure(EntityTypeBuilder<NumberGap> b)
+    {
+        b.ToTable("number_gaps", FiscalSchema.Name, t => t.HasCheckConstraint("ck_number_gaps_reason", "reason IN ('Rejected', 'Denied')"));
+        b.Property(e => e.Reason).HasMaxLength(16);
+        b.HasIndex(e => new { e.Series, e.Number }).IsUnique().HasDatabaseName("ux_number_gaps_series_number");
+        b.HasIndex(e => e.InvoiceId).HasDatabaseName("ix_number_gaps_invoice_id");
     }
 }
 
@@ -230,6 +351,9 @@ internal sealed class IncomingInvoiceConfiguration : IEntityTypeConfiguration<In
         b.Property(e => e.Protocol).HasMaxLength(20);
         b.Property(e => e.WithoutOrderReason).HasMaxLength(IncomingInvoice.ReasonMaxLength);
         b.Property(e => e.RejectedReason).HasMaxLength(IncomingInvoice.ReasonMaxLength);
+        b.Property(e => e.InputTaxCreditApplied).HasMaxLength(IncomingInvoice.InputTaxCreditRuleMaxLength);
+        b.Property(e => e.InputTaxCreditAmount).HasPrecision(18, 2);
+        b.HasIndex(e => e.GoodsReceiptId).HasFilter("goods_receipt_id IS NOT NULL").HasDatabaseName("ix_incoming_invoices_goods_receipt_id");
         b.Ignore(e => e.IsEditable);
         b.HasIndex(e => e.AccessKey).IsUnique().HasFilter("status <> 'Rejected'").HasDatabaseName(IncomingInvoiceConfiguration.AccessKeyIndex);
         b.HasIndex(e => new { e.Status, e.ImportedAt }).HasDatabaseName("ix_incoming_invoices_status_imported_at");

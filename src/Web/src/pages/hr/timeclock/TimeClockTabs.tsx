@@ -3,9 +3,10 @@ import { Link } from '@tanstack/react-router'
 const TABS = [
   { to: '/app/rh/ponto/marcacoes', label: 'Marcações' },
   { to: '/app/rh/ponto/ajustes', label: 'Ajustes para aprovar' },
+  { to: '/app/rh/ponto/espelho', label: 'Espelho' },
 ] as const
 
-/** Abas do RH → Ponto (RH-01a e RH-01b): marcações e ajustes; cada aba é uma rota própria, com a própria ajuda. */
+/** Abas do RH → Ponto (RH-01a, RH-01b e RH-01c): marcações, ajustes e o espelho; cada aba é uma rota própria, com a própria ajuda. */
 export function TimeClockTabs() {
   return (
     <nav aria-label="Ponto" className="flex gap-1 overflow-x-auto">

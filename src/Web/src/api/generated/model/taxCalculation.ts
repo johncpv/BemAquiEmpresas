@@ -15,6 +15,6 @@ export interface TaxCalculation {
   otherExpenses: number;
   totals: TaxTotal[];
   invoiceTotal: number;
-  projectCost: number;
+  costTax: number;
   blocks: string[];
 }

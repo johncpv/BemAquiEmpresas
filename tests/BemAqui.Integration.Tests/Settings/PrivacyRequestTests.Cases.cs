@@ -109,6 +109,13 @@ public partial class PrivacyRequestTests
         var linked = await ActorAsync(null, totp: true, employeeId: employee.Id);
         var document = await InTenantAsync(async sp => (await sp.GetRequiredService<AttachmentService>().UploadCheckedAsync("EmployeeDocument", employee.Id, "rg-frente.pdf",
             new MemoryStream("%PDF-1.7 documento"u8.ToArray()), tenancy.TenantA.Id.ToString("N"))).Value);
+        await InTenantAsync(async sp =>
+        {
+            // RH-01c: a revisão do dia pelo RH sai na exportação, com o dia e o comentário.
+            var hr = sp.GetRequiredService<BemAqui.HR.Application.IHrDb>();
+            hr.TimesheetDayReviews.Add(new BemAqui.HR.Domain.TimesheetDayReview { EmployeeId = employee.Id, Day = new DateOnly(2026, 10, 5), Comment = "Revisado com o gestor da linha", ReviewedAt = DateTimeOffset.UtcNow });
+            return await hr.SaveChangesAsync();
+        });
         var canary = await InTenantAsync(async sp =>
         {
             var db = sp.GetRequiredService<BemAqui.Identity.Application.IIdentityDb>();
@@ -129,7 +136,8 @@ public partial class PrivacyRequestTests
         entries.Should().Contain(["dados.json", "dados.pdf", "anexos/rg-frente.pdf"]);
         json.Should().Contain(employee.Name).And.Contain(BemAqui.SharedKernel.BrazilianDocuments.Format(employee.Cpf), "o CPF do titular sai inteiro");
         json.Should().Contain("Ana Dependente Lima").And.NotContain(dependentCpf, "CPF de dependente mascarado (CA 9)").And.Contain(BemAqui.SharedKernel.BrazilianDocuments.MaskCpf(dependentCpf));
-        json.Should().Contain("\"modulo\": \"hr\"").And.Contain("\"modulo\": \"identity\"").And.Contain("hr.employee_dependents").And.Contain("identity.refresh_tokens");
+        json.Should().Contain("\"modulo\": \"hr\"").And.Contain("\"modulo\": \"identity\"").And.Contain("hr.employee_dependents").And.Contain("identity.refresh_tokens")
+            .And.Contain("hr.timesheets").And.Contain("hr.timesheet_day_reviews").And.Contain("Revisado com o gestor da linha");
         // Canário (CA 10): hash de senha, segredo TOTP, security stamp e o nome do arquivo no storage nunca saem.
         json.Should().NotContain(canary.Item1).And.NotContain(canary.Item2).And.NotContain(canary.Item3).And.NotContain(document.Id.ToString());
         (await AuditCountAsync(id, AuditActions.SensitiveRead)).Should().Be(reads + 2, "exportar e baixar ficam registrados com o número do pedido");
@@ -173,6 +181,14 @@ public partial class PrivacyRequestTests
             var shared = sp.GetRequiredService<BemAquiDbContext>();
             shared.EmailLogs.Add(new EmailLog { To = email, Template = "quote", Subject = "Seu orçamento ORC-TESTE", Model = "{\"segredo\":\"nao-sai\"}", Cc = "copia.outra@exemplo.com", Status = EmailStatus.Sent, CreatedAt = DateTimeOffset.UtcNow });
             await shared.SaveChangesAsync();
+            var fiscal = sp.GetRequiredService<BemAqui.Fiscal.Application.IFiscalDb>();
+            fiscal.OutgoingInvoices.Add(new BemAqui.Fiscal.Domain.OutgoingInvoice
+            {
+                PartyId = party.Id, ShipmentNumber = "ROM-TESTE-PF", RecipientName = "Carlos Cliente Pereira", RecipientDocument = cpf, RecipientEmail = email,
+                RecipientStreet = "Rua do Titular", RecipientNumber = "10", RecipientCityName = "São Paulo", RecipientState = "SP",
+                EmailCc = "fiscal.outra@exemplo.com", TotalAmount = 4321.09m, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow,
+            });
+            await fiscal.SaveChangesAsync();
             return party.Id;
         });
 
@@ -184,6 +200,9 @@ public partial class PrivacyRequestTests
         json.Should().Contain("Carlos Cliente Pereira").And.Contain("Rua do Titular").And.Contain("Seu orçamento ORC-TESTE").And.Contain(email);
         json.Should().NotContain("joana.outra@exemplo.com", "contato é outra pessoa").And.NotContain("Joana Outra Pessoa").And.Contain("Joana P.");
         json.Should().NotContain("copia.outra@exemplo.com", "cópia de outra pessoa mascarada").And.NotContain("nao-sai", "o modelo do e-mail não sai");
+        // NF-e de saída em que o titular é o destinatário: a nota, o valor e o destinatário guardado; a cópia de outra pessoa mascarada.
+        json.Should().Contain("\"modulo\": \"fiscal\"").And.Contain("fiscal.outgoing_invoices").And.Contain("ROM-TESTE-PF").And.Contain("4.321,09")
+            .And.Contain(BemAqui.SharedKernel.BrazilianDocuments.Format(cpf)).And.NotContain("fiscal.outra@exemplo.com");
 
         // Usuário do sistema (CA 9): nome, e-mail, grupos, acessos e notificações.
         var user = await ActorAsync("settings:view");

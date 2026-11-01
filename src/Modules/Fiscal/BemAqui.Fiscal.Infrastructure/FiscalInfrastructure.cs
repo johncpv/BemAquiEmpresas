@@ -42,7 +42,16 @@ public static class FiscalInfrastructure
         services.TryAddScoped<FiscalIntegrationService>();
         services.TryAddScoped<OutgoingInvoiceReconciler>();
         services.TryAddScoped<NfeSubmissionService>();
-        services.TryAddScoped<IOutgoingNfePayloads, NoOutgoingNfePayloads>();
+        // FIS-03a: a nota de saída monta o próprio pedido (a conferência reenvia com a mesma chave e o mesmo payload).
+        services.TryAddScoped<OutgoingNfePayloads>();
+        services.TryAddScoped<IOutgoingNfePayloads>(sp => sp.GetRequiredService<OutgoingNfePayloads>());
+        services.TryAddScoped<OutgoingInvoiceEffects>();
+        services.TryAddScoped<OutgoingInvoiceCalculator>();
+        services.TryAddScoped<OutgoingInvoiceService>();
+        services.TryAddScoped<BemAqui.Fiscal.Contracts.IOutgoingInvoices, OutgoingInvoicesContract>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, OutgoingInvoiceAgendaSource>());
+        services.AddAuditableEntity<OutgoingInvoiceItem>("fiscal");
+        services.AddAuditableEntity<NumberGap>("fiscal");
         // PAT-01a CA 7: seletor da NF de entrada do bem; sem notas até a FIS-04a (que troca este registro).
         services.TryAddScoped<BemAqui.Fiscal.Contracts.IIncomingInvoices, NoIncomingInvoices>();
         services.TryAddScoped<FiscalPendingChecker>();
@@ -74,6 +83,8 @@ public static class FiscalInfrastructure
         // com fiscal.import_incoming, só pela importação (a rota genérica de anexos é fechada) e debaixo do prefixo do tenant.
         services.TryAddSingleton<BemAqui.Fiscal.Application.Incoming.INfeTrustAnchors, BemAqui.Fiscal.Application.Incoming.IcpBrasilTrustAnchors>();
         services.TryAddScoped<BemAqui.Fiscal.Application.Incoming.IncomingInvoiceService>();
+        // FIS-04b: o recebimento pela nota (Purchasing) lê a nota conferida e faz as transições pelo contrato, na transação dele.
+        services.TryAddScoped<BemAqui.Fiscal.Contracts.IIncomingInvoiceReceipts, BemAqui.Fiscal.Application.Incoming.IncomingInvoicesContract>();
         services.AddAuditableEntity<IncomingInvoice>("fiscal");
         services.AddAuditableEntity<IncomingInvoiceItem>("fiscal");
         services.AddAttachmentOwner(BemAqui.Fiscal.Application.Incoming.IncomingInvoiceService.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml"],
@@ -81,9 +92,11 @@ public static class FiscalInfrastructure
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFiscalDb>().IncomingInvoices.AnyAsync(i => i.Id == id, ct),
             ReadAction: "view", WriteAction: "import_incoming",
             CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O XML da nota de entrada entra pela importação."))));
-        services.AddAttachmentOwner(OutgoingInvoiceReconciler.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml"], 5 * 1024 * 1024,
+
+        // XML e DANFE (FIS-03a): só o sistema grava; leitura com fiscal.view pelos endpoints da nota (CA 18).
+        services.AddAttachmentOwner(OutgoingInvoiceReconciler.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml", "application/pdf"], 5 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFiscalDb>().OutgoingInvoices.AnyAsync(i => i.Id == id, ct),
-            CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O XML da nota é guardado pelo sistema."))));
+            CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O XML e o DANFE da nota são guardados pelo sistema."))));
         return services;
     }
 }

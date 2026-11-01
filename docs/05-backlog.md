@@ -494,7 +494,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-4, R-FIS-3, R-FIS-8, R-PRJ-5.
 - CA: regras por operação com versão e ativação por outra pessoa, nascidas do seed pré-configurado "a confirmar"; motor puro de ICMS, ST, IPI, PIS, COFINS e IBS/CBS batendo com os casos de referência; "Simular" em painel lateral; sem regra, sem nota; DIFAL bloqueado; tributos que entram no custo do projeto (ICMS, PIS, COFINS, ISS, IBS/CBS; IPI fora).
 
-**FIS-03a [ ] NF-e de saída: rascunho a partir do romaneio, emissão, autorização, rejeição, DANFE e XML ao cliente, impostos e receita pela nota (G)** — 5.4, ordem 10 — `Ready (pré-condição externa)` — [story](stories/FIS-03a-nfe-saida-emissao.md)
+**FIS-03a [x] NF-e de saída: rascunho a partir do romaneio, emissão, autorização, rejeição, DANFE e XML ao cliente, impostos e receita pela nota (G)** — 5.4, ordem 10 — `Done` (homologação SEFAZ dos 3 cenários no `demo`, A1 real e conferência da contadora: pré-condição externa) — [story](stories/FIS-03a-nfe-saida-emissao.md)
 - Requisitos: R-FIS-3, R-PRD-8, R-PRJ-5, R-FIS-4, R-COM-1, R-COM-3.
 - CA: rascunho a partir do romaneio (a nota só referencia o romaneio, sem baixar estoque); venda mista pela D4 (equipamento em NF-e, instalação em NFS-e, parcela é só cobrança); saneamento pelos limites do esquema antes de reservar o número; emissão idempotente com reconciliação no Emissor; `InvoiceAuthorized` lança o imposto como `InvoiceTax`; imposto nunca digitado; os 3 cenários em homologação SEFAZ no `demo`.
 
@@ -506,7 +506,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-5, R-CMP-5, R-PRP-3, R-EST-3.
 - CA: XML sem DTD, XSD, um `infNFe` e uma assinatura com `Reference URI` igual ao `Id`, CNPJ do certificado igual ao do emitente, sem protocolo recusado; importação com `fiscal.import_incoming`; aviso "situação na SEFAZ não conferida"; chave duplicada recusada; de-para lembrado; nota sem pedido exige `purchasing.approve`.
 
-**FIS-04b [ ] Recebimento pela NF-e de entrada: estoque pelo custo da nota e títulos a pagar pelas duplicatas, na mesma transação (M)** — 5.5, ordem 13 — `Ready (pré-condição externa)` — [story](stories/FIS-04b-recebimento-pela-nota.md)
+**FIS-04b [x] Recebimento pela NF-e de entrada: estoque pelo custo da nota e títulos a pagar pelas duplicatas, na mesma transação (M)** — 5.5, ordem 13 — `Done` — [story](stories/FIS-04b-recebimento-pela-nota.md)
 - Requisitos: R-CMP-5, R-EST-7, R-FIN-4, R-FIN-10.
 - CA: recebimento da CMP-04 preenchido pela nota, chamada síncrona com `purchasing.receive`; duplicatas pelo `CreateOpenInstallmentsAsync` na transação do recebimento (ADR 0024); sem duplicatas, vale a condição do pedido; crédito de impostos pré-configurado "Nenhum" até a P-01; uma vez só.
 
@@ -561,7 +561,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - CA: lançamento do RH e pedido do funcionário como ajuste `Pending`, ambos com aprovação; lista única de ausências com os afastamentos; atestado só com `hr.view_health`; quem pede não aprova (Proprietário único com a marca); período fechado bloqueia.
 - **`hr.view_health` (decisão do PO de 22/10/2026):** a RH-01b usa a ação `hr.view_health` já entregue pela CAD-04c1b (catálogo e seed patch `hr-view-health` no grupo RH); não cria ação nem seed patch novo.
 
-**RH-01c [ ] Ponto: espelho mensal, banco de horas simples e fechamento do período (G)** — 6.1, ordem 8 — `Ready (pré-condição externa)` — [story](stories/RH-01c-espelho-banco-horas-fechamento.md)
+**RH-01c [x] Ponto: espelho mensal, banco de horas simples e fechamento do período (G)** — 6.1, ordem 8 — `Done` (pré-condição externa: conferência da contadora e do jurídico) — [story](stories/RH-01c-espelho-banco-horas-fechamento.md)
 - Requisitos: R-RH-4 (parte), R-RH-5, R-COM-3, PRD §6 (Desempenho, LGPD), R-SEC-5, R-PRP-2, R-PRP-5.
 - CA: espelho por dia pela jornada e pelo `IBusinessCalendar`; tolerância de 5/10 min, banco de horas só com acordo e apuração pelo mês civil, pré-configurados "a confirmar"; fecha quem tem `hr.edit`; "Li e confirmo" no Meu espelho; "Usar horas do espelho" na folha; PDF com a faixa de controle interno; 50 funcionários em menos de 1 s.
 
@@ -577,11 +577,11 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-PAT-1, R-COM-3, R-COM-4, R-SEC-5, R-PRP-1, R-PRP-3.
 - CA: permissões do `assets` por seed patch; bem com etiqueta `PAT-00001`, responsável, centro e local em `assets.sites`; valor de aquisição com `assets.edit`; foto sem EXIF/GPS; lista com 5 mil bens em menos de 1 s; excluir × baixar.
 
-**PAT-01b [ ] Patrimônio: etiquetas com QR code em lote e leitura pelo app (M)** — 6.4, ordem 12 — `Ready (pré-condição externa)` — [story](stories/PAT-01b-etiqueta-qr-leitura.md)
+**PAT-01b [x] Patrimônio: etiquetas com QR code em lote e leitura pelo app (M)** — 6.4, ordem 12 — `Done` (teste manual com a impressora pendente, P-13; E2E no fechamento da feature) — [story](stories/PAT-01b-etiqueta-qr-leitura.md)
 - Requisitos: R-PAT-2, R-PRP-6 (D), R-COM-3, R-SEC-5.
 - CA: QR gerado no servidor só com a URL `/b/{etiqueta}`; PDF de etiqueta no tamanho do parâmetro (seed 50 × 25 mm) e em grade A4; leitura pelo `BarcodeDetector` e "Ler etiqueta" no `/fab`, depois do login, com `assets.view` conferido antes; `returnUrl` só relativo; 404 uniforme.
 
-**PAT-02 [ ] Patrimônio: movimentação de bens e baixa (P)** — 6.4, ordem 13 — `Ready` — [story](stories/PAT-02-movimentacao-bens.md)
+**PAT-02 [x] Patrimônio: movimentação de bens e baixa (P)** — 6.4, ordem 13 — `Done` (E2E no fechamento da feature) — [story](stories/PAT-02-movimentacao-bens.md)
 - Requisitos: R-PAT-3, R-PRP-1, R-PRP-6 (D), R-SEC-5.
 - CA: transferência de local, responsável e centro com histórico imutável; lote; baixa com motivo e reativação; venda do bem com "Lançar título a receber" pré-preenchido.
 

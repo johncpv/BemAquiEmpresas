@@ -14,30 +14,25 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// PRD-02, Kanban: colunas pelo código da etapa, cartões, contadores e filtros (CA 1 a 6), "Concluir etapa" (CA 8 e 9), permissões
-/// e módulo (CA 15), job "OS atrasada" (CA 11) e desempenho com 300 OS (CA 14). Dados no banco desta classe; cada teste filtra
-/// pelo roteiro próprio.
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private const string Board = "/api/v1/production/board";
+    protected const string Board = "/api/v1/production/board";
 
-    private static async Task<JsonElement> BoardAsync(HttpClient client, string query)
+    protected static async Task<JsonElement> BoardAsync(HttpClient client, string query)
     {
         var response = await client.GetAsync(Board + "?" + query);
         response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
         return await JsonAsync(response);
     }
 
-    private static JsonElement Card(JsonElement board, Guid orderId) =>
+    protected static JsonElement Card(JsonElement board, Guid orderId) =>
         board.GetProperty("cards").EnumerateArray().Single(c => c.GetProperty("id").GetGuid() == orderId);
 
-    private static int ColumnCount(JsonElement board, string key) =>
+    protected static int ColumnCount(JsonElement board, string key) =>
         board.GetProperty("columns").EnumerateArray().Single(c => c.GetProperty("key").GetString() == key).GetProperty("count").GetInt32();
 
     /// <summary>Roteiro P-C-M-Q (Q de qualidade) num centro com linha, e um projeto com as OS do roteiro.</summary>
-    private async Task<(HttpClient Owner, Guid Routing, Guid Project, List<Guid> Orders, string Line)> KanbanDatasetAsync(int orders = 3)
+    protected async Task<(HttpClient Owner, Guid Routing, Guid Project, List<Guid> Orders, string Line)> KanbanDatasetAsync(int orders = 3)
     {
         var (_, owner) = await ActorAsync(Group.OwnerSeedKey);
         var line = "Linha " + Guid.NewGuid().ToString("N")[..4];
@@ -55,9 +50,40 @@ public partial class FabricationTests
         return (owner, routing, project, ids, line);
     }
 
-    private Task<int> SetPromisedAsync(Guid projectId, DateOnly? promised) =>
+    protected Task<int> SetPromisedAsync(Guid projectId, DateOnly? promised) =>
         WithDbAsync(db => db.Database.ExecuteSqlAsync($"UPDATE commercial.projects SET promised_date = {promised} WHERE id = {projectId}"));
 
+    /// <summary>ProductionStepStarted da OS no outbox (o payload é jsonb: filtra pelo campo, não por LIKE).</summary>
+    protected Task<int> StepStartedCountAsync(Guid orderId) =>
+        WithDbAsync(db => db.Database.SqlQuery<int>(
+            $"SELECT count(*)::int AS \"Value\" FROM shared.outbox_messages WHERE type = {typeof(ProductionStepStarted).FullName} AND payload ->> 'ProductionOrderId' = {orderId.ToString()}").SingleAsync());
+
+    protected async Task RunLateJobAsync()
+    {
+        var job = ActivatorUtilities.CreateInstance<LateOrdersNoticeJob>(tenancy.Factory.Services);
+        await job.ExecuteAsync(tenancy.TenantA.Id, new LateOrdersArgs(), CancellationToken.None);
+    }
+
+    protected async Task SetProductionReleasedAsync(bool released)
+    {
+        await using (var scope = tenancy.Factory.Services.CreateAsyncScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<CatalogDbContext>().TenantModules
+                .Where(m => m.TenantId == tenancy.TenantA.Id && m.ModuleCode == "production").ExecuteUpdateAsync(s => s.SetProperty(m => m.Enabled, released));
+        }
+
+        tenancy.Factory.Services.GetRequiredService<ITenantResolver>().Invalidate();
+        Factory.Services.GetRequiredService<ITenantResolver>().Invalidate();
+    }
+}
+
+/// <summary>
+/// PRD-02, Kanban: colunas pelo código da etapa, cartões, contadores e filtros (CA 1 a 6), "Concluir etapa" (CA 8 e 9), permissões
+/// e módulo (CA 15), job "OS atrasada" (CA 11) e desempenho com 300 OS (CA 14). Dados no banco desta classe; cada teste filtra
+/// pelo roteiro próprio.
+/// </summary>
+public partial class FabricationBoardTests
+{
     [Fact]
     public async Task Quadro_tem_colunas_pelo_codigo_e_o_cartao_na_etapa_atual()
     {
@@ -241,11 +267,6 @@ public partial class FabricationTests
         (await StepStartedCountAsync(orders[0])).Should().Be(1);
     }
 
-    /// <summary>ProductionStepStarted da OS no outbox (o payload é jsonb: filtra pelo campo, não por LIKE).</summary>
-    private Task<int> StepStartedCountAsync(Guid orderId) =>
-        WithDbAsync(db => db.Database.SqlQuery<int>(
-            $"SELECT count(*)::int AS \"Value\" FROM shared.outbox_messages WHERE type = {typeof(ProductionStepStarted).FullName} AND payload ->> 'ProductionOrderId' = {orderId.ToString()}").SingleAsync());
-
     [Fact]
     public async Task Quadro_e_concluir_etapa_respeitam_as_tres_camadas()
     {
@@ -346,23 +367,5 @@ public partial class FabricationTests
 
         board.GetProperty("cards").GetArrayLength().Should().Be(301);
         watch.ElapsedMilliseconds.Should().BeLessThan(1000);
-    }
-
-    private async Task RunLateJobAsync()
-    {
-        var job = ActivatorUtilities.CreateInstance<LateOrdersNoticeJob>(tenancy.Factory.Services);
-        await job.ExecuteAsync(tenancy.TenantA.Id, new LateOrdersArgs(), CancellationToken.None);
-    }
-
-    private async Task SetProductionReleasedAsync(bool released)
-    {
-        await using (var scope = tenancy.Factory.Services.CreateAsyncScope())
-        {
-            await scope.ServiceProvider.GetRequiredService<CatalogDbContext>().TenantModules
-                .Where(m => m.TenantId == tenancy.TenantA.Id && m.ModuleCode == "production").ExecuteUpdateAsync(s => s.SetProperty(m => m.Enabled, released));
-        }
-
-        tenancy.Factory.Services.GetRequiredService<ITenantResolver>().Invalidate();
-        Factory.Services.GetRequiredService<ITenantResolver>().Invalidate();
     }
 }

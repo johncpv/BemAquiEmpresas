@@ -13,22 +13,44 @@ namespace BemAqui.Fiscal.Application.Invoices;
 /// autorização, a guarda do XML como arquivo de sistema (dono <c>OutgoingInvoice</c>, prefixo do tenant no storage, SHA-256 conferido
 /// na releitura, 5 anos sem expurgo). Quem chama grava (<c>SaveChanges</c>).
 /// </summary>
-public sealed partial class OutgoingInvoiceReconciler(AttachmentService attachments, IFileStorage storage, ITenantContext tenant, TimeProvider clock, ILogger<OutgoingInvoiceReconciler> logger)
+public sealed partial class OutgoingInvoiceReconciler(
+    AttachmentService attachments, IFileStorage storage, ITenantContext tenant, OutgoingInvoiceEffects effects, TimeProvider clock, ILogger<OutgoingInvoiceReconciler> logger)
 {
     public const string AttachmentOwner = "OutgoingInvoice";
 
+    /// <summary>
+    /// Transição pelo que o Emissor disse e, depois, os efeitos da FIS-03a (<see cref="OutgoingInvoiceEffects"/>): DANFE, evento no outbox,
+    /// e-mail, número gasto e aviso. Tudo na mesma unidade de trabalho de quem chamou.
+    /// </summary>
     public async Task<bool> ApplyAsync(OutgoingInvoice invoice, NfeDocument remote, IFiscalEmitter emitter, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(invoice);
         ArgumentNullException.ThrowIfNull(remote);
         ArgumentNullException.ThrowIfNull(emitter);
+        var before = invoice.Status;
         var changed = invoice.Apply(remote.ToState(), clock.GetUtcNow());
         if (invoice.Status == OutgoingInvoiceStatus.Authorized && invoice.XmlAttachmentId is null && invoice.AccessKey is { } key)
         {
             changed |= await StoreXmlAsync(invoice, key, emitter, cancellationToken);
         }
 
+        await effects.OnStateAsync(invoice, before, emitter, cancellationToken);
         return changed;
+    }
+
+    /// <summary>Autorizada que ficou sem XML, DANFE ou e-mail (o Emissor falhou na hora): a conferência completa.</summary>
+    public async Task<bool> CompleteAuthorizedAsync(OutgoingInvoice invoice, IFiscalEmitter emitter, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(invoice);
+        ArgumentNullException.ThrowIfNull(emitter);
+        var stored = false;
+        if (invoice.XmlAttachmentId is null && invoice.AccessKey is { } key)
+        {
+            stored = await StoreXmlAsync(invoice, key, emitter, cancellationToken);
+        }
+
+        await effects.OnStateAsync(invoice, OutgoingInvoiceStatus.Authorized, emitter, cancellationToken);
+        return stored;
     }
 
     /// <summary>Baixa e guarda o XML autorizado; falhou, fica para a próxima conferência (a nota já está autorizada).</summary>

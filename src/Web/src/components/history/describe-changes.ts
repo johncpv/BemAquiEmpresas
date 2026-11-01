@@ -25,3 +25,15 @@ export function describeChanges(json: string): string[] {
     return `${field}: ${show(value)}`
   })
 }
+
+/** Exportações com nome próprio no histórico (PAT-01b CA 12): a impressão e a reimpressão da etiqueta do bem, sem o detalhe técnico. */
+const EXPORT_LABELS: Record<string, string> = { etiqueta: 'Imprimiu etiqueta', 'etiqueta-reimpressao': 'Reimprimiu etiqueta' }
+
+export function exportLabel(json: string): string | null {
+  try {
+    const format = (JSON.parse(json) as { format?: { new?: unknown } } | null)?.format?.new
+    return typeof format === 'string' ? (EXPORT_LABELS[format] ?? null) : null
+  } catch {
+    return null
+  }
+}

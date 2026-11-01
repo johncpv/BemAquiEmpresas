@@ -15,8 +15,8 @@ public static class FiscalLinks
     /// <summary>Configurações → Fiscal → Certificado digital (FIS-02a).</summary>
     public const string Certificate = "/app/configuracoes/fiscal/certificado";
 
-    /// <summary>A nota (a tela nasce na FIS-03a; até lá o link leva à integração, com as pendentes).</summary>
-    public static string Invoice(Guid invoiceId) => Integration + "?nota=" + invoiceId.ToString("D");
+    /// <summary>A nota (FIS-03a: Fiscal → Notas de saída → a nota).</summary>
+    public static string Invoice(Guid invoiceId) => "/app/fiscal/saida/" + invoiceId.ToString("D");
 }
 
 /// <summary>Por que a integração fiscal alertou (CA 12).</summary>

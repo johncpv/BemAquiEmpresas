@@ -53,6 +53,7 @@ public static class FiscalSettingKeys
         new("operacoes", "Operações padrão"),
         new("cst", "CST e alíquotas"),
         new("custo", "Custo do projeto"),
+        new("entrada", "Entrada"),
         new("nfse", "NFS-e"),
         new("ibs-cbs", "Reforma Tributária (IBS/CBS)"),
         new("transporte", "Transporte e cobrança"),
@@ -85,6 +86,7 @@ public static class FiscalSettingKeys
         new("cofinsRate", "cst", "COFINS", FiscalCriticality.All, s => Dec(s.CofinsRate)),
         new("ipiFromNcm", "cst", "IPI pela TIPI do NCM do item", FiscalCriticality.Nfe, s => Bool(s.IpiFromNcm)),
         new("costTaxes", "custo", "Tributos que entram no custo do projeto", FiscalCriticality.None, s => string.Join(',', s.CostTaxes.Order(StringComparer.Ordinal))),
+        new("inputTaxCredit", "entrada", "Crédito de impostos na entrada", FiscalCriticality.None, s => string.Join(',', s.InputTaxCredit.Order(StringComparer.Ordinal))),
         new("nfseServiceItem", "nfse", "Item da LC 116", FiscalCriticality.Nfse, s => s.NfseServiceItem),
         new("nfseMunicipalCode", "nfse", "Código municipal do serviço (CodSrv)", FiscalCriticality.Nfse, s => s.NfseMunicipalCode ?? string.Empty),
         new("nfseCtn", "nfse", "Código de tributação nacional (CTN)", FiscalCriticality.Nfse, s => s.NfseCtn ?? string.Empty),
@@ -132,6 +134,33 @@ public static partial class FiscalSettingsRules
 
     /// <summary>ICMS, PIS, COFINS, ISS e IBS/CBS; IPI fora (ponto 41, ADR 0025 adendo).</summary>
     public static readonly string[] DefaultCostTaxes = ["ICMS", "PIS", "COFINS", "ISS", "IBS_CBS"];
+
+    /// <summary>Tributos da NF-e de entrada que podem ser recuperáveis (FIS-04b CA 5); o padrão é nenhum (P-01, a confirmar com a contadora).</summary>
+    public static readonly string[] InputTaxCreditOptions = ["ICMS", "IPI", "PIS", "COFINS"];
+
+    /// <summary>Texto da regra de crédito (CA 5): o diálogo, a nota recebida e o histórico mostram este texto.</summary>
+    public static string InputTaxCreditLabel(IReadOnlyCollection<string> taxes, bool confirmed)
+    {
+        ArgumentNullException.ThrowIfNull(taxes);
+        var suffix = confirmed ? string.Empty : " (a confirmar com a contadora)";
+        if (taxes.Count == 0)
+        {
+            return "Sem crédito de impostos" + suffix;
+        }
+
+        var ordered = InputTaxCreditOptions.Where(o => taxes.Contains(o, StringComparer.Ordinal)).ToList();
+        var list = ordered.Count == 1 ? ordered[0] : string.Join(", ", ordered.Take(ordered.Count - 1)) + " e " + ordered[^1];
+        return $"Crédito de {list}: sai do custo e fica guardado na nota" + suffix;
+    }
+
+    /// <summary>Texto do valor em Configurações → Fiscal e no PDF da contadora.</summary>
+    public static string InputTaxCreditDisplay(IReadOnlyCollection<string> taxes)
+    {
+        ArgumentNullException.ThrowIfNull(taxes);
+        return taxes.Count == 0
+            ? "Nenhum: ICMS, IPI, PIS e COFINS da nota ficam no custo"
+            : "Recuperáveis: " + string.Join(", ", InputTaxCreditOptions.Where(o => taxes.Contains(o, StringComparer.Ordinal)));
+    }
 
     /// <summary>CST do ICMS no Regime Normal (CRT 3).</summary>
     public static readonly string[] IcmsCstNormal = ["00", "02", "10", "15", "20", "30", "40", "41", "50", "51", "53", "60", "61", "70", "90"];
@@ -223,6 +252,11 @@ public static partial class FiscalSettingsRules
         if (s.CostTaxes.Any(t => !CostTaxOptions.Contains(t, StringComparer.Ordinal)) || s.CostTaxes.Distinct(StringComparer.Ordinal).Count() != s.CostTaxes.Length)
         {
             Add("costTaxes", "Escolha os tributos da lista.");
+        }
+
+        if (s.InputTaxCredit.Any(t => !InputTaxCreditOptions.Contains(t, StringComparer.Ordinal)) || s.InputTaxCredit.Distinct(StringComparer.Ordinal).Count() != s.InputTaxCredit.Length)
+        {
+            Add("inputTaxCredit", "Escolha os tributos recuperáveis da lista (ICMS, IPI, PIS ou COFINS).");
         }
 
         if (!ServiceItem().IsMatch(s.NfseServiceItem))

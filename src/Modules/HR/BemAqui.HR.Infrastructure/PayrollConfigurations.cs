@@ -14,6 +14,7 @@ internal sealed class PayrollItemConfiguration : IEntityTypeConfiguration<Payrol
         b.Property(e => e.Code).HasMaxLength(PayrollRules.CodeMaxLength);
         b.Property(e => e.Name).HasMaxLength(PayrollRules.NameMaxLength);
         b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.TimesheetSource).HasConversion<string>().HasMaxLength(20);
         b.Property(e => e.SeedKey).HasMaxLength(50);
         b.HasIndex(e => e.Code).IsUnique().HasFilter("NOT is_deleted").HasDatabaseName(PayrollItemService.CodeIndex);
         b.HasIndex(e => e.SeedKey).IsUnique().HasFilter("seed_key IS NOT NULL").HasDatabaseName("ix_payroll_items_seed_key");

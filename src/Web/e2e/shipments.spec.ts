@@ -32,7 +32,7 @@ const available = (over: Record<string, unknown> = {}) => ({
 })
 const next = (over: Record<string, unknown> = {}) => ({
   canConfirm: true, confirmBlocker: null, canConfirmStock: false, confirmStockBlocker: null, installationOrderId: null, installationOrderNumber: null, projectDelivered: false,
-  projectStatus: 'Fabricated', ...over,
+  projectStatus: 'Fabricated', invoiceId: null, invoiceLabel: null, ...over,
 })
 const shipment = (over: Record<string, unknown> = {}) => ({
   id: 'r1', number: 'ROM-2026-0001', status: 'Draft', projectId: 'p1', projectNumber: 'PRJ-2026-0007', projectName: 'Aurora — Elevador', partyId: 'cli1', partyName: 'Condomínio Aurora',
@@ -150,7 +150,9 @@ test.describe('Expedição: romaneio e saída do produto acabado (PRD-06b)', () 
     expect(sent.confirm).toEqual({ version: 3 })
     await expect(page.getByText('Expedido', { exact: true }).first()).toBeVisible()
     await expect(page.getByRole('region', { name: 'Próximos passos' }).getByRole('button', { name: 'Registrar entrega' })).toBeVisible()
-    await expect(page.getByText('Emitir NF-e: disponível na Fase 5.')).toBeVisible()
+    // FIS-03a: expedido e sem nota, quem tem fiscal.create emite a NF-e daqui (o placeholder "disponível na Fase 5" saiu).
+    await expect(page.getByText('A NF-e do equipamento sai deste romaneio expedido.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Emitir NF-e' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Estornar expedição' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Cancelar romaneio' })).toHaveCount(0)
     await expectNoHorizontalScroll(page)
