@@ -18,8 +18,9 @@ namespace BemAqui.HR.Application;
 /// com o comentário como a tela do espelho mostra a quem tem <c>hr.view</c>.
 /// </summary>
 [PersonalDataCovers(typeof(Employee), typeof(EmployeeDependent), typeof(EmployeeHistoryEntry), typeof(TimeEntry), typeof(TimeAdjustment), typeof(Timesheet), typeof(TimesheetDayReview),
-    typeof(Payslip), typeof(PayslipLine), typeof(PayrollForecast), typeof(PayrollRunCharge), typeof(PayrollRun), typeof(JobPosition), typeof(PayrollCalculationLog))]
-public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachments, TimeProvider clock) : IPersonalDataProvider
+    typeof(Payslip), typeof(PayslipLine), typeof(PayrollForecast), typeof(PayrollRunCharge), typeof(PayrollRun), typeof(JobPosition), typeof(PayrollCalculationLog),
+    typeof(PayrollParallelRun), typeof(PayrollParallelDifference))]
+public sealed partial class HrPersonalDataProvider(IHrDb db, AttachmentService attachments, TimeProvider clock) : IPersonalDataProvider
 {
     private const string Sensitive = "hr." + PositionService.SensitiveAction;
     private const string Health = "hr." + EmployeeService.HealthAction;
@@ -109,6 +110,7 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
         if (sensitive)
         {
             blocks.Add(await PayslipsAsync(id, cancellationToken));
+            blocks.Add(await ParallelAsync(id, cancellationToken));
         }
 
         var files = new List<PersonalDataFile>();
@@ -307,6 +309,8 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
             + await attachments.CountAsync(TimeAdjustmentService.DocumentOwner, adjustmentIds, ct)
             + await attachments.CountAsync(PayslipDocumentRules.OwnerType, payslips, ct)
             + await attachments.CountAsync(TimesheetPdfService.OwnerType, timesheetIds, ct);
+        // FLH-06: a justificativa da diferença na conferência paralela e o caso de correção (anonimizado, mas ligado ao funcionário pela linha).
+        var parallel = await ParallelTextsAsync(id, ct);
         var timesheetTexts = timesheets.Count(t => t.DaysSnapshot != null || t.JustifiedByReason != null || t.ReopenReason != null) + reviews.Count
             + (e.HourBankAgreementOn is null ? 0 : 1);
         var hasContact = e.Phone != null || e.Email != null || e.PreviousEmail != null;
@@ -416,6 +420,8 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
                     entry.Property(x => x.Note).CurrentValue = l.Note is null ? null : marker;
                 }
 
+                ClearParallel(parallel, marker);
+
                 await attachments.RemoveContentAsync(EmployeeComplementService.DocumentOwner, [id], marker, ct);
                 await attachments.RemoveContentAsync(TimeAdjustmentService.DocumentOwner, adjustmentIds, marker, ct);
                 await attachments.RemoveContentAsync(PayslipDocumentRules.OwnerType, payslips, marker, ct);
@@ -441,8 +447,10 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
             .Fields(labor, "Motivos da linha do tempo e justificativas do ponto", "hr.employee_history, hr.time_adjustments", history.Count + adjustments.Count)
             .Fields(labor, "Motivos de saúde, afastamentos e comentários do espelho de ponto, e o acordo de banco de horas", "hr.timesheets, hr.timesheet_day_reviews, hr.employees", timesheetTexts)
             .Fields(labor, "Retrato das entradas, memória de cálculo e motivos dos avulsos da folha calculada", "hr.payslips, hr.payslip_lines", calculated.Count + calculatedLines.Count)
+            .Fields(labor, "Justificativas e casos de correção da conferência paralela da folha", "hr.parallel_differences", parallel.Count)
             .Fields(labor, "Documentos, atestados, holerites e espelhos em PDF (o arquivo é apagado)", "shared.attachments", files)
             .Keep("Folhas e holerites: mantidos, com os valores", "hr.payslips", payslips.Count)
+            .Keep("Conferência paralela da folha: mantida, com os valores", "hr.parallel_differences", await db.PayrollParallelDifferences.CountAsync(d => d.EmployeeId == id, ct))
             .Keep("Espelhos de ponto: mantidos, com os totais do fechamento", "hr.timesheets", timesheets.Count)
             .Keep("Marcações de ponto: mantidas, com data e hora", "hr.time_entries", await db.TimeEntries.CountAsync(t => t.EmployeeId == id, ct))
             .Keep(terminated ? "Cadastro do funcionário: marcado \"Anonimizado\", só leitura" : "Funcionário ativo: o cadastro continua em uso", "hr.employees", 1);

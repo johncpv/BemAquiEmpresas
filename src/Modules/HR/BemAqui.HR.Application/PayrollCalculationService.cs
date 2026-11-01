@@ -234,7 +234,7 @@ public sealed partial class PayrollCalculationService(
             return RunNotFound();
         }
 
-        var official = await parameters.CalculatedOfficialAsync(cancellationToken);
+        var official = await parameters.CalculatedOfficialAsync(run.Type, run.Period, cancellationToken);
         var slips = await (from p in db.Payslips.AsNoTracking()
                            join e in db.Employees.IgnoreQueryFilters().AsNoTracking() on p.EmployeeId equals e.Id
                            where p.PayrollRunId == runId
@@ -392,7 +392,7 @@ public sealed partial class PayrollCalculationService(
             return null;
         }
 
-        if (!await parameters.CalculatedOfficialAsync(cancellationToken))
+        if (!await parameters.CalculatedOfficialAsync(run.Type, run.Period, cancellationToken))
         {
             var step = await CompareStepAsync(run, cancellationToken);
             return Error.Conflict(PayrollCalculationRules.SimulationCode, PayrollCalculationRules.SimulationMessage) with
@@ -511,7 +511,7 @@ public sealed partial class PayrollCalculationService(
         }
 
         var (prm, ids) = await parameters.CalculationParametersAsync(ct);
-        return new Context(tables, items, prm, ids, await parameters.CalculatedOfficialAsync(ct));
+        return new Context(tables, items, prm, ids, await parameters.CalculatedOfficialAsync(run.Type, run.Period, ct));
     }
 
     /// <summary>Funcionário que entrou na competência depois de a folha nascer ganha o holerite no recálculo.</summary>
@@ -917,12 +917,11 @@ public sealed partial class PayrollCalculationService(
         return (count, reasons.Order(StringComparer.Ordinal).ToList());
     }
 
-    /// <summary>"Comparar com a lançada" (CA 15): a folha lançada da mesma competência e tipo, ou a lista das folhas.</summary>
+    /// <summary>"Comparar com a lançada" (CA 15): a conferência paralela da competência (FLH-06), ou a lista das folhas sem a lançada.</summary>
     private async Task<PayrollNextStep> CompareStepAsync(PayrollRun run, CancellationToken ct)
     {
-        var entered = await db.PayrollRuns.AsNoTracking().Where(r => r.Period == run.Period && r.Type == run.Type && r.Mode == PayrollRunMode.Entered && r.RectifiesRunId == null)
-            .Select(r => (Guid?)r.Id).FirstOrDefaultAsync(ct);
-        return new PayrollNextStep("Comparar com a lançada", entered is { } id ? $"/app/rh/folha/{id}?aba=conferencia" : "/app/rh/folha");
+        var entered = await db.PayrollRuns.AsNoTracking().AnyAsync(r => r.Period == run.Period && r.Type == run.Type && r.Mode == PayrollRunMode.Entered && r.RectifiesRunId == null, ct);
+        return new PayrollNextStep("Comparar com a lançada", entered ? PayrollParallelService.Link(run.Period) : "/app/rh/folha");
     }
 
     private async Task<Result<(PayrollRun Run, Payslip Payslip)>> ManualTargetAsync(Guid runId, Guid payslipId, CancellationToken ct)

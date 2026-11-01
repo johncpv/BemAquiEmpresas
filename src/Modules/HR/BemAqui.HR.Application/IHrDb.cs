@@ -56,6 +56,15 @@ public interface IHrDb
     // Histórico do cálculo da folha (FLH-02a CA 19).
     DbSet<PayrollCalculationLog> PayrollCalculationLogs { get; }
 
+    // Conferência paralela e virada da folha calculada (FLH-06).
+    DbSet<PayrollParallelRun> PayrollParallelRuns { get; }
+
+    DbSet<PayrollParallelDifference> PayrollParallelDifferences { get; }
+
+    DbSet<PayrollItemMapping> PayrollItemMappings { get; }
+
+    DbSet<PayrollModeChange> PayrollModeChanges { get; }
+
     /// <summary>Transação do fechamento: a folha, os títulos do Finance (mesmo contexto) e a numeração gravam juntos ou nada grava.</summary>
     Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
 

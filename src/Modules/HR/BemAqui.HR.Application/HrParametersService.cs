@@ -117,7 +117,7 @@ public sealed record PayrollChargeDefault(PayrollChargeKind Kind, string Label, 
 /// (30 dias, CAD-04c2). Os vencimentos são legais: "A confirmar com a contadora" até "Marcar como conferido". Editar e conferir exigem
 /// <c>settings.edit</c>; toda mudança é auditada com antes e depois.
 /// </summary>
-public sealed class HrParametersService(
+public sealed partial class HrParametersService(
     IHrDb db, IParties parties, IBusinessCalendar calendar, IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, BemAqui.Finance.Contracts.IChartOfAccounts chart,
     TimeProvider clock)
 {
@@ -181,6 +181,9 @@ public sealed class HrParametersService(
             HrParameterKind.MonthDay, 1220m, 101m, 1231m, true),
         new(ForecastMonths, "Meses da folha prevista", "Quantos meses depois da última folha Mensal fechada a folha prevista entra no fluxo de caixa, com o 13º e as férias.",
             HrParameterKind.Months, PayrollForecastRules.DefaultMonths, 1m, PayrollForecastRules.MaxMonths, false),
+        // FLH-06: quantas competências seguidas aceitas pela contadora antes da virada para a folha calculada (no mínimo 3, ADR 0039 §5).
+        new(ParallelMonthsKey, "Competências da conferência paralela", "Quantas competências seguidas a folha calculada precisa bater com a da contadora (diferença zero, aceita e assinada) antes de o Proprietário poder virar para a folha calculada. O mínimo são 3.",
+            HrParameterKind.Months, PayrollParallelRules.DefaultMonths, PayrollParallelRules.DefaultMonths, PayrollParallelRules.MaxMonths, false),
         new(AccountDirect, "Conta da mão de obra direta", "Conta dos salários de quem tem cargo com centro de trabalho (produção).", HrParameterKind.Account, null, null, null, true, "2.2"),
         new(CostCenterDirect, "Centro de custo da mão de obra direta", "Centro de custo dos salários de quem tem cargo com centro de trabalho.", HrParameterKind.CostCenter, null, null, null, true, "3"),
         new(AccountAdmin, "Conta do pessoal administrativo", "Conta dos salários dos demais cargos.", HrParameterKind.Account, null, null, null, true, "3.1"),

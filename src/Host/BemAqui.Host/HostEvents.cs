@@ -100,6 +100,8 @@ public static class HostEvents
             // RH-01c: fechamento e reabertura do período de ponto, só aviso (a folha lê o espelho fechado pela tabela do próprio HR).
             .AddEvent<BemAqui.HR.Contracts.TimesheetPeriodClosed>()
             .AddEvent<BemAqui.HR.Contracts.TimesheetPeriodReopened>()
+            // FLH-06: virada e volta da folha calculada, só aviso dentro do HR (sem valor).
+            .AddEvent<BemAqui.HR.Contracts.PayrollModeChanged>()
             .AddHandler<BemAqui.Finance.Contracts.PaymentOrderPaid, BemAqui.HR.Application.PayrollPaymentConsumers>()
             .AddHandler<BemAqui.Finance.Contracts.PaymentOrderReversed, BemAqui.HR.Application.PayrollPaymentConsumers>()
             // CMP-03a (ADR 0024 §1): eventos do pedido de compra só para aviso e projeção; os títulos previstos nascem na transação da aprovação.

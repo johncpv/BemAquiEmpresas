@@ -118,7 +118,7 @@ public sealed partial class PayrollService(
 
         var now = clock.GetUtcNow();
         // FLH-02a: a calculada nasce sem linha (o "Calcular" faz todas) e, antes da virada (FLH-06), como simulação.
-        var run = new PayrollRun { Period = period, Type = type, Mode = mode, CreatedAt = now, CreatedBy = currentUser.UserId, IsSimulation = mode == PayrollRunMode.Calculated && !await parameters.CalculatedOfficialAsync(cancellationToken) };
+        var run = new PayrollRun { Period = period, Type = type, Mode = mode, CreatedAt = now, CreatedBy = currentUser.UserId, IsSimulation = mode == PayrollRunMode.Calculated && !await parameters.CalculatedOfficialAsync(type, period, cancellationToken) };
         db.PayrollRuns.Add(run);
         var salaryItem = type == PayrollRunType.Monthly && mode == PayrollRunMode.Entered
             ? await db.PayrollItems.AsNoTracking().Where(i => i.IsActive && i.Kind == PayrollItemKind.Earning && (i.SeedKey == PayrollItemService.SalarySeedKey || i.Code == "SAL"))

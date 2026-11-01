@@ -5,7 +5,7 @@
 | ID | FLH-06 |
 | Título | Conferência paralela: para cada competência, a folha lançada (da contadora, oficial) e a calculada (simulação) lado a lado, por funcionário e por rubrica, com a diferença em R$ e em %, classificada e justificada; aceite da competência só com diferença zero no líquido e em cada rubrica, assinado pela contadora responsável; virada pelo Proprietário depois de 3 competências seguidas aceitas; férias, 13º e rescisão viram oficiais cada um depois de um caso conferido; volta para a lançada com motivo |
 | Tamanho | M |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: dataset da contadora e assinatura para a virada) |
 | Requisitos | R-RH-6 · `06` Riscos (3 meses de conferência paralela antes de substituir) · R-SEC-5 · R-PRP-2 |
 | Dependências | FLH-02a e FLH-02b (calculada mensal); RH-02a (lançada e importação); RH-03 (pacote para a contadora); FLH-03 a FLH-05 (casos de férias, 13º e rescisão que ocorrerem) |
 | Bloqueia | Virada da folha calculada (FLH-02a CA 15, FLH-03 CA 8, FLH-04 CA 5, FLH-05 CA 7) |
@@ -80,9 +80,9 @@ Decisões da revisão aplicadas: D1 (Fase 7 antes do go-live); §4.3 FLH-01/02 (
 **Pré-condição externa:** o **dataset de referência da contadora** (a folha lançada oficial das competências em conferência e um caso de cada tipo: férias, 13º e rescisão) e a assinatura da contadora responsável são pré-condição da **virada**, não do `Ready` nem do `Done` desta story.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos; testes de unidade, integração e E2E passando.
-- [ ] Migration criada (não destrutiva); ajuda escrita; teste de cobertura passando; auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados; `docs/04-fluxos-estados.md` (modo da folha por tipo) atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos; testes de unidade e integração passando (o E2E com o tenant `demo` fica para a rodada do Playwright).
+- [x] Migration criada (não destrutiva); ajuda escrita; teste de cobertura passando; auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados; `docs/04-fluxos-estados.md` (modo da folha por tipo) atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
 - [ ] Comparador com R$ e %; de-para de rubricas; caso de correção anonimizado.
@@ -121,3 +121,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D1, tabela 3.4 pontos 25–28 e "Determinismo", §4.3 FLH-01/02, §4.4 padrões 3, 7 e 8 e achado da diferença em R$ e %); nova ordem (Marco 7.3, ordem 7, antes do go-live); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 01/11/2026 | 1.0 | Implementada: comparação com tolerância zero e de-para, classificação e caso de correção anonimizado, termo em PDF e aceite pelo Proprietário, virada por tipo e volta, `folha-calculada.csv` no pacote, tela e ajuda (ADR 0039, adendo FLH-06). A virada em si fica para depois de 3 competências aceitas (pré-condição externa) | Dev |
