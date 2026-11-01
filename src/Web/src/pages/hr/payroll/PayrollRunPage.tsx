@@ -86,6 +86,11 @@ export function PayrollRunPage() {
         </div>
       ) : null}
       {!draft ? <ClosedBand run={run} /> : null}
+      {run.timesheetNotice ? (
+        <p role="status" className="mb-4 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">
+          {run.timesheetNotice} <Link to="/app/rh/ponto/espelho" search={{ mes: run.period.slice(0, 7) } as never} className="font-semibold text-primary">Abrir o espelho</Link>
+        </p>
+      ) : null}
       {closedSteps ? (
         <div className="mb-4">
           <NextSteps onDismiss={() => setClosedSteps(false)} steps={[

@@ -13,9 +13,10 @@ namespace BemAqui.HR.Application;
 /// marcações de ponto (com a localização) e a ciência da geolocalização, os ajustes e abonos, os holerites e os documentos anexados (só os
 /// <c>Clean</c>, na pasta <c>anexos/</c>). Dado sensível segue a tela: documentos, endereço, salário, conta e localização só com
 /// <c>hr.view_sensitive</c>; tipo e motivo de afastamento e de abono de saúde, e o documento do abono, só com <c>hr.view_health</c>.
-/// O espelho e o "Li e confirmo" entram quando a RH-01c existir.
+/// O espelho (RH-01c) entra com os totais e o "Li e confirmo", e o abonado por motivo só com <c>hr.view_health</c>; as revisões do dia entram
+/// com o comentário como a tela do espelho mostra a quem tem <c>hr.view</c>.
 /// </summary>
-[PersonalDataCovers(typeof(Employee), typeof(EmployeeDependent), typeof(EmployeeHistoryEntry), typeof(TimeEntry), typeof(TimeAdjustment),
+[PersonalDataCovers(typeof(Employee), typeof(EmployeeDependent), typeof(EmployeeHistoryEntry), typeof(TimeEntry), typeof(TimeAdjustment), typeof(Timesheet), typeof(TimesheetDayReview),
     typeof(Payslip), typeof(PayslipLine), typeof(PayrollForecast), typeof(PayrollRunCharge), typeof(PayrollRun), typeof(JobPosition))]
 public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachments) : IPersonalDataProvider
 {
@@ -129,7 +130,7 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
 
         var note = (sensitive, health) switch
         {
-            (true, true) => "Espelho de ponto e \"Li e confirmo\": ainda não existem no sistema (RH-01c).",
+            (true, true) => null,
             (true, false) => "Tipo e motivo de afastamento e de abono de saúde não incluídos: quem pediu não tem hr.view_health.",
             _ => "Dados pessoais, conta, salário, localização e holerites não incluídos: quem pediu não tem hr.view_sensitive.",
         };
@@ -165,8 +166,22 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
         var entries = await db.TimeEntries.AsNoTracking().Where(t => t.EmployeeId == id).OrderBy(t => t.At).ToListAsync(ct);
         var consents = await db.TimeClockGeoConsents.AsNoTracking().Where(c => c.EmployeeId == id).OrderBy(c => c.AcceptedAt).ToListAsync(ct);
         var adjustments = await db.TimeAdjustments.AsNoTracking().Where(a => a.EmployeeId == id).OrderBy(a => a.RequestedAt).ToListAsync(ct);
+        var timesheets = await db.Timesheets.AsNoTracking().Where(t => t.EmployeeId == id).OrderBy(t => t.Period).ToListAsync(ct);
+        var reviews = await db.TimesheetDayReviews.AsNoTracking().Where(r => r.EmployeeId == id).OrderBy(r => r.Day).ToListAsync(ct);
+        static string Hours(int? minutes) => minutes is { } m ? $"{(m < 0 ? "-" : string.Empty)}{Math.Abs(m) / 60} h {Math.Abs(m) % 60:00} min" : "-";
         return
         [
+            // Espelho (RH-01c): os totais do período; o abono por motivo pode revelar saúde, então só com hr.view_health.
+            new PersonalDataBlock("Espelhos de ponto", "hr.timesheets", timesheets.Select(t => PersonalDataRecord.Of(t.CreatedAt,
+                ("Período", $"{PersonalDataMask.Date(t.PeriodStart)} a {PersonalDataMask.Date(t.PeriodEnd)}"), ("Situação", t.Status == TimesheetStatus.Closed ? "Fechado" : "Em aberto"),
+                ("Esperado", Hours(t.ExpectedMinutes)), ("Trabalhado", Hours(t.WorkedMinutes)), ("Extras", Hours(t.OvertimeMinutes)),
+                ("Faltas", Hours(t.AbsenceMinutes)), ("Atrasos", Hours(t.LateMinutes)), ("Abonado", Hours(t.JustifiedMinutes)),
+                ("Abonado por motivo", health ? t.JustifiedByReason : "protegido"), ("Banco de horas", Hours(t.BankBalanceMinutes)),
+                ("Fechado em", PersonalDataMask.At(t.ClosedAt)), ("Ciência do funcionário", PersonalDataMask.At(t.EmployeeAckAt)),
+                ("Resumo confirmado", t.EmployeeAckSummary))).ToList()),
+            // "Marcar como revisado" do RH: o dia e o comentário, como a tela do espelho mostra.
+            new PersonalDataBlock("Revisões do espelho", "hr.timesheet_day_reviews", reviews.Select(r => PersonalDataRecord.Of(r.ReviewedAt,
+                ("Dia", PersonalDataMask.Date(r.Day)), ("Comentário", r.Comment), ("Revisado em", PersonalDataMask.At(r.ReviewedAt)))).ToList()),
             new PersonalDataBlock("Marcações de ponto", "hr.time_entries", entries.Select(t => PersonalDataRecord.Of(t.At,
                 ("Data e hora", PersonalDataMask.At(t.At)), ("Tipo", TimeClockRules.Label(t.Type)), ("Origem", t.Source.ToString()), ("Situação", t.Status.ToString()),
                 ("Latitude", sensitive ? t.Latitude?.ToString(System.Globalization.CultureInfo.InvariantCulture) : "protegido"),

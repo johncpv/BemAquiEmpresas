@@ -228,7 +228,7 @@ public class AccountantExportTests(TenancyFixture tenancy) : IClassFixture<Tenan
         response.Content.Headers.ContentType!.MediaType.Should().Be("application/zip");
         response.Headers.CacheControl!.NoStore.Should().BeTrue("CA 5: no-store");
         response.Content.Headers.ContentDisposition!.DispositionType.Should().Be("attachment");
-        (response.Content.Headers.ContentDisposition.FileNameStar ?? response.Content.Headers.ContentDisposition.FileName!.Trim('"')).Should().Be("contadora-2024-03-v1.zip");
+        (response.Content.Headers.ContentDisposition.FileNameStar ?? response.Content.Headers.ContentDisposition.FileName!.Trim('"')).Should().Be("contadora-2024-03-v2.zip");
         var files = await UnzipAsync(response);
         files.Keys.Should().BeEquivalentTo(new[] { "movimentacao.csv", "folha.csv", "leia-me.txt" });
 
@@ -264,9 +264,9 @@ public class AccountantExportTests(TenancyFixture tenancy) : IClassFixture<Tenan
 
         // CA 1 e 6: o leia-me.
         var readme = files["leia-me.txt"];
-        readme.Should().Contain("Layout: padrão do sistema v1 (A confirmar com a contadora)").And.Contain("Competência: março de 2024 (03/2024)").And.Contain("Gerado em: ");
+        readme.Should().Contain("Layout: padrão do sistema v2 (A confirmar com a contadora)").And.Contain("Competência: março de 2024 (03/2024)").And.Contain("Gerado em: ");
         readme.Should().Contain("- movimentacao.csv: Movimentação: 5 eventos.").And.Contain("- folha.csv: Folha: Férias fechada em 05/04/2024.");
-        readme.Should().Contain("Ponto: não incluído; o ponto do sistema ainda não está em uso.").And.Contain("Folha Rescisão: em rascunho, não entrou.");
+        readme.Should().Contain("Ponto: não incluído; feche o período de ponto para exportar.").And.Contain("Folha Rescisão: em rascunho, não entrou.");
         readme.Should().NotContain("Substitui");
 
         // CA 4: nada de endereço, contato, conta, dependente nem motivo.
@@ -276,14 +276,14 @@ public class AccountantExportTests(TenancyFixture tenancy) : IClassFixture<Tenan
         var audit = (await ExportAuditAsync(period)).Should().ContainSingle().Subject;
         audit.Action.Should().Be(AuditActions.SensitiveRead);
         audit.UserId.Should().Be(ownerId);
-        audit.Changes.Should().Contain("v1").And.NotContain("3500").And.NotContain(admitted.Cpf);
+        audit.Changes.Should().Contain("v2").And.NotContain("3500").And.NotContain(admitted.Cpf);
         (await OutboxCountAsync()).Should().Be(outboxBefore, "a exportação não publica evento");
 
         var overview = await JsonAsync(await owner.GetAsync($"{Exports}?period={period}"));
-        overview.GetProperty("layout").GetString().Should().Be("v1");
+        overview.GetProperty("layout").GetString().Should().Be("v2");
         overview.GetProperty("layoutConfirmed").GetBoolean().Should().BeFalse("A confirmar com a contadora");
         overview.GetProperty("previous").GetProperty("period").GetString().Should().Be("2024-03-01", "CA 6: a exportação anterior da competência");
-        overview.GetProperty("history").EnumerateArray().Should().Contain(h => h.GetProperty("period").GetString() == "2024-03-01" && h.GetProperty("layout").GetString() == "v1");
+        overview.GetProperty("history").EnumerateArray().Should().Contain(h => h.GetProperty("period").GetString() == "2024-03-01" && h.GetProperty("layout").GetString() == "v2");
         overview.GetProperty("draftRuns").EnumerateArray().Select(d => d.GetProperty("id").GetGuid()).Should().Equal(draftRun);
         var sections = overview.GetProperty("sections").EnumerateArray().ToList();
         sections.Select(s => s.GetProperty("key").GetString()).Should().Equal("movements", "payroll", "timeclock");
@@ -368,7 +368,7 @@ public class AccountantExportTests(TenancyFixture tenancy) : IClassFixture<Tenan
         }
     }
 
-    /// <summary>ADR 0042: o layout é parâmetro do RH, padrão v1, "A confirmar com a contadora"; só um dos layouts disponíveis.</summary>
+    /// <summary>ADR 0042: o layout é parâmetro do RH, padrão v2 (RH-01c), "A confirmar com a contadora"; só um dos layouts disponíveis.</summary>
     [Fact]
     public async Task Layout_e_parametro_a_confirmar_com_a_contadora()
     {
@@ -376,9 +376,9 @@ public class AccountantExportTests(TenancyFixture tenancy) : IClassFixture<Tenan
         var view = await JsonAsync(await owner.GetAsync("/api/v1/hr/parameters"));
         var item = view.GetProperty("items").EnumerateArray().Single(i => i.GetProperty("key").GetString() == HrParametersService.AccountantExportLayout);
         item.GetProperty("kind").GetString().Should().Be("ExportLayout");
-        item.GetProperty("code").GetString().Should().Be("v1");
+        item.GetProperty("code").GetString().Should().Be("v2");
         item.GetProperty("legal").GetBoolean().Should().BeTrue();
-        view.GetProperty("exportLayouts").EnumerateArray().Select(l => l.GetProperty("code").GetString()).Should().Equal("v1");
+        view.GetProperty("exportLayouts").EnumerateArray().Select(l => l.GetProperty("code").GetString()).Should().Equal("v2", "v1");
         var bad = await owner.PutAsJsonAsync("/api/v1/hr/parameters", new { changes = new[] { new { key = HrParametersService.AccountantExportLayout, value = (decimal?)null, partyId = (Guid?)null, code = "v9" } } });
         bad.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }

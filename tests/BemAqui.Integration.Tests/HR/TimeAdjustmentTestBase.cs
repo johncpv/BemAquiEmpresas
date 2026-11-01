@@ -41,10 +41,17 @@ public abstract class TimeAdjustmentTestBase(TenancyFixture tenancy) : IDisposab
     /// <summary>Período fechado simulado (CA 16): o mês fechado e o início do período mais antigo em aberto.</summary>
     protected FakePeriodLock Periods { get; } = new();
 
+    /// <summary>A RH-01c usa a trava real (os espelhos fechados); a RH-01b, a simulada.</summary>
+    protected virtual bool FakePeriods => true;
+
     protected WebApplicationFactory<Program> Factory => _factory ??= Tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s =>
     {
         s.AddSingleton<ILogEventSink>(_sink);
-        s.AddSingleton<ITimesheetPeriodLock>(Periods);
+        if (FakePeriods)
+        {
+            s.AddSingleton<ITimesheetPeriodLock>(Periods);
+        }
+
         s.AddSingleton<BemAqui.BuildingBlocks.Attachments.IVirusScanner>(new Attachments.FakeScanner());
     }));
 

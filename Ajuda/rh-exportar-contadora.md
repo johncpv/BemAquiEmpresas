@@ -7,18 +7,18 @@ modulo: hr
 ---
 
 ## Para que serve
-Gerar com um clique o pacote do mês para a contadora calcular a folha com as mudanças que já estão no sistema: admissões, desligamentos, reajustes, trocas de cargo, afastamentos e, quando houver, a folha fechada. Nada é digitado de novo.
+Gerar com um clique o pacote do mês para a contadora calcular a folha com as mudanças que já estão no sistema: admissões, desligamentos, reajustes, trocas de cargo, afastamentos e, quando houver, a folha fechada e o ponto fechado. Nada é digitado de novo.
 
 ## Como usar
 - Escolha a **competência**. O sistema sugere o mês anterior; dá para escolher o mês atual ou qualquer mês antes dele.
 - Confira o bloco **O que vai entrar no pacote**: quantos eventos de movimentação, se a folha do mês está fechada e o que fica de fora.
 - Se aparecer "A folha de {mês} ainda está em rascunho: ela não entra no pacote.", feche a folha pelo atalho **Abrir a folha** e volte para gerar.
-- Clique em **Gerar pacote (CSV)**. O navegador baixa um arquivo ZIP (`contadora-aaaa-mm-v1.zip`) com os arquivos do layout e o `leia-me.txt`.
+- Clique em **Gerar pacote (CSV)**. O navegador baixa um arquivo ZIP (`contadora-aaaa-mm-v2.zip`) com os arquivos do layout e o `leia-me.txt`.
 - Depois de gerar, use **Avisar a contadora**: abre o seu e-mail com o texto pronto. O arquivo não vai anexado; anexe o ZIP que você baixou.
 - Gerou de novo a mesma competência (por exemplo, depois de reabrir a folha)? A tela e o `leia-me.txt` dizem "Substitui a exportação de {data}". Mande o novo pacote à contadora.
 
-## Layout padrão v1
-O **layout padrão** é o formato dos arquivos que o sistema gera. Ele está "A confirmar com a contadora": confira as colunas com ela e marque como conferido em Configurações → Parâmetros → RH ("Layout do pacote para a contadora"). Se ela pedir outra coluna ou outro formato, entra uma versão nova do layout (v2) ou um layout adicional.
+## Layout padrão v2
+O **layout padrão** é o formato dos arquivos que o sistema gera. Ele está "A confirmar com a contadora": confira as colunas com ela e marque como conferido em Configurações → Parâmetros → RH ("Layout do pacote para a contadora"). Se ela pedir outra coluna ou outro formato, entra uma versão nova do layout (v3) ou um layout adicional. Quem já conferiu o v1 com a contadora continua nele até trocar o parâmetro.
 
 Todos os arquivos: separador ponto e vírgula (`;`), UTF-8 com BOM (a planilha abre os acentos certos), primeira linha com o cabeçalho, datas `dd/mm/aaaa`, decimal com vírgula e duas casas, sem separador de milhar (`3500,00`), CPF com máscara (`123.456.789-09`). Célula que começaria com `=`, `+`, `-` ou `@` vem com um apóstrofo na frente, para a planilha não executar fórmula.
 
@@ -45,10 +45,21 @@ Exemplo de linha: `admissao;001;Ana Souza;123.456.789-09;10/05/1990;Montador;715
 
 Exemplos de linha: `holerite;Mensal;001;SAL;Salário;30 dias;3500,00;;` e `guia;Mensal;;;;;560,00;FGTS;20/04/2026`
 
+**ponto.csv** (layout v2): só quando o período de ponto da competência está **fechado** (RH → Ponto → Espelho). Uma linha por funcionário, com os totais do espelho fechado. Cabeçalho: `matricula_ou_cpf;nome;inicio;fim;dias_trabalhados;horas_esperadas;horas_trabalhadas;horas_extras;faltas_dias;faltas_horas;atrasos_horas;horas_abonadas;abonos_por_motivo;banco_periodo;banco_acumulado`.
+- `inicio` e `fim`: o período de apuração (o mês civil ou o corte configurado).
+- Horas em `hh:mm` (`176:00`, `-3:20`): esperadas pela jornada, trabalhadas, extras, faltas, atrasos e abonadas.
+- `faltas_dias`: dias sem marcação e sem abono.
+- `abonos_por_motivo`: as horas abonadas por motivo (`Falta justificada 4:00 | Declaração de comparecimento 1:00`). Motivo de saúde nunca sai pelo nome: entra como `Ausência justificada`.
+- `banco_periodo` e `banco_acumulado`: só de quem tem acordo de banco de horas; vazios para os demais.
+- Com o período de ponto em aberto, o arquivo não entra e o `leia-me.txt` diz "Ponto: não incluído; feche o período de ponto para exportar." Com ele fechado, "Ponto: incluído (período fechado em {data})".
+
+Exemplo de linha: `001;Ana Souza;01/10/2026;31/10/2026;21;184:48;182:30;2:00;0;0:00;0:30;0:00;;;`
+
 **leia-me.txt**: a versão do layout (e se a contadora já conferiu), a competência, a data de geração, o que substitui e a lista do que entrou e do que não entrou.
 
 **Versões do layout**
-- **v1** (atual): `movimentacao.csv`, `folha.csv` e `leia-me.txt`. O ponto ainda não entra ("Ponto: não incluído; o ponto do sistema ainda não está em uso."); quando o ponto estiver em uso, o `ponto.csv` entra numa versão nova.
+- **v2** (atual, padrão): `movimentacao.csv`, `folha.csv`, `ponto.csv` e `leia-me.txt`.
+- **v1**: o mesmo sem o `ponto.csv` ("Ponto: não incluído; o layout v1 não tem o arquivo do ponto (o v2 tem)."). Fica para quem já tinha conferido o v1 com a contadora; troque em Configurações → Parâmetros → RH.
 
 ## Perguntas frequentes
 **Quem pode gerar o pacote?** Só quem tem a permissão "Ver dados sensíveis" do RH. Sem ela, a opção nem aparece no menu.

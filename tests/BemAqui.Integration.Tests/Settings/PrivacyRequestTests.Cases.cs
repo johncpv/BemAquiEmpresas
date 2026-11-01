@@ -109,6 +109,13 @@ public partial class PrivacyRequestTests
         var linked = await ActorAsync(null, totp: true, employeeId: employee.Id);
         var document = await InTenantAsync(async sp => (await sp.GetRequiredService<AttachmentService>().UploadCheckedAsync("EmployeeDocument", employee.Id, "rg-frente.pdf",
             new MemoryStream("%PDF-1.7 documento"u8.ToArray()), tenancy.TenantA.Id.ToString("N"))).Value);
+        await InTenantAsync(async sp =>
+        {
+            // RH-01c: a revisão do dia pelo RH sai na exportação, com o dia e o comentário.
+            var hr = sp.GetRequiredService<BemAqui.HR.Application.IHrDb>();
+            hr.TimesheetDayReviews.Add(new BemAqui.HR.Domain.TimesheetDayReview { EmployeeId = employee.Id, Day = new DateOnly(2026, 10, 5), Comment = "Revisado com o gestor da linha", ReviewedAt = DateTimeOffset.UtcNow });
+            return await hr.SaveChangesAsync();
+        });
         var canary = await InTenantAsync(async sp =>
         {
             var db = sp.GetRequiredService<BemAqui.Identity.Application.IIdentityDb>();
@@ -129,7 +136,8 @@ public partial class PrivacyRequestTests
         entries.Should().Contain(["dados.json", "dados.pdf", "anexos/rg-frente.pdf"]);
         json.Should().Contain(employee.Name).And.Contain(BemAqui.SharedKernel.BrazilianDocuments.Format(employee.Cpf), "o CPF do titular sai inteiro");
         json.Should().Contain("Ana Dependente Lima").And.NotContain(dependentCpf, "CPF de dependente mascarado (CA 9)").And.Contain(BemAqui.SharedKernel.BrazilianDocuments.MaskCpf(dependentCpf));
-        json.Should().Contain("\"modulo\": \"hr\"").And.Contain("\"modulo\": \"identity\"").And.Contain("hr.employee_dependents").And.Contain("identity.refresh_tokens");
+        json.Should().Contain("\"modulo\": \"hr\"").And.Contain("\"modulo\": \"identity\"").And.Contain("hr.employee_dependents").And.Contain("identity.refresh_tokens")
+            .And.Contain("hr.timesheets").And.Contain("hr.timesheet_day_reviews").And.Contain("Revisado com o gestor da linha");
         // Canário (CA 10): hash de senha, segredo TOTP, security stamp e o nome do arquivo no storage nunca saem.
         json.Should().NotContain(canary.Item1).And.NotContain(canary.Item2).And.NotContain(canary.Item3).And.NotContain(document.Id.ToString());
         (await AuditCountAsync(id, AuditActions.SensitiveRead)).Should().Be(reads + 2, "exportar e baixar ficam registrados com o número do pedido");

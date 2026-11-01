@@ -12,6 +12,7 @@ import { ModuleNotReleased } from '../../ModulePage'
 import { dayLabel, entryLabel, formatTime, groupByDay, locationText, NOT_LINKED, sourceLabel, TIME_CLOCK_DICAS } from './time-clock'
 import type { AdjustmentMode, VoidTarget } from './AdjustmentDialogs'
 import { MyAdjustmentDialog, MyTimeAdjustments } from './MyTimeAdjustments'
+import { MyTimesheet } from './MyTimesheet'
 import { TimeClockPanel } from './TimeClockPanel'
 
 /** "Minhas marcações" (CA 13): as próprias dos últimos 60 dias, com a própria localização; só carrega quando a pessoa abre. */
@@ -51,7 +52,7 @@ function MyEntries({ onVoid }: { onVoid: (target: VoidTarget) => void }) {
 
 /**
  * "Meu ponto" no backoffice e no celular (/app/meu-ponto, RH-01a, ADR 0035): o mesmo painel do tablet e, abaixo, "Minhas marcações" e
- * (RH-01b) "Pedir ajuste" e "Meus pedidos" (?aba=pedidos abre os pedidos).
+ * (RH-01b) "Pedir ajuste" e "Meus pedidos" (?aba=pedidos abre os pedidos) e (RH-01c) "Meu espelho" com "Li e confirmo" (?aba=espelho).
  * Do funcionário, sem ação no grupo; a página confere o módulo liberado e o vínculo vem da API.
  */
 export function MyTimeClockPage() {
@@ -82,6 +83,7 @@ export function MyTimeClockPage() {
           </div>
           {showMine ? <MyEntries onVoid={(target) => setRequest({ mode: 'void', target })} /> : null}
         </section>
+        <MyTimesheet initiallyOpen={search.aba === 'espelho'} />
         <MyTimeAdjustments initiallyOpen={search.aba === 'pedidos'} />
         <MyAdjustmentDialog mode={request?.mode ?? null} target={request?.target} onClose={() => setRequest(null)} />
       </div>
