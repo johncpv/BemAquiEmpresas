@@ -57,6 +57,8 @@ public enum HrParameterKind
     /// <summary>Anos (idade do salário-família, FLH-02a).</summary>
     Years,
 
+    /// <summary>Hora do dia, de 0 a 23 (início e fim do horário noturno, FLH-02b).</summary>
+    HourOfDay,
     /// <summary>Quantidade (faltas da faixa das férias, partes do fracionamento, FLH-03).</summary>
     Count,
 }
@@ -218,6 +220,30 @@ public sealed class HrParametersService(
         new(IrrfReductionIncome, "Rendimento da redução do IRRF", "Que rendimento entra na faixa e na fórmula da redução adicional do IRRF: o rendimento tributável bruto do mês, como nos exemplos da Receita Federal, ou a base de cálculo depois das deduções.",
             HrParameterKind.Choice, 1m, 1m, 2m, true, Options: [new(1m, "Rendimento tributável bruto (exemplos da Receita)"), new(2m, "Base de cálculo, depois das deduções")]),
 
+        // FLH-02b: horas extras, adicional noturno e DSR, pré-configurados com o mínimo da CLT (PO 21/10/2026); a convenção coletiva do
+        // sindicato pode pedir mais: "A confirmar com a contadora".
+        new(OvertimeWorkdayPct, "Horas extras em dia útil", "Adicional sobre o valor da hora nas extras de dia útil. A CLT (art. 59 §1º e Constituição, art. 7º XVI) garante no mínimo 50%; a convenção coletiva pode pedir mais.",
+            HrParameterKind.Percent, 50m, 50m, 300m, true),
+        new(OvertimeRestDayPct, "Horas extras em domingo ou folga", "Adicional nas extras de domingo e de dia sem jornada (folga), sem folga compensatória na semana. O usual é 100% (Lei 605/1949, art. 9º, e Súmula 146 do TST); confira a convenção coletiva.",
+            HrParameterKind.Percent, 100m, 50m, 300m, true),
+        new(OvertimeHolidayPct, "Horas extras em feriado", "Adicional nas extras de feriado (pelo calendário padrão), sem folga compensatória. O usual é 100% (Lei 605/1949, art. 9º, e Súmula 146 do TST); confira a convenção coletiva.",
+            HrParameterKind.Percent, 100m, 50m, 300m, true),
+        new(OvertimeIncludesAllowances, "Adicionais no valor da hora extra", "Ligado (o usual): o valor da hora das extras, do adicional noturno e do banco pago leva a insalubridade e a periculosidade do mês (Súmulas 132 e 139 do TST).",
+            HrParameterKind.Toggle, 1m, 0m, 1m, true),
+        new(NightShiftEnabled, "Adicional noturno", "Ligue se alguém trabalha no horário noturno. Desligado, nenhuma linha de adicional noturno sai (a jornada da Konebras é diurna).",
+            HrParameterKind.Toggle, 0m, 0m, 1m, true),
+        new(NightShiftPct, "Percentual do adicional noturno", "Adicional sobre o valor da hora no horário noturno. A CLT (art. 73) garante no mínimo 20%; a convenção coletiva pode pedir mais.",
+            HrParameterKind.Percent, 20m, 20m, 100m, true),
+        new(NightShiftStart, "Início do horário noturno", "Hora em que começa o horário noturno do trabalhador urbano (CLT art. 73 §2º: 22 h).",
+            HrParameterKind.HourOfDay, 22m, 0m, 23m, true),
+        new(NightShiftEnd, "Fim do horário noturno", "Hora em que termina o horário noturno do trabalhador urbano (CLT art. 73 §2º: 5 h).",
+            HrParameterKind.HourOfDay, 5m, 0m, 23m, true),
+        new(NightShiftReducedHour, "Hora noturna reduzida", "Ligado (o usual, CLT art. 73 §1º): cada 52 minutos e 30 segundos no horário noturno contam como uma hora.",
+            HrParameterKind.Toggle, 1m, 0m, 1m, true),
+        new(DsrFormula, "Fórmula do DSR sobre variáveis", "Como o descanso semanal remunerado sobre as horas extras e o adicional noturno é calculado (Lei 605/1949 e Súmula 172 do TST): variáveis ÷ dias úteis × (domingos + feriados).",
+            HrParameterKind.Choice, 1m, 1m, 2m, true, Options: [new(1m, "Dias úteis = dias do mês − domingos − feriados (o sábado é útil)"), new(2m, "Dias úteis pelo calendário padrão da empresa")]),
+        new(DsrLossOnAbsence, "Perda do DSR por falta", "Ligado (o usual, Lei 605/1949, art. 6º): a falta injustificada (sem abono aprovado) desconta o repouso da semana, um dia de salário por semana.",
+            HrParameterKind.Toggle, 1m, 0m, 1m, true),
         // FLH-03: férias, pré-configuradas pela CLT (PO 21/10/2026, revisão pré-Fases 4 a 8, pontos 16 a 19), "A confirmar com a contadora".
         new(VacationAbsenceKey(30), "Férias de 30 dias: faltas até", "Faltas injustificadas no período aquisitivo que ainda dão 30 dias de férias (CLT art. 130: até 5).",
             HrParameterKind.Count, 5m, 0m, 366m, true),
@@ -297,6 +323,25 @@ public sealed class HrParametersService(
     public async Task<bool> OfficialForAsync(PayrollRunType type, CancellationToken cancellationToken = default) =>
         await CalculatedOfficialAsync(cancellationToken) && (type != PayrollRunType.Vacation || await NumberAsync(VacationOfficialKey, cancellationToken) == 1m);
 
+
+    // FLH-02b: horas extras, adicional noturno e DSR ("A confirmar com a contadora").
+    public const string OvertimeWorkdayPct = "hr.overtime_rates.weekday";
+    public const string OvertimeRestDayPct = "hr.overtime_rates.rest_day";
+    public const string OvertimeHolidayPct = "hr.overtime_rates.holiday";
+    public const string OvertimeIncludesAllowances = "hr.overtime_base_includes_allowances";
+    public const string NightShiftEnabled = "hr.night_shift.enabled";
+    public const string NightShiftPct = "hr.night_shift.pct";
+    public const string NightShiftStart = "hr.night_shift.start";
+    public const string NightShiftEnd = "hr.night_shift.end";
+    public const string NightShiftReducedHour = "hr.night_shift.reduced_hour";
+    public const string DsrFormula = "hr.dsr_formula";
+    public const string DsrLossOnAbsence = "hr.dsr_loss_on_absence";
+
+    /// <summary>Os percentuais das extras (sem eles, o cálculo da folha não roda).</summary>
+    public static readonly string[] OvertimeRateKeys = [OvertimeWorkdayPct, OvertimeRestDayPct, OvertimeHolidayPct];
+
+    private static readonly string[] HourKeys = [.. OvertimeRateKeys, OvertimeIncludesAllowances, NightShiftEnabled, NightShiftPct, NightShiftStart, NightShiftEnd, NightShiftReducedHour, DsrFormula, DsrLossOnAbsence];
+
     // FLH-02a: folha calculada ("A confirmar com a contadora").
     public const string SalaryProration = "hr.salary_proration";
     public const string SickLeaveCompanyDays = "hr.sick_leave_company_days";
@@ -309,7 +354,7 @@ public sealed class HrParametersService(
     public const string IrrfReductionIncome = "hr.irrf_reduction_income";
 
     /// <summary>As chaves que o motor da folha calculada lê (o holerite guarda os ids delas).</summary>
-    public static readonly string[] CalculationKeys = [SalaryProration, SickLeaveCompanyDays, AccidentKeepsFgts, InsalubrityBase, HazardPayPct, AllowancesAccumulate, HourValueDivisor, FamilyAllowanceMaxAge, IrrfReductionIncome];
+    public static readonly string[] CalculationKeys = [SalaryProration, SickLeaveCompanyDays, AccidentKeepsFgts, InsalubrityBase, HazardPayPct, AllowancesAccumulate, HourValueDivisor, FamilyAllowanceMaxAge, IrrfReductionIncome, .. HourKeys];
 
     /// <summary>
     /// Virada da folha calculada (FLH-06, ADR 0039 §5): enquanto não for 1, a calculada é só simulação. Não aparece em Configurações; quem
@@ -336,8 +381,21 @@ public sealed class HrParametersService(
             Number(AllowancesAccumulate) == 1m,
             Number(HourValueDivisor),
             (int)Number(FamilyAllowanceMaxAge),
-            Number(IrrfReductionIncome) == 2m ? Domain.IrrfReductionIncome.CalculationBase : Domain.IrrfReductionIncome.GrossTaxable);
+            Number(IrrfReductionIncome) == 2m ? Domain.IrrfReductionIncome.CalculationBase : Domain.IrrfReductionIncome.GrossTaxable,
+            new PayrollHourParameters(Number(OvertimeWorkdayPct), Number(OvertimeRestDayPct), Number(OvertimeHolidayPct), Number(OvertimeIncludesAllowances) == 1m,
+                Number(NightShiftEnabled) == 1m, Number(NightShiftPct), (int)Number(NightShiftStart), (int)Number(NightShiftEnd), Number(NightShiftReducedHour) == 1m,
+                Number(DsrFormula) == 2m ? Domain.DsrFormula.CompanyCalendar : Domain.DsrFormula.SundaysAndHolidays, Number(DsrLossOnAbsence) == 1m));
         return (parameters, stored.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => p.Id).ToList());
+    }
+
+    /// <summary>
+    /// FLH-02b (Estados): os percentuais das horas extras apagados (sem a linha gravada ou sem valor) bloqueiam o cálculo, em vez de cair
+    /// num padrão que ninguém conferiu.
+    /// </summary>
+    public async Task<bool> OvertimeRatesMissingAsync(CancellationToken cancellationToken = default)
+    {
+        var stored = await db.HrParameters.AsNoTracking().Where(p => OvertimeRateKeys.Contains(p.Key) && p.Value != null).Select(p => p.Key).ToListAsync(cancellationToken);
+        return OvertimeRateKeys.Any(k => !stored.Contains(k));
     }
 
     /// <summary>A virada foi feita (FLH-06): a folha calculada deixa de ser simulação.</summary>
@@ -522,7 +580,8 @@ public sealed class HrParametersService(
             {
                 return PayrollRules.Field(change.Key, definition.Kind switch
                 {
-                    HrParameterKind.Percent => "Informe um percentual de 0 a 100, com até 2 casas.",
+                    HrParameterKind.Percent => $"Informe um percentual de {definition.Min:0} a {definition.Max:0}, com até 2 casas.",
+                    HrParameterKind.HourOfDay => "Informe uma hora de 0 a 23.",
                     HrParameterKind.DayOfMonth or HrParameterKind.DayOfPeriod => $"Informe um dia de {definition.Min:0} a {definition.Max:0}.",
                     HrParameterKind.Minutes => $"Informe de {definition.Min:0} a {definition.Max:0} minutos.",
                     HrParameterKind.Toggle => "Escolha ligado ou desligado.",

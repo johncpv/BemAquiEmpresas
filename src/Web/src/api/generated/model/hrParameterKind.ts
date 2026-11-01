@@ -26,4 +26,5 @@ export const HrParameterKind = {
   Choice: 'Choice',
   Hours: 'Hours',
   Years: 'Years',
+  HourOfDay: 'HourOfDay',
 } as const;

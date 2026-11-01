@@ -8697,7 +8697,7 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasIndex("Period", "Type", "Mode")
                         .IsUnique()
                         .HasDatabaseName("ix_payroll_runs_period_type")
-                        .HasFilter("rectifies_run_id IS NULL");
+                        .HasFilter("rectifies_run_id IS NULL AND NOT (type = 'Vacation' AND mode = 'Calculated')");
 
                     b.ToTable("payroll_runs", "hr");
                 });
@@ -8984,6 +8984,15 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("gross");
+
+                    b.Property<int>("HourBankDecisionMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("hour_bank_decision_minutes");
+
+                    b.Property<string>("HourBankDecisionNote")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("hour_bank_decision_note");
 
                     b.Property<string>("InputsSnapshot")
                         .HasColumnType("jsonb")
@@ -9401,6 +9410,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("bank_month_minutes");
 
+                    b.Property<int>("BankPayoutMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("bank_payout_minutes");
+
                     b.Property<DateTimeOffset?>("ClosedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("closed_at");
@@ -9554,6 +9567,178 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_timesheet_day_reviews_employee_day");
 
                     b.ToTable("timesheet_day_reviews", "hr");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.VacationPeriod", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Absences")
+                        .HasColumnType("integer")
+                        .HasColumnName("absences");
+
+                    b.Property<DateOnly>("ConcessionEndsOn")
+                        .HasColumnType("date")
+                        .HasColumnName("concession_ends_on");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<DateOnly>("EndsOn")
+                        .HasColumnType("date")
+                        .HasColumnName("ends_on");
+
+                    b.Property<int>("EntitledDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("entitled_days");
+
+                    b.Property<DateOnly?>("RestartedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("restarted_on");
+
+                    b.Property<string>("RestartedReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("restarted_reason");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<int>("SoldDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("sold_days");
+
+                    b.Property<DateOnly>("StartsOn")
+                        .HasColumnType("date")
+                        .HasColumnName("starts_on");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<int>("TakenDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("taken_days");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_vacation_periods");
+
+                    b.HasIndex("EmployeeId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ix_vacation_periods_employee_sequence");
+
+                    b.HasIndex("Status", "ConcessionEndsOn")
+                        .HasDatabaseName("ix_vacation_periods_status_concession");
+
+                    b.ToTable("vacation_periods", "hr");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.VacationSchedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Advance13th")
+                        .HasColumnType("boolean")
+                        .HasColumnName("advance13th");
+
+                    b.Property<string>("CalculatedSplit")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("calculated_split");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid?>("CancelledBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancelled_by");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<int>("Days")
+                        .HasColumnType("integer")
+                        .HasColumnName("days");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<DateOnly>("PaymentDueOn")
+                        .HasColumnType("date")
+                        .HasColumnName("payment_due_on");
+
+                    b.Property<Guid?>("PayrollRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payroll_run_id");
+
+                    b.Property<Guid>("PeriodId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("period_id");
+
+                    b.Property<int>("SoldDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("sold_days");
+
+                    b.Property<DateOnly>("StartsOn")
+                        .HasColumnType("date")
+                        .HasColumnName("starts_on");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_vacation_schedules");
+
+                    b.HasIndex("PayrollRunId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_vacation_schedules_run")
+                        .HasFilter("payroll_run_id IS NOT NULL");
+
+                    b.HasIndex("PeriodId")
+                        .HasDatabaseName("ix_vacation_schedules_period");
+
+                    b.HasIndex("EmployeeId", "StartsOn")
+                        .HasDatabaseName("ix_vacation_schedules_employee_start");
+
+                    b.ToTable("vacation_schedules", "hr");
                 });
 
             modelBuilder.Entity("BemAqui.HR.Domain.WorkSchedule", b =>
@@ -17235,6 +17420,39 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_timesheet_day_reviews_employees_employee_id");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.VacationPeriod", b =>
+                {
+                    b.HasOne("BemAqui.HR.Domain.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_vacation_periods_employees_employee_id");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.VacationSchedule", b =>
+                {
+                    b.HasOne("BemAqui.HR.Domain.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_vacation_schedules_employees_employee_id");
+
+                    b.HasOne("BemAqui.HR.Domain.PayrollRun", null)
+                        .WithMany()
+                        .HasForeignKey("PayrollRunId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_vacation_schedules_payroll_runs_payroll_run_id");
+
+                    b.HasOne("BemAqui.HR.Domain.VacationPeriod", null)
+                        .WithMany()
+                        .HasForeignKey("PeriodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_vacation_schedules_vacation_periods_period_id");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.GroupGrant", b =>

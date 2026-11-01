@@ -181,6 +181,7 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
                 ("Esperado", Hours(t.ExpectedMinutes)), ("Trabalhado", Hours(t.WorkedMinutes)), ("Extras", Hours(t.OvertimeMinutes)),
                 ("Faltas", Hours(t.AbsenceMinutes)), ("Atrasos", Hours(t.LateMinutes)), ("Abonado", Hours(t.JustifiedMinutes)),
                 ("Abonado por motivo", health ? t.JustifiedByReason : "protegido"), ("Banco de horas", Hours(t.BankBalanceMinutes)),
+                ("Banco de horas baixado pela folha", Hours(t.BankPayoutMinutes == 0 ? null : t.BankPayoutMinutes)),
                 ("Fechado em", PersonalDataMask.At(t.ClosedAt)), ("Ciência do funcionário", PersonalDataMask.At(t.EmployeeAckAt)),
                 ("Resumo confirmado", t.EmployeeAckSummary))).ToList()),
             // "Marcar como revisado" do RH: o dia e o comentário, como a tela do espelho mostra.
@@ -233,12 +234,15 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
                            join r in db.PayrollRuns.AsNoTracking() on p.PayrollRunId equals r.Id
                            where p.EmployeeId == id && (r.Status == PayrollRunStatus.Closed || r.Status == PayrollRunStatus.Paid)
                            orderby r.Period, r.Type
-                           select new { p.Id, r.Period, r.Type, p.Gross, p.Deductions, p.Net, p.FgtsAmount, p.CreatedAt }).ToListAsync(ct);
+                           select new { p.Id, r.Period, r.Type, p.Gross, p.Deductions, p.Net, p.FgtsAmount, p.CreatedAt, p.HourBankDecisionMinutes, p.HourBankDecisionNote }).ToListAsync(ct);
         var ids = slips.Select(s => s.Id).ToList();
         var lines = (await db.PayslipLines.AsNoTracking().Where(l => ids.Contains(l.PayslipId)).OrderBy(l => l.Sort).ToListAsync(ct)).ToLookup(l => l.PayslipId);
         return new PersonalDataBlock("Holerites", "hr.payslips", slips.Select(s => PersonalDataRecord.Of(s.CreatedAt,
             ("Competência", PayrollRules.PeriodLabel(s.Period)), ("Tipo", PayrollRules.TypeLabel(s.Type)), ("Proventos", PersonalDataMask.Money(s.Gross)),
             ("Descontos", PersonalDataMask.Money(s.Deductions)), ("Líquido", PersonalDataMask.Money(s.Net)), ("FGTS do mês", PersonalDataMask.Money(s.FgtsAmount)),
+            // FLH-02b: a decisão do RH sobre o banco de horas na folha (horas pagas ou descontadas) e o motivo.
+            ("Banco de horas na folha", s.HourBankDecisionMinutes == 0 ? "-" : (s.HourBankDecisionMinutes > 0 ? "Pagas " : "Descontadas ") + TimesheetRules.Duration(Math.Abs(s.HourBankDecisionMinutes))),
+            ("Motivo do banco de horas", s.HourBankDecisionNote),
             ("Linhas", string.Join("; ", lines[s.Id].Select(l => $"{l.Code} {l.Description}: {PersonalDataMask.Money(l.Amount)}" + (l.Reference is null ? string.Empty : $" ({l.Reference})") + (l.Note is null ? string.Empty : $" — motivo: {l.Note}")))))).ToList());
     }
 

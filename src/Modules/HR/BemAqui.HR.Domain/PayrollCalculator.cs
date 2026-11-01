@@ -26,6 +26,15 @@ public enum PayrollCalculation
     Irrf,
     Fgts,
 
+    // FLH-02b: horas do espelho fechado (extras por classe do dia, adicional noturno, DSR sobre as variáveis, perda do DSR e o banco de horas).
+    OvertimeWorkday,
+    OvertimeRestDay,
+    OvertimeHoliday,
+    NightShift,
+    Dsr,
+    DsrLoss,
+    HourBankPayout,
+    HourBankDiscount,
     // FLH-03: folha de férias (VacationCalculator).
     VacationPay,
     VacationAverages,
@@ -88,10 +97,16 @@ public sealed record PayrollCalcParameters(
     bool AllowancesAccumulate,
     decimal HourValueDivisor,
     int FamilyAllowanceMaxAge,
-    IrrfReductionIncome ReductionIncome)
+    IrrfReductionIncome ReductionIncome,
+    PayrollHourParameters? Hours = null)
 {
-    /// <summary>Os valores pré-configurados (PO 21/10/2026, revisão pré-Fases 4 a 8, tabela 3.4 pontos 7 a 12).</summary>
-    public static PayrollCalcParameters Default { get; } = new(SalaryProration.CommercialMonth, 15, true, InsalubrityBase.MinimumWage, 30m, false, 0m, 14, IrrfReductionIncome.GrossTaxable);
+    /// <summary>Os valores pré-configurados (PO 21/10/2026, revisão pré-Fases 4 a 8, tabela 3.4 pontos 7 a 15).</summary>
+    public static PayrollCalcParameters Default { get; } =
+        new(SalaryProration.CommercialMonth, 15, true, InsalubrityBase.MinimumWage, 30m, false, 0m, 14, IrrfReductionIncome.GrossTaxable, PayrollHourParameters.Default);
+
+    /// <summary>As regras das horas (FLH-02b); o retrato da 1.0.0 não tem: vale o pré-configurado.</summary>
+    [JsonIgnore]
+    public PayrollHourParameters HourRules => Hours ?? PayrollHourParameters.Default;
 }
 
 /// <summary>
@@ -114,6 +129,9 @@ public sealed record PayrollCalcSnapshot(
     int LateMinutes,
     IReadOnlyList<PayrollCalcManualLine> Manual,
     PayrollCalcParameters Parameters,
+    IReadOnlyList<PayrollCalcHourDay>? HourDays = null,
+    PayrollCalcMonthCalendar? Calendar = null,
+    PayrollCalcHourBank? HourBank = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<PayrollCalcVacation>? Vacations = null);
 
 /// <summary>
@@ -158,7 +176,7 @@ public sealed record PayrollCalcResult(
 public static class PayrollCalculator
 {
     /// <summary>Versão semântica do motor (ADR 0039 §2): muda a cada mudança de regra; o holerite calculado guarda a que usou.</summary>
-    public const string Version = "1.1.0";
+    public const string Version = "1.2.0";
 
     private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
 
@@ -219,9 +237,13 @@ public static class PayrollCalculator
             return Blocked("no_salary", "Sem salário: informe o salário base no cadastro do funcionário.");
         }
 
-        if (e.AbsenceMinutes + e.LateMinutes > 0 && HourDivisor(e) <= 0m)
+        var hourRules = prm.HourRules;
+        var hourDays = e.HourDays ?? [];
+        var bankDecision = e.HourBank?.DecisionMinutes ?? 0;
+        var needsHour = e.AbsenceMinutes + e.LateMinutes > 0 || bankDecision != 0 || hourDays.Any(d => d.OvertimeMinutes > 0 || (hourRules.NightEnabled && d.NightMinutes > 0));
+        if (needsHour && HourDivisor(e) <= 0m)
         {
-            return Blocked("no_schedule", "Sem jornada: informe as horas mensais do cargo para descontar faltas e atrasos.");
+            return Blocked("no_schedule", "Sem jornada: informe as horas mensais do cargo para calcular faltas, atrasos e horas extras.");
         }
 
         var from = e.Admission > start ? e.Admission : start;
@@ -271,21 +293,24 @@ public static class PayrollCalculator
         var salary = e.BaseSalary;
         var lines = new List<PayrollCalcLine>();
         PayrollCalcItem? ItemOf(PayrollCalculation calc) => input.Items.FirstOrDefault(i => i.Calculation == calc);
-        void Add(PayrollCalculation calc, decimal amount, string? reference, List<string> memory)
+        bool AddNamed(PayrollCalculation calc, string? name, decimal amount, string? reference, List<string> memory)
         {
             if (amount <= 0m)
             {
-                return;
+                return false;
             }
 
             if (ItemOf(calc) is not { } item)
             {
                 issues.Add(new PayrollCalcIssue("item_missing", $"falta a rubrica com a regra {Label(calc)} (RH → Rubricas): a linha não saiu.", false));
-                return;
+                return false;
             }
 
-            lines.Add(new PayrollCalcLine(item.Id, item.Code, item.Name, item.Kind, calc, reference, amount, true, memory, null));
+            lines.Add(new PayrollCalcLine(item.Id, item.Code, name ?? item.Name, item.Kind, calc, reference, amount, true, memory, null));
+            return true;
         }
+
+        void Add(PayrollCalculation calc, decimal amount, string? reference, List<string> memory) => AddNamed(calc, null, amount, reference, memory);
 
         // CA 2: salário proporcional.
         var salaryAmount = Money(salary * paidDays / divisor);
@@ -392,6 +417,9 @@ public static class PayrollCalculator
                 ]);
             }
         }
+
+        // FLH-02b: as horas do espelho fechado (extras, adicional noturno, banco de horas, DSR e perda do DSR).
+        HourLines(input, e, tables, salary, insalubrity, hazard, divisor, AddNamed, issues);
 
         // CA 13: avulsos (rubrica sem regra), com o motivo; entram nas bases conforme a rubrica.
         var supplied = 0m;
@@ -542,7 +570,7 @@ public static class PayrollCalculator
         var chargesTable = tables[PayrollTaxTableKind.EmployerCharges];
         var charges = PayrollTaxRules.EmployerCharges(chargesTable.Content.EmployerCharges!, chargesTable.Rounding, inssBase);
 
-        var ordered = lines.Select((l, i) => (Line: l, Index: i)).OrderBy(x => x.Line.Calculated ? Order(x.Line.Calculation) : Order(PayrollCalculation.Lateness) + 1).ThenBy(x => x.Index).Select(x => x.Line).ToList();
+        var ordered = lines.Select((l, i) => (Line: l, Index: i)).OrderBy(x => x.Line.Calculated ? Order(x.Line.Calculation) : ManualOrder).ThenBy(x => x.Index).Select(x => x.Line).ToList();
         var totals = PayrollRules.Totals(ordered.Select(l => new PayslipLineValue(l.Type, l.Amount, l.Reference)));
         if (totals.Net < 0m)
         {
@@ -552,6 +580,191 @@ public static class PayrollCalculator
         return new PayrollCalcResult(ordered, totals, inssBase, chosen.Base, fgtsBase, fgts, inss, irrf, charges.Amount,
             [.. charges.Memory, $"Tabela de encargos de {PayrollTaxRules.MonthLabel(chargesTable.ValidFrom)} ({StatusLabel(chargesTable.Status)})."], issues, tableIds);
     }
+
+    /// <summary>
+    /// FLH-02b: as linhas das horas do espelho fechado, na ordem: horas extras por percentual (CA 1; o feriado sem rubrica própria usa a de
+    /// domingo ou folga), adicional noturno (CA 3, só ligado), banco de horas pago ou descontado pela decisão do RH (CA 2), DSR sobre as
+    /// variáveis (CA 4: extras, adicional noturno e o banco pago) e a perda do DSR por semana com falta injustificada (CA 5). O valor da hora
+    /// das extras é (salário + adicionais do mês, pelo parâmetro) ÷ o divisor; o desconto do banco usa só o salário.
+    /// </summary>
+    private static void HourLines(PayrollCalcInput input, PayrollCalcSnapshot e, Dictionary<PayrollTaxTableKind, PayrollCalcTable> tables, decimal salary, decimal insalubrity, decimal hazard,
+        int divisor, Func<PayrollCalculation, string?, decimal, string?, List<string>, bool> add, List<PayrollCalcIssue> issues)
+    {
+        var prm = e.Parameters;
+        var rules = prm.HourRules;
+        var days = e.HourDays ?? [];
+        var bank = e.HourBank;
+        var nightMinutes = rules.NightEnabled ? days.Sum(d => d.NightMinutes) : 0;
+        if (!days.Any(d => d.OvertimeMinutes > 0 || d.UnjustifiedAbsence) && nightMinutes == 0 && (bank?.DecisionMinutes ?? 0) == 0)
+        {
+            return;
+        }
+
+        var hourDivisor = HourDivisor(e);
+        var source = prm.HourValueDivisor > 0m ? "parâmetro hr.hour_value_divisor" : "horas mensais do cargo";
+        var allowances = new List<(string Label, decimal Amount)>();
+        if (rules.OvertimeIncludesAllowances)
+        {
+            if (insalubrity > 0m && e.InsalubrityPct is { } pct)
+            {
+                var basis = prm.InsalubrityBase == InsalubrityBase.MinimumWage ? tables[PayrollTaxTableKind.MinimumWage].Content.MinimumWage?.Monthly ?? 0m : salary;
+                allowances.Add(("insalubridade", Money(basis * pct / 100m)));
+            }
+
+            if (hazard > 0m)
+            {
+                allowances.Add(("periculosidade", Money(salary * prm.HazardPayPct / 100m)));
+            }
+        }
+
+        var hourBase = salary + allowances.Sum(a => a.Amount);
+        var divisorText = hourDivisor.ToString("0.##", PtBr) + " h";
+        string HourValue(decimal basis, bool withAllowances) => withAllowances && allowances.Count > 0
+            ? $"Valor da hora: ({Brl(salary)} + {string.Join(" + ", allowances.Select(a => $"{a.Label} {Brl(a.Amount)}"))}) ÷ {divisorText} ({source}; adicionais pelo parâmetro hr.overtime_base_includes_allowances)."
+            : $"Valor da hora: {Brl(basis)} ÷ {divisorText} ({source}).";
+        decimal Amount(decimal basis, decimal minutes, decimal pct) => Money(basis * minutes * pct / (hourDivisor * 60m * 100m));
+        var variables = 0m;
+
+        // CA 1: extras por classe do dia, cada percentual numa linha "Horas extras {percentual}%".
+        var buckets = new List<(PayrollCalculation Calc, decimal Pct, List<PayrollCalcHourDay> Days)>();
+        foreach (var kind in new[] { PayrollDayKind.Workday, PayrollDayKind.RestDay, PayrollDayKind.Holiday })
+        {
+            var ofKind = days.Where(d => d.Kind == kind && d.OvertimeMinutes > 0).ToList();
+            if (ofKind.Count == 0)
+            {
+                continue;
+            }
+
+            var (calc, pct) = kind switch
+            {
+                PayrollDayKind.Workday => (PayrollCalculation.OvertimeWorkday, rules.OvertimeWorkdayPct),
+                PayrollDayKind.RestDay => (PayrollCalculation.OvertimeRestDay, rules.OvertimeRestDayPct),
+                _ => (input.Items.Any(i => i.Calculation == PayrollCalculation.OvertimeHoliday) ? PayrollCalculation.OvertimeHoliday : PayrollCalculation.OvertimeRestDay, rules.OvertimeHolidayPct),
+            };
+            var index = buckets.FindIndex(b => b.Calc == calc && b.Pct == pct);
+            if (index >= 0)
+            {
+                buckets[index].Days.AddRange(ofKind);
+            }
+            else
+            {
+                buckets.Add((calc, pct, ofKind));
+            }
+        }
+
+        foreach (var (calc, pct, list) in buckets)
+        {
+            var minutes = list.Sum(d => d.OvertimeMinutes);
+            var amount = Amount(hourBase, minutes, 100m + pct);
+            var kinds = list.Select(d => d.Kind).Distinct().ToList();
+            List<string> memory =
+            [
+                $"Horas extras do espelho de ponto fechado: {Hours(minutes)} em {string.Join(", ", list.OrderBy(d => d.Day).Select(d => $"{PayrollHours.DayText(d.Day, d.OvertimeMinutes)} {PayrollHours.KindLabel(d.Kind)}"))}.",
+                $"Percentual de {Pct(pct)} em {string.Join(" e ", kinds.Select(PayrollHours.KindLabel))} (parâmetro {string.Join(", ", kinds.Select(RateKey))}).",
+                HourValue(hourBase, true),
+                $"{Brl(hourBase)} × {minutes} min ÷ ({divisorText} × 60) × (1 + {Pct(pct)}) = {Brl(amount)}.",
+            ];
+            if (add(calc, $"Horas extras {Pct(pct)}", amount, Hours(minutes), memory))
+            {
+                variables += amount;
+            }
+        }
+
+        // CA 3: adicional noturno (ligado pelo parâmetro), com a hora reduzida de 52 min 30 s.
+        if (nightMinutes > 0)
+        {
+            var counted = rules.NightReducedHour ? nightMinutes * 60m / 52.5m : nightMinutes;
+            var countedMinutes = (int)decimal.Round(counted, 0, MidpointRounding.AwayFromZero);
+            var amount = Amount(hourBase, counted, rules.NightPct);
+            List<string> memory =
+            [
+                $"Horas no horário noturno ({rules.NightStartHour} h às {rules.NightEndHour} h, parâmetro hr.night_shift.start e hr.night_shift.end): {Hours(nightMinutes)} em {string.Join(", ", days.Where(d => d.NightMinutes > 0).Select(d => PayrollHours.DayText(d.Day, d.NightMinutes)))}.",
+                rules.NightReducedHour
+                    ? $"Hora noturna reduzida de 52 min 30 s (parâmetro hr.night_shift.reduced_hour): {nightMinutes} min × 60 ÷ 52,5 = {Hours(countedMinutes)}."
+                    : "Sem a hora reduzida (parâmetro hr.night_shift.reduced_hour desligado).",
+                HourValue(hourBase, true),
+                $"{Brl(hourBase)} × {counted.ToString("0.##", PtBr)} min ÷ ({divisorText} × 60) × {Pct(rules.NightPct)} = {Brl(amount)} (parâmetro hr.night_shift.pct).",
+            ];
+            if (add(PayrollCalculation.NightShift, null, amount, Hours(countedMinutes), memory))
+            {
+                variables += amount;
+            }
+        }
+
+        // CA 2: banco de horas sem vencimento: só sai pela decisão do RH na folha (pagar como extra de dia útil ou descontar pelo valor da hora).
+        if (bank is { DecisionMinutes: not 0 } decision)
+        {
+            var minutes = Math.Abs(decision.DecisionMinutes);
+            var balance = $"saldo do espelho fechado {TimesheetRules.WithSign(decision.BalanceMinutes)}";
+            if (decision.DecisionMinutes > 0)
+            {
+                var amount = Amount(hourBase, minutes, 100m + rules.OvertimeWorkdayPct);
+                if (add(PayrollCalculation.HourBankPayout, null, amount, Hours(minutes), [
+                        $"Decisão do RH na folha: pagar {Hours(minutes)} do banco de horas ({balance}). Motivo: {decision.DecisionNote}",
+                        $"Pagas como horas extras de dia útil, {Pct(rules.OvertimeWorkdayPct)} (parâmetro hr.overtime_rates.weekday).",
+                        HourValue(hourBase, true),
+                        $"{Brl(hourBase)} × {minutes} min ÷ ({divisorText} × 60) × (1 + {Pct(rules.OvertimeWorkdayPct)}) = {Brl(amount)}.",
+                    ]))
+                {
+                    variables += amount;
+                }
+            }
+            else
+            {
+                var amount = Amount(salary, minutes, 100m);
+                add(PayrollCalculation.HourBankDiscount, null, amount, Hours(minutes), [
+                    $"Decisão do RH na folha: descontar {Hours(minutes)} do banco de horas ({balance}). Motivo: {decision.DecisionNote}",
+                    HourValue(salary, false),
+                    $"{Brl(salary)} × {minutes} min ÷ ({divisorText} × 60) = {Brl(amount)}.",
+                ]);
+            }
+        }
+
+        // CA 4: DSR sobre as variáveis = variáveis ÷ dias úteis × (domingos + feriados), com os dias do calendário padrão.
+        var start = new DateOnly(input.Period.Year, input.Period.Month, 1);
+        if (variables > 0m)
+        {
+            var (useful, rest) = PayrollHours.DsrDays(start, e.Calendar, rules.DsrFormula);
+            if (useful <= 0 || rest <= 0)
+            {
+                issues.Add(new PayrollCalcIssue("dsr_days", "o mês não tem dias úteis e de descanso pela fórmula do DSR: o DSR sobre variáveis não saiu.", false));
+            }
+            else
+            {
+                var dsr = Money(variables * rest / useful);
+                var holidays = (e.Calendar?.Holidays ?? []).Where(h => h.Year == start.Year && h.Month == start.Month).Order().ToList();
+                List<string> memory =
+                [
+                    $"Variáveis do mês (horas extras, adicional noturno e banco de horas pago): {Brl(variables)}.",
+                    $"Dias do mês: {useful} úteis e {rest} de descanso ({PayrollHours.FormulaLabel(rules.DsrFormula)}, parâmetro hr.dsr_formula).",
+                    holidays.Count > 0 ? $"Feriados e paradas do calendário padrão no mês: {string.Join(", ", holidays.Select(Date))}." : "Sem feriado no calendário padrão do mês.",
+                    $"{Brl(variables)} ÷ {useful} × {rest} = {Brl(dsr)}.",
+                ];
+                add(PayrollCalculation.Dsr, "DSR sobre variáveis", dsr, $"{rest} dias", memory);
+            }
+        }
+
+        // CA 5: a falta injustificada (sem abono aprovado) tira o repouso da semana, um dia de salário por semana.
+        if (rules.DsrLossOnAbsence)
+        {
+            foreach (var week in days.Where(d => d.UnjustifiedAbsence).GroupBy(d => PayrollHours.WeekStart(d.Day)).OrderBy(g => g.Key))
+            {
+                var amount = Money(salary / divisor);
+                add(PayrollCalculation.DsrLoss, $"DSR da semana de {Date(week.Key)}", amount, "1 dia", [
+                    $"Falta injustificada na semana de {Date(week.Key)} a {Date(week.Key.AddDays(6))}: {string.Join(", ", week.Select(d => Date(d.Day)))} (espelho fechado, sem abono aprovado).",
+                    "Sem a semana inteira trabalhada, o repouso da semana não é pago (Lei 605/1949, art. 6º; parâmetro hr.dsr_loss_on_absence).",
+                    $"Valor do dia: {Brl(salary)} ÷ {divisor} = {Brl(amount)}.",
+                ]);
+            }
+        }
+    }
+
+    private static string RateKey(PayrollDayKind kind) => kind switch
+    {
+        PayrollDayKind.Workday => "hr.overtime_rates.weekday",
+        PayrollDayKind.RestDay => "hr.overtime_rates.rest_day",
+        _ => "hr.overtime_rates.holiday",
+    };
 
     /// <summary>Uma opção do IRRF (CA 9): base, imposto da faixa, a redução adicional pelo rendimento do parâmetro e o arredondamento.</summary>
     public static (decimal Base, decimal Final, IReadOnlyList<string> Memory) IrrfOption(IrrfContent irrf, PayrollRounding rounding, decimal income, decimal deductions, IrrfReductionIncome mode)
@@ -602,6 +815,14 @@ public static class PayrollCalculator
         PayrollCalculation.Inss => "INSS",
         PayrollCalculation.Irrf => "IRRF",
         PayrollCalculation.Fgts => "FGTS",
+        PayrollCalculation.OvertimeWorkday => "Horas extras em dia útil",
+        PayrollCalculation.OvertimeRestDay => "Horas extras em domingo ou folga",
+        PayrollCalculation.OvertimeHoliday => "Horas extras em feriado",
+        PayrollCalculation.NightShift => "Adicional noturno",
+        PayrollCalculation.Dsr => "DSR sobre variáveis",
+        PayrollCalculation.DsrLoss => "Perda do DSR",
+        PayrollCalculation.HourBankPayout => "Banco de horas pago",
+        PayrollCalculation.HourBankDiscount => "Banco de horas descontado",
         PayrollCalculation.VacationPay => "Férias",
         PayrollCalculation.VacationAverages => "Médias de férias",
         PayrollCalculation.VacationThird => "1/3 de férias",
@@ -627,15 +848,26 @@ public static class PayrollCalculator
         PayrollCalculation.SickLeave => 1,
         PayrollCalculation.Insalubrity => 2,
         PayrollCalculation.HazardPay => 3,
-        PayrollCalculation.Absence => 4,
-        PayrollCalculation.Lateness => 5,
-        PayrollCalculation.FamilyAllowance => 8,
-        PayrollCalculation.TransportVoucher => 9,
-        PayrollCalculation.Inss => 10,
-        PayrollCalculation.Irrf => 11,
-        PayrollCalculation.Fgts => 12,
-        _ => 6,
+        PayrollCalculation.OvertimeWorkday => 4,
+        PayrollCalculation.OvertimeRestDay => 5,
+        PayrollCalculation.OvertimeHoliday => 6,
+        PayrollCalculation.NightShift => 7,
+        PayrollCalculation.HourBankPayout => 8,
+        PayrollCalculation.Dsr => 9,
+        PayrollCalculation.Absence => 10,
+        PayrollCalculation.Lateness => 11,
+        PayrollCalculation.DsrLoss => 12,
+        PayrollCalculation.HourBankDiscount => 13,
+        PayrollCalculation.FamilyAllowance => 15,
+        PayrollCalculation.TransportVoucher => 16,
+        PayrollCalculation.Inss => 17,
+        PayrollCalculation.Irrf => 18,
+        PayrollCalculation.Fgts => 19,
+        _ => ManualOrder,
     };
+
+    /// <summary>Os avulsos ficam depois dos descontos do ponto e antes do salário-família.</summary>
+    private const int ManualOrder = 14;
 
     private static decimal Money(decimal value) => decimal.Round(value, 2, MidpointRounding.AwayFromZero);
 }
@@ -654,6 +886,14 @@ public static class PayrollCalculationRules
     public const string NothingToRectifyCode = "payroll_nothing_to_rectify";
     public const string RectificationOpenCode = "payroll_rectification_open";
     public const string NotClosedCode = "payroll_run_not_closed";
+
+    // FLH-02b: percentuais das extras apagados bloqueiam o cálculo; decisão do banco de horas na folha.
+    public const string OvertimeRatesMissingCode = "payroll_overtime_rates_missing";
+    public const string OvertimeRatesMissingMessage = "Cadastre os percentuais de horas extras em Configurações → Parâmetros → RH.";
+    public const string HourBankInvalidCode = "payroll_hour_bank_invalid";
+
+    /// <summary>Com o saldo positivo acima disso, a seção do banco sugere "Pagar {n} h do banco" (Propositivo, sem decidir).</summary>
+    public const int HourBankSuggestionMinutes = 40 * 60;
 
     public const string SimulationMessage = "Folha calculada em conferência paralela: feche a folha lançada.";
     public const string CalculatedLineMessage = "Na folha calculada, a linha calculada não é editada à mão: lance um avulso com o motivo e clique em \"Recalcular\".";

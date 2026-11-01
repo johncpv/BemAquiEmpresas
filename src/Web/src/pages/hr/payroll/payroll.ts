@@ -28,6 +28,8 @@ export const CALCULATION_LABELS: Record<string, string> = {
   None: 'Sem regra (lançamento avulso)', BaseSalary: 'Salário', SickLeave: 'Afastamento pela previdência', Insalubrity: 'Insalubridade', HazardPay: 'Periculosidade',
   Absence: 'Faltas', Lateness: 'Atrasos', FamilyAllowance: 'Salário-família', TransportVoucher: 'Vale-transporte (desconto)', TransportVoucherSupplied: 'Vale-transporte fornecido (avulso)',
   Inss: 'INSS', Irrf: 'IRRF', Fgts: 'FGTS',
+  OvertimeWorkday: 'Horas extras em dia útil', OvertimeRestDay: 'Horas extras em domingo ou folga', OvertimeHoliday: 'Horas extras em feriado', NightShift: 'Adicional noturno',
+  Dsr: 'DSR sobre variáveis', DsrLoss: 'Perda do DSR', HourBankPayout: 'Banco de horas pago', HourBankDiscount: 'Banco de horas descontado',
   // FLH-03: folha de férias.
   VacationPay: 'Férias', VacationAverages: 'Médias de férias', VacationThird: '1/3 de férias', VacationSale: 'Abono pecuniário', VacationSaleThird: '1/3 do abono pecuniário',
 }
@@ -96,5 +98,31 @@ export const PAYROLL_DICAS = {
   simplificado: 'Desconto simplificado: no IRRF, em vez de deduzir o INSS, os dependentes e a pensão, a lei permite deduzir um valor fixo por mês. O sistema calcula as duas formas e usa a que dá o menor imposto.',
   regra: 'A regra diz o que o sistema calcula nesta rubrica na folha calculada. Rubrica sem regra (prêmio, adiantamento, pensão, consignado) é lançada à mão como avulso, com o motivo.',
   deduzIrrf: 'O desconto entra na dedução legal do IRRF (como a pensão alimentícia judicial), comparada com o desconto simplificado.',
+  dsr: 'DSR sobre variáveis: o descanso semanal remunerado sobre as horas extras, o adicional noturno e o banco pago. Variáveis ÷ dias úteis do mês × (domingos + feriados), com os feriados do calendário padrão.',
+  perdaDsr: 'Perda do DSR: sem a semana inteira trabalhada, a falta injustificada (sem abono aprovado) tira o repouso daquela semana, um dia de salário (Lei 605/1949, art. 6º).',
+  bancoHoras: 'Banco de horas: as extras de quem tem acordo vão para o saldo, que não vence sozinho. Só sai por decisão do RH na folha: "Pagar" (como hora extra de dia útil) ou "Descontar" (o saldo negativo, pelo valor da hora), sempre com o motivo.',
   avulso: 'Lançamento avulso: rubrica sem regra (prêmio, adiantamento, pensão, consignado, vale-transporte fornecido). Entra nas bases pelas marcas da rubrica e fica a cada recálculo. O motivo é obrigatório.',
+}
+
+/** Minutos do banco de horas como na tela do espelho: "50 h", "10 h 30 min", "−5 h"; com o sinal "+" quando pedido (FLH-02b). */
+export function hoursLabel(minutes: number, signed = false) {
+  const m = Math.abs(minutes)
+  const h = Math.floor(m / 60)
+  const rest = m % 60
+  const text = h > 0 && rest === 0 ? `${h} h` : h > 0 ? `${h} h ${rest} min` : `${rest} min`
+  return (minutes < 0 ? '−' : signed && minutes > 0 ? '+' : '') + text
+}
+
+/** "10", "10,5" ou "10:30" (horas) em minutos; null se não for um número de horas maior que zero (FLH-02b). */
+export function parseHours(text: string): number | null {
+  const t = text.trim()
+  const clock = /^(\d{1,4}):([0-5]\d)$/.exec(t)
+  if (clock) {
+    const minutes = Number(clock[1]) * 60 + Number(clock[2])
+    return minutes > 0 ? minutes : null
+  }
+
+  if (!/^\d{1,4}([.,]\d{1,2})?$/.test(t)) return null
+  const minutes = Math.round(Number(t.replace(',', '.')) * 60)
+  return minutes > 0 ? minutes : null
 }

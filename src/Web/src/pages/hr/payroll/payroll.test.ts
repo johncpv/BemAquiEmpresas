@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CALCULATION_LABELS, choosesEmployees, currentPeriod, formatPct, isManualCalculation, MODE_LABELS, periodLabel, totals, typeLabel } from './payroll'
+import { CALCULATION_LABELS, choosesEmployees, currentPeriod, formatPct, hoursLabel, isManualCalculation, MODE_LABELS, parseHours, periodLabel, totals, typeLabel } from './payroll'
 
 describe('folha lançada (RH-02a)', () => {
   it('totais com a mesma regra do servidor: a informativa fica fora do líquido (CA 6)', () => {
@@ -31,10 +31,26 @@ describe('folha calculada (FLH-02a)', () => {
   })
 
   it('toda regra tem rótulo e o modo aparece por extenso', () => {
-    for (const rule of ['None', 'BaseSalary', 'SickLeave', 'Insalubrity', 'HazardPay', 'Absence', 'Lateness', 'FamilyAllowance', 'TransportVoucher', 'TransportVoucherSupplied', 'Inss', 'Irrf', 'Fgts', 'VacationPay', 'VacationAverages', 'VacationThird', 'VacationSale', 'VacationSaleThird']) {
+    for (const rule of ['None', 'BaseSalary', 'SickLeave', 'Insalubrity', 'HazardPay', 'Absence', 'Lateness', 'FamilyAllowance', 'TransportVoucher', 'TransportVoucherSupplied', 'Inss', 'Irrf', 'Fgts',
+      'OvertimeWorkday', 'OvertimeRestDay', 'OvertimeHoliday', 'NightShift', 'Dsr', 'DsrLoss', 'HourBankPayout', 'HourBankDiscount',
+      'VacationPay', 'VacationAverages', 'VacationThird', 'VacationSale', 'VacationSaleThird']) {
       expect(CALCULATION_LABELS[rule]).toBeTruthy()
     }
 
     expect(MODE_LABELS.Calculated).toBe('Folha calculada')
+  })
+})
+
+describe('banco de horas na folha (FLH-02b)', () => {
+  it('mostra as horas com o sinal e lê o que o RH digita', () => {
+    expect(hoursLabel(3000)).toBe('50 h')
+    expect(hoursLabel(630, true)).toBe('+10 h 30 min')
+    expect(hoursLabel(-300)).toBe('−5 h')
+    expect(hoursLabel(45)).toBe('45 min')
+    expect(parseHours('10')).toBe(600)
+    expect(parseHours('10,5')).toBe(630)
+    expect(parseHours('2:15')).toBe(135)
+    expect(parseHours('0')).toBeNull()
+    expect(parseHours('abc')).toBeNull()
   })
 })

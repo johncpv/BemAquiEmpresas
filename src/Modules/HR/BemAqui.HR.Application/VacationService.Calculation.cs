@@ -17,9 +17,12 @@ public sealed partial class VacationService
 {
     /// <summary>
     /// Regras de rubrica que contam como variáveis na média das férias (<c>hr.vacation_averages</c>), além dos proventos avulsos com base do
-    /// INSS. Ponto de extensão da FLH-02b: as regras de horas extras e DSR entram aqui quando o motor as calcular.
+    /// INSS: as horas extras, o adicional noturno e o DSR sobre as variáveis da FLH-02b (calculados ou lançados à mão nessas rubricas).
     /// </summary>
-    public static readonly IReadOnlySet<PayrollCalculation> VariableCalculations = new HashSet<PayrollCalculation>();
+    public static readonly IReadOnlySet<PayrollCalculation> VariableCalculations = new HashSet<PayrollCalculation>
+    {
+        PayrollCalculation.OvertimeWorkday, PayrollCalculation.OvertimeRestDay, PayrollCalculation.OvertimeHoliday, PayrollCalculation.NightShift, PayrollCalculation.Dsr,
+    };
 
     /// <summary>Rubricas do seed que não são variáveis (salário, férias, 13º): ficam fora da média mesmo lançadas à mão.</summary>
     private static readonly HashSet<string> FixedSeedKeys = new(StringComparer.Ordinal)

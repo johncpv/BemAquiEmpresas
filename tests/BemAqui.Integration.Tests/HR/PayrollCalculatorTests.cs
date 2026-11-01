@@ -32,9 +32,10 @@ public class PayrollCalculatorTests
 
     private static PayrollCalcSnapshot Employee(decimal salary, DateOnly? admission = null, DateOnly? termination = null, decimal hours = 220m, int? insalubrity = null, bool hazard = false,
         bool vt = false, IReadOnlyList<PayrollCalcDependent>? dependents = null, IReadOnlyList<PayrollCalcLeave>? leaves = null, int absence = 0, int late = 0,
-        IReadOnlyList<PayrollCalcManualLine>? manual = null, PayrollCalcParameters? parameters = null, bool position = true) =>
+        IReadOnlyList<PayrollCalcManualLine>? manual = null, PayrollCalcParameters? parameters = null, bool position = true, IReadOnlyList<PayrollCalcHourDay>? hourDays = null,
+        PayrollCalcMonthCalendar? calendar = null, PayrollCalcHourBank? bank = null) =>
         new(salary, admission ?? new DateOnly(2020, 1, 2), termination, position, hours, insalubrity, hazard, vt, dependents ?? [], leaves ?? [], true, absence, late, manual ?? [],
-            parameters ?? PayrollCalcParameters.Default);
+            parameters ?? PayrollCalcParameters.Default, hourDays, calendar, bank);
 
     private static PayrollCalcResult Calc(PayrollCalcSnapshot snapshot, DateOnly? period = null) =>
         PayrollCalculator.Calculate(new PayrollCalcInput(period ?? March, snapshot, Items, Tables2026));

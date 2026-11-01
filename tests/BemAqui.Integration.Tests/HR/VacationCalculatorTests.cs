@@ -115,7 +115,7 @@ public class VacationCalculatorTests
     public void Mensal_com_ferias_nao_paga_de_novo_e_compensa_o_inss()
     {
         var snapshot = new PayrollCalcSnapshot(3000m, D(2020, 1, 2), null, true, 220m, null, false, false, [], [], true, 0, 0, [], PayrollCalcParameters.Default,
-            [new PayrollCalcVacation(D(2026, 6, 16), D(2026, 6, 30), 15, 2000m, 155.69m, 2000m, true)]);
+            Vacations: [new PayrollCalcVacation(D(2026, 6, 16), D(2026, 6, 30), 15, 2000m, 155.69m, 2000m, true)]);
         var r = PayrollCalculator.Calculate(new PayrollCalcInput(D(2026, 6, 1), snapshot, Items, Tables2026));
         r.Lines.Single(l => l.Code == "SAL").Amount.Should().Be(1500m);
         r.Lines.Single(l => l.Code == "SAL").Memory.Should().Contain("Menos 15 dias de férias, pagos no recibo de férias.");

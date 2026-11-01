@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Jobs;
@@ -6,6 +7,7 @@ using BemAqui.BuildingBlocks.Notifications;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.HR.Domain;
+using BemAqui.Production.Contracts;
 using BemAqui.SharedKernel;
 using Hangfire;
 using Hangfire.States;
@@ -20,7 +22,7 @@ namespace BemAqui.HR.Application;
 /// Acima de 20 funcionários, roda no <see cref="PayrollCalculationJob"/> (só ids). Folha fechada nunca é recalculada: "Ver diferença" e
 /// "Gerar retificação". Nenhum valor vai para log, evento ou argumento de job.
 /// </summary>
-public sealed class PayrollCalculationService(
+public sealed partial class PayrollCalculationService(
     IHrDb db,
     IPermissionChecker permissions,
     IPayrollTaxTables taxTables,
@@ -33,6 +35,7 @@ public sealed class PayrollCalculationService(
     IAuditWriter audit,
     IUserDirectory users,
     ICurrentUser currentUser,
+    IBusinessCalendar calendar,
     TimeProvider clock)
 {
     public const string NotificationType = "hr.payroll";
@@ -517,6 +520,15 @@ public sealed class PayrollCalculationService(
             };
         }
 
+        // FLH-02b (Estados): sem os percentuais das horas extras, nada é calculado (o link leva aos parâmetros do RH).
+        if (await parameters.OvertimeRatesMissingAsync(ct))
+        {
+            return Error.Validation(PayrollCalculationRules.OvertimeRatesMissingCode, PayrollCalculationRules.OvertimeRatesMissingMessage) with
+            {
+                Data = new Dictionary<string, object?> { ["link"] = "/app/configuracoes/parametros?secao=rh" },
+            };
+        }
+
         var (prm, ids) = await parameters.CalculationParametersAsync(ct);
         return new Context(tables, items, prm, ids, await parameters.CalculatedOfficialAsync(ct));
     }
@@ -544,7 +556,7 @@ public sealed class PayrollCalculationService(
     /// Retrato das entradas (ADR 0039 §2) por funcionário: salário vigente no fim da competência, cargo, dependentes, afastamentos, espelho
     /// fechado, avulsos e parâmetros, em ordem estável (o mesmo cadastro dá o mesmo retrato).
     /// </summary>
-    private async Task<Dictionary<Guid, PayrollCalcSnapshot>> SnapshotsAsync(DateOnly period, IReadOnlyCollection<Guid> employeeIds, IReadOnlyDictionary<Guid, List<PayrollCalcManualLine>> manual,
+    private async Task<Dictionary<Guid, PayrollCalcSnapshot>> SnapshotsAsync(Guid runId, DateOnly period, IReadOnlyCollection<Guid> employeeIds, IReadOnlyDictionary<Guid, List<PayrollCalcManualLine>> manual,
         PayrollCalcParameters prm, CancellationToken ct)
     {
         var end = PayrollRules.PeriodEnd(period);
@@ -563,6 +575,13 @@ public sealed class PayrollCalculationService(
         var vacationRows = (await db.VacationSchedules.AsNoTracking()
             .Where(s => ids.Contains(s.EmployeeId) && s.Status != VacationScheduleStatus.Cancelled && s.StartsOn <= end && s.StartsOn >= period.AddDays(-400)).ToListAsync(ct))
             .Where(s => s.EndsOn >= period).ToLookup(s => s.EmployeeId);
+
+        // FLH-02b: as horas do espelho fechado (dias com extra, noturno ou falta injustificada), o calendário padrão da competência e o
+        // banco de horas com a decisão do RH nesta folha.
+        var decisions = await db.Payslips.AsNoTracking().Where(p => p.PayrollRunId == runId && ids.Contains(p.EmployeeId))
+            .Select(p => new { p.EmployeeId, p.HourBankDecisionMinutes, p.HourBankDecisionNote }).ToDictionaryAsync(p => p.EmployeeId, ct);
+        var holidays = (await calendar.ExceptionsAsync(period, end, ct)).Where(x => x.HoursAvailable <= 0m).Select(x => x.Date).Distinct().Order().ToList();
+        var monthCalendar = new PayrollCalcMonthCalendar(holidays, await calendar.WorkingDaysAsync(period, end, ct));
         var result = new Dictionary<Guid, PayrollCalcSnapshot>();
         foreach (var e in employees)
         {
@@ -574,13 +593,19 @@ public sealed class PayrollCalculationService(
                 return new PayrollCalcVacation(from, to, to.DayNumber - from.DayNumber + 1, split?.InssBase ?? 0m, split?.Inss ?? 0m, split?.FgtsBase ?? 0m, s.CalculatedSplit is not null);
             }).ToList();
             var sheet = timesheets.GetValueOrDefault(e.Id);
+            var days = sheet?.DaysSnapshot is { } json ? JsonSerializer.Deserialize<List<TimesheetDayResult>>(json, TimeClock.TimesheetService.SnapshotJson) ?? [] : [];
+            var decision = decisions.GetValueOrDefault(e.Id);
+            PayrollCalcHourBank? bank = sheet?.BankMonthMinutes is not null
+                ? new PayrollCalcHourBank(sheet.BankBalanceMinutes ?? 0, decision?.HourBankDecisionMinutes ?? 0, decision?.HourBankDecisionNote)
+                : null;
             result[e.Id] = new PayrollCalcSnapshot(
                 salaries.GetValueOrDefault(e.Id), e.AdmissionDate, e.TerminationDate, positions.ContainsKey(e.PositionId), positions.GetValueOrDefault(e.PositionId),
                 e.InsalubrityPct, e.HazardPay, e.UsesTransportVoucher,
                 dependents[e.Id].OrderBy(d => d.BirthDate).ThenBy(d => d.IrDependent).ThenBy(d => d.FamilyAllowance).ThenBy(d => d.FamilyAllowanceDocsOk)
                     .Select(d => new PayrollCalcDependent(d.BirthDate, d.IrDependent, d.FamilyAllowance, d.FamilyAllowanceDocsOk)).ToList(),
                 leaves[e.Id].OrderBy(l => l.EffectiveDate).ThenBy(l => l.LeaveEndDate).Select(l => new PayrollCalcLeave(l.EffectiveDate, l.LeaveEndDate ?? end, l.LeaveType)).ToList(),
-                sheet is not null, sheet?.AbsenceMinutes ?? 0, sheet?.LateMinutes ?? 0, manual.GetValueOrDefault(e.Id) ?? [], prm, vacations.Count == 0 ? null : vacations);
+                sheet is not null, sheet?.AbsenceMinutes ?? 0, sheet?.LateMinutes ?? 0, manual.GetValueOrDefault(e.Id) ?? [], prm,
+                PayrollHours.FromTimesheet(days, prm.HourRules), monthCalendar, bank, vacations.Count == 0 ? null : vacations);
         }
 
         return result;
@@ -661,7 +686,7 @@ public sealed class PayrollCalculationService(
     private async Task ApplyAsync(PayrollRun run, Context context, IReadOnlyList<Payslip> payslips, CancellationToken ct)
     {
         var manual = await ManualAsync(run.Id, ct);
-        var snapshots = await SnapshotsAsync(run.Period, payslips.Select(p => p.EmployeeId).ToList(), manual, context.Parameters, ct);
+        var snapshots = await SnapshotsAsync(run.Id, run.Period, payslips.Select(p => p.EmployeeId).ToList(), manual, context.Parameters, ct);
         var ids = payslips.Select(p => p.Id).ToList();
         var old = await db.PayslipLines.Where(l => ids.Contains(l.PayslipId)).ToListAsync(ct);
         db.PayslipLines.RemoveRange(old);
@@ -750,7 +775,7 @@ public sealed class PayrollCalculationService(
                               orderby e.Name
                               select new { Payslip = p, e.Name, e.Registration }).ToListAsync(ct);
         var manual = await ManualAsync(run.Id, ct);
-        var snapshots = await SnapshotsAsync(run.Period, payslips.Select(p => p.Payslip.EmployeeId).ToList(), manual, context.Parameters, ct);
+        var snapshots = await SnapshotsAsync(run.Id, run.Period, payslips.Select(p => p.Payslip.EmployeeId).ToList(), manual, context.Parameters, ct);
         var ids = payslips.Select(p => p.Payslip.Id).ToList();
         var stored = (await db.PayslipLines.AsNoTracking().Where(l => ids.Contains(l.PayslipId)).ToListAsync(ct)).ToLookup(l => l.PayslipId);
         var items = context.Items.ToDictionary(i => i.Id);
@@ -884,7 +909,7 @@ public sealed class PayrollCalculationService(
         var usedIds = payslips.SelectMany(p => p.TaxTableIds).Distinct().ToList();
         var used = await db.PayrollTaxTables.AsNoTracking().Where(t => usedIds.Contains(t.Id)).ToDictionaryAsync(t => t.Id, ct);
         var (prm, _) = await parameters.CalculationParametersAsync(ct);
-        var snapshots = await SnapshotsAsync(run.Period, payslips.Select(p => p.EmployeeId).ToList(), await ManualAsync(run.Id, ct), prm, ct);
+        var snapshots = await SnapshotsAsync(run.Id, run.Period, payslips.Select(p => p.EmployeeId).ToList(), await ManualAsync(run.Id, ct), prm, ct);
         var reasons = new HashSet<string>(StringComparer.Ordinal);
         var count = 0;
         foreach (var p in payslips)
@@ -901,9 +926,15 @@ public sealed class PayrollCalculationService(
             }
 
             var stored = PayrollCalculator.ReadSnapshot(p.InputsSnapshot);
-            if (stored is null || PayrollCalculator.WriteSnapshot(stored) != PayrollCalculator.WriteSnapshot(snapshots[p.EmployeeId]))
+            var today = snapshots[p.EmployeeId];
+            if (stored is null || PayrollCalculator.WriteSnapshot(stored with { Parameters = today.Parameters }) != PayrollCalculator.WriteSnapshot(today))
             {
                 mine.Add("Cadastro ou parâmetro mudou depois do cálculo");
+            }
+            else if (PayrollCalculator.WriteSnapshot(stored) != PayrollCalculator.WriteSnapshot(today))
+            {
+                // FLH-02b CA 8: só um parâmetro (das horas ou da folha) mudou com settings.edit depois do cálculo.
+                mine.Add("Parâmetro mudou depois do cálculo");
             }
 
             if (mine.Count > 0)
