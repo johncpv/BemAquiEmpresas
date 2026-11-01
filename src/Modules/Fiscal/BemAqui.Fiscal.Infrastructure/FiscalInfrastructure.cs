@@ -105,7 +105,6 @@ public static class FiscalInfrastructure
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFiscalDb>().IncomingInvoiceReadings.AnyAsync(r => r.Id == id, ct),
             ReadAction: "view", WriteAction: "import_incoming",
             CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O PDF da nota de entrada entra pela importação do PDF."))));
-        services.AddAttachmentOwner(OutgoingInvoiceReconciler.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml"], 5 * 1024 * 1024,
 
         // XML e DANFE (FIS-03a): só o sistema grava; leitura com fiscal.view pelos endpoints da nota (CA 18).
         services.AddAttachmentOwner(OutgoingInvoiceReconciler.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml", "application/pdf"], 5 * 1024 * 1024,
