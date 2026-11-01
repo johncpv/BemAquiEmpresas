@@ -65,7 +65,7 @@ public sealed partial class OutgoingInvoiceService(
         var current = await settings.CurrentAsync(cancellationToken);
         var now = clock.GetUtcNow();
         var invoice = OutgoingInvoice.NewDraft(shipment.Id, shipment.Number, project.Id, project.ContractId, project.PartyId, currentUser.UserId, now);
-        await FillRecipientAsync(invoice, project.PartyId, cancellationToken);
+        await FillRecipientAsync(parties, invoice, project.PartyId, cancellationToken);
         invoice.Environment = current.Environment;
         invoice.FreightMode = current.FreightMode;
         invoice.VolumeSpecies = current.VolumeSpecies;
@@ -110,8 +110,11 @@ public sealed partial class OutgoingInvoiceService(
     private Task<OutgoingInvoice?> ActiveForShipmentAsync(Guid shipmentId, CancellationToken ct) =>
         db.OutgoingInvoices.AsNoTracking().FirstOrDefaultAsync(i => i.ShipmentId == shipmentId && i.DiscardedAt == null && !OutgoingInvoice.InactiveStatuses.Contains(i.Status), ct);
 
-    /// <summary>Destinatário do cadastro (CA 1): documento, IE, indicador, endereço de cobrança (ou o primeiro com IBGE) e o e-mail de cobrança.</summary>
-    private async Task FillRecipientAsync(OutgoingInvoice invoice, Guid partyId, CancellationToken ct)
+    /// <summary>
+    /// Destinatário do cadastro (CA 1): documento, IE, indicador, endereço de cobrança (ou o primeiro com IBGE) e o e-mail de cobrança. O tomador
+    /// da NFS-e da instalação usa o mesmo (FIS-06 CA 2).
+    /// </summary>
+    internal static async Task FillRecipientAsync(IParties parties, OutgoingInvoice invoice, Guid partyId, CancellationToken ct)
     {
         var party = await parties.FiscalInfoAsync(partyId, ct);
         var addresses = await parties.AddressesAsync(partyId, ct);
@@ -254,7 +257,13 @@ public sealed partial class OutgoingInvoiceService(
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(page);
-        var invoices = db.OutgoingInvoices.AsNoTracking().Where(i => i.ShipmentId != null && i.DiscardedAt == null);
+        // FIS-06: a NFS-e da instalação aparece junto, com o filtro "NFS-e".
+        var invoices = db.OutgoingInvoices.AsNoTracking().Where(i => (i.ShipmentId != null || i.InstallationOrderId != null) && i.DiscardedAt == null);
+        if (query.Type is { } type)
+        {
+            invoices = invoices.Where(i => i.Type == type);
+        }
+
         if (query.From is { } from)
         {
             var since = BusinessTime.StartOfDayUtc(from);
@@ -290,14 +299,15 @@ public sealed partial class OutgoingInvoiceService(
 
         var totals = await invoices.GroupBy(_ => 1).Select(g => new { Count = g.Count(), Amount = g.Sum(i => i.TotalAmount), Taxes = g.Sum(i => i.TaxAmount) }).FirstOrDefaultAsync(cancellationToken);
         var rows = await invoices.OrderByDescending(i => i.CreatedAt).ThenByDescending(i => i.Id).Skip(page.Skip).Take(page.PageSize)
-            .Select(i => new { i.Id, i.Series, i.Number, i.IssuedOn, i.CreatedAt, i.PartyId, i.ProjectId, i.ShipmentNumber, i.TotalAmount, i.TaxAmount, i.Environment, i.Status })
+            .Select(i => new { i.Id, i.Series, i.Number, i.IssuedOn, i.CreatedAt, i.PartyId, i.ProjectId, i.ShipmentNumber, i.TotalAmount, i.TaxAmount, i.Environment, i.Status, i.Type, i.InstallationOrderNumber })
             .ToListAsync(cancellationToken);
         var partyNames = (await parties.FindManyAsync(rows.Where(r => r.PartyId != null).Select(r => r.PartyId!.Value).Distinct().ToList(), cancellationToken))
             .ToDictionary(p => p.Id, p => p.TradeName ?? p.LegalName);
         var projectNumbers = (await projects.FindManyAsync(rows.Where(r => r.ProjectId != null).Select(r => r.ProjectId!.Value).Distinct().ToList(), cancellationToken))
             .ToDictionary(p => p.Id, p => p.Number);
         var items = rows.Select(r => new OutgoingInvoiceRow(r.Id, r.Series, r.Number, r.IssuedOn, r.CreatedAt, r.PartyId, r.PartyId is { } pid ? partyNames.GetValueOrDefault(pid, string.Empty) : string.Empty,
-            r.ProjectId, r.ProjectId is { } prid ? projectNumbers.GetValueOrDefault(prid) : null, r.ShipmentNumber, r.TotalAmount, r.TaxAmount, r.Environment, r.Status)).ToList();
+            r.ProjectId, r.ProjectId is { } prid ? projectNumbers.GetValueOrDefault(prid) : null, r.ShipmentNumber, r.TotalAmount, r.TaxAmount, r.Environment, r.Status, r.Type,
+            r.InstallationOrderNumber)).ToList();
         return new OutgoingInvoicePage(items, totals?.Count ?? 0, page.Page, page.PageSize, totals?.Amount ?? 0m, totals?.Taxes ?? 0m);
     }
 

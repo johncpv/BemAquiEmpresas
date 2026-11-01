@@ -32195,6 +32195,13 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/InvoiceType"
+            }
           }
         ],
         "responses": {
@@ -33094,6 +33101,406 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/InvalidationResultView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/installations-to-invoice": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ListInstallationsToInvoice",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InstallationQueueRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/nfse": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "CreateNfse",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateNfseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetNfse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "UpdateNfse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNfseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse/issue-check": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "CheckNfseIssue",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseIssueCheckView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse/issue": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "IssueNfse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutgoingInvoiceVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseIssueResultView"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseIssueResultView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse/register": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "RegisterNfse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterNfseForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseRegisterResultView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse/register-cancellation": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "RegisterNfseCancellation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterNfseCancellationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse/reopen": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ReopenNfse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutgoingInvoiceVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse/discard": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "DiscardNfse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutgoingInvoiceVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse/resend": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ResendNfse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseView"
                 }
               }
             }
@@ -47618,6 +48025,25 @@
           }
         }
       },
+      "CreateNfseRequest": {
+        "required": [
+          "installationOrderId"
+        ],
+        "type": "object",
+        "properties": {
+          "installationOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
       "CreateOutgoingInvoiceRequest": {
         "required": [
           "shipmentId"
@@ -57449,6 +57875,63 @@
           }
         }
       },
+      "InstallationQueueRow": {
+        "required": [
+          "installationOrderId",
+          "orderNumber",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "partyId",
+          "partyName",
+          "acceptedOn",
+          "daysSinceAcceptance",
+          "late",
+          "estimatedAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "installationOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "acceptedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "daysSinceAcceptance": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "late": {
+            "type": "boolean"
+          },
+          "estimatedAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "InstallationStepView": {
         "required": [
           "id",
@@ -58714,6 +59197,12 @@
           }
         }
       },
+      "InvoiceOrigin": {
+        "enum": [
+          "Emitter",
+          "PortalRegistered"
+        ]
+      },
       "InvoiceQueueRow": {
         "required": [
           "shipmentId",
@@ -59198,7 +59687,8 @@
         "enum": [
           "NFe",
           "NFSe"
-        ]
+        ],
+        "default": "NFe"
       },
       "IpiParameters": {
         "required": [
@@ -64490,6 +64980,715 @@
           }
         }
       },
+      "NfseActions": {
+        "required": [
+          "canEdit",
+          "canIssue",
+          "canRegister",
+          "canReopen",
+          "canDiscard",
+          "canRegisterCancellation",
+          "canDownload",
+          "canResend"
+        ],
+        "type": "object",
+        "properties": {
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canIssue": {
+            "type": "boolean"
+          },
+          "canRegister": {
+            "type": "boolean"
+          },
+          "canReopen": {
+            "type": "boolean"
+          },
+          "canDiscard": {
+            "type": "boolean"
+          },
+          "canRegisterCancellation": {
+            "type": "boolean"
+          },
+          "canDownload": {
+            "type": "boolean"
+          },
+          "canResend": {
+            "type": "boolean"
+          }
+        }
+      },
+      "NfseCancellationView": {
+        "required": [
+          "reason",
+          "protocol",
+          "byName",
+          "at",
+          "on"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "byName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "on": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "NfseCopyField": {
+        "required": [
+          "key",
+          "label",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "NfseIssueCheckView": {
+        "required": [
+          "invoiceId",
+          "mode",
+          "environment",
+          "preconditions",
+          "warnings",
+          "takerName",
+          "service",
+          "totalAmount",
+          "issAmount",
+          "costTaxAmount",
+          "projectNumber",
+          "projectCostApplies",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NfseMode"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/FiscalEnvironment"
+          },
+          "preconditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IssuePrecondition"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "takerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "service": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/NfseServiceInfo"
+              }
+            ]
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "issAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "costTaxAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectCostApplies": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "NfseIssueResultView": {
+        "required": [
+          "invoiceId",
+          "status",
+          "idempotencyKey",
+          "message",
+          "invoice"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OutgoingInvoiceStatus"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "invoice": {
+            "$ref": "#/components/schemas/NfseView"
+          }
+        }
+      },
+      "NfseItemView": {
+        "required": [
+          "id",
+          "sequence",
+          "projectItemId",
+          "description",
+          "quantity",
+          "unitPrice",
+          "discount",
+          "grossAmount",
+          "taxRuleName",
+          "taxRuleVersion",
+          "taxes",
+          "costTax"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projectItemId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "grossAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxRuleName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "taxRuleVersion": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "taxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxLine"
+            }
+          },
+          "costTax": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "NfseMode": {
+        "enum": [
+          "Emitter",
+          "Portal"
+        ]
+      },
+      "NfseRegisterResultView": {
+        "required": [
+          "invoice",
+          "warnings"
+        ],
+        "type": "object",
+        "properties": {
+          "invoice": {
+            "$ref": "#/components/schemas/NfseView"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "NfseServiceInfo": {
+        "required": [
+          "serviceItem",
+          "municipalCode",
+          "ctn",
+          "nbs",
+          "serviceCityCode",
+          "serviceCityName",
+          "issLocation",
+          "issRate",
+          "issAmount",
+          "issWithheld",
+          "federalWithholding",
+          "description",
+          "ibsCbsCst",
+          "ibsCbsClassification",
+          "netAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "serviceItem": {
+            "type": "string"
+          },
+          "municipalCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ctn": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nbs": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "serviceCityCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "serviceCityName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issLocation": {
+            "$ref": "#/components/schemas/IssLocation"
+          },
+          "issRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "issAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "issWithheld": {
+            "type": "boolean"
+          },
+          "federalWithholding": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "ibsCbsCst": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ibsCbsClassification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "netAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "NfseView": {
+        "required": [
+          "id",
+          "status",
+          "origin",
+          "environment",
+          "mode",
+          "portalNotice",
+          "portalUrl",
+          "number",
+          "verificationCode",
+          "authorizedAt",
+          "issuedOn",
+          "attempt",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "installationOrderId",
+          "installationOrderNumber",
+          "partyId",
+          "recipient",
+          "service",
+          "items",
+          "totals",
+          "totalAmount",
+          "costTaxAmount",
+          "issCalculated",
+          "issTyped",
+          "issWarning",
+          "calculationError",
+          "rejectionCode",
+          "rejectionReason",
+          "suggestedAction",
+          "processingSince",
+          "xmlAttachmentId",
+          "pdfAttachmentId",
+          "sendToCustomer",
+          "emailCc",
+          "emailedAt",
+          "linkedInvoiceId",
+          "linkedInvoiceLabel",
+          "cancellation",
+          "portalCopy",
+          "actions",
+          "createdAt",
+          "createdByName",
+          "issuedByName",
+          "discardedAt",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OutgoingInvoiceStatus"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/InvoiceOrigin"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/FiscalEnvironment"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NfseMode"
+          },
+          "portalNotice": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "portalUrl": {
+            "type": "string"
+          },
+          "number": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "verificationCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "authorizedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "issuedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "attempt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "installationOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "installationOrderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "recipient": {
+            "$ref": "#/components/schemas/OutgoingInvoiceRecipientView"
+          },
+          "service": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/NfseServiceInfo"
+              }
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NfseItemView"
+            }
+          },
+          "totals": {
+            "$ref": "#/components/schemas/InvoiceTotals"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "costTaxAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "issCalculated": {
+            "type": "number",
+            "format": "double"
+          },
+          "issTyped": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "issWarning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "calculationError": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "rejectionCode": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "rejectionReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "suggestedAction": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "processingSince": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "xmlAttachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "pdfAttachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "sendToCustomer": {
+            "type": "boolean"
+          },
+          "emailCc": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "emailedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "linkedInvoiceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "linkedInvoiceLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancellation": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/NfseCancellationView"
+              }
+            ]
+          },
+          "portalCopy": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NfseCopyField"
+            }
+          },
+          "actions": {
+            "$ref": "#/components/schemas/NfseActions"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issuedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "discardedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "NonConformityActionInput": {
         "required": [
           "cause",
@@ -67143,6 +68342,15 @@
           },
           "status": {
             "$ref": "#/components/schemas/OutgoingInvoiceStatus"
+          },
+          "type": {
+            "$ref": "#/components/schemas/InvoiceType"
+          },
+          "installationOrderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -84839,6 +86047,90 @@
           }
         }
       },
+      "RegisterNfseCancellationRequest": {
+        "required": [
+          "reason",
+          "protocol",
+          "code",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "protocol": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "RegisterNfseForm": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "verificationCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issuedOn": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "servicesAmount": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issAmount": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "file": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IFormFile"
+              }
+            ]
+          }
+        }
+      },
       "RejectIncomingInvoiceRequest": {
         "required": [
           "reason"
@@ -96595,6 +97887,36 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "UpdateNfseRequest": {
+        "required": [
+          "description",
+          "sendToCustomer",
+          "emailCc",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sendToCustomer": {
+            "type": "boolean"
+          },
+          "emailCc": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },

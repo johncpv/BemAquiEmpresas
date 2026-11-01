@@ -11,6 +11,7 @@ import { OrderHeader } from '@/components/ui/order-header'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { formatDate } from '@/lib/format'
+import { useStartNfse } from '@/pages/fiscal/use-start-nfse'
 import { useCan } from '@/pages/use-can'
 import { InstallationActions } from './InstallationActions'
 import { InstallationDocuments } from './InstallationDocuments'
@@ -23,6 +24,8 @@ export function InstallationPage() {
   const navigate = useNavigate()
   const client = useQueryClient()
   const canFinance = useCan('finance.view')
+  const canInvoice = useCan('fiscal.create')
+  const nfse = useStartNfse()
   const query = useGetInstallation(id)
   const [accepted, setAccepted] = useState<InstallationAcceptResult | null>(null)
   if (query.isPending) return <Skeleton className="h-96" />
@@ -40,8 +43,17 @@ export function InstallationPage() {
         <div className="mb-4"><NextSteps onDismiss={() => setAccepted(null)} steps={[
           ...(canFinance ? [{ label: 'Ver parcela liberada', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: o.projectId }, search: { aba: 'financeiro' } } as never) }] : []),
           { label: 'Conferir título do instalador', onSelect: () => void navigate({ to: '/app/financeiro/pagar/$id', params: { id: accepted.payableId } } as never) },
+          // FIS-06 CA 1: o aceite técnico oferece a NFS-e da instalação.
+          ...(canInvoice ? [{ label: 'Emitir NFS-e da instalação', onSelect: () => void nfse.start(o.id, o.projectId) }] : []),
         ]} /></div>
       ) : null}
+      {o.status === 'Completed' && canInvoice && !accepted ? (
+        <p className="mb-4 flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-muted-foreground">Aceite técnico registrado: a instalação sai em NFS-e.</span>
+          <button type="button" disabled={nfse.busy !== null} onClick={() => void nfse.start(o.id, o.projectId)} className="inline-flex min-h-11 items-center rounded-md border border-border bg-card px-3 font-semibold">{nfse.busy ? 'Abrindo…' : 'Emitir NFS-e da instalação'}</button>
+        </p>
+      ) : null}
+      {nfse.error ? <p role="alert" className="mb-4 rounded-md border border-crit-soft bg-crit-soft px-3 py-2 text-sm text-crit-ink">{nfse.error}</p> : null}
       {o.status === 'Cancelled' ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">OS cancelada{o.cancelReason ? `: ${o.cancelReason}` : ''}.</p> : null}
       <FactsBar facts={[
         { label: 'Instalador', value: o.installerName },

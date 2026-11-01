@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import {
   discardOutgoingInvoice, getCheckOutgoingInvoiceIssueQueryKey, getDownloadCancelledOutgoingInvoiceDanfeUrl, getDownloadOutgoingInvoiceDanfeUrl, getDownloadOutgoingInvoiceXmlUrl, getGetOutgoingInvoiceQueryKey,
   getListInvoicesToIssueQueryKey, getListOutgoingInvoicesQueryKey, getPreviewOutgoingInvoiceUrl, issueOutgoingInvoice, reopenOutgoingInvoice, resendOutgoingInvoice,
-  updateOutgoingInvoice, useCheckOutgoingInvoiceIssue, useGetOutgoingInvoice, useGetOutgoingInvoiceHistory,
+  updateOutgoingInvoice, useCheckOutgoingInvoiceIssue, useGetOutgoingInvoice, useGetOutgoingInvoiceHistory, useListInstallationsToInvoice,
 } from '@/api/generated/bemaqui'
 import type { OutgoingInvoiceItemView, OutgoingInvoiceView } from '@/api/generated/model'
 import { ApiError, apiBlobUrl, apiDownload } from '@/api/http'
@@ -21,7 +21,9 @@ import { UrlTabs } from '@/components/ui/url-tabs'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime, formatMoney } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
+import { useStartNfse } from './use-start-nfse'
 import { INVOICE_DICAS, INVOICE_STATUS, INVOICE_TEXTS, invoiceLabel, isSlow, quantity } from './outgoing-invoices'
 import { InvoiceEventActions, InvoiceEventsTab } from './OutgoingInvoiceEvents'
 import { OPERATION_LABEL, RECIPIENT_LABEL, TAX_LABEL } from './tax-rules'
@@ -55,6 +57,10 @@ export function OutgoingInvoicePage() {
   const [now, setNow] = useState(() => Date.now())
   const [synced, setSynced] = useState<string | null>(null)
   const data = query.data
+  // FIS-06: depois do aceite técnico, a NF-e autorizada do equipamento oferece a NFS-e da instalação do mesmo projeto.
+  const canInvoice = useCan('fiscal.create')
+  const installations = useListInstallationsToInvoice({ query: { enabled: canInvoice && data?.status === 'Authorized' } })
+  const nfse = useStartNfse()
   // O rascunho da tela segue a versão do servidor (salvar, emitir); a releitura da mesma versão (demora) não apaga o que está sendo digitado.
   const version = data ? `${data.id}:${data.version}` : null
   if (data && version !== synced) {
@@ -148,6 +154,8 @@ export function OutgoingInvoicePage() {
         <div className="mb-4"><NextSteps title="Próximos passos" onDismiss={() => undefined} steps={[
           { label: 'Ver projeto', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: v.projectId! }, search: { aba: 'resumo' } } as never) },
           { label: 'Ver a fila A emitir', onSelect: () => void navigate({ to: '/app/fiscal/saida' } as never) },
+          ...(installations.data ?? []).filter((i) => i.projectId === v.projectId).slice(0, 1)
+            .map((i) => ({ label: 'Emitir NFS-e da instalação', onSelect: () => void nfse.start(i.installationOrderId, i.projectId) })),
         ]} /></div>
       ) : null}
       {v.calculationError && v.actions.canEdit ? <p role="note" className="mb-4 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">{v.calculationError}</p> : null}
