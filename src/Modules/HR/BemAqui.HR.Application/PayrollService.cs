@@ -91,7 +91,10 @@ public sealed partial class PayrollService(
         var mode = input.Mode is { } m && Enum.IsDefined(m) ? m : PayrollRunMode.Entered;
         if (mode == PayrollRunMode.Calculated && type != PayrollRunType.Monthly)
         {
-            return Error.Validation(PayrollCalculationRules.NotSupportedCode, $"O cálculo da folha {PayrollRules.TypeLabel(type)} chega nas próximas etapas. Use a folha lançada.");
+            // FLH-03: a folha de férias calculada nasce da programação, uma por funcionário ("Calcular férias").
+            return Error.Validation(PayrollCalculationRules.NotSupportedCode, type == PayrollRunType.Vacation
+                ? "A folha de férias calculada nasce da programação: em RH → Férias, programe e clique em \"Calcular férias\"."
+                : $"O cálculo da folha {PayrollRules.TypeLabel(type)} chega nas próximas etapas. Use a folha lançada.");
         }
 
         if (await db.PayrollRuns.AnyAsync(r => r.Period == period && r.Type == type && r.Mode == mode && r.RectifiesRunId == null, cancellationToken))

@@ -11,7 +11,7 @@ Ter a folha do mês no sistema: os proventos e descontos que a contadora calculo
 
 ## Como usar
 - Clique em **Nova folha**, escolha a **competência** (mês e ano) e o **tipo**: Mensal, Adiantamento, Férias, 13º 1ª parcela, 13º 2ª parcela ou Rescisão. Em Férias e Rescisão, marque os funcionários.
-- Na Mensal, escolha o **modo**: **Lançada** (valores da contadora) ou **Calculada pelo sistema**. Férias, 13º, rescisão e adiantamento por enquanto são só lançados.
+- Na Mensal, escolha o **modo**: **Lançada** (valores da contadora) ou **Calculada pelo sistema**. 13º, rescisão e adiantamento por enquanto são só lançados. A folha de férias calculada nasce da programação: em RH → Férias, abra o funcionário e clique em **Calcular férias**.
 - Clique em **Criar folha**. Ela nasce "Em lançamento", com um holerite por funcionário ativo na competência (admitido até o último dia do mês e não desligado antes do primeiro; o afastado entra).
 - Na Mensal, cada holerite já vem com a linha **Salário** (o salário vigente no mês) e a referência "30 dias".
 - Abra a folha para lançar ou importar os valores, informar os encargos da empresa e conferir. Na **folha calculada**, abra e clique em **Calcular** (o ponto do mês precisa estar fechado).

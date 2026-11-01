@@ -66,6 +66,12 @@ export function CloseRunDialog({ run, onClosed }: { run: PayrollRunSummary; onCl
             {(f) => <DateInput {...f} value={paymentDate} onChange={setDate} />}
           </Field>
           {!p.paymentDateRequired && !p.paymentDateConfirmed ? <StatusChip tone="warn">A confirmar com a contadora</StatusChip> : null}
+          {/* FLH-03 CA 9: a folha de férias vence até 2 dias antes do início; depois do prazo, avisa sem bloquear. */}
+          {p.legalPaymentDeadline && (p.latePaymentWarning || (paymentDate && paymentDate > p.legalPaymentDeadline)) ? (
+            <p role="status" className="rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">
+              Pagamento depois do prazo legal: confirme com a contadora. Prazo das férias: {formatDate(p.legalPaymentDeadline)}.
+            </p>
+          ) : null}
           {p.newcomers.length > 0 ? (
             <div className="rounded-md border border-info-soft bg-info-soft px-3 py-2 text-sm">
               <p className="font-semibold">Novos na folha</p>

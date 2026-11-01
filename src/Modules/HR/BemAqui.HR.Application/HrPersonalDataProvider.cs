@@ -18,7 +18,8 @@ namespace BemAqui.HR.Application;
 /// com o comentário como a tela do espelho mostra a quem tem <c>hr.view</c>.
 /// </summary>
 [PersonalDataCovers(typeof(Employee), typeof(EmployeeDependent), typeof(EmployeeHistoryEntry), typeof(TimeEntry), typeof(TimeAdjustment), typeof(Timesheet), typeof(TimesheetDayReview),
-    typeof(Payslip), typeof(PayslipLine), typeof(PayrollForecast), typeof(PayrollRunCharge), typeof(PayrollRun), typeof(JobPosition), typeof(PayrollCalculationLog))]
+    typeof(Payslip), typeof(PayslipLine), typeof(PayrollForecast), typeof(PayrollRunCharge), typeof(PayrollRun), typeof(JobPosition), typeof(PayrollCalculationLog),
+    typeof(VacationPeriod), typeof(VacationSchedule))]
 public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachments, TimeProvider clock) : IPersonalDataProvider
 {
     private const string Sensitive = "hr." + PositionService.SensitiveAction;
@@ -106,6 +107,7 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
         blocks.Add(await HistoryAsync(id, sensitive, health, cancellationToken));
         blocks.Add(await DependentsAsync(id, cancellationToken));
         blocks.AddRange(await TimeClockAsync(id, sensitive, health, cancellationToken));
+        blocks.AddRange(await VacationsAsync(id, cancellationToken));
         if (sensitive)
         {
             blocks.Add(await PayslipsAsync(id, cancellationToken));
@@ -200,6 +202,28 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
                     ("Justificativa", hidden ? "protegido" : a.Justification), ("Situação", TimeAdjustmentRules.StatusLabel(a.Status)),
                     ("Comentário da decisão", hidden ? "protegido" : a.DecisionComment), ("Decidido em", PersonalDataMask.At(a.DecidedAt)));
             }).ToList()),
+        ];
+    }
+
+    /// <summary>
+    /// Férias (FLH-03): os períodos aquisitivos (datas, faltas, dias e saldo, o motivo do reinício) e as programações (datas, abono, situação e
+    /// o motivo do cancelamento), como a aba "Férias" mostra a quem tem <c>hr.view</c>; os valores ficam nos holerites de férias.
+    /// </summary>
+    private async Task<IEnumerable<PersonalDataBlock>> VacationsAsync(Guid id, CancellationToken ct)
+    {
+        var periods = await db.VacationPeriods.AsNoTracking().Where(p => p.EmployeeId == id).OrderBy(p => p.Sequence).ToListAsync(ct);
+        var schedules = await db.VacationSchedules.AsNoTracking().Where(s => s.EmployeeId == id).OrderBy(s => s.StartsOn).ToListAsync(ct);
+        return
+        [
+            new PersonalDataBlock("Períodos aquisitivos de férias", "hr.vacation_periods", periods.Select(p => PersonalDataRecord.Of(p.CreatedAt,
+                ("Período", $"{PersonalDataMask.Date(p.StartsOn)} a {PersonalDataMask.Date(p.EndsOn)}"), ("Faltas injustificadas", p.Absences.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                ("Dias de direito", p.EntitledDays.ToString(System.Globalization.CultureInfo.InvariantCulture)), ("Dias gozados", p.TakenDays.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                ("Dias vendidos", p.SoldDays.ToString(System.Globalization.CultureInfo.InvariantCulture)), ("Fim do período concessivo", PersonalDataMask.Date(p.ConcessionEndsOn)),
+                ("Reinício", p.RestartedReason))).ToList()),
+            new PersonalDataBlock("Férias programadas", "hr.vacation_schedules", schedules.Select(s => PersonalDataRecord.Of(s.CreatedAt,
+                ("Gozo", $"{PersonalDataMask.Date(s.StartsOn)} a {PersonalDataMask.Date(s.EndsOn)}"), ("Dias", s.Days.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                ("Dias vendidos (abono)", s.SoldDays.ToString(System.Globalization.CultureInfo.InvariantCulture)), ("Adiantamento do 13º", PersonalDataMask.YesNo(s.Advance13th)),
+                ("Pagamento até", PersonalDataMask.Date(s.PaymentDueOn)), ("Situação", VacationPolicy.ScheduleStatusLabel(s.Status)), ("Motivo do cancelamento", s.CancelReason))).ToList()),
         ];
     }
 
@@ -299,6 +323,9 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
         // calculado, e a memória e o motivo dos avulsos nas linhas; os valores do holerite ficam (documento com movimento).
         var calculated = await db.Payslips.Where(p => p.EmployeeId == id && (p.InputsSnapshot != null || p.CalculationIssues != null || p.EmployerChargesMemory != null)).ToListAsync(ct);
         var calculatedLines = await db.PayslipLines.Where(l => payslips.Contains(l.PayslipId) && (l.Memory != null || l.Note != null)).ToListAsync(ct);
+        // FLH-03: o motivo do reinício do período (fala do afastamento), o motivo do cancelamento e a divisão do INSS das férias.
+        var vacationPeriods = await db.VacationPeriods.Where(p => p.EmployeeId == id && p.RestartedReason != null).ToListAsync(ct);
+        var vacationSchedules = await db.VacationSchedules.Where(s => s.EmployeeId == id && (s.CancelReason != null || s.CalculatedSplit != null)).ToListAsync(ct);
         var files = await attachments.CountAsync(EmployeeComplementService.DocumentOwner, [id], ct)
             + await attachments.CountAsync(TimeAdjustmentService.DocumentOwner, adjustmentIds, ct)
             + await attachments.CountAsync(PayslipDocumentRules.OwnerType, payslips, ct)
@@ -412,6 +439,18 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
                     entry.Property(x => x.Note).CurrentValue = l.Note is null ? null : marker;
                 }
 
+                // FLH-03: datas e dias de férias ficam (obrigação trabalhista); os textos livres viram o marcador e a divisão do INSS sai.
+                foreach (var p in vacationPeriods)
+                {
+                    p.RestartedReason = marker;
+                }
+
+                foreach (var s in vacationSchedules)
+                {
+                    s.CancelReason = s.CancelReason is null ? null : marker;
+                    s.CalculatedSplit = null;
+                }
+
                 await attachments.RemoveContentAsync(EmployeeComplementService.DocumentOwner, [id], marker, ct);
                 await attachments.RemoveContentAsync(TimeAdjustmentService.DocumentOwner, adjustmentIds, marker, ct);
                 await attachments.RemoveContentAsync(PayslipDocumentRules.OwnerType, payslips, marker, ct);
@@ -437,6 +476,7 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
             .Fields(labor, "Motivos da linha do tempo e justificativas do ponto", "hr.employee_history, hr.time_adjustments", history.Count + adjustments.Count)
             .Fields(labor, "Motivos de saúde, afastamentos e comentários do espelho de ponto, e o acordo de banco de horas", "hr.timesheets, hr.timesheet_day_reviews, hr.employees", timesheetTexts)
             .Fields(labor, "Retrato das entradas, memória de cálculo e motivos dos avulsos da folha calculada", "hr.payslips, hr.payslip_lines", calculated.Count + calculatedLines.Count)
+            .Fields(labor, "Motivos do reinício e do cancelamento das férias e a divisão do INSS das férias", "hr.vacation_periods, hr.vacation_schedules", vacationPeriods.Count + vacationSchedules.Count)
             .Fields(labor, "Documentos, atestados, holerites e espelhos em PDF (o arquivo é apagado)", "shared.attachments", files)
             .Keep("Folhas e holerites: mantidos, com os valores", "hr.payslips", payslips.Count)
             .Keep("Espelhos de ponto: mantidos, com os totais do fechamento", "hr.timesheets", timesheets.Count)

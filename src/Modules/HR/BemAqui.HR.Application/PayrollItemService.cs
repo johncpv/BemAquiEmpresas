@@ -55,8 +55,12 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
         new("insalubridade", "INSAL", "Adicional de insalubridade", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.Insalubrity),
         new("periculosidade", "PERIC", "Adicional de periculosidade", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.HazardPay),
         new("adicional_noturno", "ADNOT", "Adicional noturno", PayrollItemKind.Earning, true, true, true),
-        new("ferias", "FERIAS", "Férias", PayrollItemKind.Earning, true, true, true),
-        new("terco_ferias", "FER13", "1/3 de férias", PayrollItemKind.Earning, true, true, true),
+        new("ferias", "FERIAS", "Férias", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.VacationPay),
+        new("terco_ferias", "FER13", "1/3 de férias", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.VacationThird),
+        // FLH-03: médias das variáveis nas férias e o abono pecuniário com o seu 1/3 (sem INSS, FGTS nem IRRF, hr.vacation_taxation).
+        new("ferias_medias", "FERMED", "Médias de férias", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.VacationAverages),
+        new("abono_pecuniario", "ABONO", "Abono pecuniário", PayrollItemKind.Earning, false, false, false, Calc: PayrollCalculation.VacationSale),
+        new("terco_abono", "ABONO13", "1/3 do abono pecuniário", PayrollItemKind.Earning, false, false, false, Calc: PayrollCalculation.VacationSaleThird),
         new("decimo_terceiro", "13SAL", "13º salário", PayrollItemKind.Earning, true, true, true),
         new("salario_familia", "SALFAM", "Salário-família", PayrollItemKind.Earning, false, false, false, Calc: PayrollCalculation.FamilyAllowance),
         new("faltas", "FALTAS", "Faltas", PayrollItemKind.Deduction, true, true, true, PayrollTimesheetSource.Absence, PayrollCalculation.Absence),
@@ -203,6 +207,20 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
             {
                 item.Calculation = ruled[item.SeedKey!].Calc;
                 item.DeductsIrrfBase = ruled[item.SeedKey!].DeductsIrrf;
+            }
+        }
+
+        // FLH-03: as regras das férias nas rubricas do seed que já existiam (Férias e 1/3 de férias), uma vez só (nenhuma rubrica com regra de
+        // férias ainda), sem tirar a escolha de quem já deu a regra a outra rubrica.
+        PayrollCalculation[] vacationRules = [PayrollCalculation.VacationPay, PayrollCalculation.VacationAverages, PayrollCalculation.VacationThird, PayrollCalculation.VacationSale, PayrollCalculation.VacationSaleThird];
+        var vacationKeys = Standards.Where(s => vacationRules.Contains(s.Calc)).ToDictionary(s => s.SeedKey, s => s.Calc);
+        var vacationSeedKeys = vacationKeys.Keys.ToList();
+        var ruledNow = await db.PayrollItems.Where(i => i.Calculation != PayrollCalculation.None).Select(i => i.Calculation).ToListAsync(cancellationToken);
+        if (!ruledNow.Any(vacationRules.Contains))
+        {
+            foreach (var item in await db.PayrollItems.Where(i => i.SeedKey != null && vacationSeedKeys.Contains(i.SeedKey) && i.Calculation == PayrollCalculation.None).ToListAsync(cancellationToken))
+            {
+                item.Calculation = vacationKeys[item.SeedKey!];
             }
         }
 

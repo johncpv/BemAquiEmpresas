@@ -13,6 +13,7 @@ import { dayLabel, entryLabel, formatTime, groupByDay, locationText, NOT_LINKED,
 import type { AdjustmentMode, VoidTarget } from './AdjustmentDialogs'
 import { MyAdjustmentDialog, MyTimeAdjustments } from './MyTimeAdjustments'
 import { MyTimesheet } from './MyTimesheet'
+import { MyVacations } from '../vacations/MyVacations'
 import { TimeClockPanel } from './TimeClockPanel'
 
 /** "Minhas marcações" (CA 13): as próprias dos últimos 60 dias, com a própria localização; só carrega quando a pessoa abre. */
@@ -84,6 +85,7 @@ export function MyTimeClockPage() {
           {showMine ? <MyEntries onVoid={(target) => setRequest({ mode: 'void', target })} /> : null}
         </section>
         <MyTimesheet initiallyOpen={search.aba === 'espelho'} />
+        <MyVacations />
         <MyTimeAdjustments initiallyOpen={search.aba === 'pedidos'} />
         <MyAdjustmentDialog mode={request?.mode ?? null} target={request?.target} onClose={() => setRequest(null)} />
       </div>

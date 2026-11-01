@@ -2,7 +2,7 @@ import type { StatusTone } from '@/components/ui/status-chip'
 
 /** Situação do dia no espelho (RH-01c), como a API devolve. */
 export type DayStatus =
-  | 'Normal' | 'Overtime' | 'Late' | 'Absent' | 'Justified' | 'Compensated' | 'OnLeave' | 'Holiday' | 'DayOff' | 'Inconsistent' | 'NotEmployed' | 'Upcoming'
+  | 'Normal' | 'Overtime' | 'Late' | 'Absent' | 'Justified' | 'Compensated' | 'OnLeave' | 'Holiday' | 'DayOff' | 'Inconsistent' | 'NotEmployed' | 'Upcoming' | 'Vacation'
 
 /** Chip da situação do dia (estado na forma): falta é crítica, inconsistência e atraso são alerta, feriado e folga neutros. */
 export function dayTone(status: string): StatusTone {
@@ -13,6 +13,7 @@ export function dayTone(status: string): StatusTone {
     case 'Overtime':
     case 'Compensated':
     case 'OnLeave':
+    case 'Vacation':
       return 'info'
     case 'Late':
     case 'Inconsistent':

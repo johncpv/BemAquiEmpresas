@@ -31,7 +31,7 @@ describe('folha calculada (FLH-02a)', () => {
   })
 
   it('toda regra tem rótulo e o modo aparece por extenso', () => {
-    for (const rule of ['None', 'BaseSalary', 'SickLeave', 'Insalubrity', 'HazardPay', 'Absence', 'Lateness', 'FamilyAllowance', 'TransportVoucher', 'TransportVoucherSupplied', 'Inss', 'Irrf', 'Fgts']) {
+    for (const rule of ['None', 'BaseSalary', 'SickLeave', 'Insalubrity', 'HazardPay', 'Absence', 'Lateness', 'FamilyAllowance', 'TransportVoucher', 'TransportVoucherSupplied', 'Inss', 'Irrf', 'Fgts', 'VacationPay', 'VacationAverages', 'VacationThird', 'VacationSale', 'VacationSaleThird']) {
       expect(CALCULATION_LABELS[rule]).toBeTruthy()
     }
 

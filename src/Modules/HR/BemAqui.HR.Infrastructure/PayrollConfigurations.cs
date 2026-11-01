@@ -32,7 +32,8 @@ internal sealed class PayrollRunConfiguration : IEntityTypeConfiguration<Payroll
         b.Property(e => e.Mode).HasConversion<string>().HasMaxLength(20);
         b.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
         // FLH-02a: a calculada (simulação) convive com a lançada da mesma competência e tipo; a retificação é a complementar da fechada.
-        b.HasIndex(e => new { e.Period, e.Type, e.Mode }).IsUnique().HasFilter("rectifies_run_id IS NULL").HasDatabaseName(PayrollService.RunIndex);
+        // FLH-03: a folha de férias calculada é uma por programação (hr.vacation_schedules.payroll_run_id), então fica fora do único.
+        b.HasIndex(e => new { e.Period, e.Type, e.Mode }).IsUnique().HasFilter("rectifies_run_id IS NULL AND NOT (type = 'Vacation' AND mode = 'Calculated')").HasDatabaseName(PayrollService.RunIndex);
         b.Property(e => e.CalculatorVersion).HasMaxLength(20);
         b.HasOne<PayrollRun>().WithMany().HasForeignKey(e => e.RectifiesRunId).OnDelete(DeleteBehavior.Restrict);
         b.Property(e => e.ClosedNet).HasPrecision(18, 2);

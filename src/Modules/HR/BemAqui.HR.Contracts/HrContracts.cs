@@ -142,6 +142,12 @@ public sealed record EmployeeLeaveStarted(Guid EmployeeId, DateOnly StartDate, D
 /// <summary>Afastamento terminou (no dia seguinte ao fim previsto, CA 7): só o id do funcionário e as datas.</summary>
 public sealed record EmployeeLeaveEnded(Guid EmployeeId, DateOnly StartDate, DateOnly EndDate) : IIntegrationEvent;
 
+/// <summary>Férias programadas (FLH-03 CA 5): só o id do funcionário e as datas do gozo, sem valor; dentro do HR (espelho, "Meu ponto").</summary>
+public sealed record EmployeeVacationScheduled(Guid EmployeeId, DateOnly From, DateOnly To) : IIntegrationEvent;
+
+/// <summary>Programação de férias cancelada (FLH-03 CA 11): o id do funcionário e as datas que voltaram ao saldo.</summary>
+public sealed record EmployeeVacationCancelled(Guid EmployeeId, DateOnly From, DateOnly To) : IIntegrationEvent;
+
 /// <summary>
 /// Versão de tabela legal da folha conferida (FLH-01): o tipo (<c>Inss</c>, <c>Irrf</c>...), o "vale a partir de" e o id. Dentro do HR
 /// (o motor da FLH-02a marca as folhas em rascunho); sem valores.

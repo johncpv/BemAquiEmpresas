@@ -613,7 +613,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-7--folha-calculad
 - Requisitos: R-RH-6, R-RH-4, R-SEC-5.
 - CA: extras por tipo de dia com percentuais parametrizados, banco de horas pago ou descontado por decisão do RH, adicional noturno opcional, DSR e perda do DSR por parâmetro.
 
-**FLH-03 [ ] Folha calculada: férias (períodos aquisitivos, programação, cálculo e recibo) (G)** — 7.2, ordem 4 — `Ready (pré-condição externa)` — [story](stories/FLH-03-ferias.md)
+**FLH-03 [x] Folha calculada: férias (períodos aquisitivos, programação, cálculo e recibo) (G)** — 7.2, ordem 4 — `Done (pré-condição externa: contadora e conferência paralela)` — [story](stories/FLH-03-ferias.md)
 - Requisitos: R-RH-6, R-RH-4, R-RH-5, R-FIN-10, R-PRP-5, R-SEC-5.
 - CA: períodos aquisitivos com alerta de vencimento; programação validada pelas regras parametrizadas; cálculo com 1/3, abono e médias; título antes do início; dias no espelho e no planejamento.
 

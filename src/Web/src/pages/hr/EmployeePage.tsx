@@ -29,6 +29,7 @@ import { EmployeePersonal } from './EmployeePersonal'
 import { EmployeeProtected } from './EmployeeProtected'
 import { EmployeeTimeline } from './EmployeeTimeline'
 import { EmployeeTimeEntries } from './timeclock/EmployeeTimeEntries'
+import { EmployeeVacations } from './vacations/EmployeeVacations'
 
 const button = 'rounded-md border border-border px-3 py-2 text-sm font-semibold'
 
@@ -127,6 +128,7 @@ export function EmployeePage() {
         { id: 'pagamento', label: 'Pagamento e adicionais', content: <EmployeePayment employee={employee} canEdit={canEdit} /> },
         { id: 'documentos', label: 'Documentos', content: <EmployeeDocuments employee={employee} canEdit={canEdit} /> },
         { id: 'ponto', label: 'Ponto', content: <EmployeeTimeEntries employee={employee} /> },
+        { id: 'ferias', label: 'Férias', content: <EmployeeVacations employee={employee} canEdit={canEdit && active} /> },
         { id: 'historico', label: 'Histórico de alterações', content: canSensitive ? <RecordHistory entity="Employee" id={employee.id} /> : <EmployeeProtected /> },
       ]} />
     </>

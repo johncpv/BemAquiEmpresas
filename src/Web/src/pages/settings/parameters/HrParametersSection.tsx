@@ -34,7 +34,7 @@ const monthDayValue = (t: string) => { const [d, m] = t.split('/').map(Number); 
 const initialOf = (items: HrParameterItem[]) =>
   Object.fromEntries(items.map((i) => [i.key, { value: i.value == null ? '' : i.kind === 'MonthDay' ? monthDayText(i.value) : String(i.value), code: i.code ?? '', party: i.partyId ? { id: i.partyId, label: i.partyName ?? '' } : null } satisfies Value]))
 
-const suffix = (i: HrParameterItem) => (i.kind === 'Percent' ? '%' : i.key === 'hr.timesheet_period_start_day' ? 'dia de início do período (1 = mês civil)' : i.kind === 'Minutes' ? 'minutos' : i.kind === 'DayOfMonth' ? 'dia do mês seguinte' : i.kind === 'Days' ? 'dias' : i.kind === 'BusinessDay' ? 'º dia útil do mês seguinte' : i.kind === 'DayOfPeriod' ? 'dia da competência' : i.kind === 'Months' ? 'meses' : i.kind === 'MonthDay' ? 'dia/mês' : i.kind === 'Hours' ? 'horas (0 = horas mensais do cargo)' : i.kind === 'Years' ? 'anos' : '')
+const suffix = (i: HrParameterItem) => (i.kind === 'Percent' ? '%' : i.key === 'hr.timesheet_period_start_day' ? 'dia de início do período (1 = mês civil)' : i.kind === 'Minutes' ? 'minutos' : i.kind === 'DayOfMonth' ? 'dia do mês seguinte' : i.kind === 'Days' ? 'dias' : i.kind === 'BusinessDay' ? 'º dia útil do mês seguinte' : i.kind === 'DayOfPeriod' ? 'dia da competência' : i.kind === 'Months' ? 'meses' : i.kind === 'MonthDay' ? 'dia/mês' : i.kind === 'Hours' ? 'horas (0 = horas mensais do cargo)' : i.kind === 'Years' ? 'anos' : i.kind === 'Count' ? (i.key.startsWith('hr.vacation_absence_brackets') ? 'faltas' : 'períodos') : '')
 
 /**
  * Configurações → Parâmetros → RH (RH-02a CA 3, ADR 0042, dono HR): alerta de variação do líquido, vencimento e órgão padrão de cada

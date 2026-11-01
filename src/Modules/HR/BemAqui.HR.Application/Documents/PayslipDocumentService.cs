@@ -316,7 +316,8 @@ public sealed class PayslipDocumentService(
         join pos in db.JobPositions.IgnoreQueryFilters().AsNoTracking() on e.PositionId equals pos.Id
         select new Slip(p, e.Name, e.Registration, e.Cpf, e.AdmissionDate, pos.Name, pos.Cbo);
 
-    private async Task<PayslipPdfCompany> CompanyAsync(CancellationToken ct)
+    /// <summary>A empresa do cabeçalho (também do aviso de férias, FLH-03).</summary>
+    internal async Task<PayslipPdfCompany> CompanyAsync(CancellationToken ct)
     {
         var info = await company.GetAsync(ct);
         byte[]? logo = null;

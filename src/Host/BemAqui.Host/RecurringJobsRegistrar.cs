@@ -52,6 +52,10 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
         recurring.AddOrUpdate<BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob>(BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             configuration[BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.CronSetting] ?? BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.Cron,
             new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // Férias (FLH-03 CA 3): períodos, férias gozadas e o aviso de vencimento, 06:20 de São Paulo, ou o horário do parâmetro.
+        recurring.AddOrUpdate<BemAqui.HR.Application.VacationDueRecurringJob>(BemAqui.HR.Application.VacationDueRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            configuration[BemAqui.HR.Application.VacationDueRecurringJob.CronSetting] ?? BemAqui.HR.Application.VacationDueRecurringJob.Cron,
+            new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.BuildingBlocks.Persistence.IdempotencyPurgeRecurringJob>(BemAqui.BuildingBlocks.Persistence.IdempotencyPurgeRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.BuildingBlocks.Persistence.IdempotencyPurgeRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         // Outbox e inbox entregues há mais de 30 dias (ADR 0037 §2, LGPD-01a CA 6): 03:30 de São Paulo.

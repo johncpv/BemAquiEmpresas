@@ -29,6 +29,7 @@ public sealed class PayrollClosingService(
     Documents.PayslipDocumentService documents,
     PayrollChangeNotices changeNotices,
     PayrollCalculationService calculation,
+    VacationService vacations,
     IEventPublisher events,
     INotificationService notifications,
     IUserDirectory users,
@@ -110,7 +111,8 @@ public sealed class PayrollClosingService(
             return PayrollRules.Field("paymentDate", "Informe a data de pagamento da folha.");
         }
 
-        if (paymentDate < run.Period)
+        // FLH-03 CA 9: as férias vencem antes do início do gozo, que pode ser no começo do mês da competência.
+        if (paymentDate < run.Period && run.Type != PayrollRunType.Vacation)
         {
             return PayrollRules.Field("paymentDate", "A data de pagamento não pode ser antes da competência.");
         }
@@ -164,6 +166,11 @@ public sealed class PayrollClosingService(
         run.ClosedCharges = snapshot.Charges.Sum(c => c.Amount);
         run.ClosedPayables = created;
         db.Entry(run).Property(r => r.Version).OriginalValue = input.Version;
+        if (run.Type == PayrollRunType.Vacation)
+        {
+            // FLH-03 CA 9: a programação ligada à folha de férias fica paga.
+            await vacations.MarkPaidAsync(run.Id, true, cancellationToken);
+        }
 
         // A previsão do mês e do tipo é substituída pela folha real, e a dos meses seguintes é refeita (CA 15), na mesma transação.
         // RH-02b CA 10: holerite já avisado que mudou depois do aviso ganha "Alterado depois do aviso".
@@ -256,6 +263,10 @@ public sealed class PayrollClosingService(
         // RH-02b CA 10: os PDFs guardados deixam de valer; fechada de novo, o próximo download refaz.
         await documents.InvalidateAsync(run.Id, cancellationToken);
         db.Entry(run).Property(r => r.Version).OriginalValue = input.Version;
+        if (run.Type == PayrollRunType.Vacation)
+        {
+            await vacations.MarkPaidAsync(run.Id, false, cancellationToken);
+        }
         var refreshed = await forecast.RefreshAsync(cancellationToken);
         if (refreshed.IsFailure)
         {
@@ -442,8 +453,12 @@ public sealed class PayrollClosingService(
         var changed = s.Slips.Where(x => s.Accounts.GetValueOrDefault(x.EmployeeId)?.InQuarantine == true)
             .Select(x => new PayrollClosePerson(x.EmployeeId, x.Name, x.Registration, s.Accounts[x.EmployeeId].QuarantineUntil)).ToList();
         var paid = s.Slips.Where(x => x.Net > 0m).ToList();
+        // FLH-03 CA 9: a folha de férias calculada vence até 2 dias antes do início; fechar depois avisa, sem bloquear.
+        var deadline = run.Type == PayrollRunType.Vacation ? await vacations.PaymentDeadlineAsync(run.Id, ct) : null;
+        var today = BemAqui.BuildingBlocks.Time.BusinessTime.Today(clock);
+        var late = deadline is { } d && (today > d || (suggested is { } sd && sd > d)) ? VacationPolicy.LatePaymentMessage : null;
         return new PayrollClosePreview(run.Id, run.Period, run.Type, blockers, suggested, rule is PaymentDateRule.Informed, await targets.DueConfirmedAsync(run.Type, ct),
-            newcomers, changed, paid.Count, paid.Sum(x => x.Net), s.Charges.Count, s.Charges.Sum(c => c.Amount), run.Version, await changeNotices.SinceLastClosingAsync(ct));
+            newcomers, changed, paid.Count, paid.Sum(x => x.Net), s.Charges.Count, s.Charges.Sum(c => c.Amount), run.Version, await changeNotices.SinceLastClosingAsync(ct), deadline, late);
     }
 
     /// <summary>Ids de origem dos títulos da folha: os holerites e as guias.</summary>

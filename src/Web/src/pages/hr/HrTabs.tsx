@@ -7,6 +7,7 @@ const TABS = [
   { to: '/app/rh/jornadas', label: 'Jornadas' },
   { to: '/app/rh/sindicatos', label: 'Sindicatos' },
   { to: '/app/rh/ponto/marcacoes', label: 'Ponto' },
+  { to: '/app/rh/ferias', label: 'Férias' },
   { to: '/app/rh/folha', label: 'Folha' },
   { to: '/app/rh/rubricas', label: 'Rubricas' },
   { to: '/app/rh/tabelas-folha', label: 'Tabelas da folha' },

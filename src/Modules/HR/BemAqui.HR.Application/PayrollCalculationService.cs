@@ -26,6 +26,7 @@ public sealed class PayrollCalculationService(
     IPayrollTaxTables taxTables,
     HrParametersService parameters,
     PayrollService runs,
+    VacationService vacations,
     IBackgroundJobClient jobs,
     ITenantContext tenant,
     INotificationService notifications,
@@ -59,6 +60,12 @@ public sealed class PayrollCalculationService(
         if (run is null)
         {
             return RunNotFound();
+        }
+
+        // FLH-03: a folha de férias calculada é refeita pela programação ligada a ela.
+        if (run.Type == PayrollRunType.Vacation && run.Mode == PayrollRunMode.Calculated && run.Status == PayrollRunStatus.Draft)
+        {
+            return await vacations.RecalculateRunAsync(run.Id, cancellationToken);
         }
 
         if (Precondition(run) is { } invalid)
@@ -231,7 +238,7 @@ public sealed class PayrollCalculationService(
             return RunNotFound();
         }
 
-        var official = await parameters.CalculatedOfficialAsync(cancellationToken);
+        var official = await parameters.OfficialForAsync(run.Type, cancellationToken);
         var slips = await (from p in db.Payslips.AsNoTracking()
                            join e in db.Employees.IgnoreQueryFilters().AsNoTracking() on p.EmployeeId equals e.Id
                            where p.PayrollRunId == runId
@@ -240,7 +247,7 @@ public sealed class PayrollCalculationService(
         var tables = await runs.TableRefsAsync(used, cancellationToken);
         var issues = slips.SelectMany(s => PayrollCalculator.ReadIssues(s.Payslip.CalculationIssues).Select(i => new PayrollCalcEmployeeIssue(s.Payslip.EmployeeId, s.Name, Capitalize(i.Message), i.Blocking)))
             .OrderByDescending(i => i.Blocking).ThenBy(i => i.EmployeeName, StringComparer.CurrentCulture).ToList();
-        var (stale, reasons) = run.Mode == PayrollRunMode.Calculated && run.CalculatedAt is not null && run.RectifiesRunId is null ? await StaleAsync(run, cancellationToken) : (0, []);
+        var (stale, reasons) = run.Mode == PayrollRunMode.Calculated && run.Type == PayrollRunType.Monthly && run.CalculatedAt is not null && run.RectifiesRunId is null ? await StaleAsync(run, cancellationToken) : (0, []);
         var rectifications = await db.PayrollRuns.AsNoTracking().Where(r => r.RectifiesRunId == run.Id).OrderBy(r => r.CreatedAt).Select(r => r.Id).ToListAsync(cancellationToken);
         PayrollNextStep? next = null;
         if (run.Mode == PayrollRunMode.Calculated && run.CalculatedAt is not null && run.Status == PayrollRunStatus.Draft)
@@ -269,6 +276,11 @@ public sealed class PayrollCalculationService(
         if (run.Mode != PayrollRunMode.Calculated || run.CalculatedAt is null || run.RectifiesRunId is not null)
         {
             return Error.Validation(PayrollCalculationRules.NotCalculatedCode, "A diferença compara uma folha calculada com o cálculo de hoje.");
+        }
+
+        if (run.Type != PayrollRunType.Monthly)
+        {
+            return VacationNotRectified();
         }
 
         var context = await ContextAsync(run, cancellationToken);
@@ -304,6 +316,11 @@ public sealed class PayrollCalculationService(
         if (original.Mode != PayrollRunMode.Calculated || original.RectifiesRunId is not null || original.CalculatedAt is null)
         {
             return Error.Validation(PayrollCalculationRules.NotCalculatedCode, "Só a folha calculada é retificada pelo cálculo.");
+        }
+
+        if (original.Type != PayrollRunType.Monthly)
+        {
+            return VacationNotRectified();
         }
 
         if (original.Status == PayrollRunStatus.Draft)
@@ -389,10 +406,12 @@ public sealed class PayrollCalculationService(
             return null;
         }
 
-        if (!await parameters.CalculatedOfficialAsync(cancellationToken))
+        if (!await parameters.OfficialForAsync(run.Type, cancellationToken))
         {
             var step = await CompareStepAsync(run, cancellationToken);
-            return Error.Conflict(PayrollCalculationRules.SimulationCode, PayrollCalculationRules.SimulationMessage) with
+            // FLH-03 CA 8: as férias só viram oficiais depois da virada e de um caso de férias conferido (FLH-06).
+            var vacation = run.Type == PayrollRunType.Vacation;
+            return Error.Conflict(vacation ? VacationPolicy.SimulationCode : PayrollCalculationRules.SimulationCode, vacation ? VacationPolicy.SimulationMessage : PayrollCalculationRules.SimulationMessage) with
             {
                 Data = new Dictionary<string, object?> { ["nextStep"] = step.Label, ["link"] = step.Link },
             };
@@ -414,7 +433,7 @@ public sealed class PayrollCalculationService(
             };
         }
 
-        if (run.RectifiesRunId is null && (await StaleAsync(run, cancellationToken)).Count is > 0 and var stale)
+        if (run.RectifiesRunId is null && run.Type == PayrollRunType.Monthly && (await StaleAsync(run, cancellationToken)).Count is > 0 and var stale)
         {
             return Error.Validation(PayrollCalculationRules.NotCalculatedCode, PayrollCalculationRules.StaleMessage(stale) + " Recalcule antes de fechar.");
         }
@@ -540,9 +559,20 @@ public sealed class PayrollCalculationService(
             .ToListAsync(ct)).ToLookup(h => h.EmployeeId);
         var timesheets = (await db.Timesheets.AsNoTracking().Where(t => ids.Contains(t.EmployeeId) && t.Period == period && t.Status == TimesheetStatus.Closed).ToListAsync(ct))
             .GroupBy(t => t.EmployeeId).ToDictionary(g => g.Key, g => g.First());
+        // FLH-03 CA 10: as férias programadas no mês (os dias saem do salário; a base e o INSS retido vêm do cálculo das férias).
+        var vacationRows = (await db.VacationSchedules.AsNoTracking()
+            .Where(s => ids.Contains(s.EmployeeId) && s.Status != VacationScheduleStatus.Cancelled && s.StartsOn <= end && s.StartsOn >= period.AddDays(-400)).ToListAsync(ct))
+            .Where(s => s.EndsOn >= period).ToLookup(s => s.EmployeeId);
         var result = new Dictionary<Guid, PayrollCalcSnapshot>();
         foreach (var e in employees)
         {
+            var vacations = vacationRows[e.Id].OrderBy(s => s.StartsOn).Select(s =>
+            {
+                var from = s.StartsOn > period ? s.StartsOn : period;
+                var to = s.EndsOn < end ? s.EndsOn : end;
+                var split = VacationPolicy.ReadSplit(s.CalculatedSplit).FirstOrDefault(x => x.Month == period);
+                return new PayrollCalcVacation(from, to, to.DayNumber - from.DayNumber + 1, split?.InssBase ?? 0m, split?.Inss ?? 0m, split?.FgtsBase ?? 0m, s.CalculatedSplit is not null);
+            }).ToList();
             var sheet = timesheets.GetValueOrDefault(e.Id);
             result[e.Id] = new PayrollCalcSnapshot(
                 salaries.GetValueOrDefault(e.Id), e.AdmissionDate, e.TerminationDate, positions.ContainsKey(e.PositionId), positions.GetValueOrDefault(e.PositionId),
@@ -550,7 +580,7 @@ public sealed class PayrollCalculationService(
                 dependents[e.Id].OrderBy(d => d.BirthDate).ThenBy(d => d.IrDependent).ThenBy(d => d.FamilyAllowance).ThenBy(d => d.FamilyAllowanceDocsOk)
                     .Select(d => new PayrollCalcDependent(d.BirthDate, d.IrDependent, d.FamilyAllowance, d.FamilyAllowanceDocsOk)).ToList(),
                 leaves[e.Id].OrderBy(l => l.EffectiveDate).ThenBy(l => l.LeaveEndDate).Select(l => new PayrollCalcLeave(l.EffectiveDate, l.LeaveEndDate ?? end, l.LeaveType)).ToList(),
-                sheet is not null, sheet?.AbsenceMinutes ?? 0, sheet?.LateMinutes ?? 0, manual.GetValueOrDefault(e.Id) ?? [], prm);
+                sheet is not null, sheet?.AbsenceMinutes ?? 0, sheet?.LateMinutes ?? 0, manual.GetValueOrDefault(e.Id) ?? [], prm, vacations.Count == 0 ? null : vacations);
         }
 
         return result;
@@ -930,6 +960,10 @@ public sealed class PayrollCalculationService(
     private ValueTask<bool> CanSensitiveAsync(CancellationToken ct) => permissions.HasPermissionAsync("hr", PositionService.SensitiveAction, ct);
 
     private static Error RunNotFound() => Error.NotFound("payroll_run_not_found", "Folha não encontrada.");
+
+    /// <summary>FLH-03: a folha de férias fechada se corrige reabrindo (sem pagamento), recalculando pela programação e fechando de novo.</summary>
+    private static Error VacationNotRectified() =>
+        Error.Validation(PayrollCalculationRules.NotSupportedCode, "A folha de férias não tem retificação: reabra a folha de férias, recalcule e feche de novo.");
 
     private static Error Forbidden() => Error.Forbidden(Error.Codes.Forbidden, "Você não tem acesso aos valores da folha. Fale com o administrador.");
 }

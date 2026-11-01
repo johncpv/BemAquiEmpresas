@@ -28,6 +28,8 @@ export const CALCULATION_LABELS: Record<string, string> = {
   None: 'Sem regra (lançamento avulso)', BaseSalary: 'Salário', SickLeave: 'Afastamento pela previdência', Insalubrity: 'Insalubridade', HazardPay: 'Periculosidade',
   Absence: 'Faltas', Lateness: 'Atrasos', FamilyAllowance: 'Salário-família', TransportVoucher: 'Vale-transporte (desconto)', TransportVoucherSupplied: 'Vale-transporte fornecido (avulso)',
   Inss: 'INSS', Irrf: 'IRRF', Fgts: 'FGTS',
+  // FLH-03: folha de férias.
+  VacationPay: 'Férias', VacationAverages: 'Médias de férias', VacationThird: '1/3 de férias', VacationSale: 'Abono pecuniário', VacationSaleThird: '1/3 do abono pecuniário',
 }
 
 /** Rubrica que entra como avulso na folha calculada: sem regra (ou o vale-transporte fornecido). */
