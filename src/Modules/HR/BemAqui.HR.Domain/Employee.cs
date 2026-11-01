@@ -209,6 +209,13 @@ public sealed class Employee : Entity, IAuditable, ISoftDeletable, IConcurrencyV
     public string? MilitaryCertificate { get; set; }
 
     /// <summary>
+    /// Acordo de banco de horas (RH-01c CA 2, CLT art. 59): a data a partir da qual o banco vale para o funcionário; nulo sem acordo.
+    /// Editado com <c>hr.edit</c> + <c>hr.view_sensitive</c>.
+    /// </summary>
+    [PersonalData]
+    public DateOnly? HourBankAgreementOn { get; set; }
+
+    /// <summary>
     /// Funcionário desligado anonimizado a pedido do titular (LGPD-01b CA 4): some dos seletores e fica só leitura, com a faixa "Cadastro
     /// anonimizado". O que tem obrigação trabalhista continua até o fim do prazo da tabela de retenção.
     /// </summary>

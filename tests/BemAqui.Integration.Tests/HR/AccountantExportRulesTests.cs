@@ -20,7 +20,10 @@ public class AccountantExportRulesTests
         AccountantLayoutV1.MovementsFile.Should().Be("movimentacao.csv");
         AccountantLayoutV1.PayrollFile.Should().Be("folha.csv");
         AccountantLayoutV1.ReadmeFile.Should().Be("leia-me.txt");
-        AccountantLayouts.Default.Should().Be("v1");
+        AccountantLayouts.Default.Should().Be("v2", "RH-01c: o v2 traz o ponto.csv");
+        AccountantLayoutV2.Version.Should().Be("v2");
+        AccountantLayoutV2.TimesheetFile.Should().Be("ponto.csv");
+        string.Join(';', AccountantLayoutV2.TimesheetHeader).Should().Be("matricula_ou_cpf;nome;inicio;fim;dias_trabalhados;horas_esperadas;horas_trabalhadas;horas_extras;faltas_dias;faltas_horas;atrasos_horas;horas_abonadas;abonos_por_motivo;banco_periodo;banco_acumulado");
     }
 
     /// <summary>CA 4: minimização, nenhuma coluna de endereço, contato, conta, dependente, localização ou motivo.</summary>

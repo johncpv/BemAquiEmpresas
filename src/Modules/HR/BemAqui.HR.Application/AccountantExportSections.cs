@@ -36,10 +36,10 @@ public interface IAccountantExport
     Task<IReadOnlyList<AccountantSectionResult>> BuildAsync(AccountantExportContext context, CancellationToken cancellationToken = default);
 }
 
-/// <summary>Layout padrão do sistema <c>v1</c> (<see cref="AccountantLayoutV1"/>): as seções registradas, na ordem.</summary>
+/// <summary>Layout padrão do sistema <c>v2</c> (RH-01c): as seções do <see cref="AccountantLayoutV1"/> e o <c>ponto.csv</c> (<see cref="AccountantLayoutV2"/>), na ordem.</summary>
 public sealed class StandardAccountantExport(IEnumerable<IAccountantExportSection> sections) : IAccountantExport
 {
-    public string Layout => AccountantLayoutV1.Version;
+    public string Layout => AccountantLayoutV2.Version;
 
     public async Task<IReadOnlyList<AccountantSectionResult>> BuildAsync(AccountantExportContext context, CancellationToken cancellationToken = default)
     {
@@ -191,16 +191,57 @@ public sealed class AccountantPayrollSection(IHrDb db) : IAccountantExportSectio
     }
 }
 
-/// <summary>Ponto (D15): até a RH-01c, o pacote sai sem o ponto, e o <c>leia-me.txt</c> diz por quê. A RH-01c troca esta seção pelo <c>ponto.csv</c>.</summary>
-public sealed class AccountantTimeclockPendingSection : IAccountantExportSection
+/// <summary>
+/// <c>ponto.csv</c> (RH-01c CA 17, layout <c>v2</c>): um funcionário por linha com os totais do espelho fechado da competência (o mês de
+/// referência do período de ponto), iguais aos do espelho. Período em aberto (algum espelho não fechado): o arquivo não entra e o
+/// <c>leia-me.txt</c> diz como incluir. O motivo de saúde do abono nunca sai pelo nome.
+/// </summary>
+public sealed class AccountantTimesheetSection(IHrDb db) : IAccountantExportSection
 {
     public const string SectionKey = "timeclock";
-    public const string Note = "Ponto: não incluído; o ponto do sistema ainda não está em uso.";
+    public const string NotClosedNote = "Ponto: não incluído; feche o período de ponto para exportar.";
 
     public string Key => SectionKey;
 
     public int Order => 30;
 
-    public Task<AccountantSectionResult> BuildAsync(AccountantExportContext context, CancellationToken cancellationToken = default) =>
-        Task.FromResult(new AccountantSectionResult(Key, false, "Ponto: não incluído", null, null, 0, [Note]));
+    public async Task<AccountantSectionResult> BuildAsync(AccountantExportContext context, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        var sheets = await (from t in db.Timesheets.AsNoTracking()
+                            join e in db.Employees.IgnoreQueryFilters().AsNoTracking() on t.EmployeeId equals e.Id
+                            where t.Period == context.Period
+                            select new { Sheet = t, e.Name, e.Registration, e.Cpf }).ToListAsync(cancellationToken);
+        if (sheets.Count == 0 || sheets.Any(s => s.Sheet.Status != TimesheetStatus.Closed))
+        {
+            return new AccountantSectionResult(Key, false, "Ponto: não incluído", null, null, 0, [NotClosedNote]);
+        }
+
+        var rows = AccountantLayoutV2.TimesheetRows(sheets.Select(s => new AccountantTimesheet(AccountantLayoutV1.EmployeeKey(s.Registration, s.Cpf), s.Name, s.Sheet.PeriodStart, s.Sheet.PeriodEnd,
+            s.Sheet.WorkedDays, s.Sheet.ExpectedMinutes, s.Sheet.WorkedMinutes, s.Sheet.OvertimeMinutes, s.Sheet.AbsenceDays, s.Sheet.AbsenceMinutes, s.Sheet.LateMinutes, s.Sheet.JustifiedMinutes,
+            TimesheetRules.ParseByReason(s.Sheet.JustifiedByReason), s.Sheet.BankMonthMinutes, s.Sheet.BankBalanceMinutes)));
+        var closedAt = sheets.Max(s => s.Sheet.ClosedAt) ?? DateTimeOffset.MinValue;
+        var summary = $"Ponto: incluído (período fechado em {AccountantLayoutV1.Date(DateOnly.FromDateTime(BusinessTime.ToBusiness(closedAt).DateTime))})";
+        return new AccountantSectionResult(Key, true, summary, AccountantLayoutV2.TimesheetFile, SafeCsv.Bytes(SafeCsv.Text(AccountantLayoutV2.TimesheetHeader, rows)), rows.Count, []);
+    }
+}
+
+/// <summary>Layout <c>v1</c> (o de antes da RH-01c): as mesmas seções, sem o <c>ponto.csv</c>; o <c>leia-me.txt</c> diz por quê.</summary>
+public sealed class AccountantExportV1(IEnumerable<IAccountantExportSection> sections) : IAccountantExport
+{
+    public const string Note = "Ponto: não incluído; o layout v1 não tem o arquivo do ponto (o v2 tem).";
+
+    public string Layout => AccountantLayoutV1.Version;
+
+    public async Task<IReadOnlyList<AccountantSectionResult>> BuildAsync(AccountantExportContext context, CancellationToken cancellationToken = default)
+    {
+        var results = new List<AccountantSectionResult>();
+        foreach (var section in sections.Where(s => s.Key != AccountantTimesheetSection.SectionKey).OrderBy(s => s.Order))
+        {
+            results.Add(await section.BuildAsync(context, cancellationToken));
+        }
+
+        results.Add(new AccountantSectionResult(AccountantTimesheetSection.SectionKey, false, "Ponto: não incluído", null, null, 0, [Note]));
+        return results;
+    }
 }

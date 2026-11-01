@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { PayrollItemKind } from './payrollItemKind';
+import type { PayrollTimesheetSource } from './payrollTimesheetSource';
 
 export interface PayrollItemInput {
   /** @nullable */
@@ -17,4 +18,5 @@ export interface PayrollItemInput {
   irrfBase: boolean;
   /** @nullable */
   version: number | null;
+  timesheetSource?: null | PayrollTimesheetSource;
 }

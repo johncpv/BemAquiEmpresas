@@ -85,6 +85,9 @@ public static class HostEvents
             // fica paga (ou volta a fechada no estorno) pela fonte, no consumidor da OP.
             .AddEvent<BemAqui.HR.Contracts.PayrollClosed>()
             .AddEvent<BemAqui.HR.Contracts.PayrollReopened>()
+            // RH-01c: fechamento e reabertura do período de ponto, só aviso (a folha lê o espelho fechado pela tabela do próprio HR).
+            .AddEvent<BemAqui.HR.Contracts.TimesheetPeriodClosed>()
+            .AddEvent<BemAqui.HR.Contracts.TimesheetPeriodReopened>()
             .AddHandler<BemAqui.Finance.Contracts.PaymentOrderPaid, BemAqui.HR.Application.PayrollPaymentConsumers>()
             .AddHandler<BemAqui.Finance.Contracts.PaymentOrderReversed, BemAqui.HR.Application.PayrollPaymentConsumers>()
             // CMP-03a (ADR 0024 §1): eventos do pedido de compra só para aviso e projeção; os títulos previstos nascem na transação da aprovação.

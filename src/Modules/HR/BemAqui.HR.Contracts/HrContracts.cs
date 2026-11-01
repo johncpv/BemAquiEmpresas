@@ -124,6 +124,12 @@ public sealed record PayrollClosed(Guid PayrollRunId, DateOnly Period) : IIntegr
 /// <summary>Folha reaberta (RH-02c CA 13): só para aviso.</summary>
 public sealed record PayrollReopened(Guid PayrollRunId) : IIntegrationEvent;
 
+/// <summary>Período de ponto fechado (RH-01c): só o mês de referência, sem dado pessoal; consumido dentro do HR (folha).</summary>
+public sealed record TimesheetPeriodClosed(DateOnly Period) : IIntegrationEvent;
+
+/// <summary>Período de ponto reaberto (RH-01c CA 13): só o mês de referência.</summary>
+public sealed record TimesheetPeriodReopened(DateOnly Period) : IIntegrationEvent;
+
 /// <summary>Desligamento registrado (CA 17), sem consumidor nesta fase.</summary>
 public sealed record EmployeeTerminated(Guid EmployeeId, DateOnly TerminationDate) : IIntegrationEvent;
 
