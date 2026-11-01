@@ -246,7 +246,12 @@ public class PersonalDataTests
             "NextDueAt", "NextDueMeter", "IsActive", "CreatedAt", "Version"],
         ["AssetMeterReading"] = ["Id", "AssetId", "ReadOn", "Value", "CreatedBy", "CreatedAt"],
         ["MaintenanceOrder"] = ["Id", "Number", "AssetId", "PlanId", "DueKey", "Type", "Status", "MachineStopped", "ScheduledOn", "SupplierPartyId", "StartedAt", "StartedBy",
-            "DoneAt", "DoneBy", "CancelledAt", "CancelledBy", "CreatedBy", "CreatedAt", "Version"],
+            "DoneAt", "DoneBy", "CancelledAt", "CancelledBy", "CreatedBy", "CreatedAt", "Version",
+            // PAT-03b: valor do contrato, horas e período da parada, custo e o título a pagar (ids, valores e datas).
+            "ContractValue", "ExpectedHours", "HoursPerDay", "DowntimeFrom", "DowntimeTo", "DowntimeRevision", "Cost", "PayableId"],
+        // PAT-03b: a linha de custo guarda só o id do funcionário (mantida, ver AssetsPersonalDataProvider); o custo-hora é o do cargo e só sai
+        // com hr.view_sensitive; a descrição é o rótulo da linha, como a do plano.
+        ["MaintenanceOrderCost"] = ["Id", "OrderId", "CostType", "Description", "Amount", "Hours", "HourlyCostSnapshot", "EmployeeId", "PayableId", "CreatedBy", "CreatedAt"],
         ["MaintenanceOrderChecklistItem"] = ["Id", "OrderId", "Sequence", "Text", "Result", "MarkedAt", "MarkedBy"],
     };
 
