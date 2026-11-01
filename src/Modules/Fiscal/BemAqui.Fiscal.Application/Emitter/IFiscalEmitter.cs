@@ -37,6 +37,12 @@ public interface IFiscalEmitter
 
     Task<Result<IReadOnlyList<NfeEventResult>>> GetEventsAsync(string accessKey, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// XML do evento registrado (<c>procEventoNFe</c>) para a guarda do BemAqui (FIS-03b CA 6 e 8; lacuna L-n: o Emissor ainda não expõe a
+    /// rota <c>GET /api/v1/nfe/{chave}/eventos/{id}/xml</c>). 404 enquanto não existir: o evento fica registrado sem o arquivo.
+    /// </summary>
+    Task<Result<FiscalFile>> GetEventXmlAsync(string accessKey, Guid eventId, CancellationToken cancellationToken = default);
+
     Task<Result<SefazStatus>> SefazStatusAsync(string? issuerDocument, CancellationToken cancellationToken = default);
 
     /// <summary>Quem é a chave (<c>GET /api/v1/me</c>, lacuna L-e): tenant, escopos efetivos, emitentes, ambiente e certificado (CA 8).</summary>

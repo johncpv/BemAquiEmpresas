@@ -1,8 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { createPayrollRun, getListPayrollRunsQueryKey, recalculatePayrollForecast, useListPayrollEligibleEmployees, useListPayrollRuns, useListPayrollRunTotalsSensitive } from '@/api/generated/bemaqui'
-import type { PayrollRunSummary, PayrollRunType } from '@/api/generated/model'
+import { createPayrollRun, getListPayrollRunsQueryKey, recalculatePayrollForecast, useGetPayrollSuggestedPeriod, useListPayrollEligibleEmployees, useListPayrollRuns, useListPayrollRunTotalsSensitive } from '@/api/generated/bemaqui'
+import type { PayrollRunMode, PayrollRunSummary, PayrollRunType } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { Field, FormError } from '@/components/form/form'
@@ -58,11 +58,12 @@ export function PayrollRunsPage() {
         <ul aria-label="Folhas" className="divide-y divide-border rounded-md border border-border">
           {query.data.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
-              <Link to="/app/rh/folha/$id" params={{ id: r.id }} className="font-semibold text-primary hover:underline">{typeLabel(r.type)} · {periodLabel(r.period)}</Link>
+              <Link to="/app/rh/folha/$id" params={{ id: r.id }} className="font-semibold text-primary hover:underline">{typeLabel(r.type)} · {periodLabel(r.period)}{r.mode === 'Calculated' ? (r.rectifiesRunId ? ' · retificação' : ' · calculada') : ''}</Link>
               <span className="flex flex-wrap items-center gap-3">
                 <span className="tabular-nums text-muted-foreground">{r.payslipCount === 1 ? '1 holerite' : `${r.payslipCount} holerites`}</span>
                 {canSensitive && net.has(r.id) ? <span className="text-muted-foreground">Líquido <Money value={net.get(r.id) ?? 0} className="font-semibold text-foreground" /></span> : null}
                 {r.closedByName ? <span className="text-muted-foreground">Fechada por {r.closedByName}</span> : null}
+                {r.isSimulation ? <StatusChip tone="info">Simulação</StatusChip> : null}
                 <StatusChip tone={STATUS_TONES[r.status] ?? 'neutral'}>{STATUS_LABELS[r.status] ?? r.status}</StatusChip>
               </span>
             </li>
@@ -80,13 +81,16 @@ function NewRunDialog({ onClose }: { onClose: () => void }) {
   const idempotency = useIdempotencyKey()
   const [period, setPeriod] = useState(currentPeriod())
   const [type, setType] = useState<PayrollRunType>('Monthly')
+  const [mode, setMode] = useState<PayrollRunMode>('Entered')
+  // Propositivo (FLH-02a): na calculada, a competência sugerida é a do último ponto fechado.
+  const suggested = useGetPayrollSuggestedPeriod({ query: { enabled: type === 'Monthly' } }).data?.period ?? null
   const [chosen, setChosen] = useState<string[]>([])
   const [error, setError] = useState<{ message: string; fields: Record<string, string[]> } | null>(null)
   const choose = choosesEmployees(type)
   const eligible = useListPayrollEligibleEmployees({ period }, { query: { enabled: choose && /^\d{4}-\d{2}$/.test(period) } })
   const create = async () => {
     setError(null)
-    const run: PayrollRunSummary = await createPayrollRun({ period, type, employeeIds: choose ? chosen : null }, idempotency.options)
+    const run: PayrollRunSummary = await createPayrollRun({ period, type, employeeIds: choose ? chosen : null, mode: type === 'Monthly' ? mode : 'Entered' }, idempotency.options)
     idempotency.renew()
     void client.invalidateQueries({ queryKey: getListPayrollRunsQueryKey() })
     await navigate({ to: '/app/rh/folha/$id', params: { id: run.id }, search: { novo: '1' } as never })
@@ -94,7 +98,7 @@ function NewRunDialog({ onClose }: { onClose: () => void }) {
 
   return (
     <ConfirmDialog open onOpenChange={(o) => !o && onClose()} verb="Criar folha" done="Folha criada" title="Nova folha" size="lg"
-      description="A folha nasce em lançamento, com um holerite por funcionário ativo na competência. Na Mensal, o salário já vem preenchido."
+      description={mode === 'Calculated' && type === 'Monthly' ? 'A folha calculada nasce com um holerite por funcionário ativo na competência; depois, "Calcular" faz as linhas pelo cadastro, pelo ponto fechado e pelas tabelas. Até a virada, é só simulação.' : 'A folha nasce em lançamento, com um holerite por funcionário ativo na competência. Na Mensal, o salário já vem preenchido.'}
       preconditions={choose ? [{ ok: chosen.length > 0, text: 'Escolha os funcionários desta folha.' }] : []}
       onFieldErrors={(e: ApiError) => { setError({ message: e.message, fields: e.fields }); return true }}
       onConfirm={create}>
@@ -112,6 +116,17 @@ function NewRunDialog({ onClose }: { onClose: () => void }) {
             )}
           </Field>
         </div>
+        {type === 'Monthly' ? (
+          <Field label="Modo" required error={error?.fields.mode?.[0]} dica={PAYROLL_DICAS.simulacao}
+            hint={mode === 'Calculated' ? `Simulação: roda em paralelo com a folha lançada da contadora, que continua a oficial.${suggested ? ` Competência sugerida: o último ponto fechado (${periodLabel(suggested)}).` : ''}` : 'Os valores vêm da contadora (digitados ou importados).'}>
+            {(p) => (
+              <select {...p} value={mode} onChange={(e) => { const next = e.target.value as PayrollRunMode; setMode(next); if (next === 'Calculated' && suggested) setPeriod(suggested) }} className={inputClass}>
+                <option value="Entered">Lançada (valores da contadora)</option>
+                <option value="Calculated">Calculada pelo sistema</option>
+              </select>
+            )}
+          </Field>
+        ) : null}
         {choose ? (
           <fieldset className="space-y-1">
             <legend className="text-sm font-medium">Funcionários <span className="text-xs font-normal text-muted-foreground">(obrigatório)</span></legend>

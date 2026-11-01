@@ -55,6 +55,9 @@ public sealed class FiscalIntegrationOptions
 
     /// <summary>Arquivos XML de nota de entrada por hora e usuário (política <c>fiscal-incoming-import</c>, FIS-04a CA 1): um arquivo por requisição.</summary>
     public int IncomingImportsPerHour { get; set; } = 60;
+
+    /// <summary>PDFs de nota de entrada enviados para leitura por hora e usuário (política <c>fiscal-pdf-reading</c>, FIS-05 CA 1).</summary>
+    public int PdfReadingsPerHour { get; set; } = 30;
 }
 
 /// <summary>Conferência do endereço do Emissor (CA 7): HTTPS, porta padrão e host da lista; o endereço vem só da configuração.</summary>

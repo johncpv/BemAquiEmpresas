@@ -71,6 +71,10 @@ public sealed class EmployeeDependent : Entity, IAuditable, ISoftDeletable, ICon
     [PersonalData]
     public bool FamilyAllowance { get; set; }
 
+    /// <summary>"Documentos do salário-família entregues" (FLH-02a CA 6): sem a marca, a cota não sai na folha calculada.</summary>
+    [PersonalData]
+    public bool FamilyAllowanceDocsOk { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public uint Version { get; set; }

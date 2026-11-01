@@ -59,9 +59,13 @@ public sealed class CapturingJobClient : IBackgroundJobClient
 {
     public ConcurrentQueue<(Guid TenantId, Guid EventId, string Queue)> Enqueued { get; } = new();
 
+    /// <summary>Todo job criado (tipo e argumentos), para conferir que o job recebeu o tenantId (FIS-05).</summary>
+    public ConcurrentQueue<(Type Type, IReadOnlyList<object?> Args)> All { get; } = new();
+
     public string Create(Job job, IState state)
     {
         ArgumentNullException.ThrowIfNull(job);
+        All.Enqueue((job.Type, job.Args.ToList()));
         if (job.Type == typeof(ProcessWebhookEventJob) && job.Args.Count >= 2 && job.Args[0] is Guid tenant && job.Args[1] is WebhookEventJobArgs args)
         {
             Enqueued.Enqueue((tenant, args.EventId, (state as EnqueuedState)?.Queue ?? "-"));

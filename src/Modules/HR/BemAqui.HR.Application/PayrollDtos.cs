@@ -21,13 +21,19 @@ public sealed record PayrollRunSummary(
     DateTimeOffset? PaidAt = null,
     string? ReopenReason = null,
     int? PayableCount = null,
-    string? TimesheetNotice = null);
+    string? TimesheetNotice = null,
+    bool IsSimulation = false,
+    DateTimeOffset? CalculatedAt = null,
+    string? CalculatorVersion = null,
+    bool Calculating = false,
+    Guid? RectifiesRunId = null,
+    int? Number = null);
 
 /// <summary>Totais da folha (só com <c>hr.view_sensitive</c>, rota <c>/sensitive</c>): o líquido total na lista.</summary>
 public sealed record PayrollRunTotals(Guid RunId, decimal Gross, decimal Deductions, decimal Net);
 
-/// <summary>Nova folha (CA 4): competência "2026-10", tipo e, em Férias e Rescisão, os funcionários escolhidos.</summary>
-public sealed record PayrollRunCreateInput(string? Period, PayrollRunType? Type, IReadOnlyList<Guid>? EmployeeIds);
+/// <summary>Nova folha (CA 4): competência "2026-10", tipo, em Férias e Rescisão os funcionários escolhidos e o modo (FLH-02a: "Calculada", só Mensal).</summary>
+public sealed record PayrollRunCreateInput(string? Period, PayrollRunType? Type, IReadOnlyList<Guid>? EmployeeIds, PayrollRunMode? Mode = null);
 
 /// <summary>Funcionário da competência, para escolher em Férias e Rescisão (sem dado sensível).</summary>
 public sealed record PayrollEligibleEmployee(Guid Id, string Name, string? Registration, DateOnly AdmissionDate, DateOnly? TerminationDate);
@@ -35,7 +41,9 @@ public sealed record PayrollEligibleEmployee(Guid Id, string Name, string? Regis
 /// <summary>Holerite na lista da folha (sensível): totais e o número de linhas.</summary>
 public sealed record PayslipRow(Guid Id, Guid EmployeeId, string EmployeeName, string? Registration, decimal Gross, decimal Deductions, decimal Net, int LineCount, uint Version);
 
-public sealed record PayslipLineDetail(Guid PayrollItemId, string Code, string Description, PayrollItemKind Type, string? Reference, decimal Amount);
+/// <summary>Linha do holerite; na folha calculada (FLH-02a), o id, se é do motor, o motivo do avulso e a memória de cálculo.</summary>
+public sealed record PayslipLineDetail(Guid PayrollItemId, string Code, string Description, PayrollItemKind Type, string? Reference, decimal Amount,
+    Guid? LineId = null, bool Calculated = false, string? Note = null, IReadOnlyList<string>? Memory = null);
 
 /// <summary>Holerite (CA 5 e 6), só pela rota <c>/sensitive</c>, com <c>SensitiveRead</c>.</summary>
 public sealed record PayslipDetail(
@@ -53,7 +61,9 @@ public sealed record PayslipDetail(
     decimal IrrfBase,
     decimal FgtsAmount,
     bool Editable,
-    uint Version);
+    uint Version,
+    PayrollRunMode Mode = PayrollRunMode.Entered,
+    PayslipCalculationInfo? Calculation = null);
 
 public sealed record PayslipLineInput(Guid? PayrollItemId, string? Reference, decimal Amount);
 
@@ -63,7 +73,7 @@ public sealed record PayslipInput(IReadOnlyList<PayslipLineInput>? Lines, decima
 /// <summary>"Copiar do mês anterior" (CA 5): o holerite anterior do mesmo tipo, para entrar como rascunho editável; vazio sem anterior.</summary>
 public sealed record PayslipPrevious(DateOnly? Period, IReadOnlyList<PayslipLineDetail> Lines, decimal InssBase, decimal FgtsBase, decimal IrrfBase, decimal FgtsAmount);
 
-public sealed record PayrollChargeDetail(Guid Id, PayrollChargeKind Kind, string Description, decimal Amount, DateOnly DueDate, Guid? PayeePartyId, string? PayeeName, uint Version);
+public sealed record PayrollChargeDetail(Guid Id, PayrollChargeKind Kind, string Description, decimal Amount, DateOnly DueDate, Guid? PayeePartyId, string? PayeeName, uint Version, bool Calculated = false);
 
 /// <summary>
 /// Guias da competência (CA 7): as linhas, os padrões (vencimento e órgão) de cada tipo, a soma do FGTS dos holerites e o aviso

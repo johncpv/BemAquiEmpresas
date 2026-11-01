@@ -131,6 +131,10 @@ internal sealed partial class EmissorFiscalHttpEmitter(HttpClient http, FiscalEm
             return Result<IReadOnlyList<NfeEventResult>>.Success(events.Select(EmissorFiscalMapping.ToEvent).ToList());
         }, cancellationToken);
 
+    public Task<Result<FiscalFile>> GetEventXmlAsync(string accessKey, Guid eventId, CancellationToken cancellationToken = default) =>
+        FileAsync("nfe.evento_xml", "api/v1/nfe/" + Key(accessKey) + "/eventos/" + eventId.ToString("D") + "/xml", "application/xml",
+            Key(accessKey) + "-evento-" + eventId.ToString("N")[..8] + ".xml", cancellationToken);
+
     public Task<Result<SefazStatus>> SefazStatusAsync(string? issuerDocument, CancellationToken cancellationToken = default) =>
         SendAsync<SefazStatus>("sefaz.status", Kind.Read, () => new HttpRequestMessage(HttpMethod.Get, "api/v1/sefaz/status" + (issuerDocument is { Length: > 0 } d ? "?emitente=" + Digits(d) : string.Empty)),
             async (response, ct) =>

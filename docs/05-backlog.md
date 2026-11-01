@@ -498,7 +498,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-3, R-PRD-8, R-PRJ-5, R-FIS-4, R-COM-1, R-COM-3.
 - CA: rascunho a partir do romaneio (a nota só referencia o romaneio, sem baixar estoque); venda mista pela D4 (equipamento em NF-e, instalação em NFS-e, parcela é só cobrança); saneamento pelos limites do esquema antes de reservar o número; emissão idempotente com reconciliação no Emissor; `InvoiceAuthorized` lança o imposto como `InvoiceTax`; imposto nunca digitado; os 3 cenários em homologação SEFAZ no `demo`.
 
-**FIS-03b [ ] NF-e de saída: cancelamento em uma etapa com `fiscal.approve`, carta de correção e inutilização de numeração (M)** — 5.4, ordem 11 — `Ready (pré-condição externa)` — [story](stories/FIS-03b-nfe-cancelamento-cce-inutilizacao.md)
+**FIS-03b [x] NF-e de saída: cancelamento em uma etapa com `fiscal.approve`, carta de correção e inutilização de numeração (M)** — 5.4, ordem 11 — `Done` (homologação SEFAZ dos eventos no `demo` e lacuna L-n do XML do evento: pré-condição externa) — [story](stories/FIS-03b-nfe-cancelamento-cce-inutilizacao.md)
 - Requisitos: R-FIS-3, R-SEC-10, R-PRJ-5.
 - CA: cancelamento em uma etapa com `fiscal.approve` e 2FA de novo, "Pedir cancelamento" para os demais, prazo de 24 h com contagem no `ConfirmDialog`; cancelar não mexe no estoque (`InvoiceTaxReversal` no custo); carta de correção com `fiscal.edit`; inutilização pelo filtro "A inutilizar"; DANFE de nota cancelada com marca.
 
@@ -510,7 +510,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-CMP-5, R-EST-7, R-FIN-4, R-FIN-10.
 - CA: recebimento da CMP-04 preenchido pela nota, chamada síncrona com `purchasing.receive`; duplicatas pelo `CreateOpenInstallmentsAsync` na transação do recebimento (ADR 0024); sem duplicatas, vale a condição do pedido; crédito de impostos pré-configurado "Nenhum" até a P-01; uma vez só.
 
-**FIS-05 [ ] NF-e de entrada por PDF (DANFE): chave, leitura assistida em worker isolado, "Digitar a nota" e conferência obrigatória (M)** — 5.5, ordem 14 — `Ready` — [story](stories/FIS-05-nfe-entrada-pdf.md)
+**FIS-05 [x] NF-e de entrada por PDF (DANFE): chave, leitura assistida em worker isolado, "Digitar a nota" e conferência obrigatória (M)** — 5.5, ordem 14 — `Done` — [story](stories/FIS-05-nfe-entrada-pdf.md)
 - Requisitos: R-FIS-6, R-PRP-3.
 - CA: extração de texto num worker isolado (`network_mode: none`, memória limitada, kill no tempo limite); sem OCR: PDF sem texto oferece "Digitar a nota"; chave com DV; conferência de todo campo, incertos com texto e foco no primeiro; nota marcada "Lida do PDF" e substituível pelo XML.
 
@@ -585,7 +585,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-PAT-3, R-PRP-1, R-PRP-6 (D), R-SEC-5.
 - CA: transferência de local, responsável e centro com histórico imutável; lote; baixa com motivo e reativação; venda do bem com "Lançar título a receber" pré-preenchido.
 
-**PAT-03a [ ] Patrimônio: planos de manutenção preventiva e OS de manutenção (M)** — 6.4, ordem 14 — `Ready (pré-condição externa)` — [story](stories/PAT-03a-planos-os-manutencao.md)
+**PAT-03a [x] Patrimônio: planos de manutenção preventiva e OS de manutenção (M)** — 6.4, ordem 14 — `Done` (pré-condição externa: lista das máquinas com plano e horímetro da Konebras; E2E no fechamento da feature) — [story](stories/PAT-03a-planos-os-manutencao.md)
 - Requisitos: R-PAT-4, R-COM-2, R-COM-3, R-COM-4, R-PRP-2, R-PRP-5, R-SEC-5.
 - CA: plano por dias ou por horas (horímetro digitado), próximo vencimento a partir da conclusão; job com `tenantId` que avisa e abre a OS uma vez; OS de manutenção no Assets (ADR 0038), aberta com `assets.create`; baixa recusada com OS aberta.
 
@@ -605,7 +605,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-7--folha-calculad
 - Requisitos: R-RH-6, R-SEC-5.
 - CA: INSS, IRRF, salário-família, salário mínimo, FGTS, VT e encargos por vigência, pré-cadastrados "a confirmar"; quem cadastra não confere; esquema por tipo versionado; arredondamento parametrizado; versão ativa imutável e retificação explícita.
 
-**FLH-02a [ ] Folha calculada: cálculo mensal (salário, adicionais, faltas, INSS, IRRF, FGTS, salário-família, VT) (G)** — 7.1, ordem 2 — `Ready (pré-condição externa)` — [story](stories/FLH-02a-calculo-mensal.md)
+**FLH-02a [x] Folha calculada: cálculo mensal (salário, adicionais, faltas, INSS, IRRF, FGTS, salário-família, VT) (G)** — 7.1, ordem 2 — `Done (pré-condição externa: contadora e conferência paralela)` — [story](stories/FLH-02a-calculo-mensal.md)
 - Requisitos: R-RH-6, R-RH-5, R-FIN-10, PRD §6 LGPD, R-SEC-5, R-PRP-7.
 - CA: salário proporcional, adicionais, faltas, salário-família (documentos entregues no dependente), VT, INSS, IRRF e FGTS pelo motor puro, centavo a centavo com o dataset sintético do CI; memória de cálculo e retrato das entradas (`calculator_version`); só simulação até a virada.
 

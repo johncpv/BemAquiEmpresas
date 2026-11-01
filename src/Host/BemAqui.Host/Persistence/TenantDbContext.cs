@@ -356,11 +356,16 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Fiscal.Domain.NumberGap> NumberGaps => Set<BemAqui.Fiscal.Domain.NumberGap>();
 
+    public DbSet<BemAqui.Fiscal.Domain.FiscalEvent> FiscalEvents => Set<BemAqui.Fiscal.Domain.FiscalEvent>();
+
+    public DbSet<BemAqui.Fiscal.Domain.CancellationRequest> CancellationRequests => Set<BemAqui.Fiscal.Domain.CancellationRequest>();
+
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoice> IncomingInvoices => Set<BemAqui.Fiscal.Domain.IncomingInvoice>();
 
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoiceItem> IncomingInvoiceItems => Set<BemAqui.Fiscal.Domain.IncomingInvoiceItem>();
 
     public DbSet<BemAqui.Fiscal.Domain.InstallationBilling> InstallationBillings => Set<BemAqui.Fiscal.Domain.InstallationBilling>();
+    public DbSet<BemAqui.Fiscal.Domain.IncomingInvoiceReading> IncomingInvoiceReadings => Set<BemAqui.Fiscal.Domain.IncomingInvoiceReading>();
 
     public DbSet<BemAqui.Assets.Domain.Asset> Assets => Set<BemAqui.Assets.Domain.Asset>();
 
@@ -369,6 +374,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BemAqui.Assets.Domain.AssetParameter> AssetParameters => Set<BemAqui.Assets.Domain.AssetParameter>();
 
     public DbSet<BemAqui.Assets.Domain.AssetMovement> AssetMovements => Set<BemAqui.Assets.Domain.AssetMovement>();
+
+    public DbSet<BemAqui.Assets.Domain.MaintenancePlan> MaintenancePlans => Set<BemAqui.Assets.Domain.MaintenancePlan>();
+
+    public DbSet<BemAqui.Assets.Domain.AssetMeterReading> AssetMeterReadings => Set<BemAqui.Assets.Domain.AssetMeterReading>();
+
+    public DbSet<BemAqui.Assets.Domain.MaintenanceOrder> MaintenanceOrders => Set<BemAqui.Assets.Domain.MaintenanceOrder>();
+
+    public DbSet<BemAqui.Assets.Domain.MaintenanceOrderChecklistItem> MaintenanceOrderChecklist => Set<BemAqui.Assets.Domain.MaintenanceOrderChecklistItem>();
 
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 
@@ -409,6 +422,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<PayrollTaxTable> PayrollTaxTables => Set<PayrollTaxTable>();
 
     public DbSet<PayrollTaxTableDataset> PayrollTaxTableDatasets => Set<PayrollTaxTableDataset>();
+
+    public DbSet<PayrollCalculationLog> PayrollCalculationLogs => Set<PayrollCalculationLog>();
 
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
 

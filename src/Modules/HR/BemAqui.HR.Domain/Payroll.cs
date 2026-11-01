@@ -77,6 +77,12 @@ public sealed class PayrollItem : Entity, IAuditable, ISoftDeletable, IConcurren
     /// <summary>"Origem no ponto" (RH-01c CA 16): o total do espelho que preenche a referência da linha ("Usar horas do espelho").</summary>
     public PayrollTimesheetSource? TimesheetSource { get; set; }
 
+    /// <summary>Regra da folha calculada (FLH-02a): <c>None</c> é a rubrica sem regra (avulso); as outras o motor refaz a cada cálculo.</summary>
+    public PayrollCalculation Calculation { get; set; } = PayrollCalculation.None;
+
+    /// <summary>"Deduz da base do IRRF" (FLH-02a CA 9): o desconto entra na dedução legal (pensão judicial), comparada com o simplificado.</summary>
+    public bool DeductsIrrfBase { get; set; }
+
     public string? SeedKey { get; init; }
 
     public DateTimeOffset? ConfirmedAt { get; private set; }
@@ -161,7 +167,67 @@ public sealed class PayrollRun : Entity, IAuditable, IConcurrencyVersioned
 
     public Guid? ReopenedBy { get; set; }
 
+    /// <summary>Folha calculada (FLH-02a): último cálculo, por quem e com qual versão do motor (ADR 0039 §2).</summary>
+    public DateTimeOffset? CalculatedAt { get; set; }
+
+    public Guid? CalculatedBy { get; set; }
+
+    public string? CalculatorVersion { get; set; }
+
+    /// <summary>Cálculo em segundo plano (mais de 20 funcionários, CA 17): desde quando; nulo quando terminou.</summary>
+    public DateTimeOffset? CalculatingSince { get; set; }
+
+    /// <summary>Simulação (CA 15): a calculada antes da virada (FLH-06) não fecha e o holerite sai só como prévia.</summary>
+    public bool IsSimulation { get; set; }
+
+    /// <summary>Retificação (CA 14, ADR 0039 §3): a folha fechada que esta complementa só com as diferenças.</summary>
+    public Guid? RectifiesRunId { get; init; }
+
     public uint Version { get; set; }
+}
+
+/// <summary>
+/// Histórico do cálculo da folha (<c>hr.payroll_calculation_logs</c>, FLH-02a CA 19): quem, quando, o que (calculou, recalculou, gerou a
+/// retificação), a versão do motor, as tabelas e os parâmetros usados e os totais antes e depois (<c>[PersonalData]</c>: só com
+/// <c>hr.view_sensitive</c>). Só cresce; não é editado.
+/// </summary>
+public sealed class PayrollCalculationLog : Entity
+{
+    public Guid PayrollRunId { get; init; }
+
+    public PayrollCalculationAction Action { get; init; }
+
+    public DateTimeOffset At { get; init; }
+
+    public Guid? By { get; init; }
+
+    public string CalculatorVersion { get; init; } = string.Empty;
+
+    public List<Guid> TaxTableIds { get; init; } = [];
+
+    public List<Guid> ParameterIds { get; init; } = [];
+
+    public int Employees { get; init; }
+
+    [PersonalData]
+    public decimal? GrossBefore { get; init; }
+
+    [PersonalData]
+    public decimal? NetBefore { get; init; }
+
+    [PersonalData]
+    public decimal GrossAfter { get; init; }
+
+    [PersonalData]
+    public decimal NetAfter { get; init; }
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter<PayrollCalculationAction>))]
+public enum PayrollCalculationAction
+{
+    Calculated,
+    Recalculated,
+    RectificationCreated,
 }
 
 /// <summary>O que a linha da folha prevista representa (RH-02c CA 14).</summary>
@@ -267,6 +333,31 @@ public sealed class Payslip : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>O holerite mudou depois do aviso (CA 10): "Alterado depois do aviso", até o funcionário ser avisado de novo.</summary>
     public bool ChangedAfterNotice { get; set; }
 
+    // Folha calculada (FLH-02a CA 12, ADR 0039 §2): a versão do motor, as tabelas e os parâmetros usados e o retrato das entradas.
+    public DateTimeOffset? CalculatedAt { get; set; }
+
+    public string? CalculatorVersion { get; set; }
+
+    public List<Guid> TaxTableIds { get; set; } = [];
+
+    public List<Guid> ParameterIds { get; set; } = [];
+
+    /// <summary>Retrato das entradas (<see cref="PayrollCalcSnapshot"/>, jsonb): salário, jornada, dependentes, afastamentos, ponto e avulsos.</summary>
+    [PersonalData]
+    public string? InputsSnapshot { get; set; }
+
+    /// <summary>Avisos e erros do cálculo do funcionário (jsonb, sem valor): "Sem jornada", "documentos do salário-família pendentes".</summary>
+    [PersonalData]
+    public string? CalculationIssues { get; set; }
+
+    /// <summary>Encargos da empresa do funcionário (CA 10): patronal + RAT × FAP + terceiros, pela tabela; vai para a guia do INSS.</summary>
+    [PersonalData]
+    public decimal EmployerCharges { get; set; }
+
+    /// <summary>A memória dos encargos da empresa (jsonb).</summary>
+    [PersonalData]
+    public string? EmployerChargesMemory { get; set; }
+
     public uint Version { get; set; }
 
     /// <summary>Totais pelas linhas (CA 6, ADR 0019 §9).</summary>
@@ -302,6 +393,17 @@ public sealed class PayslipLine : Entity, IAuditable
     public decimal Amount { get; init; }
 
     public int Sort { get; init; }
+
+    /// <summary>Linha feita pelo motor (FLH-02a CA 13): não é editada à mão; o ajuste é um avulso com motivo.</summary>
+    public bool Calculated { get; init; }
+
+    /// <summary>Memória de cálculo (jsonb, lista de textos, CA 12): base, faixa, tabela e vigência, parâmetros e entradas.</summary>
+    [PersonalData]
+    public string? Memory { get; init; }
+
+    /// <summary>Motivo do lançamento avulso (CA 13). Texto livre do RH.</summary>
+    [PersonalData]
+    public string? Note { get; init; }
 }
 
 /// <summary>
@@ -325,6 +427,9 @@ public sealed class PayrollRunCharge : Entity, IAuditable, IConcurrencyVersioned
     public Guid? PayeePartyId { get; set; }
 
     public DateTimeOffset CreatedAt { get; init; }
+
+    /// <summary>Guia gerada pelo cálculo (FLH-02a CA 10): refeita a cada recálculo e não editada à mão; as outras ficam.</summary>
+    public bool Calculated { get; init; }
 
     public uint Version { get; set; }
 }

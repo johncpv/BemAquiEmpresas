@@ -32,6 +32,11 @@ public sealed partial class PayrollService
             return run.Error!;
         }
 
+        if (run.Value.Mode == PayrollRunMode.Calculated)
+        {
+            return Error.Conflict(PayrollCalculationRules.CalculatedLineCode, "Na folha calculada, os valores vêm do cálculo: a importação é da folha lançada.");
+        }
+
         return (await PlanAsync(run.Value, content, cancellationToken)).Preview;
     }
 
@@ -47,6 +52,11 @@ public sealed partial class PayrollService
         if (run.IsFailure)
         {
             return run.Error!;
+        }
+
+        if (run.Value.Mode == PayrollRunMode.Calculated)
+        {
+            return Error.Conflict(PayrollCalculationRules.CalculatedLineCode, "Na folha calculada, os valores vêm do cálculo: a importação é da folha lançada.");
         }
 
         var plan = await PlanAsync(run.Value, content, cancellationToken);

@@ -31,4 +31,14 @@ export interface PayrollRunSummary {
   payableCount?: number | null;
   /** @nullable */
   timesheetNotice?: string | null;
+  isSimulation?: boolean;
+  /** @nullable */
+  calculatedAt?: string | null;
+  /** @nullable */
+  calculatorVersion?: string | null;
+  calculating?: boolean;
+  /** @nullable */
+  rectifiesRunId?: string | null;
+  /** @nullable */
+  number?: number | null;
 }

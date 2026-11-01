@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { choosesEmployees, currentPeriod, formatPct, periodLabel, totals, typeLabel } from './payroll'
+import { CALCULATION_LABELS, choosesEmployees, currentPeriod, formatPct, isManualCalculation, MODE_LABELS, periodLabel, totals, typeLabel } from './payroll'
 
 describe('folha lançada (RH-02a)', () => {
   it('totais com a mesma regra do servidor: a informativa fica fora do líquido (CA 6)', () => {
@@ -18,5 +18,23 @@ describe('folha lançada (RH-02a)', () => {
     expect(choosesEmployees('Monthly')).toBe(false)
     expect(formatPct(15)).toBe('+15%')
     expect(formatPct(-10.5)).toBe('-10,5%')
+  })
+})
+
+describe('folha calculada (FLH-02a)', () => {
+  it('avulso só em rubrica sem regra ou no vale-transporte fornecido', () => {
+    expect(isManualCalculation('None')).toBe(true)
+    expect(isManualCalculation(undefined)).toBe(true)
+    expect(isManualCalculation('TransportVoucherSupplied')).toBe(true)
+    expect(isManualCalculation('Inss')).toBe(false)
+    expect(isManualCalculation('BaseSalary')).toBe(false)
+  })
+
+  it('toda regra tem rótulo e o modo aparece por extenso', () => {
+    for (const rule of ['None', 'BaseSalary', 'SickLeave', 'Insalubrity', 'HazardPay', 'Absence', 'Lateness', 'FamilyAllowance', 'TransportVoucher', 'TransportVoucherSupplied', 'Inss', 'Irrf', 'Fgts']) {
+      expect(CALCULATION_LABELS[rule]).toBeTruthy()
+    }
+
+    expect(MODE_LABELS.Calculated).toBe('Folha calculada')
   })
 })

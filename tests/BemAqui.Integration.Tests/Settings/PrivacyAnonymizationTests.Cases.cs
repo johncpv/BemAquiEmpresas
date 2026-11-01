@@ -363,6 +363,80 @@ public partial class PrivacyAnonymizationTests
         (await CanaryHitsAsync(reopen)).Should().Equal(["hr.timesheets.reopen_reason"], "só o espelho do funcionário ativo continua com o motivo, retido");
     }
 
+    /// <summary>
+    /// FLH-02a: o retrato das entradas, os avisos, a memória de cálculo e o motivo do avulso do holerite calculado seguem a retenção trabalhista:
+    /// retidos no ativo; no desligado há mais de 5 anos, saem (o motivo vira o marcador) e os valores do holerite ficam.
+    /// </summary>
+    [Fact]
+    public async Task Folha_calculada_retem_retrato_e_memoria_e_perde_depois_do_prazo_do_desligamento()
+    {
+        var owner = await ActorAsync(Group.OwnerSeedKey, totp: true);
+        var tag = Guid.NewGuid().ToString("N")[..8];
+
+        async Task<(Guid Employee, Guid Payslip, string Name, string Note)> SeedAsync(DateOnly? terminated, int month)
+        {
+            var employee = await EmployeeAsync(owner.Client);
+            var note = $"Pensao canario {tag} {employee.Id.ToString("N")[^6..]}: oficio da vara de familia";
+            var run = new PayrollRun { Period = new DateOnly(2019, month, 1), Type = PayrollRunType.Monthly, Mode = PayrollRunMode.Calculated, CreatedAt = DateTimeOffset.UtcNow, CalculatedAt = DateTimeOffset.UtcNow, CalculatorVersion = PayrollCalculator.Version };
+            var snapshot = new PayrollCalcSnapshot(3000m, new DateOnly(2015, 1, 2), terminated, true, 220m, null, false, false, [new PayrollCalcDependent(new DateOnly(2014, 3, 9), true, true, true)],
+                [new PayrollCalcLeave(new DateOnly(2019, 5, 2), new DateOnly(2019, 5, 30), AbsenceReason.MedicalCertificate)], true, 0, 0, [], PayrollCalcParameters.Default);
+            var payslip = new Payslip
+            {
+                PayrollRunId = run.Id, EmployeeId = employee.Id, Gross = 3000m, Deductions = 500m, Net = 2500m, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow,
+                CalculatedAt = DateTimeOffset.UtcNow, CalculatorVersion = PayrollCalculator.Version, InputsSnapshot = PayrollCalculator.WriteSnapshot(snapshot),
+                CalculationIssues = PayrollCalculator.WriteIssues([new PayrollCalcIssue("family_allowance_docs", "documentos do salário-família pendentes.", false)]),
+                EmployerChargesMemory = PayrollCalculator.WriteMemory(["Lucro Presumido sobre R$ 3.000,00"]),
+            };
+            await DbAsync(async db =>
+            {
+                var item = await db.PayrollItems.Where(i => i.Code == "PENSAO").Select(i => i.Id).SingleAsync();
+                var salary = await db.PayrollItems.Where(i => i.Code == "SAL").Select(i => i.Id).SingleAsync();
+                var e = await db.Employees.SingleAsync(x => x.Id == employee.Id);
+                if (terminated is { } t)
+                {
+                    e.Status = EmployeeStatus.Terminated;
+                    e.TerminationDate = t;
+                }
+
+                db.PayrollRuns.Add(run);
+                db.Payslips.Add(payslip);
+                db.PayslipLines.Add(new PayslipLine { PayslipId = payslip.Id, PayrollItemId = salary, Code = "SAL", Description = "Salário", Type = PayrollItemKind.Earning, Amount = 3000m, Calculated = true, Memory = PayrollCalculator.WriteMemory(["Salário base R$ 3.000,00."]) });
+                db.PayslipLines.Add(new PayslipLine { PayslipId = payslip.Id, PayrollItemId = item, Code = "PENSAO", Description = "Pensão alimentícia", Type = PayrollItemKind.Deduction, Amount = 500m, Sort = 1, Note = note, Memory = PayrollCalculator.WriteMemory(["Lançamento avulso: " + note]) });
+                return await db.SaveChangesAsync();
+            });
+            return (employee.Id, payslip.Id, employee.Name, note);
+        }
+
+        // Ativo: retrato, memória e motivo ficam retidos.
+        var active = await SeedAsync(null, 5);
+        var activeRequest = await RequestAsync(owner.Client, "Employee", active.Employee);
+        Items(await PreviewAsync(owner.Client, activeRequest.GetProperty("id").GetGuid()), "hr")
+            .Should().Contain(i => i.Action == "Retain" && i.Label.StartsWith("Retrato das entradas", StringComparison.Ordinal) && i.Count == 3 && i.Until == null);
+        (await AnonymizeAsync(owner, activeRequest, active.Name, owner.Codes!.Next())).StatusCode.Should().Be(HttpStatusCode.Accepted);
+        (await RunJobAsync(owner, activeRequest.GetProperty("id").GetGuid())).GetProperty("anonymizationStatus").GetString().Should().Be("Done");
+        (await DbAsync(db => db.Payslips.SingleAsync(p => p.Id == active.Payslip))).InputsSnapshot.Should().NotBeNull();
+
+        // Desligado em 2019 (+5 anos já passou): o retrato, os avisos e as memórias saem; o motivo vira o marcador; os valores ficam.
+        var gone = await SeedAsync(new DateOnly(2019, 6, 30), 6);
+        var request = await RequestAsync(owner.Client, "Employee", gone.Employee);
+        Items(await PreviewAsync(owner.Client, request.GetProperty("id").GetGuid()), "hr")
+            .Should().Contain(i => i.Action == "Anonymize" && i.Label.StartsWith("Retrato das entradas", StringComparison.Ordinal) && i.Count == 3);
+        (await AnonymizeAsync(owner, request, gone.Name, owner.Codes.Next())).StatusCode.Should().Be(HttpStatusCode.Accepted);
+        (await RunJobAsync(owner, request.GetProperty("id").GetGuid())).GetProperty("anonymizationStatus").GetString().Should().Be("Done");
+        var marker = "Titular anonimizado " + request.GetProperty("number").GetString();
+        var slip = await DbAsync(db => db.Payslips.SingleAsync(p => p.Id == gone.Payslip));
+        (slip.InputsSnapshot, slip.CalculationIssues, slip.EmployerChargesMemory).Should().Be(((string?)null, (string?)null, (string?)null));
+        (slip.Gross, slip.Net).Should().Be((3000m, 2500m), "os valores do holerite são documento com movimento");
+        var lines = await DbAsync(db => db.PayslipLines.Where(l => l.PayslipId == gone.Payslip).OrderBy(l => l.Sort).ToListAsync());
+        lines.Should().OnlyContain(l => l.Memory == null);
+        lines.Select(l => l.Note).Should().Equal(null, marker);
+        lines.Select(l => l.Amount).Should().Equal(3000m, 500m);
+
+        // Canário: o motivo do avulso do desligado não sobra em nenhuma tabela; o do ativo, retido, só nas linhas.
+        (await CanaryHitsAsync(gone.Note, gone.Name)).Should().BeEmpty();
+        (await CanaryHitsAsync(active.Note)).Should().BeEquivalentTo(["hr.payslip_lines.note", "hr.payslip_lines.memory"]);
+    }
+
     [Fact]
     public async Task NFe_emitida_fica_com_o_destinatario_ate_o_prazo_fiscal_e_perde_o_contato_ja_e_o_rascunho_descartado_sai_inteiro()
     {

@@ -1,0 +1,11 @@
+Carta de correção da NF-e {{ invoice_number }}
+
+{{ tenant_name }} registrou na SEFAZ a carta de correção número {{ sequence }} da NF-e número {{ number }}, série {{ series }}.
+
+Chave de acesso: {{ access_key }}
+Protocolo: {{ protocol }}
+
+Correção: {{ text }}
+{% if has_xml %}
+O XML do evento está anexo a este e-mail. Guarde-o com a nota.
+{% endif %}

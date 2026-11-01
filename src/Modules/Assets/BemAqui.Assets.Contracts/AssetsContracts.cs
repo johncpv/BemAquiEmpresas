@@ -60,3 +60,46 @@ public enum AssetDisposalReason
 /// sem texto livre (ADR 0037 §2); sem consumidor obrigatório nesta story.
 /// </summary>
 public sealed record AssetDisposed(Guid AssetId, DateOnly DisposedOn) : BemAqui.SharedKernel.IIntegrationEvent;
+
+/// <summary>Periodicidade do plano preventivo (PAT-03a CA 1): a cada N dias ou a cada N horas de uso (horímetro digitado).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<MaintenanceFrequency>))]
+public enum MaintenanceFrequency
+{
+    Days,
+    Hours,
+}
+
+/// <summary>Tipo da OS de manutenção (PAT-03a CA 4): preventiva (do plano ou avulsa) e corretiva.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<MaintenanceOrderType>))]
+public enum MaintenanceOrderType
+{
+    Preventive,
+    Corrective,
+}
+
+/// <summary>Situação da OS de manutenção (PAT-03a, <c>04-fluxos</c>): <c>Open → InProgress → Done</c>; <c>Open|InProgress → Cancelled</c>.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<MaintenanceOrderStatus>))]
+public enum MaintenanceOrderStatus
+{
+    Open,
+    InProgress,
+    Done,
+    Cancelled,
+}
+
+/// <summary>Resultado do item do checklist da OS de manutenção (CA 6): feito ou não se aplica.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<MaintenanceChecklistResult>))]
+public enum MaintenanceChecklistResult
+{
+    Done,
+    NotApplicable,
+}
+
+/// <summary>
+/// OS de manutenção aberta (PAT-03a): só ids, o centro, a marca de máquina parada e a data agendada, sem texto livre (ADR 0037 §2). A parada na
+/// capacidade (<c>MaintenanceScheduled</c>) fica para a PAT-03b; sem consumidor nesta story.
+/// </summary>
+public sealed record MaintenanceOrderOpened(Guid OrderId, Guid AssetId, Guid? WorkCenterId, bool MachineStopped, DateOnly ScheduledOn) : BemAqui.SharedKernel.IIntegrationEvent;
+
+/// <summary>OS de manutenção concluída (PAT-03a): os mesmos campos da abertura, sem texto livre; sem consumidor nesta story.</summary>
+public sealed record MaintenanceOrderCompleted(Guid OrderId, Guid AssetId, Guid? WorkCenterId, bool MachineStopped, DateOnly ScheduledOn) : BemAqui.SharedKernel.IIntegrationEvent;

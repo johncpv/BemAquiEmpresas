@@ -73,6 +73,13 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
         // FIS-02a CA 14: aviso do vencimento do certificado A1, diário às 08:00 de São Paulo.
         recurring.AddOrUpdate<BemAqui.Fiscal.Application.Certificates.FiscalCertificateExpiryRecurringJob>(BemAqui.Fiscal.Application.Certificates.FiscalCertificateExpiryRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Fiscal.Application.Certificates.FiscalCertificateExpiryRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // FIS-03b CA 12 e CA 2: lembrete semanal dos números a inutilizar e a expiração dos pedidos de cancelamento, de hora em hora.
+        recurring.AddOrUpdate<BemAqui.Fiscal.Application.Invoices.FiscalInvalidationReminderRecurringJob>(BemAqui.Fiscal.Application.Invoices.FiscalInvalidationReminderRecurringJob.Id,
+            j => j.ExecuteAsync(CancellationToken.None), BemAqui.Fiscal.Application.Invoices.FiscalInvalidationReminderRecurringJob.Cron,
+            new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        recurring.AddOrUpdate<BemAqui.Fiscal.Application.Invoices.CancellationRequestExpiryRecurringJob>(BemAqui.Fiscal.Application.Invoices.CancellationRequestExpiryRecurringJob.Id,
+            j => j.ExecuteAsync(CancellationToken.None), BemAqui.Fiscal.Application.Invoices.CancellationRequestExpiryRecurringJob.Cron,
+            new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         // 07:00 de São Paulo como valor inicial; o horário é parâmetro (Jobs:Cron:production-late-orders).
         recurring.AddOrUpdate<BemAqui.Production.Application.LateOrdersRecurringJob>(BemAqui.Production.Application.LateOrdersRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             configuration["Jobs:Cron:" + BemAqui.Production.Application.LateOrdersRecurringJob.Id] is { Length: > 0 } cron ? cron : BemAqui.Production.Application.LateOrdersRecurringJob.Cron,
@@ -96,6 +103,9 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
         recurring.AddOrUpdate<BemAqui.Purchasing.Application.MinStockPurchaseRequestRecurringJob>(BemAqui.Purchasing.Application.MinStockPurchaseRequestRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             configuration["Jobs:Cron:" + BemAqui.Purchasing.Application.MinStockPurchaseRequestRecurringJob.Id] is { Length: > 0 } minStock ? minStock : BemAqui.Purchasing.Application.MinStockPurchaseRequestRecurringJob.Cron,
             new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // Manutenção preventiva (PAT-03a CA 3): 06:00 de São Paulo, um job por tenant com o assets liberado (aviso na antecedência e OS no vencimento).
+        recurring.AddOrUpdate<BemAqui.Assets.Application.MaintenanceDueRecurringJob>(BemAqui.Assets.Application.MaintenanceDueRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Assets.Application.MaintenanceDueRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         return Task.CompletedTask;
     }
 

@@ -5,13 +5,14 @@ namespace BemAqui.HR.Application;
 
 /// <summary>
 /// Dependente (CAD-04c2 CA 1 e 2), comando próprio com <c>hr.edit</c> e <c>hr.view_sensitive</c>. O CPF só no dependente de IR; na
-/// edição, CPF vazio num dependente de IR mantém o gravado. <c>Version</c> é o <c>xmin</c> do dependente (só na edição).
+/// edição, CPF vazio num dependente de IR mantém o gravado. <c>Version</c> é o <c>xmin</c> do dependente (só na edição). <c>FamilyAllowanceDocsOk</c>
+/// é "Documentos do salário-família entregues" (FLH-02a CA 6), só com "Salário-família".
 /// </summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record EmployeeDependentInput(string? Name, DateOnly? BirthDate, DependentKinship? Kinship, bool IrDependent, bool FamilyAllowance, string? Cpf, uint? Version = null);
+public sealed record EmployeeDependentInput(string? Name, DateOnly? BirthDate, DependentKinship? Kinship, bool IrDependent, bool FamilyAllowance, string? Cpf, uint? Version = null, bool FamilyAllowanceDocsOk = false);
 
 /// <summary>Dependente só pela rota <c>/dependents/sensitive</c> (CA 3), com o CPF mascarado ("***.456.789-**").</summary>
-public sealed record EmployeeDependentDetail(Guid Id, string Name, DateOnly BirthDate, DependentKinship Kinship, bool IrDependent, bool FamilyAllowance, string? CpfMasked, uint Version);
+public sealed record EmployeeDependentDetail(Guid Id, string Name, DateOnly BirthDate, DependentKinship Kinship, bool IrDependent, bool FamilyAllowance, string? CpfMasked, uint Version, bool FamilyAllowanceDocsOk = false);
 
 /// <summary>
 /// Conta para pagamento (CAD-04c2 CA 4 e 5), comando próprio com <c>hr.edit</c>, <c>hr.view_sensitive</c> e o 2FA de novo

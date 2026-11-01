@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import {
-  discardOutgoingInvoice, getCheckOutgoingInvoiceIssueQueryKey, getDownloadOutgoingInvoiceDanfeUrl, getDownloadOutgoingInvoiceXmlUrl, getGetOutgoingInvoiceQueryKey,
+  discardOutgoingInvoice, getCheckOutgoingInvoiceIssueQueryKey, getDownloadCancelledOutgoingInvoiceDanfeUrl, getDownloadOutgoingInvoiceDanfeUrl, getDownloadOutgoingInvoiceXmlUrl, getGetOutgoingInvoiceQueryKey,
   getListInvoicesToIssueQueryKey, getListOutgoingInvoicesQueryKey, getPreviewOutgoingInvoiceUrl, issueOutgoingInvoice, reopenOutgoingInvoice, resendOutgoingInvoice,
   updateOutgoingInvoice, useCheckOutgoingInvoiceIssue, useGetOutgoingInvoice, useGetOutgoingInvoiceHistory, useListInstallationsToInvoice,
 } from '@/api/generated/bemaqui'
@@ -25,6 +25,7 @@ import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { useStartNfse } from './use-start-nfse'
 import { INVOICE_DICAS, INVOICE_STATUS, INVOICE_TEXTS, invoiceLabel, isSlow, quantity } from './outgoing-invoices'
+import { InvoiceEventActions, InvoiceEventsTab } from './OutgoingInvoiceEvents'
 import { OPERATION_LABEL, RECIPIENT_LABEL, TAX_LABEL } from './tax-rules'
 
 const primary = 'inline-flex min-h-11 items-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground disabled:opacity-60'
@@ -47,7 +48,8 @@ export function OutgoingInvoicePage() {
   const { id } = useParams({ strict: false }) as { id: string }
   const client = useQueryClient()
   const navigate = useNavigate()
-  const query = useGetOutgoingInvoice(id, { query: { refetchInterval: (q) => (q.state.data && (q.state.data.status === 'Processing' || q.state.data.status === 'ContingencyPending') ? 5_000 : false) } })
+  // Processando, contingência ou "Cancelamento enviado" (FIS-03b): relê a cada 5 s até o desfecho.
+  const query = useGetOutgoingInvoice(id, { query: { refetchInterval: (q) => (q.state.data && (q.state.data.status === 'Processing' || q.state.data.status === 'ContingencyPending' || !!q.state.data.cancellation.cancellationSentAt) ? 5_000 : false) } })
   const [draft, setDraft] = useState<InvoiceDraft | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
@@ -147,6 +149,7 @@ export function OutgoingInvoicePage() {
       {v.status === 'Denied' ? (
         <p role="alert" className="mb-4 flex items-center rounded-md border border-l-4 border-crit-soft border-l-crit bg-crit-soft px-3 py-2 text-sm font-semibold text-crit-ink">{v.guidance}<Dica nome="Denegada" texto={INVOICE_DICAS.denegada} /></p>
       ) : null}
+      <InvoiceEventActions invoice={v} onDone={refresh} now={now} />
       {v.status === 'Authorized' && v.projectId ? (
         <div className="mb-4"><NextSteps title="Próximos passos" onDismiss={() => undefined} steps={[
           { label: 'Ver projeto', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: v.projectId! }, search: { aba: 'resumo' } } as never) },
@@ -177,7 +180,7 @@ export function OutgoingInvoicePage() {
           { id: 'dados', label: 'Dados', keepMounted: true, content: <InvoiceData invoice={v} draft={draft} setDraft={setDraft} errors={fieldErrors} /> },
           { id: 'itens', label: 'Itens e tributos', keepMounted: true, content: <InvoiceItems invoice={v} draft={draft} setDraft={setDraft} errors={fieldErrors} /> },
           { id: 'documentos', label: 'Documentos', content: <InvoiceDocuments invoice={v} onDone={refresh} /> },
-          { id: 'eventos', label: 'Eventos', content: <InvoiceEvents invoice={v} /> },
+          { id: 'eventos', label: 'Eventos', content: <InvoiceEventsTab invoice={v} /> },
           { id: 'historico', label: 'Histórico de alterações', content: <InvoiceHistory id={v.id} /> },
         ]} />
       ) : null}
@@ -352,10 +355,11 @@ function InvoiceDocuments({ invoice: v, onDone }: { invoice: OutgoingInvoiceView
   const [error, setError] = useState<string | null>(null)
   if (!v.actions.canDownload) return <EmptyState title="Sem documentos ainda." description="O XML e o DANFE ficam aqui depois da autorização da SEFAZ." />
   const name = v.accessKey ?? v.id
-  const download = async (xml: boolean) => {
+  const download = async (kind: 'xml' | 'danfe' | 'cancelada') => {
     setError(null)
     try {
-      await apiDownload(xml ? getDownloadOutgoingInvoiceXmlUrl(v.id) : getDownloadOutgoingInvoiceDanfeUrl(v.id), `${name}-${xml ? 'nfe.xml' : 'danfe.pdf'}`)
+      const url = kind === 'xml' ? getDownloadOutgoingInvoiceXmlUrl(v.id) : kind === 'danfe' ? getDownloadOutgoingInvoiceDanfeUrl(v.id) : getDownloadCancelledOutgoingInvoiceDanfeUrl(v.id)
+      await apiDownload(url, `${name}-${kind === 'xml' ? 'nfe.xml' : kind === 'danfe' ? 'danfe.pdf' : 'danfe-cancelada.pdf'}`)
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Não foi possível baixar.')
     }
@@ -364,8 +368,9 @@ function InvoiceDocuments({ invoice: v, onDone }: { invoice: OutgoingInvoiceView
     <div className="space-y-3">
       {error ? <p role="alert" className="rounded-md border border-crit-soft bg-crit-soft px-3 py-2 text-sm text-crit-ink">{error}</p> : null}
       <div className="flex flex-wrap gap-2">
-        {v.xmlAttachmentId ? <button type="button" onClick={() => void download(true)} className={secondary}>Baixar XML</button> : null}
-        {v.danfeAttachmentId ? <button type="button" onClick={() => void download(false)} className={secondary}>Baixar DANFE</button> : null}
+        {v.xmlAttachmentId ? <button type="button" onClick={() => void download('xml')} className={secondary}>Baixar XML</button> : null}
+        {v.danfeAttachmentId ? <button type="button" onClick={() => void download('danfe')} className={secondary}>Baixar DANFE</button> : null}
+        {v.cancellation.hasCancelledDanfe ? <button type="button" onClick={() => void download('cancelada')} className={secondary}>Baixar DANFE cancelado</button> : null}
         {v.actions.canResend ? (
           <ConfirmDialog verb="Reenviar XML e DANFE" done={INVOICE_TEXTS.resent} title="Reenviar o XML e o DANFE ao cliente?" description={`Vai para ${v.recipient.email ?? 'o e-mail de cobrança'}${v.emailCc ? `, com cópia para ${v.emailCc}` : ''}.`}
             onConfirm={async () => onDone(await resendOutgoingInvoice(v.id))} trigger={<button type="button" className={secondary}>Reenviar XML e DANFE</button>} />
@@ -373,20 +378,6 @@ function InvoiceDocuments({ invoice: v, onDone }: { invoice: OutgoingInvoiceView
       </div>
       <p className="text-sm text-muted-foreground">{v.emailedAt ? `Enviados ao cliente em ${formatDateTime(v.emailedAt)}.` : v.sendToCustomer ? 'Ainda não enviados ao cliente.' : 'Envio ao cliente desmarcado.'}</p>
     </div>
-  )
-}
-
-function InvoiceEvents({ invoice: v }: { invoice: OutgoingInvoiceView }) {
-  return (
-    <dl className="grid gap-2 rounded-md border border-border bg-card p-3 text-sm sm:grid-cols-2">
-      <div><dt className="font-medium">Tentativa</dt><dd className="tabular-nums">{v.attempt}</dd></div>
-      <div><dt className="flex items-center font-medium">Chave de acesso<Dica nome="Chave de acesso" texto={INVOICE_DICAS.chave} /></dt><dd className="break-all tabular-nums">{v.accessKey ?? '—'}</dd></div>
-      <div><dt className="font-medium">Protocolo</dt><dd className="tabular-nums">{v.protocol ?? '—'}</dd></div>
-      <div><dt className="font-medium">Autorizada em</dt><dd className="tabular-nums">{v.authorizedAt ? formatDateTime(v.authorizedAt) : '—'}</dd></div>
-      <div><dt className="font-medium">Data da nota</dt><dd className="tabular-nums">{v.issuedOn ? formatDate(v.issuedOn) : '—'}</dd></div>
-      <div><dt className="font-medium">Rejeição</dt><dd>{v.rejectionCode ? `${v.rejectionCode} — ${v.rejectionReason ?? ''}` : '—'}</dd></div>
-      <p className="text-xs text-muted-foreground sm:col-span-2">Cancelamento e carta de correção entram aqui numa próxima versão.</p>
-    </dl>
   )
 }
 

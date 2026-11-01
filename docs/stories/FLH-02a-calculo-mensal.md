@@ -5,7 +5,7 @@
 | ID | FLH-02a |
 | Título | Motor de cálculo da folha mensal no modo "calculada", puro, determinístico e testável por tabela de casos: salário proporcional, insalubridade e periculosidade, faltas e atrasos do ponto fechado, afastamento, salário-família, desconto de vale-transporte, INSS progressivo, IRRF com a melhor dedução, FGTS do mês e encargos da empresa; memória de cálculo e retrato das entradas por holerite; recálculo enquanto rascunho, lançamentos avulsos e retificação; só simulação até a virada (FLH-06) |
 | Tamanho | G (quebra da FLH-02 em 02a cálculo mensal e 02b horas extras e DSR do ponto) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: conferência da contadora e conferência paralela da FLH-06) |
 | Requisitos | R-RH-6 (INSS, IRRF, FGTS, adicionais e faltas) · R-RH-5 (holerite e CP reaproveitados) · R-FIN-10 · PRD §6 LGPD · R-SEC-5 · R-PRP-7 |
 | Dependências | FLH-01 (tabelas e `IPayrollTaxTables`), RH-02a (rubricas e folha), RH-02b (holerite), RH-02c (fechamento, títulos e previsão, ADR 0036), RH-01c (espelho fechado), CAD-04c2 (dependentes de IR e salário-família, adicionais, vale-transporte), CAD-04c1 (afastamentos) |
 | Bloqueia | FLH-02b, FLH-03, FLH-04, FLH-05, FLH-06 |
@@ -98,20 +98,20 @@ Decisões da revisão aplicadas: D1 (Fase 7 antes do go-live); D6 (2FA de novo a
 **Pré-condição externa:** conferência pela contadora dos parâmetros pré-configurados (chip "A confirmar com a contadora"); o dataset de referência da contadora é pré-condição da virada (FLH-06), não desta story.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade (dataset sintético), integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva); parâmetros com seed idempotente e o chip "A confirmar com a contadora".
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados; ajuda atualizada; teste de cobertura passando.
-- [ ] Auditoria ligada, com `[PersonalData]` no retrato e na memória.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (simulação, retificação) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos (ver o Change Log 1.0 para as recomendações aceitas e as pendências externas).
+- [x] Testes de unidade (dataset sintético) e integração (Testcontainers) passando; E2E não escrito (regra do PO de 31/10: a story prova os CAs com unidade, integração e Vitest).
+- [x] Migration criada (não destrutiva, `CalculatedPayrollFlh02a`); parâmetros com seed idempotente e o chip "A confirmar com a contadora".
+- [x] Permissões só do `ModuleCatalog` (nenhuma ação nova).
+- [x] Telas com estados; ajuda atualizada; teste de cobertura passando.
+- [x] Auditoria ligada, com `[PersonalData]` no retrato e na memória.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (simulação, retificação) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `PayrollCalculator` e as regras; retrato das entradas e `calculator_version`.
-- [ ] Dataset sintético em `tests/` (funcionários fictícios, resultado esperado documentado com a regra usada).
-- [ ] Job de cálculo; memória na tela; "Ver diferença" e "Gerar retificação".
-- [ ] Bloqueio do fechamento antes da virada e exigência de tabela conferida depois.
+- [x] `PayrollCalculator` e as regras; retrato das entradas e `calculator_version`.
+- [x] Dataset sintético em `tests/` (funcionários fictícios, resultado esperado documentado com a regra usada).
+- [x] Job de cálculo; memória na tela; "Ver diferença" e "Gerar retificação".
+- [x] Bloqueio do fechamento antes da virada e exigência de tabela conferida depois.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (determinismo e fronteira com a RH-02c), @qa, revisão da contadora (externa, nos parâmetros).
@@ -145,3 +145,8 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D1, D6, D14, tabela 3.4 pontos 7–12 e 28 e "Determinismo", §4.3 FLH-01/02, §4.4 padrões 7 e 8); nova ordem (Marco 7.1, ordem 2, antes do go-live); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 01/11/2026 | 1.0 | **Pacote de 2026 com os valores oficiais** (primeiro commit): INSS, IRRF (com a redução da Lei 15.270/2025), salário-família, salário mínimo, FGTS e vale-transporte, cada um com a fonte (ato + URL), todos "A confirmar com a contadora" (detalhe e os três pontos em aberto no Change Log 1.1 da FLH-01). Exemplos da Receita testados: 6.000,00 → 394,54 e 4.500,00 → 0 | @dev |
+| 01/11/2026 | 1.0 | Implementação (@dev): motor `PayrollCalculator` 1.0.0 no Domain (puro, sem banco, sem relógio, sem log), com o retrato das entradas, a memória por linha, as bases, o FGTS do mês e os encargos da empresa pela tabela; `PayrollCalculationService` (pré-condições: espelho fechado 422 com o link, tabelas da FLH-01, Mensal; até 20 funcionários na hora e acima pelo `PayrollCalculationJob` só com ids; avulsos com motivo e recálculo do holerite; "Cadastro ou tabela mudou depois do cálculo de {n} funcionários." pelo retrato, pela edição e pela troca das tabelas usadas; "Ver diferença" e "Gerar retificação" da folha fechada; histórico com os totais só por `/sensitive`; bloqueio do fechamento antes da virada com "Comparar com a lançada" e, depois, exigência das tabelas conferidas); `hr.payroll_items.calculation` e `deducts_irrf_base` (seed aplicado uma vez, AFAST e VTFORN novas); `family_allowance_docs_ok` no dependente (caixa no formulário, auditada, na exportação LGPD); nove parâmetros novos em `hr.parameters` "A confirmar com a contadora" (com o tipo "Escolha" na tela); guias calculadas (FGTS, INSS com os encargos, IRRF); marca "Simulação: não é o holerite oficial" no PDF; telas (modo na Nova folha, barra do cálculo, memória no painel do holerite, diferença, retificação, histórico), ajuda (`rh-folha`, `rh-folha-detalhe`, `configuracoes-parametros`) e o adendo da ADR 0039. Testes: dataset sintético de 14 funcionários centavo a centavo, regras por tabela de casos, propriedade do determinismo e integração (Testcontainers) | @dev |
+| 01/11/2026 | 1.0 | Recomendações aceitas (PO 24/10): (1) **virada**: a FLH-06 ainda não existe; a simulação é enquanto o parâmetro interno `hr.payroll_calculated_official` (sem tela, auditado, gravado pela virada da FLH-06) não for 1; (2) a calculada **convive com a lançada** da mesma competência (o único passa a período, tipo e modo, fora as retificações), para a conferência paralela; (3) **só a Mensal** é calculada nesta story (os outros tipos: 422, "chega nas próximas etapas"); (4) **linha calculada nunca é editada**, e todo avulso da calculada tem motivo (5 a 200) — o mais conservador; lançar ou tirar o avulso recalcula o holerite na hora (o retrato fica sempre igual às linhas); (5) **o afastamento pela previdência** sai como linha informativa ("Afastamento: {n} dias pela previdência") e o salário fica proporcional aos dias pagos pela empresa; só doença e acidente mudam o salário (maternidade e os demais tipos ficam com a contadora); (6) **o mês comercial** conta o último dia do mês como dia 30 (fevereiro cheio paga 30 dias); (7) **o salário-família** usa a base do INSS como remuneração, é proporcional no mês de admissão ou desligamento e vale até o mês em que o filho completa a idade do parâmetro; o cadastro do dependente não tem a marca "inválido" (a CAD-04c2 não criou): sem ela, o limite de idade vale para todos (pendência para a contadora); (8) **as guias calculadas** são FGTS, INSS (o retido + os encargos da empresa) e IRRF, refeitas a cada cálculo, com o vencimento e o órgão padrão; só o vencimento e o órgão mudam à mão; as guias sindical e "Outros" continuam lançadas; (9) **a retificação** tem uma linha por rubrica com a diferença (o provento que diminuiu vira desconto da mesma rubrica) e só as guias da diferença a maior; a diferença a menor é compensada pela contadora; (10) **fechar a calculada** depois da virada exige também o cálculo atualizado (sem "Cadastro ou tabela mudou"); (11) a **competência sugerida** na Nova folha calculada é a do último espelho fechado (`GET /payroll-runs/suggested-period`); (12) E2E não escrito (regra do PO de 31/10) | @dev |
+| 01/11/2026 | 1.0 | **Pendências externas:** conferência pela contadora dos nove parâmetros da folha calculada e das tabelas de 2026 (todas "A confirmar"), em especial o rendimento da redução do IRRF (`hr.irrf_reduction_income`, IN RFB 2.299/2025), o salário-família (só fontes secundárias) e o arredondamento do INSS no teto; a conferência paralela de 3 meses e a virada são da FLH-06 | @dev |
+| 01/11/2026 | 1.1 | Merge com a `main` (LGPD-01b): a anonimização do RH cobre a folha calculada pela retenção trabalhista — o retrato das entradas, os avisos e a memória dos encargos do holerite e a memória das linhas saem, e o motivo do avulso vira o marcador, depois do prazo do desligamento; os valores do holerite ficam (documento com movimento). Teste no `PrivacyAnonymizationTests` com o canário | @dev |

@@ -42,6 +42,9 @@ public static class PayslipDocumentRules
     public const string EmployeeNotActiveMessage = "Seu usuário não está ligado a um funcionário ativo. Fale com o RH.";
     public const string Watermark = "RASCUNHO — folha não fechada";
 
+    /// <summary>Holerite da folha calculada antes da virada (FLH-02a CA 15): só prévia, nunca o oficial.</summary>
+    public const string SimulationWatermark = "Simulação: não é o holerite oficial";
+
     /// <summary>CPF mascarado 3+2 (D15, CA 1): "123.***.***-45". Sem os 11 dígitos, tudo mascarado.</summary>
     public static string MaskCpf(string? cpf)
     {

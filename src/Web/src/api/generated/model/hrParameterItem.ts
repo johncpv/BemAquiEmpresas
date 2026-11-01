@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { HrChoiceOption } from './hrChoiceOption';
 import type { HrParameterKind } from './hrParameterKind';
 
 export interface HrParameterItem {
@@ -33,4 +34,6 @@ export interface HrParameterItem {
   code?: string | null;
   /** @nullable */
   codeName?: string | null;
+  /** @nullable */
+  options?: HrChoiceOption[] | null;
 }

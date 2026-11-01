@@ -18,7 +18,7 @@ namespace BemAqui.HR.Application;
 /// com o comentário como a tela do espelho mostra a quem tem <c>hr.view</c>.
 /// </summary>
 [PersonalDataCovers(typeof(Employee), typeof(EmployeeDependent), typeof(EmployeeHistoryEntry), typeof(TimeEntry), typeof(TimeAdjustment), typeof(Timesheet), typeof(TimesheetDayReview),
-    typeof(Payslip), typeof(PayslipLine), typeof(PayrollForecast), typeof(PayrollRunCharge), typeof(PayrollRun), typeof(JobPosition))]
+    typeof(Payslip), typeof(PayslipLine), typeof(PayrollForecast), typeof(PayrollRunCharge), typeof(PayrollRun), typeof(JobPosition), typeof(PayrollCalculationLog))]
 public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachments, TimeProvider clock) : IPersonalDataProvider
 {
     private const string Sensitive = "hr." + PositionService.SensitiveAction;
@@ -159,7 +159,8 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
         var list = await db.EmployeeDependents.AsNoTracking().Where(d => d.EmployeeId == id).OrderBy(d => d.Name).ToListAsync(ct);
         return new PersonalDataBlock("Dependentes (como o titular informou)", "hr.employee_dependents", list.Select(d => PersonalDataRecord.Of(d.CreatedAt,
             ("Nome", d.Name), ("Parentesco", Kinship(d.Kinship)), ("Nascimento", PersonalDataMask.Date(d.BirthDate)), ("CPF", PersonalDataMask.Cpf(d.Cpf)),
-            ("Dependente no IR", PersonalDataMask.YesNo(d.IrDependent)), ("Salário-família", PersonalDataMask.YesNo(d.FamilyAllowance)))).ToList());
+            ("Dependente no IR", PersonalDataMask.YesNo(d.IrDependent)), ("Salário-família", PersonalDataMask.YesNo(d.FamilyAllowance)),
+            ("Documentos do salário-família entregues", PersonalDataMask.YesNo(d.FamilyAllowanceDocsOk)))).ToList());
     }
 
     private async Task<IEnumerable<PersonalDataBlock>> TimeClockAsync(Guid id, bool sensitive, bool health, CancellationToken ct)
@@ -214,7 +215,7 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
         return new PersonalDataBlock("Holerites", "hr.payslips", slips.Select(s => PersonalDataRecord.Of(s.CreatedAt,
             ("Competência", PayrollRules.PeriodLabel(s.Period)), ("Tipo", PayrollRules.TypeLabel(s.Type)), ("Proventos", PersonalDataMask.Money(s.Gross)),
             ("Descontos", PersonalDataMask.Money(s.Deductions)), ("Líquido", PersonalDataMask.Money(s.Net)), ("FGTS do mês", PersonalDataMask.Money(s.FgtsAmount)),
-            ("Linhas", string.Join("; ", lines[s.Id].Select(l => $"{l.Code} {l.Description}: {PersonalDataMask.Money(l.Amount)}" + (l.Reference is null ? string.Empty : $" ({l.Reference})")))))).ToList());
+            ("Linhas", string.Join("; ", lines[s.Id].Select(l => $"{l.Code} {l.Description}: {PersonalDataMask.Money(l.Amount)}" + (l.Reference is null ? string.Empty : $" ({l.Reference})") + (l.Note is null ? string.Empty : $" — motivo: {l.Note}")))))).ToList());
     }
 
     /// <summary>
@@ -256,6 +257,7 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
     /// sem obrigação legal (fora do IR e do salário-família); a conta e a chave Pix, depois do último pagamento; o endereço e os dados
     /// trabalhistas e previdenciários (nome, CPF, documentos, textos livres do ponto e da linha do tempo, holerites em PDF, documentos e atestados
     /// anexados), 5 anos depois do desligamento. Sem desligamento, nada trabalhista nem bancário sai, e o cadastro continua em uso (sem a marca).
+    /// Na folha calculada (FLH-02a), o retrato das entradas, os avisos, a memória de cálculo e o motivo dos avulsos seguem a retenção trabalhista.
     /// O desligado fica marcado "Anonimizado" (só leitura). Folhas, holerites (valores) e marcações (data e hora) ficam: são documentos com
     /// movimento. Anexo não retido tem o conteúdo apagado do storage e a linha fica com o marcador.
     /// </summary>
@@ -293,6 +295,10 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
         var timesheets = await db.Timesheets.Where(t => t.EmployeeId == id).ToListAsync(ct);
         var timesheetIds = timesheets.Select(t => t.Id).ToList();
         var reviews = await db.TimesheetDayReviews.Where(r => r.EmployeeId == id).ToListAsync(ct);
+        // FLH-02a: o retrato das entradas (salário, dependentes, afastamentos com o tipo), os avisos e a memória dos encargos do holerite
+        // calculado, e a memória e o motivo dos avulsos nas linhas; os valores do holerite ficam (documento com movimento).
+        var calculated = await db.Payslips.Where(p => p.EmployeeId == id && (p.InputsSnapshot != null || p.CalculationIssues != null || p.EmployerChargesMemory != null)).ToListAsync(ct);
+        var calculatedLines = await db.PayslipLines.Where(l => payslips.Contains(l.PayslipId) && (l.Memory != null || l.Note != null)).ToListAsync(ct);
         var files = await attachments.CountAsync(EmployeeComplementService.DocumentOwner, [id], ct)
             + await attachments.CountAsync(TimeAdjustmentService.DocumentOwner, adjustmentIds, ct)
             + await attachments.CountAsync(PayslipDocumentRules.OwnerType, payslips, ct)
@@ -390,6 +396,22 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
                     db.Entry(r).Property(x => x.Comment).CurrentValue = marker;
                 }
 
+                // FLH-02a: o retrato, os avisos e a memória saem (o cálculo deixa de ser refeito para quem saiu); o motivo do avulso vira o
+                // marcador, como os outros textos livres do RH. Linhas, valores, bases e o FGTS do holerite ficam.
+                foreach (var p in calculated)
+                {
+                    p.InputsSnapshot = null;
+                    p.CalculationIssues = null;
+                    p.EmployerChargesMemory = null;
+                }
+
+                foreach (var l in calculatedLines)
+                {
+                    var entry = db.Entry(l);
+                    entry.Property(x => x.Memory).CurrentValue = null;
+                    entry.Property(x => x.Note).CurrentValue = l.Note is null ? null : marker;
+                }
+
                 await attachments.RemoveContentAsync(EmployeeComplementService.DocumentOwner, [id], marker, ct);
                 await attachments.RemoveContentAsync(TimeAdjustmentService.DocumentOwner, adjustmentIds, marker, ct);
                 await attachments.RemoveContentAsync(PayslipDocumentRules.OwnerType, payslips, marker, ct);
@@ -414,6 +436,7 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
             .Fields(labor, "Dependentes do IR e do salário-família", "hr.employee_dependents", withObligation.Count)
             .Fields(labor, "Motivos da linha do tempo e justificativas do ponto", "hr.employee_history, hr.time_adjustments", history.Count + adjustments.Count)
             .Fields(labor, "Motivos de saúde, afastamentos e comentários do espelho de ponto, e o acordo de banco de horas", "hr.timesheets, hr.timesheet_day_reviews, hr.employees", timesheetTexts)
+            .Fields(labor, "Retrato das entradas, memória de cálculo e motivos dos avulsos da folha calculada", "hr.payslips, hr.payslip_lines", calculated.Count + calculatedLines.Count)
             .Fields(labor, "Documentos, atestados, holerites e espelhos em PDF (o arquivo é apagado)", "shared.attachments", files)
             .Keep("Folhas e holerites: mantidos, com os valores", "hr.payslips", payslips.Count)
             .Keep("Espelhos de ponto: mantidos, com os totais do fechamento", "hr.timesheets", timesheets.Count)

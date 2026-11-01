@@ -126,6 +126,7 @@ O lado do BemAqui foi feito contra o contrato do guia de integração do Emissor
 | L-l `tipoOperacao` | `0` entrada, `1` saída | Documentado; conferir pela suíte `emissor-homolog` |
 | L-b, L-d, L-h, L-k | IBS/CBS, `transp`, A1 sem `admin`, cópia offline da chave-mestra | Antes da FIS-03a, FIS-02a e GOL-01a |
 | L-m NFS-e de Caçapava | Provider CONAM/e-Transparência no Emissor, o `GET /me` informando os municípios com a NFS-e habilitada (`nfseMunicipios`, IBGE), webhook `nfse.*` e o cancelamento de NFS-e | **Aberta.** A FIS-06 (01/11/2026) emite pelo Emissor só com o escopo `nfse:emitir` e o município da empresa em `nfseMunicipios`; até lá, o processo provisório: emitir no portal da prefeitura e "Registrar NFS-e emitida na prefeitura". Sem webhook de NFS-e, a conferência de pendentes usa `POST /nfse/{id}/consultar`; o cancelamento é registrado à mão (2FA). O `IndCodOpe` do IBS/CBS vai como `030101` (exemplo do contrato) até a contadora confirmar |
+| L-n XML do evento (FIS-03b) | `GET /api/v1/nfe/{chave}/eventos/{id}/xml` com o `procEventoNFe` (cancelamento e carta de correção), `application/xml` | **Não existe no guia de 26/10** (só `GET /nfe/{chave}/eventos`, a lista). Sem ela, o evento fica registrado pelo protocolo, sem o XML, e o e-mail ao cliente vai sem o XML do evento; a conferência tenta guardar de novo. Dono: PO |
 | Webhook de outro tenant | O corpo traz `tenantId` do Emissor: o BemAqui ignora aviso de outro tenant | Documentado |
 
 ## 8. Problemas comuns
@@ -168,3 +169,18 @@ A FIS-03a foi provada contra o fake do Emissor. A homologação real fica para o
 3. Confira em cada nota: situação **Autorizada**, XML e DANFE em **Documentos**, o e-mail `invoice-authorized` com os dois anexos em **Configurações → E-mails**, e que o estoque não mudou (a baixa foi no romaneio). Em homologação, o imposto **não** entra no custo do projeto nem na receita (só a nota de produção, a partir de `fiscal.project_tax_cutover_on`).
 4. Rejeição: emita com um dado que a SEFAZ recuse (ex.: IE inválida do destinatário) e confira o motivo, a ação sugerida, o aviso no sino e o número em `fiscal.number_gaps` (inutilização na FIS-03b). **Corrigir e emitir de novo** usa a tentativa seguinte (`nfe-{id}-2`).
 5. Enquanto a lacuna L-d (grupo de transporte e `infAdProd` no contrato do Emissor) não fechar, as informações de cada item (séries) e o transporte (transportadora, volumes e peso) vão nas informações complementares da nota. Fechada a lacuna, o adaptador passa a mandá-los nos campos próprios.
+
+## 11. Cancelamento, carta de correção e inutilização (FIS-03b)
+A FIS-03b foi provada contra o fake do Emissor. A homologação real fica para o tenant `demo`, com o escopo `nfe:eventos` na chave (L-f), o A1 de teste (§9) e uma nota autorizada da §10. Nada é cancelado nem inutilizado no `konebras` antes da GOL-01b.
+
+1. **Cancelamento** (Proprietário, com a verificação em duas etapas ativa): abra a nota autorizada há menos de 24 h, **Cancelar NF-e**, motivo de 15 a 255 caracteres, digite `CANCELAR` e confirme o código. Confira: "Cancelamento enviado" e depois **Cancelada** com o protocolo; o evento na aba **Eventos**; o DANFE com a marca CANCELADA em **Documentos** (ao lado do original); o e-mail `invoice-cancelled`; o aviso no sino dos membros do Proprietário; o estoque e o romaneio sem mudança. Em homologação não há reverso do imposto (a nota de teste nunca entrou no custo).
+2. **Pedir cancelamento** (usuário do Financeiro): o pedido chega ao Proprietário no sino e na pauta, com o prazo; cancele pelo link ou **Recusar pedido**.
+3. **Carta de correção** (Financeiro, `fiscal.edit`): texto de 15 a 1000 caracteres; confira o evento com a sequência e o protocolo e o e-mail `invoice-correction`.
+4. **Inutilização** (Proprietário): gere uma rejeição (§10 item 4), abra **Notas de saída → Emitidas → A inutilizar**, escolha a faixa, justificativa de 15 a 255, digite `INUTILIZAR` e confirme o código. Confira a faixa saindo da lista com o protocolo.
+5. Se o XML do evento não aparecer (lacuna L-n aberta), registre aqui e siga: o evento vale pelo protocolo.
+
+| Evento | Data | Nota / faixa | Protocolo | Resultado | Conferido por |
+|---|---|---|---|---|---|
+| Cancelamento | _(pendente: pré-condição externa)_ | | | | |
+| Carta de correção | _(pendente)_ | | | | |
+| Inutilização | _(pendente)_ | | | | |

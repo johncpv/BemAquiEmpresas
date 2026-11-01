@@ -38,7 +38,7 @@ public sealed partial class PayrollService
             .OrderBy(i => i.Kind).ThenBy(i => i.Code, StringComparer.Ordinal).ToList();
 
         var previousPeriod = run.Period.AddMonths(-1);
-        var previousRun = await db.PayrollRuns.AsNoTracking().Where(r => r.Type == run.Type && r.Period == previousPeriod).Select(r => (Guid?)r.Id).FirstOrDefaultAsync(cancellationToken);
+        var previousRun = await db.PayrollRuns.AsNoTracking().Where(r => r.Type == run.Type && r.Mode == run.Mode && r.RectifiesRunId == null && r.Period == previousPeriod).Select(r => (Guid?)r.Id).FirstOrDefaultAsync(cancellationToken);
         var previousNet = previousRun is { } prevId
             ? await db.Payslips.AsNoTracking().Where(p => p.PayrollRunId == prevId).ToDictionaryAsync(p => p.EmployeeId, p => p.Net, cancellationToken)
             : new Dictionary<Guid, decimal>();

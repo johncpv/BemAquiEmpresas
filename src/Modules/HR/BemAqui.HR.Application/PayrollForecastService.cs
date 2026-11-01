@@ -20,7 +20,7 @@ public sealed class PayrollForecastService(IHrDb db, IPayables payables, HrParam
         var months = await parameters.ForecastMonthsAsync(cancellationToken);
         // Consulta rastreada de propósito: a folha que está fechando nesta transação já aparece fechada.
         var allRuns = await db.PayrollRuns.ToListAsync(cancellationToken);
-        var last = allRuns.Where(r => r.Type == PayrollRunType.Monthly && r.Status != PayrollRunStatus.Draft).OrderByDescending(r => r.Period).FirstOrDefault();
+        var last = allRuns.Where(r => r.Type == PayrollRunType.Monthly && r.RectifiesRunId == null && r.Status != PayrollRunStatus.Draft).OrderByDescending(r => r.Period).FirstOrDefault();
         var desired = last is null ? [] : await DesiredAsync(last, allRuns, months, cancellationToken);
         var existing = await db.PayrollForecasts.Where(f => f.CancelledAt == null).ToListAsync(cancellationToken);
         var byKey = existing.GroupBy(f => f.Key).ToDictionary(g => g.Key, g => g.First());

@@ -14,7 +14,12 @@ import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { nfseLabel } from './nfse'
 import { NfseQueue } from './NfseQueue'
+import { NumberGapsPanel } from './NumberGapsPanel'
 import { INVOICE_DICAS, INVOICE_STATUS, INVOICE_STATUSES, INVOICE_TEXTS, invoiceLabel } from './outgoing-invoices'
+
+/** Filtros especiais da situação (FIS-03b): os números a inutilizar e as notas com pedido de cancelamento pendente. */
+const TO_INVALIDATE = 'a-inutilizar'
+const REQUESTED = 'cancelamento-pedido'
 
 const primary = 'inline-flex min-h-11 items-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground disabled:opacity-60'
 const secondary = 'inline-flex min-h-11 items-center rounded-md border border-border bg-card px-3 text-sm font-semibold'
@@ -94,16 +99,23 @@ function ToIssue() {
   )
 }
 
+type Situation = OutgoingInvoiceStatus | typeof TO_INVALIDATE | typeof REQUESTED
+
 function Issued() {
   const navigate = useNavigate()
-  const search = useSearch({ strict: false }) as { de?: string; ate?: string; situacao?: OutgoingInvoiceStatus; tipo?: InvoiceType; cliente?: string; projeto?: string; pagina?: number }
+  const search = useSearch({ strict: false }) as { de?: string; ate?: string; situacao?: Situation; tipo?: InvoiceType; cliente?: string; projeto?: string; pagina?: number }
   const page = Number(search.pagina) > 0 ? Number(search.pagina) : 1
-  const list = useListOutgoingInvoices({ from: search.de, to: search.ate, status: search.situacao, type: search.tipo, partyId: search.cliente, projectId: search.projeto, page, pageSize: 25 })
+  const gaps = search.situacao === TO_INVALIDATE
+  const requested = search.situacao === REQUESTED
+  const status = gaps || requested ? undefined : (search.situacao as OutgoingInvoiceStatus | undefined)
+  const list = useListOutgoingInvoices({ from: search.de, to: search.ate, status, type: search.tipo, partyId: search.cliente, projectId: search.projeto, cancellationRequested: requested || undefined, page, pageSize: 25 },
+    { query: { enabled: !gaps } })
   const go = (next: Partial<typeof search>) => void navigate({ to: '.', search: (prev: Record<string, unknown>) => ({ ...prev, pagina: undefined, ...next }) } as never)
   const input = 'min-h-11 rounded-md border border-input bg-card px-2 text-sm'
 
   let body
-  if (list.isPending) body = <Skeleton className="h-40" />
+  if (gaps) body = <NumberGapsPanel />
+  else if (list.isPending) body = <Skeleton className="h-40" />
   else if (list.isError) body = <ErrorState title="Não foi possível carregar as notas." onRetry={() => void list.refetch()} />
   else if (list.data.items.length === 0) {
     body = <EmptyState title={INVOICE_TEXTS.emptyIssued} action={<button type="button" className={secondary} onClick={() => go({ aba: 'a-emitir' } as never)}>Ver a fila A emitir</button>} />
@@ -154,9 +166,11 @@ function Issued() {
         <label className="flex flex-col text-sm"><span className="font-medium">Até</span><input type="date" value={search.ate ?? ''} onChange={(e) => go({ ate: e.target.value || undefined })} className={input} /></label>
         <label className="flex flex-col text-sm">
           <span className="font-medium">Situação</span>
-          <select value={search.situacao ?? ''} onChange={(e) => go({ situacao: (e.target.value || undefined) as OutgoingInvoiceStatus | undefined })} className={input}>
+          <select value={search.situacao ?? ''} onChange={(e) => go({ situacao: (e.target.value || undefined) as Situation | undefined })} className={input}>
             <option value="">Todas</option>
             {INVOICE_STATUSES.map((s) => <option key={s} value={s}>{INVOICE_STATUS[s].label}</option>)}
+            <option value={REQUESTED}>Cancelamento pedido</option>
+            <option value={TO_INVALIDATE}>A inutilizar</option>
           </select>
         </label>
         <label className="flex flex-col text-sm">

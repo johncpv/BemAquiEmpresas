@@ -110,7 +110,7 @@ Projeto existente do PO em `D:\GIT\EmissorFiscal`. **Decidido na ADR 0027:** ser
 ### 6.3 Outras
 - Consulta de CNPJ (API pública, ex.: BrasilAPI) com cache.
 - E-mail: SMTP/SES; registros de envio e falha.
-- Leitura de PDF de NF de entrada (FIS-05): extração de texto (PdfPig) num worker isolado (`network_mode: none`, memória limitada, sistema de arquivos só leitura, kill no tempo limite); **sem OCR no MVP** (PDF sem texto: "Digitar a nota"); parser da chave de 44 dígitos e campos do DANFE; conferência manual obrigatória antes de dar entrada.
+- Leitura de PDF de NF de entrada (FIS-05, ADR 0043): extração de texto (PdfPig 0.1.16, Apache 2.0) **só no worker `fiscal-pdf-reader`** (container próprio com `network_mode: none`, `read_only` com `tmpfs` só para o runtime, não-root, sem capabilities, 256 MB, falado pela API por socket Unix num volume só dos dois, morto no tempo limite de 30 s e reiniciado pelo Docker); a API nunca abre o PDF (só antivírus, tipo e a varredura de nomes de conteúdo ativo nos bytes); o worker confere de novo os objetos decodificados (JavaScript, anexo embutido, formulário com ação, criptografia); **sem OCR no MVP** (PDF sem texto: "Pedir o XML" ou "Digitar a nota"); chave de 44 dígitos com DV e campos da DANFE pela posição dos rótulos; o lido é só sugestão: conferência manual de todo campo antes de virar nota; sem Distribuição DF-e (contrato `IIncomingXmlDownloader` pronto).
 - WhatsApp (ADR 0041): API oficial da Meta por um parceiro (BSP), atrás do `IWhatsAppSender`, credenciais por tenant (`SecretKind.WhatsAppCredentials`) em Configurações → Integrações → WhatsApp (WPP-01).
 
 ## 7. Infra e deploy

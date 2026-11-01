@@ -117,6 +117,32 @@ internal static partial class HrEndpoints
             .RequirePermission("hr.view_sensitive").WithName("GetPayrollPaymentsSensitive").Produces<PayrollPayments>();
         runs.MapPost("/forecast/recalculate", async (PayrollClosingService service, CancellationToken ct) => (await service.RecalculateForecastAsync(ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("RecalculatePayrollForecast").Produces<PayrollForecastResult>();
+
+        // FLH-02a: folha calculada. Calcular com hr.create e recalcular com hr.edit (os dois com hr.view_sensitive no serviço); a situação e o
+        // histórico sem valor com hr.view; a diferença e os totais do histórico só por /sensitive; a retificação e os avulsos com hr.edit.
+        runs.MapGet("/suggested-period", async (PayrollCalculationService service, CancellationToken ct) => Results.Ok(await service.SuggestedPeriodAsync(ct)))
+            .RequirePermission("hr.create").WithName("GetPayrollSuggestedPeriod").Produces<PayrollSuggestedPeriod>();
+        runs.MapPost("/{id:guid}/calculate", async (Guid id, PayrollCalculationService service, CancellationToken ct) => (await service.CalculateAsync(id, ct)).ToHttpResult())
+            .RequirePermission("hr.create").WithName("CalculatePayrollRun").Produces<PayrollCalculationStart>();
+        runs.MapPost("/{id:guid}/recalculate", async (Guid id, PayrollCalculationService service, CancellationToken ct) => (await service.CalculateAsync(id, ct)).ToHttpResult())
+            .RequirePermission("hr.edit").WithName("RecalculatePayrollRun").Produces<PayrollCalculationStart>();
+        runs.MapGet("/{id:guid}/calculation", async (Guid id, PayrollCalculationService service, CancellationToken ct) => (await service.StatusAsync(id, ct)).ToHttpResult())
+            .RequirePermission("hr.view").WithName("GetPayrollCalculationStatus").Produces<PayrollCalculationStatus>();
+        runs.MapGet("/{id:guid}/calculations", async (Guid id, PayrollCalculationService service, CancellationToken ct) => (await service.HistoryAsync(id, ct)).ToHttpResult())
+            .RequirePermission("hr.view").WithName("ListPayrollCalculations").Produces<IReadOnlyList<PayrollCalculationEntry>>();
+        runs.MapGet("/{id:guid}/calculations/sensitive", async (Guid id, PayrollCalculationService service, CancellationToken ct) => (await service.HistoryTotalsAsync(id, ct)).ToHttpResult())
+            .RequirePermission("hr.view_sensitive").WithName("ListPayrollCalculationTotalsSensitive").Produces<IReadOnlyList<PayrollCalculationTotals>>();
+        runs.MapGet("/{id:guid}/difference/sensitive", async (Guid id, PayrollCalculationService service, CancellationToken ct) => (await service.DifferenceAsync(id, ct)).ToHttpResult())
+            .RequirePermission("hr.view_sensitive").WithName("GetPayrollDifferenceSensitive").Produces<PayrollRunDifference>();
+        runs.MapPost("/{id:guid}/rectify", async (Guid id, PayrollCalculationService service, CancellationToken ct) =>
+                (await service.RectifyAsync(id, ct)).ToHttpResult(saved => Results.Created("/api/v1/hr/payroll-runs/" + saved.Id, saved)))
+            .RequirePermission("hr.edit").RequireIdempotencyKey().WithName("RectifyPayrollRun").Produces<PayrollRunSummary>(StatusCodes.Status201Created);
+        runs.MapPost("/{id:guid}/payslips/{payslipId:guid}/manual-lines", async (Guid id, Guid payslipId, PayrollManualLineInput input, PayrollCalculationService service, CancellationToken ct) =>
+                (await service.AddManualLineAsync(id, payslipId, input, ct)).ToHttpResult())
+            .RequirePermission("hr.edit").WithName("AddPayslipManualLine").Produces<PayslipDetail>();
+        runs.MapDelete("/{id:guid}/payslips/{payslipId:guid}/manual-lines/{lineId:guid}", async (Guid id, Guid payslipId, Guid lineId, PayrollCalculationService service, CancellationToken ct) =>
+                (await service.RemoveManualLineAsync(id, payslipId, lineId, ct)).ToHttpResult())
+            .RequirePermission("hr.edit").WithName("RemovePayslipManualLine").Produces<PayslipDetail>();
     }
 
     /// <summary>

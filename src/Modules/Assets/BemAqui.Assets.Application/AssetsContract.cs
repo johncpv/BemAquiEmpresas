@@ -36,7 +36,9 @@ public sealed class AssetUsage(IAssetsDb db) : IPartyUsageProvider, IWorkCenterU
     private const string Usage = "bens do patrimônio";
 
     async Task<string?> IPartyUsageProvider.UsageAsync(Guid partyId, CancellationToken cancellationToken) =>
-        await db.Assets.AnyAsync(a => a.SupplierPartyId == partyId, cancellationToken) || await db.AssetMovements.AnyAsync(m => m.BuyerPartyId == partyId, cancellationToken) ? Usage : null;
+        await db.Assets.AnyAsync(a => a.SupplierPartyId == partyId, cancellationToken) || await db.AssetMovements.AnyAsync(m => m.BuyerPartyId == partyId, cancellationToken)
+        || await db.MaintenanceOrders.AnyAsync(o => o.SupplierPartyId == partyId, cancellationToken)
+        || await db.MaintenancePlans.AnyAsync(p => p.DefaultSupplierPartyId == partyId, cancellationToken) ? Usage : null;
 
     async Task<string?> IWorkCenterUsageProvider.UsageAsync(Guid workCenterId, CancellationToken cancellationToken) =>
         await db.Assets.AnyAsync(a => a.WorkCenterId == workCenterId, cancellationToken)
@@ -52,4 +54,13 @@ public sealed class AssetMovementUsage(IAssetsDb db) : IAssetUsageProvider
 {
     public async Task<string?> UsageAsync(Guid assetId, CancellationToken cancellationToken = default) =>
         await db.AssetMovements.AnyAsync(m => m.AssetId == assetId, cancellationToken) ? "movimentações" : null;
+}
+
+/// <summary>PAT-01a CA 12 com a PAT-03a: o bem com plano, leitura do horímetro ou OS de manutenção tem histórico e não é excluído.</summary>
+public sealed class MaintenanceUsage(IAssetsDb db) : IAssetUsageProvider
+{
+    public async Task<string?> UsageAsync(Guid assetId, CancellationToken cancellationToken = default) =>
+        await db.MaintenanceOrders.AnyAsync(o => o.AssetId == assetId, cancellationToken)
+        || await db.MaintenancePlans.AnyAsync(p => p.AssetId == assetId, cancellationToken)
+        || await db.AssetMeterReadings.AnyAsync(r => r.AssetId == assetId, cancellationToken) ? "manutenções" : null;
 }

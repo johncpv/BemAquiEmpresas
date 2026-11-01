@@ -13,6 +13,7 @@ to?: string;
 status?: OutgoingInvoiceStatus;
 partyId?: string;
 projectId?: string;
+cancellationRequested?: boolean;
 page?: number;
 pageSize?: number;
 type?: InvoiceType;

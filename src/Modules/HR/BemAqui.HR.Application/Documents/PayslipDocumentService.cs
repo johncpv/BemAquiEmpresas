@@ -265,7 +265,8 @@ public sealed class PayslipDocumentService(
         }
 
         var model = new PayslipPdfModel(info, new PayslipPdfEmployee(slip.Name, slip.Registration, PayslipDocumentRules.MaskCpf(slip.Cpf), slip.Position, slip.Cbo, slip.Admission),
-            run.Period, run.Type, lines, payslip.Gross, payslip.Deductions, payslip.Net, payslip.InssBase, payslip.FgtsBase, payslip.IrrfBase, payslip.FgtsAmount, draft);
+            run.Period, run.Type, lines, payslip.Gross, payslip.Deductions, payslip.Net, payslip.InssBase, payslip.FgtsBase, payslip.IrrfBase, payslip.FgtsAmount, draft || run.IsSimulation,
+            run.IsSimulation ? PayslipDocumentRules.SimulationWatermark : null);
         var bytes = await renderer.RenderAsync(new PayslipPdfDocument(model), ct);
         if (draft)
         {

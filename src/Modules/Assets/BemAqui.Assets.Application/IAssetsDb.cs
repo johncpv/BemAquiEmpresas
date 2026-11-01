@@ -17,6 +17,17 @@ public interface IAssetsDb
     /// <summary>Movimentos do bem (PAT-02): só inclusão; nunca alterados nem apagados.</summary>
     DbSet<AssetMovement> AssetMovements { get; }
 
+    /// <summary>Planos de manutenção preventiva (PAT-03a).</summary>
+    DbSet<MaintenancePlan> MaintenancePlans { get; }
+
+    /// <summary>Leituras do horímetro (PAT-03a): só inclusão.</summary>
+    DbSet<AssetMeterReading> AssetMeterReadings { get; }
+
+    /// <summary>OS de manutenção (PAT-03a, ADR 0038).</summary>
+    DbSet<MaintenanceOrder> MaintenanceOrders { get; }
+
+    DbSet<MaintenanceOrderChecklistItem> MaintenanceOrderChecklist { get; }
+
     /// <summary>Transação da criação: a etiqueta <c>PAT</c> volta se o bem não for salvo (sem lacuna).</summary>
     DatabaseFacade Database { get; }
 
