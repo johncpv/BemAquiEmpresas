@@ -14,6 +14,9 @@ public interface IAssetsDb
 
     DbSet<AssetParameter> AssetParameters { get; }
 
+    /// <summary>Movimentos do bem (PAT-02): só inclusão; nunca alterados nem apagados.</summary>
+    DbSet<AssetMovement> AssetMovements { get; }
+
     /// <summary>Transação da criação: a etiqueta <c>PAT</c> volta se o bem não for salvo (sem lacuna).</summary>
     DatabaseFacade Database { get; }
 

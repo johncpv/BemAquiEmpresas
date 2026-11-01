@@ -77,7 +77,7 @@ public class TaxCalculatorTests
         Amount(c, TaxCodes.IbsState).Should().Be(2m, "IBS estadual 0,1%");
         Amount(c, TaxCodes.IbsCity).Should().Be(0m);
         c.InvoiceTotal.Should().Be(2100m, "produtos + IPI; IBS/CBS não somam ao total em 2026");
-        c.ProjectCost.Should().Be(453m, "ICMS, PIS, COFINS e IBS/CBS entram no custo; IPI fora (CA 11)");
+        c.CostTax.Should().Be(453m, "ICMS, PIS, COFINS e IBS/CBS entram no custo; IPI fora (CA 11)");
         c.Items[0].Taxes.Single(t => t.Code == TaxCodes.Ipi).InProjectCost.Should().BeFalse();
         c.Blocks.Should().BeEmpty();
     }
@@ -88,7 +88,7 @@ public class TaxCalculatorTests
         var rule = Seed(TaxRuleSeeds.OwnSaleContributor);
         rule.CostTaxes = ["ICMS", "IPI"];
         var c = Calc(rule, new TaxRecipient("SP", RecipientType.Contributor, false), Item());
-        c.ProjectCost.Should().Be(460m, "ICMS 360 + IPI 100");
+        c.CostTax.Should().Be(460m, "ICMS 360 + IPI 100");
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class TaxCalculatorTests
         c.Totals.Should().NotContain(t => t.Code == TaxCodes.Icms || t.Code == TaxCodes.Ipi);
         c.Items[0].Cfop.Should().BeNull();
         c.InvoiceTotal.Should().Be(1000m);
-        c.ProjectCost.Should().Be(96.50m);
+        c.CostTax.Should().Be(96.50m);
     }
 
     [Fact]

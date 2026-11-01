@@ -12,17 +12,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// PRD-04, custo de mão de obra (Testcontainers): snapshot e evento no fechamento (CA 1), pausas fora (CA 2), custo-hora alterado
-/// depois (CA 3), correção (CA 4), sem custo-hora, aviso e recálculo (CA 5, 6), razão no Commercial idempotente e fora de ordem
-/// (CA 7, 8), Custos do projeto (CA 9), DTO sem custo e três camadas (CA 10, 14 a 16), recomposição (CA 12, 13) e histórico (CA 17).
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private const string CostGroup = "production:view,edit,approve;shopfloor:view,create;projects:view,view_cost";
+    protected const string CostGroup = "production:view,edit,approve;shopfloor:view,create;projects:view,view_cost";
 
     /// <summary>Ajusta o custo-hora do cargo do funcionário à mão (nulo = 0, "sem custo-hora").</summary>
-    private async Task<Guid> SetRateAsync(Guid employeeId, decimal? rate) => await WithDbAsync(async db =>
+    protected async Task<Guid> SetRateAsync(Guid employeeId, decimal? rate) => await WithDbAsync(async db =>
     {
         var positionId = await db.Employees.Where(e => e.Id == employeeId).Select(e => e.PositionId).SingleAsync();
         var position = await db.JobPositions.SingleAsync(p => p.Id == positionId);
@@ -33,11 +28,11 @@ public partial class FabricationTests
     });
 
     /// <summary>"Apontar por funcionário" de <paramref name="minutes"/> min (fim há 5 min), com as pausas dadas em (início relativo, duração).</summary>
-    private static Task<JsonElement> RecordAsync(HttpClient supervisor, Guid order, Guid employee, Guid step, int minutes, params (int From, int Minutes, string Reason)[] pauses) =>
+    protected static Task<JsonElement> RecordAsync(HttpClient supervisor, Guid order, Guid employee, Guid step, int minutes, params (int From, int Minutes, string Reason)[] pauses) =>
         RecordEndingAsync(supervisor, order, employee, step, minutes, 5, pauses);
 
     /// <summary>Como <see cref="RecordAsync"/>, terminando há <paramref name="endedMinutesAgo"/> min (apontamentos do mesmo funcionário sem sobreposição).</summary>
-    private static async Task<JsonElement> RecordEndingAsync(HttpClient supervisor, Guid order, Guid employee, Guid step, int minutes, int endedMinutesAgo, params (int From, int Minutes, string Reason)[] pauses)
+    protected static async Task<JsonElement> RecordEndingAsync(HttpClient supervisor, Guid order, Guid employee, Guid step, int minutes, int endedMinutesAgo, params (int From, int Minutes, string Reason)[] pauses)
     {
         var end = DateTimeOffset.UtcNow.AddMinutes(-endedMinutesAgo);
         var start = end.AddMinutes(-minutes - pauses.Sum(p => p.Minutes));
@@ -49,14 +44,14 @@ public partial class FabricationTests
         return await OkAsync(await supervisor.SendAsync(Post($"{Base}/{order}/labor-entries", body)));
     }
 
-    private async Task<T> PayloadAsync<T>(Guid entryId, int version) => await WithDbAsync(async db =>
+    protected async Task<T> PayloadAsync<T>(Guid entryId, int version) => await WithDbAsync(async db =>
     {
         var payloads = (await db.OutboxMessages.AsNoTracking().Where(m => m.Type == typeof(T).FullName).Select(m => m.Payload).ToListAsync()).Where(p => p.Contains(entryId.ToString(), StringComparison.Ordinal)).ToList();
         return payloads.Select(p => JsonSerializer.Deserialize<T>(p)!).Single(e => (int)typeof(T).GetProperty("Version")!.GetValue(e)! == version);
     });
 
     /// <summary>Liga ou desliga "Exibir custo-hora em cada apontamento" direto no banco (padrão desligado).</summary>
-    private async Task ShowEntryCostAsync(bool show) => await WithDbAsync(async db =>
+    protected async Task ShowEntryCostAsync(bool show) => await WithDbAsync(async db =>
     {
         var row = await db.ProductionParameters.FirstOrDefaultAsync(p => p.Key == ProductionParametersService.ShowLaborEntryCost);
         if (row is null)
@@ -71,9 +66,17 @@ public partial class FabricationTests
         return await db.SaveChangesAsync();
     });
 
-    private async Task<List<ProjectCost>> LedgerAsync(Guid entryId) =>
+    protected async Task<List<ProjectCost>> LedgerAsync(Guid entryId) =>
         await WithDbAsync(db => db.ProjectCosts.AsNoTracking().Where(c => c.SourceId == entryId).OrderBy(c => c.Seq).ToListAsync());
+}
 
+/// <summary>
+/// PRD-04, custo de mão de obra (Testcontainers): snapshot e evento no fechamento (CA 1), pausas fora (CA 2), custo-hora alterado
+/// depois (CA 3), correção (CA 4), sem custo-hora, aviso e recálculo (CA 5, 6), razão no Commercial idempotente e fora de ordem
+/// (CA 7, 8), Custos do projeto (CA 9), DTO sem custo e três camadas (CA 10, 14 a 16), recomposição (CA 12, 13) e histórico (CA 17).
+/// </summary>
+public partial class FabricationShopfloorTests
+{
     [Fact]
     public async Task Fechamento_grava_snapshot_custo_versao_e_o_evento_com_os_valores()
     {

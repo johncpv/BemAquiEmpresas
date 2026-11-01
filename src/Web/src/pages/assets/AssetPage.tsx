@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import { deleteAsset, getGetAssetQueryKey, getListAssetsQueryKey, updateAsset, useGetAsset } from '@/api/generated/bemaqui'
-import type { AssetDetail } from '@/api/generated/model'
+import type { AssetDetail, AssetReceivableDraft } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { FormError } from '@/components/form/form'
 import { RecordHistory } from '@/components/history/RecordHistory'
@@ -19,11 +19,14 @@ import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { AssetDocuments } from './AssetDocuments'
+import { AssetMovements, DisposeAssetDialog, MoveAssetDialog, Notice, ReactivateAssetDialog } from './AssetMovements'
 import { AssetLabelButtons } from './AssetLabelActions'
 import { printLabel } from './label-downloads'
 import { AssetForm } from './AssetForm'
 import { AssetPhoto } from './AssetPhoto'
-import { ASSET_DICAS, assetDraftErrors, assetInput, draftFromAsset, hasMaintenancePlan, STATUS_LABELS, STATUS_TONES, TYPE_LABELS } from './assets'
+import {
+  ASSET_DICAS, assetDraftErrors, assetInput, draftFromAsset, hasMaintenancePlan, receivableSearch, SALE_REVERTED_WARNING, STATUS_LABELS, STATUS_TONES, TERMINATED_REASON, TYPE_LABELS,
+} from './assets'
 
 const button = 'inline-flex min-h-11 items-center rounded-md border border-border px-3 py-2 text-sm font-semibold'
 
@@ -37,6 +40,11 @@ export function AssetPage() {
   const canEdit = useCan('assets.edit')
   const [created, setCreated] = useState(search.novo === '1')
   const [, setTab] = useUrlTab('dados')
+  // PAT-02: "Registrar movimentação" (também pelo atalho da leitura da etiqueta, ?acao=movimentar), "Baixar bem" e "Reativar bem".
+  const [dialog, setDialog] = useState<'move' | 'dispose' | 'reactivate' | null>(search.acao === 'movimentar' && canEdit ? 'move' : null)
+  const [suggestedReason, setSuggestedReason] = useState<string | undefined>()
+  const [sale, setSale] = useState<AssetReceivableDraft | null>(null)
+  const [saleReverted, setSaleReverted] = useState(false)
 
   if (query.isPending) return <div className="space-y-3"><Skeleton className="h-10 w-2/3" /><Skeleton className="h-96" /></div>
   if (query.isError || !query.data) {
@@ -58,6 +66,10 @@ export function AssetPage() {
     ...(hasMaintenancePlan(asset.type) ? [{ label: 'Criar plano de manutenção', onSelect: () => { setTab('manutencao'); setCreated(false) } }] : []),
     { label: 'Duplicar bem', onSelect: () => void navigate({ to: '/app/patrimonio/bens/novo', search: { de: asset.id } } as never) },
   ]
+  const disposed = asset.status === 'Disposed'
+  const openMove = (reason?: string) => { setSuggestedReason(reason); setDialog('move') }
+  // CA 7: depois da venda, "Lançar título a receber" abre o título manual da FIN-01 já preenchido (grava só com a confirmação de lá).
+  const saleSteps = sale ? [{ label: 'Lançar título a receber', onSelect: () => void navigate({ to: '/app/financeiro/receber/novo', search: receivableSearch(sale) } as never) }] : []
 
   return (
     <>
@@ -71,6 +83,13 @@ export function AssetPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <AssetLabelButtons id={asset.id} tag={asset.tag} />
+            {canEdit && !disposed ? (
+              <>
+                <button type="button" onClick={() => openMove()} className={button}>Registrar movimentação</button>
+                <button type="button" onClick={() => setDialog('dispose')} className={button + ' text-crit-ink'}>Baixar bem</button>
+              </>
+            ) : null}
+            {canEdit && disposed ? <button type="button" onClick={() => setDialog('reactivate')} className={button}>Reativar bem</button> : null}
             <Can perm="assets.create">
               <Link to="/app/patrimonio/bens/novo" search={{ de: asset.id } as never} className={button}>Duplicar bem</Link>
             </Can>
@@ -78,24 +97,41 @@ export function AssetPage() {
               <ConfirmDialog verb="Excluir" done="Bem excluído" destructive title={`Excluir ${asset.tag}?`}
                 description="Só dá para excluir bem sem movimentação, manutenção nem custo. O bem com histórico é baixado, e a etiqueta nunca é reaproveitada."
                 onConfirm={async () => { await deleteAsset(id); void client.invalidateQueries({ queryKey: getListAssetsQueryKey() }); await navigate({ to: '/app/patrimonio/bens' }) }}
+                recovery={canEdit && !disposed ? { verb: 'Baixar bem', onSelect: async () => setDialog('dispose'), when: (code) => code === 'asset_has_history' } : undefined}
                 trigger={<button type="button" className={button + ' text-crit-ink'}>Excluir</button>} />
             </Can>
           </div>
         </div>
       </PageHeading>
-      {asset.responsibleTerminated ? (
+      {asset.responsibleTerminated && !disposed ? (
         <div role="status" className="mb-4 flex flex-wrap items-center gap-2 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">
           <b>{asset.responsibleName} foi desligado.</b>
-          <button type="button" onClick={() => setTab('movimentacoes')} className="font-semibold underline">Troque o responsável</button>
+          {canEdit ? <button type="button" onClick={() => openMove(TERMINATED_REASON)} className="min-h-11 font-semibold underline">Troque o responsável</button> : null}
         </div>
       ) : null}
+      {disposed ? (
+        <div role="status" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">
+          <b>Bem baixado.</b> Não aparece nas listas nem nos seletores; o cadastro e o histórico ficam. {canEdit ? 'Se foi engano, use "Reativar bem".' : ''}
+        </div>
+      ) : null}
+      {saleReverted ? <Notice tone="warn" onClose={() => setSaleReverted(false)}>{SALE_REVERTED_WARNING}</Notice> : null}
+      {sale ? <div className="mb-4"><NextSteps title="Venda registrada" onDismiss={() => setSale(null)} steps={saleSteps} /></div> : null}
       {created ? <div className="mb-4"><NextSteps onDismiss={() => setCreated(false)} steps={steps} /></div> : null}
+      {canEdit ? (
+        <>
+          <MoveAssetDialog key={`${asset.version}-${suggestedReason ?? ''}`} asset={asset} open={dialog === 'move' && !disposed} onOpenChange={(o) => setDialog(o ? 'move' : null)} suggestedReason={suggestedReason} />
+          <DisposeAssetDialog asset={asset} open={dialog === 'dispose'} onOpenChange={(o) => setDialog(o ? 'dispose' : null)}
+            onDone={(r) => { setSaleReverted(false); setSale(r.receivable ?? null); setTab('movimentacoes') }} />
+          <ReactivateAssetDialog asset={asset} open={dialog === 'reactivate'} onOpenChange={(o) => setDialog(o ? 'reactivate' : null)}
+            onDone={(r) => { setSale(null); setSaleReverted(r.saleReverted ?? false) }} />
+        </>
+      ) : null}
       <UrlTabs label="Seções do bem" fallback="dados" tabs={[
-        { id: 'dados', label: 'Dados', keepMounted: true, content: <AssetData key={asset.version} asset={asset} canEdit={canEdit} onSaved={setAsset} onReload={() => query.refetch()} /> },
+        { id: 'dados', label: 'Dados', keepMounted: true, content: <AssetData key={asset.version} asset={asset} canEdit={canEdit} readOnly={disposed} onSaved={setAsset} onReload={() => query.refetch()} onMove={() => openMove()} /> },
         { id: 'documentos', label: 'Documentos', content: <AssetDocuments asset={asset} canEdit={canEdit} onPhotoChanged={() => { void query.refetch(); void client.invalidateQueries({ queryKey: getListAssetsQueryKey() }) }} /> },
         {
           id: 'movimentacoes', label: 'Movimentações',
-          content: <EmptyState title="Nenhuma movimentação registrada." description="A troca de local e de responsável e a baixa do bem ficam registradas aqui. Por enquanto, troque o local e o responsável na aba Dados." action={canEdit ? <button type="button" onClick={() => setTab('dados')} className={button}>Ir para Dados</button> : undefined} />,
+          content: <AssetMovements asset={asset} canEdit={canEdit} onMove={() => openMove()} />,
         },
         {
           id: 'manutencao', label: 'Manutenção',
@@ -107,8 +143,14 @@ export function AssetPage() {
   )
 }
 
-/** Aba Dados (CA 2, 4 e 9): o formulário do bem; com assets.view só, modo leitura. */
-function AssetData({ asset, canEdit, onSaved, onReload }: { asset: AssetDetail; canEdit: boolean; onSaved: (a: AssetDetail) => void; onReload: () => Promise<unknown> }) {
+/**
+ * Aba Dados (CA 2, 4 e 9): o formulário do bem; com assets.view só, modo leitura. PAT-02: local, responsável e centro mudam só por
+ * "Registrar movimentação"; o bem baixado fica em modo leitura.
+ */
+function AssetData({ asset, canEdit, readOnly, onSaved, onReload, onMove }: {
+  asset: AssetDetail; canEdit: boolean; readOnly: boolean; onSaved: (a: AssetDetail) => void; onReload: () => Promise<unknown>; onMove: () => void
+}) {
+  const editable = canEdit && !readOnly
   const [initial] = useState(() => draftFromAsset(asset))
   const [draft, setDraft] = useState(initial)
   const [submitted, setSubmitted] = useState(false)
@@ -124,7 +166,7 @@ function AssetData({ asset, canEdit, onSaved, onReload }: { asset: AssetDetail; 
     if (Object.keys(local).length || saving) return
     setSaving(true)
     try {
-      onSaved(await updateAsset(asset.id, assetInput(draft, canEdit, asset.version)))
+      onSaved(await updateAsset(asset.id, assetInput({ ...draft, siteId: asset.siteId ?? '', responsibleEmployeeId: asset.responsibleEmployeeId ?? '', workCenterId: asset.workCenterId ?? '' }, canEdit, asset.version)))
       notifySuccess('Bem salvo')
     } catch (e) {
       setServer(e instanceof ApiError ? { message: e.message, fields: e.fields, code: e.code } : { message: 'Não foi possível salvar o bem.', fields: {} })
@@ -138,11 +180,13 @@ function AssetData({ asset, canEdit, onSaved, onReload }: { asset: AssetDetail; 
       <div className="flex flex-wrap items-start gap-4">
         <AssetPhoto assetId={asset.id} photoId={asset.photoId} name={asset.name} size="large" />
         {!canEdit ? <p className="text-sm text-muted-foreground">Modo leitura: para alterar o bem, peça a permissão de editar o patrimônio.</p> : null}
+        {canEdit && readOnly ? <p className="text-sm text-muted-foreground">Modo leitura: o bem está baixado. Para alterar, reative o bem.</p> : null}
       </div>
       <FormError message={server && Object.keys(server.fields).length === 0 ? server.message : undefined} />
       {server?.code === 'concurrency_conflict' ? <button type="button" onClick={() => void onReload()} className={button}>Recarregar</button> : null}
-      <AssetForm draft={draft} onChange={(next) => { setServer(null); setDraft(next) }} errors={errors} canEditValue={canEdit} disabled={!canEdit} terminatedResponsible={terminated} />
-      {canEdit ? (
+      <AssetForm draft={draft} onChange={(next) => { setServer(null); setDraft(next) }} errors={errors} canEditValue={canEdit} disabled={!editable} terminatedResponsible={terminated}
+        placementLocked={{ onMove: editable ? onMove : undefined }} />
+      {editable ? (
         <div className="flex justify-end">
           <button type="submit" disabled={!dirty || saving} className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">{saving ? 'Salvando…' : 'Salvar bem'}</button>
         </div>

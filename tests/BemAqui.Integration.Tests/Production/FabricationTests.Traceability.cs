@@ -13,16 +13,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// EST-04, rastreabilidade (lê estoque, Testcontainers): dataset com 2 fornecedores, 3 lotes, 2 OS (uma concluída antes das séries), as
-/// séries e 1 romaneio; série → origem e lote → destino com a conciliação (CA 1 a 3); exportação CSV auditada e protegida (CA 4); abas do item,
-/// lote vencido e correção do lote, com saída bloqueada e idempotente (CA 5 e 6); desempenho com 200 OS (CA 7); três camadas e IDOR (CA 8);
-/// cliente PJ e PF com e sem <c>parties.view</c>, na tela e no CSV (CA 9); busca parametrizada (CA 10). Cada teste cria os próprios itens,
-/// lotes, OS e projetos e filtra pelos ids dele.
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private static async Task<Guid> SupplierAsync(HttpClient owner, string name)
+    protected static async Task<Guid> SupplierAsync(HttpClient owner, string name)
     {
         var created = await owner.PostAsJsonAsync("/api/v1/parties", new { kind = "PJ", document = (string?)null, legalName = name + " " + Guid.NewGuid().ToString("N")[..6], roles = new[] { "Supplier" } });
         created.StatusCode.Should().Be(HttpStatusCode.Created, await created.Content.ReadAsStringAsync());
@@ -30,7 +23,7 @@ public partial class FabricationTests
     }
 
     /// <summary>Material com lote recebido pelo motor (como o recebimento da CMP-04 faria, com o número REC), num local novo.</summary>
-    private async Task<(Guid Item, Guid Location, Guid Lot, string Receipt)> ReceivedLotAsync(Guid? item, string lotNumber, decimal quantity, Guid? supplier, DateOnly? expiry = null)
+    protected async Task<(Guid Item, Guid Location, Guid Lot, string Receipt)> ReceivedLotAsync(Guid? item, string lotNumber, decimal quantity, Guid? supplier, DateOnly? expiry = null)
     {
         var material = item ?? await MaterialAsync("Cabo rastreado " + Guid.NewGuid().ToString("N")[..4]);
         await WithDbAsync(db => db.Database.ExecuteSqlAsync($"UPDATE inventory.items SET tracks_lot = true WHERE id = {material}"));
@@ -50,7 +43,7 @@ public partial class FabricationTests
     }
 
     /// <summary>Baixa do lote para a OS pelo motor (como a requisição da EST-03 faria).</summary>
-    private async Task IssueToOrderAsync(Guid item, Guid location, Guid lot, Guid order, Guid project, decimal quantity)
+    protected async Task IssueToOrderAsync(Guid item, Guid location, Guid lot, Guid order, Guid project, decimal quantity)
     {
         await using var scope = await ScopeAsync();
         var db = scope.ServiceProvider.GetRequiredService<BemAqui.Host.Persistence.TenantDbContext>();
@@ -61,17 +54,17 @@ public partial class FabricationTests
         await transaction.CommitAsync();
     }
 
-    private async Task CustomerAsPersonAsync(Guid project, string name) => await WithDbAsync(db => db.Database.ExecuteSqlAsync(
+    protected async Task CustomerAsPersonAsync(Guid project, string name) => await WithDbAsync(db => db.Database.ExecuteSqlAsync(
         $"UPDATE parties.parties SET kind = 'PF', legal_name = {name}, document = {Random.Shared.NextInt64(10_000_000_000, 99_999_999_999).ToString(System.Globalization.CultureInfo.InvariantCulture)} WHERE id = (SELECT party_id FROM commercial.projects WHERE id = {project})"));
 
-    private async Task<string?> CustomerDocumentAsync(Guid project) => await WithDbAsync(db => db.Database
+    protected async Task<string?> CustomerDocumentAsync(Guid project) => await WithDbAsync(db => db.Database
         .SqlQuery<string?>($"SELECT document AS \"Value\" FROM parties.parties WHERE id = (SELECT party_id FROM commercial.projects WHERE id = {project})").SingleAsync());
 
     /// <summary>
     /// Dataset fixo: OS 1 com 2 séries consumiu o lote A (fornecedor 1) e o lote B (fornecedor 2) e foi expedida no romaneio; OS 2 consumiu o
     /// lote A e ficou "concluída antes das séries" (sem entrada nem série); o lote C (fornecedor 2) só tem entrada.
     /// </summary>
-    private async Task<TraceDataset> TraceDatasetAsync()
+    protected async Task<TraceDataset> TraceDatasetAsync()
     {
         var (owner, order, project, product) = await TracedOrderAsync();
         var supplier1 = await SupplierAsync(owner, "Aços Minas");
@@ -92,16 +85,30 @@ public partial class FabricationTests
         return new TraceDataset(owner, order, project, product, legacy, legacyProject, a, b, c, shipped.GetProperty("number").GetString()!);
     }
 
-    private async Task<(HttpClient Owner, Guid Order, Guid Project, Guid Product)> TracedOrderAsync()
+    protected async Task<(HttpClient Owner, Guid Order, Guid Project, Guid Product)> TracedOrderAsync()
     {
         var (owner, order, project, product, _) = await FinishedDatasetAsync(serial: true, quantity: 2m);
         return (owner, order, project, product);
     }
 
-    private static string SerialTraceUrl(Guid item, Guid serial) => $"{Inventory}/items/{item}/serials/{serial}/trace";
+    protected static string SerialTraceUrl(Guid item, Guid serial) => $"{Inventory}/items/{item}/serials/{serial}/trace";
 
-    private static string LotTraceUrl(Guid item, Guid lot) => $"{Inventory}/items/{item}/lots/{lot}/trace";
+    protected static string LotTraceUrl(Guid item, Guid lot) => $"{Inventory}/items/{item}/lots/{lot}/trace";
 
+    protected sealed record TraceDataset(
+        HttpClient Owner, Guid Order, Guid Project, Guid Product, Guid Legacy, Guid LegacyProject, (Guid Item, Guid Location, Guid Lot, string Receipt) A,
+        (Guid Item, Guid Location, Guid Lot, string Receipt) B, (Guid Item, Guid Location, Guid Lot, string Receipt) C, string Shipment);
+}
+
+/// <summary>
+/// EST-04, rastreabilidade (lê estoque, Testcontainers): dataset com 2 fornecedores, 3 lotes, 2 OS (uma concluída antes das séries), as
+/// séries e 1 romaneio; série → origem e lote → destino com a conciliação (CA 1 a 3); exportação CSV auditada e protegida (CA 4); abas do item,
+/// lote vencido e correção do lote, com saída bloqueada e idempotente (CA 5 e 6); desempenho com 200 OS (CA 7); três camadas e IDOR (CA 8);
+/// cliente PJ e PF com e sem <c>parties.view</c>, na tela e no CSV (CA 9); busca parametrizada (CA 10). Cada teste cria os próprios itens,
+/// lotes, OS e projetos e filtra pelos ids dele.
+/// </summary>
+public partial class FabricationDeliveryTests
+{
     [Fact]
     public async Task Serie_mostra_a_OS_o_projeto_o_cliente_o_romaneio_e_os_lotes_da_OS_inteira()
     {
@@ -354,8 +361,4 @@ public partial class FabricationTests
         (empty.GetProperty("serials").GetArrayLength(), empty.GetProperty("lots").GetArrayLength()).Should().Be((0, 0));
         (await d.Owner.GetAsync($"{Inventory}/traceability?q={new string('x', 61)}")).StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
-
-    private sealed record TraceDataset(
-        HttpClient Owner, Guid Order, Guid Project, Guid Product, Guid Legacy, Guid LegacyProject, (Guid Item, Guid Location, Guid Lot, string Receipt) A,
-        (Guid Item, Guid Location, Guid Lot, string Receipt) B, (Guid Item, Guid Location, Guid Lot, string Receipt) C, string Shipment);
 }

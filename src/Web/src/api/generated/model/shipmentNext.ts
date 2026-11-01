@@ -18,4 +18,10 @@ export interface ShipmentNext {
   installationOrderNumber: string | null;
   projectDelivered: boolean;
   projectStatus: string;
+  /** @nullable */
+  invoiceId?: string | null;
+  /** @nullable */
+  invoiceLabel?: string | null;
+  /** @nullable */
+  invoiceStatus?: string | null;
 }

@@ -26,5 +26,5 @@ export interface TaxItemResult {
   otherExpenses: number;
   taxes: TaxLine[];
   itemTotal: number;
-  projectCost: number;
+  costTax: number;
 }

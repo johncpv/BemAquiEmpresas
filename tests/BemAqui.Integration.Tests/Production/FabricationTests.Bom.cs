@@ -19,22 +19,17 @@ using Npgsql;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// ENG-02, BOM da OS: seed patch (CA 1), criar, copiar, salvar e descartar sem efeito em estoque (CA 2 a 7), liberar com o evento no
-/// outbox (CA 8, 9), OS fechada (CA 11), revisão e Superseded (CA 12, 13), bloqueio das etapas sem BOM (CA 16), filtro do deploy (CA 17),
-/// IBoms (CA 18), três camadas e IDOR (CA 19), concorrência (CA 20) e auditoria (CA 21). Cada teste usa as próprias OS.
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private const string Boms = "/api/v1/engineering/boms";
+    protected const string Boms = "/api/v1/engineering/boms";
 
     private WebApplicationFactory<Program>? _bomFactory;
 
     /// <summary>Mesma composição da classe com o bloqueio real da ENG-02 (as outras partes desta classe usam o NoBomGate).</summary>
-    private WebApplicationFactory<Program> BomFactory => _bomFactory ??= Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddScoped<IBomGate, EngineeringBomGate>()));
+    protected WebApplicationFactory<Program> BomFactory => _bomFactory ??= Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddScoped<IBomGate, EngineeringBomGate>()));
 
     /// <summary>O mesmo usuário (token) num cliente do <see cref="BomFactory"/>.</summary>
-    private HttpClient WithBomGate(HttpClient client)
+    protected HttpClient WithBomGate(HttpClient client)
     {
         var gated = BomFactory.CreateClient();
         gated.DefaultRequestHeaders.Host = Host;
@@ -46,7 +41,7 @@ public partial class FabricationTests
     /// OS de fabricação com o roteiro C (outro centro) → M → Q e a quantidade dada; sem <paramref name="withProduct"/>, o item do orçamento
     /// não tem item de estoque (CA 4).
     /// </summary>
-    private async Task<(HttpClient Owner, Guid Order, Guid? Product, Guid MyCenter)> BomOrderAsync(decimal quantity = 2m, bool withProduct = true, Guid? product = null)
+    protected async Task<(HttpClient Owner, Guid Order, Guid? Product, Guid MyCenter)> BomOrderAsync(decimal quantity = 2m, bool withProduct = true, Guid? product = null)
     {
         var (_, owner) = await ActorAsync(Group.OwnerSeedKey);
         var mine = await CenterAsync("Montagem", "Linha 1");
@@ -58,7 +53,7 @@ public partial class FabricationTests
     }
 
     /// <summary>Material ativo direto no estoque, na unidade de estoque dada (o cadastro tem os próprios testes).</summary>
-    private async Task<Guid> MaterialAsync(string name, ItemType type = ItemType.RawMaterial, string unit = "KG", bool active = true)
+    protected async Task<Guid> MaterialAsync(string name, ItemType type = ItemType.RawMaterial, string unit = "KG", bool active = true)
     {
         await using var scope = await ScopeAsync();
         var db = scope.ServiceProvider.GetRequiredService<IInventoryDb>();
@@ -70,7 +65,7 @@ public partial class FabricationTests
     }
 
     /// <summary>Conversão do item: 1 {de} = {fator} {para} (CAD-02b).</summary>
-    private async Task ConversionAsync(Guid itemId, string from, string to, decimal factor)
+    protected async Task ConversionAsync(Guid itemId, string from, string to, decimal factor)
     {
         await using var scope = await ScopeAsync();
         var db = scope.ServiceProvider.GetRequiredService<IInventoryDb>();
@@ -79,26 +74,26 @@ public partial class FabricationTests
         await db.SaveChangesAsync();
     }
 
-    private async Task<Guid> UnitIdAsync(string code) => await WithDbAsync(db => db.Units.Where(u => u.Code == code).Select(u => u.Id).SingleAsync());
+    protected async Task<Guid> UnitIdAsync(string code) => await WithDbAsync(db => db.Units.Where(u => u.Code == code).Select(u => u.Id).SingleAsync());
 
-    private static async Task<JsonElement> CreatedBomAsync(HttpClient client, Guid order, Guid? copyFrom = null)
+    protected static async Task<JsonElement> CreatedBomAsync(HttpClient client, Guid order, Guid? copyFrom = null)
     {
         var created = await client.SendAsync(Post(Boms, new { productionOrderId = order, copyFromBomId = copyFrom }));
         created.StatusCode.Should().Be(HttpStatusCode.Created, await created.Content.ReadAsStringAsync());
         return await JsonAsync(created);
     }
 
-    private static object BomLine(Guid item, decimal quantity, decimal scrap = 0m, Guid? unit = null, Guid? id = null, string? notes = null) =>
+    protected static object BomLine(Guid item, decimal quantity, decimal scrap = 0m, Guid? unit = null, Guid? id = null, string? notes = null) =>
         new { id, itemId = item, quantity, unitId = unit, scrapPct = scrap, notes };
 
-    private static async Task<HttpResponseMessage> SaveBomAsync(HttpClient client, JsonElement bom, params object[] lines) =>
+    protected static async Task<HttpResponseMessage> SaveBomAsync(HttpClient client, JsonElement bom, params object[] lines) =>
         await client.PutAsJsonAsync($"{Boms}/{bom.GetProperty("id").GetGuid()}", new { lines, version = Version(bom) });
 
-    private static async Task<JsonElement> ReleaseAsync(HttpClient client, JsonElement bom) =>
+    protected static async Task<JsonElement> ReleaseAsync(HttpClient client, JsonElement bom) =>
         await OkAsync(await client.PostAsJsonAsync($"{Boms}/{bom.GetProperty("id").GetGuid()}/release", new { version = Version(bom) }));
 
     /// <summary>BOM liberada com as linhas dadas (cria, salva e libera).</summary>
-    private static async Task<JsonElement> ReleasedBomAsync(HttpClient client, Guid order, params object[] lines)
+    protected static async Task<JsonElement> ReleasedBomAsync(HttpClient client, Guid order, params object[] lines)
     {
         var bom = await CreatedBomAsync(client, order);
         if (lines.Length > 0)
@@ -109,8 +104,51 @@ public partial class FabricationTests
         return await ReleaseAsync(client, bom);
     }
 
-    private async Task<List<Bom>> BomsOfAsync(Guid order) => await WithDbAsync(db => db.Boms.AsNoTracking().Where(b => b.ProductionOrderId == order).OrderBy(b => b.Revision).ToListAsync());
+    protected async Task<List<Bom>> BomsOfAsync(Guid order) => await WithDbAsync(db => db.Boms.AsNoTracking().Where(b => b.ProductionOrderId == order).OrderBy(b => b.Revision).ToListAsync());
 
+    /// <summary>Entrada de estoque pelo motor (EST-01a), numa transação própria, como faria o recebimento.</summary>
+    protected async Task ReceiveStockAsync(Guid item, decimal quantity, decimal unitCost)
+    {
+        await using var scope = await ScopeAsync();
+        var db = scope.ServiceProvider.GetRequiredService<BemAqui.Host.Persistence.TenantDbContext>();
+        var location = new BemAqui.Inventory.Domain.Location { Code = Unique("L"), Name = "Local " + Guid.NewGuid().ToString("N")[..4], CreatedAt = DateTimeOffset.UtcNow };
+        db.Locations.Add(location);
+        await db.SaveChangesAsync();
+        await using var transaction = await db.Database.BeginTransactionAsync();
+        var posted = await scope.ServiceProvider.GetRequiredService<IStockMovements>()
+            .PostAsync(new StockPosting(StockMovementType.Receipt, item, location.Id, null, quantity, unitCost, StockSources.GoodsReceipt, Guid.NewGuid()));
+        posted.IsSuccess.Should().BeTrue(posted.Error?.Message);
+        await transaction.CommitAsync();
+    }
+
+    /// <summary>Processa o outbox do tenant até não sobrar mensagem pendente.</summary>
+    protected async Task DrainOutboxAsync()
+    {
+        var info = (await Factory.Services.GetRequiredService<BemAqui.BuildingBlocks.Tenancy.ITenantDirectory>().FindAsync(tenancy.TenantA.Id))!;
+        for (var round = 0; round < 40; round++)
+        {
+            await using (var scope = await ScopeAsync())
+            {
+                await scope.ServiceProvider.GetRequiredService<BemAqui.BuildingBlocks.Messaging.OutboxProcessor>().ProcessBatchAsync(info);
+            }
+
+            if (await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.ProcessedAt == null && m.DeadLetteredAt == null && m.NextAttemptAt <= DateTimeOffset.UtcNow.AddSeconds(1))) == 0)
+            {
+                return;
+            }
+
+            await Task.Delay(250);
+        }
+    }
+}
+
+/// <summary>
+/// ENG-02, BOM da OS: seed patch (CA 1), criar, copiar, salvar e descartar sem efeito em estoque (CA 2 a 7), liberar com o evento no
+/// outbox (CA 8, 9), OS fechada (CA 11), revisão e Superseded (CA 12, 13), bloqueio das etapas sem BOM (CA 16), filtro do deploy (CA 17),
+/// IBoms (CA 18), três camadas e IDOR (CA 19), concorrência (CA 20) e auditoria (CA 21). Cada teste usa as próprias OS.
+/// </summary>
+public partial class FabricationOrdersTests
+{
     [Fact]
     public async Task Seed_patch_engineering_release_bom_uma_vez_com_perm_version_e_2FA()
     {
@@ -188,21 +226,6 @@ public partial class FabricationTests
         (await engineer.SendAsync(Post(Boms, new { productionOrderId = order, copyFromBomId = (Guid?)null }))).StatusCode.Should().Be(HttpStatusCode.Conflict, "um rascunho por vez");
     }
 
-    /// <summary>Entrada de estoque pelo motor (EST-01a), numa transação própria, como faria o recebimento.</summary>
-    private async Task ReceiveStockAsync(Guid item, decimal quantity, decimal unitCost)
-    {
-        await using var scope = await ScopeAsync();
-        var db = scope.ServiceProvider.GetRequiredService<BemAqui.Host.Persistence.TenantDbContext>();
-        var location = new BemAqui.Inventory.Domain.Location { Code = Unique("L"), Name = "Local " + Guid.NewGuid().ToString("N")[..4], CreatedAt = DateTimeOffset.UtcNow };
-        db.Locations.Add(location);
-        await db.SaveChangesAsync();
-        await using var transaction = await db.Database.BeginTransactionAsync();
-        var posted = await scope.ServiceProvider.GetRequiredService<IStockMovements>()
-            .PostAsync(new StockPosting(StockMovementType.Receipt, item, location.Id, null, quantity, unitCost, StockSources.GoodsReceipt, Guid.NewGuid()));
-        posted.IsSuccess.Should().BeTrue(posted.Error?.Message);
-        await transaction.CommitAsync();
-    }
-
     [Fact]
     public async Task Saldo_e_custo_previsto_vem_do_motor_de_estoque_e_a_previa_diz_quanto_vai_reservar()
     {
@@ -262,26 +285,6 @@ public partial class FabricationTests
 
         var notices = await WithDbAsync(db => db.Notifications.AsNoTracking().Where(n => n.UserId == engineerId && n.Type == BemAqui.Inventory.Application.ReservationConsumers.NoticeType).ToListAsync());
         notices.Should().Contain(n => n.Title == "Material reservado: 1 item, 1 em falta." && n.Link.Contains(order.ToString(), StringComparison.Ordinal));
-    }
-
-    /// <summary>Processa o outbox do tenant até não sobrar mensagem pendente.</summary>
-    private async Task DrainOutboxAsync()
-    {
-        var info = (await Factory.Services.GetRequiredService<BemAqui.BuildingBlocks.Tenancy.ITenantDirectory>().FindAsync(tenancy.TenantA.Id))!;
-        for (var round = 0; round < 40; round++)
-        {
-            await using (var scope = await ScopeAsync())
-            {
-                await scope.ServiceProvider.GetRequiredService<BemAqui.BuildingBlocks.Messaging.OutboxProcessor>().ProcessBatchAsync(info);
-            }
-
-            if (await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.ProcessedAt == null && m.DeadLetteredAt == null && m.NextAttemptAt <= DateTimeOffset.UtcNow.AddSeconds(1))) == 0)
-            {
-                return;
-            }
-
-            await Task.Delay(250);
-        }
     }
 
     [Fact]

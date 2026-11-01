@@ -13,16 +13,20 @@ import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { LabelBatchReady, PrintLabelsDialog } from './AssetLabelActions'
 import { AssetPhoto } from './AssetPhoto'
-import { ASSET_DICAS, isAssetStatus, isAssetType, STATUS_LABELS, STATUS_OPTIONS, STATUS_TONES, TYPE_LABELS, TYPE_OPTIONS } from './assets'
+import { ASSET_DICAS, isAssetStatus, isAssetType, STATUS_LABELS, STATUS_OPTIONS, STATUS_TONES, TERMINATED_REASON, TYPE_LABELS, TYPE_OPTIONS } from './assets'
+import { TransferAssetsDialog } from './AssetTransferDialog'
 import { AssetsTabs } from './AssetsTabs'
 
 /**
  * Patrimônio → Bens (PAT-01a CA 9): busca por etiqueta, nome e série; filtros por tipo, local, centro, responsável e situação na URL.
  * PAT-01b CA 3: seleção e "Imprimir etiquetas" (os selecionados ou todos do filtro); `?lote=` (link do sino) baixa o PDF pronto.
+ * PAT-02: o baixado só aparece no filtro "Baixados"; "Responsável desligado" (CA 5) e "Transferir selecionados" (CA 4), com o motivo sugerido
+ * no filtro do desligado.
  */
 export function AssetsPage() {
   const [search] = useTableSearch()
-  const { tipo, local, centro, responsavel, situacao } = useTableFilters(['tipo', 'local', 'centro', 'responsavel', 'situacao'])
+  const { tipo, local, centro, responsavel, situacao, desligado } = useTableFilters(['tipo', 'local', 'centro', 'responsavel', 'situacao', 'desligado'])
+  const terminated = desligado === 'sim'
   const canEdit = useCan('assets.edit')
   const [selected, setSelected] = useState<string[]>([])
   const lote = (useSearch({ strict: false }) as Record<string, unknown>).lote
@@ -31,7 +35,7 @@ export function AssetsPage() {
   const responsibles = useListAssetResponsibleChoices()
   const query = useListAssets({
     q: search.q, type: isAssetType(tipo) ? tipo : undefined, siteId: local || undefined, workCenterId: centro || undefined, responsibleEmployeeId: responsavel || undefined,
-    status: isAssetStatus(situacao) ? situacao : undefined, page: search.page, pageSize: search.pageSize, sort: search.sort,
+    status: isAssetStatus(situacao) ? situacao : undefined, responsibleTerminated: terminated || undefined, page: search.page, pageSize: search.pageSize, sort: search.sort,
   })
 
   const columns: ColumnDef<AssetListItem>[] = [
@@ -65,6 +69,7 @@ export function AssetsPage() {
           <div className="flex flex-wrap gap-2">
             <PrintLabelsDialog selected={selected} filteredTotal={query.data?.total ?? 0} onDone={() => setSelected([])}
               filter={{ q: search.q ?? null, type: isAssetType(tipo) ? tipo : null, siteId: local || null, workCenterId: centro || null, responsibleEmployeeId: responsavel || null, status: isAssetStatus(situacao) ? situacao : null }} />
+            <Can perm="assets.edit"><TransferAssetsDialog selected={selected} suggestedReason={terminated ? TERMINATED_REASON : undefined} onDone={() => setSelected([])} /></Can>
             {newLink}
           </div>
         </div>
@@ -84,7 +89,8 @@ export function AssetsPage() {
           { key: 'local', label: 'Local', options: (sites.data ?? []).map((s) => ({ value: s.id, label: s.name })) },
           { key: 'centro', label: 'Centro', options: (centers.data ?? []).map((c) => ({ value: c.id, label: c.name })) },
           { key: 'responsavel', label: 'Responsável', options: (responsibles.data ?? []).map((r) => ({ value: r.id, label: r.name })) },
-          { key: 'situacao', label: 'Situação', options: STATUS_OPTIONS },
+          { key: 'situacao', label: 'Situação', options: STATUS_OPTIONS.map((o) => (o.value === 'Disposed' ? { ...o, label: 'Baixados' } : o)) },
+          { key: 'desligado', label: 'Responsável desligado', options: [{ value: 'sim', label: 'Só os do desligado' }] },
         ]}
         empty={{
           title: 'Cadastre as máquinas e ferramentas para acompanhar manutenção e custo.',

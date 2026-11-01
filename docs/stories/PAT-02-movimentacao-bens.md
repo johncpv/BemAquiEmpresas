@@ -5,7 +5,7 @@
 | ID | PAT-02 |
 | Título | Transferência de local, de responsável e de centro de trabalho com data, motivo e histórico imutável; transferência em lote; baixa do bem (venda, descarte, perda, doação) com motivo, data e valor, que tira o bem das listas ativas sem apagar nada; na venda, o próximo passo "Lançar título a receber" já preenchido |
 | Tamanho | P |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-PAT-3 (movimentação, transferência de local/responsável, com histórico) · R-PRP-1 · R-PRP-2 · R-PRP-6 (D) · R-SEC-5 |
 | Dependências | PAT-01a (bens), PAT-01b (atalho pela leitura), FIN-01 (título a receber manual) |
 | Bloqueia | — |
@@ -70,16 +70,16 @@ Decisões da revisão aplicadas: §4.4 padrão 7 (CA 4, 6).
 **Pré-condição externa:** nenhuma.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva).
-- [ ] Telas com estados; ajuda atualizada; teste de cobertura passando.
-- [ ] Próximo passo da venda aplicado.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade e integração (Testcontainers) e Vitest passando. E2E não escrito nem rodado nesta story (regra do PO de 31/10: fica para o fechamento da feature Patrimônio).
+- [x] Migration criada (não destrutiva: `AssetMovementsPat02`, só a tabela nova).
+- [x] Telas com estados; ajuda atualizada; teste de cobertura passando.
+- [x] Próximo passo da venda aplicado.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `AssetMovement` e as transições do bem; endpoints `/api/v1/assets/assets/{id}/movements`, `/dispose`, `/reactivate`, `/assets/transfer`; próximo passo com o link pré-preenchido da FIN-01.
+- [x] `AssetMovement` e as transições do bem; endpoints `/api/v1/assets/assets/{id}/movements`, `/dispose`, `/reactivate`, `/assets/transfer`; próximo passo com o link pré-preenchido da FIN-01.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa.
@@ -113,3 +113,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (tabela 3.3 pontos 48–49, ADR 0038, §4.4 padrão 7); nova ordem (Marco 6.4, ordem 13); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 01/11/2026 | 1.0 | Implementada: `assets.asset_movements` (migration `AssetMovementsPat02`, só a tabela nova), `AssetMovement` imutável (fábricas `Transfer`/`Disposal`/`Reactivation`, sem setter nem construtor público, sem rota de edição ou exclusão, conferido em `AssetMovementRulesTests`), `AssetMovementService` e as rotas `GET/POST /api/v1/assets/assets/{id}/movements`, `GET .../movements/{movementId}` (pela rota do bem, IDOR), `POST .../dispose`, `POST .../reactivate`, `POST /api/v1/assets/assets/transfer/preview` e `/transfer`, `GET /api/v1/assets/choices/buyers`; lista com `responsibleTerminated` e a padrão sem os baixados; evento `AssetDisposed { assetId, disposedOn }` no outbox (sem consumidor); `IAssets.ByWorkCenterAsync` e a sugestão do centro sem os baixados; `AssetMovementUsage` (bem com movimento não é excluído); usos de terceiro, funcionário e centro também pelos movimentos; `AssetsPersonalDataProvider` (o motivo é `[PersonalData]`). Front: aba Movimentações em cartões, "Registrar movimentação", "Baixar bem" (`destructive`), "Reativar bem", "Transferir selecionados" com o impacto em lista pela prévia, filtros "Responsável desligado" e "Baixados", `NextSteps` "Lançar título a receber" que abre o título a receber manual da FIN-01 pré-preenchido pela URL (`cliente`, `clienteNome`, `valor`, `emissao`, `descricao`), atalho da leitura da etiqueta abrindo o diálogo (`?acao=movimentar`); ajuda atualizada. **Recomendações aceitas (PO 24/10), pela opção mais conservadora:** (1) na aba Dados, local, responsável e centro só mudam por "Registrar movimentação" (PUT com outro valor: 422 `asset_placement_by_movement`), para o histórico ficar completo; o bem baixado não é editado (409 `asset_disposed`) nem movimentado até ser reativado; (2) na movimentação individual o destino é o estado completo (o formulário vem com o atual; vazio tira o responsável), no lote o vazio é "Manter o de cada bem"; (3) a data vai até hoje e não pode ser anterior ao último movimento do bem; (4) no lote, além do baixado, o bem já no destino ou com movimento posterior à data também impede (com o motivo), até 500 bens; a prévia do servidor monta o impacto em lista; (5) o bem em manutenção pode ser baixado até a PAT-03a trazer a recusa por OS aberta; valor e comprador só na venda (fora dela são ignorados); o comprador é um cliente ativo (`IParties`, papel Cliente), para casar com o título a receber; "Outro" exige a observação; o valor da venda segue a regra do valor de aquisição (fora do JSON e do histórico sem `assets.edit`); (6) a reativação avisa "Cancele o título da venda no Financeiro, se for o caso." sempre que a baixa desfeita foi uma venda (o Assets não lê o Financeiro, ADR 0006); (7) CA 10: usuário, data e IP de cada movimento e da mudança no bem ficam na auditoria (`AuditEntry`, conferido por teste com `X-Forwarded-For`); a aba mostra quem registrou e quando, e o IP não é exibido na tela (o histórico comum da FND-09c não expõe IP; é dado pessoal de quem registrou). E2E não escrito (regra do PO de 31/10). Pendência externa: nenhuma. Status `Done` | Dex (dev) |

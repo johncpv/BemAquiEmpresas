@@ -10,17 +10,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// PNL-01b (ADR 0030 §5): as visões do Painel da TV com o filtro de linha do token (CA 1 a 6), o cartão de uma OS com o 404 único (CA 14),
-/// o DTO sem cliente, produto nem dinheiro (CA 13), a prévia do backoffice com o escopo da tela e sem sessão de quiosque (CA 10) e o
-/// desempenho com 300 OS e 20 TVs (CA 12). A sessão de quiosque é gravada direto no banco (a troca do token tem os próprios testes).
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private const string Kiosk = "/api/v1/kiosk";
+    protected const string Kiosk = "/api/v1/kiosk";
 
     /// <summary>Dois centros com linhas próprias deste teste: etapa A na primeira linha, B na segunda; OS do mesmo projeto.</summary>
-    private async Task<(HttpClient Owner, Guid Project, List<Guid> Orders, string LineA, string LineB, Guid CenterA)> TvDatasetAsync(int orders = 3)
+    protected async Task<(HttpClient Owner, Guid Project, List<Guid> Orders, string LineA, string LineB, Guid CenterA)> TvDatasetAsync(int orders = 3)
     {
         var (_, owner) = await ActorAsync(Group.OwnerSeedKey);
         var lineA = "TV A " + Guid.NewGuid().ToString("N")[..6];
@@ -40,7 +35,7 @@ public partial class FabricationTests
     }
 
     /// <summary>Tela de TV pareada, direto no banco: devolve o id da tela e o cookie da sessão (escopo: linha e visões).</summary>
-    private async Task<(Guid Screen, string Cookie)> TvSessionAsync(string? line, params string[] views)
+    protected async Task<(Guid Screen, string Cookie)> TvSessionAsync(string? line, params string[] views)
     {
         var cookie = OpaqueToken.New();
         var screenId = await WithDbAsync(async db =>
@@ -58,7 +53,7 @@ public partial class FabricationTests
     }
 
     /// <summary>Request da TV: só o cookie da sessão de quiosque, sem usuário.</summary>
-    private async Task<HttpResponseMessage> TvGetAsync(string cookie, string path)
+    protected async Task<HttpResponseMessage> TvGetAsync(string cookie, string path)
     {
         using var client = Factory.CreateClient();
         client.DefaultRequestHeaders.Host = Host;
@@ -67,7 +62,7 @@ public partial class FabricationTests
         return await client.SendAsync(request);
     }
 
-    private async Task<(JsonElement Body, string Raw)> TvOkAsync(string cookie, string path)
+    protected async Task<(JsonElement Body, string Raw)> TvOkAsync(string cookie, string path)
     {
         var response = await TvGetAsync(cookie, path);
         var raw = await response.Content.ReadAsStringAsync();
@@ -75,10 +70,10 @@ public partial class FabricationTests
         return (JsonDocument.Parse(raw).RootElement.Clone(), raw);
     }
 
-    private static JsonElement TvCard(JsonElement board, Guid orderId) =>
+    protected static JsonElement TvCard(JsonElement board, Guid orderId) =>
         board.GetProperty("cards").EnumerateArray().Single(c => c.GetProperty("id").GetGuid() == orderId);
 
-    private async Task<Guid> EmployeeAsync(string name) => await WithDbAsync(async db =>
+    protected async Task<Guid> EmployeeAsync(string name) => await WithDbAsync(async db =>
     {
         var position = new JobPosition { Name = "Montador " + Guid.NewGuid().ToString("N")[..6], MonthlyHours = 220m, CreatedAt = DateTimeOffset.UtcNow };
         db.JobPositions.Add(position);
@@ -93,7 +88,7 @@ public partial class FabricationTests
     });
 
     /// <summary>Etapa em andamento com apontamentos abertos (o primeiro funcionário entrou antes) e, se pedido, todos pausados.</summary>
-    private async Task StartStepAsync(Guid orderId, int sequence, DateTimeOffset startedAt, PauseReason? paused, params Guid[] employeeIds)
+    protected async Task StartStepAsync(Guid orderId, int sequence, DateTimeOffset startedAt, PauseReason? paused, params Guid[] employeeIds)
     {
         var stepId = await StepIdAsync(orderId, sequence);
         await WithDbAsync(async db =>
@@ -114,7 +109,15 @@ public partial class FabricationTests
             return await db.SaveChangesAsync();
         });
     }
+}
 
+/// <summary>
+/// PNL-01b (ADR 0030 §5): as visões do Painel da TV com o filtro de linha do token (CA 1 a 6), o cartão de uma OS com o 404 único (CA 14),
+/// o DTO sem cliente, produto nem dinheiro (CA 13), a prévia do backoffice com o escopo da tela e sem sessão de quiosque (CA 10) e o
+/// desempenho com 300 OS e 20 TVs (CA 12). A sessão de quiosque é gravada direto no banco (a troca do token tem os próprios testes).
+/// </summary>
+public partial class FabricationShopfloorTests
+{
     [Fact]
     public async Task Tv_Quadro_da_TV_filtra_pela_linha_do_token_e_o_cartao_tem_so_a_allowlist()
     {

@@ -15,6 +15,59 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Production;
 
+public abstract partial class FabricationTestBase
+{
+    protected const string Projects = "/api/v1/projects";
+    protected const string Parameters = "/api/v1/production/parameters";
+
+    protected Task<int> ClearPendingAsync() =>
+        WithDbAsync(db => db.Database.ExecuteSqlAsync($"DELETE FROM production.schedule_runs WHERE status = 'Pending'"));
+
+    protected Task<bool> PendingAsync() => WithDbAsync(db => db.ScheduleRuns.AsNoTracking().AnyAsync(r => r.Status == ScheduleRunStatus.Pending));
+
+    /// <summary>O que o <see cref="PlanningRecalculateJob"/> faz com o gatilho <c>Event</c>.</summary>
+    protected async Task<ScheduleRecalculation> RunPendingAsync()
+    {
+        await using var scope = await ScopeAsync();
+        return await scope.ServiceProvider.GetRequiredService<ScheduleService>().RunPendingAsync();
+    }
+
+    protected async Task<ScheduleRecalculation> RecalcNowAsync()
+    {
+        await using var scope = await ScopeAsync();
+        return await scope.ServiceProvider.GetRequiredService<ScheduleService>().RecalculateAsync(ScheduleTrigger.Manual, null);
+    }
+
+    protected Task<ScheduleProjectForecast?> PlanForecastAsync(Guid project) =>
+        WithDbAsync(db => db.ScheduleProjectForecasts.AsNoTracking().FirstOrDefaultAsync(f => f.ProjectId == project));
+
+    protected Task<BemAqui.Commercial.Domain.ProjectForecast?> CommercialForecastAsync(Guid project) =>
+        WithDbAsync(db => db.ProjectForecasts.AsNoTracking().FirstOrDefaultAsync(f => f.ProjectId == project));
+
+    /// <summary>Fim previsto de cada OS do projeto no plano gravado (a data esperada sai do próprio plano).</summary>
+    protected async Task<DateOnly?> PlannedEndAsync(IReadOnlyCollection<Guid> orders)
+    {
+        await using var scope = await ScopeAsync();
+        var forecasts = await scope.ServiceProvider.GetRequiredService<IProductionSchedule>().ForOrdersAsync(orders);
+        return forecasts.Max(f => f.PlannedEnd);
+    }
+
+    protected Task<int> SetForecastsAsync(Guid project, DateOnly? forecast) => WithDbAsync(async db =>
+    {
+        await db.Database.ExecuteSqlAsync($"UPDATE production.schedule_project_forecasts SET forecast_date = {forecast} WHERE project_id = {project}");
+        return await db.Database.ExecuteSqlAsync($"UPDATE commercial.project_forecasts SET forecast_date = {forecast} WHERE project_id = {project}");
+    });
+
+    protected async Task ConsumeForecastAsync(ProjectForecastChanged changed)
+    {
+        await using var scope = await ScopeAsync();
+        var db = scope.ServiceProvider.GetRequiredService<ICommercialDb>();
+        await using var transaction = await db.Database.BeginTransactionAsync();
+        await ActivatorUtilities.CreateInstance<ProjectForecastConsumer>(scope.ServiceProvider).HandleAsync(changed, CancellationToken.None);
+        await transaction.CommitAsync();
+    }
+}
+
 /// <summary>
 /// PLN-01b com o banco real: os gatilhos do Production marcam o pedido de recálculo depois do commit e o job refaz as datas (CA 1 e 4); o
 /// aditivo e o cancelamento do contrato também pedem (CA 2); 20 pedidos viram uma execução e o resultado é o mesmo do cálculo do zero
@@ -23,58 +76,8 @@ namespace BemAqui.Integration.Tests.Production;
 /// recálculo (CA 12); dois tenants (CA 13); módulo não liberado e três camadas (CA 14). Cada teste usa o próprio projeto e filtra pelos ids
 /// que criou; o plano é do tenant inteiro, então as datas são conferidas contra o próprio plano, não contra o calendário do dia.
 /// </summary>
-public partial class FabricationTests
+public partial class FabricationBoardTests
 {
-    private const string Projects = "/api/v1/projects";
-    private const string Parameters = "/api/v1/production/parameters";
-
-    private Task<int> ClearPendingAsync() =>
-        WithDbAsync(db => db.Database.ExecuteSqlAsync($"DELETE FROM production.schedule_runs WHERE status = 'Pending'"));
-
-    private Task<bool> PendingAsync() => WithDbAsync(db => db.ScheduleRuns.AsNoTracking().AnyAsync(r => r.Status == ScheduleRunStatus.Pending));
-
-    /// <summary>O que o <see cref="PlanningRecalculateJob"/> faz com o gatilho <c>Event</c>.</summary>
-    private async Task<ScheduleRecalculation> RunPendingAsync()
-    {
-        await using var scope = await ScopeAsync();
-        return await scope.ServiceProvider.GetRequiredService<ScheduleService>().RunPendingAsync();
-    }
-
-    private async Task<ScheduleRecalculation> RecalcNowAsync()
-    {
-        await using var scope = await ScopeAsync();
-        return await scope.ServiceProvider.GetRequiredService<ScheduleService>().RecalculateAsync(ScheduleTrigger.Manual, null);
-    }
-
-    private Task<ScheduleProjectForecast?> PlanForecastAsync(Guid project) =>
-        WithDbAsync(db => db.ScheduleProjectForecasts.AsNoTracking().FirstOrDefaultAsync(f => f.ProjectId == project));
-
-    private Task<BemAqui.Commercial.Domain.ProjectForecast?> CommercialForecastAsync(Guid project) =>
-        WithDbAsync(db => db.ProjectForecasts.AsNoTracking().FirstOrDefaultAsync(f => f.ProjectId == project));
-
-    /// <summary>Fim previsto de cada OS do projeto no plano gravado (a data esperada sai do próprio plano).</summary>
-    private async Task<DateOnly?> PlannedEndAsync(IReadOnlyCollection<Guid> orders)
-    {
-        await using var scope = await ScopeAsync();
-        var forecasts = await scope.ServiceProvider.GetRequiredService<IProductionSchedule>().ForOrdersAsync(orders);
-        return forecasts.Max(f => f.PlannedEnd);
-    }
-
-    private Task<int> SetForecastsAsync(Guid project, DateOnly? forecast) => WithDbAsync(async db =>
-    {
-        await db.Database.ExecuteSqlAsync($"UPDATE production.schedule_project_forecasts SET forecast_date = {forecast} WHERE project_id = {project}");
-        return await db.Database.ExecuteSqlAsync($"UPDATE commercial.project_forecasts SET forecast_date = {forecast} WHERE project_id = {project}");
-    });
-
-    private async Task ConsumeForecastAsync(ProjectForecastChanged changed)
-    {
-        await using var scope = await ScopeAsync();
-        var db = scope.ServiceProvider.GetRequiredService<ICommercialDb>();
-        await using var transaction = await db.Database.BeginTransactionAsync();
-        await ActivatorUtilities.CreateInstance<ProjectForecastConsumer>(scope.ServiceProvider).HandleAsync(changed, CancellationToken.None);
-        await transaction.CommitAsync();
-    }
-
     [Fact]
     public async Task Gatilhos_do_Production_marcam_o_pedido_e_o_job_refaz_a_previsao_em_ate_10_s()
     {
@@ -365,8 +368,8 @@ public partial class FabricationTests
 
             (await PendingAsync()).Should().BeFalse("CA 14: módulo não liberado não pede recálculo");
             await WithDbAsync(db => db.Database.ExecuteSqlAsync($"INSERT INTO production.schedule_runs (id, trigger, status, requested_at, orders_count, steps_count, changed_orders_count, without_forecast_count, duration_ms) VALUES ({Guid.CreateVersion7()}, 'Event', 'Pending', {DateTimeOffset.UtcNow}, 0, 0, 0, 0, 0)"));
-            var job = ActivatorUtilities.CreateInstance<PlanningRecalculateJob>(tenancy.Factory.Services);
-            await job.ExecuteAsync(tenancy.TenantA.Id, new PlanningRecalculateArgs(ScheduleTrigger.Event), CancellationToken.None);
+            var job = ActivatorUtilities.CreateInstance<PlanningRecalculateJob>(Tenancy.Factory.Services);
+            await job.ExecuteAsync(Tenancy.TenantA.Id, new PlanningRecalculateArgs(ScheduleTrigger.Event), CancellationToken.None);
             (await PendingAsync()).Should().BeTrue("CA 14: o job confere o módulo no início e termina sem calcular");
         }
         finally
@@ -375,12 +378,12 @@ public partial class FabricationTests
         }
 
         // CA 13: o job do pedido por evento calcula só o tenant do tenantId; o ProjectForecastChanged de A não chega a B.
-        var jobA = ActivatorUtilities.CreateInstance<PlanningRecalculateJob>(tenancy.Factory.Services);
-        await jobA.ExecuteAsync(tenancy.TenantA.Id, new PlanningRecalculateArgs(ScheduleTrigger.Event), CancellationToken.None);
+        var jobA = ActivatorUtilities.CreateInstance<PlanningRecalculateJob>(Tenancy.Factory.Services);
+        await jobA.ExecuteAsync(Tenancy.TenantA.Id, new PlanningRecalculateArgs(ScheduleTrigger.Event), CancellationToken.None);
         (await PlanForecastAsync(project)).Should().NotBeNull();
-        await jobA.ExecuteAsync(tenancy.TenantB.Id, new PlanningRecalculateArgs(ScheduleTrigger.Hourly), CancellationToken.None);
-        var infoB = (await tenancy.Factory.Services.GetRequiredService<ITenantDirectory>().FindAsync(tenancy.TenantB.Id))!;
-        await using var scopeB = await tenancy.Factory.Services.GetRequiredService<ITenantScopeFactory>().CreateScopeAsync(infoB);
+        await jobA.ExecuteAsync(Tenancy.TenantB.Id, new PlanningRecalculateArgs(ScheduleTrigger.Hourly), CancellationToken.None);
+        var infoB = (await Tenancy.Factory.Services.GetRequiredService<ITenantDirectory>().FindAsync(Tenancy.TenantB.Id))!;
+        await using var scopeB = await Tenancy.Factory.Services.GetRequiredService<ITenantScopeFactory>().CreateScopeAsync(infoB);
         var dbB = scopeB.ServiceProvider.GetRequiredService<BemAqui.Host.Persistence.TenantDbContext>();
         (await dbB.ScheduleProjectForecasts.AsNoTracking().AnyAsync(f => f.ProjectId == project)).Should().BeFalse("o tenant B não vê o projeto do A");
         (await dbB.OutboxMessages.AsNoTracking().Where(m => m.Type == typeof(ProjectForecastChanged).FullName).Select(m => m.Payload).ToListAsync())

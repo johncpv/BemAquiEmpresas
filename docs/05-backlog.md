@@ -494,7 +494,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-4, R-FIS-3, R-FIS-8, R-PRJ-5.
 - CA: regras por operação com versão e ativação por outra pessoa, nascidas do seed pré-configurado "a confirmar"; motor puro de ICMS, ST, IPI, PIS, COFINS e IBS/CBS batendo com os casos de referência; "Simular" em painel lateral; sem regra, sem nota; DIFAL bloqueado; tributos que entram no custo do projeto (ICMS, PIS, COFINS, ISS, IBS/CBS; IPI fora).
 
-**FIS-03a [ ] NF-e de saída: rascunho a partir do romaneio, emissão, autorização, rejeição, DANFE e XML ao cliente, impostos e receita pela nota (G)** — 5.4, ordem 10 — `Ready (pré-condição externa)` — [story](stories/FIS-03a-nfe-saida-emissao.md)
+**FIS-03a [x] NF-e de saída: rascunho a partir do romaneio, emissão, autorização, rejeição, DANFE e XML ao cliente, impostos e receita pela nota (G)** — 5.4, ordem 10 — `Done` (homologação SEFAZ dos 3 cenários no `demo`, A1 real e conferência da contadora: pré-condição externa) — [story](stories/FIS-03a-nfe-saida-emissao.md)
 - Requisitos: R-FIS-3, R-PRD-8, R-PRJ-5, R-FIS-4, R-COM-1, R-COM-3.
 - CA: rascunho a partir do romaneio (a nota só referencia o romaneio, sem baixar estoque); venda mista pela D4 (equipamento em NF-e, instalação em NFS-e, parcela é só cobrança); saneamento pelos limites do esquema antes de reservar o número; emissão idempotente com reconciliação no Emissor; `InvoiceAuthorized` lança o imposto como `InvoiceTax`; imposto nunca digitado; os 3 cenários em homologação SEFAZ no `demo`.
 
@@ -581,7 +581,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-PAT-2, R-PRP-6 (D), R-COM-3, R-SEC-5.
 - CA: QR gerado no servidor só com a URL `/b/{etiqueta}`; PDF de etiqueta no tamanho do parâmetro (seed 50 × 25 mm) e em grade A4; leitura pelo `BarcodeDetector` e "Ler etiqueta" no `/fab`, depois do login, com `assets.view` conferido antes; `returnUrl` só relativo; 404 uniforme.
 
-**PAT-02 [ ] Patrimônio: movimentação de bens e baixa (P)** — 6.4, ordem 13 — `Ready` — [story](stories/PAT-02-movimentacao-bens.md)
+**PAT-02 [x] Patrimônio: movimentação de bens e baixa (P)** — 6.4, ordem 13 — `Done` (E2E no fechamento da feature) — [story](stories/PAT-02-movimentacao-bens.md)
 - Requisitos: R-PAT-3, R-PRP-1, R-PRP-6 (D), R-SEC-5.
 - CA: transferência de local, responsável e centro com histórico imutável; lote; baixa com motivo e reativação; venda do bem com "Lançar título a receber" pré-preenchido.
 

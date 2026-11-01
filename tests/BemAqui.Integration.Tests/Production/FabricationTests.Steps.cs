@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Integration.Tests.Production;
 
-public partial class FabricationTests
+public partial class FabricationOrdersTests
 {
     [Fact]
     public async Task Etapas_editaveis_antes_do_inicio_com_as_regras_do_roteiro_e_bloqueadas_depois()

@@ -247,7 +247,8 @@ public sealed record ShipmentLineInfo(
 /// </summary>
 public sealed record ShipmentInfo(
     Guid Id, string Number, Guid ProjectId, Guid PartyId, ShipmentState Status, DateOnly? PlannedDate, DateTimeOffset CreatedAt, DateTimeOffset? ShippedAt, Guid? ShippedBy,
-    DateTimeOffset? ReversedAt, Guid? ReversedBy, string? ReversalReason, IReadOnlyList<ShipmentLineInfo> Lines);
+    DateTimeOffset? ReversedAt, Guid? ReversedBy, string? ReversalReason, IReadOnlyList<ShipmentLineInfo> Lines, string? DeliveryAddress = null, Guid? CarrierPartyId = null,
+    int? Volumes = null, decimal? GrossWeight = null);
 
 /// <summary>
 /// Romaneios da Produção para Commercial, Fiscal (Fase 5) e Inventory (EST-04), ADR 0006. A NF-e de saída referencia o romaneio
@@ -260,6 +261,13 @@ public interface IShipments
 
     /// <summary>Romaneios do projeto (todas as situações), do mais antigo ao mais novo.</summary>
     Task<IReadOnlyList<ShipmentInfo>> ByProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Romaneios expedidos (<c>Shipped</c>), do mais antigo ao mais novo, para a fila "A emitir" da NF-e (FIS-03a CA 16); quem chama tira os
+    /// que já têm nota ativa. <paramref name="except"/> são os romaneios a pular (os que já têm nota).
+    /// </summary>
+    Task<IReadOnlyList<ShipmentInfo>> ShippedAsync(IReadOnlyCollection<Guid> except, int limit, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<ShipmentInfo>>([]);
 }
 
 /// <summary>Linha do <see cref="ShipmentDispatched"/>: item, séries, quantidade e local da saída.</summary>

@@ -13,18 +13,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// PRD-05, qualidade e não conformidade: ação e seed patch (CA 1), entrada na qualidade e fila (CA 2), aprovar (CA 3 e 4), segregação
-/// com "Autoinspeção" (CA 5), reprovar com NC (CA 6), nova tentativa (CA 7), anexos (CA 8), ciclo e custo da NC (CA 9 e 10), lista e chip
-/// (CA 11), três camadas e IDOR (CA 12), a ação sozinha fora da qualidade (CA 13), decisão concorrente (CA 14) e auditoria (CA 15).
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private const string Quality = "/api/v1/production/quality";
-    private const string Ncs = "/api/v1/production/non-conformities";
+    protected const string Quality = "/api/v1/production/quality";
+    protected const string Ncs = "/api/v1/production/non-conformities";
 
     /// <summary>Roteiro C (corte) → M (montagem, centro do operador) → Q (qualidade com checklist) [→ E (embalagem)], com uma OS.</summary>
-    private async Task<(HttpClient Owner, Guid Center, Guid Order)> QualityDatasetAsync(bool withPacking = false)
+    protected async Task<(HttpClient Owner, Guid Center, Guid Order)> QualityDatasetAsync(bool withPacking = false)
     {
         var (_, owner) = await ActorAsync(Group.OwnerSeedKey);
         var center = await CenterAsync("Montagem", "Linha 1");
@@ -42,7 +37,7 @@ public partial class FabricationTests
     }
 
     /// <summary>O operador inicia e finaliza as etapas produtivas até a qualidade (com o checklist marcado).</summary>
-    private async Task WorkUntilQualityAsync(HttpClient operatorClient, Guid orderId, params int[] sequences)
+    protected async Task WorkUntilQualityAsync(HttpClient operatorClient, Guid orderId, params int[] sequences)
     {
         foreach (var sequence in sequences)
         {
@@ -53,10 +48,10 @@ public partial class FabricationTests
         }
     }
 
-    private static async Task<JsonElement> QualityStepAsync(HttpClient client, Guid stepId) => await OkAsync(await client.GetAsync($"{Quality}/steps/{stepId}"));
+    protected static async Task<JsonElement> QualityStepAsync(HttpClient client, Guid stepId) => await OkAsync(await client.GetAsync($"{Quality}/steps/{stepId}"));
 
     /// <summary>Marca todos os itens do checklist da qualidade com o resultado dado.</summary>
-    private static async Task MarkQualityAsync(HttpClient client, Guid stepId, string result = "Done")
+    protected static async Task MarkQualityAsync(HttpClient client, Guid stepId, string result = "Done")
     {
         var detail = await QualityStepAsync(client, stepId);
         foreach (var item in detail.GetProperty("checklist").EnumerateArray())
@@ -65,13 +60,21 @@ public partial class FabricationTests
         }
     }
 
-    private static async Task<HttpResponseMessage> ApproveQualityAsync(HttpClient client, Guid stepId, uint version) => await client.SendAsync(Post($"{Quality}/steps/{stepId}/approve", new { version }));
+    protected static async Task<HttpResponseMessage> ApproveQualityAsync(HttpClient client, Guid stepId, uint version) => await client.SendAsync(Post($"{Quality}/steps/{stepId}/approve", new { version }));
 
-    private static async Task<HttpResponseMessage> RejectQualityAsync(HttpClient client, Guid stepId, uint version, Guid? returnTo = null, Guid? responsible = null, string description = "Painel riscado na lateral") =>
+    protected static async Task<HttpResponseMessage> RejectQualityAsync(HttpClient client, Guid stepId, uint version, Guid? returnTo = null, Guid? responsible = null, string description = "Painel riscado na lateral") =>
         await client.SendAsync(Post($"{Quality}/steps/{stepId}/reject", new { description, cause = (string?)null, action = (string?)null, responsibleUserId = responsible, returnToStepId = returnTo, version }));
 
-    private async Task<uint> OrderVersionAsync(Guid orderId) => (await OrderAsync(orderId)).Version;
+    protected async Task<uint> OrderVersionAsync(Guid orderId) => (await OrderAsync(orderId)).Version;
+}
 
+/// <summary>
+/// PRD-05, qualidade e não conformidade: ação e seed patch (CA 1), entrada na qualidade e fila (CA 2), aprovar (CA 3 e 4), segregação
+/// com "Autoinspeção" (CA 5), reprovar com NC (CA 6), nova tentativa (CA 7), anexos (CA 8), ciclo e custo da NC (CA 9 e 10), lista e chip
+/// (CA 11), três camadas e IDOR (CA 12), a ação sozinha fora da qualidade (CA 13), decisão concorrente (CA 14) e auditoria (CA 15).
+/// </summary>
+public partial class FabricationBoardTests
+{
     [Fact]
     public async Task Acao_approve_quality_no_catalogo_e_seed_patch_da_supervisao_uma_vez()
     {

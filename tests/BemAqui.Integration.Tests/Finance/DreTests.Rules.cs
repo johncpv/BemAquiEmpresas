@@ -64,6 +64,12 @@ public partial class DreTests
         var withInvoices = tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s =>
         {
             s.AddScoped<IProjectShipments, FakeShipments>();
+            // A regra real pela nota (FIS-03a) sai: o teste fixa a dele, com a nota de 1.000 em cada mês depois do corte.
+            foreach (var real in s.Where(d => d.ServiceType == typeof(IRevenueRecognition) && d.ImplementationType == typeof(InvoiceRevenueRecognition)).ToList())
+            {
+                s.Remove(real);
+            }
+
             s.AddScoped<IRevenueRecognition, FakeInvoiceRecognition>();
             s.AddScoped<IRevenueCutover>(_ => new FixedCutover(new DateOnly(2019, 3, 1)));
         }));
