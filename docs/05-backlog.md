@@ -609,7 +609,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-7--folha-calculad
 - Requisitos: R-RH-6, R-RH-5, R-FIN-10, PRD §6 LGPD, R-SEC-5, R-PRP-7.
 - CA: salário proporcional, adicionais, faltas, salário-família (documentos entregues no dependente), VT, INSS, IRRF e FGTS pelo motor puro, centavo a centavo com o dataset sintético do CI; memória de cálculo e retrato das entradas (`calculator_version`); só simulação até a virada.
 
-**FLH-02b [ ] Folha calculada: horas extras, adicional noturno e DSR a partir do ponto (M)** — 7.1, ordem 3 — `Ready (pré-condição externa)` — [story](stories/FLH-02b-horas-extras-dsr.md)
+**FLH-02b [x] Folha calculada: horas extras, adicional noturno e DSR a partir do ponto (M)** — 7.1, ordem 3 — `Done (pré-condição externa: contadora e conferência paralela)` — [story](stories/FLH-02b-horas-extras-dsr.md)
 - Requisitos: R-RH-6, R-RH-4, R-SEC-5.
 - CA: extras por tipo de dia com percentuais parametrizados, banco de horas pago ou descontado por decisão do RH, adicional noturno opcional, DSR e perda do DSR por parâmetro.
 

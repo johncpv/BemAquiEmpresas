@@ -31,9 +31,11 @@ namespace BemAqui.Integration.Tests.HR;
 /// própria competência, e cada funcionário fica no vínculo só dentro dela (admitido no dia 1 e desligado no último dia), para a folha do
 /// teste ter só os seus funcionários. A virada (FLH-06) é testada num tenant próprio, para não mudar a simulação dos outros testes.
 /// </summary>
-public class PayrollCalculationTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>, IDisposable
+public partial class PayrollCalculationTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>, IDisposable
 {
     private const string Runs = "/api/v1/hr/payroll-runs";
+
+    private static readonly JsonSerializerOptions WebJson = new(JsonSerializerDefaults.Web);
     private const string Canary = "86420.13";
     private const string CanaryBr = "86.420,13";
 
@@ -179,12 +181,16 @@ public class PayrollCalculationTests(TenancyFixture tenancy) : IClassFixture<Ten
     }
 
     /// <summary>O espelho do mês fechado (RH-01c) com as faltas e os atrasos em minutos, gravado direto (o fechamento tem os próprios testes).</summary>
-    private Task<int> CloseTimesheetAsync(Tenant tenant, Guid employee, DateOnly period, int absence = 0, int late = 0) => DbAsync(tenant, db =>
+    /// <summary>FLH-02b: com os dias congelados (<c>DaysSnapshot</c>) e o banco de horas (saldo do período e acumulado) quando o teste pede.</summary>
+    private Task<int> CloseTimesheetAsync(Tenant tenant, Guid employee, DateOnly period, int absence = 0, int late = 0, IReadOnlyList<TimesheetDayResult>? days = null, int? bankMonth = null,
+        int? bankBalance = null) => DbAsync(tenant, db =>
     {
         db.Timesheets.Add(new Timesheet
         {
             EmployeeId = employee, Period = period, PeriodStart = period, PeriodEnd = PayrollRules.PeriodEnd(period), Status = TimesheetStatus.Closed,
             AbsenceMinutes = absence, LateMinutes = late, ClosedAt = DateTimeOffset.UtcNow, CreatedAt = DateTimeOffset.UtcNow,
+            DaysSnapshot = days is null ? null : JsonSerializer.Serialize(days, WebJson),
+            OvertimeMinutes = days?.Sum(d => d.OvertimeMinutes) ?? 0, BankMonthMinutes = bankMonth, BankBalanceMinutes = bankBalance,
         });
         return Task.CompletedTask;
     });

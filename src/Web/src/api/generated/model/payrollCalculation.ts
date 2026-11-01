@@ -22,4 +22,12 @@ export const PayrollCalculation = {
   Inss: 'Inss',
   Irrf: 'Irrf',
   Fgts: 'Fgts',
+  OvertimeWorkday: 'OvertimeWorkday',
+  OvertimeRestDay: 'OvertimeRestDay',
+  OvertimeHoliday: 'OvertimeHoliday',
+  NightShift: 'NightShift',
+  Dsr: 'Dsr',
+  DsrLoss: 'DsrLoss',
+  HourBankPayout: 'HourBankPayout',
+  HourBankDiscount: 'HourBankDiscount',
 } as const;
