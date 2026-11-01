@@ -8,4 +8,8 @@
     <ProjectReference Include="..\..\Parties\BemAqui.Parties.Contracts\BemAqui.Parties.Contracts.csproj" />
     <ProjectReference Include="..\..\Finance\BemAqui.Finance.Contracts\BemAqui.Finance.Contracts.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Pacotes de tabelas legais da folha (FLH-01): os valores ficam nos dados, nunca no código C#. -->
+    <EmbeddedResource Include="PayrollTaxPackages\*.json" LogicalName="BemAqui.HR.PayrollTaxPackages.%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>

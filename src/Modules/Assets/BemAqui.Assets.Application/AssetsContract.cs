@@ -23,24 +23,33 @@ public sealed class AssetsContract(IAssetsDb db) : IAssets
     }
 
     public async Task<IReadOnlyList<AssetInfo>> ByWorkCenterAsync(Guid workCenterId, CancellationToken cancellationToken = default) =>
-        await db.Assets.AsNoTracking().Where(a => a.WorkCenterId == workCenterId).OrderBy(a => a.Tag)
+        await db.Assets.AsNoTracking().Where(a => a.WorkCenterId == workCenterId && a.Status != AssetStatus.Disposed).OrderBy(a => a.Tag)
             .Select(a => new AssetInfo(a.Id, a.Tag, a.Name, a.Type, a.WorkCenterId, a.Status)).ToListAsync(cancellationToken);
 }
 
 /// <summary>
 /// Provedores de uso do patrimônio (CA 14, ADR 0016): o bem guarda o id do funcionário (responsável), do centro de trabalho e do
-/// terceiro (fornecedor); com bem não excluído apontando para ele, o dono só inativa (ou desliga).
+/// terceiro (fornecedor); com bem não excluído ou movimento (PAT-02: antes e depois, comprador) apontando para ele, o dono só inativa (ou desliga).
 /// </summary>
 public sealed class AssetUsage(IAssetsDb db) : IPartyUsageProvider, IWorkCenterUsageProvider, IEmployeeUsageProvider
 {
     private const string Usage = "bens do patrimônio";
 
     async Task<string?> IPartyUsageProvider.UsageAsync(Guid partyId, CancellationToken cancellationToken) =>
-        await db.Assets.AnyAsync(a => a.SupplierPartyId == partyId, cancellationToken) ? Usage : null;
+        await db.Assets.AnyAsync(a => a.SupplierPartyId == partyId, cancellationToken) || await db.AssetMovements.AnyAsync(m => m.BuyerPartyId == partyId, cancellationToken) ? Usage : null;
 
     async Task<string?> IWorkCenterUsageProvider.UsageAsync(Guid workCenterId, CancellationToken cancellationToken) =>
-        await db.Assets.AnyAsync(a => a.WorkCenterId == workCenterId, cancellationToken) ? Usage : null;
+        await db.Assets.AnyAsync(a => a.WorkCenterId == workCenterId, cancellationToken)
+        || await db.AssetMovements.AnyAsync(m => m.FromWorkCenterId == workCenterId || m.ToWorkCenterId == workCenterId, cancellationToken) ? Usage : null;
 
     async Task<string?> IEmployeeUsageProvider.UsageAsync(Guid employeeId, CancellationToken cancellationToken) =>
-        await db.Assets.AnyAsync(a => a.ResponsibleEmployeeId == employeeId, cancellationToken) ? Usage : null;
+        await db.Assets.AnyAsync(a => a.ResponsibleEmployeeId == employeeId, cancellationToken)
+        || await db.AssetMovements.AnyAsync(m => m.FromEmployeeId == employeeId || m.ToEmployeeId == employeeId, cancellationToken) ? Usage : null;
+}
+
+/// <summary>PAT-01a CA 12 com a PAT-02: o bem com movimentação tem histórico e não é excluído (usa "Baixar bem").</summary>
+public sealed class AssetMovementUsage(IAssetsDb db) : IAssetUsageProvider
+{
+    public async Task<string?> UsageAsync(Guid assetId, CancellationToken cancellationToken = default) =>
+        await db.AssetMovements.AnyAsync(m => m.AssetId == assetId, cancellationToken) ? "movimentações" : null;
 }

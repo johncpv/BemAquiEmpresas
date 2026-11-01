@@ -37,6 +37,7 @@ export function ReceivablePage() {
   const query = useGetReceivable(id)
   const canEdit = useCan('finance.edit')
   const canCreate = useCan('finance.create')
+  const canFiscal = useCan('fiscal.view')
   const canConfigure = useCanSettings('edit')
   const [, setTab] = useUrlTab('dados')
   const [dialog, setDialog] = useState<Dialog>(null)
@@ -78,6 +79,7 @@ export function ReceivablePage() {
             {slip ? <StatusChip tone={slip.tone}>{slip.label}</StatusChip> : null}
             {r.origin === 'Opening' ? <Tag>Implantação</Tag> : r.origin === 'Contract' ? <Tag>Contrato</Tag> : null}
             <span className="text-sm text-muted-foreground">{r.description}</span>
+            {canFiscal && r.projectId ? <Link to={'/app/fiscal/saida' as never} search={{ aba: 'emitidas', projeto: r.projectId } as never} className="ml-2 text-sm font-semibold text-primary">Notas fiscais do projeto</Link> : null}
             <Link to="/app/financeiro/receber" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
           </div>
           {canEdit ? (

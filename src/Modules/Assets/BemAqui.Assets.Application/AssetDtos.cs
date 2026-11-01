@@ -4,8 +4,11 @@ using BemAqui.BuildingBlocks.Attachments;
 
 namespace BemAqui.Assets.Application;
 
-/// <summary>Filtros da lista (CA 9): busca por etiqueta, nome e série; tipo, local, centro, responsável e situação.</summary>
-public sealed record AssetListQuery(string? Q, AssetType? Type, Guid? SiteId, Guid? WorkCenterId, Guid? ResponsibleEmployeeId, AssetStatus? Status);
+/// <summary>
+/// Filtros da lista (CA 9): busca por etiqueta, nome e série; tipo, local, centro, responsável e situação. Sem situação, a lista padrão
+/// esconde os baixados (PAT-02 CA 6, filtro "Baixados"); <c>ResponsibleTerminated</c>: só os bens com responsável desligado (PAT-02 CA 5).
+/// </summary>
+public sealed record AssetListQuery(string? Q, AssetType? Type, Guid? SiteId, Guid? WorkCenterId, Guid? ResponsibleEmployeeId, AssetStatus? Status, bool ResponsibleTerminated = false);
 
 /// <summary>
 /// Linha da lista (CA 9). <c>AcquisitionValue</c> só vem para quem tem <c>assets.edit</c>: sem a ação, o campo não existe no JSON.

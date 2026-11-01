@@ -344,6 +344,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Fiscal.Domain.TaxRule> TaxRules => Set<BemAqui.Fiscal.Domain.TaxRule>();
 
+    public DbSet<BemAqui.Fiscal.Domain.OutgoingInvoiceItem> OutgoingInvoiceItems => Set<BemAqui.Fiscal.Domain.OutgoingInvoiceItem>();
+
+    public DbSet<BemAqui.Fiscal.Domain.OutgoingInvoiceReceivable> OutgoingInvoiceReceivables => Set<BemAqui.Fiscal.Domain.OutgoingInvoiceReceivable>();
+
+    public DbSet<BemAqui.Fiscal.Domain.NumberGap> NumberGaps => Set<BemAqui.Fiscal.Domain.NumberGap>();
+
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoice> IncomingInvoices => Set<BemAqui.Fiscal.Domain.IncomingInvoice>();
 
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoiceItem> IncomingInvoiceItems => Set<BemAqui.Fiscal.Domain.IncomingInvoiceItem>();
@@ -353,6 +359,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BemAqui.Assets.Domain.AssetSite> AssetSites => Set<BemAqui.Assets.Domain.AssetSite>();
 
     public DbSet<BemAqui.Assets.Domain.AssetParameter> AssetParameters => Set<BemAqui.Assets.Domain.AssetParameter>();
+
+    public DbSet<BemAqui.Assets.Domain.AssetMovement> AssetMovements => Set<BemAqui.Assets.Domain.AssetMovement>();
 
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 
@@ -389,6 +397,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<Timesheet> Timesheets => Set<Timesheet>();
 
     public DbSet<TimesheetDayReview> TimesheetDayReviews => Set<TimesheetDayReview>();
+
+    public DbSet<PayrollTaxTable> PayrollTaxTables => Set<PayrollTaxTable>();
+
+    public DbSet<PayrollTaxTableDataset> PayrollTaxTableDatasets => Set<PayrollTaxTableDataset>();
 
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
 

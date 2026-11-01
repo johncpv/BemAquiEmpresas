@@ -40,12 +40,15 @@ public sealed partial class AssetService(
     public const string NotFoundCode = "asset_not_found";
     public const string SerialTakenCode = "asset_serial_taken";
     public const string HasHistoryCode = "asset_has_history";
+    public const string DisposedCode = "asset_disposed";
+    public const string PlacementByMovementCode = "asset_placement_by_movement";
+    public const string MovedByMovementMessage = "Troque o local, o responsável ou o centro por \"Registrar movimentação\".";
 
     public async Task<PagedList<AssetListItem>> ListAsync(AssetListQuery query, PageRequest page, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(page);
-        var assets = Filtered(db.Assets.AsNoTracking(), query);
+        var assets = Filtered(db.Assets.AsNoTracking(), query, query.ResponsibleTerminated ? await TerminatedResponsiblesAsync(cancellationToken) : null);
         assets = page.ParseSort() switch
         {
             ("name", true) => assets.OrderByDescending(a => a.Name).ThenByDescending(a => a.Tag),
@@ -59,8 +62,15 @@ public sealed partial class AssetService(
     }
 
     /// <summary>Filtros da lista (CA 9), também usados por "Imprimir etiquetas" com todos do filtro (PAT-01b CA 3).</summary>
-    internal static IQueryable<Asset> Filtered(IQueryable<Asset> assets, AssetListQuery query)
+    internal static IQueryable<Asset> Filtered(IQueryable<Asset> assets, AssetListQuery query, IReadOnlyCollection<Guid>? terminatedResponsibles = null)
     {
+        // PAT-02 CA 5: só os bens cujo responsável foi desligado (os ids vêm do IEmployees, dono do funcionário).
+        if (query.ResponsibleTerminated)
+        {
+            var terminated = (terminatedResponsibles ?? []).ToList();
+            assets = assets.Where(a => a.ResponsibleEmployeeId != null && terminated.Contains(a.ResponsibleEmployeeId.Value));
+        }
+
         if (!string.IsNullOrWhiteSpace(query.Q))
         {
             var term = "%" + query.Q.Trim() + "%";
@@ -87,12 +97,17 @@ public sealed partial class AssetService(
             assets = assets.Where(a => a.ResponsibleEmployeeId == responsible);
         }
 
-        if (query.Status is { } status)
-        {
-            assets = assets.Where(a => a.Status == status);
-        }
-
+        // PAT-02 CA 6: o bem baixado some da lista padrão; aparece só no filtro "Baixados".
+        assets = query.Status is { } status ? assets.Where(a => a.Status == status) : assets.Where(a => a.Status != AssetStatus.Disposed);
         return assets;
+    }
+
+    /// <summary>Responsáveis desligados entre os bens não baixados (CA 5): o RH diz quem está ativo.</summary>
+    internal async Task<IReadOnlyCollection<Guid>> TerminatedResponsiblesAsync(CancellationToken ct)
+    {
+        var ids = await db.Assets.AsNoTracking().Where(a => a.ResponsibleEmployeeId != null && a.Status != AssetStatus.Disposed)
+            .Select(a => a.ResponsibleEmployeeId!.Value).Distinct().ToListAsync(ct);
+        return ids.Count == 0 ? [] : (await employees.FindAsync(ids, ct)).Where(e => !e.IsActive).Select(e => e.Id).ToList();
     }
 
     public async Task<Result<AssetDetail>> GetAsync(Guid id, CancellationToken cancellationToken = default)
@@ -132,6 +147,21 @@ public sealed partial class AssetService(
         if (input.Version is { } version)
         {
             db.Entry(asset).Property(a => a.Version).OriginalValue = version;
+        }
+
+        // PAT-02: o bem baixado não é editado (reative antes); local, responsável e centro só mudam por "Registrar movimentação", para o
+        // histórico ficar completo (recomendação aceita, PO 24/10).
+        if (asset.Status == AssetStatus.Disposed)
+        {
+            return Error.Conflict(DisposedCode, "Bem baixado não é alterado. Reative o bem para alterar.");
+        }
+
+        if (AssetMovementRules.Changes(AssetPlacement.Of(asset), new AssetPlacement(input.SiteId, input.ResponsibleEmployeeId, input.WorkCenterId)))
+        {
+            return Error.Validation(PlacementByMovementCode, MovedByMovementMessage, new Dictionary<string, string[]>
+            {
+                [input.SiteId != asset.SiteId ? "siteId" : input.ResponsibleEmployeeId != asset.ResponsibleEmployeeId ? "responsibleEmployeeId" : "workCenterId"] = [MovedByMovementMessage],
+            });
         }
 
         if (await ApplyAsync(asset, input, cancellationToken) is { } invalid)
@@ -180,7 +210,7 @@ public sealed partial class AssetService(
     /// </summary>
     public async Task<AssetSuggestionView> SuggestAsync(Guid workCenterId, CancellationToken cancellationToken = default)
     {
-        var rows = await db.Assets.AsNoTracking().Where(a => a.WorkCenterId == workCenterId)
+        var rows = await db.Assets.AsNoTracking().Where(a => a.WorkCenterId == workCenterId && a.Status != AssetStatus.Disposed)
             .Select(a => new CenterAsset(a.CreatedAt, a.SiteId, a.ResponsibleEmployeeId)).ToListAsync(cancellationToken);
         if (rows.Count == 0)
         {

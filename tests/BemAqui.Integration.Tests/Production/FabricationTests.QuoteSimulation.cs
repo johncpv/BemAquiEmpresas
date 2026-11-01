@@ -12,20 +12,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// PLN-05 com o banco real: simulação no fim e na posição 1 com projetos reais que passam a atrasar (CA 3 e 4), sem gravar nada (CA 5), com
-/// o prazo de instalação (CA 4), sem horas (CA 7), só datas para quem não vê custo e sem exigir <c>production.view</c> (CA 9), rate limit da
-/// política <c>planning-simulate</c> (CA 10), três camadas e IDOR (CA 11). O plano e a fila são do tenant inteiro: cada teste usa centro e
-/// projetos próprios e confere as datas contra o próprio resultado.
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private static string SimulationUrl(Guid quote) => $"{Quotes}/{quote}/schedule-simulation";
+    protected static string SimulationUrl(Guid quote) => $"{Quotes}/{quote}/schedule-simulation";
 
-    private static DateOnly? DateOf(JsonElement body, string property) =>
+    protected static DateOnly? DateOf(JsonElement body, string property) =>
         body.GetProperty(property).ValueKind == JsonValueKind.Null ? null : DateOnly.Parse(body.GetProperty(property).GetString()!, System.Globalization.CultureInfo.InvariantCulture);
 
-    private static async Task<JsonElement> SimulateAsync(HttpClient client, Guid quote, int? position = null)
+    protected static async Task<JsonElement> SimulateAsync(HttpClient client, Guid quote, int? position = null)
     {
         var response = await client.PostAsJsonAsync(SimulationUrl(quote), new { queuePosition = position });
         var body = await response.Content.ReadAsStringAsync();
@@ -37,7 +31,7 @@ public partial class FabricationTests
     /// Orçamento em rascunho pelo endpoint, com os itens (tipo, produto, quantidade) e, direto na composição (a tela de custo tem os próprios
     /// testes), as horas por centro de cada item e, se pedido, uma linha de instalação.
     /// </summary>
-    private async Task<Guid> SimulationQuoteAsync(HttpClient owner, int? deliveryDays, bool installation, params (string Kind, decimal Quantity, (Guid Center, decimal Hours)[] Labor)[] lines)
+    protected async Task<Guid> SimulationQuoteAsync(HttpClient owner, int? deliveryDays, bool installation, params (string Kind, decimal Quantity, (Guid Center, decimal Hours)[] Labor)[] lines)
     {
         var customer = await CustomerAsync(owner);
         var quote = await JsonAsync(await owner.SendAsync(Post(Quotes, new { partyId = customer, contactId = (Guid?)null, siteAddressId = (Guid?)null })));
@@ -72,7 +66,7 @@ public partial class FabricationTests
     }
 
     /// <summary>Dois projetos reais no mesmo centro, com a data prometida justa (a do plano de hoje): quem entra na frente atrasa os dois.</summary>
-    private async Task<(HttpClient Owner, Guid Center, Guid First, Guid Second)> TightPairAsync(int offset)
+    protected async Task<(HttpClient Owner, Guid Center, Guid First, Guid Second)> TightPairAsync(int offset)
     {
         var (owner, first, second, firstOrder, _) = await QueuePairAsync(Today.AddDays(offset), Today.AddDays(offset + 1));
         var center = await WithDbAsync(db => db.ProductionOrderSteps.AsNoTracking().Where(s => s.OrderId == firstOrder).Select(s => s.WorkCenterId!.Value).FirstAsync());
@@ -83,11 +77,26 @@ public partial class FabricationTests
         return (owner, center, first, second);
     }
 
-    private Task<string> SimulationStateAsync(Guid quote) => WithDbAsync(async db => string.Join("|",
+    protected Task<string> SimulationStateAsync(Guid quote) => WithDbAsync(async db => string.Join("|",
         await db.ScheduleRuns.CountAsync(), await db.ScheduleStepForecasts.CountAsync(), await db.ScheduleAllocations.CountAsync(), await db.ScheduleProjectForecasts.CountAsync(),
         await db.PlanningQueue.CountAsync(), await db.PlanningQueueChanges.CountAsync(), await db.AuditEntries.CountAsync(), await db.OutboxMessages.CountAsync(),
         await db.ProjectForecasts.CountAsync(), await db.Quotes.AsNoTracking().Where(q => q.Id == quote).Select(q => q.Version).SingleAsync()));
 
+    protected async Task<T> WithScopeAsync<T>(Func<IServiceProvider, Task<T>> action)
+    {
+        await using var scope = await ScopeAsync();
+        return await action(scope.ServiceProvider);
+    }
+}
+
+/// <summary>
+/// PLN-05 com o banco real: simulação no fim e na posição 1 com projetos reais que passam a atrasar (CA 3 e 4), sem gravar nada (CA 5), com
+/// o prazo de instalação (CA 4), sem horas (CA 7), só datas para quem não vê custo e sem exigir <c>production.view</c> (CA 9), rate limit da
+/// política <c>planning-simulate</c> (CA 10), três camadas e IDOR (CA 11). O plano e a fila são do tenant inteiro: cada teste usa centro e
+/// projetos próprios e confere as datas contra o próprio resultado.
+/// </summary>
+public partial class FabricationBoardTests
+{
     [Fact]
     public async Task Simulacao_prazo_no_fim_e_na_posicao_1_mostra_quem_passa_a_atrasar_sem_gravar()
     {
@@ -247,11 +256,5 @@ public partial class FabricationTests
         limited.Should().NotBeNull("acima de 20 por minuto");
         (await JsonAsync(limited!)).GetProperty("title").GetString().Should().Be(PlanningQueueService.SimulateLimitMessage);
         (await owner.PostAsJsonAsync(SimulationUrl(quote), new { queuePosition = (int?)null })).StatusCode.Should().Be(HttpStatusCode.OK, "o limite é por usuário");
-    }
-
-    private async Task<T> WithScopeAsync<T>(Func<IServiceProvider, Task<T>> action)
-    {
-        await using var scope = await ScopeAsync();
-        return await action(scope.ServiceProvider);
     }
 }

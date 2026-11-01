@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { closePayrollRun, reopenPayrollRun, useGetPayrollClosePreviewSensitive, useGetTwoFactorStatus } from '@/api/generated/bemaqui'
-import type { PayrollCloseResult, PayrollRunSummary } from '@/api/generated/model'
+import type { PayrollChangeNotice, PayrollCloseResult, PayrollRunSummary } from '@/api/generated/model'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { Field } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
@@ -12,7 +12,7 @@ import { DialogMessage } from '@/components/ui/dialog-message'
 import { Money } from '@/components/ui/money'
 import { Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
-import { formatDate, formatInstantDate } from '@/lib/format'
+import { formatDate, formatDateTime, formatInstantDate } from '@/lib/format'
 import { PAYROLL_DICAS, periodLabel } from './payroll'
 
 const button = 'min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground'
@@ -29,18 +29,21 @@ export function CloseRunDialog({ run, onClosed }: { run: PayrollRunSummary; onCl
   const idempotency = useIdempotencyKey()
   const [date, setDate] = useState('')
   const [code, setCode] = useState('')
+  const [ack, setAck] = useState(false)
   const p = preview.data
+  const changes = p?.changes ?? []
   const paymentDate = date || p?.suggestedPaymentDate || ''
   const blockers = p?.blockers ?? []
 
   return (
     <ConfirmDialog size="lg" verb="Fechar folha" done="Folha fechada" title={`Fechar a folha de ${periodLabel(run.period)}?`}
       description="Os valores ficam congelados e os títulos a pagar nascem em aberto, para seguir para ordem de pagamento."
-      open={open} onOpenChange={setOpen} onOpen={() => { setDate(''); setCode('') }}
+      open={open} onOpenChange={setOpen} onOpen={() => { setDate(''); setCode(''); setAck(false) }}
       twoFactorRequired={twoFactor.data ? !twoFactor.data.enabled : false}
       preconditions={[
         ...blockers.map((b) => ({ ok: false, text: b.message, fix: b.link ? { label: 'Resolver', onSelect: () => { setOpen(false); void navigate({ to: b.link as never }) } } : undefined })),
         { ok: !!paymentDate, text: 'Data de pagamento informada.' },
+        ...(changes.length > 0 ? [{ ok: ack, text: 'Ciência das mudanças de tabela e de parâmetro desde o último fechamento.' }] : []),
       ]}
       impact={p ? (
         <p className="text-sm tabular-nums">
@@ -49,7 +52,7 @@ export function CloseRunDialog({ run, onClosed }: { run: PayrollRunSummary; onCl
       ) : undefined}
       onConfirm={async () => {
         if (code.length !== 6) throw new DialogMessage('Digite os 6 dígitos do aplicativo autenticador.')
-        const result = await closePayrollRun(run.id, { paymentDate: paymentDate || null, twoFactorCode: code, version: p?.version ?? run.version }, idempotency.options)
+        const result = await closePayrollRun(run.id, { paymentDate: paymentDate || null, twoFactorCode: code, version: p?.version ?? run.version, acknowledgedChanges: ack }, idempotency.options)
         idempotency.renew()
         await onClosed(result)
       }}
@@ -75,6 +78,7 @@ export function CloseRunDialog({ run, onClosed }: { run: PayrollRunSummary; onCl
               <ul>{p.accountChanged.map((c) => <li key={c.employeeId}>{c.name}: conta em quarentena{c.quarantineUntil ? ` até ${formatInstantDate(c.quarantineUntil)}` : ''}, fora do pagamento automático.</li>)}</ul>
             </div>
           ) : null}
+          {changes.length > 0 ? <ChangesNotice changes={changes} ack={ack} onAck={setAck} /> : null}
           <TwoFactorCodeField code={code} onChange={setCode} />
         </div>
       ) : null}
@@ -110,5 +114,33 @@ export function ClosedBand({ run }: { run: PayrollRunSummary }) {
       {run.status === 'Paid' ? `Folha paga${run.paidAt ? ` em ${formatInstantDate(run.paidAt)}` : ''}. ` : ''}
       Folha fechada{run.closedAt ? ` em ${formatInstantDate(run.closedAt)}` : ''}{run.paymentDate ? `, pagamento em ${formatDate(run.paymentDate)}` : ''}. Para mudar, reabra a folha.
     </p>
+  )
+}
+
+/**
+ * Mudanças desde o último fechamento (FLH-01 CA 12): tabelas legais criadas, editadas, conferidas ou retificadas e parâmetros do RH
+ * alterados, da auditoria (o quê, antes → depois, quem e quando); fechar pede a ciência.
+ */
+export function ChangesNotice({ changes, ack, onAck }: { changes: PayrollChangeNotice[]; ack: boolean; onAck: (v: boolean) => void }) {
+  return (
+    <div className="space-y-2 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">
+      <p className="font-semibold">{changes.length === 1 ? 'Uma mudança' : `${changes.length} mudanças`} de tabela ou de parâmetro desde o último fechamento</p>
+      <ul className="max-h-48 space-y-1.5 overflow-y-auto">
+        {changes.map((c, i) => (
+          <li key={i}>
+            <span className="font-semibold">{c.what}</span>: {c.action.toLowerCase()} por {c.byName ?? 'Sistema'} em {formatDateTime(c.at)}
+            {c.fields.length > 0 ? (
+              <ul className="pl-3 text-xs">
+                {c.fields.slice(0, 6).map((f) => <li key={f.field} className="break-all">{f.field}: {f.before ?? '—'} → {f.after ?? '—'}</li>)}
+              </ul>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+      <label className="flex min-h-11 items-center gap-2 font-semibold sm:min-h-0">
+        <input type="checkbox" checked={ack} onChange={(e) => onAck(e.target.checked)} className="size-4 accent-primary" />
+        Li as mudanças e quero fechar a folha com elas
+      </label>
+    </div>
   )
 }

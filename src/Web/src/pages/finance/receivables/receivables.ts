@@ -41,3 +41,27 @@ export const awaits = (r: Pick<ReceivableDetail, 'status' | 'triggerEvent'>) => 
 export const toNumber = (s: string | null | undefined) => (s === null || s === undefined || s === '' ? 0 : Number(s))
 
 export const today = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
+
+/** Título pré-preenchido por outro módulo (PAT-02 CA 7, venda do bem): só preenche; grava com a confirmação desta tela. */
+export interface ReceivablePrefill {
+  customer: { id: string; label: string; termId: null } | null
+  description: string
+  amount: string | null
+  issueDate: string | null
+}
+
+const DATE = /^\d{4}-\d{2}-\d{2}$/
+
+/** Lê `?cliente=&clienteNome=&valor=&emissao=&descricao=`; valor inválido ou data fora do padrão ficam vazios. */
+export function receivablePrefill(search: Record<string, unknown>): ReceivablePrefill {
+  const text = (v: unknown) => (typeof v === 'string' ? v.trim() : typeof v === 'number' ? String(v) : '')
+  const id = text(search.cliente)
+  const amount = Number(text(search.valor))
+  const issue = text(search.emissao)
+  return {
+    customer: id ? { id, label: text(search.clienteNome) || 'Cliente escolhido', termId: null } : null,
+    description: text(search.descricao).slice(0, 200),
+    amount: Number.isFinite(amount) && amount > 0 ? String(amount) : null,
+    issueDate: DATE.test(issue) ? issue : null,
+  }
+}

@@ -14,6 +14,7 @@ siteId?: string;
 workCenterId?: string;
 responsibleEmployeeId?: string;
 status?: AssetStatus;
+responsibleTerminated?: boolean;
 page?: number;
 pageSize?: number;
 sort?: string;

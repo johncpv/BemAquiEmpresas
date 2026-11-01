@@ -48,6 +48,11 @@ public interface IHrDb
 
     DbSet<TimesheetDayReview> TimesheetDayReviews { get; }
 
+    // Tabelas legais da folha (FLH-01) e os datasets da contadora.
+    DbSet<PayrollTaxTable> PayrollTaxTables { get; }
+
+    DbSet<PayrollTaxTableDataset> PayrollTaxTableDatasets { get; }
+
     /// <summary>Transação do fechamento: a folha, os títulos do Finance (mesmo contexto) e a numeração gravam juntos ou nada grava.</summary>
     Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
 

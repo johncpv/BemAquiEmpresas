@@ -151,3 +151,19 @@ A FIS-02a foi provada contra o fake do Emissor (`FakeFiscalEmitter`, testes de i
 5. **Produção** só na GOL-01b: com `catalog.tenants.fiscal_environment_allowed = Production`, todos os campos críticos da NF-e conferidos e o código do autenticador no diálogo "Ligar a emissão com valor fiscal". Sem a marca, a tela responde "A emissão desta empresa só liga na virada para a produção.".
 6. O `.pfx` e a senha nunca aparecem em log, auditoria, outbox ou resposta; confira no Seq que o envio só registra "Certificado digital do tenant {id} trocado, válido até {data}".
 7. A virada do emitente para produção é feita no cadastro do emitente no Emissor (sem trocar URL nem chave); no BemAqui, além disso, vale o passo 5.
+
+## 10. NF-e de saída e os 3 cenários de homologação (FIS-03a, CA 22)
+A FIS-03a foi provada contra o fake do Emissor. A homologação real fica para o tenant `demo`, com o Emissor homologado, o A1 de teste enviado (§9) e as regras do seed **ativas** em Fiscal → Regras fiscais. Nada é emitido no `konebras` antes da GOL-01b.
+
+1. Monte, para cada cenário, um projeto com o equipamento, conclua a OS e confirme o romaneio. Em **Fiscal → Notas de saída → A emitir**, clique em **Emitir NF-e**, confira o rascunho (informe a alíquota do IPI da TIPI do NCM se a regra pedir) e use **Pré-visualizar** antes de **Emitir NF-e**.
+2. Cenários (ponto 50):
+
+   | Cenário | Cliente | CFOP esperado | Data | Resultado | Chave | Conferido pela contadora |
+   |---|---|---|---|---|---|---|
+   | Venda a contribuinte em SP | PJ com IE, endereço em SP | 5101 | _(pendente: pré-condição externa)_ | | | |
+   | Venda a não contribuinte em SP (consumidor final) | PF ou PJ sem IE, em SP | 5101 | _(pendente)_ | | | |
+   | Peça ou outro estado | revenda de peça em SP (5102) ou venda a contribuinte de outro estado (6101) | 5102 ou 6101 | _(pendente)_ | | | |
+
+3. Confira em cada nota: situação **Autorizada**, XML e DANFE em **Documentos**, o e-mail `invoice-authorized` com os dois anexos em **Configurações → E-mails**, e que o estoque não mudou (a baixa foi no romaneio). Em homologação, o imposto **não** entra no custo do projeto nem na receita (só a nota de produção, a partir de `fiscal.project_tax_cutover_on`).
+4. Rejeição: emita com um dado que a SEFAZ recuse (ex.: IE inválida do destinatário) e confira o motivo, a ação sugerida, o aviso no sino e o número em `fiscal.number_gaps` (inutilização na FIS-03b). **Corrigir e emitir de novo** usa a tentativa seguinte (`nfe-{id}-2`).
+5. Enquanto a lacuna L-d (grupo de transporte e `infAdProd` no contrato do Emissor) não fechar, as informações de cada item (séries) e o transporte (transportadora, volumes e peso) vão nas informações complementares da nota. Fechada a lacuna, o adaptador passa a mandá-los nos campos próprios.

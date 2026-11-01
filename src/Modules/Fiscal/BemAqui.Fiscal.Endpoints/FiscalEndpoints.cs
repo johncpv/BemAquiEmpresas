@@ -44,6 +44,7 @@ internal static class FiscalEndpoints
 
         api.MapFiscalSettingsEndpoints();
         api.MapFiscalTaxRuleEndpoints();
+        api.MapFiscalOutgoingInvoiceEndpoints();
         api.MapFiscalIncomingEndpoints();
         return api;
     }

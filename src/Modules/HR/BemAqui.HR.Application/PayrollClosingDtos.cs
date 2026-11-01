@@ -11,7 +11,8 @@ public sealed record PayrollClosePerson(Guid EmployeeId, string Name, string? Re
 
 /// <summary>
 /// Prévia do fechamento (CA 1), só pela rota <c>/sensitive</c>: as pendências, a data de pagamento sugerida pelo tipo (editável), os avisos
-/// e o impacto ("Gera {n} títulos a pagar de salários, total {valor}, e {m} títulos de guias, total {valor}").
+/// e o impacto ("Gera {n} títulos a pagar de salários, total {valor}, e {m} títulos de guias, total {valor}"). <c>Changes</c>: as mudanças de
+/// tabela legal e de parâmetro desde o último fechamento (FLH-01 CA 12), com ciência obrigatória.
 /// </summary>
 public sealed record PayrollClosePreview(
     Guid RunId,
@@ -27,10 +28,14 @@ public sealed record PayrollClosePreview(
     decimal SalaryTotal,
     int ChargeCount,
     decimal ChargeTotal,
-    uint Version);
+    uint Version,
+    IReadOnlyList<PayrollChangeNotice> Changes);
 
-/// <summary>Fechar (CA 2): a data de pagamento (vazia usa a sugerida), o código do 2FA de novo e a versão da folha.</summary>
-public sealed record PayrollCloseInput(DateOnly? PaymentDate, string? TwoFactorCode, uint Version);
+/// <summary>
+/// Fechar (CA 2): a data de pagamento (vazia usa a sugerida), o código do 2FA de novo e a versão da folha. Com mudança de tabela ou de
+/// parâmetro desde o último fechamento (FLH-01 CA 12), a ciência é obrigatória.
+/// </summary>
+public sealed record PayrollCloseInput(DateOnly? PaymentDate, string? TwoFactorCode, uint Version, bool AcknowledgedChanges = false);
 
 /// <summary>Folha fechada: o resumo, quantos títulos e a mensagem "Folha de {mês} fechada. {n} títulos a pagar gerados.".</summary>
 public sealed record PayrollCloseResult(PayrollRunSummary Run, int Payables, string Message, int ChangedAfterNotice = 0);

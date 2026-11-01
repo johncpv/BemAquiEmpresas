@@ -9,7 +9,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Integration.Tests.Production;
 
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
+{
+    protected static string Payload(Guid projectId, Guid projectItemId, Guid? itemId, decimal quantity, string? extra)
+    {
+        var item = itemId is { } id ? "\"" + id + "\"" : "null";
+        var tail = extra is null ? string.Empty : "," + extra;
+        return "{\"ProjectId\":\"" + projectId + "\",\"ProjectItemId\":\"" + projectItemId + "\",\"QuoteItemId\":\"" + Guid.NewGuid() + "\",\"ItemId\":" + item
+            + ",\"Quantity\":" + quantity.ToString(System.Globalization.CultureInfo.InvariantCulture) + tail + "}";
+    }
+
+    /// <summary>Grava no outbox um ProjectItemCreated com o payload dado (mensagem antiga ou reentrega com outro id).</summary>
+    protected Task<int> PublishRawAsync(string payload) => WithDbAsync(async db =>
+    {
+        var now = DateTimeOffset.UtcNow;
+        db.OutboxMessages.Add(new OutboxMessage { Type = IntegrationEventRegistry.NameOf(typeof(ProjectItemCreated)), Payload = payload, OccurredAt = now, NextAttemptAt = now });
+        return await db.SaveChangesAsync();
+    });
+}
+
+public partial class FabricationOrdersTests
 {
     [Fact]
     public async Task Equipamento_gera_OS_com_o_roteiro_do_produto_e_componente_e_servico_nao()
@@ -153,20 +172,4 @@ public partial class FabricationTests
         (await OrderOfAsync(second[0]))!.RoutingTemplateId.Should().Be(other);
         _ = projectId;
     }
-
-    private static string Payload(Guid projectId, Guid projectItemId, Guid? itemId, decimal quantity, string? extra)
-    {
-        var item = itemId is { } id ? "\"" + id + "\"" : "null";
-        var tail = extra is null ? string.Empty : "," + extra;
-        return "{\"ProjectId\":\"" + projectId + "\",\"ProjectItemId\":\"" + projectItemId + "\",\"QuoteItemId\":\"" + Guid.NewGuid() + "\",\"ItemId\":" + item
-            + ",\"Quantity\":" + quantity.ToString(System.Globalization.CultureInfo.InvariantCulture) + tail + "}";
-    }
-
-    /// <summary>Grava no outbox um ProjectItemCreated com o payload dado (mensagem antiga ou reentrega com outro id).</summary>
-    private Task<int> PublishRawAsync(string payload) => WithDbAsync(async db =>
-    {
-        var now = DateTimeOffset.UtcNow;
-        db.OutboxMessages.Add(new OutboxMessage { Type = IntegrationEventRegistry.NameOf(typeof(ProjectItemCreated)), Payload = payload, OccurredAt = now, NextAttemptAt = now });
-        return await db.SaveChangesAsync();
-    });
 }

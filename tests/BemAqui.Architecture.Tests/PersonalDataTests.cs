@@ -85,6 +85,12 @@ public class PersonalDataTests
             "JustifiedMinutes", "BankMonthMinutes", "BankBalanceMinutes", "WorkedDays", "AbsenceDays", "ClosedAt", "ClosedBy", "ReopenedAt", "ReopenedBy", "ReopenReason",
             "EmployeeAckAt", "EmployeeAckBy", "EmployeeAckSummary", "PdfAttachmentId", "CreatedAt", "Version"],
         ["TimesheetDayReview"] = ["Id", "EmployeeId", "Day", "ReviewedBy", "ReviewedAt"],
+
+        // FLH-01: tabela legal da folha não é dado pessoal (CA 14); o dataset da contadora são casos "base → esperado" montados ou
+        // anonimizados, sem funcionário.
+        ["PayrollTaxTable"] = ["Id", "Kind", "ValidFrom", "Status", "RectifiesId", "RectifyReason", "Content", "SchemaVersion", "Rounding", "Source", "SeedPackage",
+            "CreatedBy", "CreatedAt", "EditedBy", "EditedAt", "CheckedBy", "CheckedAt", "CheckedNote", "CheckedWithDatasetId", "SupersededAt", "Version", "IsCurrent"],
+        ["PayrollTaxTableDataset"] = ["Id", "TableId", "Cases", "CaseCount", "CreatedBy", "CreatedAt"],
     };
 
     /// <summary>
@@ -210,6 +216,30 @@ public class PersonalDataTests
         var finance = Solution.Assemblies.Single(a => a.GetName().Name == "BemAqui.Finance.Application");
         finance.GetTypes().Single(t => t.Name == "PayeeSnapshot").GetProperties().Select(p => p.Name)
             .Should().NotIntersectWith(["Agency", "HolderCpf", "PixKey", "BaseSalary", "Cpf"]);
+    }
+
+    /// <summary>
+    /// PAT-02: o mesmo fail-closed no Patrimônio. Ids de funcionário, terceiro e usuário, datas, valores e a observação do bem não são dado
+    /// pessoal; o motivo do movimento (texto livre, pode citar pessoas, ex.: "Responsável desligado") é <c>[PersonalData]</c> e entra no
+    /// arquivo do titular pelo <c>AssetsPersonalDataProvider</c>.
+    /// </summary>
+    private static readonly Dictionary<string, string[]> AssetsNonSensitive = new(StringComparer.Ordinal)
+    {
+        ["Asset"] = ["Id", "Tag", "Name", "Type", "Brand", "Model", "SerialNumber", "AcquisitionDate", "AcquisitionValue", "IncomingInvoiceId", "InvoiceRef", "SupplierPartyId", "SiteId",
+            "ResponsibleEmployeeId", "WorkCenterId", "Status", "Notes", "CreatedAt", "IsDeleted", "DeletedAt", "Version"],
+        ["AssetSite"] = ["Id", "Name", "IsActive", "SeedKey", "CreatedAt", "IsDeleted", "DeletedAt"],
+        ["AssetParameter"] = ["Id", "Key", "Value", "UpdatedAt"],
+        ["AssetMovement"] = ["Id", "AssetId", "Kind", "FromSiteId", "ToSiteId", "FromEmployeeId", "ToEmployeeId", "FromWorkCenterId", "ToWorkCenterId", "MovedOn", "DisposalReason",
+            "DisposalValue", "BuyerPartyId", "CreatedBy", "CreatedAt"],
+    };
+
+    [Fact]
+    public void Entidades_auditaveis_do_Patrimonio_so_tem_dado_pessoal_marcado()
+    {
+        var domain = Solution.Assemblies.Single(a => a.GetName().Name == "BemAqui.Assets.Domain");
+        var auditable = domain.GetTypes().Where(t => t.IsClass && typeof(IAuditable).IsAssignableFrom(t)).ToList();
+        auditable.Should().NotBeEmpty();
+        Violations(auditable, AssetsNonSensitive).Should().BeEmpty();
     }
 
     private sealed class Leaky : IAuditable

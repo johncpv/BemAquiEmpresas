@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { AssetDetail } from '@/api/generated/model'
-import { applySuggestion, assetDraftErrors, assetInput, draftFromAsset, emptyAssetDraft, hasMaintenancePlan } from './assets'
+import {
+  applySuggestion, assetDraftErrors, assetInput, draftFromAsset, emptyAssetDraft, hasMaintenancePlan, movementChanged, movementChanges, movementDraft, placeText, receivableSearch,
+} from './assets'
 
 const asset = {
   id: 'a1', tag: 'PAT-00007', name: 'Torno CNC', type: 'Machine', status: 'Active', brand: 'Romi', model: 'GL 240', serialNumber: 'SN-1', acquisitionDate: '2025-03-10',
@@ -36,5 +38,28 @@ describe('bem do patrimônio (PAT-01a)', () => {
     expect(Object.keys(assetDraftErrors(emptyAssetDraft()))).toEqual(['name', 'type'])
     expect(hasMaintenancePlan('Vehicle')).toBe(true)
     expect(hasMaintenancePlan('It')).toBe(false)
+  })
+})
+
+describe('movimentação e baixa do bem (PAT-02)', () => {
+  it('o formulário vem com o lugar atual e a data de hoje; nada mudou não confirma (CA 1 e 2)', () => {
+    const draft = movementDraft(asset, '2026-11-01')
+    expect(draft).toEqual({ siteId: 's1', responsibleEmployeeId: 'e1', workCenterId: 'c1', movedOn: '2026-11-01', reason: '' })
+    expect(movementChanged(draft, asset)).toBe(false)
+    expect(movementChanged({ ...draft, responsibleEmployeeId: '' }, asset)).toBe(true)
+    expect(movementDraft(asset, '2026-11-01', 'Responsável desligado').reason).toBe('Responsável desligado')
+  })
+
+  it('o cartão mostra só o que mudou, de → para (CA 3 e 4)', () => {
+    expect(movementChanges({ siteName: 'Fábrica', responsibleName: 'Ana', workCenterName: 'Solda' }, { siteName: 'Escritório', responsibleName: 'Ana', workCenterName: null }))
+      .toEqual(['Local: Fábrica → Escritório', 'Centro: Solda → —'])
+    expect(placeText({ siteName: 'Fábrica', responsibleName: null, workCenterName: null })).toBe('Fábrica · Sem responsável · Sem centro')
+  })
+
+  it('a venda abre o título a receber já preenchido, sem gravar nada (CA 7)', () => {
+    expect(receivableSearch({ partyId: 'p1', partyName: 'Metal Sul', amount: 48500.75, issueDate: '2026-11-01', description: 'Venda do bem PAT-00007 — Torno CNC' })).toEqual({
+      cliente: 'p1', clienteNome: 'Metal Sul', valor: '48500.75', emissao: '2026-11-01', descricao: 'Venda do bem PAT-00007 — Torno CNC',
+    })
+    expect(receivableSearch({ partyId: null, amount: 10, issueDate: '2026-11-01', description: 'x' }).cliente).toBeUndefined()
   })
 })
