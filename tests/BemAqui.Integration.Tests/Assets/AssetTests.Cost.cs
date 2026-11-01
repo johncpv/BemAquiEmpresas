@@ -260,14 +260,15 @@ public partial class AssetTests
         var tooMany = await PostOrderAsync(supervisor, new { assetId = asset, type = "Preventive", problem = "Revisão", scheduledOn = Day(10), hoursPerDay = 10m });
         tooMany.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity, "horas paradas até as horas do centro");
         var (day, full) = await WorkingDayAsync(center, 10);
+        // Antes da OS: o despachante do outbox pode entregar a parada (e pedir o recálculo) logo depois da gravação.
+        await WithScopeAsync(sp => sp.GetRequiredService<BemAquiDbContext>().Database.ExecuteSqlAsync($"DELETE FROM production.schedule_runs WHERE status = 'Pending'"));
+        var runsBefore = await WithScopeAsync(sp => sp.GetRequiredService<IProductionDb>().ScheduleRunsView.CountAsync());
         var order = await OrderAsync(supervisor, new { assetId = asset, type = "Preventive", problem = "Revisão", scheduledOn = Iso(day), hoursPerDay = 4m, expectedHours = 4m });
         var orderId = order.GetProperty("id").GetGuid();
         var from = DateOnly.Parse(order.GetProperty("downtimeFrom").GetString()!, System.Globalization.CultureInfo.InvariantCulture);
         from.Should().Be(day);
         order.GetProperty("downtimeTo").GetString().Should().Be(Iso(day), "4 h no total, 4 h por dia: um dia útil");
 
-        await WithScopeAsync(sp => sp.GetRequiredService<BemAquiDbContext>().Database.ExecuteSqlAsync($"DELETE FROM production.schedule_runs WHERE status = 'Pending'"));
-        var runsBefore = await WithScopeAsync(sp => sp.GetRequiredService<IProductionDb>().ScheduleRunsView.CountAsync());
         await DrainAssetsOutboxAsync();
         var stored = (await DowntimesOfAsync(orderId)).Should().ContainSingle().Subject;
         stored.WorkCenterId.Should().Be(center);

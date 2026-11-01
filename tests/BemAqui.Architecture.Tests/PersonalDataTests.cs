@@ -237,7 +237,7 @@ public class PersonalDataTests
         ["Asset"] = ["Id", "Tag", "Name", "Type", "Brand", "Model", "SerialNumber", "AcquisitionDate", "AcquisitionValue", "IncomingInvoiceId", "InvoiceRef", "SupplierPartyId", "SiteId",
             "ResponsibleEmployeeId", "WorkCenterId", "Status", "Notes", "CreatedAt", "IsDeleted", "DeletedAt", "Version"],
         ["AssetSite"] = ["Id", "Name", "IsActive", "SeedKey", "CreatedAt", "IsDeleted", "DeletedAt"],
-        ["AssetParameter"] = ["Id", "Key", "Value", "UpdatedAt", "ConfirmedAt"],
+        ["AssetParameter"] = ["Id", "Key", "Value", "UpdatedAt", "ConfirmedAt", "ConfirmedBy"],
         ["AssetMovement"] = ["Id", "AssetId", "Kind", "FromSiteId", "ToSiteId", "FromEmployeeId", "ToEmployeeId", "FromWorkCenterId", "ToWorkCenterId", "MovedOn", "DisposalReason",
             "DisposalValue", "BuyerPartyId", "CreatedBy", "CreatedAt"],
         // PAT-03a: plano, checklist e horímetro são dados da máquina; na OS, o problema, o que foi feito e o motivo do cancelamento (texto livre,
