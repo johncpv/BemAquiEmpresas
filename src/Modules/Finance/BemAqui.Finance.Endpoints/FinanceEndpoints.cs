@@ -30,6 +30,7 @@ internal static partial class FinanceEndpoints
         MapCostCenters(finance.MapGroup("/cost-centers"));
         MapReceivables(finance.MapGroup("/receivables"));
         MapBillingSlips(finance.MapGroup("/receivables"));
+        MapPartyCollection(finance.MapGroup("/parties"));
         MapFinanceParameters(finance.MapGroup("/parameters"));
         MapCustomers(finance.MapGroup("/customers"));
         MapPayables(finance.MapGroup("/payables"));

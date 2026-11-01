@@ -154,6 +154,17 @@ public static class FinanceInfrastructure
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFinanceDb>().BillingSlips.AnyAsync(s => s.Id == id, ct),
             ReadAction: "view", WriteAction: "edit",
             CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Conflict("attachment.owner_state", "O PDF do boleto é gerado pelo banco: não se envia arquivo aqui."))));
+        // Régua de cobrança por e-mail (FIN-09): seção em Configurações → Cobrança, agenda, rodada por tenant, guarda do envio
+        // (collection-reminder reconsultado no SendEmailJob), lembretes e pausas do título e do cliente, auditados.
+        services.TryAddScoped<CollectionEligibility>();
+        services.TryAddScoped<CollectionPlanner>();
+        services.TryAddScoped<CollectionReminderMailer>();
+        services.TryAddScoped<CollectionReminderRunner>();
+        services.TryAddScoped<CollectionRuleService>();
+        services.TryAddScoped<CollectionService>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Email.IEmailSendGuard, CollectionReminderGuard>());
+        services.AddAuditableEntity<CollectionRule>("settings");
+        services.AddAuditableEntity<CollectionPause>("finance");
         // Painel do proprietário (DSH-01a, ADR 0028 §1): resumos com a mesma fonte dos relatórios e as metas de faturamento.
         services.TryAddScoped<FinanceSummariesContract>();
         services.TryAddScoped<IBankBalances>(sp => sp.GetRequiredService<FinanceSummariesContract>());

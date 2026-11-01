@@ -39,6 +39,26 @@ internal static partial class FinanceEndpoints
             .RequirePermission("finance.edit").WithName("RetryBillingSlip").Produces<BillingSlipResult>();
         slips.MapPost("/{slipId:guid}/cancel", async (Guid id, Guid slipId, BillingSlipCancelInput input, BillingSlipService service, CancellationToken ct) => (await service.CancelAsync(id, slipId, input, ct)).ToHttpResult())
             .RequirePermission("finance.edit").WithName("CancelBillingSlip").Produces<BillingSlipResult>();
+
+        // Régua de cobrança (FIN-09 CA 6, 8 e 9): lembretes e pausa do título (IDOR: só pelo id da URL), ver com finance.view, pausar e
+        // retomar com finance.edit.
+        receivables.MapGet("/{id:guid}/collection", async (Guid id, CollectionService service, CancellationToken ct) => (await service.ForReceivableAsync(id, ct)).ToHttpResult())
+            .RequirePermission("finance.view").WithName("GetReceivableCollection").Produces<ReceivableCollectionView>();
+        receivables.MapPost("/{id:guid}/collection-pause", async (Guid id, CollectionPauseInput input, CollectionService service, CancellationToken ct) => (await service.PauseReceivableAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("finance.edit").WithName("PauseReceivableCollection").Produces<ReceivableCollectionView>();
+        receivables.MapDelete("/{id:guid}/collection-pause", async (Guid id, CollectionService service, CancellationToken ct) => (await service.ResumeReceivableAsync(id, ct)).ToHttpResult())
+            .RequirePermission("finance.edit").WithName("ResumeReceivableCollection").Produces<ReceivableCollectionView>();
+    }
+
+    /// <summary>Lembretes e pausa da cobrança do cliente (FIN-09 CA 6 e 8), em <c>/finance/parties/{id}</c>.</summary>
+    private static void MapPartyCollection(RouteGroupBuilder parties)
+    {
+        parties.MapGet("/{id:guid}/collection", async (Guid id, CollectionService service, CancellationToken ct) => Results.Ok(await service.ForPartyAsync(id, ct)))
+            .RequirePermission("finance.view").WithName("GetPartyCollection").Produces<PartyCollectionView>();
+        parties.MapPost("/{id:guid}/collection-pause", async (Guid id, CollectionPauseInput input, CollectionService service, CancellationToken ct) => (await service.PausePartyAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("finance.edit").WithName("PausePartyCollection").Produces<PartyCollectionView>();
+        parties.MapDelete("/{id:guid}/collection-pause", async (Guid id, CollectionService service, CancellationToken ct) => (await service.ResumePartyAsync(id, ct)).ToHttpResult())
+            .RequirePermission("finance.edit").WithName("ResumePartyCollection").Produces<PartyCollectionView>();
     }
 
     public static IEndpointRouteBuilder MapBillingSettingsEndpoints(this IEndpointRouteBuilder api)
@@ -56,6 +76,13 @@ internal static partial class FinanceEndpoints
             .RequirePermission("settings.edit").WithName("UpdateBillingSettings").Produces<BillingSettingsView>();
         billing.MapPost("/confirm", async (BillingSettingConfirmInput input, BillingSettingsService service, CancellationToken ct) => (await service.ConfirmAsync(input.Key, ct)).ToHttpResult())
             .RequirePermission("settings.edit").WithName("ConfirmBillingSetting").Produces<BillingSettingsView>();
+        // Régua de cobrança (FIN-09 CA 1 e 2): ler com settings.view ou finance.view; salvar e ver a prévia com settings.edit.
+        billing.MapGet("/collection-rule", async (CollectionRuleService service, CancellationToken ct) => Results.Ok(await service.GetAsync(ct)))
+            .RequireAnyPermissionOf("settings.view", "finance.view").WithName("GetCollectionRule").Produces<CollectionRuleView>();
+        billing.MapPut("/collection-rule", async (CollectionRuleInput input, CollectionRuleService service, CancellationToken ct) => (await service.SaveAsync(input, ct)).ToHttpResult())
+            .RequirePermission("settings.edit").WithName("SaveCollectionRule").Produces<CollectionRuleView>();
+        billing.MapPost("/collection-rule/preview", async (CollectionPreviewInput input, CollectionRuleService service, CancellationToken ct) => (await service.PreviewAsync(input, ct)).ToHttpResult())
+            .RequireAnyPermissionOf("settings.view", "finance.view").WithName("PreviewCollectionReminder").Produces<CollectionPreview>();
         return api;
     }
 }

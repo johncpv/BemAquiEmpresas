@@ -518,7 +518,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-7, R-FIS-8, R-PRJ-3, R-PRJ-5.
 - CA: NFS-e a partir do aceite técnico, com o código de serviço e o ISS de Configurações → Fiscal; vínculo à NF-e do equipamento; ISS no custo do projeto; até o provider de Caçapava no Emissor, processo provisório pelo portal da prefeitura com o registro manual.
 
-**FIN-09 [ ] Régua de cobrança por e-mail (M)** — D — 5.6, ordem 16 — `Ready` — [story](stories/FIN-09-regua-de-cobranca.md)
+**FIN-09 [x] Régua de cobrança por e-mail (M)** — D — 5.6, ordem 16 — `Done` (textos padrão a revisar pelo comercial e pelo jurídico; SMTP real: pré-condição externa) — [story](stories/FIN-09-regua-de-cobranca.md)
 - Requisitos: R-FIN-9, R-COM-1, R-FIN-12.
 - CA: seção "Régua de cobrança" em Configurações → Cobrança (passos −3, 0, +3, +10 dias); uma vez por passo; títulos de implantação fora; conferência antes de enfileirar e de novo no envio; texto editável literal e escapado, com placeholders de lista fixa; pausa por cliente e título.
 
