@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useGetAuditHistory } from '@/api/generated/bemaqui'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { formatDateTime } from '@/lib/format'
-import { describeChanges } from './describe-changes'
+import { describeChanges, exportLabel } from './describe-changes'
 
 const ACTIONS: Record<string, string> = { Created: 'Criou', SensitiveRead: 'Leitura de dado sensível', Exported: 'Exportou', Imported: 'Importou', Updated: 'Alterou', Deleted: 'Excluiu' }
 
@@ -26,12 +26,12 @@ export function RecordHistory({ entity, id }: { entity: string; id: string }) {
         {data.items.map((entry) => (
           <li key={entry.id} className="rounded-md border border-border bg-card p-3 text-sm">
             <p>
-              <b className="font-semibold">{ACTIONS[entry.action] ?? entry.action}</b>
+              <b className="font-semibold">{(entry.action === 'Exported' ? exportLabel(entry.changes) : null) ?? ACTIONS[entry.action] ?? entry.action}</b>
               <span className="text-muted-foreground"> · {entry.userId ? 'usuário ' + entry.userId.slice(0, 8) : entry.origin ?? 'sistema'} · </span>
               <time className="tabular-nums text-muted-foreground" dateTime={entry.at}>{formatDateTime(entry.at)}</time>
             </p>
             <ul className="mt-1 text-muted-foreground">
-              {describeChanges(entry.changes).map((line) => <li key={line}>{line}</li>)}
+              {(entry.action === 'Exported' && exportLabel(entry.changes) ? [] : describeChanges(entry.changes)).map((line) => <li key={line}>{line}</li>)}
             </ul>
           </li>
         ))}

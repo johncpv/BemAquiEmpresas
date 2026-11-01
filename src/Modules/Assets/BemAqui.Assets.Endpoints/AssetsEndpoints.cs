@@ -26,9 +26,51 @@ internal static class AssetsEndpoints
                 return await next(context);
             });
         MapAssets(root.MapGroup("/assets"));
+        MapLabels(root);
         MapChoices(root.MapGroup("/choices"));
         MapSites(root.MapGroup("/sites"));
         return api;
+    }
+
+    /// <summary>
+    /// Etiqueta e leitura (PAT-01b): a leitura pela etiqueta confere <c>assets.view</c> na rota, antes de buscar (CA 7), e fica fora da sessão
+    /// por PIN (sem <c>[PinSessionAllowed]</c>, CA 10). Imprimir com <c>assets.view</c>, reimprimir com <c>assets.edit</c>; o tamanho da
+    /// etiqueta grava com <c>settings.edit</c>, conferido no serviço (como os parâmetros da Produção).
+    /// </summary>
+    private static void MapLabels(RouteGroupBuilder root)
+    {
+        var assets = root.MapGroup("/assets");
+        assets.MapGet("/by-tag/{tag}", async (string tag, AssetService service, CancellationToken ct) => (await service.ByTagAsync(tag, ct)).ToHttpResult())
+            .RequirePermission("assets.view").WithName("GetAssetByTag").Produces<AssetCardView>();
+        assets.MapGet("/{id:guid}/card", async (Guid id, AssetService service, CancellationToken ct) => (await service.CardAsync(id, ct)).ToHttpResult())
+            .RequirePermission("assets.view").WithName("GetAssetCard").Produces<AssetCardView>();
+        assets.MapGet("/{id:guid}/label", async (Guid id, AssetLabelService service, HttpContext http, CancellationToken ct) => Pdf(http, await service.LabelAsync(id, false, ct)))
+            .RequirePermission("assets.view").WithName("PrintAssetLabel");
+        assets.MapGet("/{id:guid}/label/reprint", async (Guid id, AssetLabelService service, HttpContext http, CancellationToken ct) => Pdf(http, await service.LabelAsync(id, true, ct)))
+            .RequirePermission("assets.edit").WithName("ReprintAssetLabel");
+
+        var batches = root.MapGroup("/label-batches");
+        batches.MapPost(string.Empty, async (AssetLabelBatchInput input, AssetLabelService service, CancellationToken ct) => (await service.StartBatchAsync(input, ct)).ToHttpResult())
+            .RequirePermission("assets.view").WithName("StartAssetLabelBatch").Produces<AssetLabelBatchResult>();
+        batches.MapGet("/{attachmentId:guid}", async (Guid attachmentId, AssetLabelService service, HttpContext http, CancellationToken ct) => Pdf(http, await service.BatchFileAsync(attachmentId, ct)))
+            .RequirePermission("assets.view").WithName("DownloadAssetLabelBatch");
+
+        var parameters = root.MapGroup("/parameters");
+        parameters.MapGet(string.Empty, async (AssetParametersService service, CancellationToken ct) => Results.Ok(await service.GetAsync(ct)))
+            .RequirePermission("assets.view").WithName("GetAssetParameters").Produces<AssetParametersView>();
+        parameters.MapPut(string.Empty, async (AssetParametersInput input, AssetParametersService service, CancellationToken ct) => (await service.UpdateAsync(input, ct)).ToHttpResult())
+            .RequirePermission("assets.view").WithName("UpdateAssetParameters").Produces<AssetParametersView>();
+    }
+
+    private static IResult Pdf(HttpContext http, Result<AssetLabelFile> result)
+    {
+        if (result.IsFailure)
+        {
+            return result.Error!.ToProblem();
+        }
+
+        AttachmentEndpoints.ApplyDownloadHeaders(http.Response);
+        return Results.File(result.Value.Content, AssetLabelService.PdfContentType, result.Value.FileName);
     }
 
     private static void MapAssets(RouteGroupBuilder assets)

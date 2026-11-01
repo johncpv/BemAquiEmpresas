@@ -29946,6 +29946,217 @@
         }
       }
     },
+    "/api/v1/assets/assets/by-tag/{tag}": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetAssetByTag",
+        "parameters": [
+          {
+            "name": "tag",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetCardView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/{id}/card": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetAssetCard",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetCardView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/{id}/label": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "PrintAssetLabel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/{id}/label/reprint": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ReprintAssetLabel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/label-batches": {
+      "post": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "StartAssetLabelBatch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLabelBatchInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLabelBatchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/label-batches/{attachmentId}": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "DownloadAssetLabelBatch",
+        "parameters": [
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/parameters": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetAssetParameters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetParametersView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "UpdateAssetParameters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetParametersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assets/choices/responsibles": {
       "get": {
         "tags": [
@@ -33249,6 +33460,83 @@
           }
         }
       },
+      "AssetCardView": {
+        "required": [
+          "id",
+          "tag",
+          "name",
+          "type",
+          "status",
+          "siteName",
+          "responsibleName",
+          "responsibleTerminated",
+          "workCenterName",
+          "photoId",
+          "nextMaintenanceDate",
+          "lastMaintenanceDate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/AssetType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AssetStatus"
+          },
+          "siteName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "responsibleName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "responsibleTerminated": {
+            "type": "boolean"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "photoId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "nextMaintenanceDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "lastMaintenanceDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
       "AssetDetail": {
         "required": [
           "id",
@@ -33635,6 +33923,136 @@
           }
         }
       },
+      "AssetLabelBatchInput": {
+        "required": [
+          "assetIds"
+        ],
+        "type": "object",
+        "properties": {
+          "assetIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "allFromFilter": {
+            "type": "boolean",
+            "default": false
+          },
+          "filter": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssetLabelFilter"
+              }
+            ]
+          },
+          "layout": {
+            "$ref": "#/components/schemas/AssetLabelLayout"
+          }
+        }
+      },
+      "AssetLabelBatchResult": {
+        "required": [
+          "queued",
+          "count",
+          "attachmentId",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "queued": {
+            "type": "boolean"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AssetLabelFilter": {
+        "required": [
+          "q",
+          "type",
+          "siteId",
+          "workCenterId",
+          "responsibleEmployeeId",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "type": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssetType"
+              }
+            ]
+          },
+          "siteId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "responsibleEmployeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssetStatus"
+              }
+            ]
+          }
+        }
+      },
+      "AssetLabelLayout": {
+        "enum": [
+          "Label",
+          "A4Sheet"
+        ],
+        "default": "Label"
+      },
       "AssetListItem": {
         "required": [
           "id",
@@ -33732,6 +34150,48 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "AssetParametersInput": {
+        "required": [
+          "labelWidthMm",
+          "labelHeightMm"
+        ],
+        "type": "object",
+        "properties": {
+          "labelWidthMm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "labelHeightMm": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "AssetParametersView": {
+        "required": [
+          "labelWidthMm",
+          "labelHeightMm",
+          "labelSizeId"
+        ],
+        "type": "object",
+        "properties": {
+          "labelWidthMm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "labelHeightMm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "labelSizeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },

@@ -340,6 +340,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Assets.Domain.AssetSite> AssetSites => Set<BemAqui.Assets.Domain.AssetSite>();
 
+    public DbSet<BemAqui.Assets.Domain.AssetParameter> AssetParameters => Set<BemAqui.Assets.Domain.AssetParameter>();
+
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 
     public DbSet<WorkSchedule> WorkSchedules => Set<WorkSchedule>();

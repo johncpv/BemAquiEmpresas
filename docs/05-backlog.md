@@ -577,7 +577,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-PAT-1, R-COM-3, R-COM-4, R-SEC-5, R-PRP-1, R-PRP-3.
 - CA: permissões do `assets` por seed patch; bem com etiqueta `PAT-00001`, responsável, centro e local em `assets.sites`; valor de aquisição com `assets.edit`; foto sem EXIF/GPS; lista com 5 mil bens em menos de 1 s; excluir × baixar.
 
-**PAT-01b [ ] Patrimônio: etiquetas com QR code em lote e leitura pelo app (M)** — 6.4, ordem 12 — `Ready (pré-condição externa)` — [story](stories/PAT-01b-etiqueta-qr-leitura.md)
+**PAT-01b [x] Patrimônio: etiquetas com QR code em lote e leitura pelo app (M)** — 6.4, ordem 12 — `Done` (teste manual com a impressora pendente, P-13; E2E no fechamento da feature) — [story](stories/PAT-01b-etiqueta-qr-leitura.md)
 - Requisitos: R-PAT-2, R-PRP-6 (D), R-COM-3, R-SEC-5.
 - CA: QR gerado no servidor só com a URL `/b/{etiqueta}`; PDF de etiqueta no tamanho do parâmetro (seed 50 × 25 mm) e em grade A4; leitura pelo `BarcodeDetector` e "Ler etiqueta" no `/fab`, depois do login, com `assets.view` conferido antes; `returnUrl` só relativo; 404 uniforme.
 
