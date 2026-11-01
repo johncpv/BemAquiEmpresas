@@ -25,7 +25,7 @@ import { ModuleNotReleased } from '@/pages/ModulePage'
 import { PageHeading } from '@/shell/PageHeading'
 import { SettingsTabs } from '../SettingsTabs'
 import { FiscalNav } from './FiscalNav'
-import { confirmedText, CRT_LABEL, crtOf, COST_TAX_OPTIONS, DICAS, fieldAnchor, FIRST_CONFIGURATION, formatCnae, parseCnaes, PRODUCTION_TEXT, SECTION_FIELDS, turnsOnProduction, type FieldConfig } from './fiscal-settings'
+import { confirmedText, CRT_LABEL, crtOf, COST_TAX_OPTIONS, DICAS, INPUT_TAX_CREDIT_OPTIONS, fieldAnchor, FIRST_CONFIGURATION, formatCnae, parseCnaes, PRODUCTION_TEXT, SECTION_FIELDS, turnsOnProduction, type FieldConfig } from './fiscal-settings'
 
 const primary = 'min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60'
 const secondary = 'min-h-11 rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold disabled:opacity-60'
@@ -355,6 +355,27 @@ function FieldInput({ field, label, values, cnaes, error, set, setCnaes }: {
             </label>
           ))}
         </div>
+        {error ? <p className="text-xs text-crit-ink">{error}</p> : null}
+      </fieldset>
+    )
+  }
+
+  if (field.kind === 'inputTaxCredit') {
+    const current = values.inputTaxCredit ?? []
+    const chosen = new Set(current)
+    return (
+      <fieldset className="space-y-1 sm:col-span-2">
+        <legend className="flex items-center text-sm font-medium">{label}{field.dica ? <Dica nome="Crédito de impostos" texto={field.dica} /> : null}</legend>
+        <div className="flex flex-wrap gap-3">
+          {INPUT_TAX_CREDIT_OPTIONS.map((o) => (
+            <label key={o.value} className="flex min-h-11 items-center gap-2 text-sm">
+              <input type="checkbox" checked={chosen.has(o.value)} className="size-4 accent-primary"
+                onChange={(e) => set('inputTaxCredit', e.target.checked ? [...current, o.value] : current.filter((t) => t !== o.value))} />
+              {o.label}
+            </label>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">{current.length === 0 ? 'Nenhum: ICMS, IPI, PIS e COFINS da nota ficam no custo.' : `Recuperáveis: ${current.join(', ')}. Saem do custo de entrada e ficam guardados na nota.`}</p>
         {error ? <p className="text-xs text-crit-ink">{error}</p> : null}
       </fieldset>
     )

@@ -12,6 +12,8 @@ public interface IAssetsDb
 
     DbSet<AssetSite> AssetSites { get; }
 
+    DbSet<AssetParameter> AssetParameters { get; }
+
     /// <summary>Transação da criação: a etiqueta <c>PAT</c> volta se o bem não for salvo (sem lacuna).</summary>
     DatabaseFacade Database { get; }
 

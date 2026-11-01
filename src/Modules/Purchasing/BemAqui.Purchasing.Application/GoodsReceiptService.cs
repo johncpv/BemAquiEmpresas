@@ -23,7 +23,8 @@ public sealed partial class GoodsReceiptService(
     IPurchasingDb db, PurchaseOrderService orders, IItems items, ILocations locations, IStockMovements stock, IStockBalances balances, IItemCosts costs,
     IStockReservations reservations, BemAqui.Production.Contracts.IProductionOrders productionOrders, IItemSupplierCodes supplierCodes, BemAqui.Parties.Contracts.IParties parties,
     BemAqui.Commercial.Contracts.IProjects projects, IPaymentTerms terms, IPayables payables, INumberSequence numbers, PurchasingParametersService parameters,
-    IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, INotificationService notifications, IEventPublisher events, TimeProvider clock)
+    IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, INotificationService notifications, IEventPublisher events, TimeProvider clock,
+    BemAqui.Fiscal.Contracts.IIncomingInvoiceReceipts incomingInvoices, IChartOfAccounts accounts)
 {
     public const string NotificationType = "purchasing.goods_receipt";
     public const string ReversedCode = "goods_receipt_reversed";
@@ -36,11 +37,20 @@ public sealed partial class GoodsReceiptService(
 
     private sealed record PreparedLine(
         PurchaseOrderLine PoLine, ItemSummary Item, decimal Quantity, string? SupplierUnit, decimal? SupplierQuantity, string? LotNumber, DateOnly? LotExpiry, Guid LocationId,
-        decimal LineAmount, decimal FreightShare, decimal IpiShare, decimal UnitCost);
+        decimal LineAmount, decimal FreightShare, decimal IpiShare, decimal UnitCost, decimal InsuranceShare = 0m, decimal OtherShare = 0m, decimal TaxCreditShare = 0m);
 
     private sealed record Prepared(
         PurchaseOrder Order, List<PurchaseOrderLine> Lines, DateOnly ReceivedOn, decimal Subtotal, decimal Freight, decimal IpiAmount, decimal Amount, decimal FreightMax,
-        decimal IpiMax, decimal Ceiling, decimal ReceivedBefore, bool Completes, List<PreparedLine> Items, bool SoleOwner);
+        decimal IpiMax, decimal Ceiling, decimal ReceivedBefore, bool Completes, List<PreparedLine> Items, bool SoleOwner, decimal Insurance = 0m, decimal OtherExpenses = 0m,
+        decimal TaxCredit = 0m);
+
+    /// <summary>
+    /// Valores da nota para o recebimento pela nota (FIS-04b CA 1, 4 e 5): frete, IPI (da parte de estoque), seguro e outras despesas da
+    /// nota, os tributos dos itens por linha do pedido e os tributos recuperáveis do parâmetro de crédito.
+    /// </summary>
+    private sealed record InvoiceCosts(
+        decimal Freight, decimal Ipi, decimal Insurance, decimal OtherExpenses, IReadOnlyDictionary<Guid, (decimal Icms, decimal Pis, decimal Cofins)> Taxes,
+        IReadOnlyCollection<string> Recoverable);
 
     /// <summary>
     /// "Registrar recebimento" preenchido (CA 1, R-PRP-1): as linhas com o saldo a receber, o local padrão, a data de hoje, o frete e o IPI
@@ -96,6 +106,12 @@ public sealed partial class GoodsReceiptService(
 
         var p = prepared.Value;
         var dues = await terms.SplitAsync(p.Order.PaymentTermId, p.Amount, p.ReceivedOn, cancellationToken) ?? [];
+        return await BuildPreviewAsync(p, dues.Select(d => new GoodsReceiptInstallmentPreview(d.Number, d.DueDate, d.Amount)).ToList(), cancellationToken);
+    }
+
+    /// <summary>O impacto comum ao recebimento manual e ao pela nota: custo médio antes → depois, as parcelas dadas e o previsto do pedido.</summary>
+    private async Task<GoodsReceiptPreview> BuildPreviewAsync(Prepared p, IReadOnlyList<GoodsReceiptInstallmentPreview> installments, CancellationToken cancellationToken)
+    {
         var seeCost = await permissions.HasPermissionAsync("inventory", "view", cancellationToken);
         var itemIds = p.Items.Select(i => i.Item.Id).Distinct().ToList();
         var averages = seeCost ? await costs.AverageCostsAsync(itemIds, cancellationToken) : new Dictionary<Guid, decimal>();
@@ -112,12 +128,13 @@ public sealed partial class GoodsReceiptService(
                 after = stockBefore + i.Quantity <= 0m ? avg : Math.Round((stockBefore * avg + i.Quantity * i.UnitCost) / (stockBefore + i.Quantity), 6, MidpointRounding.AwayFromZero);
             }
 
-            return new GoodsReceiptPreviewLine(i.PoLine.Id, i.Item.Code, i.Item.Name, i.Item.UnitCode, i.Quantity, i.LineAmount, i.FreightShare, i.IpiShare, i.UnitCost, before, after);
+            return new GoodsReceiptPreviewLine(i.PoLine.Id, i.Item.Code, i.Item.Name, i.Item.UnitCode, i.Quantity, i.LineAmount, i.FreightShare, i.IpiShare, i.UnitCost, before, after,
+                i.InsuranceShare, i.OtherShare, i.TaxCreditShare);
         }).ToList();
         var plannedBefore = GoodsReceiptRules.PlannedBalance(p.Order.Total, p.ReceivedBefore);
         var plannedAfter = p.Completes ? 0m : GoodsReceiptRules.PlannedBalance(p.Order.Total, p.ReceivedBefore + p.Amount);
         return new GoodsReceiptPreview(p.ReceivedOn, p.Subtotal, p.Freight, p.IpiAmount, p.Amount, p.FreightMax, p.IpiMax, p.Ceiling, p.ReceivedBefore + p.Amount, lines,
-            dues.Select(d => new GoodsReceiptInstallmentPreview(d.Number, d.DueDate, d.Amount)).ToList(), plannedBefore, plannedAfter, p.Completes, p.SoleOwner);
+            installments, plannedBefore, plannedAfter, p.Completes, p.SoleOwner, p.Insurance, p.OtherExpenses, p.TaxCredit);
     }
 
     /// <summary>
@@ -140,13 +157,25 @@ public sealed partial class GoodsReceiptService(
             return prepared.Error!;
         }
 
-        var p = prepared.Value;
-        var order = p.Order;
-        if (order.Version != input.Version)
+        if (prepared.Value.Order.Version != input.Version)
         {
             return Stale();
         }
 
+        return await CommitAsync(prepared.Value, input.Version, Clean(input.Notes), null, cancellationToken);
+    }
+
+    /// <summary>A nota do recebimento pela nota (FIS-04b) na transação: o que vira título e a regra de crédito usada.</summary>
+    private sealed record InvoiceCommit(BemAqui.Fiscal.Contracts.IncomingInvoiceForReceipt Invoice, InvoiceInstallmentPlan Plan, IReadOnlyDictionary<Guid, string> AccountNames, int Count);
+
+    /// <summary>
+    /// A transação do recebimento (CMP-04 CA 5 a 9; FIS-04b CA 6): recebimento, recebido do pedido, entradas no estoque, títulos (as parcelas
+    /// do pedido ou as duplicatas da nota), replanejamento do previsto e, pela nota, a transição dela para <c>Received</c>. Qualquer falha
+    /// devolve o erro sem commit: tudo é desfeito.
+    /// </summary>
+    private async Task<Result<GoodsReceiptDetail>> CommitAsync(Prepared p, uint version, string? notes, InvoiceCommit? invoice, CancellationToken cancellationToken)
+    {
+        var order = p.Order;
         var now = clock.GetUtcNow();
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         var lots = new Dictionary<Guid, Guid?>();
@@ -160,7 +189,8 @@ public sealed partial class GoodsReceiptService(
         {
             Number = await numbers.NextAsync(GoodsReceiptRules.DocType, cancellationToken), PurchaseOrderId = order.Id, PartyId = order.PartyId, ProjectId = order.ProjectId,
             ReceivedOn = p.ReceivedOn, Subtotal = p.Subtotal, Freight = p.Freight, IpiAmount = p.IpiAmount, Amount = p.Amount, OrderStatusBefore = statusBefore,
-            Notes = Clean(input.Notes), ReceivedBy = currentUser.UserId, SoleOwner = p.SoleOwner, CreatedAt = now,
+            Notes = notes, ReceivedBy = currentUser.UserId, SoleOwner = p.SoleOwner, CreatedAt = now, Insurance = p.Insurance, OtherExpenses = p.OtherExpenses, TaxCredit = p.TaxCredit,
+            Origin = invoice is null ? GoodsReceiptOrigin.Manual : GoodsReceiptOrigin.Invoice, IncomingInvoiceId = invoice?.Invoice.Id,
         };
         db.GoodsReceipts.Add(receipt);
         var receiptLines = new List<(GoodsReceiptLine Line, PreparedLine Source)>();
@@ -172,6 +202,7 @@ public sealed partial class GoodsReceiptService(
                 ReceiptId = receipt.Id, Sequence = ++sequence, PoLineId = line.PoLine.Id, ItemId = line.Item.Id, Quantity = line.Quantity, SupplierUnit = line.SupplierUnit,
                 SupplierQuantity = line.SupplierQuantity, LotNumber = line.LotNumber, LotId = lots[line.PoLine.Id], LotExpiry = line.LotExpiry, LocationId = line.LocationId,
                 UnitPrice = line.PoLine.UnitPrice, LineAmount = line.LineAmount, FreightShare = line.FreightShare, IpiShare = line.IpiShare, UnitCost = line.UnitCost,
+                InsuranceShare = line.InsuranceShare, OtherShare = line.OtherShare, TaxCreditShare = line.TaxCreditShare,
             };
             db.GoodsReceiptLines.Add(row);
             receiptLines.Add((row, line));
@@ -182,12 +213,23 @@ public sealed partial class GoodsReceiptService(
         }
 
         // Grava o pedido antes do motor: dois recebimentos do mesmo saldo param no xmin e só um segue (CA 17).
-        db.Entry(order).Property(o => o.Version).OriginalValue = input.Version;
+        db.Entry(order).Property(o => o.Version).OriginalValue = version;
         order.Status = GoodsReceiptRules.StatusAfter(p.Lines.Select(l => (l.Quantity, l.QuantityReceived)).ToList(), statusBefore);
         order.UpdatedAt = now;
         if (await SaveAsync(cancellationToken) is { } conflict)
         {
             return conflict;
+        }
+
+        // FIS-04b CA 13: a nota passa a Received logo depois do pedido, antes do estoque e dos títulos (a versão da nota e o índice único
+        // do recebimento da nota seguram o segundo "Receber pela nota" ao mesmo tempo).
+        if (invoice is not null)
+        {
+            var marked = await incomingInvoices.MarkReceivedAsync(invoice.Invoice.Id, invoice.Invoice.Version, receipt.Id, invoice.Invoice.Credit.Label, p.TaxCredit, cancellationToken);
+            if (marked.IsFailure)
+            {
+                return marked.Error!;
+            }
         }
 
         var at = p.ReceivedOn == BusinessTime.Today(clock) ? (DateTimeOffset?)null : BusinessTime.StartOfDayUtc(p.ReceivedOn).AddHours(12);
@@ -206,7 +248,7 @@ public sealed partial class GoodsReceiptService(
             receiptLines[i].Line.MovementNumber = posted.Value[i].Number;
         }
 
-        var titles = await OpenPayablesAsync(order, receipt, cancellationToken);
+        var titles = invoice is null ? await OpenPayablesAsync(order, receipt, cancellationToken) : await InvoicePayablesAsync(order, receipt, invoice, cancellationToken);
         if (titles.IsFailure)
         {
             return titles.Error!;
@@ -219,7 +261,7 @@ public sealed partial class GoodsReceiptService(
         }
 
         events.Publish(new GoodsReceived(receipt.Id, order.Id, order.PartyId, order.ProjectId, receipt.ReceivedOn, receipt.Amount,
-            receiptLines.Select(r => new GoodsReceivedLine(r.Line.PoLineId, r.Line.Quantity, r.Line.LineAmount)).ToList()));
+            receiptLines.Select(r => new GoodsReceivedLine(r.Line.PoLineId, r.Line.Quantity, r.Line.LineAmount)).ToList(), invoice?.Invoice.Id));
         if (p.SoleOwner)
         {
             foreach (var owner in await users.OwnerIdsAsync(cancellationToken))
@@ -330,6 +372,16 @@ public sealed partial class GoodsReceiptService(
             return cancelled.Error!;
         }
 
+        // FIS-04b CA 11: pela nota, os títulos da parte "Sem item de estoque" (origem IncomingInvoice) também saem, antes do estoque.
+        if (receipt.IncomingInvoiceId is { } invoiceId)
+        {
+            var noStock = await payables.CancelAllFromOriginAsync(DocumentOrigin.IncomingInvoice, invoiceId, $"recebimento {receipt.Number} estornado ({reason})", cancellationToken);
+            if (noStock.IsFailure)
+            {
+                return noStock.Error!;
+            }
+        }
+
         db.Entry(receipt).Property(r => r.Version).OriginalValue = input.Version;
         receipt.Status = GoodsReceiptStatus.Reversed;
         receipt.ReversedAt = now;
@@ -369,6 +421,15 @@ public sealed partial class GoodsReceiptService(
             return replanned.Error!;
         }
 
+        if (receipt.IncomingInvoiceId is { } back)
+        {
+            var returned = await incomingInvoices.ReturnToCheckedAsync(back, receipt.Id, cancellationToken);
+            if (returned.IsFailure)
+            {
+                return returned.Error!;
+            }
+        }
+
         events.Publish(new GoodsReceiptReversed(receipt.Id, order.Id, receipt.Amount));
         if (receipt.ReceivedBy is { } who && who != currentUser.UserId)
         {
@@ -389,7 +450,7 @@ public sealed partial class GoodsReceiptService(
     /// do próprio pedido (outra: 422), quantidade até o saldo + a tolerância, lote do item que controla lote, local ativo, frete e IPI só para
     /// baixo e o teto do aprovado.
     /// </summary>
-    private async Task<Result<Prepared>> PrepareAsync(Guid orderId, GoodsReceiptInput input, bool tracked, CancellationToken ct)
+    private async Task<Result<Prepared>> PrepareAsync(Guid orderId, GoodsReceiptInput input, bool tracked, CancellationToken ct, InvoiceCosts? costs = null)
     {
         ArgumentNullException.ThrowIfNull(input);
         var order = tracked
@@ -527,29 +588,48 @@ public sealed partial class GoodsReceiptService(
         var used = await UsedAsync(orderId, ct);
         var freightMax = GoodsReceiptRules.ProportionalShare(order.Freight, order.Subtotal, subtotal, used.Freight, completes);
         var ipiMax = GoodsReceiptRules.ProportionalShare(order.IpiAmount, order.Subtotal, subtotal, used.Ipi, completes);
-        var freight = input.Freight ?? freightMax;
-        var ipi = input.IpiAmount ?? ipiMax;
+        var freight = costs?.Freight ?? input.Freight ?? freightMax;
+        var ipi = costs?.Ipi ?? input.IpiAmount ?? ipiMax;
         if (freight < 0m || freight > freightMax || decimal.Round(freight, 2) != freight)
         {
-            return PurchaseOrderService.Invalid("freight", "Frete e IPI só podem baixar no recebimento.");
+            return PurchaseOrderService.Invalid("freight", costs is null
+                ? "Frete e IPI só podem baixar no recebimento."
+                : $"O frete da nota ({PurchaseOrderRules.Money(freight)}) passa do proporcional do pedido ({PurchaseOrderRules.Money(freightMax)}). Peça a correção do pedido a quem aprova compras.");
         }
 
         if (ipi < 0m || ipi > ipiMax || decimal.Round(ipi, 2) != ipi)
         {
-            return PurchaseOrderService.Invalid("ipiAmount", "Frete e IPI só podem baixar no recebimento.");
+            return PurchaseOrderService.Invalid("ipiAmount", costs is null
+                ? "Frete e IPI só podem baixar no recebimento."
+                : $"O IPI da nota ({PurchaseOrderRules.Money(ipi)}) passa do proporcional do pedido ({PurchaseOrderRules.Money(ipiMax)}). Peça a correção do pedido a quem aprova compras.");
         }
 
         var amounts = drafts.Select(d => d.Amount).ToList();
         var freightShares = CostAllocator.Allocate(freight, amounts);
         var ipiShares = CostAllocator.Allocate(ipi, amounts);
-        var prepared = drafts.Select((d, i) => new PreparedLine(d.PoLine, d.Item, d.Quantity, d.SupplierUnit, d.SupplierQuantity, d.Lot, d.Expiry, d.Location, d.Amount, freightShares[i],
-            ipiShares[i], GoodsReceiptRules.EntryUnitCost(d.Amount, freightShares[i], ipiShares[i], d.Quantity))).ToList();
+        var insurance = costs?.Insurance ?? 0m;
+        var other = costs?.OtherExpenses ?? 0m;
+        var insuranceShares = CostAllocator.Allocate(insurance, amounts);
+        var otherShares = CostAllocator.Allocate(other, amounts);
+        var prepared = drafts.Select((d, i) =>
+        {
+            if (costs is null)
+            {
+                return new PreparedLine(d.PoLine, d.Item, d.Quantity, d.SupplierUnit, d.SupplierQuantity, d.Lot, d.Expiry, d.Location, d.Amount, freightShares[i], ipiShares[i],
+                    GoodsReceiptRules.EntryUnitCost(d.Amount, freightShares[i], ipiShares[i], d.Quantity));
+            }
+
+            var taxes = costs.Taxes.GetValueOrDefault(d.PoLine.Id);
+            var credit = InvoiceReceiptRules.TaxCredit(costs.Recoverable, taxes.Icms, taxes.Pis, taxes.Cofins, ipiShares[i]);
+            return new PreparedLine(d.PoLine, d.Item, d.Quantity, d.SupplierUnit, d.SupplierQuantity, d.Lot, d.Expiry, d.Location, d.Amount, freightShares[i], ipiShares[i],
+                InvoiceReceiptRules.EntryUnitCost(d.Amount, freightShares[i], ipiShares[i], insuranceShares[i], otherShares[i], credit, d.Quantity), insuranceShares[i], otherShares[i], credit);
+        }).ToList();
         if (prepared.FirstOrDefault(l => l.UnitCost <= 0m) is { } free)
         {
             return PurchaseOrderService.Invalid("lines", $"O custo de entrada de {free.Item.Name} ficou zero: confira a quantidade.");
         }
 
-        var amount = GoodsReceiptRules.Amount(amounts, freight, ipi);
+        var amount = Math.Round(GoodsReceiptRules.Amount(amounts, freight, ipi) + insurance + other, 2, MidpointRounding.AwayFromZero);
         var ceiling = GoodsReceiptRules.Ceiling(order.ApprovedTotal ?? order.Total, tolerance);
         if (used.Amount + amount > ceiling)
         {
@@ -557,7 +637,7 @@ public sealed partial class GoodsReceiptService(
         }
 
         return new Prepared(order, lines, receivedOn, subtotal, freight, ipi, amount, freightMax, ipiMax, ceiling, used.Amount, completes, prepared,
-            segregation is { Involved: true, SoleOwner: true });
+            segregation is { Involved: true, SoleOwner: true }, insurance, other, prepared.Sum(l => l.TaxCreditShare));
     }
 
     /// <summary>Frete, IPI e valor dos recebimentos registrados do pedido (os estornados ficam fora).</summary>
@@ -579,7 +659,15 @@ public sealed partial class GoodsReceiptService(
         {
             return Stale();
         }
+        catch (DbUpdateException ex) when (BemAqui.BuildingBlocks.Persistence.DbErrors.IsUniqueViolation(ex, IncomingInvoiceIndex))
+        {
+            // FIS-04b CA 13: a mesma nota recebida ao mesmo tempo por outro usuário.
+            return Error.Conflict(BemAqui.Fiscal.Contracts.IncomingInvoiceReceiptCodes.Received, "Esta nota acabou de ser recebida por outro usuário. Recarregue.");
+        }
     }
+
+    /// <summary>Índice único do recebimento registrado por nota (FIS-04b CA 13).</summary>
+    public const string IncomingInvoiceIndex = "ux_goods_receipts_incoming_invoice";
 
     private static Error Stale() => Error.Conflict("concurrency_conflict", "O pedido mudou desde que você abriu (outro recebimento ou alteração). Recarregue.");
 

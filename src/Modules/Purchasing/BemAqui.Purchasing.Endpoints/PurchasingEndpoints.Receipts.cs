@@ -55,6 +55,21 @@ internal static partial class PurchasingEndpoints
                 (await service.ReverseAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("purchasing.approve").WithName("ReverseGoodsReceipt").Produces<GoodsReceiptDetail>();
 
+        // FIS-04b: "Receber pela nota" a partir da NF-e de entrada conferida; exige também os módulos fiscal e inventory. A nota é a da URL
+        // (IDOR: nota de outro tenant ou inexistente, 404); registrar com purchasing.receive e Idempotency-Key.
+        var byInvoice = purchasing.MapGroup("/incoming-invoices").RequireModule("inventory").RequireModule("fiscal");
+        byInvoice.MapGet("/{id:guid}/receipt-defaults", async (Guid id, GoodsReceiptService service, CancellationToken ct) => (await service.InvoiceDefaultsAsync(id, ct)).ToHttpResult())
+            .RequirePermission("purchasing.receive").WithName("GetInvoiceReceiptDefaults").Produces<InvoiceReceiptDefaults>();
+        byInvoice.MapPost("/{id:guid}/receipt/preview", async (Guid id, InvoiceReceiptInput input, GoodsReceiptService service, CancellationToken ct) =>
+                (await service.InvoicePreviewAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("purchasing.receive").WithName("PreviewInvoiceReceipt").Produces<InvoiceReceiptPreview>();
+        byInvoice.MapPost("/{id:guid}/receipt", async (Guid id, InvoiceReceiptInput input, GoodsReceiptService service, CancellationToken ct) =>
+                (await service.RegisterFromInvoiceAsync(id, input, ct)).ToHttpResult(saved => Results.Created("/api/v1/purchasing/goods-receipts/" + saved.Id, saved)))
+            .RequirePermission("purchasing.receive").RequireIdempotencyKey().WithName("RegisterInvoiceReceipt").Produces<GoodsReceiptDetail>(StatusCodes.Status201Created);
+        byInvoice.MapPost("/{id:guid}/price-correction-request", async (Guid id, GoodsReceiptService service, CancellationToken ct) =>
+                (await service.RequestPriceCorrectionAsync(id, ct)).ToHttpResult())
+            .RequirePermission("purchasing.receive").WithName("RequestInvoicePriceCorrection").Produces<PriceCorrectionRequestResult>();
+
         purchasing.MapGet("/locations", async (GoodsReceiptService service, CancellationToken ct) => Results.Ok(await service.LocationOptionsAsync(ct)))
             .RequirePermission("purchasing.receive").RequireModule("inventory").WithName("ListReceiptLocationOptions").Produces<IReadOnlyList<ReceiptLocationOption>>();
         purchasing.MapGet("/items/{itemId:guid}/last-purchase", async (Guid itemId, GoodsReceiptService service, CancellationToken ct) =>

@@ -45,7 +45,22 @@ public sealed partial class AssetService(
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(page);
-        var assets = db.Assets.AsNoTracking();
+        var assets = Filtered(db.Assets.AsNoTracking(), query);
+        assets = page.ParseSort() switch
+        {
+            ("name", true) => assets.OrderByDescending(a => a.Name).ThenByDescending(a => a.Tag),
+            ("name", false) => assets.OrderBy(a => a.Name).ThenBy(a => a.Tag),
+            ("tag", true) => assets.OrderByDescending(a => a.Tag),
+            _ => assets.OrderBy(a => a.Tag),
+        };
+        var paged = await assets.ToPagedListAsync(page, cancellationToken);
+        var items = await ItemsAsync(paged.Items, cancellationToken);
+        return new PagedList<AssetListItem>(items, paged.Page, paged.PageSize, paged.Total);
+    }
+
+    /// <summary>Filtros da lista (CA 9), também usados por "Imprimir etiquetas" com todos do filtro (PAT-01b CA 3).</summary>
+    internal static IQueryable<Asset> Filtered(IQueryable<Asset> assets, AssetListQuery query)
+    {
         if (!string.IsNullOrWhiteSpace(query.Q))
         {
             var term = "%" + query.Q.Trim() + "%";
@@ -77,16 +92,7 @@ public sealed partial class AssetService(
             assets = assets.Where(a => a.Status == status);
         }
 
-        assets = page.ParseSort() switch
-        {
-            ("name", true) => assets.OrderByDescending(a => a.Name).ThenByDescending(a => a.Tag),
-            ("name", false) => assets.OrderBy(a => a.Name).ThenBy(a => a.Tag),
-            ("tag", true) => assets.OrderByDescending(a => a.Tag),
-            _ => assets.OrderBy(a => a.Tag),
-        };
-        var paged = await assets.ToPagedListAsync(page, cancellationToken);
-        var items = await ItemsAsync(paged.Items, cancellationToken);
-        return new PagedList<AssetListItem>(items, paged.Page, paged.PageSize, paged.Total);
+        return assets;
     }
 
     public async Task<Result<AssetDetail>> GetAsync(Guid id, CancellationToken cancellationToken = default)
