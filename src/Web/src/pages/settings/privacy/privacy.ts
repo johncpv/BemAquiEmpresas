@@ -74,6 +74,6 @@ export function nextStepOf(kind: string | null | undefined, identityVerified: bo
   if (requiresIdentity(kind) && !identityVerified) return 'Confira a identidade do titular antes de agir.'
   if (exportsData(kind)) return exportStatus === 'Ready' ? 'Baixe a exportação, envie ao titular e conclua o pedido.' : 'Exporte os dados do titular.'
   if (kind === 'Correction') return 'Abra o cadastro, corrija e conclua o pedido.'
-  if (kind === 'Anonymization' || kind === 'Deletion') return 'A anonimização entra numa próxima versão. Responda ao titular e conclua o pedido.'
+  if (kind === 'Anonymization' || kind === 'Deletion') return 'Preveja a anonimização, confira o que fica retido e anonimize; depois, responda ao titular e conclua o pedido.'
   return 'Responda ao titular e conclua o pedido.'
 }

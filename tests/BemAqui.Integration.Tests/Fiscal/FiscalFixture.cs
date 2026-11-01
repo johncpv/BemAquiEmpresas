@@ -204,6 +204,9 @@ public sealed class FiscalFixture : IAsyncLifetime
         fake.Accounts.Clear();
         fake.Certificate = null;
         fake.RejectCertificate = false;
+        fake.NextEvent = FakeEvent.Accept;
+        fake.NoEventXml = false;
+        fake.NoDanfe = false;
         await using var scope = await ScopeAsync(tenant);
         var db = scope.ServiceProvider.GetRequiredService<IFiscalDb>();
         var shared = scope.ServiceProvider.GetRequiredService<BemAquiDbContext>();
@@ -325,7 +328,11 @@ public sealed class FiscalFixture : IAsyncLifetime
     }
 
     /// <summary>Usuário do tenant com um grupo das ações dadas ou do Proprietário.</summary>
-    public async Task<(Guid Id, HttpClient Client)> ActorAsync(Tenant tenant, string host, bool owner = false, params string[] grants)
+    public Task<(Guid Id, HttpClient Client)> ActorAsync(Tenant tenant, string host, bool owner = false, params string[] grants) =>
+        ProvenActorAsync(tenant, host, owner, null, grants);
+
+    /// <summary>Como o <see cref="ActorAsync"/>, com a prova recente do 2FA no token (claim <c>otp_at</c>, D6) quando <paramref name="otpAt"/> vem.</summary>
+    public async Task<(Guid Id, HttpClient Client)> ProvenActorAsync(Tenant tenant, string host, bool owner, DateTimeOffset? otpAt, params string[] grants)
     {
         var (id, stamp) = await Tenancy.SeedUserAsync(tenant, "f" + Guid.NewGuid().ToString("N")[..10] + "@teste.com");
         await using (var scope = await ScopeAsync(tenant))
@@ -359,7 +366,7 @@ public sealed class FiscalFixture : IAsyncLifetime
 
         var client = Factory.CreateClient();
         client.DefaultRequestHeaders.Host = host;
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TestTokens.Create(tenant.Id, host, userId: id, stamp: stamp));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TestTokens.Create(tenant.Id, host, userId: id, stamp: stamp, otpAt: otpAt));
         return (id, client);
     }
 

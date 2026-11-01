@@ -12,7 +12,7 @@ namespace BemAqui.Parties.Application;
 /// mascarados; o terceiro de um contato aparece pelo nome só quando é PJ.
 /// </summary>
 [PersonalDataCovers(typeof(Party), typeof(PartyContact))]
-public sealed class PartiesPersonalDataProvider(IPartiesDb db) : IPersonalDataProvider
+public sealed class PartiesPersonalDataProvider(IPartiesDb db, TimeProvider clock) : IPersonalDataProvider
 {
     public string Module => "parties";
 
@@ -118,6 +118,100 @@ public sealed class PartiesPersonalDataProvider(IPartiesDb db) : IPersonalDataPr
             ("Recebe cobrança", PersonalDataMask.YesNo(contact.ReceivesBilling)),
             ("Contato de", party is null ? null : party.Kind == PartyKind.PJ ? party.LegalName : "Terceiro pessoa física"));
         return new PersonalDataSection(Module, Title, [new PersonalDataBlock("Contato", "parties.party_contacts", [record])]);
+    }
+
+    public Task<PersonalDataAnonymizationPlan?> PlanAnonymizationAsync(PersonalDataAnonymizationContext context, CancellationToken cancellationToken = default) =>
+        RunAsync(context, false, cancellationToken);
+
+    public Task<PersonalDataAnonymizationPlan?> AnonymizeAsync(PersonalDataAnonymizationContext context, CancellationToken cancellationToken = default) =>
+        RunAsync(context, true, cancellationToken);
+
+    /// <summary>
+    /// LGPD-01b CA 2 a 4: no terceiro PF, telefone, e-mail e observações saem a qualquer momento; endereços e o nome e CPF ficam retidos enquanto
+    /// houver documento com movimento no prazo (fim do exercício do último documento + 5 anos, pela tabela de retenção), e o cadastro é
+    /// anonimizado só no que não aparece neles. O terceiro fica inativo e marcado "Anonimizado" de qualquer forma. No contato, nome, função,
+    /// e-mail e telefone viram o marcador (o contato não aparece em documento fiscal). Contatos de um terceiro PF são outras pessoas: ficam.
+    /// </summary>
+    private async Task<PersonalDataAnonymizationPlan?> RunAsync(PersonalDataAnonymizationContext context, bool apply, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        var plan = new PersonalDataPlanBuilder(Module, Title);
+        var subject = context.Subject;
+        if (subject.Kind == PersonalDataSubjectKind.Contact)
+        {
+            var contact = await db.PartyContacts.FirstOrDefaultAsync(c => c.Id == subject.Id, ct);
+            if (contact is null)
+            {
+                return null;
+            }
+
+            var decision = context.Decide(RetentionGroups.Contact);
+            if (apply && !decision.Retained)
+            {
+                contact.Name = context.Marker;
+                contact.Role = null;
+                contact.Email = null;
+                contact.Phone = null;
+                contact.ReceivesBilling = false;
+                await db.SaveChangesAsync(ct);
+            }
+
+            return plan.Fields(decision, "Nome, função, e-mail e telefone do contato", "parties.party_contacts", 1).Build();
+        }
+
+        if (subject.Kind != PersonalDataSubjectKind.Party)
+        {
+            return null;
+        }
+
+        var party = await db.Parties.IgnoreQueryFilters().Include(p => p.Addresses).FirstOrDefaultAsync(p => p.Id == subject.Id && p.Kind == PartyKind.PF, ct);
+        if (party is null)
+        {
+            return null;
+        }
+
+        var contactData = context.Decide(RetentionGroups.Contact);
+        var address = context.Decide(RetentionGroups.Address);
+        var identification = context.Decide(RetentionGroups.Identification);
+        if (apply)
+        {
+            if (!contactData.Retained)
+            {
+                party.Email = null;
+                party.Phone = null;
+                party.Notes = null;
+                party.TradeName = null;
+            }
+
+            if (!address.Retained)
+            {
+                foreach (var a in party.Addresses)
+                {
+                    a.Street = context.Marker;
+                    a.Number = string.Empty;
+                    a.Complement = null;
+                    a.District = string.Empty;
+                    a.ZipCode = string.Empty;
+                }
+            }
+
+            if (!identification.Retained)
+            {
+                party.LegalName = context.Marker;
+                party.Document = null;
+            }
+
+            party.IsActive = false;
+            party.AnonymizedAt ??= clock.GetUtcNow();
+            party.AnonymizationRequest ??= context.RequestNumber;
+            await db.SaveChangesAsync(ct);
+        }
+
+        return plan.Fields(contactData, "Telefone, e-mail e observações do cadastro", "parties.parties", 1)
+            .Fields(address, "Endereços", "parties.party_addresses", party.Addresses.Count)
+            .Fields(identification, "Nome e CPF do cadastro (aparecem nas notas e títulos)", "parties.parties", 1)
+            .Keep("Cadastro do terceiro: fica inativo e marcado \"Anonimizado\"", "parties.parties", 1)
+            .Build();
     }
 
     private static string[] Emails(string? email) => string.IsNullOrWhiteSpace(email) ? [] : [email.Trim().ToLowerInvariant()];

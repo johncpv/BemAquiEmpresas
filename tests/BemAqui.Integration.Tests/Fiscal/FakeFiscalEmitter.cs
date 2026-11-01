@@ -29,6 +29,24 @@ public enum FakeIssue
     KeyRejected,
 }
 
+/// <summary>O que o fake faz no próximo evento (FIS-03b).</summary>
+public enum FakeEvent
+{
+    Accept,
+
+    /// <summary>A SEFAZ recusa (422 com <c>aceito = false</c>).</summary>
+    Reject,
+
+    /// <summary>O Emissor recusa antes da SEFAZ (400).</summary>
+    Refuse,
+
+    /// <summary>Rede caiu: não se sabe se saiu (nada registrado).</summary>
+    Down,
+
+    /// <summary>Registrou na SEFAZ e caiu antes de responder: o webhook e a reconsulta confirmam.</summary>
+    DownAfterRegister,
+}
+
 /// <summary>
 /// EmissorFiscal em memória para os testes dos módulos (CA 3): idempotência por chave (a mesma chave devolve o documento original),
 /// autorização, rejeição, denegação, contingência, demora, queda depois de criar, a consulta forçada e o corpo do webhook. Nenhum teste
@@ -51,6 +69,34 @@ public sealed class FakeFiscalEmitter
     public ConcurrentDictionary<string, EmitterAccount> Accounts { get; } = new(StringComparer.Ordinal);
 
     public string[] Scopes { get; set; } = ["consultar", "nfe:emitir", "nfe:eventos"];
+
+    /// <summary>O que o fake faz no próximo evento (cancelamento, carta de correção, inutilização; FIS-03b).</summary>
+    public FakeEvent NextEvent { get; set; } = FakeEvent.Accept;
+
+    /// <summary>Sem a rota do XML do evento (lacuna L-n): 404.</summary>
+    public bool NoEventXml { get; set; }
+
+    /// <summary>Conversor de PDF fora do ar: a DANFE cai na reserva do BemAqui.</summary>
+    public bool NoDanfe { get; set; }
+
+    public ConcurrentQueue<string> Justifications { get; } = new();
+
+    public ConcurrentQueue<NumberRangeInvalidation> Invalidations { get; } = new();
+
+    private readonly ConcurrentDictionary<string, ConcurrentQueue<NfeEventResult>> _events = new(StringComparer.Ordinal);
+
+    private NfeEventResult AddEvent(string accessKey, NfeEventType type, bool accepted)
+    {
+        var result = accepted
+            ? new NfeEventResult(Guid.CreateVersion7(), type, true, "13526" + Random.Shared.Next(10_000_000, 99_999_999).ToString(CultureInfo.InvariantCulture), 135, "Evento registrado e vinculado a NF-e", null, DateTimeOffset.UtcNow)
+            : new NfeEventResult(Guid.CreateVersion7(), type, false, null, 501, "Rejeicao: Prazo de cancelamento superior ao previsto na Legislacao", "Emita a nota de devolução.", DateTimeOffset.UtcNow);
+        if (accepted)
+        {
+            _events.GetOrAdd(accessKey, _ => new ConcurrentQueue<NfeEventResult>()).Enqueue(result);
+        }
+
+        return result;
+    }
 
     public FiscalEnvironment Environment { get; set; } = FiscalEnvironment.Homologation;
 
@@ -231,24 +277,84 @@ public sealed class FakeFiscalEmitter
             return Task.FromResult(Result<FiscalFile>.Success(new FiscalFile(Encoding.UTF8.GetBytes(xml), "application/xml", accessKey + "-nfe.xml")));
         }
 
-        public Task<Result<FiscalFile>> GetDanfePdfAsync(string accessKey, CancellationToken cancellationToken = default) =>
-            Task.FromResult(Result<FiscalFile>.Success(new FiscalFile("%PDF-1.7"u8.ToArray(), "application/pdf", accessKey + "-danfe.pdf")));
+        public Task<Result<FiscalFile>> GetDanfePdfAsync(string accessKey, CancellationToken cancellationToken = default)
+        {
+            Track("danfe");
+            if (fake.NoDanfe)
+            {
+                return Task.FromResult<Result<FiscalFile>>(Error.Unavailable(FiscalErrorCodes.Unavailable, "O conversor de PDF do Emissor está fora do ar."));
+            }
+
+            var cancelled = fake._byKey.TryGetValue(accessKey, out var doc) && doc.Status == FiscalDocumentStatus.Cancelled;
+            return Task.FromResult(Result<FiscalFile>.Success(new FiscalFile(cancelled ? "%PDF-1.7 CANCELADA"u8.ToArray() : "%PDF-1.7"u8.ToArray(), "application/pdf", accessKey + "-danfe.pdf")));
+        }
 
         public Task<Result<NfeEventResult>> CancelNfeAsync(string accessKey, string justification, CancellationToken cancellationToken = default)
         {
             Track("cancelar");
+            fake.Justifications.Enqueue(justification);
+            switch (fake.NextEvent)
+            {
+                case FakeEvent.Down:
+                    return Task.FromResult<Result<NfeEventResult>>(Error.Unavailable(FiscalErrorCodes.Unavailable, "O Emissor Fiscal não respondeu a tempo."));
+                case FakeEvent.Refuse:
+                    return Task.FromResult<Result<NfeEventResult>>(Error.Validation(FiscalErrorCodes.Validation, "Prazo de cancelamento encerrado (24 h)."));
+                case FakeEvent.Reject:
+                    return Task.FromResult(Result<NfeEventResult>.Success(fake.AddEvent(accessKey, NfeEventType.Cancellation, false)));
+                case FakeEvent.DownAfterRegister:
+                    fake.AddEvent(accessKey, NfeEventType.Cancellation, true);
+                    fake.Settle(accessKey, FiscalDocumentStatus.Cancelled);
+                    return Task.FromResult<Result<NfeEventResult>>(Error.Unavailable(FiscalErrorCodes.Unavailable, "O Emissor Fiscal não respondeu a tempo."));
+            }
+
+            var registered = fake.AddEvent(accessKey, NfeEventType.Cancellation, true);
             fake.Settle(accessKey, FiscalDocumentStatus.Cancelled);
-            return Task.FromResult(Result<NfeEventResult>.Success(new NfeEventResult(Guid.CreateVersion7(), NfeEventType.Cancellation, true, "135", 135, "Evento registrado", null, DateTimeOffset.UtcNow)));
+            return Task.FromResult(Result<NfeEventResult>.Success(registered));
         }
 
-        public Task<Result<NfeEventResult>> CorrectNfeAsync(string accessKey, string correction, CancellationToken cancellationToken = default) =>
-            Task.FromResult(Result<NfeEventResult>.Success(new NfeEventResult(Guid.CreateVersion7(), NfeEventType.CorrectionLetter, true, "135", 135, "Evento registrado", null, DateTimeOffset.UtcNow)));
+        public Task<Result<NfeEventResult>> CorrectNfeAsync(string accessKey, string correction, CancellationToken cancellationToken = default)
+        {
+            Track("carta_correcao");
+            return Task.FromResult(fake.NextEvent switch
+            {
+                FakeEvent.Down => Error.Unavailable(FiscalErrorCodes.Unavailable, "O Emissor Fiscal não respondeu a tempo."),
+                FakeEvent.Reject => Result<NfeEventResult>.Success(fake.AddEvent(accessKey, NfeEventType.CorrectionLetter, false)),
+                _ => Result<NfeEventResult>.Success(fake.AddEvent(accessKey, NfeEventType.CorrectionLetter, true)),
+            });
+        }
 
-        public Task<Result<NumberRangeInvalidationResult>> InvalidateRangeAsync(NumberRangeInvalidation request, CancellationToken cancellationToken = default) =>
-            Task.FromResult(Result<NumberRangeInvalidationResult>.Success(new NumberRangeInvalidationResult(true, request.Series, request.FirstNumber, request.LastNumber, "102", 102, "Inutilização homologada", null)));
+        public Task<Result<NumberRangeInvalidationResult>> InvalidateRangeAsync(NumberRangeInvalidation request, CancellationToken cancellationToken = default)
+        {
+            Track("inutilizar");
+            fake.Invalidations.Enqueue(request);
+            return Task.FromResult(fake.NextEvent switch
+            {
+                FakeEvent.Reject => Result<NumberRangeInvalidationResult>.Success(new NumberRangeInvalidationResult(false, request.Series, request.FirstNumber, request.LastNumber, null, 241,
+                    "Rejeicao: Um numero da faixa ja foi utilizado", "Confira a faixa.")),
+                FakeEvent.Down => Error.Unavailable(FiscalErrorCodes.Unavailable, "O Emissor Fiscal não respondeu a tempo."),
+                _ => Result<NumberRangeInvalidationResult>.Success(new NumberRangeInvalidationResult(true, request.Series, request.FirstNumber, request.LastNumber, "102", 102,
+                    "Inutilização homologada", null)),
+            });
+        }
 
-        public Task<Result<IReadOnlyList<NfeEventResult>>> GetEventsAsync(string accessKey, CancellationToken cancellationToken = default) =>
-            Task.FromResult(Result<IReadOnlyList<NfeEventResult>>.Success([]));
+        public Task<Result<IReadOnlyList<NfeEventResult>>> GetEventsAsync(string accessKey, CancellationToken cancellationToken = default)
+        {
+            Track("eventos");
+            return Task.FromResult(Result<IReadOnlyList<NfeEventResult>>.Success(fake._events.TryGetValue(accessKey, out var list) ? list.ToList() : []));
+        }
+
+        public Task<Result<FiscalFile>> GetEventXmlAsync(string accessKey, Guid eventId, CancellationToken cancellationToken = default)
+        {
+            Track("evento_xml");
+            if (fake.NoEventXml || !fake._events.TryGetValue(accessKey, out var list) || list.All(e => e.Id != eventId))
+            {
+                return Task.FromResult<Result<FiscalFile>>(Error.NotFound(FiscalErrorCodes.NotFound, "O Emissor Fiscal não encontrou o evento."));
+            }
+
+            var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><procEventoNFe versao=\"1.00\"><evento><infEvento><chNFe>" + accessKey + "</chNFe></infEvento></evento>"
+                + "<retEvento><infEvento><nProt>135" + eventId.ToString("N")[..8] + "</nProt></infEvento></retEvento></procEventoNFe>";
+            return Task.FromResult(Result<FiscalFile>.Success(new FiscalFile(Encoding.UTF8.GetBytes(xml), "application/xml", accessKey + "-evento.xml")));
+        }
 
         public Task<Result<SefazStatus>> SefazStatusAsync(string? issuerDocument, CancellationToken cancellationToken = default)
         {

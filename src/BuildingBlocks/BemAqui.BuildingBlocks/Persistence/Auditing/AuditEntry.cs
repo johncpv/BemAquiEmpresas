@@ -38,4 +38,10 @@ public static class AuditActions
 
     /// <summary>Importação de arquivo (RH-02a CA 9): quem, quando, onde, o formato e quantas linhas, sem o arquivo nem os valores.</summary>
     public const string Imported = "Imported";
+
+    /// <summary>Anonimização do titular (LGPD-01b CA 6): quais campos foram trocados pelo marcador, sem o valor anterior nem o novo.</summary>
+    public const string Anonymized = "Anonymized";
+
+    /// <summary>Prévia da anonimização (LGPD-01b CA 11): quem pediu, quando e o resumo por módulo, sem dado pessoal.</summary>
+    public const string AnonymizationPreviewed = "AnonymizationPreviewed";
 }

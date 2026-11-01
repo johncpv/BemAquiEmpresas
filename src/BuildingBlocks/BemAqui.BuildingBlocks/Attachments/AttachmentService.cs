@@ -193,6 +193,11 @@ public sealed partial class AttachmentService(
             return Forbidden();
         }
 
+        if (attachment.ContentRemovedAt is not null)
+        {
+            return ContentRemoved();
+        }
+
         if (attachment.ScanStatus != ScanStatus.Clean)
         {
             return Error.Conflict("attachment.not_scanned", "O arquivo ainda está sendo verificado pelo antivírus. Tente de novo em alguns minutos.");

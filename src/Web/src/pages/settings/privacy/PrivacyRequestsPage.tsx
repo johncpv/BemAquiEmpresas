@@ -82,7 +82,7 @@ export function PrivacyRequestsPage() {
               {KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}
             </select>
           </label>
-          <div className="ml-auto">{register}</div>
+          <div className="ml-auto flex flex-wrap gap-2"><Link to={'/app/configuracoes/privacidade/retencao' as never} className={button}>Retenção dos dados</Link>{register}</div>
         </div>
         {list.isPending ? (
           <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-16" />)}</div>

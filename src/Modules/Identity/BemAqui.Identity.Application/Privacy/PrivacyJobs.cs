@@ -145,3 +145,15 @@ public sealed class PrivacyExportPurgeRecurringJob(ITenantDirectory directory, I
 
     protected override PrivacyExportPurgeArgs ArgsFor(TenantInfo tenant) => new();
 }
+
+/// <summary>"Anonimizar" (LGPD-01b CA 4 e 5): roda os módulos que faltam no escopo do tenant e avisa quem pediu no sino.</summary>
+public sealed class PrivacyAnonymizationJob(ITenantDirectory directory, ITenantScopeFactory scopes, ILogger<PrivacyAnonymizationJob> logger)
+    : TenantJob<PrivacyAnonymizationArgs>(directory, scopes, logger)
+{
+    protected override Task RunAsync(IServiceProvider services, TenantInfo tenant, PrivacyAnonymizationArgs args, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(args);
+        return services.GetRequiredService<PrivacyAnonymizationService>().RunAsync(args.PrivacyRequestId, args.RequestedBy, cancellationToken);
+    }
+}

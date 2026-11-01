@@ -52,6 +52,15 @@ public static class FiscalInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, OutgoingInvoiceAgendaSource>());
         services.AddAuditableEntity<OutgoingInvoiceItem>("fiscal");
         services.AddAuditableEntity<NumberGap>("fiscal");
+        // FIS-03b: cancelamento, carta de correção, pedidos de cancelamento e inutilização; o lembrete semanal, a expiração e a pauta.
+        services.TryAddScoped<NumberGapService>();
+        services.TryAddScoped<FiscalInvalidationReminder>();
+        services.TryAddTransient<FiscalInvalidationReminderJob>();
+        services.TryAddScoped<CancellationRequestExpiry>();
+        services.TryAddTransient<CancellationRequestExpiryJob>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, FiscalEventAgendaSource>());
+        services.AddAuditableEntity<FiscalEvent>("fiscal");
+        services.AddAuditableEntity<CancellationRequest>("fiscal");
         // PAT-01a CA 7: seletor da NF de entrada do bem; sem notas até a FIS-04a (que troca este registro).
         services.TryAddScoped<BemAqui.Fiscal.Contracts.IIncomingInvoices, NoIncomingInvoices>();
         services.TryAddScoped<FiscalPendingChecker>();

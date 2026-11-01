@@ -516,19 +516,31 @@ public sealed class PrivacyRequestService(
             return (null, Error.Conflict("privacy_request_closed", "O pedido já foi concluído ou recusado."));
         }
 
+        if (request.AnonymizationStatus == PrivacyAnonymizationStatus.Running)
+        {
+            return (null, Error.Conflict(PrivacyAnonymizationService.RunningCode, "A anonimização está em andamento. Aguarde o aviso no sino."));
+        }
+
         db.Entry(request).Property(r => r.Version).OriginalValue = version;
         return (request, null);
     }
 
-    private async Task<PrivacyRequestDetail> DetailAsync(PrivacyRequest r, CancellationToken ct)
+    public async Task<PrivacyRequestDetail> DetailAsync(PrivacyRequest r, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(r);
         var verifier = r.IdentityVerifiedBy is { } by ? await users.DisplayNameAsync(by, ct) : null;
+        var anonymizer = r.AnonymizedBy is { } who ? await users.DisplayNameAsync(who, ct) : null;
         var today = BusinessTime.Today(clock);
+        var anonymizes = PrivacyRequestRules.Anonymizes(r.Kind);
+        var canAnonymize = r.Status == PrivacyRequestStatus.Open && anonymizes && r.IsIdentityVerified && r.SubjectId is not null
+            && r.AnonymizationStatus is PrivacyAnonymizationStatus.None or PrivacyAnonymizationStatus.Partial;
         return new PrivacyRequestDetail(r.Id, r.Number, r.SubjectType, r.SubjectId, r.SubjectName, r.SubjectContact, r.Kind, r.RequestedOn, r.Channel, r.Notes, r.DueOn,
             PrivacyRequestRules.DueChip(r.Status, r.DueOn, today), r.Status, PrivacyRequestRules.RequiresIdentity(r.Kind), r.IsIdentityVerified, r.IdentityVerifiedAt, verifier,
             r.IdentityMethod, r.IdentityCheckedOn, r.IdentityNotes, r.Response, r.RespondedOn, r.FileSent, r.RefusalReason, r.ClosedAt, r.CorrectionLink,
             r.Status == PrivacyRequestStatus.Open && PrivacyRequestRules.Exports(r.Kind) && r.IsIdentityVerified, r.ExportStatus, r.ExportedAt, r.ExportError,
-            r.ClosedAt is { } closed && r.ExportAttachmentId is not null ? closed + PrivacyRequestRules.ExportRetention : null, r.CreatedAt, r.Version);
+            r.ClosedAt is { } closed && r.ExportAttachmentId is not null ? closed + PrivacyRequestRules.ExportRetention : null, r.CreatedAt, r.Version,
+            canAnonymize, r.AnonymizationStatus, anonymizes ? PrivacyAnonymizationJson.Steps(r.AnonymizationSteps) : null, PrivacyAnonymizationJson.Summary(r.AnonymizationSummary),
+            r.AnonymizedAt, anonymizer, anonymizes ? PrivacyRequestRules.BackupNotice : null);
     }
 
     private static int ParseDays(string? value) =>

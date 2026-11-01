@@ -69,6 +69,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<PrivacyRequest> PrivacyRequests => Set<PrivacyRequest>();
 
+    public DbSet<RetentionRule> RetentionRules => Set<RetentionRule>();
+
     public DbSet<Party> Parties => Set<Party>();
 
     public DbSet<PartyRole> PartyRoles => Set<PartyRole>();
@@ -353,6 +355,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BemAqui.Fiscal.Domain.OutgoingInvoiceReceivable> OutgoingInvoiceReceivables => Set<BemAqui.Fiscal.Domain.OutgoingInvoiceReceivable>();
 
     public DbSet<BemAqui.Fiscal.Domain.NumberGap> NumberGaps => Set<BemAqui.Fiscal.Domain.NumberGap>();
+
+    public DbSet<BemAqui.Fiscal.Domain.FiscalEvent> FiscalEvents => Set<BemAqui.Fiscal.Domain.FiscalEvent>();
+
+    public DbSet<BemAqui.Fiscal.Domain.CancellationRequest> CancellationRequests => Set<BemAqui.Fiscal.Domain.CancellationRequest>();
 
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoice> IncomingInvoices => Set<BemAqui.Fiscal.Domain.IncomingInvoice>();
 

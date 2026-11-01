@@ -47,7 +47,10 @@ public sealed partial class FiscalPendingChecker(
         var cutoff = now - options.Value.PendingAfter;
         var ids = await db.OutgoingInvoices.AsNoTracking()
             .Where(i => (Pending.Contains(i.Status) && i.ProcessingSince <= cutoff) || (i.Status == OutgoingInvoiceStatus.Authorized && (i.XmlAttachmentId == null
-                || (i.ShipmentId != null && (i.DanfeAttachmentId == null || i.AuthorizationPublishedAt == null)))))
+                || (i.ShipmentId != null && (i.DanfeAttachmentId == null || i.AuthorizationPublishedAt == null))))
+                // FIS-03b: cancelamento enviado sem resposta (reconsulta) e cancelada pela metade (evento, DANFE com a marca).
+                || (i.Status == OutgoingInvoiceStatus.Authorized && i.CancellationSentAt != null && i.CancellationSentAt <= cutoff)
+                || (i.Status == OutgoingInvoiceStatus.Cancelled && i.ShipmentId != null && (i.CancellationPublishedAt == null || i.CancelledDanfeAttachmentId == null)))
             .OrderBy(i => i.ProcessingSince).Select(i => i.Id).Take(BatchSize).ToListAsync(cancellationToken);
         if (ids.Count == 0)
         {
@@ -96,6 +99,26 @@ public sealed partial class FiscalPendingChecker(
         }
 
         var now = clock.GetUtcNow();
+        if (invoice.Status == OutgoingInvoiceStatus.Authorized && invoice.CancellationSentAt is not null && invoice.AccessKey is { } cancelling)
+        {
+            // FIS-03b CA 1: o cancelamento foi enviado e a resposta não veio; a situação do Emissor decide (nunca reenvia sozinho).
+            var state = await emitter.GetNfeAsync(cancelling, cancellationToken);
+            if (state.IsFailure)
+            {
+                await transaction.RollbackAsync(CancellationToken.None);
+                return await FailedAsync(invoice, state.Error!.Code, cancellationToken);
+            }
+
+            var cancelledNow = await reconciler.ApplyAsync(invoice, state.Value, emitter, cancellationToken);
+            return await SaveAsync(transaction, new Step(true, cancelledNow && invoice.Status == OutgoingInvoiceStatus.Cancelled, false, false), cancellationToken);
+        }
+
+        if (invoice.Status == OutgoingInvoiceStatus.Cancelled)
+        {
+            await reconciler.CompleteCancelledAsync(invoice, emitter, cancellationToken);
+            return await SaveAsync(transaction, new Step(true, false, false, false), cancellationToken);
+        }
+
         if (invoice.Status == OutgoingInvoiceStatus.Authorized && invoice.AccessKey is not null)
         {
             // FIS-03a: completa o XML, o DANFE, o evento e o e-mail da autorizada que ficou pela metade.

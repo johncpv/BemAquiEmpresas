@@ -16,6 +16,7 @@ public sealed partial class PartyService(IPartiesDb db, IEnumerable<IPartyUsageP
     public const string ExistsCode = "party_exists";
     public const string DeletedCode = "party_deleted";
     public const string InUseCode = "party_in_use";
+    public const string AnonymizedCode = "party_anonymized";
 
     /// <summary>Conferência ao sair do campo de documento (CA 4 e 6): vem antes de qualquer outra ação.</summary>
     public async Task<DocumentCheck> CheckDocumentAsync(string? document, CancellationToken cancellationToken = default)
@@ -85,6 +86,11 @@ public sealed partial class PartyService(IPartiesDb db, IEnumerable<IPartyUsageP
         if (party is null)
         {
             return NotFound();
+        }
+
+        if (party.AnonymizedAt is not null)
+        {
+            return Anonymized();
         }
 
         var invalid = PartyValidation.Party(request.Kind, request.Document, request.LegalName, request.TradeName, request.Roles, request.StateRegistration, request.MunicipalRegistration, request.Email, request.Phone, request.Notes);

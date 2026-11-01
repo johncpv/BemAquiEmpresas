@@ -14,6 +14,11 @@ public sealed partial class PartyService
             return NotFound();
         }
 
+        if (party.AnonymizedAt is not null)
+        {
+            return Anonymized();
+        }
+
         party.IsActive = active;
         await db.SaveChangesAsync(cancellationToken);
         return await GetAsync(id, cancellationToken);
@@ -50,6 +55,11 @@ public sealed partial class PartyService
         if (party is null)
         {
             return NotFound();
+        }
+
+        if (party.AnonymizedAt is not null)
+        {
+            return Anonymized();
         }
 
         if (party.Document is { } document && await DuplicateAsync(document, id, cancellationToken) is { } duplicate)
