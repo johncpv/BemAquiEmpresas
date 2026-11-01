@@ -1,7 +1,7 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import { createOutgoingInvoice, useListInvoicesToIssue, useListOutgoingInvoices } from '@/api/generated/bemaqui'
-import type { InvoiceQueueRow, OutgoingInvoiceStatus } from '@/api/generated/model'
+import type { InvoiceQueueRow, InvoiceType, OutgoingInvoiceStatus } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
@@ -12,6 +12,8 @@ import { formatDate, formatInstantDate, formatMoney } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
+import { nfseLabel } from './nfse'
+import { NfseQueue } from './NfseQueue'
 import { INVOICE_DICAS, INVOICE_STATUS, INVOICE_STATUSES, INVOICE_TEXTS, invoiceLabel } from './outgoing-invoices'
 
 const primary = 'inline-flex min-h-11 items-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground disabled:opacity-60'
@@ -26,11 +28,11 @@ export function OutgoingInvoicesPage() {
   return (
     <>
       <PageHeading title="Notas de saída">
-        <p className="mt-2 text-muted-foreground">A NF-e do equipamento sai do romaneio expedido. A receita e o imposto do projeto contam pela data da nota.</p>
+        <p className="mt-2 text-muted-foreground">A NF-e do equipamento sai do romaneio expedido; a NFS-e da instalação sai no aceite técnico. A receita e o imposto do projeto contam pela data da nota.</p>
         <p className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground"><span className="inline-flex items-center">Venda mista<Dica nome="Venda mista" texto={INVOICE_DICAS.vendaMista} /></span><Link to="/app/fiscal/regras" className="font-semibold text-primary hover:underline">Regras fiscais</Link></p>
       </PageHeading>
       <UrlTabs label="Notas de saída" fallback={canCreate ? 'a-emitir' : 'emitidas'} tabs={[
-        { id: 'a-emitir', label: 'A emitir', disabled: !canCreate, disabledReason: 'Só quem emite notas vê a fila.', content: <ToIssue /> },
+        { id: 'a-emitir', label: 'A emitir', disabled: !canCreate, disabledReason: 'Só quem emite notas vê a fila.', content: <><ToIssue /><NfseQueue /></> },
         { id: 'emitidas', label: 'Emitidas', content: <Issued /> },
       ]} />
     </>
@@ -94,9 +96,9 @@ function ToIssue() {
 
 function Issued() {
   const navigate = useNavigate()
-  const search = useSearch({ strict: false }) as { de?: string; ate?: string; situacao?: OutgoingInvoiceStatus; cliente?: string; projeto?: string; pagina?: number }
+  const search = useSearch({ strict: false }) as { de?: string; ate?: string; situacao?: OutgoingInvoiceStatus; tipo?: InvoiceType; cliente?: string; projeto?: string; pagina?: number }
   const page = Number(search.pagina) > 0 ? Number(search.pagina) : 1
-  const list = useListOutgoingInvoices({ from: search.de, to: search.ate, status: search.situacao, partyId: search.cliente, projectId: search.projeto, page, pageSize: 25 })
+  const list = useListOutgoingInvoices({ from: search.de, to: search.ate, status: search.situacao, type: search.tipo, partyId: search.cliente, projectId: search.projeto, page, pageSize: 25 })
   const go = (next: Partial<typeof search>) => void navigate({ to: '.', search: (prev: Record<string, unknown>) => ({ ...prev, pagina: undefined, ...next }) } as never)
   const input = 'min-h-11 rounded-md border border-input bg-card px-2 text-sm'
 
@@ -120,7 +122,9 @@ function Issued() {
             <tbody className="divide-y divide-border">
               {data.items.map((r) => (
                 <tr key={r.id}>
-                  <td className="p-2"><Link to={'/app/fiscal/saida/$id' as never} params={{ id: r.id } as never} className="font-semibold text-primary tabular-nums hover:underline">{invoiceLabel(r.series, r.number)}</Link></td>
+                  <td className="p-2">{r.type === 'NFSe'
+                    ? <Link to={'/app/fiscal/saida/nfse/$id' as never} params={{ id: r.id } as never} className="font-semibold text-primary tabular-nums hover:underline">{nfseLabel(r.number)}</Link>
+                    : <Link to={'/app/fiscal/saida/$id' as never} params={{ id: r.id } as never} className="font-semibold text-primary tabular-nums hover:underline">{invoiceLabel(r.series, r.number)}</Link>}</td>
                   <td className="p-2 tabular-nums max-sm:hidden">{r.issuedOn ? formatDate(r.issuedOn) : formatInstantDate(r.createdAt)}</td>
                   <td className="p-2">{r.partyName}</td>
                   <td className="p-2 tabular-nums max-sm:hidden">{r.projectNumber ?? '—'}</td>
@@ -153,6 +157,14 @@ function Issued() {
           <select value={search.situacao ?? ''} onChange={(e) => go({ situacao: (e.target.value || undefined) as OutgoingInvoiceStatus | undefined })} className={input}>
             <option value="">Todas</option>
             {INVOICE_STATUSES.map((s) => <option key={s} value={s}>{INVOICE_STATUS[s].label}</option>)}
+          </select>
+        </label>
+        <label className="flex flex-col text-sm">
+          <span className="font-medium">Tipo</span>
+          <select value={search.tipo ?? ''} onChange={(e) => go({ tipo: (e.target.value || undefined) as InvoiceType | undefined })} className={input}>
+            <option value="">Todas</option>
+            <option value="NFe">NF-e</option>
+            <option value="NFSe">NFS-e</option>
           </select>
         </label>
         {search.cliente || search.projeto ? <button type="button" className={secondary} onClick={() => go({ cliente: undefined, projeto: undefined })}>Tirar o filtro de cliente e projeto</button> : null}

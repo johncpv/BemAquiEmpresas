@@ -185,6 +185,7 @@ import type {
   CostCenterSuggestion,
   CostRefreshPreview,
   CountLineInput,
+  CreateNfseRequest,
   CreateOutgoingInvoiceRequest,
   CreatePartyRequest,
   CreatePinInput,
@@ -360,6 +361,7 @@ import type {
   InstallationDefaults,
   InstallationDetail,
   InstallationPage,
+  InstallationQueueRow,
   InstallationTemplateInput,
   InstallationTemplateView,
   InstallationUpdateInput,
@@ -529,6 +531,10 @@ import type {
   MyTimeClock,
   MyTimeEntry,
   MyTimesheetPeriod,
+  NfseIssueCheckView,
+  NfseIssueResultView,
+  NfseRegisterResultView,
+  NfseView,
   NonConformityActionInput,
   NonConformityCloseInput,
   NonConformityCostInput,
@@ -815,6 +821,8 @@ import type {
   RecurringExpenseInput,
   RefusePrivacyRequestInput,
   RegisterDeviceInput,
+  RegisterNfseCancellationRequest,
+  RegisterNfseForm,
   RejectIncomingInvoiceRequest,
   RemoveQuoteItemParams,
   ReopenInventoryCountInput,
@@ -973,6 +981,7 @@ import type {
   UnionInput,
   UnitDetail,
   UnitInput,
+  UpdateNfseRequest,
   UpdateOutgoingInvoiceRequest,
   UpdatePartyRequest,
   UploadAssetDocumentBody,
@@ -81252,6 +81261,947 @@ export function useGetOutgoingInvoiceHistory<TData = Awaited<ReturnType<typeof g
 
 
 
+
+export const getListInstallationsToInvoiceUrl = () => {
+
+
+
+
+  return `/api/v1/fiscal/outgoing-invoices/installations-to-invoice`
+}
+
+export const listInstallationsToInvoice = async ( options?: Parameters<typeof apiFetch>[1]): Promise<InstallationQueueRow[]> => {
+
+  return apiFetch<InstallationQueueRow[]>(getListInstallationsToInvoiceUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListInstallationsToInvoiceQueryKey = () => {
+    return [
+    `/api/v1/fiscal/outgoing-invoices/installations-to-invoice`
+    ] as const;
+    }
+
+
+export const getListInstallationsToInvoiceQueryOptions = <TData = Awaited<ReturnType<typeof listInstallationsToInvoice>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallationsToInvoice>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListInstallationsToInvoiceQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInstallationsToInvoice>>> = ({ signal }) => listInstallationsToInvoice({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listInstallationsToInvoice>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListInstallationsToInvoiceQueryResult = NonNullable<Awaited<ReturnType<typeof listInstallationsToInvoice>>>
+export type ListInstallationsToInvoiceQueryError = unknown
+
+
+export function useListInstallationsToInvoice<TData = Awaited<ReturnType<typeof listInstallationsToInvoice>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallationsToInvoice>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listInstallationsToInvoice>>,
+          TError,
+          Awaited<ReturnType<typeof listInstallationsToInvoice>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListInstallationsToInvoice<TData = Awaited<ReturnType<typeof listInstallationsToInvoice>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallationsToInvoice>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listInstallationsToInvoice>>,
+          TError,
+          Awaited<ReturnType<typeof listInstallationsToInvoice>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListInstallationsToInvoice<TData = Awaited<ReturnType<typeof listInstallationsToInvoice>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallationsToInvoice>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListInstallationsToInvoice<TData = Awaited<ReturnType<typeof listInstallationsToInvoice>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInstallationsToInvoice>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListInstallationsToInvoiceQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateNfseUrl = () => {
+
+
+
+
+  return `/api/v1/fiscal/outgoing-invoices/nfse`
+}
+
+export const createNfse = async (createNfseRequest: CreateNfseRequest, options?: Parameters<typeof apiFetch>[1]): Promise<NfseView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<NfseView>(getCreateNfseUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createNfseRequest)
+  }
+);}
+
+
+
+
+
+export const getCreateNfseMutationKey = () => ['createNfse'] as const;
+
+export const getCreateNfseMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createNfse>>, TError,CreateNfseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createNfse>>, TError,CreateNfseMutationVariables, TContext> => {
+
+const mutationKey = getCreateNfseMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createNfse>>, CreateNfseMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createNfse(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateNfseMutationResult = NonNullable<Awaited<ReturnType<typeof createNfse>>>
+    export type CreateNfseMutationBody = CreateNfseRequest
+    export type CreateNfseMutationError = unknown
+    export type CreateNfseMutationVariables = {data: CreateNfseRequest}
+
+    export const useCreateNfse = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createNfse>>, TError,CreateNfseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createNfse>>,
+        TError,
+        CreateNfseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateNfseMutationOptions(options), queryClient);
+    }
+
+export const getGetNfseUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/outgoing-invoices/${id}/nfse`
+}
+
+export const getNfse = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<NfseView> => {
+
+  return apiFetch<NfseView>(getGetNfseUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetNfseQueryKey = (id: string,) => {
+    return [
+    `/api/v1/fiscal/outgoing-invoices/${id}/nfse`
+    ] as const;
+    }
+
+
+export const getGetNfseQueryOptions = <TData = Awaited<ReturnType<typeof getNfse>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNfse>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNfseQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNfse>>> = ({ signal }) => getNfse(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNfse>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetNfseQueryResult = NonNullable<Awaited<ReturnType<typeof getNfse>>>
+export type GetNfseQueryError = unknown
+
+
+export function useGetNfse<TData = Awaited<ReturnType<typeof getNfse>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNfse>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getNfse>>,
+          TError,
+          Awaited<ReturnType<typeof getNfse>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetNfse<TData = Awaited<ReturnType<typeof getNfse>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNfse>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getNfse>>,
+          TError,
+          Awaited<ReturnType<typeof getNfse>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetNfse<TData = Awaited<ReturnType<typeof getNfse>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNfse>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetNfse<TData = Awaited<ReturnType<typeof getNfse>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNfse>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetNfseQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateNfseUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/outgoing-invoices/${id}/nfse`
+}
+
+export const updateNfse = async (id: string,
+    updateNfseRequest: UpdateNfseRequest, options?: Parameters<typeof apiFetch>[1]): Promise<NfseView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<NfseView>(getUpdateNfseUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateNfseRequest)
+  }
+);}
+
+
+
+
+
+export const getUpdateNfseMutationKey = () => ['updateNfse'] as const;
+
+export const getUpdateNfseMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateNfse>>, TError,UpdateNfseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateNfse>>, TError,UpdateNfseMutationVariables, TContext> => {
+
+const mutationKey = getUpdateNfseMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateNfse>>, UpdateNfseMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateNfse(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateNfseMutationResult = NonNullable<Awaited<ReturnType<typeof updateNfse>>>
+    export type UpdateNfseMutationBody = UpdateNfseRequest
+    export type UpdateNfseMutationError = unknown
+    export type UpdateNfseMutationVariables = {id: string;data: UpdateNfseRequest}
+
+    export const useUpdateNfse = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateNfse>>, TError,UpdateNfseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateNfse>>,
+        TError,
+        UpdateNfseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateNfseMutationOptions(options), queryClient);
+    }
+
+export const getCheckNfseIssueUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/outgoing-invoices/${id}/nfse/issue-check`
+}
+
+export const checkNfseIssue = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<NfseIssueCheckView> => {
+
+  return apiFetch<NfseIssueCheckView>(getCheckNfseIssueUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getCheckNfseIssueQueryKey = (id: string,) => {
+    return [
+    `/api/v1/fiscal/outgoing-invoices/${id}/nfse/issue-check`
+    ] as const;
+    }
+
+
+export const getCheckNfseIssueQueryOptions = <TData = Awaited<ReturnType<typeof checkNfseIssue>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkNfseIssue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCheckNfseIssueQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof checkNfseIssue>>> = ({ signal }) => checkNfseIssue(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof checkNfseIssue>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type CheckNfseIssueQueryResult = NonNullable<Awaited<ReturnType<typeof checkNfseIssue>>>
+export type CheckNfseIssueQueryError = unknown
+
+
+export function useCheckNfseIssue<TData = Awaited<ReturnType<typeof checkNfseIssue>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkNfseIssue>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof checkNfseIssue>>,
+          TError,
+          Awaited<ReturnType<typeof checkNfseIssue>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCheckNfseIssue<TData = Awaited<ReturnType<typeof checkNfseIssue>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkNfseIssue>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof checkNfseIssue>>,
+          TError,
+          Awaited<ReturnType<typeof checkNfseIssue>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCheckNfseIssue<TData = Awaited<ReturnType<typeof checkNfseIssue>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkNfseIssue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useCheckNfseIssue<TData = Awaited<ReturnType<typeof checkNfseIssue>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof checkNfseIssue>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCheckNfseIssueQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getIssueNfseUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/outgoing-invoices/${id}/nfse/issue`
+}
+
+export const issueNfse = async (id: string,
+    outgoingInvoiceVersionRequest: OutgoingInvoiceVersionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<NfseIssueResultView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<NfseIssueResultView>(getIssueNfseUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(outgoingInvoiceVersionRequest)
+  }
+);}
+
+
+
+
+
+export const getIssueNfseMutationKey = () => ['issueNfse'] as const;
+
+export const getIssueNfseMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof issueNfse>>, TError,IssueNfseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof issueNfse>>, TError,IssueNfseMutationVariables, TContext> => {
+
+const mutationKey = getIssueNfseMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof issueNfse>>, IssueNfseMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  issueNfse(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type IssueNfseMutationResult = NonNullable<Awaited<ReturnType<typeof issueNfse>>>
+    export type IssueNfseMutationBody = OutgoingInvoiceVersionRequest
+    export type IssueNfseMutationError = unknown
+    export type IssueNfseMutationVariables = {id: string;data: OutgoingInvoiceVersionRequest}
+
+    export const useIssueNfse = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof issueNfse>>, TError,IssueNfseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof issueNfse>>,
+        TError,
+        IssueNfseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getIssueNfseMutationOptions(options), queryClient);
+    }
+
+export const getRegisterNfseUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/outgoing-invoices/${id}/nfse/register`
+}
+
+export const registerNfse = async (id: string,
+    registerNfseForm: RegisterNfseForm, options?: Parameters<typeof apiFetch>[1]): Promise<NfseRegisterResultView> => {
+    const formData = new FormData();
+if(registerNfseForm.number !== undefined && registerNfseForm.number !== null) {
+ formData.append(`number`, registerNfseForm.number);
+ }
+if(registerNfseForm.verificationCode !== undefined && registerNfseForm.verificationCode !== null) {
+ formData.append(`verificationCode`, registerNfseForm.verificationCode);
+ }
+if(registerNfseForm.issuedOn !== undefined && registerNfseForm.issuedOn !== null) {
+ formData.append(`issuedOn`, registerNfseForm.issuedOn);
+ }
+if(registerNfseForm.servicesAmount !== undefined && registerNfseForm.servicesAmount !== null) {
+ formData.append(`servicesAmount`, registerNfseForm.servicesAmount);
+ }
+if(registerNfseForm.issAmount !== undefined && registerNfseForm.issAmount !== null) {
+ formData.append(`issAmount`, registerNfseForm.issAmount);
+ }
+if(registerNfseForm.version !== undefined && registerNfseForm.version !== null) {
+ formData.append(`version`, registerNfseForm.version);
+ }
+if(registerNfseForm.file !== undefined && registerNfseForm.file !== null) {
+ formData.append(`file`, registerNfseForm.file);
+ }
+
+  return apiFetch<NfseRegisterResultView>(getRegisterNfseUrl(id),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getRegisterNfseMutationKey = () => ['registerNfse'] as const;
+
+export const getRegisterNfseMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerNfse>>, TError,RegisterNfseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof registerNfse>>, TError,RegisterNfseMutationVariables, TContext> => {
+
+const mutationKey = getRegisterNfseMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registerNfse>>, RegisterNfseMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  registerNfse(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterNfseMutationResult = NonNullable<Awaited<ReturnType<typeof registerNfse>>>
+    export type RegisterNfseMutationBody = RegisterNfseForm
+    export type RegisterNfseMutationError = unknown
+    export type RegisterNfseMutationVariables = {id: string;data: RegisterNfseForm}
+
+    export const useRegisterNfse = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerNfse>>, TError,RegisterNfseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof registerNfse>>,
+        TError,
+        RegisterNfseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRegisterNfseMutationOptions(options), queryClient);
+    }
+
+export const getRegisterNfseCancellationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/outgoing-invoices/${id}/nfse/register-cancellation`
+}
+
+export const registerNfseCancellation = async (id: string,
+    registerNfseCancellationRequest: RegisterNfseCancellationRequest, options?: Parameters<typeof apiFetch>[1]): Promise<NfseView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<NfseView>(getRegisterNfseCancellationUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(registerNfseCancellationRequest)
+  }
+);}
+
+
+
+
+
+export const getRegisterNfseCancellationMutationKey = () => ['registerNfseCancellation'] as const;
+
+export const getRegisterNfseCancellationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerNfseCancellation>>, TError,RegisterNfseCancellationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof registerNfseCancellation>>, TError,RegisterNfseCancellationMutationVariables, TContext> => {
+
+const mutationKey = getRegisterNfseCancellationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registerNfseCancellation>>, RegisterNfseCancellationMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  registerNfseCancellation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterNfseCancellationMutationResult = NonNullable<Awaited<ReturnType<typeof registerNfseCancellation>>>
+    export type RegisterNfseCancellationMutationBody = RegisterNfseCancellationRequest
+    export type RegisterNfseCancellationMutationError = unknown
+    export type RegisterNfseCancellationMutationVariables = {id: string;data: RegisterNfseCancellationRequest}
+
+    export const useRegisterNfseCancellation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerNfseCancellation>>, TError,RegisterNfseCancellationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof registerNfseCancellation>>,
+        TError,
+        RegisterNfseCancellationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRegisterNfseCancellationMutationOptions(options), queryClient);
+    }
+
+export const getReopenNfseUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/outgoing-invoices/${id}/nfse/reopen`
+}
+
+export const reopenNfse = async (id: string,
+    outgoingInvoiceVersionRequest: OutgoingInvoiceVersionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<NfseView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<NfseView>(getReopenNfseUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(outgoingInvoiceVersionRequest)
+  }
+);}
+
+
+
+
+
+export const getReopenNfseMutationKey = () => ['reopenNfse'] as const;
+
+export const getReopenNfseMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenNfse>>, TError,ReopenNfseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reopenNfse>>, TError,ReopenNfseMutationVariables, TContext> => {
+
+const mutationKey = getReopenNfseMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reopenNfse>>, ReopenNfseMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reopenNfse(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReopenNfseMutationResult = NonNullable<Awaited<ReturnType<typeof reopenNfse>>>
+    export type ReopenNfseMutationBody = OutgoingInvoiceVersionRequest
+    export type ReopenNfseMutationError = unknown
+    export type ReopenNfseMutationVariables = {id: string;data: OutgoingInvoiceVersionRequest}
+
+    export const useReopenNfse = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenNfse>>, TError,ReopenNfseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reopenNfse>>,
+        TError,
+        ReopenNfseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReopenNfseMutationOptions(options), queryClient);
+    }
+
+export const getDiscardNfseUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/outgoing-invoices/${id}/nfse/discard`
+}
+
+export const discardNfse = async (id: string,
+    outgoingInvoiceVersionRequest: OutgoingInvoiceVersionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<NfseView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<NfseView>(getDiscardNfseUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(outgoingInvoiceVersionRequest)
+  }
+);}
+
+
+
+
+
+export const getDiscardNfseMutationKey = () => ['discardNfse'] as const;
+
+export const getDiscardNfseMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof discardNfse>>, TError,DiscardNfseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof discardNfse>>, TError,DiscardNfseMutationVariables, TContext> => {
+
+const mutationKey = getDiscardNfseMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof discardNfse>>, DiscardNfseMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  discardNfse(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DiscardNfseMutationResult = NonNullable<Awaited<ReturnType<typeof discardNfse>>>
+    export type DiscardNfseMutationBody = OutgoingInvoiceVersionRequest
+    export type DiscardNfseMutationError = unknown
+    export type DiscardNfseMutationVariables = {id: string;data: OutgoingInvoiceVersionRequest}
+
+    export const useDiscardNfse = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof discardNfse>>, TError,DiscardNfseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof discardNfse>>,
+        TError,
+        DiscardNfseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDiscardNfseMutationOptions(options), queryClient);
+    }
+
+export const getResendNfseUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/fiscal/outgoing-invoices/${id}/nfse/resend`
+}
+
+export const resendNfse = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<NfseView> => {
+
+  return apiFetch<NfseView>(getResendNfseUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getResendNfseMutationKey = () => ['resendNfse'] as const;
+
+export const getResendNfseMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resendNfse>>, TError,ResendNfseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resendNfse>>, TError,ResendNfseMutationVariables, TContext> => {
+
+const mutationKey = getResendNfseMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resendNfse>>, ResendNfseMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  resendNfse(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResendNfseMutationResult = NonNullable<Awaited<ReturnType<typeof resendNfse>>>
+
+    export type ResendNfseMutationError = unknown
+    export type ResendNfseMutationVariables = {id: string}
+
+    export const useResendNfse = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resendNfse>>, TError,ResendNfseMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof resendNfse>>,
+        TError,
+        ResendNfseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getResendNfseMutationOptions(options), queryClient);
+    }
 
 export const getListIncomingInvoicesUrl = (params?: ListIncomingInvoicesParams,) => {
   const normalizedParams = new URLSearchParams();

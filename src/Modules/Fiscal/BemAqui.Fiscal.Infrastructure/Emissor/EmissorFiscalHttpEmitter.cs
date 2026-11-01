@@ -194,6 +194,16 @@ internal sealed partial class EmissorFiscalHttpEmitter(HttpClient http, FiscalEm
     public Task<Result<NfseDocument>> GetNfseAsync(Guid documentId, CancellationToken cancellationToken = default) =>
         SendAsync<NfseDocument>("nfse.consultar", Kind.Read, () => new HttpRequestMessage(HttpMethod.Get, "api/v1/nfse/" + documentId.ToString("D")), NfseAsync, cancellationToken);
 
+    public Task<Result<NfseDocument>> ForceConsultNfseAsync(Guid documentId, CancellationToken cancellationToken = default) =>
+        SendAsync<NfseDocument>("nfse.consulta_forcada", Kind.Read, () => new HttpRequestMessage(HttpMethod.Post, "api/v1/nfse/" + documentId.ToString("D") + "/consultar"), NfseAsync,
+            cancellationToken);
+
+    public Task<Result<FiscalFile>> GetNfseXmlAsync(Guid documentId, CancellationToken cancellationToken = default) =>
+        FileAsync("nfse.xml", "api/v1/nfse/" + documentId.ToString("D") + "/xml", "application/xml", documentId.ToString("D") + "-nfse.xml", cancellationToken);
+
+    public Task<Result<FiscalFile>> GetNfsePdfAsync(Guid documentId, CancellationToken cancellationToken = default) =>
+        FileAsync("nfse.pdf", "api/v1/nfse/" + documentId.ToString("D") + "/pdf", "application/pdf", documentId.ToString("D") + "-nfse.pdf", cancellationToken);
+
     /// <summary>201 autorizada, 202 processando ou em contingência, 422 rejeitada ou denegada; 200 da consulta.</summary>
     private static async Task<Result<NfeDocument>> DocumentAsync(HttpResponseMessage response, CancellationToken cancellationToken)
     {

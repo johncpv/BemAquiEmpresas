@@ -42,20 +42,27 @@ public sealed class OutgoingNfePayloads(IFiscalDb db, IFiscalSettings settings, 
         ArgumentNullException.ThrowIfNull(invoice);
         ArgumentNullException.ThrowIfNull(items);
         var ordered = items.OrderBy(i => i.Sequence).ToList();
-        var document = new string((invoice.RecipientDocument ?? string.Empty).Where(char.IsAsciiDigit).ToArray());
-        var recipient = new NfeRecipient(
-            document.Length == 14 ? document : null, document.Length == 11 ? document : null, NfeTextRules.Clean(invoice.RecipientName) ?? string.Empty,
-            invoice.RecipientType switch { RecipientType.Contributor => NfeStateRegistration.Taxpayer, RecipientType.Exempt => NfeStateRegistration.Exempt, _ => NfeStateRegistration.NonTaxpayer },
-            invoice.RecipientType == RecipientType.Contributor ? invoice.RecipientStateRegistration : null, invoice.RecipientEmail,
-            new NfeAddress(NfeTextRules.Clean(invoice.RecipientStreet) ?? string.Empty, NfeTextRules.Clean(invoice.RecipientNumber) ?? "S/N", NfeTextRules.Clean(invoice.RecipientComplement),
-                NfeTextRules.Clean(invoice.RecipientDistrict) ?? string.Empty, invoice.RecipientCityCode ?? string.Empty, NfeTextRules.Clean(invoice.RecipientCityName) ?? string.Empty,
-                invoice.RecipientState ?? string.Empty, new string((invoice.RecipientPostalCode ?? string.Empty).Where(char.IsAsciiDigit).ToArray()), invoice.RecipientPhone));
+        var recipient = Recipient(invoice);
         var nfeItems = ordered.Select(Item).ToList();
         var complementary = OutgoingInvoiceRules.ComplementaryForEmitter(invoice.AdditionalInformation, ordered.Select(i => (i.Sequence, i.AdditionalInfo)), invoice.Volumes,
             invoice.GrossWeight, invoice.VolumeSpecies, carrierName);
         return new NfeIssueRequest(issuerDocument, series, (invoice.NatureOfOperation ?? "Venda de produção do estabelecimento").ToUpperInvariant(), NfeOperationType.Outbound, NfePurpose.Normal,
             invoice.FinalConsumer, NfePresence.InPersonOutside, Enum.IsDefined((NfeFreightMode)invoice.FreightMode) ? (NfeFreightMode)invoice.FreightMode : NfeFreightMode.Issuer, recipient, nfeItems,
             [new NfePayment(NfePaymentMethod.NoPayment, 0m)], complementary);
+    }
+
+    /// <summary>O destinatário copiado na nota, no formato do pedido (o tomador da NFS-e usa o mesmo, FIS-06).</summary>
+    public static NfeRecipient Recipient(OutgoingInvoice invoice)
+    {
+        ArgumentNullException.ThrowIfNull(invoice);
+        var document = new string((invoice.RecipientDocument ?? string.Empty).Where(char.IsAsciiDigit).ToArray());
+        return new NfeRecipient(
+            document.Length == 14 ? document : null, document.Length == 11 ? document : null, NfeTextRules.Clean(invoice.RecipientName) ?? string.Empty,
+            invoice.RecipientType switch { RecipientType.Contributor => NfeStateRegistration.Taxpayer, RecipientType.Exempt => NfeStateRegistration.Exempt, _ => NfeStateRegistration.NonTaxpayer },
+            invoice.RecipientType == RecipientType.Contributor ? invoice.RecipientStateRegistration : null, invoice.RecipientEmail,
+            new NfeAddress(NfeTextRules.Clean(invoice.RecipientStreet) ?? string.Empty, NfeTextRules.Clean(invoice.RecipientNumber) ?? "S/N", NfeTextRules.Clean(invoice.RecipientComplement),
+                NfeTextRules.Clean(invoice.RecipientDistrict) ?? string.Empty, invoice.RecipientCityCode ?? string.Empty, NfeTextRules.Clean(invoice.RecipientCityName) ?? string.Empty,
+                invoice.RecipientState ?? string.Empty, new string((invoice.RecipientPostalCode ?? string.Empty).Where(char.IsAsciiDigit).ToArray()), invoice.RecipientPhone));
     }
 
     /// <summary>Tributos do item no formato do pedido: ICMS (com ST e FCP), PIS, COFINS, IPI e IBS/CBS das linhas do cálculo.</summary>

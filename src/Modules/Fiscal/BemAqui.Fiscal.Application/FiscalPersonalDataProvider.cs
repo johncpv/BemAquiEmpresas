@@ -11,7 +11,9 @@ namespace BemAqui.Fiscal.Application;
 /// (número, série, chave, data, valor e situação) e o destinatário que a nota guarda (nome, documento, IE, e-mail, telefone e endereço); a
 /// cópia do e-mail de outras pessoas sai mascarada. Rascunho descartado também sai, porque o dado continua guardado. A nota é documento
 /// fiscal com guarda legal e nunca é apagada; o que pode ser anonimizado está em <see cref="RunAsync"/> (LGPD-01b). A NF-e de entrada guarda só o
-/// emitente (fornecedor PJ) e não tem <c>[PersonalData]</c>.
+/// emitente (fornecedor PJ) e não tem <c>[PersonalData]</c>. A NFS-e da instalação (FIS-06) é a mesma linha (<c>type = NFSe</c>) com o mesmo
+/// tomador copiado: sai na exportação com a OS, o código de verificação e a origem, e na anonimização segue a NF-e (emitida, registrada do
+/// portal ou cancelada fica retida até o prazo; rascunho descartado sai já).
 /// </summary>
 [PersonalDataCovers(typeof(OutgoingInvoice))]
 public sealed class FiscalPersonalDataProvider(IFiscalDb db) : IPersonalDataProvider
@@ -45,6 +47,9 @@ public sealed class FiscalPersonalDataProvider(IFiscalDb db) : IPersonalDataProv
             ("Valor total", PersonalDataMask.Money(i.TotalAmount)),
             ("Situação", i.DiscardedAt is null ? i.Status.ToString() : "Rascunho descartado"),
             ("Romaneio", i.ShipmentNumber),
+            ("OS de instalação", i.InstallationOrderNumber),
+            ("Código de verificação", i.VerificationCode),
+            ("Origem", i.Type == BemAqui.Fiscal.Contracts.InvoiceType.NFSe ? (i.Origin == InvoiceOrigin.PortalRegistered ? "Registrada (portal da prefeitura)" : "Emissor Fiscal") : null),
             ("Destinatário", i.RecipientName),
             ("Documento", string.IsNullOrWhiteSpace(i.RecipientDocument) ? null : BrazilianDocuments.Format(i.RecipientDocument)),
             ("Inscrição estadual", i.RecipientStateRegistration),

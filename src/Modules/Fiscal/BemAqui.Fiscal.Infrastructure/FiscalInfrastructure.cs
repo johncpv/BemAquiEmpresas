@@ -93,10 +93,20 @@ public static class FiscalInfrastructure
             ReadAction: "view", WriteAction: "import_incoming",
             CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O XML da nota de entrada entra pela importação."))));
 
-        // XML e DANFE (FIS-03a): só o sistema grava; leitura com fiscal.view pelos endpoints da nota (CA 18).
+        // XML e DANFE (FIS-03a): só o sistema grava; leitura com fiscal.view pelos endpoints da nota (CA 18). FIS-06: o PDF ou o XML da NFS-e
+        // emitida no portal da prefeitura entra só pelo "Registrar NFS-e" (fiscal.create, triado pelo antivírus); a rota genérica segue fechada.
         services.AddAttachmentOwner(OutgoingInvoiceReconciler.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml", "application/pdf"], 5 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFiscalDb>().OutgoingInvoices.AnyAsync(i => i.Id == id, ct),
+            WriteAction: "create",
             CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O XML e o DANFE da nota são guardados pelo sistema."))));
+
+        // FIS-06: NFS-e da instalação (fila pelo aceite técnico, emissão pelo Emissor quando habilitada, registro do portal, cancelamento registrado).
+        services.TryAddScoped<BemAqui.Fiscal.Application.Invoices.Nfse.NfsePayloads>();
+        services.TryAddScoped<BemAqui.Fiscal.Application.Invoices.Nfse.NfseReconciler>();
+        services.TryAddScoped<BemAqui.Fiscal.Application.Invoices.Nfse.NfseSubmissionService>();
+        services.TryAddScoped<BemAqui.Fiscal.Application.Invoices.Nfse.NfsePendingCheck>();
+        services.TryAddScoped<BemAqui.Fiscal.Application.Invoices.Nfse.NfseInvoiceService>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, BemAqui.Fiscal.Application.Invoices.Nfse.NfseAgendaSource>());
         return services;
     }
 }

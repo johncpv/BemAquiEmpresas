@@ -124,7 +124,8 @@ O lado do BemAqui foi feito contra o contrato do guia de integração do Emissor
 | L-i exposição | Por fora, só `/api/` e `/health` (sem `/api/v1/admin/*` e sem Swagger); 10 req/s por IP com 429 e `Retry-After` | Documentado (ADR 007 de lá). A rede dedicada saiu (ADR 0027, adendo de 27/10/2026) |
 | L-j tenant por tenant | Uma `ClientApplication` por tenant do BemAqui, sem `admin` | Procedimento acima |
 | L-l `tipoOperacao` | `0` entrada, `1` saída | Documentado; conferir pela suíte `emissor-homolog` |
-| L-b, L-d, L-h, L-k, L-m | IBS/CBS, `transp`, A1 sem `admin`, cópia offline da chave-mestra, NFS-e de Caçapava | Antes da FIS-03a, FIS-02a, GOL-01a e FIS-06 |
+| L-b, L-d, L-h, L-k | IBS/CBS, `transp`, A1 sem `admin`, cópia offline da chave-mestra | Antes da FIS-03a, FIS-02a e GOL-01a |
+| L-m NFS-e de Caçapava | Provider CONAM/e-Transparência no Emissor, o `GET /me` informando os municípios com a NFS-e habilitada (`nfseMunicipios`, IBGE), webhook `nfse.*` e o cancelamento de NFS-e | **Aberta.** A FIS-06 (01/11/2026) emite pelo Emissor só com o escopo `nfse:emitir` e o município da empresa em `nfseMunicipios`; até lá, o processo provisório: emitir no portal da prefeitura e "Registrar NFS-e emitida na prefeitura". Sem webhook de NFS-e, a conferência de pendentes usa `POST /nfse/{id}/consultar`; o cancelamento é registrado à mão (2FA). O `IndCodOpe` do IBS/CBS vai como `030101` (exemplo do contrato) até a contadora confirmar |
 | Webhook de outro tenant | O corpo traz `tenantId` do Emissor: o BemAqui ignora aviso de outro tenant | Documentado |
 
 ## 8. Problemas comuns

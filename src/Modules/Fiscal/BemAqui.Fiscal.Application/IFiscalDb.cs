@@ -35,6 +35,9 @@ public interface IFiscalDb
 
     DbSet<IncomingInvoiceItem> IncomingInvoiceItems { get; }
 
+    /// <summary>Instalações aceitas à espera da NFS-e (FIS-06).</summary>
+    DbSet<InstallationBilling> InstallationBillings { get; }
+
     ChangeTracker ChangeTracker { get; }
 
     /// <summary>Trava da nota na conferência de pendentes (<c>FOR UPDATE SKIP LOCKED</c>, CA 14).</summary>

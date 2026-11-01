@@ -68,7 +68,26 @@ public sealed class FakeFiscalEmitter
 
     public EmitterAccount DefaultAccount() => new(Guid.Parse("8a1c0000-0000-7000-8000-000000000001"), "BemAqui Empresas — tenant de teste", TenantId, Scopes, false, 120,
         [new EmitterIssuer(IssuerDocument, "WSP Equipamentos por Elevação LTDA", "SP", "3508504", Environment, true,
-            Certificate ?? new EmitterCertificate(true, "AB12CD", "WSP EQUIPAMENTOS", DateTimeOffset.UtcNow.AddYears(-1), DateTimeOffset.UtcNow.AddDays(140), 140, false))]);
+            Certificate ?? new EmitterCertificate(true, "AB12CD", "WSP EQUIPAMENTOS", DateTimeOffset.UtcNow.AddYears(-1), DateTimeOffset.UtcNow.AddDays(140), 140, false))], NfseCities);
+
+    // ---------- NFS-e (FIS-06) ----------
+
+    private readonly ConcurrentDictionary<string, Guid> _nfseByIdempotency = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<Guid, NfseDocument> _nfse = new();
+    private long _nfseNumber;
+
+    /// <summary>Municípios com a NFS-e habilitada no <c>GET /me</c> (lacuna L-m); nulo, como o Emissor de hoje (processo provisório).</summary>
+    public string[]? NfseCities { get; set; }
+
+    public ConcurrentQueue<NfseIssueRequest> NfseRequests { get; } = new();
+
+    public NfseDocument? Nfse(Guid documentId) => _nfse.TryGetValue(documentId, out var doc) ? doc : null;
+
+    private NfseDocument AuthorizedNfse(Guid id)
+    {
+        var n = Interlocked.Increment(ref _nfseNumber) + 9_000_000;
+        return new NfseDocument(id, FiscalDocumentStatus.Authorized, n.ToString(CultureInfo.InvariantCulture), "VER" + n.ToString(CultureInfo.InvariantCulture), "https://nfe.etransparencia.com.br/x", null);
+    }
 
     /// <summary>Certificado no cofre do fake (FIS-02a): o enviado por último ou o trocado "fora do BemAqui" pelo teste; nulo, o padrão.</summary>
     public EmitterCertificate? Certificate { get; set; }
@@ -294,11 +313,92 @@ public sealed class FakeFiscalEmitter
             return Task.FromResult(Result<CertificateUploadResult>.Success(new CertificateUploadResult(Guid.CreateVersion7(), certificate.Thumbprint, notAfter)));
         }
 
-        public Task<Result<NfseDocument>> IssueNfseAsync(NfseIssueRequest request, string idempotencyKey, CancellationToken cancellationToken = default) =>
-            Task.FromResult<Result<NfseDocument>>(Error.Unavailable(FiscalErrorCodes.Unavailable, "NFS-e entra na FIS-06."));
+        // ---------- NFS-e (FIS-06) ----------
 
-        public Task<Result<NfseDocument>> GetNfseAsync(Guid documentId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<Result<NfseDocument>>(Error.NotFound(FiscalErrorCodes.NotFound, "NFS-e entra na FIS-06."));
+        public Task<Result<NfseDocument>> IssueNfseAsync(NfseIssueRequest request, string idempotencyKey, CancellationToken cancellationToken = default)
+        {
+            Track("nfse_emitir", idempotencyKey);
+            fake.NfseRequests.Enqueue(request);
+            if (fake.Unavailable<NfseDocument>() is { } down)
+            {
+                return Task.FromResult(down);
+            }
+
+            if (fake._nfseByIdempotency.TryGetValue(idempotencyKey, out var existing))
+            {
+                return Task.FromResult(Result<NfseDocument>.Success(fake._nfse[existing]));
+            }
+
+            if (fake.Next == FakeIssue.Invalid)
+            {
+                return Task.FromResult<Result<NfseDocument>>(Error.Validation(FiscalErrorCodes.Validation, "O Emissor Fiscal recusou o pedido: servico.nbs: informe o NBS.",
+                    new Dictionary<string, string[]> { ["servico.nbs"] = ["informe o NBS"] }));
+            }
+
+            var id = Guid.CreateVersion7();
+            var doc = fake.Next switch
+            {
+                FakeIssue.Reject => new NfseDocument(id, FiscalDocumentStatus.Rejected, null, null, null, new FiscalRejection(4, "Código do serviço não declarado pelo prestador", "Confira o CodSrv com a contadora.")),
+                FakeIssue.Delay => new NfseDocument(id, FiscalDocumentStatus.Processing, null, null, null, null),
+                _ => fake.AuthorizedNfse(id),
+            };
+            fake._nfse[id] = doc;
+            fake._nfseByIdempotency[idempotencyKey] = id;
+            return Task.FromResult(fake.Next == FakeIssue.CrashAfterCreate
+                ? Error.Unavailable(FiscalErrorCodes.Unavailable, "O Emissor Fiscal não respondeu a tempo.")
+                : Result<NfseDocument>.Success(doc));
+        }
+
+        public Task<Result<NfseDocument>> GetNfseAsync(Guid documentId, CancellationToken cancellationToken = default)
+        {
+            Track("nfse_consultar");
+            return Task.FromResult(fake.Unavailable<NfseDocument>() ?? (fake._nfse.TryGetValue(documentId, out var doc)
+                ? Result<NfseDocument>.Success(doc)
+                : Error.NotFound(FiscalErrorCodes.NotFound, "O Emissor Fiscal não encontrou o documento.")));
+        }
+
+        /// <summary>A prefeitura processou o lote: a NFS-e em processamento sai autorizada (ou rejeitada, se o teste pediu).</summary>
+        public Task<Result<NfseDocument>> ForceConsultNfseAsync(Guid documentId, CancellationToken cancellationToken = default)
+        {
+            Track("nfse_consulta_forcada");
+            if (fake.Unavailable<NfseDocument>() is { } down)
+            {
+                return Task.FromResult(down);
+            }
+
+            if (fake.NoForceConsult || !fake._nfse.TryGetValue(documentId, out var doc))
+            {
+                return Task.FromResult<Result<NfseDocument>>(Error.NotFound(FiscalErrorCodes.NotFound, "O Emissor Fiscal não encontrou o documento."));
+            }
+
+            if (doc.Status == FiscalDocumentStatus.Processing)
+            {
+                doc = fake.AuthorizedNfse(documentId);
+                fake._nfse[documentId] = doc;
+            }
+
+            return Task.FromResult(Result<NfseDocument>.Success(doc));
+        }
+
+        public Task<Result<FiscalFile>> GetNfseXmlAsync(Guid documentId, CancellationToken cancellationToken = default)
+        {
+            Track("nfse_xml");
+            if (!fake._nfse.TryGetValue(documentId, out var doc) || doc.Status != FiscalDocumentStatus.Authorized)
+            {
+                return Task.FromResult<Result<FiscalFile>>(Error.NotFound(FiscalErrorCodes.NotFound, "O Emissor Fiscal não encontrou o documento."));
+            }
+
+            var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Nfse><Numero>" + doc.Number + "</Numero><CodigoVerificacao>" + doc.VerificationCode + "</CodigoVerificacao></Nfse>";
+            return Task.FromResult(Result<FiscalFile>.Success(new FiscalFile(Encoding.UTF8.GetBytes(xml), "application/xml", documentId + "-nfse.xml")));
+        }
+
+        public Task<Result<FiscalFile>> GetNfsePdfAsync(Guid documentId, CancellationToken cancellationToken = default)
+        {
+            Track("nfse_pdf");
+            return Task.FromResult(fake._nfse.TryGetValue(documentId, out var doc) && doc.Status == FiscalDocumentStatus.Authorized
+                ? Result<FiscalFile>.Success(new FiscalFile("%PDF-1.7 nfse"u8.ToArray(), "application/pdf", documentId + "-nfse.pdf"))
+                : Error.NotFound(FiscalErrorCodes.NotFound, "Esta NFS-e não tem link de impressão da prefeitura."));
+        }
     }
 }
 

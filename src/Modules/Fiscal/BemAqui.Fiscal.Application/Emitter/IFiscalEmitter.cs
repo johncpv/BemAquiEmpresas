@@ -45,11 +45,20 @@ public interface IFiscalEmitter
     /// <summary>Repassa o A1 ao cofre do Emissor, só em memória (FIS-02a; ADR 0027 §3). O BemAqui nunca guarda o arquivo nem a senha.</summary>
     Task<Result<CertificateUploadResult>> UploadCertificateAsync(string issuerDocument, ReadOnlyMemory<byte> pfx, Secret password, CancellationToken cancellationToken = default);
 
-    /// <summary>Reservada para a FIS-06 (NFS-e de instalação).</summary>
+    /// <summary>Emite a NFS-e (<c>POST /api/v1/nfse</c>) com o <c>Idempotency-Key</c> <c>nfse-{invoiceId}-{tentativa}</c> (FIS-06 CA 3).</summary>
     Task<Result<NfseDocument>> IssueNfseAsync(NfseIssueRequest request, string idempotencyKey, CancellationToken cancellationToken = default);
 
-    /// <summary>Reservada para a FIS-06.</summary>
+    /// <summary>Situação guardada no Emissor (<c>GET /api/v1/nfse/{id}</c>).</summary>
     Task<Result<NfseDocument>> GetNfseAsync(Guid documentId, CancellationToken cancellationToken = default);
+
+    /// <summary>Consulta na prefeitura agora (<c>POST /api/v1/nfse/{id}/consultar</c>): a conferência de pendentes enquanto não há webhook de NFS-e (FIS-06 CA 4).</summary>
+    Task<Result<NfseDocument>> ForceConsultNfseAsync(Guid documentId, CancellationToken cancellationToken = default);
+
+    /// <summary>XML da NFS-e autorizada como a prefeitura devolveu (<c>GET /api/v1/nfse/{id}/xml</c>).</summary>
+    Task<Result<FiscalFile>> GetNfseXmlAsync(Guid documentId, CancellationToken cancellationToken = default);
+
+    /// <summary>PDF da prefeitura (<c>GET /api/v1/nfse/{id}/pdf</c>); o redirecionamento para o link dela fica como falha (sem PDF guardado).</summary>
+    Task<Result<FiscalFile>> GetNfsePdfAsync(Guid documentId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Endereço e chave do Emissor para um tenant. A chave só existe na memória do request ou do job.</summary>
@@ -236,7 +245,12 @@ public sealed record NumberRangeInvalidationResult(bool Accepted, int Series, lo
 public sealed record SefazStatus(bool Online, string State, string Environment, string? Message, int? AverageResponseMs, string? SuggestedContingency, DateTimeOffset CheckedAt);
 
 /// <summary>O <c>GET /me</c>: a chave, o tenant do Emissor, os escopos efetivos e os emitentes.</summary>
-public sealed record EmitterAccount(Guid ClientId, string Name, Guid TenantId, IReadOnlyList<string> Scopes, bool LicenseBlocked, int? RateLimitPerMinute, IReadOnlyList<EmitterIssuer> Issuers);
+/// <remarks>
+/// <paramref name="NfseCities"/> (FIS-06, lacuna L-m): os municípios (IBGE) com a NFS-e habilitada no Emissor para esta chave. O Emissor de
+/// hoje não informa (nulo): a NFS-e de Caçapava segue pelo processo provisório do portal da prefeitura (D5).
+/// </remarks>
+public sealed record EmitterAccount(Guid ClientId, string Name, Guid TenantId, IReadOnlyList<string> Scopes, bool LicenseBlocked, int? RateLimitPerMinute, IReadOnlyList<EmitterIssuer> Issuers,
+    IReadOnlyList<string>? NfseCities = null);
 
 public sealed record EmitterIssuer(string Document, string Name, string State, string CityCode, FiscalEnvironment Environment, bool Active, EmitterCertificate Certificate);
 
@@ -273,4 +287,8 @@ public sealed record NfseService(
 
 public sealed record NfseIbsCbs(string Cst, string Classification, string OperationCode);
 
-public sealed record NfseDocument(Guid DocumentId, FiscalDocumentStatus Status, string? Number, string? VerificationCode, string? PrintLink, FiscalRejection? Rejection);
+public sealed record NfseDocument(Guid DocumentId, FiscalDocumentStatus Status, string? Number, string? VerificationCode, string? PrintLink, FiscalRejection? Rejection)
+{
+    /// <summary>Nos tipos da nota local (sem chave nem série da SEFAZ; o número é o da prefeitura).</summary>
+    public EmitterNfeState ToState() => new(DocumentId, Status, null, 0, NfseRules.ParseNumber(Number) ?? 0, null, null, Rejection?.Code, Rejection?.Reason, Rejection?.SuggestedAction);
+}

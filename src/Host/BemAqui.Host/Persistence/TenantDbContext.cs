@@ -360,6 +360,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoiceItem> IncomingInvoiceItems => Set<BemAqui.Fiscal.Domain.IncomingInvoiceItem>();
 
+    public DbSet<BemAqui.Fiscal.Domain.InstallationBilling> InstallationBillings => Set<BemAqui.Fiscal.Domain.InstallationBilling>();
+
     public DbSet<BemAqui.Assets.Domain.Asset> Assets => Set<BemAqui.Assets.Domain.Asset>();
 
     public DbSet<BemAqui.Assets.Domain.AssetSite> AssetSites => Set<BemAqui.Assets.Domain.AssetSite>();

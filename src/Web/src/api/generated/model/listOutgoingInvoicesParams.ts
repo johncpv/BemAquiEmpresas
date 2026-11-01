@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { InvoiceType } from './invoiceType';
 import type { OutgoingInvoiceStatus } from './outgoingInvoiceStatus';
 
 export type ListOutgoingInvoicesParams = {
@@ -14,4 +15,5 @@ partyId?: string;
 projectId?: string;
 page?: number;
 pageSize?: number;
+type?: InvoiceType;
 };
