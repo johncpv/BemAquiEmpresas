@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { FiscalEnvironment } from './fiscalEnvironment';
+import type { InvoiceType } from './invoiceType';
 import type { OutgoingInvoiceStatus } from './outgoingInvoiceStatus';
 
 export interface OutgoingInvoiceRow {
@@ -29,4 +30,7 @@ export interface OutgoingInvoiceRow {
   taxAmount: number;
   environment: FiscalEnvironment;
   status: OutgoingInvoiceStatus;
+  type?: InvoiceType;
+  /** @nullable */
+  installationOrderNumber?: string | null;
 }

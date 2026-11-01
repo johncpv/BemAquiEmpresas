@@ -85,6 +85,8 @@ public static class HostEvents
             // OS de instalação (COM-06).
             .AddHandler<BemAqui.Production.Contracts.InstallationStarted, BemAqui.Commercial.Application.InstallationConsumers>()
             .AddHandler<BemAqui.Production.Contracts.InstallationAccepted, BemAqui.Commercial.Application.InstallationConsumers>()
+            // FIS-06 CA 1: a instalação aceita entra na fila "A emitir" da NFS-e (e na pauta).
+            .AddHandler<BemAqui.Production.Contracts.InstallationAccepted, BemAqui.Fiscal.Application.Invoices.Nfse.InstallationBillingConsumer>()
             // Financeiro (FIN-01, FIN-03a).
             .AddHandler<BemAqui.Finance.Contracts.ReceivableSettled, BemAqui.Commercial.Application.ContractCompletionConsumer>()
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderSubmitted>()
@@ -98,6 +100,8 @@ public static class HostEvents
             // RH-01c: fechamento e reabertura do período de ponto, só aviso (a folha lê o espelho fechado pela tabela do próprio HR).
             .AddEvent<BemAqui.HR.Contracts.TimesheetPeriodClosed>()
             .AddEvent<BemAqui.HR.Contracts.TimesheetPeriodReopened>()
+            // FLH-06: virada e volta da folha calculada, só aviso dentro do HR (sem valor).
+            .AddEvent<BemAqui.HR.Contracts.PayrollModeChanged>()
             .AddHandler<BemAqui.Finance.Contracts.PaymentOrderPaid, BemAqui.HR.Application.PayrollPaymentConsumers>()
             .AddHandler<BemAqui.Finance.Contracts.PaymentOrderReversed, BemAqui.HR.Application.PayrollPaymentConsumers>()
             // CMP-03a (ADR 0024 §1): eventos do pedido de compra só para aviso e projeção; os títulos previstos nascem na transação da aprovação.

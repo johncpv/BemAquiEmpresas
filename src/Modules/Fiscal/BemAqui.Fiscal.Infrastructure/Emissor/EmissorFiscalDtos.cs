@@ -83,7 +83,9 @@ internal sealed record EfCertificado(string? Cnpj, bool Possui, string? Thumbpri
 
 internal sealed record EfEmitente(string Cnpj, string? RazaoSocial, string? Uf, string? CodigoMunicipio, string? Ambiente, bool Ativo, EfCertificado? Certificado);
 
-internal sealed record EfMe(Guid ClienteId, string? Nome, Guid TenantId, IReadOnlyList<string>? Escopos, bool LicencaBloqueada, int? LimitePorMinuto, IReadOnlyList<EfEmitente>? Emitentes);
+/// <remarks><c>NfseMunicipios</c> (lacuna L-m, FIS-06): ainda não vem no <c>GET /me</c>; quando vier, lista os IBGE com a NFS-e habilitada.</remarks>
+internal sealed record EfMe(Guid ClienteId, string? Nome, Guid TenantId, IReadOnlyList<string>? Escopos, bool LicencaBloqueada, int? LimitePorMinuto, IReadOnlyList<EfEmitente>? Emitentes,
+    IReadOnlyList<string>? NfseMunicipios = null);
 
 internal sealed record EfEvento(Guid Id, int Tipo, bool Aceito, string? Protocolo, int? Codigo, string? Motivo, string? AcaoSugerida, DateTimeOffset RegistradoEm);
 
@@ -175,7 +177,8 @@ internal static class EmissorFiscalMapping
         (me.Emitentes ?? []).Select(e => new EmitterIssuer(e.Cnpj, e.RazaoSocial ?? string.Empty, e.Uf ?? string.Empty, e.CodigoMunicipio ?? string.Empty,
             string.Equals(e.Ambiente, "producao", StringComparison.OrdinalIgnoreCase) ? FiscalEnvironment.Production : FiscalEnvironment.Homologation,
             e.Ativo,
-            e.Certificado is { } c ? new EmitterCertificate(c.Possui, c.Thumbprint, c.Titular, c.ValidoDesde, c.ValidoAte, c.DiasRestantes, c.Vencido) : new EmitterCertificate(false, null, null, null, null, null, false))).ToList());
+            e.Certificado is { } c ? new EmitterCertificate(c.Possui, c.Thumbprint, c.Titular, c.ValidoDesde, c.ValidoAte, c.DiasRestantes, c.Vencido) : new EmitterCertificate(false, null, null, null, null, null, false))).ToList(),
+        me.NfseMunicipios);
 
     public static NfeEventResult ToEvent(EfEvento e) => new(e.Id, (NfeEventType)e.Tipo, e.Aceito, e.Protocolo, e.Codigo, e.Motivo, e.AcaoSugerida, e.RegistradoEm);
 

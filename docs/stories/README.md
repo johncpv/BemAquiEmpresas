@@ -745,7 +745,7 @@ Stories da Fase 5 sem o go-live (as GOL foram para o [marco final](#marco-final-
 | 12 (5.5) | FIS-04a | NF-e de entrada por XML: importação segura, de-para dos itens e conferência contra o pedido | M | Done | R-FIS-5, R-CMP-5, R-PRP-3, R-EST-3, R-COM-3, R-SEC-5 | FIS-02a, CAD-02b, CAD-01a, CMP-03a, FND-07 | [FIS-04a](FIS-04a-nfe-entrada-xml-importacao.md) |
 | 13 (5.5) | FIS-04b | Recebimento pela NF-e de entrada: estoque pelo custo da nota e títulos a pagar pelas duplicatas, na mesma transação | M | Done | R-CMP-5, R-EST-7, R-FIN-4, R-FIN-10, R-PRP-2, R-PRP-3 | FIS-04a, CMP-04, CMP-03a, EST-01a, FIS-02a | [FIS-04b](FIS-04b-recebimento-pela-nota.md) |
 | 14 (5.5) | FIS-05 | NF-e de entrada por PDF (DANFE): chave, leitura assistida em worker isolado, "Digitar a nota" e conferência obrigatória | M | Done | R-FIS-6, R-PRP-3, R-SEC-5 | FIS-04a, FIS-04b, FIS-01, FND-07 | [FIS-05](FIS-05-nfe-entrada-pdf.md) |
-| 15 (5.6) | FIS-06 | NFS-e da instalação no aceite técnico, com o processo provisório pelo portal da prefeitura | M | Ready (pré-condição externa) | R-FIS-7, R-FIS-8, R-PRJ-3, R-PRJ-5, R-COM-1, R-PRP-2 | FIS-01, FIS-02a, FIS-02b, FIS-03a, COM-06, PRD-04 | [FIS-06](FIS-06-nfse-instalacao.md) |
+| 15 (5.6) | FIS-06 | NFS-e da instalação no aceite técnico, com o processo provisório pelo portal da prefeitura | M | Done (provider da NFS-e de Caçapava no Emissor, homologação da prefeitura e códigos da contadora: pré-condição externa) | R-FIS-7, R-FIS-8, R-PRJ-3, R-PRJ-5, R-COM-1, R-PRP-2 | FIS-01, FIS-02a, FIS-02b, FIS-03a, COM-06, PRD-04 | [FIS-06](FIS-06-nfse-instalacao.md) |
 | 16 (5.6) | FIN-09 | Régua de cobrança por e-mail (D) | M | Done | R-FIN-9, R-COM-1, R-FIN-12, R-PRP-5, R-SEC-5 | BNK-01b, BNK-02, FIN-01, FND-08, COM-03, FIN-06a | [FIN-09](FIN-09-regua-de-cobranca.md) |
 
 Total da Fase 5: 16 stories (M: 8 · G: 8), todas `Ready`; 11 com pré-condição externa explícita, que não bloqueia.
@@ -855,7 +855,7 @@ Ver as [decisões do PO](#decisões-do-po-21102026-john-1) na Fase 4. A Fase 7 e
 | 4 (7.2) | FLH-03 | Folha calculada: férias (períodos aquisitivos, programação, cálculo e recibo) | G | Ready (pré-condição externa) | R-RH-6, R-RH-4, R-RH-5, R-FIN-10, R-PRP-5, R-SEC-5 | FLH-02a, FLH-02b, FLH-01, RH-01c, RH-02b, ADR 0036, CAD-04b | [FLH-03](FLH-03-ferias.md) |
 | 5 (7.2) | FLH-04 | Folha calculada: 13º salário (1ª e 2ª parcelas) | M | Ready (pré-condição externa) | R-RH-6, R-RH-5, R-FIN-10, R-SEC-5 | FLH-02a, FLH-01, FLH-03, RH-02b, ADR 0036 | [FLH-04](FLH-04-decimo-terceiro.md) |
 | 6 (7.2) | FLH-05 | Folha calculada: rescisão | G | Ready (pré-condição externa) | R-RH-6, R-RH-3, R-RH-5, R-FIN-10, R-PRP-2, R-PRP-7 | FLH-02a, FLH-03, FLH-04, FLH-01, CAD-04b, RH-01c, RH-02b | [FLH-05](FLH-05-rescisao.md) |
-| 7 (7.3) | FLH-06 | Folha calculada: conferência paralela com a contadora e virada | M | Ready (pré-condição externa) | R-RH-6, R-SEC-5, R-PRP-2 | FLH-02a, FLH-02b, RH-02a, RH-03, FLH-03, FLH-05 | [FLH-06](FLH-06-conferencia-paralela.md) |
+| 7 (7.3) | FLH-06 | Folha calculada: conferência paralela com a contadora e virada | M | Done (pré-condição externa: dataset da contadora e assinatura para a virada) | R-RH-6, R-SEC-5, R-PRP-2 | FLH-02a, FLH-02b, RH-02a, RH-03, FLH-03, FLH-05 | [FLH-06](FLH-06-conferencia-paralela.md) |
 
 Total da Fase 7: 7 stories (M: 4 · G: 3), todas `Ready`; 7 com pré-condição externa explícita, que não bloqueia.
 

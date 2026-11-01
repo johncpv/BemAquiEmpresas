@@ -1,12 +1,13 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { createOutgoingInvoice, useGetProjectBilling } from '@/api/generated/bemaqui'
+import { createOutgoingInvoice, useGetProjectBilling, useListInstallationsToInvoice } from '@/api/generated/bemaqui'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { SidePanel } from '@/components/ui/side-panel'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
+import { useStartNfse } from '../fiscal/use-start-nfse'
 import { INVOICE_DICAS, quantity } from '../fiscal/outgoing-invoices'
 
 const primary = 'inline-flex min-h-11 items-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground disabled:opacity-60'
@@ -31,6 +32,8 @@ export function ProjectBillingPanel({ projectId }: { projectId: string }) {
 function BillingBody({ projectId }: { projectId: string }) {
   const navigate = useNavigate()
   const query = useGetProjectBilling({ projectId })
+  const installations = useListInstallationsToInvoice()
+  const nfse = useStartNfse()
   const idempotency = useIdempotencyKey()
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -82,6 +85,13 @@ function BillingBody({ projectId }: { projectId: string }) {
           </>
         )}
       </section>
+      {nfse.error ? <p role="alert" className="rounded-md border border-crit-soft bg-crit-soft px-3 py-2 text-crit-ink">{nfse.error}</p> : null}
+      {(installations.data ?? []).filter((i) => i.projectId === projectId).map((i) => (
+        <div key={i.installationOrderId} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-card p-2">
+          <span><b className="tabular-nums">{i.orderNumber}</b><span className="text-muted-foreground"> · aceite técnico registrado, sem NFS-e</span></span>
+          <button type="button" disabled={nfse.busy !== null} onClick={() => void nfse.start(i.installationOrderId, projectId)} className={primary}>{nfse.busy === i.installationOrderId ? 'Criando…' : 'Emitir NFS-e'}</button>
+        </div>
+      ))}
       {b.serviceItems > 0 ? <p className="flex items-center text-muted-foreground">{b.serviceItems} {b.serviceItems === 1 ? 'serviço fica' : 'serviços ficam'} para a NFS-e no aceite técnico.<Dica nome="Venda mista" texto={INVOICE_DICAS.vendaMista} /></p> : null}
     </div>
   )

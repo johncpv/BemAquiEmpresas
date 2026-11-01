@@ -31,6 +31,8 @@ Na situação **A inutilizar** aparecem os números gastos sem nota autorizada (
 ## Perguntas frequentes
 **Nenhuma nota na lista?** Emita a nota a partir de um romaneio expedido, na aba **A emitir**.
 
+**Onde ficam as NFS-e da instalação?** Na mesma lista. Use o filtro **Tipo → NFS-e** para ver só elas; a registrada do portal da prefeitura aparece com a marca "Registrada (portal da prefeitura)" na nota.
+
 **Os impostos do total são os do custo?** Não: o total do filtro soma todos os tributos destacados. O que entra no custo do projeto é o marcado na regra fiscal.
 
 **Quem inutiliza?** Só o Proprietário, com a verificação em duas etapas. Os demais veem a lista.

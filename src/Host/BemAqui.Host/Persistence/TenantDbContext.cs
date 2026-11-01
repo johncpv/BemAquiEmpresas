@@ -364,6 +364,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoiceItem> IncomingInvoiceItems => Set<BemAqui.Fiscal.Domain.IncomingInvoiceItem>();
 
+    public DbSet<BemAqui.Fiscal.Domain.InstallationBilling> InstallationBillings => Set<BemAqui.Fiscal.Domain.InstallationBilling>();
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoiceReading> IncomingInvoiceReadings => Set<BemAqui.Fiscal.Domain.IncomingInvoiceReading>();
 
     public DbSet<BemAqui.Assets.Domain.Asset> Assets => Set<BemAqui.Assets.Domain.Asset>();
@@ -427,6 +428,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<PayrollTaxTableDataset> PayrollTaxTableDatasets => Set<PayrollTaxTableDataset>();
 
     public DbSet<PayrollCalculationLog> PayrollCalculationLogs => Set<PayrollCalculationLog>();
+
+    public DbSet<PayrollParallelRun> PayrollParallelRuns => Set<PayrollParallelRun>();
+
+    public DbSet<PayrollParallelDifference> PayrollParallelDifferences => Set<PayrollParallelDifference>();
+
+    public DbSet<PayrollItemMapping> PayrollItemMappings => Set<PayrollItemMapping>();
+
+    public DbSet<PayrollModeChange> PayrollModeChanges => Set<PayrollModeChange>();
 
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
 

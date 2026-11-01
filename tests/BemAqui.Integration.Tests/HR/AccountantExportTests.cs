@@ -286,9 +286,9 @@ public class AccountantExportTests(TenancyFixture tenancy) : IClassFixture<Tenan
         overview.GetProperty("history").EnumerateArray().Should().Contain(h => h.GetProperty("period").GetString() == "2024-03-01" && h.GetProperty("layout").GetString() == "v2");
         overview.GetProperty("draftRuns").EnumerateArray().Select(d => d.GetProperty("id").GetGuid()).Should().Equal(draftRun);
         var sections = overview.GetProperty("sections").EnumerateArray().ToList();
-        sections.Select(s => s.GetProperty("key").GetString()).Should().Equal("movements", "payroll", "timeclock");
+        sections.Select(s => s.GetProperty("key").GetString()).Should().Equal("movements", "payroll", "calculated-payroll", "timeclock");
         sections[0].GetProperty("summary").GetString().Should().Be("Movimentação: 5 eventos");
-        sections[2].GetProperty("included").GetBoolean().Should().BeFalse();
+        sections[3].GetProperty("included").GetBoolean().Should().BeFalse();
         overview.GetRawText().Should().NotContain(admitted.Cpf, "a tela não leva dado pessoal");
     }
 

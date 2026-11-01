@@ -9210,6 +9210,444 @@
         }
       }
     },
+    "/api/v1/hr/payroll-parallel": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayrollParallelOverview",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollParallelOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/history": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListPayrollParallelHistory",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayrollParallelHistoryEntry"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/compare": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ComparePayrollParallel",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollParallelCompareInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollParallelDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/{id}/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayrollParallelSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollParallelDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/{id}/differences/{differenceId}": {
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ClassifyPayrollDifference",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "differenceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollDifferenceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollDifferenceResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/{id}/correction-cases": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadPayrollCorrectionCases",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/{id}/term": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadPayrollParallelTerm",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "AttachPayrollParallelTerm",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/{id}/accept": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "AcceptPayrollParallel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollParallelAcceptInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollParallelDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/switch": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "SwitchPayrollToCalculated",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollModeSwitchInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollModeResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/revert": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "RevertPayrollToEntered",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollModeRevertInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollModeResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/mappings": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListPayrollItemMappings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayrollItemMappingRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "SavePayrollItemMapping",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollItemMappingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayrollItemMappingRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/mappings/{id}": {
+      "delete": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DeletePayrollItemMapping",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayrollItemMappingRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/time-entries": {
       "get": {
         "tags": [
@@ -32245,6 +32683,13 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/InvoiceType"
+            }
           }
         ],
         "responses": {
@@ -33144,6 +33589,406 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/InvalidationResultView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/installations-to-invoice": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ListInstallationsToInvoice",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InstallationQueueRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/nfse": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "CreateNfse",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateNfseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetNfse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "UpdateNfse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNfseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse/issue-check": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "CheckNfseIssue",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseIssueCheckView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse/issue": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "IssueNfse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutgoingInvoiceVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseIssueResultView"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseIssueResultView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse/register": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "RegisterNfse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterNfseForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseRegisterResultView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse/register-cancellation": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "RegisterNfseCancellation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterNfseCancellationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse/reopen": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ReopenNfse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutgoingInvoiceVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse/discard": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "DiscardNfse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutgoingInvoiceVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/nfse/resend": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ResendNfse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfseView"
                 }
               }
             }
@@ -48251,6 +49096,25 @@
           }
         }
       },
+      "CreateNfseRequest": {
+        "required": [
+          "installationOrderId"
+        ],
+        "type": "object",
+        "properties": {
+          "installationOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
       "CreateOutgoingInvoiceRequest": {
         "required": [
           "shipmentId"
@@ -58082,6 +58946,63 @@
           }
         }
       },
+      "InstallationQueueRow": {
+        "required": [
+          "installationOrderId",
+          "orderNumber",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "partyId",
+          "partyName",
+          "acceptedOn",
+          "daysSinceAcceptance",
+          "late",
+          "estimatedAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "installationOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": "string"
+          },
+          "acceptedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "daysSinceAcceptance": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "late": {
+            "type": "boolean"
+          },
+          "estimatedAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "InstallationStepView": {
         "required": [
           "id",
@@ -59347,6 +60268,12 @@
           }
         }
       },
+      "InvoiceOrigin": {
+        "enum": [
+          "Emitter",
+          "PortalRegistered"
+        ]
+      },
       "InvoiceQueueRow": {
         "required": [
           "shipmentId",
@@ -59831,7 +60758,8 @@
         "enum": [
           "NFe",
           "NFSe"
-        ]
+        ],
+        "default": "NFe"
       },
       "IpiParameters": {
         "required": [
@@ -65787,6 +66715,715 @@
           }
         }
       },
+      "NfseActions": {
+        "required": [
+          "canEdit",
+          "canIssue",
+          "canRegister",
+          "canReopen",
+          "canDiscard",
+          "canRegisterCancellation",
+          "canDownload",
+          "canResend"
+        ],
+        "type": "object",
+        "properties": {
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canIssue": {
+            "type": "boolean"
+          },
+          "canRegister": {
+            "type": "boolean"
+          },
+          "canReopen": {
+            "type": "boolean"
+          },
+          "canDiscard": {
+            "type": "boolean"
+          },
+          "canRegisterCancellation": {
+            "type": "boolean"
+          },
+          "canDownload": {
+            "type": "boolean"
+          },
+          "canResend": {
+            "type": "boolean"
+          }
+        }
+      },
+      "NfseCancellationView": {
+        "required": [
+          "reason",
+          "protocol",
+          "byName",
+          "at",
+          "on"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "byName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "on": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "NfseCopyField": {
+        "required": [
+          "key",
+          "label",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "NfseIssueCheckView": {
+        "required": [
+          "invoiceId",
+          "mode",
+          "environment",
+          "preconditions",
+          "warnings",
+          "takerName",
+          "service",
+          "totalAmount",
+          "issAmount",
+          "costTaxAmount",
+          "projectNumber",
+          "projectCostApplies",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NfseMode"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/FiscalEnvironment"
+          },
+          "preconditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IssuePrecondition"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "takerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "service": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/NfseServiceInfo"
+              }
+            ]
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "issAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "costTaxAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectCostApplies": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "NfseIssueResultView": {
+        "required": [
+          "invoiceId",
+          "status",
+          "idempotencyKey",
+          "message",
+          "invoice"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OutgoingInvoiceStatus"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "invoice": {
+            "$ref": "#/components/schemas/NfseView"
+          }
+        }
+      },
+      "NfseItemView": {
+        "required": [
+          "id",
+          "sequence",
+          "projectItemId",
+          "description",
+          "quantity",
+          "unitPrice",
+          "discount",
+          "grossAmount",
+          "taxRuleName",
+          "taxRuleVersion",
+          "taxes",
+          "costTax"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projectItemId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "grossAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxRuleName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "taxRuleVersion": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "taxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxLine"
+            }
+          },
+          "costTax": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "NfseMode": {
+        "enum": [
+          "Emitter",
+          "Portal"
+        ]
+      },
+      "NfseRegisterResultView": {
+        "required": [
+          "invoice",
+          "warnings"
+        ],
+        "type": "object",
+        "properties": {
+          "invoice": {
+            "$ref": "#/components/schemas/NfseView"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "NfseServiceInfo": {
+        "required": [
+          "serviceItem",
+          "municipalCode",
+          "ctn",
+          "nbs",
+          "serviceCityCode",
+          "serviceCityName",
+          "issLocation",
+          "issRate",
+          "issAmount",
+          "issWithheld",
+          "federalWithholding",
+          "description",
+          "ibsCbsCst",
+          "ibsCbsClassification",
+          "netAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "serviceItem": {
+            "type": "string"
+          },
+          "municipalCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ctn": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nbs": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "serviceCityCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "serviceCityName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issLocation": {
+            "$ref": "#/components/schemas/IssLocation"
+          },
+          "issRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "issAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "issWithheld": {
+            "type": "boolean"
+          },
+          "federalWithholding": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "ibsCbsCst": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ibsCbsClassification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "netAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "NfseView": {
+        "required": [
+          "id",
+          "status",
+          "origin",
+          "environment",
+          "mode",
+          "portalNotice",
+          "portalUrl",
+          "number",
+          "verificationCode",
+          "authorizedAt",
+          "issuedOn",
+          "attempt",
+          "projectId",
+          "projectNumber",
+          "projectName",
+          "installationOrderId",
+          "installationOrderNumber",
+          "partyId",
+          "recipient",
+          "service",
+          "items",
+          "totals",
+          "totalAmount",
+          "costTaxAmount",
+          "issCalculated",
+          "issTyped",
+          "issWarning",
+          "calculationError",
+          "rejectionCode",
+          "rejectionReason",
+          "suggestedAction",
+          "processingSince",
+          "xmlAttachmentId",
+          "pdfAttachmentId",
+          "sendToCustomer",
+          "emailCc",
+          "emailedAt",
+          "linkedInvoiceId",
+          "linkedInvoiceLabel",
+          "cancellation",
+          "portalCopy",
+          "actions",
+          "createdAt",
+          "createdByName",
+          "issuedByName",
+          "discardedAt",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OutgoingInvoiceStatus"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/InvoiceOrigin"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/FiscalEnvironment"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NfseMode"
+          },
+          "portalNotice": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "portalUrl": {
+            "type": "string"
+          },
+          "number": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "verificationCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "authorizedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "issuedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "attempt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "projectName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "installationOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "installationOrderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "recipient": {
+            "$ref": "#/components/schemas/OutgoingInvoiceRecipientView"
+          },
+          "service": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/NfseServiceInfo"
+              }
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NfseItemView"
+            }
+          },
+          "totals": {
+            "$ref": "#/components/schemas/InvoiceTotals"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "costTaxAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "issCalculated": {
+            "type": "number",
+            "format": "double"
+          },
+          "issTyped": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "issWarning": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "calculationError": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "rejectionCode": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "rejectionReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "suggestedAction": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "processingSince": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "xmlAttachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "pdfAttachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "sendToCustomer": {
+            "type": "boolean"
+          },
+          "emailCc": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "emailedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "linkedInvoiceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "linkedInvoiceLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancellation": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/NfseCancellationView"
+              }
+            ]
+          },
+          "portalCopy": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NfseCopyField"
+            }
+          },
+          "actions": {
+            "$ref": "#/components/schemas/NfseActions"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issuedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "discardedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "NonConformityActionInput": {
         "required": [
           "cause",
@@ -68440,6 +70077,15 @@
           },
           "status": {
             "$ref": "#/components/schemas/OutgoingInvoiceStatus"
+          },
+          "type": {
+            "$ref": "#/components/schemas/InvoiceType"
+          },
+          "installationOrderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -73155,6 +74801,15 @@
           }
         }
       },
+      "PayrollDifferenceClassification": {
+        "enum": [
+          "SystemError",
+          "AccountantError",
+          "RuleDifference",
+          "Rounding",
+          null
+        ]
+      },
       "PayrollDifferenceEmployee": {
         "required": [
           "employeeId",
@@ -73195,6 +74850,31 @@
           }
         }
       },
+      "PayrollDifferenceInput": {
+        "required": [
+          "classification",
+          "justification"
+        ],
+        "type": "object",
+        "properties": {
+          "classification": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollDifferenceClassification"
+              }
+            ]
+          },
+          "justification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "PayrollDifferenceLine": {
         "required": [
           "payrollItemId",
@@ -73226,6 +74906,28 @@
           "after": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "PayrollDifferenceResult": {
+        "required": [
+          "cell",
+          "nextStep"
+        ],
+        "type": "object",
+        "properties": {
+          "cell": {
+            "$ref": "#/components/schemas/PayrollParallelCell"
+          },
+          "nextStep": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollNextStep"
+              }
+            ]
           }
         }
       },
@@ -73706,6 +75408,54 @@
           "Information"
         ]
       },
+      "PayrollItemMappingInput": {
+        "required": [
+          "enteredCode",
+          "calculatedCode"
+        ],
+        "type": "object",
+        "properties": {
+          "enteredCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "calculatedCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollItemMappingRow": {
+        "required": [
+          "id",
+          "enteredCode",
+          "calculatedCode",
+          "calculatedName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "enteredCode": {
+            "type": "string"
+          },
+          "calculatedCode": {
+            "type": "string"
+          },
+          "calculatedName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "PayrollManualLineInput": {
         "required": [
           "payrollItemId",
@@ -73740,6 +75490,104 @@
           }
         }
       },
+      "PayrollModeResult": {
+        "required": [
+          "message",
+          "overview"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "overview": {
+            "$ref": "#/components/schemas/PayrollParallelOverview"
+          }
+        }
+      },
+      "PayrollModeRevertInput": {
+        "required": [
+          "type",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollParallelType"
+              }
+            ]
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollModeSwitchInput": {
+        "required": [
+          "confirmed"
+        ],
+        "type": "object",
+        "properties": {
+          "confirmed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PayrollModeView": {
+        "required": [
+          "type",
+          "label",
+          "mode",
+          "fromPeriod",
+          "since",
+          "situation",
+          "acceptedCase"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/PayrollParallelType"
+          },
+          "label": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/PayrollRunMode"
+          },
+          "fromPeriod": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "since": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "situation": {
+            "type": "string"
+          },
+          "acceptedCase": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
       "PayrollNextStep": {
         "required": [
           "label",
@@ -73754,6 +75602,578 @@
             "type": "string"
           }
         }
+      },
+      "PayrollParallelAcceptInput": {
+        "required": [
+          "accountantName",
+          "accountantCrc",
+          "signedTermAttachmentId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "accountantName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountantCrc": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "signedTermAttachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollParallelCell": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "kind",
+          "entered",
+          "calculated",
+          "difference",
+          "differencePct",
+          "equal",
+          "classification",
+          "classificationLabel",
+          "justification",
+          "classifiedByName",
+          "classifiedAt",
+          "hasCorrectionCase",
+          "memory"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PayrollItemKind"
+          },
+          "entered": {
+            "type": "number",
+            "format": "double"
+          },
+          "calculated": {
+            "type": "number",
+            "format": "double"
+          },
+          "difference": {
+            "type": "number",
+            "format": "double"
+          },
+          "differencePct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "equal": {
+            "type": "boolean"
+          },
+          "classification": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollDifferenceClassification"
+              }
+            ]
+          },
+          "classificationLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "justification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "classifiedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "classifiedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "hasCorrectionCase": {
+            "type": "boolean"
+          },
+          "memory": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PayrollParallelCompareInput": {
+        "required": [
+          "period",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "type": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollRunType"
+              }
+            ]
+          }
+        }
+      },
+      "PayrollParallelDetail": {
+        "required": [
+          "run",
+          "enteredRunId",
+          "calculatedRunId",
+          "enteredNet",
+          "calculatedNet",
+          "netDifference",
+          "canAccept",
+          "employees",
+          "items",
+          "nextStep"
+        ],
+        "type": "object",
+        "properties": {
+          "run": {
+            "$ref": "#/components/schemas/PayrollParallelMonthRow"
+          },
+          "enteredRunId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "calculatedRunId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "enteredNet": {
+            "type": "number",
+            "format": "double"
+          },
+          "calculatedNet": {
+            "type": "number",
+            "format": "double"
+          },
+          "netDifference": {
+            "type": "number",
+            "format": "double"
+          },
+          "canAccept": {
+            "type": "boolean"
+          },
+          "employees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollParallelEmployee"
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollParallelItemSummary"
+            }
+          },
+          "nextStep": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollNextStep"
+              }
+            ]
+          }
+        }
+      },
+      "PayrollParallelEmployee": {
+        "required": [
+          "employeeId",
+          "name",
+          "registration",
+          "enteredNet",
+          "calculatedNet",
+          "netDifference",
+          "differences",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "enteredNet": {
+            "type": "number",
+            "format": "double"
+          },
+          "calculatedNet": {
+            "type": "number",
+            "format": "double"
+          },
+          "netDifference": {
+            "type": "number",
+            "format": "double"
+          },
+          "differences": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollParallelCell"
+            }
+          }
+        }
+      },
+      "PayrollParallelHistoryEntry": {
+        "required": [
+          "at",
+          "userName",
+          "action",
+          "description",
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "userName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "action": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollParallelItemSummary": {
+        "required": [
+          "code",
+          "name",
+          "differences",
+          "totalDifference"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "differences": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalDifference": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PayrollParallelMonthRow": {
+        "required": [
+          "id",
+          "period",
+          "runType",
+          "payrollType",
+          "status",
+          "statusLabel",
+          "employees",
+          "differences",
+          "comparedAt",
+          "comparedByName",
+          "acceptedAt",
+          "acceptedByName",
+          "accountantName",
+          "accountantCrc",
+          "hasSignedTerm",
+          "countsForSwitch",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "runType": {
+            "$ref": "#/components/schemas/PayrollParallelType"
+          },
+          "payrollType": {
+            "$ref": "#/components/schemas/PayrollRunType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayrollParallelStatus"
+          },
+          "statusLabel": {
+            "type": "string"
+          },
+          "employees": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "differences": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "comparedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "comparedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "acceptedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "acceptedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountantName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountantCrc": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hasSignedTerm": {
+            "type": "boolean"
+          },
+          "countsForSwitch": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollParallelOverview": {
+        "required": [
+          "runs",
+          "pending",
+          "required",
+          "consecutive",
+          "canSwitch",
+          "switchFrom",
+          "modes",
+          "isOwner",
+          "lastAccountantName",
+          "lastAccountantCrc"
+        ],
+        "type": "object",
+        "properties": {
+          "runs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollParallelMonthRow"
+            }
+          },
+          "pending": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollParallelPending"
+            }
+          },
+          "required": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "consecutive": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          "canSwitch": {
+            "type": "boolean"
+          },
+          "switchFrom": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "modes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollModeView"
+            }
+          },
+          "isOwner": {
+            "type": "boolean"
+          },
+          "lastAccountantName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastAccountantCrc": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollParallelPending": {
+        "required": [
+          "period",
+          "type",
+          "calculatedRunId",
+          "enteredRunId",
+          "canCompare",
+          "message",
+          "actionLabel",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PayrollRunType"
+          },
+          "calculatedRunId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "enteredRunId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "canCompare": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "actionLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollParallelStatus": {
+        "enum": [
+          "Open",
+          "Accepted",
+          "Rejected"
+        ]
+      },
+      "PayrollParallelType": {
+        "enum": [
+          "Monthly",
+          "Vacation",
+          "Thirteenth",
+          "Termination"
+        ]
       },
       "PayrollPayeeOption": {
         "required": [
@@ -86136,6 +88556,90 @@
           }
         }
       },
+      "RegisterNfseCancellationRequest": {
+        "required": [
+          "reason",
+          "protocol",
+          "code",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "protocol": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "RegisterNfseForm": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "verificationCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issuedOn": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "servicesAmount": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issAmount": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "file": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IFormFile"
+              }
+            ]
+          }
+        }
+      },
       "RejectIncomingInvoiceRequest": {
         "required": [
           "reason"
@@ -97892,6 +100396,36 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "UpdateNfseRequest": {
+        "required": [
+          "description",
+          "sendToCustomer",
+          "emailCc",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sendToCustomer": {
+            "type": "boolean"
+          },
+          "emailCc": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },

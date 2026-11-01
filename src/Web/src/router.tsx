@@ -29,6 +29,7 @@ import { RetentionPage } from '@/pages/settings/privacy/RetentionPage'
 import { TaxRulesPage } from '@/pages/fiscal/TaxRulesPage'
 import { NewTaxRulePage, TaxRulePage } from '@/pages/fiscal/TaxRulePage'
 import { OutgoingInvoicePage } from '@/pages/fiscal/OutgoingInvoicePage'
+import { NfsePage } from '@/pages/fiscal/NfsePage'
 import { OutgoingInvoicesPage } from '@/pages/fiscal/OutgoingInvoicesPage'
 import { ImportIncomingPage } from '@/pages/fiscal/incoming/ImportIncomingPage'
 import { ImportPdfPage } from '@/pages/fiscal/incoming/ImportPdfPage'
@@ -132,6 +133,7 @@ import { TimesheetOverviewPage } from '@/pages/hr/timeclock/TimesheetOverviewPag
 import { PayrollItemsPage } from '@/pages/hr/payroll/PayrollItemsPage'
 import { PayrollRunPage } from '@/pages/hr/payroll/PayrollRunPage'
 import { AccountantExportPage } from '@/pages/hr/accountant/AccountantExportPage'
+import { PayrollParallelPage } from '@/pages/hr/parallel/PayrollParallelPage'
 import { PayrollRunsPage } from '@/pages/hr/payroll/PayrollRunsPage'
 import { PayrollTaxTablesPage } from '@/pages/hr/payroll/PayrollTaxTablesPage'
 import { CategoriesPage } from '@/pages/inventory/CategoriesPage'
@@ -266,6 +268,8 @@ const taxRuleRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal
 // Fiscal → Notas de saída (FIS-03a): abas "A emitir" e "Emitidas"; a nota com Dados, Itens e tributos, Documentos, Eventos e Histórico.
 const outgoingInvoicesRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/saida', component: gated('fiscal', OutgoingInvoicesPage) })
 const outgoingInvoiceRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/saida/$id', component: gated('fiscal', OutgoingInvoicePage) })
+// NFS-e da instalação (FIS-06): rascunho pela OS aceita, emissão pelo Emissor ou o processo provisório pelo portal da prefeitura.
+const nfseRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/saida/nfse/$id', component: gated('fiscal', NfsePage) })
 // Fiscal → Notas de entrada (FIS-04a): lista com o filtro de situação na URL, Importar XML e a nota com as abas na URL.
 const incomingInvoicesRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/entrada', component: gated('fiscal', IncomingInvoicesPage) })
 const importIncomingRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/entrada/importar', component: gated('fiscal', ImportIncomingPage) })
@@ -413,6 +417,8 @@ const payrollItemsRoute = createRoute({ getParentRoute: () => appRoute, path: 'r
 const payrollTaxTablesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/tabelas-folha', component: gated('hr', PayrollTaxTablesPage), validateSearch: (s: Record<string, unknown>): { tipo?: string } => ({ tipo: text(s.tipo) }) })
 // Exportação para a contadora (RH-03).
 const accountantExportRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/exportar-contadora', component: gated('hr', AccountantExportPage) })
+// Conferência paralela da folha calculada e virada (FLH-06): ?mes vem do "Comparar com a lançada" e ?id abre a competência.
+const payrollParallelRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/conferencia-folha', component: gated('hr', PayrollParallelPage), validateSearch: (s: Record<string, unknown>): { mes?: string; id?: string } => ({ mes: text(s.mes), id: text(s.id) }) })
 // Plano de contas e centros de custo (CAD-05a).
 const chartRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/plano-de-contas', component: gated('finance', ChartOfAccountsPage) })
 const costCentersRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/centros-de-custo', component: gated('finance', CostCentersPage) })
@@ -541,7 +547,7 @@ export const routeTree = rootRoute.addChildren([
   appRoute.addChildren([appIndexRoute, assetsRootRoute, assetsRoute, newAssetRoute, assetRoute, assetSitesRoute, maintenanceRoute, maintenanceOrderRoute, maintenanceCostRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute, myPayslipsRoute, myTimeClockRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, interAccountsRoute, interAccountRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, billingSettingsRoute,
     inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute, capacityRoute, planningRoute, supervisorRoute,
-    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, reconciliationRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, hrTimeRoute, timeEntriesRoute, timeAdjustmentsRoute, timesheetsRoute, timesheetRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, payrollTaxTablesRoute, fiscalIntegrationRoute, fiscalSettingsRoute, fiscalCertificateRoute, privacyRequestsRoute, privacyRequestRoute, privacyRetentionRoute, fiscalRootRoute, taxRulesRoute, newTaxRuleRoute, taxRuleRoute, outgoingInvoicesRoute, outgoingInvoiceRoute, incomingInvoicesRoute, importIncomingRoute, importPdfRoute, incomingReadingRoute, incomingInvoiceRoute, invoiceReceiptRoute, accountantExportRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
+    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, reconciliationRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, hrTimeRoute, timeEntriesRoute, timeAdjustmentsRoute, timesheetsRoute, timesheetRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, payrollTaxTablesRoute, fiscalIntegrationRoute, fiscalSettingsRoute, fiscalCertificateRoute, privacyRequestsRoute, privacyRequestRoute, privacyRetentionRoute, fiscalRootRoute, taxRulesRoute, newTaxRuleRoute, taxRuleRoute, outgoingInvoicesRoute, outgoingInvoiceRoute, nfseRoute, incomingInvoicesRoute, importIncomingRoute, importPdfRoute, incomingReadingRoute, incomingInvoiceRoute, invoiceReceiptRoute, accountantExportRoute, payrollParallelRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),

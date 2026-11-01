@@ -514,7 +514,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-6, R-PRP-3.
 - CA: extração de texto num worker isolado (`network_mode: none`, memória limitada, kill no tempo limite); sem OCR: PDF sem texto oferece "Digitar a nota"; chave com DV; conferência de todo campo, incertos com texto e foco no primeiro; nota marcada "Lida do PDF" e substituível pelo XML.
 
-**FIS-06 [ ] NFS-e da instalação no aceite técnico, com o processo provisório pelo portal da prefeitura (M)** — 5.6, ordem 15 — `Ready (pré-condição externa)` — [story](stories/FIS-06-nfse-instalacao.md)
+**FIS-06 [x] NFS-e da instalação no aceite técnico, com o processo provisório pelo portal da prefeitura (M)** — 5.6, ordem 15 — `Done` (provider da NFS-e de Caçapava no Emissor, homologação da prefeitura e códigos da contadora: pré-condição externa) — [story](stories/FIS-06-nfse-instalacao.md)
 - Requisitos: R-FIS-7, R-FIS-8, R-PRJ-3, R-PRJ-5.
 - CA: NFS-e a partir do aceite técnico, com o código de serviço e o ISS de Configurações → Fiscal; vínculo à NF-e do equipamento; ISS no custo do projeto; até o provider de Caçapava no Emissor, processo provisório pelo portal da prefeitura com o registro manual.
 
@@ -625,7 +625,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-7--folha-calculad
 - Requisitos: R-RH-6, R-RH-3, R-RH-5, R-FIN-10, R-PRP-2, R-PRP-7, R-SEC-5.
 - CA: simulação com custo total sem gravar; verbas pela matriz parametrizada por tipo de desligamento; multa do FGTS como encargo; termo de conferência; prazo de pagamento com aviso.
 
-**FLH-06 [ ] Folha calculada: conferência paralela com a contadora e virada (M)** — 7.3, ordem 7 — `Ready (pré-condição externa)` — [story](stories/FLH-06-conferencia-paralela.md)
+**FLH-06 [x] Folha calculada: conferência paralela com a contadora e virada (M)** — 7.3, ordem 7 — `Done (pré-condição externa: dataset da contadora e assinatura para a virada)` — [story](stories/FLH-06-conferencia-paralela.md)
 - Requisitos: R-RH-6, `06` Riscos, R-SEC-5, R-PRP-2.
 - CA: lançada × calculada por funcionário e rubrica; diferenças classificadas; aceite da competência; virada pelo Proprietário só depois de 3 competências seguidas aceitas, com volta possível.
 

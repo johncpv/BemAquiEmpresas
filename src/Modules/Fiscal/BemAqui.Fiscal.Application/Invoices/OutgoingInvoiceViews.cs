@@ -49,13 +49,13 @@ public sealed record OutgoingInvoiceView(
 /// <summary>Nota na lista "Emitidas" (CA 17): número, série, data, cliente, projeto, valor, impostos, ambiente e situação (sem documento do cliente).</summary>
 public sealed record OutgoingInvoiceRow(
     Guid Id, int? Series, long? Number, DateOnly? IssuedOn, DateTimeOffset CreatedAt, Guid? PartyId, string PartyName, Guid? ProjectId, string? ProjectNumber, string? ShipmentNumber,
-    decimal TotalAmount, decimal TaxAmount, FiscalEnvironment Environment, OutgoingInvoiceStatus Status);
+    decimal TotalAmount, decimal TaxAmount, FiscalEnvironment Environment, OutgoingInvoiceStatus Status, InvoiceType Type = InvoiceType.NFe, string? InstallationOrderNumber = null);
 
 /// <summary>Página da lista com os totais do filtro (valor e impostos, CA 17).</summary>
 public sealed record OutgoingInvoicePage(IReadOnlyList<OutgoingInvoiceRow> Items, int Total, int Page, int PageSize, decimal TotalAmount, decimal TaxAmount);
 
 /// <summary>Filtros da lista na URL (CA 17).</summary>
-public sealed record OutgoingInvoiceQuery(DateOnly? From, DateOnly? To, OutgoingInvoiceStatus? Status, Guid? PartyId, Guid? ProjectId, bool? CancellationRequested = null);
+public sealed record OutgoingInvoiceQuery(DateOnly? From, DateOnly? To, OutgoingInvoiceStatus? Status, Guid? PartyId, Guid? ProjectId, InvoiceType? Type = null, bool? CancellationRequested = null);
 
 // ---------- FIS-03b: cancelamento, carta de correção e inutilização ----------
 

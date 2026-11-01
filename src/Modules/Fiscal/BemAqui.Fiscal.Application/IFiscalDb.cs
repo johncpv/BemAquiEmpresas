@@ -41,6 +41,8 @@ public interface IFiscalDb
 
     DbSet<IncomingInvoiceItem> IncomingInvoiceItems { get; }
 
+    /// <summary>Instalações aceitas à espera da NFS-e (FIS-06).</summary>
+    DbSet<InstallationBilling> InstallationBillings { get; }
     /// <summary>Rascunhos da leitura do PDF da DANFE e das notas digitadas (FIS-05).</summary>
     DbSet<IncomingInvoiceReading> IncomingInvoiceReadings { get; }
 

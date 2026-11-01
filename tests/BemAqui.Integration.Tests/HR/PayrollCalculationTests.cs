@@ -439,7 +439,7 @@ public partial class PayrollCalculationTests(TenancyFixture tenancy) : IClassFix
         var period = new DateOnly(2026, 7, 1);
         var employee = await EmployeeAsync(a, hr.Client, await PositionAsync(hr.Client), period, 2500m);
         await CloseTimesheetAsync(a, employee, period);
-        var entered = await OkAsync(await hr.Client.SendAsync(Post(Runs, new { period = "2026-07", type = "Monthly", employeeIds = (Guid[]?)null })), HttpStatusCode.Created);
+        await OkAsync(await hr.Client.SendAsync(Post(Runs, new { period = "2026-07", type = "Monthly", employeeIds = (Guid[]?)null })), HttpStatusCode.Created);
         var run = await CalculatedRunAsync(hr.Client, period);
         await OkAsync(await hr.Client.PostAsync($"{Runs}/{run}/calculate", null));
         var version = (await JsonAsync(await hr.Client.GetAsync($"{Runs}/{run}"))).GetProperty("version").GetUInt32();
@@ -449,7 +449,7 @@ public partial class PayrollCalculationTests(TenancyFixture tenancy) : IClassFix
         body.GetProperty("code").GetString().Should().Be(PayrollCalculationRules.SimulationCode);
         body.GetProperty("detail").GetString().Should().Be("Folha calculada em conferência paralela: feche a folha lançada.");
         body.GetProperty("nextStep").GetString().Should().Be("Comparar com a lançada");
-        body.GetProperty("link").GetString().Should().Contain(entered.GetProperty("id").GetGuid().ToString());
+        body.GetProperty("link").GetString().Should().Be(PayrollParallelService.Link(period), "FLH-06: \"Comparar com a lançada\" abre a conferência da competência");
         var preview = await OkAsync(await hr.Client.GetAsync($"{Runs}/{run}/close/sensitive"));
         preview.GetProperty("blockers").EnumerateArray().Select(b => b.GetProperty("code").GetString()).Should().Contain(PayrollCalculationRules.SimulationCode);
         (await DbAsync(a, db => db.PayrollRuns.AsNoTracking().SingleAsync(r => r.Id == run))).Status.Should().Be(PayrollRunStatus.Draft);
