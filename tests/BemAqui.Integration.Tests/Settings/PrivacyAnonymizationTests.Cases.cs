@@ -10,6 +10,7 @@ using BemAqui.Finance.Application;
 using BemAqui.Finance.Contracts;
 using BemAqui.Finance.Domain;
 using BemAqui.HR.Application;
+using BemAqui.HR.Application.TimeClock;
 using BemAqui.HR.Contracts;
 using BemAqui.HR.Domain;
 using BemAqui.Identity.Domain;
@@ -258,6 +259,106 @@ public partial class PrivacyAnonymizationTests
         edit.StatusCode.Should().Be(HttpStatusCode.Conflict);
         (await CodeAsync(edit)).Should().Be("employee_anonymized");
         (await CanaryHitsAsync(gone.Name, gone.Cpf)).Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Espelho_de_ponto_retem_os_totais_e_perde_saude_comentarios_e_acordo_so_depois_do_prazo_do_desligamento()
+    {
+        var owner = await ActorAsync(Group.OwnerSeedKey, totp: true);
+        var tag = Guid.NewGuid().ToString("N")[..8];
+        var reopen = $"Reaberto canario {tag}: atestado da hernia";
+        var comment = $"Revisao canario {tag}: consulta no cardiologista";
+        var snapshotJson = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
+        // Espelho fechado com abono de saúde, afastamento, reabertura, revisão do dia, PDF guardado e acordo de banco de horas (RH-01c).
+        async Task<(Guid Employee, Guid Sheet, Guid Pdf, string Name)> SeedAsync(DateOnly? terminated)
+        {
+            var employee = await EmployeeAsync(owner.Client);
+            var day = new DateOnly(2019, 5, 6);
+            var days = new List<TimesheetDayResult>
+            {
+                new(day, TimesheetDayStatus.Justified, 480, 0, 0, 0, 0, 480, 0, null, [], true, [], [new TimesheetAbsenceInput(day, null, AbsenceReason.MedicalCertificate)], null, null),
+                new(day.AddDays(1), TimesheetDayStatus.OnLeave, 480, 0, 0, 0, 0, 480, 0, null, [], false, [], [], null, new TimesheetLeaveInput(day.AddDays(1), day.AddDays(20), AbsenceReason.WorkAccident)),
+                new(day.AddDays(2), TimesheetDayStatus.Justified, 480, 420, 0, 0, 0, 60, 0, null, [], false, [], [new TimesheetAbsenceInput(day.AddDays(2), 60, AbsenceReason.AttendanceNote)], null, null),
+            };
+            var timesheet = new Timesheet
+            {
+                EmployeeId = employee.Id, Period = new DateOnly(2019, 5, 1), PeriodStart = new DateOnly(2019, 5, 1), PeriodEnd = new DateOnly(2019, 5, 31),
+                Status = TimesheetStatus.Closed, ExpectedMinutes = 1440, WorkedMinutes = 420, JustifiedMinutes = 1020, WorkedDays = 1,
+                JustifiedByReason = "MedicalCertificate=480;WorkAccident=480;AttendanceNote=60", DaysSnapshot = JsonSerializer.Serialize(days, snapshotJson),
+                ReopenReason = reopen, EmployeeAckSummary = "Esperado 24:00; trabalhado 7:00", ClosedAt = DateTimeOffset.UtcNow, CreatedAt = DateTimeOffset.UtcNow,
+            };
+            var sheetId = timesheet.Id;
+            await DbAsync(async db =>
+            {
+                var e = await db.Employees.SingleAsync(x => x.Id == employee.Id);
+                e.HourBankAgreementOn = new DateOnly(2018, 1, 2);
+                if (terminated is { } t)
+                {
+                    e.Status = EmployeeStatus.Terminated;
+                    e.TerminationDate = t;
+                }
+
+                db.Timesheets.Add(timesheet);
+                db.TimesheetDayReviews.Add(new TimesheetDayReview { EmployeeId = employee.Id, Day = day, Comment = comment + " " + employee.Id.ToString("N")[^6..], ReviewedAt = DateTimeOffset.UtcNow });
+                return await db.SaveChangesAsync();
+            });
+            var pdf = await InTenantAsync(async sp =>
+            {
+                var stored = await sp.GetRequiredService<AttachmentService>().StoreGeneratedAsync(TimesheetPdfService.OwnerType, sheetId, "espelho.pdf", "application/pdf",
+                    "%PDF-1.7 espelho"u8.ToArray());
+                await sp.GetRequiredService<BemAquiDbContext>().SaveChangesAsync(); // o chamador salva
+                return stored;
+            });
+            await DbAsync(async db =>
+            {
+                (await db.Timesheets.SingleAsync(s => s.Id == sheetId)).PdfAttachmentId = pdf.Id;
+                return await db.SaveChangesAsync();
+            });
+            return (employee.Id, sheetId, pdf.Id, employee.Name);
+        }
+
+        // Ativo: tudo do espelho fica retido (sem desligamento, nada trabalhista sai).
+        var active = await SeedAsync(null);
+        var activeRequest = await RequestAsync(owner.Client, "Employee", active.Employee);
+        Items(await PreviewAsync(owner.Client, activeRequest.GetProperty("id").GetGuid()), "hr")
+            .Should().Contain(i => i.Action == "Retain" && i.Label.StartsWith("Motivos de saúde, afastamentos e comentários do espelho", StringComparison.Ordinal) && i.Count == 3 && i.Until == null);
+        (await AnonymizeAsync(owner, activeRequest, active.Name, owner.Codes!.Next())).StatusCode.Should().Be(HttpStatusCode.Accepted);
+        (await RunJobAsync(owner, activeRequest.GetProperty("id").GetGuid())).GetProperty("anonymizationStatus").GetString().Should().Be("Done");
+        var kept = await DbAsync(db => db.Timesheets.SingleAsync(s => s.Id == active.Sheet));
+        (kept.ReopenReason, kept.JustifiedByReason, kept.PdfAttachmentId).Should().Be((reopen, "MedicalCertificate=480;WorkAccident=480;AttendanceNote=60", (Guid?)active.Pdf));
+        kept.DaysSnapshot.Should().Contain("MedicalCertificate");
+        (await DbAsync(db => db.Employees.SingleAsync(e => e.Id == active.Employee))).HourBankAgreementOn.Should().Be(new DateOnly(2018, 1, 2));
+
+        // Desligado em 2019 (+5 anos já passou): os totais ficam; saúde, afastamento, textos livres, acordo e o PDF saem.
+        var gone = await SeedAsync(new DateOnly(2019, 6, 30));
+        var request = await RequestAsync(owner.Client, "Employee", gone.Employee);
+        var items = Items(await PreviewAsync(owner.Client, request.GetProperty("id").GetGuid()), "hr");
+        items.Should().Contain(i => i.Action == "Anonymize" && i.Label.StartsWith("Motivos de saúde, afastamentos e comentários do espelho", StringComparison.Ordinal) && i.Count == 3);
+        items.Should().Contain(i => i.Action == "Keep" && i.Label.StartsWith("Espelhos de ponto", StringComparison.Ordinal) && i.Count == 1);
+        (await AnonymizeAsync(owner, request, gone.Name, owner.Codes.Next())).StatusCode.Should().Be(HttpStatusCode.Accepted);
+        (await RunJobAsync(owner, request.GetProperty("id").GetGuid())).GetProperty("anonymizationStatus").GetString().Should().Be("Done");
+        var marker = "Titular anonimizado " + request.GetProperty("number").GetString();
+
+        var sheet = await DbAsync(db => db.Timesheets.SingleAsync(s => s.Id == gone.Sheet));
+        (sheet.ExpectedMinutes, sheet.WorkedMinutes, sheet.JustifiedMinutes, sheet.Status, sheet.EmployeeAckSummary)
+            .Should().Be((1440, 420, 1020, TimesheetStatus.Closed, "Esperado 24:00; trabalhado 7:00"), "os totais do espelho fechado são obrigação trabalhista");
+        sheet.JustifiedByReason.Should().Be("AttendanceNote=60;JustifiedAbsence=960", "as horas abonadas continuam batendo, sem o motivo de saúde");
+        sheet.ReopenReason.Should().Be(marker);
+        sheet.PdfAttachmentId.Should().BeNull();
+        var frozen = JsonSerializer.Deserialize<List<TimesheetDayResult>>(sheet.DaysSnapshot!, snapshotJson)!;
+        frozen.Select(d => d.JustifiedMinutes).Should().Equal(480, 480, 60);
+        frozen.SelectMany(d => d.Absences).Select(a => a.Reason).Should().Equal(AbsenceReason.JustifiedAbsence, AbsenceReason.AttendanceNote);
+        frozen[1].Leave.Should().NotBeNull();
+        frozen[1].Leave!.Reason.Should().BeNull("o tipo do afastamento é dado de saúde");
+        sheet.DaysSnapshot.Should().NotContain("MedicalCertificate").And.NotContain("WorkAccident");
+        (await DbAsync(db => db.TimesheetDayReviews.SingleAsync(r => r.EmployeeId == gone.Employee))).Comment.Should().Be(marker);
+        (await DbAsync(db => db.Employees.IgnoreQueryFilters().SingleAsync(e => e.Id == gone.Employee))).HourBankAgreementOn.Should().BeNull();
+        (await DbAsync(db => db.Attachments.SingleAsync(a => a.Id == gone.Pdf))).ContentRemovedAt.Should().NotBeNull();
+
+        // Canário: o comentário da revisão e o motivo da reabertura do desligado não sobram em nenhuma tabela fora da auditoria.
+        (await CanaryHitsAsync(comment + " " + gone.Employee.ToString("N")[^6..], gone.Name)).Should().BeEmpty();
+        (await CanaryHitsAsync(reopen)).Should().Equal(["hr.timesheets.reopen_reason"], "só o espelho do funcionário ativo continua com o motivo, retido");
     }
 
     [Fact]

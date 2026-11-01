@@ -1,3 +1,4 @@
+using System.Text.Json;
 using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Privacy;
 using BemAqui.HR.Application.TimeClock;
@@ -289,9 +290,15 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
         var adjustments = await db.TimeAdjustments.Where(a => a.EmployeeId == id).ToListAsync(ct);
         var payslips = await db.Payslips.Where(p => p.EmployeeId == id).Select(p => p.Id).ToListAsync(ct);
         var adjustmentIds = adjustments.Select(a => a.Id).ToList();
+        var timesheets = await db.Timesheets.Where(t => t.EmployeeId == id).ToListAsync(ct);
+        var timesheetIds = timesheets.Select(t => t.Id).ToList();
+        var reviews = await db.TimesheetDayReviews.Where(r => r.EmployeeId == id).ToListAsync(ct);
         var files = await attachments.CountAsync(EmployeeComplementService.DocumentOwner, [id], ct)
             + await attachments.CountAsync(TimeAdjustmentService.DocumentOwner, adjustmentIds, ct)
-            + await attachments.CountAsync(PayslipDocumentRules.OwnerType, payslips, ct);
+            + await attachments.CountAsync(PayslipDocumentRules.OwnerType, payslips, ct)
+            + await attachments.CountAsync(TimesheetPdfService.OwnerType, timesheetIds, ct);
+        var timesheetTexts = timesheets.Count(t => t.DaysSnapshot != null || t.JustifiedByReason != null || t.ReopenReason != null) + reviews.Count
+            + (e.HourBankAgreementOn is null ? 0 : 1);
         var hasContact = e.Phone != null || e.Email != null || e.PreviousEmail != null;
         var hasBank = e.BankCode != null || e.BankAccount != null || e.PixKey != null || e.BankHolderName != null;
         var hasAddress = e.ZipCode != null || e.Street != null || e.City != null;
@@ -367,9 +374,26 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
                     a.DecisionComment = a.DecisionComment is null ? null : marker;
                 }
 
+                // RH-01c: no espelho ficam os totais congelados (obrigação trabalhista, documento com movimento); os motivos de saúde dos dias
+                // e do abono por motivo viram "Falta justificada" (as horas abonadas continuam batendo), o tipo do afastamento sai, e os
+                // textos livres (motivo da reabertura, comentário da revisão do dia) viram o marcador, como os outros textos livres do RH.
+                foreach (var t in timesheets)
+                {
+                    t.DaysSnapshot = WithoutHealth(t.DaysSnapshot);
+                    t.JustifiedByReason = WithoutHealthByReason(t.JustifiedByReason);
+                    t.ReopenReason = t.ReopenReason is null ? null : marker;
+                    t.PdfAttachmentId = null;
+                }
+
+                foreach (var r in reviews.Where(r => r.Comment != marker))
+                {
+                    db.Entry(r).Property(x => x.Comment).CurrentValue = marker;
+                }
+
                 await attachments.RemoveContentAsync(EmployeeComplementService.DocumentOwner, [id], marker, ct);
                 await attachments.RemoveContentAsync(TimeAdjustmentService.DocumentOwner, adjustmentIds, marker, ct);
                 await attachments.RemoveContentAsync(PayslipDocumentRules.OwnerType, payslips, marker, ct);
+                await attachments.RemoveContentAsync(TimesheetPdfService.OwnerType, timesheetIds, marker, ct);
             }
 
             if (terminated)
@@ -389,8 +413,10 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
             .Fields(labor, "Nome, CPF, documentos pessoais e nascimento", "hr.employees", 1)
             .Fields(labor, "Dependentes do IR e do salário-família", "hr.employee_dependents", withObligation.Count)
             .Fields(labor, "Motivos da linha do tempo e justificativas do ponto", "hr.employee_history, hr.time_adjustments", history.Count + adjustments.Count)
-            .Fields(labor, "Documentos, atestados e holerites em PDF (o arquivo é apagado)", "shared.attachments", files)
+            .Fields(labor, "Motivos de saúde, afastamentos e comentários do espelho de ponto, e o acordo de banco de horas", "hr.timesheets, hr.timesheet_day_reviews, hr.employees", timesheetTexts)
+            .Fields(labor, "Documentos, atestados, holerites e espelhos em PDF (o arquivo é apagado)", "shared.attachments", files)
             .Keep("Folhas e holerites: mantidos, com os valores", "hr.payslips", payslips.Count)
+            .Keep("Espelhos de ponto: mantidos, com os totais do fechamento", "hr.timesheets", timesheets.Count)
             .Keep("Marcações de ponto: mantidas, com data e hora", "hr.time_entries", await db.TimeEntries.CountAsync(t => t.EmployeeId == id, ct))
             .Keep(terminated ? "Cadastro do funcionário: marcado \"Anonimizado\", só leitura" : "Funcionário ativo: o cadastro continua em uso", "hr.employees", 1);
         return plan.Build();
@@ -417,6 +443,42 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
         e.CnhCategory = null;
         e.CnhExpiry = null;
         e.MilitaryCertificate = null;
+        e.HourBankAgreementOn = null;
+    }
+
+    /// <summary>Dias congelados do espelho sem dado de saúde: abono de saúde vira "Falta justificada" e o afastamento fica sem o tipo.</summary>
+    private static string? WithoutHealth(string? snapshot)
+    {
+        if (snapshot is null)
+        {
+            return null;
+        }
+
+        var days = JsonSerializer.Deserialize<List<TimesheetDayResult>>(snapshot, TimesheetService.SnapshotJson) ?? [];
+        var clean = days.Select(d => d with
+        {
+            Absences = d.Absences.Select(a => AbsenceReasons.IsHealth(a.Reason) ? a with { Reason = AbsenceReason.JustifiedAbsence } : a).ToList(),
+            Leave = d.Leave is null ? null : d.Leave with { Reason = null },
+        }).ToList();
+        return JsonSerializer.Serialize(clean, TimesheetService.SnapshotJson);
+    }
+
+    /// <summary>Abono por motivo do <c>ponto.csv</c> sem dado de saúde: os minutos de saúde somam em "Falta justificada".</summary>
+    private static string? WithoutHealthByReason(string? text)
+    {
+        if (text is null)
+        {
+            return null;
+        }
+
+        var merged = new Dictionary<AbsenceReason, int>();
+        foreach (var (reason, minutes) in TimesheetRules.ParseByReason(text))
+        {
+            var key = AbsenceReasons.IsHealth(reason) ? AbsenceReason.JustifiedAbsence : reason;
+            merged[key] = merged.GetValueOrDefault(key) + minutes;
+        }
+
+        return TimesheetRules.FormatByReason(merged);
     }
 
     private static string? Join(string? a, string? b) => a is null ? b : b is null ? a : a + " / " + b;
