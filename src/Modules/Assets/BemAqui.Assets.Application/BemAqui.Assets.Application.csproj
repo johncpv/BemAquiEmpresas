@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <PackageReference Include="QRCoder" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\..\BuildingBlocks\BemAqui.BuildingBlocks\BemAqui.BuildingBlocks.csproj" />
     <ProjectReference Include="..\BemAqui.Assets.Domain\BemAqui.Assets.Domain.csproj" />
     <ProjectReference Include="..\BemAqui.Assets.Contracts\BemAqui.Assets.Contracts.csproj" />

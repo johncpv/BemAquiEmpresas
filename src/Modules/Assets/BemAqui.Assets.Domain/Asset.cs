@@ -75,6 +75,19 @@ public sealed class Asset : Entity, IAuditable, ISoftDeletable, IConcurrencyVers
 }
 
 /// <summary>
+/// Parâmetro do Patrimônio (<c>assets.parameters</c>, dono Assets, ADR 0016 M6): hoje só o tamanho da etiqueta
+/// (<c>assets.label_size</c>, PAT-01b CA 1). Vazio = padrão; editado em Configurações → Parâmetros com <c>settings.edit</c>, auditado.
+/// </summary>
+public sealed class AssetParameter : Entity, IAuditable
+{
+    public string Key { get; init; } = string.Empty;
+
+    public string? Value { get; set; }
+
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
+/// <summary>
 /// Local do bem (<c>assets.sites</c>, ADR 0038 §2): cadastro simples de setores, com seed "Fábrica" e "Escritório" pela
 /// <c>seed_key</c> (o tenant renomeia ou exclui; o seed não recria).
 /// </summary>

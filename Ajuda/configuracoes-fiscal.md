@@ -23,6 +23,10 @@ Tudo já vem **preenchido com os valores propostos** (por exemplo, Lucro Presumi
 - **Produção** só liga na virada para a produção da empresa e depois que todos os campos críticos da NF-e estão conferidos. Ao trocar, o diálogo **Ligar a emissão com valor fiscal** pede o código do aplicativo autenticador.
 - Os campos da NFS-e (item da LC 116, código municipal, CTN, NBS, ISS e retenções) só bloqueiam a NFS-e.
 
+## Entrada
+- **Crédito de impostos na entrada**: quais tributos da NF-e de entrada são recuperáveis (ICMS, IPI, PIS, COFINS). O padrão é **Nenhum**: os tributos da nota ficam no custo do material, com o selo **A confirmar com a contadora**.
+- Com um tributo marcado, o recebimento pela nota tira esse valor do custo de entrada e guarda na nota como crédito. Não é campo crítico: não bloqueia a emissão.
+
 ## Perguntas frequentes
 **Por que a série 2?** A série 1 costuma ser a do emissor atual. A série do sistema precisa ser exclusiva; confirme com a contadora qual foi reservada. Trocar a série depois de emitir pede confirmação e mostra a última nota da série atual.
 

@@ -41,7 +41,16 @@ public enum HrParameterKind
 
     /// <summary>Geolocalização do ponto (RH-01a CA 9): <c>Off</c> ou <c>Ask</c>.</summary>
     Geolocation,
+
+    /// <summary>Minutos (tolerância do ponto, RH-01c CA 1).</summary>
+    Minutes,
+
+    /// <summary>Ligado (1) ou desligado (0) (banco de horas, RH-01c CA 1).</summary>
+    Toggle,
 }
+
+/// <summary>Parâmetros do espelho de ponto (RH-01c CA 1), lidos de uma vez; fora dos limites, o padrão.</summary>
+public sealed record TimesheetParameters(int TolerancePerEntryMinutes, int TolerancePerDayMinutes, bool HourBankEnabled, int PeriodStartDay);
 
 /// <summary>
 /// Parâmetro do RH na tela de Configurações → Parâmetros → RH (RH-02a CA 3): o valor (número ou órgão), se é legal (chip "A confirmar
@@ -164,7 +173,30 @@ public sealed class HrParametersService(
             HrParameterKind.ExportLayout, null, null, null, true, AccountantLayouts.Default),
         new(TimeClockGeolocationKey, "Localização no ponto", "Pedir a localização do celular ou do computador ao marcar o ponto, como indício de onde a marcação foi feita. O funcionário vê antes para que serve e pode negar; sem localização, a marcação entra do mesmo jeito. O tablet registrado da fábrica nunca pede. Só quem tem permissão de ver dados sensíveis do RH vê a localização.",
             HrParameterKind.Geolocation, null, null, null, false, nameof(TimeClockGeolocation.Off)),
+        new(TolerancePerEntry, "Tolerância por marcação", "Variação de horário, para mais ou para menos, que não conta como extra nem atraso em cada marcação (entrada e saída), contra a jornada. A CLT (art. 58 §1) fala em 5 minutos; a convenção coletiva pode mudar.",
+            HrParameterKind.Minutes, 5m, 0m, 30m, true),
+        new(TolerancePerDay, "Tolerância por dia", "Limite da variação no dia inteiro: dentro dela, o dia conta como Normal; acima, conta a diferença inteira. A CLT fala em 10 minutos por dia.",
+            HrParameterKind.Minutes, 10m, 0m, 60m, true),
+        new(HourBankEnabled, "Banco de horas", "Com o banco ligado, a diferença do dia vai para o saldo de quem tem acordo de banco de horas (a partir da data do acordo), sem vencimento automático. Sem acordo, extras e faltas saem como totais do período para a folha.",
+            HrParameterKind.Toggle, 1m, 0m, 1m, true),
+        new(TimesheetPeriodStartDay, "Início do período de apuração", "Dia do mês em que começa o período do ponto. 1 é o mês civil; 21, por exemplo, faz o corte de 21 a 20. Mudar vale para os períodos em aberto, nunca para os fechados.",
+            HrParameterKind.DayOfMonth, 1m, 1m, 28m, true),
     ];
+
+    // RH-01c: espelho de ponto e banco de horas ("A confirmar com a contadora").
+    public const string TolerancePerEntry = "hr.time_tolerance_per_entry_minutes";
+    public const string TolerancePerDay = "hr.time_tolerance_per_day_minutes";
+    public const string HourBankEnabled = "hr.hour_bank_enabled";
+    public const string TimesheetPeriodStartDay = "hr.timesheet_period_start_day";
+
+    /// <summary>Parâmetros do espelho (RH-01c CA 1): 5 e 10 minutos, banco ligado e o mês civil, salvo o que o tenant mudou.</summary>
+    public async Task<TimesheetParameters> TimesheetParametersAsync(CancellationToken cancellationToken = default)
+    {
+        string[] keys = [TolerancePerEntry, TolerancePerDay, HourBankEnabled, TimesheetPeriodStartDay];
+        var stored = await db.HrParameters.AsNoTracking().Where(p => keys.Contains(p.Key)).ToDictionaryAsync(p => p.Key, p => p.Value, cancellationToken);
+        int Number(string key, int fallback, int min, int max) => stored.GetValueOrDefault(key) is { } v && v >= min && v <= max && decimal.Truncate(v) == v ? (int)v : fallback;
+        return new TimesheetParameters(Number(TolerancePerEntry, 5, 0, 30), Number(TolerancePerDay, 10, 0, 60), Number(HourBankEnabled, 1, 0, 1) == 1, Number(TimesheetPeriodStartDay, 1, 1, 28));
+    }
 
     private static readonly HrParameterKind[] CodeKinds = [HrParameterKind.Account, HrParameterKind.CostCenter, HrParameterKind.ExportLayout, HrParameterKind.Geolocation];
 
@@ -329,7 +361,9 @@ public sealed class HrParametersService(
                 return PayrollRules.Field(change.Key, definition.Kind switch
                 {
                     HrParameterKind.Percent => "Informe um percentual de 0 a 100, com até 2 casas.",
-                    HrParameterKind.DayOfMonth or HrParameterKind.DayOfPeriod => "Informe um dia de 1 a 31.",
+                    HrParameterKind.DayOfMonth or HrParameterKind.DayOfPeriod => $"Informe um dia de {definition.Min:0} a {definition.Max:0}.",
+                    HrParameterKind.Minutes => $"Informe de {definition.Min:0} a {definition.Max:0} minutos.",
+                    HrParameterKind.Toggle => "Escolha ligado ou desligado.",
                     HrParameterKind.BusinessDay => $"Informe um dia útil de {definition.Min:0} a {definition.Max:0}.",
                     HrParameterKind.MonthDay => "Informe uma data válida no formato dia/mês (ex.: 30/11).",
                     HrParameterKind.Months => $"Informe de {definition.Min:0} a {definition.Max:0} meses.",
@@ -405,6 +439,15 @@ public sealed class HrParametersService(
     {
         ArgumentNullException.ThrowIfNull(db);
         ArgumentNullException.ThrowIfNull(clock);
+        // RH-01c CA 17: o layout padrão sobe para v2 (com o ponto.csv). Quem ainda está no v1 sem conferir passa para o v2; o v1 já conferido
+        // com a contadora fica como está (troca só por "Configurações → Parâmetros → RH").
+        var layout = await db.HrParameters.FirstOrDefaultAsync(p => p.Key == AccountantExportLayout, cancellationToken);
+        if (layout is { Text: AccountantLayoutV1.Version, ConfirmedAt: null })
+        {
+            layout.Text = AccountantLayoutV2.Version;
+            layout.UpdatedAt = clock.GetUtcNow();
+        }
+
         var existing = (await db.HrParameters.Select(p => p.Key).ToListAsync(cancellationToken)).ToHashSet(StringComparer.Ordinal);
         foreach (var d in Definitions.Where(d => (d.Default is not null || d.DefaultCode is not null) && !existing.Contains(d.Key)))
         {

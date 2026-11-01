@@ -43,6 +43,11 @@ public interface IHrDb
     // Ajustes do ponto (RH-01b).
     DbSet<TimeAdjustment> TimeAdjustments { get; }
 
+    // Espelho, fechamento e dias revisados (RH-01c).
+    DbSet<Timesheet> Timesheets { get; }
+
+    DbSet<TimesheetDayReview> TimesheetDayReviews { get; }
+
     // Tabelas legais da folha (FLH-01) e os datasets da contadora.
     DbSet<PayrollTaxTable> PayrollTaxTables { get; }
 

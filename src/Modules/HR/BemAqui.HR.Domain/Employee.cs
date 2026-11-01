@@ -208,6 +208,13 @@ public sealed class Employee : Entity, IAuditable, ISoftDeletable, IConcurrencyV
     [PersonalData]
     public string? MilitaryCertificate { get; set; }
 
+    /// <summary>
+    /// Acordo de banco de horas (RH-01c CA 2, CLT art. 59): a data a partir da qual o banco vale para o funcionário; nulo sem acordo.
+    /// Editado com <c>hr.edit</c> + <c>hr.view_sensitive</c>.
+    /// </summary>
+    [PersonalData]
+    public DateOnly? HourBankAgreementOn { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     /// <summary><c>xmin</c> (ADR 0019 §2): o registro de afastamento confere a versão do funcionário (CAD-04c1).</summary>

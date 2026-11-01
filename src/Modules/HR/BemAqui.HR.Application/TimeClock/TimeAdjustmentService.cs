@@ -215,14 +215,15 @@ public sealed partial class TimeAdjustmentService(
                     return Invalid("kind", "Escolha incluir marcação, desconsiderar marcação ou abonar ausência.");
             }
 
-            if (TimeAdjustmentRules.DateError(day, today, oldestOpen, employee.AdmissionDate, employee.TerminationDate) is { } dateError)
-            {
-                return Invalid("day", dateError);
-            }
-
+            // RH-01c CA 12: o dia num período fechado responde 409 (com o período), antes da recusa genérica de "fora do período em aberto".
             if (await periods.CheckAsync(day, ct) is { } closed)
             {
                 return closed;
+            }
+
+            if (TimeAdjustmentRules.DateError(day, today, oldestOpen, employee.AdmissionDate, employee.TerminationDate) is { } dateError)
+            {
+                return Invalid("day", dateError);
             }
 
             built.Add(new TimeAdjustment

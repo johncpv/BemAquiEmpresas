@@ -18,6 +18,13 @@ Lançar, para cada funcionário, os proventos e descontos que a contadora calcul
 - Com tudo lançado e conferido, use **Fechar folha**: os títulos a pagar dos salários e das guias aparecem na aba **Pagamentos**. Folha fechada fica só para consulta: "Folha fechada em {data}. Para mudar, reabra a folha."
 - Se alguma tabela da folha (RH → Tabelas da folha) ou parâmetro do RH mudou desde o último fechamento, o diálogo de fechamento lista cada mudança (o quê, antes e depois, quem e quando) e pede que você marque a ciência antes de fechar.
 
+
+## Usar horas do espelho
+- Com o período de ponto do mês **fechado**, o holerite mostra ao lado os totais do espelho do funcionário: extras, faltas, atrasos e, com acordo, o banco de horas.
+- **Usar horas do espelho** preenche só a **referência** das rubricas marcadas com **Origem no ponto** (no padrão: Horas extras 50% ← extras; Faltas ← faltas; Atrasos ← atrasos), como "2:00 h". O **valor** continua vindo da contadora: a linha que ainda não existia entra sem valor, para você informar. Confira e clique em **Salvar holerite**.
+- Sem o período de ponto fechado, aparece "O ponto de {mês} ainda não foi fechado." Feche em RH → Ponto → Espelho.
+- Se o ponto do mês for reaberto depois de a folha fechar, a folha mostra "O ponto deste mês foi reaberto depois do fechamento da folha."
+- A marca **Origem no ponto** de cada rubrica fica em RH → Rubricas.
 ## Holerite em PDF
 - **Baixar** (na linha do funcionário) gera o holerite em PDF no layout padrão: empresa, funcionário (com o CPF mascarado: só os 3 primeiros e os 2 últimos dígitos), cargo, CBO, admissão, competência, proventos, descontos, bases do INSS, do FGTS e do IRRF, FGTS do mês e o líquido. O PDF não traz CPF completo, endereço, dados bancários nem dependentes.
 - Com a folha em lançamento, o PDF sai com a marca d'água "RASCUNHO — folha não fechada". Com a folha fechada, o PDF fica guardado e é refeito se a folha for reaberta e fechada de novo.

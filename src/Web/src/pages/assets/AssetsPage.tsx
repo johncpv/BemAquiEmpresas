@@ -1,4 +1,5 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useSearch } from '@tanstack/react-router'
+import { useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useListAssetResponsibleChoices, useListAssets, useListAssetSites, useListAssetWorkCenterChoices } from '@/api/generated/bemaqui'
 import type { AssetListItem } from '@/api/generated/model'
@@ -10,15 +11,21 @@ import { formatMoney } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
+import { LabelBatchReady, PrintLabelsDialog } from './AssetLabelActions'
 import { AssetPhoto } from './AssetPhoto'
 import { ASSET_DICAS, isAssetStatus, isAssetType, STATUS_LABELS, STATUS_OPTIONS, STATUS_TONES, TYPE_LABELS, TYPE_OPTIONS } from './assets'
 import { AssetsTabs } from './AssetsTabs'
 
-/** Patrimônio → Bens (PAT-01a CA 9): busca por etiqueta, nome e série; filtros por tipo, local, centro, responsável e situação na URL. */
+/**
+ * Patrimônio → Bens (PAT-01a CA 9): busca por etiqueta, nome e série; filtros por tipo, local, centro, responsável e situação na URL.
+ * PAT-01b CA 3: seleção e "Imprimir etiquetas" (os selecionados ou todos do filtro); `?lote=` (link do sino) baixa o PDF pronto.
+ */
 export function AssetsPage() {
   const [search] = useTableSearch()
   const { tipo, local, centro, responsavel, situacao } = useTableFilters(['tipo', 'local', 'centro', 'responsavel', 'situacao'])
   const canEdit = useCan('assets.edit')
+  const [selected, setSelected] = useState<string[]>([])
+  const lote = (useSearch({ strict: false }) as Record<string, unknown>).lote
   const sites = useListAssetSites({ includeInactive: true })
   const centers = useListAssetWorkCenterChoices()
   const responsibles = useListAssetResponsibleChoices()
@@ -55,15 +62,21 @@ export function AssetsPage() {
       <PageHeading title="Patrimônio: Bens">
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <p className="text-muted-foreground">O que a empresa tem, onde está e quem responde por cada bem.</p>
-          {newLink}
+          <div className="flex flex-wrap gap-2">
+            <PrintLabelsDialog selected={selected} filteredTotal={query.data?.total ?? 0} onDone={() => setSelected([])}
+              filter={{ q: search.q ?? null, type: isAssetType(tipo) ? tipo : null, siteId: local || null, workCenterId: centro || null, responsibleEmployeeId: responsavel || null, status: isAssetStatus(situacao) ? situacao : null }} />
+            {newLink}
+          </div>
         </div>
       </PageHeading>
       <AssetsTabs />
+      {typeof lote === 'string' && lote ? <LabelBatchReady attachmentId={lote} /> : null}
       <DataTable
         label="Bens"
         columns={columns}
         query={query}
         getRowId={(a) => a.id}
+        selectable={{ selected, onChange: setSelected, rowLabel: (a) => `bem ${a.tag}` }}
         rowHref={(a) => `/app/patrimonio/bens/${a.id}`}
         searchPlaceholder="Buscar pela etiqueta, nome ou série"
         filters={[

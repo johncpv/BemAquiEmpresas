@@ -348,9 +348,19 @@ public sealed partial class PayrollService(
             names[by] = await users.DisplayNameAsync(by, ct);
         }
 
+        // RH-01c CA 13: o ponto do mês reaberto depois do fechamento da folha (o espelho voltou a aberto depois de a folha fechar).
+        var periods = runs.Where(r => r.ClosedAt is not null).Select(r => r.Period).Distinct().ToList();
+        var reopened = await db.Timesheets.AsNoTracking()
+            .Where(t => periods.Contains(t.Period) && t.Status == TimesheetStatus.Open && t.ReopenedAt != null)
+            .GroupBy(t => t.Period).Select(g => new { g.Key, At = g.Max(t => t.ReopenedAt) }).ToListAsync(ct);
+        string? Notice(PayrollRun r) => r.ClosedAt is { } closed && reopened.Any(t => t.Key == r.Period && t.At > closed) ? PayrollTimesheetNotice : null;
+
         return runs.Select(r => new PayrollRunSummary(r.Id, r.Period, r.Type, r.Mode, r.Status, counts.GetValueOrDefault(r.Id), r.CreatedAt, r.ClosedAt,
-            r.ClosedBy is { } by ? names.GetValueOrDefault(by) : null, r.Version, r.PaymentDate, r.PaidAt, r.ReopenReason, r.ClosedPayables)).ToList();
+            r.ClosedBy is { } by ? names.GetValueOrDefault(by) : null, r.Version, r.PaymentDate, r.PaidAt, r.ReopenReason, r.ClosedPayables, Notice(r))).ToList();
     }
+
+    /// <summary>Aviso da folha fechada com o ponto reaberto depois (RH-01c CA 13).</summary>
+    public const string PayrollTimesheetNotice = "O ponto deste mês foi reaberto depois do fechamento da folha.";
 
     /// <summary>A folha da rota, para os comandos: existe (404) e está em <c>Draft</c> (409 "A folha de {mês} está fechada.").</summary>
     private async Task<Result<PayrollRun>> DraftRunAsync(Guid runId, CancellationToken ct)

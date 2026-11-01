@@ -19,6 +19,8 @@ import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { AssetDocuments } from './AssetDocuments'
+import { AssetLabelButtons } from './AssetLabelActions'
+import { printLabel } from './label-downloads'
 import { AssetForm } from './AssetForm'
 import { AssetPhoto } from './AssetPhoto'
 import { ASSET_DICAS, assetDraftErrors, assetInput, draftFromAsset, hasMaintenancePlan, STATUS_LABELS, STATUS_TONES, TYPE_LABELS } from './assets'
@@ -49,8 +51,9 @@ export function AssetPage() {
   }
 
   // Próximo passo da criação (CA 2): a foto e, para máquina e veículo, o plano de manutenção (aba Manutenção, PAT-03a); "Duplicar bem"
-  // para itens iguais. A etiqueta com QR code chega com a PAT-01b.
+  // para itens iguais; "Imprimir etiqueta" com o QR code (PAT-01b).
   const steps = [
+    { label: 'Imprimir etiqueta', onSelect: () => { void printLabel(asset.id, asset.tag); setCreated(false) } },
     ...(canEdit ? [{ label: 'Anexar foto', onSelect: () => { setTab('documentos'); setCreated(false) } }] : []),
     ...(hasMaintenancePlan(asset.type) ? [{ label: 'Criar plano de manutenção', onSelect: () => { setTab('manutencao'); setCreated(false) } }] : []),
     { label: 'Duplicar bem', onSelect: () => void navigate({ to: '/app/patrimonio/bens/novo', search: { de: asset.id } } as never) },
@@ -67,6 +70,7 @@ export function AssetPage() {
             <Link to="/app/patrimonio/bens" className="ml-2 inline-flex min-h-11 items-center text-sm font-semibold text-primary">Voltar à lista</Link>
           </div>
           <div className="flex flex-wrap gap-2">
+            <AssetLabelButtons id={asset.id} tag={asset.tag} />
             <Can perm="assets.create">
               <Link to="/app/patrimonio/bens/novo" search={{ de: asset.id } as never} className={button}>Duplicar bem</Link>
             </Can>

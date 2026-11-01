@@ -119,6 +119,14 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
   const [own, setOwn] = useState(false)
   const open = controlled ?? own
   const setOpen = (o: boolean) => { setOwn(o); onOpenChange?.(o) }
+  // Aberto de fora (open controlado), o Radix não chama onOpenChange(true): o onOpen sai da transição de fechado para aberto.
+  const onOpenRef = useRef(onOpen)
+  useEffect(() => {
+    onOpenRef.current = onOpen
+  })
+  useEffect(() => {
+    if (open) onOpenRef.current?.()
+  }, [open])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<{ message: string; code?: string } | null>(null)
   const alertRef = useRef<HTMLDivElement>(null)
@@ -172,7 +180,7 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
 
   const button = 'rounded-md border border-border bg-card px-3 py-1.5 font-semibold text-foreground'
   return (
-    <Dialog.Root open={open} onOpenChange={(o) => { setOpen(o); setError(null); setTypedValue(''); if (o) onOpen?.() }}>
+    <Dialog.Root open={open} onOpenChange={(o) => { setOpen(o); setError(null); setTypedValue('') }}>
       {trigger ? <Dialog.Trigger asChild>{trigger}</Dialog.Trigger> : null}
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/30" />

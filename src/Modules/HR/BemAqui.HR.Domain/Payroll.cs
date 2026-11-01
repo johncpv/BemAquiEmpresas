@@ -74,6 +74,9 @@ public sealed class PayrollItem : Entity, IAuditable, ISoftDeletable, IConcurren
 
     public bool IsActive { get; set; } = true;
 
+    /// <summary>"Origem no ponto" (RH-01c CA 16): o total do espelho que preenche a referência da linha ("Usar horas do espelho").</summary>
+    public PayrollTimesheetSource? TimesheetSource { get; set; }
+
     public string? SeedKey { get; init; }
 
     public DateTimeOffset? ConfirmedAt { get; private set; }
