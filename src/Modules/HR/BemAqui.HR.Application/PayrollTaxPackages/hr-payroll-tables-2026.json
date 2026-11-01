@@ -1,30 +1,81 @@
 {
   "package": 2026,
-  "description": "Pacote de tabelas legais da folha de 2026 (FLH-01, ADR 0039 §1). Cada versão entra em cada tenant uma vez, \"A confirmar com a contadora\"; só vale como oficial depois da conferência. Entrada com \"pending\" não é criada: falta a fonte oficial no repositório (preencha \"content\", \"validFrom\" e \"source\" e apague \"pending\"; o próximo deploy cria a versão).",
+  "description": "Pacote de tabelas legais da folha de 2026 (FLH-01, ADR 0039 §1). Cada versão entra em cada tenant uma vez, \"A confirmar com a contadora\"; só vale como oficial depois da conferência. Valores oficiais conferidos na fonte primária em 01/11/2026 (FLH-02a); entrada com \"pending\" não é criada (preencha \"content\", \"validFrom\" e \"source\" e apague \"pending\"; o próximo deploy cria a versão).",
   "tables": [
     {
       "kind": "Inss",
-      "pending": "Faixas e teto do INSS de 2026 (portaria interministerial anual) ainda sem fonte oficial registrada no repositório. Cadastre pela tela ou preencha este pacote."
+      "validFrom": "2026-01-01",
+      "rounding": "AwayFromZero",
+      "source": "Portaria Interministerial MPS/MF nº 13, de 09/01/2026: 7,5% até 1.621,00; 9% até 2.902,84; 12% até 4.354,27; 14% até o teto de 8.475,55. https://www.gov.br/inss/pt-br/direitos-e-deveres/inscricao-e-contribuicao/tabela-de-contribuicao-mensal. A confirmar com a contadora.",
+      "content": {
+        "inss": {
+          "brackets": [
+            { "upTo": 1621.00, "rate": 7.5 },
+            { "upTo": 2902.84, "rate": 9 },
+            { "upTo": 4354.27, "rate": 12 },
+            { "upTo": 8475.55, "rate": 14 }
+          ]
+        }
+      }
     },
     {
       "kind": "Irrf",
-      "pending": "Tabela mensal do IRRF de 2026, dedução por dependente, desconto simplificado e a redução adicional da norma vigente ainda sem fonte oficial registrada no repositório. Cadastre pela tela ou preencha este pacote."
+      "validFrom": "2026-01-01",
+      "rounding": "AwayFromZero",
+      "source": "Lei 15.191/2025 (tabela mensal, dependente 189,59, simplificado 607,20) e Lei 15.270/2025 (redução do art. 3º-A da Lei 9.250/1995). https://www.gov.br/receitafederal/pt-br/assuntos/meu-imposto-de-renda/tabelas/2026. A confirmar com a contadora.",
+      "content": {
+        "irrf": {
+          "brackets": [
+            { "upTo": 2428.80, "rate": 0, "deduction": 0 },
+            { "upTo": 2826.65, "rate": 7.5, "deduction": 182.16 },
+            { "upTo": 3751.05, "rate": 15, "deduction": 394.16 },
+            { "upTo": 4664.68, "rate": 22.5, "deduction": 675.49 },
+            { "upTo": null, "rate": 27.5, "deduction": 908.73 }
+          ],
+          "dependentDeduction": 189.59,
+          "simplifiedDiscount": 607.20,
+          "reductions": [
+            { "upTo": 5000.00, "fixedAmount": 312.89, "rate": 0 },
+            { "upTo": 7350.00, "fixedAmount": 978.62, "rate": 13.3145 }
+          ]
+        }
+      }
     },
     {
       "kind": "FamilyAllowance",
-      "pending": "Remuneração máxima e cota do salário-família de 2026 ainda sem fonte oficial registrada no repositório."
+      "validFrom": "2026-01-01",
+      "rounding": "AwayFromZero",
+      "source": "Portaria Interministerial MPS/MF nº 13, de 09/01/2026: cota de 67,54 por filho até a remuneração de 1.980,38 (conferido em fontes secundárias, sem o DOU). https://www.gov.br/inss/pt-br. A confirmar com a contadora.",
+      "content": {
+        "familyAllowance": { "maxRemuneration": 1980.38, "quotaPerChild": 67.54 }
+      }
     },
     {
       "kind": "MinimumWage",
-      "pending": "Salário mínimo nacional de 2026 (decreto anual) ainda sem fonte oficial registrada no repositório."
+      "validFrom": "2026-01-01",
+      "rounding": "AwayFromZero",
+      "source": "Decreto nº 12.797, de 23/12/2025 (DOU 24/12/2025): 1.621,00 por mês. https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/decreto/d12797.htm. A confirmar com a contadora.",
+      "content": {
+        "minimumWage": { "monthly": 1621.00 }
+      }
     },
     {
       "kind": "Fgts",
-      "pending": "Alíquotas do FGTS (mensal, multa da rescisão e aprendiz) ainda sem fonte registrada no repositório."
+      "validFrom": "2026-01-01",
+      "rounding": "AwayFromZero",
+      "source": "Lei 8.036/1990, art. 15 (8% ao mês; 2% do aprendiz, §7º) e art. 18 §1º (40% na rescisão sem justa causa). https://www.planalto.gov.br/ccivil_03/leis/l8036consol.htm. A confirmar com a contadora.",
+      "content": {
+        "fgts": { "monthlyRate": 8, "terminationRate": 40, "apprenticeRate": 2 }
+      }
     },
     {
       "kind": "TransportVoucher",
-      "pending": "Percentual máximo de desconto do vale-transporte ainda sem fonte registrada no repositório."
+      "validFrom": "2026-01-01",
+      "rounding": "AwayFromZero",
+      "source": "Lei 7.418/1985, art. 4º parágrafo único, e Decreto 10.854/2021, arts. 114 a 117: até 6% do salário básico. https://www.planalto.gov.br/ccivil_03/leis/l7418.htm. A confirmar com a contadora.",
+      "content": {
+        "transportVoucher": { "maxDiscountRate": 6 }
+      }
     },
     {
       "kind": "EmployerCharges",
