@@ -12,7 +12,9 @@ public class PersonalDataTests
 {
     private static readonly Dictionary<string, string[]> NonSensitive = new(StringComparer.Ordinal)
     {
-        ["Party"] = ["Id", "Kind", "LegalName", "TradeName", "SearchText", "StateRegistration", "MunicipalRegistration", "TaxRegime", "IsActive", "DefaultPaymentTermId", "ImportSource", "CreatedAt", "IsDeleted", "DeletedAt", "Roles", "Addresses", "Contacts"],
+        ["Party"] = ["Id", "Kind", "LegalName", "TradeName", "SearchText", "StateRegistration", "MunicipalRegistration", "TaxRegime", "IsActive", "DefaultPaymentTermId", "ImportSource", "CreatedAt", "IsDeleted", "DeletedAt", "Roles", "Addresses", "Contacts",
+            // LGPD-01b: a data e o número do pedido da anonimização são marcas técnicas, sem dado do titular.
+            "AnonymizedAt", "AnonymizationRequest"],
         ["PartyRole"] = ["Id", "PartyId", "Role"],
         ["PartyAddress"] = ["Id", "PartyId", "Kind", "ZipCode", "Street", "Number", "Complement", "District", "City", "IbgeCode", "State", "IsDefault"],
         ["PartyContact"] = ["Id", "PartyId", "Role", "ReceivesBilling"],
@@ -46,7 +48,9 @@ public class PersonalDataTests
         // [PersonalData]; só as marcas da conta (troca, quarentena, revisão e versão, sem dado bancário, expostas no IEmployees) e a
         // data da troca do e-mail ficam fora.
         ["Employee"] = ["Id", "Name", "Registration", "PositionId", "WorkScheduleId", "UnionId", "AdmissionDate", "TerminationDate", "Status", "CreatedAt", "Version", "IsDeleted", "DeletedAt",
-            "EmailChangedAt", "BankOwnerMismatch", "BankChangedAt", "BankChangedBy", "BankQuarantineUntil", "BankReviewedAt", "BankReviewedBy", "BankSelfReviewed", "BankAccountVersion"],
+            "EmailChangedAt", "BankOwnerMismatch", "BankChangedAt", "BankChangedBy", "BankQuarantineUntil", "BankReviewedAt", "BankReviewedBy", "BankSelfReviewed", "BankAccountVersion",
+            // LGPD-01b: a data e o número do pedido da anonimização são marcas técnicas, sem dado do titular.
+            "AnonymizedAt", "AnonymizationRequest"],
         // CAD-04c2: dependente (pode ser menor) é todo dado pessoal; só as chaves, a criação e as marcas técnicas ficam fora.
         ["EmployeeDependent"] = ["Id", "EmployeeId", "CreatedAt", "Version", "IsDeleted", "DeletedAt"],
         // CAD-04c1: tipo, fim previsto e motivo do afastamento são [PersonalData] (LGPD art. 11); só as marcas de publicação ficam fora.
@@ -236,6 +240,14 @@ public class PersonalDataTests
         ["AssetParameter"] = ["Id", "Key", "Value", "UpdatedAt"],
         ["AssetMovement"] = ["Id", "AssetId", "Kind", "FromSiteId", "ToSiteId", "FromEmployeeId", "ToEmployeeId", "FromWorkCenterId", "ToWorkCenterId", "MovedOn", "DisposalReason",
             "DisposalValue", "BuyerPartyId", "CreatedBy", "CreatedAt"],
+        // PAT-03a: plano, checklist e horímetro são dados da máquina; na OS, o problema, o que foi feito e o motivo do cancelamento (texto livre,
+        // pode citar pessoas) são [PersonalData] e entram no arquivo do titular (quem escreveu); ids, datas e situação não.
+        ["MaintenancePlan"] = ["Id", "AssetId", "Description", "FrequencyType", "FrequencyValue", "LeadDays", "DefaultSupplierPartyId", "Checklist", "LastDoneAt", "LastDoneMeter",
+            "NextDueAt", "NextDueMeter", "IsActive", "CreatedAt", "Version"],
+        ["AssetMeterReading"] = ["Id", "AssetId", "ReadOn", "Value", "CreatedBy", "CreatedAt"],
+        ["MaintenanceOrder"] = ["Id", "Number", "AssetId", "PlanId", "DueKey", "Type", "Status", "MachineStopped", "ScheduledOn", "SupplierPartyId", "StartedAt", "StartedBy",
+            "DoneAt", "DoneBy", "CancelledAt", "CancelledBy", "CreatedBy", "CreatedAt", "Version"],
+        ["MaintenanceOrderChecklistItem"] = ["Id", "OrderId", "Sequence", "Text", "Result", "MarkedAt", "MarkedBy"],
     };
 
     [Fact]

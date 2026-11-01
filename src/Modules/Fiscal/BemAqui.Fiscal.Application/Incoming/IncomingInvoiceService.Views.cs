@@ -30,9 +30,16 @@ public sealed partial class IncomingInvoiceService
                 i.Id, i.Number, i.Series, i.AccessKey, i.IssuerName, i.IssuerDocument, i.IssuedAt, i.Total, i.Status, i.WithoutOrder, i.PurchaseOrderId != null,
                 db.IncomingInvoiceItems.Count(x => x.InvoiceId == i.Id),
                 db.IncomingInvoiceItems.Count(x => x.InvoiceId == i.Id && !(x.NoStockItem ? x.ExpenseAccountId != null : x.ItemId != null && x.ConversionFactor != null)),
-                i.ImportedAt))
+                i.ImportedAt, i.Source))
             .ToPagedListAsync(page, cancellationToken);
-        return new IncomingInvoiceList(rows.Items, rows.Page, rows.PageSize, rows.Total, await permissions.HasPermissionAsync("fiscal", "import_incoming", cancellationToken));
+        var canImport = await permissions.HasPermissionAsync("fiscal", "import_incoming", cancellationToken);
+
+        // FIS-05: leituras de PDF e notas digitadas ainda não conferidas (as 20 mais recentes), para quem pode importar retomar.
+        IReadOnlyList<IncomingReadingSummary> readings = canImport && page.Page == 1
+            ? await db.IncomingInvoiceReadings.AsNoTracking().Where(r => r.Status != IncomingReadingStatus.Checked).OrderByDescending(r => r.CreatedAt).Take(20)
+                .Select(r => new IncomingReadingSummary(r.Id, r.Source, r.Status, r.Result, r.FileName, r.CreatedAt)).ToListAsync(cancellationToken)
+            : [];
+        return new IncomingInvoiceList(rows.Items, rows.Page, rows.PageSize, rows.Total, canImport, readings);
     }
 
     /// <summary>A nota aberta (CA 3, 6 a 12): fornecedor, itens com o de-para e a sugestão, pedido (valores só com <c>purchasing.view</c>).</summary>
@@ -97,6 +104,7 @@ public sealed partial class IncomingInvoiceService
         }
 
         var order = OrderView(invoice, linked, options, itemIds, lines, catalogItems, can.ViewOrder);
+        var source = await db.IncomingInvoiceReadings.AsNoTracking().Where(r => r.InvoiceId == id).Select(r => new { r.Id, r.XmlRequestedAt }).FirstOrDefaultAsync(cancellationToken);
         var blocked = invoice.IsEditable ? ViewBlockedReason(invoice, lines, supplier, can) : null;
         return new IncomingInvoiceView(
             invoice.Id, invoice.AccessKey, invoice.Number, invoice.Series, invoice.IssuedAt, invoice.Status,
@@ -105,7 +113,9 @@ public sealed partial class IncomingInvoiceService
             invoice.WithoutOrder, invoice.WithoutOrderReason, await NameAsync(invoice.WithoutOrderApprovedBy, cancellationToken), views, invoice.Divergences,
             lines.Count(l => !l.IsResolved), blocked, await NameAsync(invoice.ImportedBy, cancellationToken), invoice.ImportedAt,
             await NameAsync(invoice.CheckedBy, cancellationToken), invoice.CheckedAt, invoice.RejectedReason, await NameAsync(invoice.RejectedBy, cancellationToken), invoice.RejectedAt,
-            invoice.XmlAttachmentId, can, invoice.GoodsReceiptId, invoice.InputTaxCreditApplied, invoice.InputTaxCreditAmount);
+            invoice.XmlAttachmentId, can, invoice.GoodsReceiptId, invoice.InputTaxCreditApplied, invoice.InputTaxCreditAmount,
+            invoice.Source, IncomingReadingRules.MarkOf(invoice.Source), invoice.PdfAttachmentId, invoice.XmlDifferences, invoice.ReplacedByXmlAt,
+            await NameAsync(invoice.ReplacedByXmlBy, cancellationToken), source?.Id, source?.XmlRequestedAt);
     }
 
     /// <summary>Itens do estoque para o seletor do de-para (ativos, fora Serviço), sem custo nem saldo.</summary>

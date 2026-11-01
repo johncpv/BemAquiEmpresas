@@ -96,7 +96,7 @@ export function FabAssetPage() {
         <AssetCard asset={asset} />
         <section aria-label="Próximos passos" className="space-y-[8px]">
           <Can perm="assets.create">
-            <Link to="/app/patrimonio/bens/$id" params={{ id: asset.id }} search={{ aba: 'manutencao' } as never} data-floor-target="" className={shortcut + ' bg-primary text-primary-foreground'}>Abrir OS de manutenção corretiva</Link>
+            <Link to="/app/patrimonio/bens/$id" params={{ id: asset.id }} search={{ aba: 'manutencao', acao: 'nova-os', origem: 'fab' } as never} data-floor-target="" className={shortcut + ' bg-primary text-primary-foreground'}>Abrir OS de manutenção corretiva</Link>
           </Can>
           <Can perm="assets.edit">
             <Link to="/app/patrimonio/bens/$id" params={{ id: asset.id }} search={{ aba: 'movimentacoes', acao: 'movimentar' } as never} data-floor-target="" className={shortcut + ' border-2 border-input bg-card'}>Registrar movimentação</Link>

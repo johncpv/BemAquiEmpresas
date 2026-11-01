@@ -6,6 +6,7 @@
  */
 import type { ContractInstallmentView } from './contractInstallmentView';
 import type { FiscalEnvironment } from './fiscalEnvironment';
+import type { InvoiceCancellationView } from './invoiceCancellationView';
 import type { InvoiceTotals } from './invoiceTotals';
 import type { InvoiceType } from './invoiceType';
 import type { OutgoingInvoiceActions } from './outgoingInvoiceActions';
@@ -98,4 +99,5 @@ export interface OutgoingInvoiceView {
   /** @nullable */
   discardedAt: string | null;
   version: number;
+  cancellation: InvoiceCancellationView;
 }

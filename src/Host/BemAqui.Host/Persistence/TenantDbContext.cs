@@ -69,6 +69,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<PrivacyRequest> PrivacyRequests => Set<PrivacyRequest>();
 
+    public DbSet<RetentionRule> RetentionRules => Set<RetentionRule>();
+
     public DbSet<Party> Parties => Set<Party>();
 
     public DbSet<PartyRole> PartyRoles => Set<PartyRole>();
@@ -146,6 +148,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BillingSlip> BillingSlips => Set<BillingSlip>();
 
     public DbSet<BillingReferenceSequence> BillingReferenceSequences => Set<BillingReferenceSequence>();
+
+    public DbSet<CollectionRule> CollectionRules => Set<CollectionRule>();
+
+    public DbSet<CollectionNotice> CollectionNotices => Set<CollectionNotice>();
+
+    public DbSet<CollectionPause> CollectionPauses => Set<CollectionPause>();
 
     public DbSet<BemAqui.Commercial.Domain.Quote> Quotes => Set<BemAqui.Commercial.Domain.Quote>();
 
@@ -348,9 +356,15 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Fiscal.Domain.NumberGap> NumberGaps => Set<BemAqui.Fiscal.Domain.NumberGap>();
 
+    public DbSet<BemAqui.Fiscal.Domain.FiscalEvent> FiscalEvents => Set<BemAqui.Fiscal.Domain.FiscalEvent>();
+
+    public DbSet<BemAqui.Fiscal.Domain.CancellationRequest> CancellationRequests => Set<BemAqui.Fiscal.Domain.CancellationRequest>();
+
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoice> IncomingInvoices => Set<BemAqui.Fiscal.Domain.IncomingInvoice>();
 
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoiceItem> IncomingInvoiceItems => Set<BemAqui.Fiscal.Domain.IncomingInvoiceItem>();
+
+    public DbSet<BemAqui.Fiscal.Domain.IncomingInvoiceReading> IncomingInvoiceReadings => Set<BemAqui.Fiscal.Domain.IncomingInvoiceReading>();
 
     public DbSet<BemAqui.Assets.Domain.Asset> Assets => Set<BemAqui.Assets.Domain.Asset>();
 
@@ -359,6 +373,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BemAqui.Assets.Domain.AssetParameter> AssetParameters => Set<BemAqui.Assets.Domain.AssetParameter>();
 
     public DbSet<BemAqui.Assets.Domain.AssetMovement> AssetMovements => Set<BemAqui.Assets.Domain.AssetMovement>();
+
+    public DbSet<BemAqui.Assets.Domain.MaintenancePlan> MaintenancePlans => Set<BemAqui.Assets.Domain.MaintenancePlan>();
+
+    public DbSet<BemAqui.Assets.Domain.AssetMeterReading> AssetMeterReadings => Set<BemAqui.Assets.Domain.AssetMeterReading>();
+
+    public DbSet<BemAqui.Assets.Domain.MaintenanceOrder> MaintenanceOrders => Set<BemAqui.Assets.Domain.MaintenanceOrder>();
+
+    public DbSet<BemAqui.Assets.Domain.MaintenanceOrderChecklistItem> MaintenanceOrderChecklist => Set<BemAqui.Assets.Domain.MaintenanceOrderChecklistItem>();
 
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 

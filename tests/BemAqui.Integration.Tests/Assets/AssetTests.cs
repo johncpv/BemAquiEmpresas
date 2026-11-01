@@ -19,6 +19,7 @@ using BemAqui.Production.Application;
 using BemAqui.Production.Contracts;
 using BemAqui.Production.Domain;
 using FluentAssertions;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
@@ -61,7 +62,7 @@ public partial class AssetTests(TenancyFixture tenancy) : IClassFixture<TenancyF
 
     private WebApplicationFactory<Program>? _factory;
 
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s =>
+    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.UseSetting("Agenda:SourceTimeoutMs", "5000").ConfigureTestServices(s =>
     {
         s.AddScoped<IAssetUsageProvider, FakeUsage>();
         s.AddScoped<IIncomingInvoices, FakeInvoices>();

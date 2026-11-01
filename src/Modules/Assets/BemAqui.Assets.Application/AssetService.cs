@@ -400,7 +400,7 @@ public sealed partial class AssetService(
             a.SiteId, a.SiteId is { } s ? names.Sites.GetValueOrDefault(s) : null,
             a.ResponsibleEmployeeId, employee?.Name, employee is { IsActive: false },
             a.WorkCenterId, a.WorkCenterId is { } c ? names.Centers.GetValueOrDefault(c) : null,
-            a.Notes, photos.TryGetValue(a.Id, out var photo) ? photo : null, a.CreatedAt, a.Version,
+            a.Notes, photos.TryGetValue(a.Id, out var photo) ? photo : null, a.CreatedAt, a.Version, await NextMaintenanceAsync(a.Id, ct),
             await CanEditAsync(ct) ? a.AcquisitionValue : null);
     }
 

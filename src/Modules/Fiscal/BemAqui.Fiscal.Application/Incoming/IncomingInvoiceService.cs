@@ -40,7 +40,8 @@ public sealed partial class IncomingInvoiceService(
     ICurrentUser currentUser,
     IUserDirectory users,
     TimeProvider clock,
-    ILogger<IncomingInvoiceService> logger)
+    ILogger<IncomingInvoiceService> logger,
+    IncomingReadingDependencies reading)
 {
     public const string AttachmentOwner = "IncomingInvoice";
     public const string RateLimitPolicy = "fiscal-incoming-import";
@@ -96,10 +97,10 @@ public sealed partial class IncomingInvoiceService(
         {
             AccessKey = nfe.AccessKey, Number = nfe.Number, Series = nfe.Series, IssuedAt = nfe.IssuedAt.ToUniversalTime(), IssuerDocument = nfe.IssuerCnpj!,
             IssuerName = nfe.IssuerName, IssuerTradeName = nfe.IssuerTradeName, IssuerStateRegistration = nfe.IssuerStateRegistration, IssuerAddress = nfe.IssuerAddress,
-            Source = IncomingInvoiceSource.Xml, Totals = nfe.Totals, Total = nfe.Totals.Total, Duplicates = nfe.Duplicates, SignatureValid = true,
-            SignerDocument = validated.Value.Signer.Document, Protocol = nfe.Protocol!, AuthorizedAt = nfe.AuthorizedAt?.ToUniversalTime(), SefazStatusChecked = false,
+            Totals = nfe.Totals, Total = nfe.Totals.Total, Duplicates = nfe.Duplicates, SefazStatusChecked = false,
             OrderReferences = [.. nfe.OrderReferences], ImportedBy = currentUser.UserId, ImportedAt = now,
         };
+        invoice.SetXmlProof(validated.Value.Signer.Document, nfe.Protocol!, nfe.AuthorizedAt?.ToUniversalTime());
         invoice.SetParty(party?.Id, now);
         var lines = nfe.Items.Select(i => new IncomingInvoiceItem
         {

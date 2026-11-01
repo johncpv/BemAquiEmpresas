@@ -379,6 +379,14 @@ public sealed class BillingSlip : Entity, IAuditable, IConcurrencyVersioned
         ScheduledEmailCc = cc.Count > 0 ? string.Join(",", cc) : null;
     }
 
+    /// <summary>Anonimização do titular (LGPD-01b CA 9): o envio agendado ao e-mail dele é desfeito (o boleto fica).</summary>
+    public void CancelScheduledEmail()
+    {
+        ScheduledEmailAt = null;
+        ScheduledEmailTo = null;
+        ScheduledEmailCc = null;
+    }
+
     public void EmailSent(DateTimeOffset at)
     {
         LastEmailAt = at;

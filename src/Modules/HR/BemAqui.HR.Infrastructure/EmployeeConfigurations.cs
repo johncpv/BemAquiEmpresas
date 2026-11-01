@@ -12,6 +12,7 @@ internal sealed class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
         b.ToTable("employees", HrSchema.Name);
         b.Property(e => e.Name).HasMaxLength(150);
         b.Property(e => e.Registration).HasMaxLength(20);
+        b.Property(e => e.AnonymizationRequest).HasMaxLength(20);
         b.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
         b.Property(e => e.Cpf).HasMaxLength(11);
         b.Property(e => e.BaseSalary).HasPrecision(18, 2);

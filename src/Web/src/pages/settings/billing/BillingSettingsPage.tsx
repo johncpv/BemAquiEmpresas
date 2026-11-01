@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { confirmBillingSetting, getGetBillingSettingsQueryKey, updateBillingSettings, useGetBillingSettings } from '@/api/generated/bemaqui'
 import type { BillingReviewItem, BillingSettingsView, OverdueFineFrom } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
@@ -14,6 +14,7 @@ import { useNavigation } from '@/navigation/navigation-context'
 import { ModuleNotReleased } from '@/pages/ModulePage'
 import { PageHeading } from '@/shell/PageHeading'
 import { SettingsTabs } from '../SettingsTabs'
+import { CollectionRuleSection } from './CollectionRuleSection'
 import { BILLING_DICAS, FINE_KEY, INTEREST_KEY, OVERDUE_KEY, OVERDUE_OPTIONS, pendingText } from './billing-settings'
 
 /**
@@ -32,7 +33,7 @@ export function BillingSettingsPage() {
   return (
     <>
       <PageHeading title="Cobrança">
-        <p className="mt-2 text-muted-foreground">Multa, juros, desconto e envio do boleto com Pix. Os valores já vêm preenchidos; confira com a contadora.</p>
+        <p className="mt-2 text-muted-foreground">Multa, juros, desconto, envio do boleto com Pix e a régua de cobrança por e-mail. Os valores já vêm preenchidos; confira com a contadora.</p>
       </PageHeading>
       <SettingsTabs />
       {query.isPending ? (
@@ -42,8 +43,21 @@ export function BillingSettingsPage() {
       ) : (
         <BillingForm key={JSON.stringify(query.data)} view={query.data} />
       )}
+      <CollectionRuleSection />
+      <ScrollToHash />
     </>
   )
+}
+
+/** Abre a tela já na seção do endereço (ex.: #regua), depois que ela aparece. */
+function ScrollToHash() {
+  useEffect(() => {
+    const hash = window.location.hash.slice(1)
+    if (!hash) return
+    const timer = window.setTimeout(() => document.getElementById(hash)?.scrollIntoView({ block: 'start' }), 300)
+    return () => window.clearTimeout(timer)
+  }, [])
+  return null
 }
 
 function BillingForm({ view }: { view: BillingSettingsView }) {

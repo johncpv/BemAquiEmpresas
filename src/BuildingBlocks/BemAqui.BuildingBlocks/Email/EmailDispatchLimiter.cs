@@ -53,7 +53,28 @@ public sealed class EmailDispatchLimiter(BemAquiDbContext db, TimeProvider clock
     /// <summary>Envio do boleto (BNK-01b CA 13): somado aos do orçamento e do pedido no limite diário de Configurações → Cobrança.</summary>
     public const string BillingSlipTemplate = "billing-slip-issued";
 
-    public static IReadOnlyList<string> BillingTemplates { get; } = [QuoteTemplate, PurchaseOrderTemplate, BillingSlipTemplate];
+    /// <summary>Lembrete da régua de cobrança (FIN-09 CA 7): também somado no limite diário de Configurações → Cobrança.</summary>
+    public const string CollectionReminderTemplate = "collection-reminder";
+
+    public static IReadOnlyList<string> BillingTemplates { get; } = [QuoteTemplate, PurchaseOrderTemplate, BillingSlipTemplate, CollectionReminderTemplate];
+
+    /// <summary>
+    /// Trava o tenant (a mesma trava dos envios de documento) e devolve quantos envios ainda cabem hoje no limite de Configurações → Cobrança
+    /// (FIN-09 CA 7: a régua enfileira até esse número e o resto fica para o dia seguinte). Exige a transação do envio aberta.
+    /// </summary>
+    public async Task<int> BillingRemainingAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        if (db.Database.CurrentTransaction is null)
+        {
+            throw new InvalidOperationException("O limite diário de envios precisa da transação do envio aberta.");
+        }
+
+        await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({LockKey}, 0))) AS l").ToListAsync(cancellationToken);
+        var since = BusinessTime.StartOfDayUtc(BusinessTime.Today(clock));
+        var templates = BillingTemplates.ToList();
+        var used = await db.EmailLogs.AsNoTracking().CountAsync(l => templates.Contains(l.Template) && l.CreatedAt >= since, cancellationToken);
+        return Math.Max(0, limit - used);
+    }
 
     /// <summary>
     /// Trava o tenant (a mesma trava dos envios de documento) e diz se o envio do boleto cabe no limite do dia (<paramref name="limit"/>,

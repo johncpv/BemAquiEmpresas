@@ -81,12 +81,15 @@ public static class InvoiceReceiptRules
     }
 
     /// <summary>Descrição do título do recebimento pela nota (CA 6), com o aviso quando as duplicatas não fecham (CA 8).</summary>
-    public static string InstallmentDescription(long invoiceNumber, string receiptNumber, int installment, int count, bool mismatch) =>
-        $"NF-e {invoiceNumber} · recebimento {receiptNumber} — parcela {installment}/{count}" + (mismatch ? " · " + MismatchNotice : string.Empty);
+    public static string InstallmentDescription(long invoiceNumber, string receiptNumber, int installment, int count, bool mismatch, string? sourceMark = null) =>
+        $"NF-e {invoiceNumber} · recebimento {receiptNumber} — parcela {installment}/{count}" + Mark(sourceMark) + (mismatch ? " · " + MismatchNotice : string.Empty);
 
     /// <summary>Descrição do título da parte "Sem item de estoque" (CA 9).</summary>
-    public static string NoStockDescription(long invoiceNumber, string account, int installment, int count, bool mismatch) =>
-        $"NF-e {invoiceNumber} · {account} — parcela {installment}/{count}" + (mismatch ? " · " + MismatchNotice : string.Empty);
+    public static string NoStockDescription(long invoiceNumber, string account, int installment, int count, bool mismatch, string? sourceMark = null) =>
+        $"NF-e {invoiceNumber} · {account} — parcela {installment}/{count}" + Mark(sourceMark) + (mismatch ? " · " + MismatchNotice : string.Empty);
+
+    /// <summary>A marca da nota sem XML ("Lida do PDF, sem XML", "Digitada, sem XML") também no título a pagar (FIS-05 CA 8 e 9).</summary>
+    private static string Mark(string? sourceMark) => sourceMark is { Length: > 0 } m ? " · " + m : string.Empty;
 
     /// <summary>Parte sem item de estoque de um item da nota (CA 9): valor − desconto + IPI do item, 2 casas.</summary>
     public static decimal NoStockAmount(decimal amount, decimal discount, decimal ipi) => Math.Round(amount - discount + ipi, 2, MidpointRounding.AwayFromZero);

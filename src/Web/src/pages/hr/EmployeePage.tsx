@@ -5,6 +5,7 @@ import { deactivateUser, deleteEmployee, getGetEmployeeQueryKey, getGetEmployeeT
 import type { EmployeeDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { RecordHistory } from '@/components/history/RecordHistory'
+import { AnonymizedBand } from '@/components/ui/anonymized-band'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { NextSteps } from '@/components/ui/next-steps'
 import { ErrorState, Skeleton } from '@/components/ui/states'
@@ -39,7 +40,7 @@ export function EmployeePage() {
   const client = useQueryClient()
   const query = useGetEmployee(id)
   const linked = useGetEmployeeUser(id)
-  const canEdit = useCan('hr.edit')
+  const canEditHr = useCan('hr.edit')
   const canSensitive = useCan('hr.view_sensitive')
   const canHealth = useCan('hr.view_health')
   const canUsers = useCan('identity.edit')
@@ -57,6 +58,9 @@ export function EmployeePage() {
   }
 
   const employee = query.data
+  // LGPD-01b: funcionário anonimizado é só leitura (a API recusa com 409 employee_anonymized).
+  const anonymized = !!employee.anonymizedAt
+  const canEdit = canEditHr && !anonymized
   // Afastado continua no quadro: troca de cargo, desligamento e novo afastamento seguem disponíveis (CAD-04c1).
   const active = employee.status !== 'Terminated'
   const user = linked.data?.user ?? null
@@ -98,15 +102,16 @@ export function EmployeePage() {
                 <button type="button" onClick={() => setTerminating(true)} className={button}>Registrar desligamento</button>
               </>
             ) : null}
-            <Can perm="hr.delete">
+            {anonymized ? null : <Can perm="hr.delete">
               <ConfirmDialog verb="Excluir" done="Funcionário excluído" destructive title={`Excluir ${employee.name}?`} description="Só dá para excluir funcionário sem linha do tempo, apontamento nem usuário vinculado. Os demais têm o desligamento registrado."
                 onConfirm={async () => { await deleteEmployee(id); await navigate({ to: '/app/rh/funcionarios' }) }}
                 recovery={active && canEdit ? { verb: 'Registrar desligamento', when: (code) => code === 'employee_has_history', onSelect: async () => setTerminating(true) } : undefined}
                 trigger={<button type="button" className={button + ' text-crit-ink'}>Excluir</button>} />
-            </Can>
+            </Can>}
           </div>
         </div>
       </PageHeading>
+      <AnonymizedBand at={employee.anonymizedAt} request={employee.anonymizationRequest} />
       {canEdit && canSensitive && active ? (
         <LeaveDialog employee={employee} canHealth={canHealth} open={leaving} onOpenChange={setLeaving} onReload={() => query.refetch()}
           onDone={(e) => { setEmployee(e); void client.invalidateQueries({ queryKey: getListEmployeeLeavesSensitiveQueryKey(id) }); setSteps('leave') }} />

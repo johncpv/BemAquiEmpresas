@@ -74,6 +74,13 @@ public sealed class AuditSaveChangesInterceptor(ICurrentUser currentUser, TimePr
                 continue;
             }
 
+            // Anonimização do titular (LGPD-01b CA 6): só o nome dos campos, sem o valor anterior nem o novo.
+            if (origin.AnonymizationRequest is not null && action == AuditActions.Updated)
+            {
+                action = AuditActions.Anonymized;
+                changes = changes.Keys.ToDictionary(k => k, _ => new Dictionary<string, object?> { ["anonymized"] = true }, StringComparer.Ordinal);
+            }
+
             audit.Add(new AuditEntry
             {
                 Entity = entry.Metadata.ClrType.Name,

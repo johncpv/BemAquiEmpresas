@@ -10,9 +10,10 @@ namespace BemAqui.Assets.Application;
 /// <summary>
 /// Onde o titular aparece no Patrimônio (LGPD-01a, ADR 0037 §2; PAT-02): o funcionário nos bens de que é responsável e nos movimentos em
 /// que entregou ou recebeu o bem (com o motivo, texto livre); o terceiro comprador nas baixas por venda; o usuário nos movimentos que
-/// registrou. Só etiqueta, nome do bem, datas e o dado dele; o valor da venda só para o comprador.
+/// registrou; as OS de manutenção que o usuário abriu, executou ou cancelou (com o texto dele, PAT-03a) e as que o prestador executou. Só etiqueta,
+/// nome do bem, datas e o dado dele; o valor da venda só para o comprador.
 /// </summary>
-[PersonalDataCovers(typeof(AssetMovement))]
+[PersonalDataCovers(typeof(AssetMovement), typeof(MaintenanceOrder))]
 public sealed class AssetsPersonalDataProvider(IAssetsDb db) : IPersonalDataProvider
 {
     public string Module => "assets";
@@ -66,9 +67,81 @@ public sealed class AssetsPersonalDataProvider(IAssetsDb db) : IPersonalDataProv
                                     select new { a.Tag, m.Kind, m.MovedOn, m.CreatedAt }).ToListAsync(cancellationToken);
             blocks.Add(new PersonalDataBlock("Movimentações registradas", "assets.asset_movements", registered.Select(m => PersonalDataRecord.Of(m.CreatedAt,
                 ("Etiqueta", m.Tag), ("Tipo", Kinds[m.Kind]), ("Data", Date(m.MovedOn)), ("Registrada em", PersonalDataMask.At(m.CreatedAt)))).ToList()));
+
+            // PAT-03a: as OS de manutenção que a pessoa abriu, iniciou, concluiu ou cancelou, com o texto que ela escreveu em cada passo.
+            var orders = await (from o in db.MaintenanceOrders.AsNoTracking()
+                                join a in db.Assets.IgnoreQueryFilters().AsNoTracking() on o.AssetId equals a.Id
+                                where o.CreatedBy == user || o.StartedBy == user || o.DoneBy == user || o.CancelledBy == user
+                                orderby o.CreatedAt
+                                select new { o.Number, a.Tag, o.Type, o.CreatedBy, o.DoneBy, o.CancelledBy, o.Problem, o.WorkDone, o.CancelReason, o.CreatedAt }).ToListAsync(cancellationToken);
+            blocks.Add(new PersonalDataBlock("OS de manutenção registradas", "assets.maintenance_orders", orders.Select(o => PersonalDataRecord.Of(o.CreatedAt,
+                ("Número", o.Number), ("Etiqueta", o.Tag), ("Tipo", o.Type == MaintenanceOrderType.Preventive ? "Preventiva" : "Corretiva"),
+                ("Problema", o.CreatedBy == user ? o.Problem : null), ("O que foi feito", o.DoneBy == user ? o.WorkDone : null),
+                ("Motivo do cancelamento", o.CancelledBy == user ? o.CancelReason : null), ("Aberta em", PersonalDataMask.At(o.CreatedAt)))).ToList()));
+        }
+
+        if (subject.Kind == PersonalDataSubjectKind.Party && subject.PartyId is { } supplier)
+        {
+            // PAT-03a: as OS de manutenção executadas pelo prestador (sem os textos de quem registrou).
+            var served = await (from o in db.MaintenanceOrders.AsNoTracking()
+                                join a in db.Assets.IgnoreQueryFilters().AsNoTracking() on o.AssetId equals a.Id
+                                where o.SupplierPartyId == supplier
+                                orderby o.ScheduledOn
+                                select new { o.Number, a.Tag, a.Name, o.Type, o.Status, o.ScheduledOn, o.CreatedAt }).ToListAsync(cancellationToken);
+            blocks.Add(new PersonalDataBlock("Manutenções como prestador", "assets.maintenance_orders", served.Select(o => PersonalDataRecord.Of(o.CreatedAt,
+                ("Número", o.Number), ("Etiqueta", o.Tag), ("Bem", o.Name), ("Tipo", o.Type == MaintenanceOrderType.Preventive ? "Preventiva" : "Corretiva"),
+                ("Situação", o.Status.ToString()), ("Agendada para", Date(o.ScheduledOn)))).ToList()));
         }
 
         return blocks.Count == 0 ? null : new PersonalDataSection(Module, Title, blocks);
+    }
+
+    public Task<PersonalDataAnonymizationPlan?> PlanAnonymizationAsync(PersonalDataAnonymizationContext context, CancellationToken cancellationToken = default) =>
+        RunAsync(context, false, cancellationToken);
+
+    public Task<PersonalDataAnonymizationPlan?> AnonymizeAsync(PersonalDataAnonymizationContext context, CancellationToken cancellationToken = default) =>
+        RunAsync(context, true, cancellationToken);
+
+    /// <summary>
+    /// LGPD-01b CA 2 e 4: os bens e os movimentos ficam (histórico imutável do patrimônio, com etiqueta, datas, locais e valores; o titular
+    /// aparece só pelo id). O motivo do movimento é texto livre que pode citar o titular: nos movimentos em que o funcionário entregou ou
+    /// recebeu o bem, ou em que o terceiro comprou o bem, ele vira o marcador, como os outros textos livres. Sem obrigação legal, sai já.
+    /// </summary>
+    private async Task<PersonalDataAnonymizationPlan?> RunAsync(PersonalDataAnonymizationContext context, bool apply, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        var subject = context.Subject;
+        var employee = subject.EmployeeId;
+        var party = subject.Kind == PersonalDataSubjectKind.Party ? subject.PartyId : null;
+        if (employee is null && party is null)
+        {
+            return null;
+        }
+
+        var plan = new PersonalDataPlanBuilder(Module, Title);
+        if (employee is not null)
+        {
+            plan.Keep("Bens sob responsabilidade: mantidos, com o responsável", "assets.assets", await db.Assets.CountAsync(a => a.ResponsibleEmployeeId == employee, ct));
+        }
+
+        var movements = await db.AssetMovements
+            .Where(m => (employee != null && (m.FromEmployeeId == employee || m.ToEmployeeId == employee)) || (party != null && m.BuyerPartyId == party))
+            .ToListAsync(ct);
+        plan.Keep("Movimentações de bens: mantidas, com etiqueta, datas, locais e valores", "assets.asset_movements", movements.Count);
+        var withReason = movements.Where(m => !string.IsNullOrWhiteSpace(m.Reason) && m.Reason != AssetMovementRules.TerminatedReason).ToList();
+        if (apply)
+        {
+            foreach (var m in withReason.Where(m => m.Reason != context.Marker))
+            {
+                db.Entry(m).Property(x => x.Reason).CurrentValue = context.Marker;
+            }
+
+            await db.SaveChangesAsync(ct);
+        }
+
+        plan.Anonymize("Motivo das movimentações (texto livre)", "assets.asset_movements", withReason.Count);
+        var built = plan.Build();
+        return built.Items.Count == 0 ? null : built;
     }
 
     private static string Date(DateOnly date) => date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);

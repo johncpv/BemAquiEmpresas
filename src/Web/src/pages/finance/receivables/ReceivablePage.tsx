@@ -17,6 +17,7 @@ import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { useCanSettings } from '@/pages/settings/use-can-settings'
 import { BillingSlipTab } from './BillingSlipTab'
+import { ReceivableCollectionTab } from './CollectionPanel'
 import { slipStatus } from './billing-slips'
 import { IssueBillingSlipDialog } from './IssueBillingSlipDialog'
 import { CancelDialog, DueDateDialog, WriteOffDialog } from './ReceivableDialogs'
@@ -106,6 +107,7 @@ export function ReceivablePage() {
         { id: 'dados', label: 'Dados', keepMounted: true, content: <ReceivableDataForm key={r.version} receivable={r} canEdit={canEdit && r.status !== 'Cancelled'} onSaved={done} /> },
         { id: 'baixas', label: 'Baixas', content: <ReceivableSettlements receivable={r} onDone={done} onReload={reload} /> },
         { id: 'boleto', label: 'Boleto', content: <BillingSlipTab receivable={r} canEdit={canEdit} canConfigure={canConfigure} onIssue={issue} onChanged={() => void reload()} onNavigate={(to) => void navigate({ to } as never)} /> },
+        { id: 'lembretes', label: 'Lembretes', content: <ReceivableCollectionTab receivableId={r.id} partyId={r.partyId} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Receivable" id={r.id} /> },
       ]} />
       {dialog === 'billing' ? <IssueBillingSlipDialog receivableId={r.id} open onOpenChange={(o) => !o && setDialog(null)} onNavigate={(to) => void navigate({ to } as never)} onShowSlip={() => setTab('boleto')}

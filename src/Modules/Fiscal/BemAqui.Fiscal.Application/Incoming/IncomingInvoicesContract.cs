@@ -29,7 +29,7 @@ internal sealed class IncomingInvoicesContract(IFiscalDb db, TimeProvider clock)
             items.Select(i => new IncomingReceiptItem(
                 i.Id, i.Sequence, i.Description, i.ItemId, i.PoLineId, i.StockQuantity, i.StockUnitPrice, i.Amount, i.Discount, i.LotNumber, i.NoStockItem, i.ExpenseAccountId, i.Taxes.Icms,
                 i.Taxes.Ipi, i.Taxes.Pis, i.Taxes.Cofins)).ToList(),
-            await CreditRuleAsync(cancellationToken));
+            await CreditRuleAsync(cancellationToken), IncomingReadingRules.MarkOf(invoice.Source));
     }
 
     public async Task<Result> MarkReceivedAsync(Guid id, uint version, Guid goodsReceiptId, string creditRule, decimal creditAmount, CancellationToken cancellationToken = default)

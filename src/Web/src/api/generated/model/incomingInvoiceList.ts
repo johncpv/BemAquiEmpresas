@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { IncomingInvoiceSummary } from './incomingInvoiceSummary';
+import type { IncomingReadingSummary } from './incomingReadingSummary';
 
 export interface IncomingInvoiceList {
   items: IncomingInvoiceSummary[];
@@ -12,4 +13,5 @@ export interface IncomingInvoiceList {
   pageSize: number;
   total: number;
   canImport: boolean;
+  readings: IncomingReadingSummary[];
 }

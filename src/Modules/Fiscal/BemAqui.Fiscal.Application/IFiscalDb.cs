@@ -30,10 +30,19 @@ public interface IFiscalDb
     /// <summary>Números gastos sem nota válida (rejeitada ou denegada, FIS-03a; a inutilização é da FIS-03b).</summary>
     DbSet<NumberGap> NumberGaps { get; }
 
+    /// <summary>Cancelamento, carta de correção e inutilização (FIS-03b).</summary>
+    DbSet<FiscalEvent> FiscalEvents { get; }
+
+    /// <summary>"Pedir cancelamento" de quem não tem <c>fiscal.approve</c> (FIS-03b).</summary>
+    DbSet<CancellationRequest> CancellationRequests { get; }
+
     /// <summary>NF-e de entrada e os itens (FIS-04a).</summary>
     DbSet<IncomingInvoice> IncomingInvoices { get; }
 
     DbSet<IncomingInvoiceItem> IncomingInvoiceItems { get; }
+
+    /// <summary>Rascunhos da leitura do PDF da DANFE e das notas digitadas (FIS-05).</summary>
+    DbSet<IncomingInvoiceReading> IncomingInvoiceReadings { get; }
 
     ChangeTracker ChangeTracker { get; }
 

@@ -2,10 +2,11 @@ import { Link } from '@tanstack/react-router'
 
 const TABS = [
   { to: '/app/patrimonio/bens', label: 'Bens' },
+  { to: '/app/patrimonio/manutencao', label: 'Manutenção' },
   { to: '/app/patrimonio/locais', label: 'Locais' },
 ] as const
 
-/** Abas do Patrimônio (PAT-01a): cada aba é uma rota própria (FND-09b CA 8). */
+/** Abas do Patrimônio (PAT-01a; Manutenção na PAT-03a): cada aba é uma rota própria (FND-09b CA 8). */
 export function AssetsTabs() {
   return (
     <nav aria-label="Patrimônio" className="mb-5 flex gap-1 overflow-x-auto border-b border-border">

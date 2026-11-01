@@ -30,11 +30,11 @@ public sealed record IncomingReceiptItem(
 /// </summary>
 public sealed record InputTaxCreditRule(IReadOnlyList<string> Taxes, bool Confirmed, string Label);
 
-/// <summary>A nota de entrada para o recebimento pela nota (FIS-04b): cabeçalho, totais, duplicatas, itens conferidos e a regra de crédito.</summary>
+/// <summary>A nota de entrada para o recebimento pela nota (FIS-04b): cabeçalho, totais, duplicatas, itens conferidos, a regra de crédito e a marca da nota sem XML ("Lida do PDF, sem XML", FIS-05 CA 8).</summary>
 public sealed record IncomingInvoiceForReceipt(
     Guid Id, long Number, int Series, DateOnly IssuedOn, string IssuerName, Guid? PartyId, Guid? PurchaseOrderId, bool WithoutOrder, IncomingInvoiceStage Stage, Guid? GoodsReceiptId,
     uint Version, decimal Products, decimal Freight, decimal Insurance, decimal OtherExpenses, decimal Discount, decimal Ipi, decimal Total,
-    IReadOnlyList<IncomingReceiptDuplicate> Duplicates, IReadOnlyList<IncomingReceiptItem> Items, InputTaxCreditRule Credit);
+    IReadOnlyList<IncomingReceiptDuplicate> Duplicates, IReadOnlyList<IncomingReceiptItem> Items, InputTaxCreditRule Credit, string? SourceMark = null);
 
 /// <summary>
 /// NF-e de entrada para o Purchasing (FIS-04b, ADR 0024 §1): os dados conferidos da nota e as transições <c>Checked → Received</c> e de volta,

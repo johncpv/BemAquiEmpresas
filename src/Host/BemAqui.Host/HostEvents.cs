@@ -12,6 +12,8 @@ public static class HostEvents
     {
         ArgumentNullException.ThrowIfNull(events);
         events.AddEmailEvents().AddWebhookEvents().AddEvent<UserActivated>()
+            // LGPD-01b CA 9: titular anonimizado; o Financeiro troca o retrato do favorecido nas OPs terminadas.
+            .AddHandler<BemAqui.BuildingBlocks.Privacy.SubjectAnonymized, BemAqui.Finance.Application.SubjectAnonymizedConsumer>()
             // CAD-06 → CAD-04a: o % de encargos recalcula o custo-hora dos cargos.
             .AddHandler<PayrollChargesChanged, BemAqui.HR.Application.PayrollChargesChangedHandler>()
             .AddEvent<BemAqui.HR.Contracts.HourlyCostChanged>()
@@ -21,6 +23,10 @@ public static class HostEvents
             // consumidor no Inventory (a nota só referencia o romaneio). Rejeitada e denegada são só aviso.
             .AddHandler<BemAqui.Fiscal.Contracts.InvoiceAuthorized, BemAqui.Commercial.Application.InvoiceTaxConsumer>()
             .AddHandler<BemAqui.Fiscal.Contracts.InvoiceAuthorized, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            // FIS-03b CA 5 (D12): o cancelamento vira o reverso do imposto na razão do projeto (InvoiceTaxReversal); a receita sai pelo
+            // IOutgoingInvoices (a nota cancelada deixa de contar) e nada muda no estoque (nenhum consumidor no Inventory).
+            .AddHandler<BemAqui.Fiscal.Contracts.InvoiceCancelled, BemAqui.Commercial.Application.InvoiceTaxReversalConsumer>()
+            .AddHandler<BemAqui.Fiscal.Contracts.InvoiceCancelled, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
             .AddEvent<BemAqui.Fiscal.Contracts.InvoiceRejected>()
             .AddEvent<BemAqui.Fiscal.Contracts.InvoiceDenied>()
             .AddEvent<BemAqui.HR.Contracts.EmployeeTerminated>()

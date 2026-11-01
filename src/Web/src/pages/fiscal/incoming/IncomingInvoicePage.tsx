@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { Download, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import {
-  checkIncomingInvoice, createParty, getDownloadIncomingInvoiceXmlUrl, getGetIncomingInvoiceQueryKey, getListIncomingInvoicesQueryKey, refreshIncomingInvoiceSupplier,
-  rejectIncomingInvoice, useGetIncomingInvoice, useGetIncomingInvoiceHistory,
+  checkIncomingInvoice, createParty, getDownloadIncomingInvoicePdfUrl, getDownloadIncomingInvoiceXmlUrl, getGetIncomingInvoiceQueryKey, getListIncomingInvoicesQueryKey,
+  refreshIncomingInvoiceSupplier, rejectIncomingInvoice, replaceIncomingInvoiceWithXml, requestIncomingInvoiceXml, useGetIncomingInvoice, useGetIncomingInvoiceHistory,
 } from '@/api/generated/bemaqui'
 import type { IncomingInvoiceView } from '@/api/generated/model'
 import { apiDownload, ApiError } from '@/api/http'
@@ -19,9 +19,11 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime, formatInstantDate } from '@/lib/format'
+import { cn } from '@/lib/utils'
 import { addRoles } from '@/pages/parties/party-actions'
 import { PageHeading } from '@/shell/PageHeading'
 import { DICAS, formatAccessKey, formatCnpj, INCOMING_STATUS, SEFAZ_TITLE } from './incoming'
+import { READING_DICAS } from './reading'
 import { IncomingItemsTab } from './IncomingItemsTab'
 import { IncomingOrderTab } from './IncomingOrderTab'
 
@@ -55,6 +57,7 @@ function InvoiceDetail({ view, onChange }: { view: IncomingInvoiceView; onChange
   const navigate = useNavigate()
   const [stepsShown, setStepsShown] = useState(false)
   const status = INCOMING_STATUS[view.status]
+  const mark = view.sourceMark ?? null
   const editable = view.status === 'Imported' && view.can.import
   const steps: Step[] = stepsShown && view.status === 'Checked' ? [
     ...(view.can.receive && view.order.purchaseOrderId ? [{ label: 'Receber pela nota', onSelect: () => void navigate({ to: '/app/fiscal/entrada/$id/recebimento', params: { id: view.id } } as never) }] : []),
@@ -69,12 +72,23 @@ function InvoiceDetail({ view, onChange }: { view: IncomingInvoiceView; onChange
           <StatusChip tone={status.tone}>{status.label}</StatusChip>
           <Money value={view.totals.total} className="font-semibold text-foreground" />
           <span>emitida em <span className="tabular-nums">{formatInstantDate(view.issuedAt)}</span></span>
-          <StatusChip tone="ok"><ShieldCheck aria-hidden="true" className="size-3" />Assinatura conferida</StatusChip>
-          <Dica nome="Assinatura da nota" texto={DICAS.assinatura} />
+          {mark ? (
+            <>
+              <StatusChip tone="warn">{mark}</StatusChip>
+              <Dica nome={mark} texto={view.source === 'Manual' ? READING_DICAS.manual : READING_DICAS.pdf} />
+            </>
+          ) : (
+            <>
+              <StatusChip tone="ok"><ShieldCheck aria-hidden="true" className="size-3" />Assinatura conferida</StatusChip>
+              <Dica nome="Assinatura da nota" texto={DICAS.assinatura} />
+            </>
+          )}
         </div>
       </PageHeading>
 
-      {!view.sefazStatusChecked && view.status !== 'Rejected' ? (
+      {mark && view.status !== 'Rejected' ? <WithoutXml view={view} onChange={onChange} /> : null}
+      {!mark && view.replacedByXmlAt ? <XmlDifferences view={view} /> : null}
+      {!mark && !view.sefazStatusChecked && view.status !== 'Rejected' ? (
         <div role="note" className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-info-soft bg-info-soft p-3 text-sm text-info-ink">
           <b className="font-semibold">{SEFAZ_TITLE}</b>
           <Dica nome={SEFAZ_TITLE} texto={DICAS.sefaz} />
@@ -216,7 +230,76 @@ function Actions({ view, onChange, onChecked }: { view: IncomingInvoiceView; onC
   )
 }
 
-/** Documentos (CA 5 e 13): o XML guardado pelo sistema, a chave, o protocolo, quem assinou, totais e duplicatas. */
+/**
+ * Nota sem XML (FIS-05 CA 6, 8 e 10): sem assinatura nem protocolo; "Pedir o XML ao fornecedor" e "Substituir pelo XML" (toda a validação
+ * da FIS-04a, a mesma chave; os valores conferidos ficam e as diferenças aparecem em texto).
+ */
+function WithoutXml({ view, onChange }: { view: IncomingInvoiceView; onChange: (v: IncomingInvoiceView) => Promise<void> }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [requested, setRequested] = useState<string | null>(view.xmlRequestedAt ? `XML pedido em ${formatDateTime(view.xmlRequestedAt)}.` : null)
+  const replace = async (file: File | undefined) => {
+    if (!file) return
+    setBusy(true)
+    setError(null)
+    try {
+      await onChange(await replaceIncomingInvoiceWithXml(view.id, { file }))
+      notifySuccess('Nota substituída pelo XML')
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Não foi possível substituir pelo XML. Tente de novo.')
+    } finally {
+      setBusy(false)
+    }
+  }
+  const request = async () => {
+    if (!view.readingId) return
+    setBusy(true)
+    setError(null)
+    try {
+      const sent = await requestIncomingInvoiceXml(view.readingId)
+      setRequested(`Pedido enviado para ${sent.to}.`)
+      notifySuccess('Pedido enviado')
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Não foi possível pedir o XML. Tente de novo.')
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <div role="note" className="mb-3 space-y-2 rounded-md border border-warn-soft bg-warn-soft p-3 text-sm text-warn-ink">
+      <p><b className="font-semibold">{view.sourceMark}.</b> Sem assinatura nem protocolo da SEFAZ para conferir. O XML continua sendo o documento fiscal: peça ao fornecedor e substitua quando chegar.</p>
+      {view.can.import ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {view.readingId ? <button type="button" disabled={busy} onClick={() => void request()} className={secondary}>Pedir o XML ao fornecedor</button> : null}
+          <input id="substituir-xml" type="file" accept=".xml,application/xml,text/xml" className="sr-only" onChange={(e) => { void replace(e.target.files?.[0]); e.target.value = '' }} />
+          <label htmlFor="substituir-xml" className={`${primary} cursor-pointer`}>Substituir pelo XML</label>
+          {requested ? <span className="text-xs">{requested}</span> : null}
+        </div>
+      ) : null}
+      {error ? <p role="alert" className="text-crit-ink">{error}</p> : null}
+    </div>
+  )
+}
+
+/** Diferenças do XML que chegou depois contra o que foi conferido (CA 10), em texto. */
+function XmlDifferences({ view }: { view: IncomingInvoiceView }) {
+  const diffs = view.xmlDifferences ?? []
+  return (
+    <div role="note" className={cn('mb-3 rounded-md border p-3 text-sm', diffs.length > 0 ? 'border-warn-soft bg-warn-soft text-warn-ink' : 'border-border bg-muted')}>
+      <p>
+        Substituída pelo XML em {view.replacedByXmlAt ? formatDateTime(view.replacedByXmlAt) : '—'}{view.replacedByXmlByName ? ` por ${view.replacedByXmlByName}` : ''}.{' '}
+        {diffs.length === 0 ? 'Os valores do XML são iguais aos conferidos.' : 'Os valores conferidos ficaram; confira as diferenças com o XML e, se precisar, ajuste o recebimento e os títulos:'}
+      </p>
+      {diffs.length > 0 ? (
+        <ul className="mt-1 list-disc pl-5">
+          {diffs.map((d) => <li key={d.field}>{d.field}: conferido <b className="font-semibold tabular-nums">{d.checked}</b>, no XML <b className="font-semibold tabular-nums">{d.xml}</b></li>)}
+        </ul>
+      ) : null}
+    </div>
+  )
+}
+
+/** Documentos (CA 5 e 13): o XML guardado pelo sistema (ou o PDF da nota lida do PDF), a chave, o protocolo, quem assinou, totais e duplicatas. */
 function Documents({ view }: { view: IncomingInvoiceView }) {
   const [error, setError] = useState<string | null>(null)
   const download = async () => {
@@ -227,6 +310,14 @@ function Documents({ view }: { view: IncomingInvoiceView }) {
       setError(e instanceof ApiError ? e.message : 'Não foi possível baixar o XML. Tente de novo.')
     }
   }
+  const downloadPdf = async () => {
+    setError(null)
+    try {
+      await apiDownload(getDownloadIncomingInvoicePdfUrl(view.id), `${view.accessKey}-danfe.pdf`)
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Não foi possível baixar o PDF. Tente de novo.')
+    }
+  }
 
   const t = view.totals
   const totals: [string, number][] = [['Produtos', t.products], ['Frete', t.freight], ['Seguro', t.insurance], ['Desconto', t.discount], ['Outras despesas', t.otherExpenses], ['IPI', t.ipi], ['ICMS', t.icms], ['ICMS-ST', t.icmsSt], ['Total da nota', t.total]]
@@ -234,14 +325,21 @@ function Documents({ view }: { view: IncomingInvoiceView }) {
     <div className="space-y-4 text-sm">
       <dl className="grid gap-2 sm:grid-cols-2">
         <div><dt className="text-muted-foreground">Chave de acesso</dt><dd className="break-all font-semibold tabular-nums">{formatAccessKey(view.accessKey)}</dd></div>
-        <div><dt className="text-muted-foreground">Protocolo de autorização</dt><dd className="tabular-nums">{view.protocol}{view.authorizedAt ? ` · ${formatDateTime(view.authorizedAt)}` : ''}</dd></div>
-        <div><dt className="flex items-center gap-1 text-muted-foreground">Assinada por<Dica nome="Assinatura da nota" texto={DICAS.assinatura} /></dt><dd className="tabular-nums">CNPJ {formatCnpj(view.signerDocument)}</dd></div>
+        {view.xmlAttachmentId ? (
+          <>
+            <div><dt className="text-muted-foreground">Protocolo de autorização</dt><dd className="tabular-nums">{view.protocol}{view.authorizedAt ? ` · ${formatDateTime(view.authorizedAt)}` : ''}</dd></div>
+            <div><dt className="flex items-center gap-1 text-muted-foreground">Assinada por<Dica nome="Assinatura da nota" texto={DICAS.assinatura} /></dt><dd className="tabular-nums">CNPJ {formatCnpj(view.signerDocument)}</dd></div>
+          </>
+        ) : (
+          <div><dt className="text-muted-foreground">Origem</dt><dd>{view.sourceMark ?? '—'}</dd></div>
+        )}
         <div><dt className="text-muted-foreground">Importada</dt><dd>{view.importedByName ?? 'usuário removido'} · {formatDateTime(view.importedAt)}</dd></div>
       </dl>
-      <div>
-        <button type="button" onClick={() => void download()} className={secondary}><Download aria-hidden="true" className="size-4" />Baixar XML</button>
-        {error ? <p role="alert" className="mt-1 text-crit-ink">{error}</p> : null}
+      <div className="flex flex-wrap gap-2">
+        {view.xmlAttachmentId ? <button type="button" onClick={() => void download()} className={secondary}><Download aria-hidden="true" className="size-4" />Baixar XML</button> : null}
+        {view.pdfAttachmentId ? <button type="button" onClick={() => void downloadPdf()} className={secondary}><Download aria-hidden="true" className="size-4" />Baixar PDF da DANFE</button> : null}
       </div>
+      {error ? <p role="alert" className="mt-1 text-crit-ink">{error}</p> : null}
       <section aria-label="Totais">
         <h2 className="mb-1 font-semibold">Totais</h2>
         <dl className="grid grid-cols-2 gap-1 sm:grid-cols-3">
@@ -266,7 +364,7 @@ function Documents({ view }: { view: IncomingInvoiceView }) {
 }
 
 const ACTIONS: Record<string, string> = { Created: 'Criou', Updated: 'Alterou', Deleted: 'Removeu' }
-const ENTITY: Record<string, string> = { IncomingInvoice: 'a nota', IncomingInvoiceItem: 'um item' }
+const ENTITY: Record<string, string> = { IncomingInvoice: 'a nota', IncomingInvoiceItem: 'um item', IncomingInvoiceReading: 'a leitura do PDF' }
 
 /** Histórico de alterações (CA 15): importação, fornecedor, de-para, pedido, conferência e recusa, com quem e quando. */
 function History({ invoiceId }: { invoiceId: string }) {

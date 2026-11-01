@@ -110,6 +110,9 @@
     <Project Path="src/Modules/Purchasing/BemAqui.Purchasing.Endpoints/BemAqui.Purchasing.Endpoints.csproj" />
     <Project Path="src/Modules/Purchasing/BemAqui.Purchasing.Infrastructure/BemAqui.Purchasing.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Workers/">
+    <Project Path="src/Workers/BemAqui.PdfReader/BemAqui.PdfReader.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/BemAqui.Architecture.Tests/BemAqui.Architecture.Tests.csproj" />
     <Project Path="tests/BemAqui.BuildingBlocks.Tests/BemAqui.BuildingBlocks.Tests.csproj" />

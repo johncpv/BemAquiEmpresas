@@ -8,11 +8,13 @@ import type { IncomingDivergence } from './incomingDivergence';
 import type { IncomingDuplicate } from './incomingDuplicate';
 import type { IncomingInvoiceItemView } from './incomingInvoiceItemView';
 import type { IncomingInvoicePermissions } from './incomingInvoicePermissions';
+import type { IncomingInvoiceSource } from './incomingInvoiceSource';
 import type { IncomingInvoiceStatus } from './incomingInvoiceStatus';
 import type { IncomingInvoiceTotals } from './incomingInvoiceTotals';
 import type { IncomingIssuerView } from './incomingIssuerView';
 import type { IncomingOrderView } from './incomingOrderView';
 import type { IncomingSupplierView } from './incomingSupplierView';
+import type { IncomingXmlDifference } from './incomingXmlDifference';
 
 export interface IncomingInvoiceView {
   id: string;
@@ -62,4 +64,19 @@ export interface IncomingInvoiceView {
   /** @nullable */
   inputTaxCreditApplied?: string | null;
   inputTaxCreditAmount?: number;
+  source?: IncomingInvoiceSource;
+  /** @nullable */
+  sourceMark?: string | null;
+  /** @nullable */
+  pdfAttachmentId?: string | null;
+  /** @nullable */
+  xmlDifferences?: IncomingXmlDifference[] | null;
+  /** @nullable */
+  replacedByXmlAt?: string | null;
+  /** @nullable */
+  replacedByXmlByName?: string | null;
+  /** @nullable */
+  readingId?: string | null;
+  /** @nullable */
+  xmlRequestedAt?: string | null;
 }

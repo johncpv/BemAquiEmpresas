@@ -139,8 +139,8 @@ public sealed class AssetMovementService(
 
     /// <summary>
     /// "Baixar bem" (CA 6): o bem passa a <c>Disposed</c>, sai das listas padrão e dos seletores e o movimento de baixa fica no histórico. Na
-    /// venda, o valor (<c>numeric(18,2)</c>) e o comprador opcional; o título a receber só nasce no Financeiro (CA 7). A recusa por OS de
-    /// manutenção aberta entra com a PAT-03a.
+    /// venda, o valor (<c>numeric(18,2)</c>) e o comprador opcional; o título a receber só nasce no Financeiro (CA 7). Com OS de
+    /// manutenção aberta, 409 (PAT-03a CA 12); baixado, os planos ficam inativos.
     /// </summary>
     public async Task<Result<AssetMovementResult>> DisposeAsync(Guid assetId, AssetDisposalInput input, CancellationToken cancellationToken = default)
     {
@@ -154,6 +154,22 @@ public sealed class AssetMovementService(
         if (!AssetMovementRules.IsMovable(asset.Status))
         {
             return Error.Conflict(AssetService.DisposedCode, "O bem já está baixado.");
+        }
+
+        // PAT-03a CA 12: com OS de manutenção aberta ou em andamento, a baixa é recusada, com o link para elas.
+        var open = await db.MaintenanceOrders.AsNoTracking()
+            .Where(o => o.AssetId == asset.Id && (o.Status == MaintenanceOrderStatus.Open || o.Status == MaintenanceOrderStatus.InProgress))
+            .OrderBy(o => o.CreatedAt).Select(o => new { o.Id, o.Number }).ToListAsync(cancellationToken);
+        if (open.Count > 0)
+        {
+            return Error.Conflict(MaintenanceService.OpenOrdersCode, MaintenanceService.OpenOrdersMessage) with
+            {
+                Data = new Dictionary<string, object?>
+                {
+                    ["orders"] = open.Select(o => new Dictionary<string, object?> { ["id"] = o.Id, ["number"] = o.Number, ["link"] = MaintenanceService.OrderLink + o.Id }).ToList(),
+                    ["link"] = "/app/patrimonio/manutencao?bem=" + asset.Id,
+                },
+            };
         }
 
         if (input.DisposalReason is not { } kind || !Enum.IsDefined(kind))
@@ -204,6 +220,13 @@ public sealed class AssetMovementService(
 
         var movement = AssetMovement.Disposal(asset, kind, disposedOn, reason, input.Value, buyer?.Id, currentUser.UserId, clock.GetUtcNow());
         db.AssetMovements.Add(movement);
+
+        // CA 12: baixado o bem, os planos dele ficam inativos (sem abrir OS nova); a reativação do bem não os reativa sozinha.
+        foreach (var plan in await db.MaintenancePlans.Where(p => p.AssetId == asset.Id && p.IsActive).ToListAsync(cancellationToken))
+        {
+            plan.IsActive = false;
+        }
+
         events.Publish(new AssetDisposed(asset.Id, disposedOn));
         await db.SaveChangesAsync(cancellationToken);
 

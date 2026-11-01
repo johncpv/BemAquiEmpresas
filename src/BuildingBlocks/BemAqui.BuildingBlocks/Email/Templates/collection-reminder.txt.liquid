@@ -1,0 +1,8 @@
+{{ headline }}
+
+{{ message }}
+{% if digitable_line != "" %}
+Linha digitável do boleto: {{ digitable_line }}
+O boleto está em PDF, anexo a este e-mail, com o QR Code do Pix para pagar na hora.
+{% endif %}
+Se já pagou, desconsidere esta mensagem. Para responder, use o próprio e-mail: a resposta vai para {{ sender_name }}.
