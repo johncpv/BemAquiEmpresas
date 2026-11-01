@@ -57,4 +57,9 @@ export interface IncomingInvoiceView {
   /** @nullable */
   xmlAttachmentId: string | null;
   can: IncomingInvoicePermissions;
+  /** @nullable */
+  goodsReceiptId?: string | null;
+  /** @nullable */
+  inputTaxCreditApplied?: string | null;
+  inputTaxCreditAmount?: number;
 }

@@ -23,12 +23,15 @@ import { InterAccountsPage } from '@/pages/settings/integrations/InterAccountsPa
 import { FiscalIntegrationPage } from '@/pages/settings/integrations/FiscalIntegrationPage'
 import { FiscalCertificatePage } from '@/pages/settings/fiscal/FiscalCertificatePage'
 import { FiscalSettingsPage } from '@/pages/settings/fiscal/FiscalSettingsPage'
+import { PrivacyRequestPage } from '@/pages/settings/privacy/PrivacyRequestPage'
+import { PrivacyRequestsPage } from '@/pages/settings/privacy/PrivacyRequestsPage'
 import { TaxRulesPage } from '@/pages/fiscal/TaxRulesPage'
 import { NewTaxRulePage, TaxRulePage } from '@/pages/fiscal/TaxRulePage'
 import { OutgoingInvoicePage } from '@/pages/fiscal/OutgoingInvoicePage'
 import { OutgoingInvoicesPage } from '@/pages/fiscal/OutgoingInvoicesPage'
 import { ImportIncomingPage } from '@/pages/fiscal/incoming/ImportIncomingPage'
 import { IncomingInvoicePage } from '@/pages/fiscal/incoming/IncomingInvoicePage'
+import { InvoiceReceiptPage } from '@/pages/fiscal/incoming/InvoiceReceiptPage'
 import { IncomingInvoicesPage } from '@/pages/fiscal/incoming/IncomingInvoicesPage'
 import { ImportRunsPage } from '@/pages/settings/import/ImportRunsPage'
 import { ShopfloorLayout, TvLayout } from '@/pages/DedicatedLayouts'
@@ -65,6 +68,7 @@ import { CashFlowPage } from '@/pages/finance/cash-flow/CashFlowPage'
 import { DrePage } from '@/pages/finance/dre/DrePage'
 import { AgingPage } from '@/pages/finance/aging/AgingPage'
 import { StatementPage } from '@/pages/finance/statement/StatementPage'
+import { ReconciliationPage } from '@/pages/finance/reconciliation/ReconciliationPage'
 import { ComparePage } from '@/pages/quotes/ComparePage'
 import { QuotePage } from '@/pages/quotes/QuotePage'
 import { ApprovalRulesPage } from '@/pages/finance/approvals/ApprovalRulesPage'
@@ -102,6 +106,10 @@ import { NewReceivablePage } from '@/pages/finance/receivables/NewReceivablePage
 import { ReceivablePage } from '@/pages/finance/receivables/ReceivablePage'
 import { ReceivablesPage } from '@/pages/finance/receivables/ReceivablesPage'
 import { CostCentersPage } from '@/pages/finance/CostCentersPage'
+import { AssetPage } from '@/pages/assets/AssetPage'
+import { AssetSitesPage } from '@/pages/assets/AssetSitesPage'
+import { AssetsPage } from '@/pages/assets/AssetsPage'
+import { NewAssetPage } from '@/pages/assets/NewAssetPage'
 import { EmployeePage } from '@/pages/hr/EmployeePage'
 import { EmployeesPage } from '@/pages/hr/EmployeesPage'
 import { NewEmployeePage } from '@/pages/hr/NewEmployeePage'
@@ -158,6 +166,8 @@ import { NewPartyPage } from '@/pages/parties/NewPartyPage'
 import { PartiesPage } from '@/pages/parties/PartiesPage'
 import { PartyPage } from '@/pages/parties/PartyPage'
 import { AppShell } from '@/shell/AppShell'
+import { FloorHelp } from '@/help/FloorHelp'
+import { FabAssetPage, TagPage } from '@/pages/assets/AssetCardPages'
 
 // Galerias (FND-09a e FND-09d): em desenvolvimento e no build da homologação (VITE_GALERIA=true); nunca em produção.
 const galleryEnabled = import.meta.env.DEV || import.meta.env.VITE_GALERIA === 'true'
@@ -233,6 +243,9 @@ const fiscalIntegrationRoute = createRoute({ getParentRoute: () => appRoute, pat
 // Configurações → Fiscal e Certificado digital (FIS-02a): a tela confere o módulo fiscal liberado; ver com settings.view ou fiscal.view.
 const fiscalSettingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/fiscal', component: FiscalSettingsPage })
 const fiscalCertificateRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/fiscal/certificado', component: FiscalCertificatePage })
+// Configurações → Privacidade (LGPD-01a): pedidos do titular, só do Proprietário (a tela mostra o aviso para os demais).
+const privacyRequestsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/privacidade', component: gated('settings', PrivacyRequestsPage) })
+const privacyRequestRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/privacidade/$id', component: gated('settings', PrivacyRequestPage) })
 // Fiscal → Regras fiscais (FIS-02b): /app/fiscal leva às notas de saída (FIS-03a); filtro, versão e o painel Simular (?simular=1) na URL.
 const fiscalRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal', beforeLoad: () => { throw redirect({ to: '/app/fiscal/saida' }) } })
 const taxRulesRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/regras', component: gated('fiscal', TaxRulesPage) })
@@ -245,6 +258,8 @@ const outgoingInvoiceRoute = createRoute({ getParentRoute: () => appRoute, path:
 const incomingInvoicesRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/entrada', component: gated('fiscal', IncomingInvoicesPage) })
 const importIncomingRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/entrada/importar', component: gated('fiscal', ImportIncomingPage) })
 const incomingInvoiceRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/entrada/$id', component: gated('fiscal', IncomingInvoicePage) })
+// Receber pela nota (FIS-04b): o recebimento da CMP-04 preenchido pela nota conferida.
+const invoiceReceiptRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/entrada/$id/recebimento', component: gated('fiscal', InvoiceReceiptPage) })
 // Cadastros (CAD-01a): /app/cadastros leva à primeira aba do módulo.
 const partiesRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros', beforeLoad: () => { throw redirect({ to: '/app/cadastros/terceiros' }) } })
 const partiesRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros', component: gated('parties', PartiesPage) })
@@ -339,6 +354,22 @@ const financeRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'fi
 const bankAccountsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/contas', component: gated('finance', BankAccountsPage), validateSearch: (s: Record<string, unknown>): { conta?: string } => ({ conta: text(s.conta) }) })
 const paymentTermsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento', component: gated('finance', PaymentTermsPage) })
 const newPaymentTermRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento/nova', component: gated('finance', NewPaymentTermPage) })
+// Patrimônio (PAT-01a): bens (lista, novo com ?de= para duplicar, ficha com abas) e locais.
+const assetsRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio', beforeLoad: () => { throw redirect({ to: '/app/patrimonio/bens' }) } })
+const assetsRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/bens', component: gated('assets', AssetsPage) })
+const newAssetRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/bens/novo', component: gated('assets', NewAssetPage), validateSearch: (s: Record<string, unknown>): { de?: string } => ({ de: text(s.de) }) })
+const assetRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/bens/$id', component: gated('assets', AssetPage) })
+const assetSitesRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/locais', component: gated('assets', AssetSitesPage) })
+// URL do QR da etiqueta (PAT-01b CA 2, 5 e 8): exige sessão (sem ela, o login volta só para caminho relativo); resolve a etiqueta e abre a
+// ficha resumida no celular e no tablet ou a completa no computador. Não é rota anônima: a API confere módulo e assets.view.
+const tagRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/b/$tag',
+  component: () => <FloorHelp><ModuleGate code="assets"><TagPage /></ModuleGate></FloorHelp>,
+  beforeLoad: async ({ location }) => {
+    if (!(await ensureSession())) throw redirect({ to: '/entrar', search: { volta: location.href } })
+  },
+})
 // RH (CAD-04a e CAD-04b): funcionários, cargos, jornadas e sindicatos.
 const hrRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh', beforeLoad: () => { throw redirect({ to: '/app/rh/funcionarios' }) } })
 const employeesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/funcionarios', component: gated('hr', EmployeesPage) })
@@ -387,6 +418,8 @@ const projectMarginsRoute = createRoute({ getParentRoute: () => appRoute, path: 
 const projectRoute = createRoute({ getParentRoute: () => appRoute, path: 'projetos/$id', component: gated('projects', ProjectPage) })
 // Extrato da conta (FIN-04).
 const statementRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/contas/$id/extrato', component: gated('finance', StatementPage) })
+// Conciliação bancária (BNK-03b): ?conta=, ?de= e ?ate=.
+const reconciliationRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/conciliacao', component: gated('finance', ReconciliationPage) })
 // Ordens de pagamento (FIN-03a).
 const paymentOrdersRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/ordens-de-pagamento', component: gated('finance', PaymentOrdersPage) })
 const newPaymentOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/ordens-de-pagamento/nova', component: gated('finance', NewPaymentOrderPage) })
@@ -452,6 +485,8 @@ const fabQualityRoute = createRoute({ getParentRoute: () => fabRoute, path: 'qua
 const fabQualityStepRoute = createRoute({ getParentRoute: () => fabRoute, path: 'qualidade/$stepId', component: FabQualityStepPage })
 // "Meu ponto" no tablet (RH-01a): o layout confere só o módulo hr liberado (autoatendimento, ADR 0035).
 const fabTimeClockRoute = createRoute({ getParentRoute: () => fabRoute, path: 'ponto', component: FabTimeClockPage })
+// Ficha resumida do bem pela leitura da etiqueta (PAT-01b CA 5 e 6): o layout confere o módulo assets.
+const fabAssetRoute = createRoute({ getParentRoute: () => fabRoute, path: 'bens/$id', component: FabAssetPage })
 // Contagem do inventário no celular (EST-05 CA 4): tela dedicada com o kit chão de fábrica, sem o dock, com a sessão do backoffice.
 const countingRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -476,15 +511,16 @@ export const routeTree = rootRoute.addChildren([
   forgotRoute,
   resetRoute,
   inviteRoute,
-  appRoute.addChildren([appIndexRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute, myPayslipsRoute, myTimeClockRoute,
+  tagRoute,
+  appRoute.addChildren([appIndexRoute, assetsRootRoute, assetsRoute, newAssetRoute, assetRoute, assetSitesRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute, myPayslipsRoute, myTimeClockRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, interAccountsRoute, interAccountRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, billingSettingsRoute,
     inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute, capacityRoute, planningRoute, supervisorRoute,
-    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, hrTimeRoute, timeEntriesRoute, timeAdjustmentsRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, fiscalIntegrationRoute, fiscalSettingsRoute, fiscalCertificateRoute, fiscalRootRoute, taxRulesRoute, newTaxRuleRoute, taxRuleRoute, outgoingInvoicesRoute, outgoingInvoiceRoute, incomingInvoicesRoute, importIncomingRoute, incomingInvoiceRoute, accountantExportRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
+    financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, reconciliationRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, hrTimeRoute, timeEntriesRoute, timeAdjustmentsRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, fiscalIntegrationRoute, fiscalSettingsRoute, fiscalCertificateRoute, privacyRequestsRoute, privacyRequestRoute, fiscalRootRoute, taxRulesRoute, newTaxRuleRoute, taxRuleRoute, outgoingInvoicesRoute, outgoingInvoiceRoute, incomingInvoicesRoute, importIncomingRoute, incomingInvoiceRoute, invoiceReceiptRoute, accountantExportRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),
   fabEntryRoute,
-  fabRoute.addChildren([fabQueueRoute, fabStepRoute, fabQualityRoute, fabQualityStepRoute, fabTimeClockRoute]),
+  fabRoute.addChildren([fabQueueRoute, fabStepRoute, fabQualityRoute, fabQualityStepRoute, fabTimeClockRoute, fabAssetRoute]),
   countingRoute.addChildren([countingIndexRoute]),
   tvRoute.addChildren([tvIndexRoute, tvLegacyRoute]),
   galleryRoute,

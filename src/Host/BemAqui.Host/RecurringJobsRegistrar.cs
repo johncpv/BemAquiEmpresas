@@ -51,6 +51,14 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
             new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.BuildingBlocks.Persistence.IdempotencyPurgeRecurringJob>(BemAqui.BuildingBlocks.Persistence.IdempotencyPurgeRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.BuildingBlocks.Persistence.IdempotencyPurgeRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // Outbox e inbox entregues há mais de 30 dias (ADR 0037 §2, LGPD-01a CA 6): 03:30 de São Paulo.
+        recurring.AddOrUpdate<BemAqui.BuildingBlocks.Messaging.OutboxPurgeRecurringJob>(BemAqui.BuildingBlocks.Messaging.OutboxPurgeRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.BuildingBlocks.Messaging.OutboxPurgeRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // Pedidos do titular (LGPD-01a CA 3 e 10): aviso do prazo às 08:00 e expurgo das exportações às 03:45 de São Paulo.
+        recurring.AddOrUpdate<BemAqui.Identity.Application.Privacy.PrivacyDueRecurringJob>(BemAqui.Identity.Application.Privacy.PrivacyDueRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Identity.Application.Privacy.PrivacyDueRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        recurring.AddOrUpdate<BemAqui.Identity.Application.Privacy.PrivacyExportPurgeRecurringJob>(BemAqui.Identity.Application.Privacy.PrivacyExportPurgeRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Identity.Application.Privacy.PrivacyExportPurgeRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         // Webhooks (FND-16 CA 11 e 14): expurgo do corpo com mais de 90 dias às 03:00 de São Paulo e varredor de eventos parados a cada 5 min.
         recurring.AddOrUpdate<BemAqui.BuildingBlocks.Webhooks.WebhookEventsPurgeRecurringJob>(BemAqui.BuildingBlocks.Webhooks.WebhookEventsPurgeRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.BuildingBlocks.Webhooks.WebhookEventsPurgeRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });

@@ -15,7 +15,7 @@ namespace BemAqui.Finance.Application;
 /// </summary>
 public sealed partial class BankMovementService(
     IFinanceDb db, IChartOfAccounts chart, IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, INotificationService notifications,
-    IFinanceParameters parameters, TimeProvider clock)
+    IFinanceParameters parameters, Reconciliation.ReconciliationPeriodGuard period, TimeProvider clock)
 {
     public const string NotificationType = "finance.bank";
 

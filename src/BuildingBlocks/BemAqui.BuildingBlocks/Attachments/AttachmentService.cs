@@ -19,6 +19,10 @@ public sealed record AttachmentContent(Stream Content, string ContentType, strin
 /// ADR 0019 §7 adendo). <c>AuditReads</c>: dono com dado pessoal (ex.: <c>EmployeeDocument</c>, CAD-04c2 CA 12), cujo download
 /// grava leitura sensível na auditoria, com o dono, o anexo, quem, quando e o IP.
 /// <c>ExtraTypes</c> são tipos fora da lista geral aceitos só por este dono (o OFX do <c>BankStatementBatch</c>, ADR 0009 adendo).
+/// <c>StripImageMetadata</c>: a imagem (PNG, JPEG, WebP) é regravada sem EXIF, GPS e textos antes do hash, do storage e do antivírus
+/// (<see cref="ImageMetadata"/>, PAT-01a CA 8); imagem que não dá para percorrer é recusada.
+/// <c>CheckedOnly</c>: as rotas genéricas de anexos recusam sempre; o arquivo só sai pelo serviço do dono, que confere o acesso (a exportação do
+/// titular, LGPD-01a CA 10: só o Proprietário, pelo link de uso único).
 /// </summary>
 public sealed record AttachmentOwnerRules(
     string Module,
@@ -32,7 +36,9 @@ public sealed record AttachmentOwnerRules(
     Func<IServiceProvider, Guid, AttachmentFile, CancellationToken, Task<Error?>>? CheckFile = null,
     string? AlternateWriteAction = null,
     bool AuditReads = false,
-    IReadOnlyCollection<AllowedFileType>? ExtraTypes = null);
+    IReadOnlyCollection<AllowedFileType>? ExtraTypes = null,
+    bool CheckedOnly = false,
+    bool StripImageMetadata = false);
 
 /// <summary>Arquivo já aceito pela allowlist, para a regra do dono que depende do documento (ex.: tipo da OS, PRD-01 CA 12).</summary>
 public sealed record AttachmentFile(string ContentType, long Size);
@@ -99,8 +105,8 @@ public sealed partial class AttachmentService(
             return Error.NotFound(Error.Codes.NotFound, "Este tipo de documento não aceita anexos.");
         }
 
-        if (!await permissions.HasPermissionAsync(rules.Module, rules.WriteAction, cancellationToken)
-            && !(rules.AlternateWriteAction is { } alternate && await permissions.HasPermissionAsync(rules.Module, alternate, cancellationToken)))
+        if (!await AllowedAsync(rules, rules.WriteAction, cancellationToken)
+            && !(rules.AlternateWriteAction is { } alternate && await AllowedAsync(rules, alternate, cancellationToken)))
         {
             return Forbidden();
         }
@@ -127,6 +133,11 @@ public sealed partial class AttachmentService(
         if (await CheckRulesAsync(rules, ownerId, type, buffer, cancellationToken) is { } refused)
         {
             return refused;
+        }
+
+        if (StripMetadata(rules, type, buffer) is { } unreadable)
+        {
+            return unreadable;
         }
 
         buffer.Position = 0;
@@ -177,7 +188,7 @@ public sealed partial class AttachmentService(
         }
 
         var rules = owners.RulesOf(attachment.OwnerType);
-        if (rules is null || !await permissions.HasPermissionAsync(rules.Module, rules.ReadAction, cancellationToken))
+        if (rules is null || !await AllowedAsync(rules, rules.ReadAction, cancellationToken))
         {
             return Forbidden();
         }
@@ -223,7 +234,7 @@ public sealed partial class AttachmentService(
     public async Task<Result<IReadOnlyList<AttachmentDto>>> ListAsync(string ownerType, Guid ownerId, CancellationToken cancellationToken = default)
     {
         var rules = owners.RulesOf(ownerType);
-        if (rules is null || !await permissions.HasPermissionAsync(rules.Module, rules.ReadAction, cancellationToken))
+        if (rules is null || !await AllowedAsync(rules, rules.ReadAction, cancellationToken))
         {
             return Forbidden();
         }
@@ -275,6 +286,25 @@ public sealed partial class AttachmentService(
         return rules.CanAttach is { } can ? await can(services, ownerId, ct) : null;
     }
 
+    /// <summary>Dono com <c>StripImageMetadata</c>: troca o conteúdo da imagem pelo regravado sem metadados (PAT-01a CA 8).</summary>
+    private static Error? StripMetadata(AttachmentOwnerRules rules, AllowedFileType type, MemoryStream buffer)
+    {
+        if (!rules.StripImageMetadata || !ImageMetadata.Supports(type.ContentType))
+        {
+            return null;
+        }
+
+        var clean = ImageMetadata.Strip(buffer.GetBuffer().AsSpan(0, (int)buffer.Length), type.ContentType);
+        if (clean is null)
+        {
+            return Error.Validation("attachment.image_unreadable", "Não foi possível ler esta imagem. Envie outra foto em PNG, JPG ou WEBP.");
+        }
+
+        buffer.SetLength(0);
+        buffer.Write(clean);
+        return null;
+    }
+
     /// <summary>Limite de envios por usuário numa hora (ADR 0019 §7 adendo); só os enviados pelo usuário contam.</summary>
     private async Task<bool> TooManyUploadsAsync(CancellationToken ct)
     {
@@ -287,6 +317,10 @@ public sealed partial class AttachmentService(
         var since = clock.GetUtcNow().AddHours(-1);
         return await db.Attachments.CountAsync(a => a.UploadedBy == user && a.Origin == AttachmentOrigin.User && a.CreatedAt > since, ct) >= limit;
     }
+
+    /// <summary>Ação do dono no grupo; o dono <c>CheckedOnly</c> nunca passa pelas rotas genéricas.</summary>
+    private async Task<bool> AllowedAsync(AttachmentOwnerRules rules, string action, CancellationToken ct) =>
+        !rules.CheckedOnly && await permissions.HasPermissionAsync(rules.Module, action, ct);
 
     private static Error Forbidden() => Error.Forbidden(Error.Codes.Forbidden, "Você não tem acesso a esta funcionalidade. Fale com o administrador.");
 

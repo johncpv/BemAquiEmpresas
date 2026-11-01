@@ -13,6 +13,7 @@ import { ErrorState, Skeleton } from '@/components/ui/states'
 import { PageHeading } from '@/shell/PageHeading'
 import { useCan } from '@/pages/use-can'
 import { SettingsTabs } from '../SettingsTabs'
+import { AssetsParametersSection } from './AssetsParametersSection'
 import { CommercialPricingSection } from './CommercialPricingSection'
 import { DreParametersSection } from './DreParametersSection'
 import { FinanceLimitsSection } from './FinanceLimitsSection'
@@ -28,7 +29,7 @@ const MODES = [
   { value: PricingMode.Margin, label: 'Margem sobre o preço' },
 ]
 
-/** Configurações → Parâmetros (CAD-06 CA 15 a 18, FIN-01, PRD-04): % de encargos, precificação, limites do financeiro e a produção. */
+/** Configurações → Parâmetros (CAD-06 CA 15 a 18, FIN-01, PRD-04, PAT-01b): encargos, precificação, limites do financeiro, a produção e o patrimônio. */
 export function ParametersPage() {
   const query = useGetTenantParameters()
   const canEdit = useCanSettings('edit')
@@ -55,6 +56,7 @@ export function ParametersPage() {
           <ProductionParametersSection canEdit={canEdit} />
           <PurchasingParametersSection canEdit={canEdit} />
           <HrParametersSection canEdit={canEdit} />
+          <div id="secao-patrimonio"><AssetsParametersSection canEdit={canEdit} /></div>
           <EmailDispatchSection key={`e${query.data.emailDispatchMaxPerUserDay}`} params={query.data} canEdit={canEdit} />
         </div>
       )}

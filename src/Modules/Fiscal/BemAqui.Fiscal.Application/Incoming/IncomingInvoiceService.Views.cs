@@ -105,7 +105,7 @@ public sealed partial class IncomingInvoiceService
             invoice.WithoutOrder, invoice.WithoutOrderReason, await NameAsync(invoice.WithoutOrderApprovedBy, cancellationToken), views, invoice.Divergences,
             lines.Count(l => !l.IsResolved), blocked, await NameAsync(invoice.ImportedBy, cancellationToken), invoice.ImportedAt,
             await NameAsync(invoice.CheckedBy, cancellationToken), invoice.CheckedAt, invoice.RejectedReason, await NameAsync(invoice.RejectedBy, cancellationToken), invoice.RejectedAt,
-            invoice.XmlAttachmentId, can);
+            invoice.XmlAttachmentId, can, invoice.GoodsReceiptId, invoice.InputTaxCreditApplied, invoice.InputTaxCreditAmount);
     }
 
     /// <summary>Itens do estoque para o seletor do de-para (ativos, fora Serviço), sem custo nem saldo.</summary>

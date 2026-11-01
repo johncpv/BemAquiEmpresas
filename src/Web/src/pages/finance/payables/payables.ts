@@ -30,11 +30,11 @@ export const PAYABLE_SITUATIONS = [
 export const METHOD_LABELS: Record<string, string> = { Pix: 'Pix', Boleto: 'Boleto', Ted: 'TED', Other: 'Outro', EmployeeAccount: 'Conta do funcionário' }
 
 export const ORIGIN_LABELS: Record<string, string | undefined> = {
-  Recurring: 'Recorrente', Installer: 'Instalação', Purchase: 'Compra', GoodsReceipt: 'Recebimento de compra', Payroll: 'Folha', PayrollForecast: 'Folha prevista', Maintenance: 'Manutenção', Opening: 'Implantação',
+  Recurring: 'Recorrente', Installer: 'Instalação', Purchase: 'Compra', GoodsReceipt: 'Recebimento de compra', IncomingInvoice: 'Nota de entrada', Payroll: 'Folha', PayrollForecast: 'Folha prevista', Maintenance: 'Manutenção', Opening: 'Implantação',
 }
 
 /** Link do documento de origem (CMP-04 CA 18): o título do recebimento aponta para o recebimento; o previsto, para o pedido. */
-export const ORIGIN_LINKS: Record<string, string | undefined> = { Purchase: '/app/compras/pedidos/', GoodsReceipt: '/app/compras/recebimentos/' }
+export const ORIGIN_LINKS: Record<string, string | undefined> = { Purchase: '/app/compras/pedidos/', GoodsReceipt: '/app/compras/recebimentos/', IncomingInvoice: '/app/fiscal/entrada/' }
 
 export const PAYABLE_DICAS = {
   retencoes: 'Preencha quando a nota do prestador destacar retenção. O sistema não calcula.',

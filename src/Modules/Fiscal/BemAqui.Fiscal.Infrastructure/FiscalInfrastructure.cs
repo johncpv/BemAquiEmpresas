@@ -30,6 +30,8 @@ public static class FiscalInfrastructure
         ArgumentNullException.ThrowIfNull(configuration);
         services.Configure<FiscalIntegrationOptions>(configuration.GetSection(FiscalIntegrationOptions.Section));
         services.TryAddSingleton(TimeProvider.System);
+        // LGPD-01a: provedor do Fiscal (a NF-e ainda não guarda o destinatário; a FIS-03a exporta as notas do titular).
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Privacy.IPersonalDataProvider, FiscalPersonalDataProvider>());
         services.AddHttpClient(EmissorFiscalEmitterFactory.ClientName)
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, AutomaticDecompression = DecompressionMethods.All, UseProxy = false })
             .RemoveAllLoggers();
@@ -50,6 +52,8 @@ public static class FiscalInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, OutgoingInvoiceAgendaSource>());
         services.AddAuditableEntity<OutgoingInvoiceItem>("fiscal");
         services.AddAuditableEntity<NumberGap>("fiscal");
+        // PAT-01a CA 7: seletor da NF de entrada do bem; sem notas até a FIS-04a (que troca este registro).
+        services.TryAddScoped<BemAqui.Fiscal.Contracts.IIncomingInvoices, NoIncomingInvoices>();
         services.TryAddScoped<FiscalPendingChecker>();
         services.TryAddTransient<FiscalPendingCheckJob>();
         services.AddWebhookProvider(EmissorFiscalWebhook.Provider);
@@ -79,6 +83,8 @@ public static class FiscalInfrastructure
         // com fiscal.import_incoming, só pela importação (a rota genérica de anexos é fechada) e debaixo do prefixo do tenant.
         services.TryAddSingleton<BemAqui.Fiscal.Application.Incoming.INfeTrustAnchors, BemAqui.Fiscal.Application.Incoming.IcpBrasilTrustAnchors>();
         services.TryAddScoped<BemAqui.Fiscal.Application.Incoming.IncomingInvoiceService>();
+        // FIS-04b: o recebimento pela nota (Purchasing) lê a nota conferida e faz as transições pelo contrato, na transação dele.
+        services.TryAddScoped<BemAqui.Fiscal.Contracts.IIncomingInvoiceReceipts, BemAqui.Fiscal.Application.Incoming.IncomingInvoicesContract>();
         services.AddAuditableEntity<IncomingInvoice>("fiscal");
         services.AddAuditableEntity<IncomingInvoiceItem>("fiscal");
         services.AddAttachmentOwner(BemAqui.Fiscal.Application.Incoming.IncomingInvoiceService.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml"],

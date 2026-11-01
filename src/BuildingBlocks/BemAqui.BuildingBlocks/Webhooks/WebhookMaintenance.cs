@@ -17,6 +17,7 @@ public sealed record WebhookEventsPurgeArgs;
 /// <c>payload</c>; a linha fica (provedor, ids, hash, tipo, datas, situação) para a deduplicação continuar valendo. <c>Failed</c> e
 /// <c>DeadLettered</c> não são expurgados. Idempotente.
 /// </summary>
+[Privacy.PersonalDataPurge(typeof(WebhookEvent), 90, "Corpo do aviso apagado em 90 dias (ADR 0031)")]
 public sealed partial class WebhookEventsPurgeJob(ITenantDirectory directory, ITenantScopeFactory scopes, ILogger<WebhookEventsPurgeJob> logger)
     : TenantJob<WebhookEventsPurgeArgs>(directory, scopes, logger)
 {

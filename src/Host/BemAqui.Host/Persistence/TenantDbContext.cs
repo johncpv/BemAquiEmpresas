@@ -21,7 +21,7 @@ namespace BemAqui.Host.Persistence;
 /// DbContext único do banco de tenant (ADR 0006): tabelas compartilhadas da base e, conforme as stories
 /// avançam, as configurações de cada módulo. A conexão por tenant chega na FND-02.
 /// </summary>
-public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IProductionPlanDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb, BemAqui.Engineering.Application.IEngineeringDb, BemAqui.Purchasing.Application.IPurchasingDb, BemAqui.Fiscal.Application.IFiscalDb
+public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IProductionPlanDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb, BemAqui.Engineering.Application.IEngineeringDb, BemAqui.Purchasing.Application.IPurchasingDb, BemAqui.Fiscal.Application.IFiscalDb, BemAqui.Assets.Application.IAssetsDb
 {
     public DbSet<User> Users => Set<User>();
 
@@ -66,6 +66,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<AiUsageLog> AiUsageLogs => Set<AiUsageLog>();
 
     public DbSet<SeedPatch> SeedPatches => Set<SeedPatch>();
+
+    public DbSet<PrivacyRequest> PrivacyRequests => Set<PrivacyRequest>();
 
     public DbSet<Party> Parties => Set<Party>();
 
@@ -132,6 +134,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BankStatementBalance> BankStatementBalances => Set<BankStatementBalance>();
 
     public DbSet<BankOfxContingency> BankOfxContingencies => Set<BankOfxContingency>();
+
+    public DbSet<BankReconciliation> BankReconciliations => Set<BankReconciliation>();
+
+    public DbSet<BankReconciliationLink> BankReconciliationLinks => Set<BankReconciliationLink>();
+
+    public DbSet<BankStatementRule> BankStatementRules => Set<BankStatementRule>();
+
+    public DbSet<BankReconciliationClosing> BankReconciliationClosings => Set<BankReconciliationClosing>();
 
     public DbSet<BillingSlip> BillingSlips => Set<BillingSlip>();
 
@@ -341,6 +351,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoice> IncomingInvoices => Set<BemAqui.Fiscal.Domain.IncomingInvoice>();
 
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoiceItem> IncomingInvoiceItems => Set<BemAqui.Fiscal.Domain.IncomingInvoiceItem>();
+
+    public DbSet<BemAqui.Assets.Domain.Asset> Assets => Set<BemAqui.Assets.Domain.Asset>();
+
+    public DbSet<BemAqui.Assets.Domain.AssetSite> AssetSites => Set<BemAqui.Assets.Domain.AssetSite>();
+
+    public DbSet<BemAqui.Assets.Domain.AssetParameter> AssetParameters => Set<BemAqui.Assets.Domain.AssetParameter>();
 
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();
 

@@ -106,6 +106,9 @@ public sealed class FiscalSettings : Entity, IAuditable, IConcurrencyVersioned
     // Custo do projeto (gerencial)
     public string[] CostTaxes { get; set; } = [.. FiscalSettingsRules.DefaultCostTaxes];
 
+    // Entrada (FIS-04b, P-01): tributos recuperáveis da NF-e de entrada; vazio = nenhum (ICMS, IPI, PIS e COFINS ficam no custo).
+    public string[] InputTaxCredit { get; set; } = [];
+
     // NFS-e
     public string NfseServiceItem { get; set; } = "7.02";
 

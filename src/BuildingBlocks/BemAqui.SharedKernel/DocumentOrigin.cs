@@ -38,4 +38,7 @@ public enum DocumentOrigin
 
     /// <summary>Folha prevista (RH-02c CA 14, ADR 0036 §4): títulos <c>Planned</c> estimados que o RH mantém para os próximos meses.</summary>
     PayrollForecast,
+
+    /// <summary>Nota de entrada (FIS-04b CA 9): os títulos da parte "Sem item de estoque" da NF-e recebida, uma parcela por duplicata.</summary>
+    IncomingInvoice,
 }

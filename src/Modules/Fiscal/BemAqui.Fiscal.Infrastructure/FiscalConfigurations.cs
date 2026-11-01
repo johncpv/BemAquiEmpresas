@@ -351,6 +351,9 @@ internal sealed class IncomingInvoiceConfiguration : IEntityTypeConfiguration<In
         b.Property(e => e.Protocol).HasMaxLength(20);
         b.Property(e => e.WithoutOrderReason).HasMaxLength(IncomingInvoice.ReasonMaxLength);
         b.Property(e => e.RejectedReason).HasMaxLength(IncomingInvoice.ReasonMaxLength);
+        b.Property(e => e.InputTaxCreditApplied).HasMaxLength(IncomingInvoice.InputTaxCreditRuleMaxLength);
+        b.Property(e => e.InputTaxCreditAmount).HasPrecision(18, 2);
+        b.HasIndex(e => e.GoodsReceiptId).HasFilter("goods_receipt_id IS NOT NULL").HasDatabaseName("ix_incoming_invoices_goods_receipt_id");
         b.Ignore(e => e.IsEditable);
         b.HasIndex(e => e.AccessKey).IsUnique().HasFilter("status <> 'Rejected'").HasDatabaseName(IncomingInvoiceConfiguration.AccessKeyIndex);
         b.HasIndex(e => new { e.Status, e.ImportedAt }).HasDatabaseName("ix_incoming_invoices_status_imported_at");

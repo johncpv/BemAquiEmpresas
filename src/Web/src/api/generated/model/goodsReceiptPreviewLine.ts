@@ -19,4 +19,7 @@ export interface GoodsReceiptPreviewLine {
   averageCostBefore: number | null;
   /** @nullable */
   averageCostAfter: number | null;
+  insuranceShare?: number;
+  otherShare?: number;
+  taxCreditShare?: number;
 }

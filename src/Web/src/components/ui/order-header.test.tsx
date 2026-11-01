@@ -7,7 +7,7 @@ import { OrderHeader } from './order-header'
 
 afterEach(cleanup)
 
-const nav = { areas: [], all: [], tenantName: 'Konebras', status: 'ready' as const, retry: () => undefined }
+const nav = { areas: [], all: [], isOwner: false, tenantName: 'Konebras', status: 'ready' as const, retry: () => undefined }
 
 describe('OrderHeader e FactsBar (PRD-01 CA 10 e 11, padrão 10)', () => {
   it('cabeçalho com número, situação, etapa atual pela letra do roteiro, fatos e o projeto', async () => {
