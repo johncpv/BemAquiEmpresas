@@ -58,6 +58,25 @@ public enum PrivacyExportStatus
     Expired,
 }
 
+/// <summary>Situação da anonimização do titular (LGPD-01b CA 4 e 5).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<PrivacyAnonymizationStatus>))]
+public enum PrivacyAnonymizationStatus
+{
+    None,
+    Running,
+    Partial,
+    Done,
+}
+
+/// <summary>Situação de uma etapa (um módulo) da anonimização.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<PrivacyAnonymizationStepStatus>))]
+public enum PrivacyAnonymizationStepStatus
+{
+    Pending,
+    Done,
+    Failed,
+}
+
 /// <summary>
 /// Pedido do titular (<c>settings.privacy_requests</c>, LGPD-01a, ADR 0018 e 0037): atendido só pelo Proprietário (o controlador). O titular é
 /// um cadastro (terceiro PF, contato, funcionário ou usuário) pelo id, ou "não encontrado" com nome e contato (<c>[PersonalData]</c>). Prazo em
@@ -144,6 +163,20 @@ public sealed class PrivacyRequest : Entity, IAuditable, IConcurrencyVersioned
 
     public DateTimeOffset? DownloadTokenExpiresAt { get; set; }
 
+    /// <summary>Situação da anonimização (LGPD-01b CA 4 e 5): rodando, parcial (algum módulo falhou) ou concluída.</summary>
+    public PrivacyAnonymizationStatus AnonymizationStatus { get; set; } = PrivacyAnonymizationStatus.None;
+
+    /// <summary>JSONB: uma etapa por módulo (situação, quando, o erro sem dado pessoal e os itens), para refazer só o que falta (CA 5).</summary>
+    public string? AnonymizationSteps { get; set; }
+
+    /// <summary>JSONB: o resumo da anonimização (quantos anonimizados, retidos e mantidos, por módulo), sem dado pessoal.</summary>
+    public string? AnonymizationSummary { get; set; }
+
+    public DateTimeOffset? AnonymizedAt { get; set; }
+
+    /// <summary>Quem confirmou a anonimização (ou a última retentativa).</summary>
+    public Guid? AnonymizedBy { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public Guid? CreatedBy { get; init; }
@@ -172,6 +205,13 @@ public static class PrivacyRequestRules
     /// <summary>Tipos que exigem a identidade conferida antes de agir (CA 5).</summary>
     public static bool RequiresIdentity(PrivacyRequestKind kind) =>
         kind is PrivacyRequestKind.Access or PrivacyRequestKind.Portability or PrivacyRequestKind.Correction or PrivacyRequestKind.Anonymization or PrivacyRequestKind.Deletion;
+
+    /// <summary>Tipos atendidos por anonimização (LGPD-01b CA 2): a eliminação também, porque documento com movimento não pode ser apagado.</summary>
+    public static bool Anonymizes(PrivacyRequestKind kind) => kind is PrivacyRequestKind.Anonymization or PrivacyRequestKind.Deletion;
+
+    public const string DeletionNotice = "A eliminação é atendida por anonimização: documentos com movimento não podem ser apagados.";
+
+    public const string BackupNotice = "Os backups expiram em até 30 dias (FND-10b) e não são restaurados com dado anonimizado sem refazer a anonimização.";
 
     /// <summary>Tipos que exportam os dados (CA 8).</summary>
     public static bool Exports(PrivacyRequestKind kind) => kind is PrivacyRequestKind.Access or PrivacyRequestKind.Portability;

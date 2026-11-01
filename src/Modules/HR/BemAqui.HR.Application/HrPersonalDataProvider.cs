@@ -1,3 +1,4 @@
+using System.Text.Json;
 using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Privacy;
 using BemAqui.HR.Application.TimeClock;
@@ -18,7 +19,7 @@ namespace BemAqui.HR.Application;
 /// </summary>
 [PersonalDataCovers(typeof(Employee), typeof(EmployeeDependent), typeof(EmployeeHistoryEntry), typeof(TimeEntry), typeof(TimeAdjustment), typeof(Timesheet), typeof(TimesheetDayReview),
     typeof(Payslip), typeof(PayslipLine), typeof(PayrollForecast), typeof(PayrollRunCharge), typeof(PayrollRun), typeof(JobPosition), typeof(PayrollCalculationLog))]
-public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachments) : IPersonalDataProvider
+public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachments, TimeProvider clock) : IPersonalDataProvider
 {
     private const string Sensitive = "hr." + PositionService.SensitiveAction;
     private const string Health = "hr." + EmployeeService.HealthAction;
@@ -215,6 +216,292 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
             ("Competência", PayrollRules.PeriodLabel(s.Period)), ("Tipo", PayrollRules.TypeLabel(s.Type)), ("Proventos", PersonalDataMask.Money(s.Gross)),
             ("Descontos", PersonalDataMask.Money(s.Deductions)), ("Líquido", PersonalDataMask.Money(s.Net)), ("FGTS do mês", PersonalDataMask.Money(s.FgtsAmount)),
             ("Linhas", string.Join("; ", lines[s.Id].Select(l => $"{l.Code} {l.Description}: {PersonalDataMask.Money(l.Amount)}" + (l.Reference is null ? string.Empty : $" ({l.Reference})") + (l.Note is null ? string.Empty : $" — motivo: {l.Note}")))))).ToList());
+    }
+
+    /// <summary>
+    /// Datas base do funcionário (LGPD-01b CA 3): o desligamento e, do desligado, o último pagamento (a maior data de pagamento das folhas
+    /// fechadas em que ele aparece, ou o próprio desligamento). Funcionário ativo não tem nenhuma das duas: nada trabalhista nem bancário sai.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<string, DateOnly>> RetentionAnchorsAsync(PersonalDataSubject subject, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(subject);
+        var anchors = new Dictionary<string, DateOnly>();
+        if (subject.Kind != PersonalDataSubjectKind.Employee || subject.EmployeeId is not { } id)
+        {
+            return anchors;
+        }
+
+        var e = await db.Employees.IgnoreQueryFilters().AsNoTracking().Where(x => x.Id == id).Select(x => new { x.Status, x.TerminationDate }).FirstOrDefaultAsync(cancellationToken);
+        if (e is not { Status: EmployeeStatus.Terminated, TerminationDate: { } terminated })
+        {
+            return anchors;
+        }
+
+        var paid = await (from p in db.Payslips.AsNoTracking()
+                          join r in db.PayrollRuns.AsNoTracking() on p.PayrollRunId equals r.Id
+                          where p.EmployeeId == id && r.PaymentDate != null && (r.Status == PayrollRunStatus.Closed || r.Status == PayrollRunStatus.Paid)
+                          select r.PaymentDate).MaxAsync(cancellationToken);
+        anchors[RetentionAnchors.Termination] = terminated;
+        anchors[RetentionAnchors.LastPayment] = paid is { } last && last > terminated ? last : terminated;
+        return anchors;
+    }
+
+    public Task<PersonalDataAnonymizationPlan?> PlanAnonymizationAsync(PersonalDataAnonymizationContext context, CancellationToken cancellationToken = default) =>
+        RunAsync(context, false, cancellationToken);
+
+    public Task<PersonalDataAnonymizationPlan?> AnonymizeAsync(PersonalDataAnonymizationContext context, CancellationToken cancellationToken = default) =>
+        RunAsync(context, true, cancellationToken);
+
+    /// <summary>
+    /// LGPD-01b CA 2 a 4 e 7, pela tabela de retenção: a qualquer momento saem o telefone e os e-mails, a localização do ponto e os dependentes
+    /// sem obrigação legal (fora do IR e do salário-família); a conta e a chave Pix, depois do último pagamento; o endereço e os dados
+    /// trabalhistas e previdenciários (nome, CPF, documentos, textos livres do ponto e da linha do tempo, holerites em PDF, documentos e atestados
+    /// anexados), 5 anos depois do desligamento. Sem desligamento, nada trabalhista nem bancário sai, e o cadastro continua em uso (sem a marca).
+    /// Na folha calculada (FLH-02a), o retrato das entradas, os avisos, a memória de cálculo e o motivo dos avulsos seguem a retenção trabalhista.
+    /// O desligado fica marcado "Anonimizado" (só leitura). Folhas, holerites (valores) e marcações (data e hora) ficam: são documentos com
+    /// movimento. Anexo não retido tem o conteúdo apagado do storage e a linha fica com o marcador.
+    /// </summary>
+    private async Task<PersonalDataAnonymizationPlan?> RunAsync(PersonalDataAnonymizationContext context, bool apply, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        if (context.Subject.Kind != PersonalDataSubjectKind.Employee || context.Subject.EmployeeId is not { } id)
+        {
+            return null;
+        }
+
+        var e = await db.Employees.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (e is null)
+        {
+            return null;
+        }
+
+        var marker = context.Marker;
+        var plan = new PersonalDataPlanBuilder(Module, Title);
+        var contact = context.Decide(RetentionGroups.Contact);
+        var geo = context.Decide(RetentionGroups.Geolocation);
+        var dependentsFree = context.Decide(RetentionGroups.Dependents);
+        var bank = context.Decide(RetentionGroups.Bank);
+        var address = context.Decide(RetentionGroups.Address);
+        var labor = context.Decide(RetentionGroups.Labor);
+
+        var entries = await db.TimeEntries.Where(t => t.EmployeeId == id && (t.Latitude != null || t.Longitude != null || t.AccuracyM != null)).ToListAsync(ct);
+        var dependents = await db.EmployeeDependents.IgnoreQueryFilters().Where(d => d.EmployeeId == id).ToListAsync(ct);
+        var withoutObligation = dependents.Where(d => !d.IrDependent && !d.FamilyAllowance).ToList();
+        var withObligation = dependents.Except(withoutObligation).ToList();
+        var history = await db.EmployeeHistory.Where(h => h.EmployeeId == id).ToListAsync(ct);
+        var adjustments = await db.TimeAdjustments.Where(a => a.EmployeeId == id).ToListAsync(ct);
+        var payslips = await db.Payslips.Where(p => p.EmployeeId == id).Select(p => p.Id).ToListAsync(ct);
+        var adjustmentIds = adjustments.Select(a => a.Id).ToList();
+        var timesheets = await db.Timesheets.Where(t => t.EmployeeId == id).ToListAsync(ct);
+        var timesheetIds = timesheets.Select(t => t.Id).ToList();
+        var reviews = await db.TimesheetDayReviews.Where(r => r.EmployeeId == id).ToListAsync(ct);
+        // FLH-02a: o retrato das entradas (salário, dependentes, afastamentos com o tipo), os avisos e a memória dos encargos do holerite
+        // calculado, e a memória e o motivo dos avulsos nas linhas; os valores do holerite ficam (documento com movimento).
+        var calculated = await db.Payslips.Where(p => p.EmployeeId == id && (p.InputsSnapshot != null || p.CalculationIssues != null || p.EmployerChargesMemory != null)).ToListAsync(ct);
+        var calculatedLines = await db.PayslipLines.Where(l => payslips.Contains(l.PayslipId) && (l.Memory != null || l.Note != null)).ToListAsync(ct);
+        var files = await attachments.CountAsync(EmployeeComplementService.DocumentOwner, [id], ct)
+            + await attachments.CountAsync(TimeAdjustmentService.DocumentOwner, adjustmentIds, ct)
+            + await attachments.CountAsync(PayslipDocumentRules.OwnerType, payslips, ct)
+            + await attachments.CountAsync(TimesheetPdfService.OwnerType, timesheetIds, ct);
+        var timesheetTexts = timesheets.Count(t => t.DaysSnapshot != null || t.JustifiedByReason != null || t.ReopenReason != null) + reviews.Count
+            + (e.HourBankAgreementOn is null ? 0 : 1);
+        var hasContact = e.Phone != null || e.Email != null || e.PreviousEmail != null;
+        var hasBank = e.BankCode != null || e.BankAccount != null || e.PixKey != null || e.BankHolderName != null;
+        var hasAddress = e.ZipCode != null || e.Street != null || e.City != null;
+        var terminated = e.Status == EmployeeStatus.Terminated;
+
+        if (apply)
+        {
+            if (!contact.Retained)
+            {
+                e.Phone = null;
+                e.Email = null;
+                e.PreviousEmail = null;
+            }
+
+            if (!geo.Retained)
+            {
+                foreach (var t in entries)
+                {
+                    var entry = db.Entry(t);
+                    entry.Property(x => x.Latitude).CurrentValue = null;
+                    entry.Property(x => x.Longitude).CurrentValue = null;
+                    entry.Property(x => x.AccuracyM).CurrentValue = null;
+                }
+            }
+
+            if (!dependentsFree.Retained)
+            {
+                withoutObligation.ForEach(d => AnonymizeDependent(d, marker));
+            }
+
+            if (!bank.Retained)
+            {
+                e.BankCode = null;
+                e.BankAgency = null;
+                e.BankAccount = null;
+                e.BankAccountType = null;
+                e.BankHolderName = null;
+                e.BankHolderCpf = null;
+                e.PixKeyType = null;
+                e.PixKey = null;
+                e.BankMismatchReason = null;
+                e.BankReviewNote = null;
+            }
+
+            if (!address.Retained)
+            {
+                e.ZipCode = null;
+                e.Street = null;
+                e.Number = null;
+                e.Complement = null;
+                e.District = null;
+                e.City = null;
+                e.State = null;
+            }
+
+            if (!labor.Retained)
+            {
+                AnonymizeLabor(e, marker);
+                withObligation.ForEach(d => AnonymizeDependent(d, marker));
+                foreach (var h in history.Where(h => h.Reason.Length > 0 && h.Reason != marker))
+                {
+                    h.Reason = marker;
+                }
+
+                foreach (var a in adjustments)
+                {
+                    var entry = db.Entry(a);
+                    if (a.Justification.Length > 0)
+                    {
+                        entry.Property(x => x.Justification).CurrentValue = marker;
+                    }
+
+                    a.DecisionComment = a.DecisionComment is null ? null : marker;
+                }
+
+                // RH-01c: no espelho ficam os totais congelados (obrigação trabalhista, documento com movimento); os motivos de saúde dos dias
+                // e do abono por motivo viram "Falta justificada" (as horas abonadas continuam batendo), o tipo do afastamento sai, e os
+                // textos livres (motivo da reabertura, comentário da revisão do dia) viram o marcador, como os outros textos livres do RH.
+                foreach (var t in timesheets)
+                {
+                    t.DaysSnapshot = WithoutHealth(t.DaysSnapshot);
+                    t.JustifiedByReason = WithoutHealthByReason(t.JustifiedByReason);
+                    t.ReopenReason = t.ReopenReason is null ? null : marker;
+                    t.PdfAttachmentId = null;
+                }
+
+                foreach (var r in reviews.Where(r => r.Comment != marker))
+                {
+                    db.Entry(r).Property(x => x.Comment).CurrentValue = marker;
+                }
+
+                // FLH-02a: o retrato, os avisos e a memória saem (o cálculo deixa de ser refeito para quem saiu); o motivo do avulso vira o
+                // marcador, como os outros textos livres do RH. Linhas, valores, bases e o FGTS do holerite ficam.
+                foreach (var p in calculated)
+                {
+                    p.InputsSnapshot = null;
+                    p.CalculationIssues = null;
+                    p.EmployerChargesMemory = null;
+                }
+
+                foreach (var l in calculatedLines)
+                {
+                    var entry = db.Entry(l);
+                    entry.Property(x => x.Memory).CurrentValue = null;
+                    entry.Property(x => x.Note).CurrentValue = l.Note is null ? null : marker;
+                }
+
+                await attachments.RemoveContentAsync(EmployeeComplementService.DocumentOwner, [id], marker, ct);
+                await attachments.RemoveContentAsync(TimeAdjustmentService.DocumentOwner, adjustmentIds, marker, ct);
+                await attachments.RemoveContentAsync(PayslipDocumentRules.OwnerType, payslips, marker, ct);
+                await attachments.RemoveContentAsync(TimesheetPdfService.OwnerType, timesheetIds, marker, ct);
+            }
+
+            if (terminated)
+            {
+                e.AnonymizedAt ??= clock.GetUtcNow();
+                e.AnonymizationRequest ??= context.RequestNumber;
+            }
+
+            await db.SaveChangesAsync(ct);
+        }
+
+        plan.Fields(contact, "Telefone e e-mails pessoais", "hr.employees", hasContact ? 1 : 0)
+            .Fields(geo, "Localização das marcações de ponto", "hr.time_entries", entries.Count)
+            .Fields(dependentsFree, "Dependentes sem obrigação legal", "hr.employee_dependents", withoutObligation.Count)
+            .Fields(bank, "Conta de salário e chave Pix", "hr.employees", hasBank ? 1 : 0)
+            .Fields(address, "Endereço", "hr.employees", hasAddress ? 1 : 0)
+            .Fields(labor, "Nome, CPF, documentos pessoais e nascimento", "hr.employees", 1)
+            .Fields(labor, "Dependentes do IR e do salário-família", "hr.employee_dependents", withObligation.Count)
+            .Fields(labor, "Motivos da linha do tempo e justificativas do ponto", "hr.employee_history, hr.time_adjustments", history.Count + adjustments.Count)
+            .Fields(labor, "Motivos de saúde, afastamentos e comentários do espelho de ponto, e o acordo de banco de horas", "hr.timesheets, hr.timesheet_day_reviews, hr.employees", timesheetTexts)
+            .Fields(labor, "Retrato das entradas, memória de cálculo e motivos dos avulsos da folha calculada", "hr.payslips, hr.payslip_lines", calculated.Count + calculatedLines.Count)
+            .Fields(labor, "Documentos, atestados, holerites e espelhos em PDF (o arquivo é apagado)", "shared.attachments", files)
+            .Keep("Folhas e holerites: mantidos, com os valores", "hr.payslips", payslips.Count)
+            .Keep("Espelhos de ponto: mantidos, com os totais do fechamento", "hr.timesheets", timesheets.Count)
+            .Keep("Marcações de ponto: mantidas, com data e hora", "hr.time_entries", await db.TimeEntries.CountAsync(t => t.EmployeeId == id, ct))
+            .Keep(terminated ? "Cadastro do funcionário: marcado \"Anonimizado\", só leitura" : "Funcionário ativo: o cadastro continua em uso", "hr.employees", 1);
+        return plan.Build();
+    }
+
+    private static void AnonymizeDependent(EmployeeDependent d, string marker)
+    {
+        d.Name = marker;
+        d.Cpf = null;
+        d.BirthDate = PersonalDataMarker.NoDate;
+    }
+
+    private static void AnonymizeLabor(Employee e, string marker)
+    {
+        e.Name = marker;
+        e.Cpf = PersonalDataMarker.Document(e.Id);
+        e.BirthDate = PersonalDataMarker.NoDate;
+        e.Rg = null;
+        e.Pis = null;
+        e.CtpsNumber = null;
+        e.CtpsSeries = null;
+        e.VoterId = null;
+        e.CnhNumber = null;
+        e.CnhCategory = null;
+        e.CnhExpiry = null;
+        e.MilitaryCertificate = null;
+        e.HourBankAgreementOn = null;
+    }
+
+    /// <summary>Dias congelados do espelho sem dado de saúde: abono de saúde vira "Falta justificada" e o afastamento fica sem o tipo.</summary>
+    private static string? WithoutHealth(string? snapshot)
+    {
+        if (snapshot is null)
+        {
+            return null;
+        }
+
+        var days = JsonSerializer.Deserialize<List<TimesheetDayResult>>(snapshot, TimesheetService.SnapshotJson) ?? [];
+        var clean = days.Select(d => d with
+        {
+            Absences = d.Absences.Select(a => AbsenceReasons.IsHealth(a.Reason) ? a with { Reason = AbsenceReason.JustifiedAbsence } : a).ToList(),
+            Leave = d.Leave is null ? null : d.Leave with { Reason = null },
+        }).ToList();
+        return JsonSerializer.Serialize(clean, TimesheetService.SnapshotJson);
+    }
+
+    /// <summary>Abono por motivo do <c>ponto.csv</c> sem dado de saúde: os minutos de saúde somam em "Falta justificada".</summary>
+    private static string? WithoutHealthByReason(string? text)
+    {
+        if (text is null)
+        {
+            return null;
+        }
+
+        var merged = new Dictionary<AbsenceReason, int>();
+        foreach (var (reason, minutes) in TimesheetRules.ParseByReason(text))
+        {
+            var key = AbsenceReasons.IsHealth(reason) ? AbsenceReason.JustifiedAbsence : reason;
+            merged[key] = merged.GetValueOrDefault(key) + minutes;
+        }
+
+        return TimesheetRules.FormatByReason(merged);
     }
 
     private static string? Join(string? a, string? b) => a is null ? b : b is null ? a : a + " / " + b;

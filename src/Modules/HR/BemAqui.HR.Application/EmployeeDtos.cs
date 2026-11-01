@@ -99,7 +99,9 @@ public sealed record EmployeeDetail(
     DateOnly AdmissionDate,
     DateOnly? TerminationDate,
     EmployeeStatus Status,
-    uint Version);
+    uint Version,
+    DateTimeOffset? AnonymizedAt = null,
+    string? AnonymizationRequest = null);
 
 /// <summary>Só pela rota <c>/sensitive</c> (CA 9), com <c>no-store</c> e <c>SensitiveRead</c>.</summary>
 public sealed record EmployeeSensitiveDetail(

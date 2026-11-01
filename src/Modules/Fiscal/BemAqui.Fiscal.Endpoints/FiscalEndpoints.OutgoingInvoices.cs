@@ -18,7 +18,7 @@ namespace BemAqui.Fiscal.Endpoints;
 /// </summary>
 internal static class FiscalOutgoingInvoiceEndpoints
 {
-    private static readonly string[] HistoryChildren = [nameof(OutgoingInvoiceItem)];
+    private static readonly string[] HistoryChildren = [nameof(OutgoingInvoiceItem), nameof(FiscalEvent), nameof(CancellationRequest)];
 
     public static IEndpointRouteBuilder MapFiscalOutgoingInvoiceEndpoints(this IEndpointRouteBuilder api)
     {
@@ -29,9 +29,10 @@ internal static class FiscalOutgoingInvoiceEndpoints
                 return await next(context);
             });
 
-        invoices.MapGet(string.Empty, async (DateOnly? from, DateOnly? to, OutgoingInvoiceStatus? status, Guid? partyId, Guid? projectId, int? page, int? pageSize, OutgoingInvoiceService service,
-                CancellationToken ct) =>
-                Results.Ok(await service.ListAsync(new OutgoingInvoiceQuery(from, to, status, partyId, projectId), new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)))
+        invoices.MapGet(string.Empty, async (DateOnly? from, DateOnly? to, OutgoingInvoiceStatus? status, Guid? partyId, Guid? projectId, bool? cancellationRequested, int? page, int? pageSize,
+                OutgoingInvoiceService service, CancellationToken ct) =>
+                Results.Ok(await service.ListAsync(new OutgoingInvoiceQuery(from, to, status, partyId, projectId, cancellationRequested),
+                    new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)))
             .RequirePermission("fiscal.view").WithName("ListOutgoingInvoices").Produces<OutgoingInvoicePage>();
         invoices.MapGet("/to-issue", async (OutgoingInvoiceService service, CancellationToken ct) => Results.Ok(await service.ToIssueAsync(ct)))
             .RequirePermission("fiscal.create").WithName("ListInvoicesToIssue").Produces<IReadOnlyList<InvoiceQueueRow>>();
@@ -81,7 +82,65 @@ internal static class FiscalOutgoingInvoiceEndpoints
                 (await history.GetWithChildrenAsync(nameof(OutgoingInvoice), id.ToString(), HistoryChildren, "invoiceId",
                     new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)).ToHttpResult())
             .RequirePermission("fiscal.view").WithName("GetOutgoingInvoiceHistory").Produces<PagedList<RelatedAuditEntryDto>>();
+        MapEvents(invoices);
+        MapNumberGaps(api);
         return api;
+    }
+
+    /// <summary>
+    /// FIS-03b: cancelar (em uma etapa, D12) com <c>fiscal.approve</c> e o 2FA de novo (D6); pedir cancelamento com <c>fiscal.view</c>; recusar o
+    /// pedido com <c>fiscal.approve</c>; carta de correção com <c>fiscal.edit</c>; a aba Eventos, o evento (IDOR pela nota), o XML do evento e o
+    /// DANFE da cancelada com <c>fiscal.view</c>. Nada de DELETE (CA 13).
+    /// </summary>
+    private static void MapEvents(RouteGroupBuilder invoices)
+    {
+        invoices.MapPost("/{id:guid}/cancel", async (Guid id, CancelInvoiceRequest request, OutgoingInvoiceService service, CancellationToken ct) =>
+                (await service.CancelAsync(id, request, ct)).ToHttpResult(result => result.Status == FiscalEventStatus.Registered ? Results.Ok(result) : Results.Accepted(null, result)))
+            .RequirePermission("fiscal.approve").RequireRecentTwoFactor().WithName("CancelOutgoingInvoice")
+            .Produces<FiscalEventResultView>().Produces<FiscalEventResultView>(StatusCodes.Status202Accepted);
+        invoices.MapPost("/{id:guid}/cancellation-requests", async (Guid id, CancellationRequestInput request, OutgoingInvoiceService service, CancellationToken ct) =>
+                (await service.RequestCancellationAsync(id, request, ct)).ToHttpResult(view => Results.Created($"/api/v1/fiscal/outgoing-invoices/{id}/cancellation-requests/{view.Id}", view)))
+            .RequirePermission("fiscal.view").WithName("RequestOutgoingInvoiceCancellation").Produces<CancellationRequestView>(StatusCodes.Status201Created);
+        invoices.MapPost("/{id:guid}/cancellation-requests/{requestId:guid}/decline", async (Guid id, Guid requestId, DeclineCancellationInput request, OutgoingInvoiceService service,
+                CancellationToken ct) => (await service.DeclineRequestAsync(id, requestId, request, ct)).ToHttpResult())
+            .RequirePermission("fiscal.approve").WithName("DeclineOutgoingInvoiceCancellation").Produces<CancellationRequestView>();
+        invoices.MapPost("/{id:guid}/corrections", async (Guid id, CorrectInvoiceRequest request, OutgoingInvoiceService service, CancellationToken ct) =>
+                (await service.CorrectAsync(id, request, ct)).ToHttpResult(result => result.Status == FiscalEventStatus.Registered ? Results.Ok(result) : Results.Accepted(null, result)))
+            .RequirePermission("fiscal.edit").WithName("CorrectOutgoingInvoice").Produces<FiscalEventResultView>().Produces<FiscalEventResultView>(StatusCodes.Status202Accepted);
+        invoices.MapGet("/{id:guid}/events", async (Guid id, OutgoingInvoiceService service, CancellationToken ct) => (await service.EventsAsync(id, ct)).ToHttpResult())
+            .RequirePermission("fiscal.view").WithName("ListOutgoingInvoiceEvents").Produces<IReadOnlyList<FiscalEventView>>();
+        invoices.MapGet("/{id:guid}/events/{eventId:guid}", async (Guid id, Guid eventId, OutgoingInvoiceService service, CancellationToken ct) =>
+                (await service.EventAsync(id, eventId, ct)).ToHttpResult())
+            .RequirePermission("fiscal.view").WithName("GetOutgoingInvoiceEvent").Produces<FiscalEventView>();
+        invoices.MapGet("/{id:guid}/events/{eventId:guid}/xml", async (Guid id, Guid eventId, OutgoingInvoiceService service, HttpContext http, CancellationToken ct) =>
+                Download(await service.EventXmlAsync(id, eventId, ct), http))
+            .RequirePermission("fiscal.view").WithName("DownloadOutgoingInvoiceEventXml");
+        invoices.MapGet("/{id:guid}/cancelled-danfe", async (Guid id, OutgoingInvoiceService service, HttpContext http, CancellationToken ct) =>
+                Download(await service.CancelledDanfeAsync(id, ct), http))
+            .RequirePermission("fiscal.view").WithName("DownloadCancelledOutgoingInvoiceDanfe");
+    }
+
+    /// <summary>FIS-03b CA 10 e 11: "A inutilizar" com <c>fiscal.view</c>; "Inutilizar números" com <c>fiscal.approve</c> e o 2FA de novo (D6).</summary>
+    private static void MapNumberGaps(IEndpointRouteBuilder api)
+    {
+        var gaps = api.MapGroup("/fiscal/number-gaps").WithTags("Fiscal").RequireModule("fiscal");
+        gaps.MapGet(string.Empty, async (NumberGapService service, CancellationToken ct) => Results.Ok(await service.ListAsync(ct)))
+            .RequirePermission("fiscal.view").WithName("ListNumberGaps").Produces<NumberGapList>();
+        gaps.MapPost("/invalidate", async (InvalidateNumbersRequest request, NumberGapService service, CancellationToken ct) =>
+                (await service.InvalidateAsync(request, ct)).ToHttpResult(result => result.Status == FiscalEventStatus.Registered ? Results.Ok(result) : Results.Accepted(null, result)))
+            .RequirePermission("fiscal.approve").RequireRecentTwoFactor().WithName("InvalidateNumberGaps")
+            .Produces<InvalidationResultView>().Produces<InvalidationResultView>(StatusCodes.Status202Accepted);
+    }
+
+    private static IResult Download(SharedKernel.Result<InvoiceFileContent> result, HttpContext http)
+    {
+        if (result.IsFailure)
+        {
+            return result.Error!.ToProblem();
+        }
+
+        AttachmentEndpoints.ApplyDownloadHeaders(http.Response);
+        return Results.File(result.Value.Content, result.Value.ContentType, result.Value.FileName);
     }
 
     private static async Task<IResult> FileAsync(Guid id, bool xml, OutgoingInvoiceService service, HttpContext http, CancellationToken ct)

@@ -100,6 +100,10 @@ internal sealed class OutgoingInvoiceConfiguration : IEntityTypeConfiguration<Ou
         b.HasIndex(e => e.PartyId).HasDatabaseName("ix_outgoing_invoices_party_id");
         b.HasIndex(e => new { e.Status, e.IssuedOn }).HasDatabaseName("ix_outgoing_invoices_status_issued_on");
         b.HasIndex(e => e.CreatedAt).HasDatabaseName("ix_outgoing_invoices_created_at");
+        // FIS-03b: cancelamento (motivo, protocolo do evento, data) e o envio em andamento.
+        b.Property(e => e.CancellationReason).HasMaxLength(FiscalEventRules.JustificationMax);
+        b.Property(e => e.CancellationProtocol).HasMaxLength(30);
+        b.HasIndex(e => e.CancellationSentAt).HasFilter("cancellation_sent_at IS NOT NULL").HasDatabaseName("ix_outgoing_invoices_cancellation_sent_at");
         // CA 19: uma nota ativa por romaneio (rascunho, processando, contingência ou autorizada, sem descarte).
         b.HasIndex(e => e.ShipmentId, "ux_outgoing_invoices_active_shipment").IsUnique()
             .HasFilter("shipment_id IS NOT NULL AND discarded_at IS NULL AND status NOT IN ('Cancelled', 'Rejected', 'Denied')")
@@ -176,6 +180,51 @@ internal sealed class NumberGapConfiguration : IEntityTypeConfiguration<NumberGa
         b.Property(e => e.Reason).HasMaxLength(16);
         b.HasIndex(e => new { e.Series, e.Number }).IsUnique().HasDatabaseName("ux_number_gaps_series_number");
         b.HasIndex(e => e.InvoiceId).HasDatabaseName("ix_number_gaps_invoice_id");
+        // FIS-03b CA 10: a inutilizar ou inutilizado com o evento.
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16).HasDefaultValue(NumberGapStatus.Pending);
+        b.HasIndex(e => new { e.Status, e.CreatedAt }).HasDatabaseName("ix_number_gaps_status_created_at");
+        b.Ignore(e => e.ToInvalidate);
+    }
+}
+
+/// <summary>
+/// Eventos fiscais (FIS-03b): cancelamento, carta de correção e inutilização. Sequência única por nota e tipo (a 21ª carta e duas cartas
+/// juntas param no índice); só inserido e completado, nunca apagado.
+/// </summary>
+internal sealed class FiscalEventConfiguration : IEntityTypeConfiguration<FiscalEvent>
+{
+    public void Configure(EntityTypeBuilder<FiscalEvent> b)
+    {
+        b.ToTable("fiscal_events", FiscalSchema.Name, t =>
+        {
+            t.HasCheckConstraint("ck_fiscal_events_sequence", "sequence >= 1");
+            t.HasCheckConstraint("ck_fiscal_events_target", "invoice_id IS NOT NULL OR (series IS NOT NULL AND first_number IS NOT NULL AND last_number IS NOT NULL AND first_number <= last_number)");
+        });
+        b.HasOne<OutgoingInvoice>().WithMany().HasForeignKey(e => e.InvoiceId).OnDelete(DeleteBehavior.Restrict);
+        b.Property(e => e.Type).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.Text).HasMaxLength(FiscalEvent.TextMaxLength);
+        b.Property(e => e.Protocol).HasMaxLength(30);
+        b.Property(e => e.RejectionReason).HasMaxLength(OutgoingInvoice.ReasonMaxLength);
+        b.HasIndex(e => new { e.InvoiceId, e.Type, e.Sequence }).IsUnique().HasFilter("invoice_id IS NOT NULL").HasDatabaseName("ux_fiscal_events_invoice_type_sequence");
+        b.HasIndex(e => new { e.Status, e.RequestedAt }).HasDatabaseName("ix_fiscal_events_status_requested_at");
+        b.Ignore(e => e.IsRegistered);
+    }
+}
+
+/// <summary>Pedidos de cancelamento (FIS-03b CA 2 e 3): um pendente por nota; a expiração corre pelo índice de pendentes por prazo.</summary>
+internal sealed class CancellationRequestConfiguration : IEntityTypeConfiguration<CancellationRequest>
+{
+    public void Configure(EntityTypeBuilder<CancellationRequest> b)
+    {
+        b.ToTable("cancellation_requests", FiscalSchema.Name);
+        b.HasOne<OutgoingInvoice>().WithMany().HasForeignKey(e => e.InvoiceId).OnDelete(DeleteBehavior.Restrict);
+        b.Property(e => e.Reason).HasMaxLength(FiscalEventRules.JustificationMax);
+        b.Property(e => e.DecisionReason).HasMaxLength(FiscalEventRules.JustificationMax);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        b.HasIndex(e => e.InvoiceId).IsUnique().HasFilter("status = 'Pending'").HasDatabaseName("ux_cancellation_requests_pending_invoice");
+        b.HasIndex(e => new { e.Status, e.ExpiresAt }).HasDatabaseName("ix_cancellation_requests_status_expires_at");
+        b.Ignore(e => e.IsPending);
     }
 }
 
@@ -354,13 +403,39 @@ internal sealed class IncomingInvoiceConfiguration : IEntityTypeConfiguration<In
         b.Property(e => e.InputTaxCreditApplied).HasMaxLength(IncomingInvoice.InputTaxCreditRuleMaxLength);
         b.Property(e => e.InputTaxCreditAmount).HasPrecision(18, 2);
         b.HasIndex(e => e.GoodsReceiptId).HasFilter("goods_receipt_id IS NOT NULL").HasDatabaseName("ix_incoming_invoices_goods_receipt_id");
+        b.Property(e => e.XmlDifferences).Jsonb<IReadOnlyList<IncomingXmlDifference>>([]);
         b.Ignore(e => e.IsEditable);
+        b.Ignore(e => e.WithoutXml);
         b.HasIndex(e => e.AccessKey).IsUnique().HasFilter("status <> 'Rejected'").HasDatabaseName(IncomingInvoiceConfiguration.AccessKeyIndex);
         b.HasIndex(e => new { e.Status, e.ImportedAt }).HasDatabaseName("ix_incoming_invoices_status_imported_at");
         b.HasIndex(e => e.PartyId).HasDatabaseName("ix_incoming_invoices_party_id");
     }
 
     public const string AccessKeyIndex = "ux_incoming_invoices_access_key";
+}
+
+/// <summary>
+/// Rascunho da leitura do PDF da DANFE e da nota digitada (FIS-05): campos lidos e avisos em jsonb, o que foi corrigido, quem conferiu, a
+/// duração e o resultado. O id é o da nota que nasce dele; nunca guarda o texto do PDF.
+/// </summary>
+internal sealed class IncomingInvoiceReadingConfiguration : IEntityTypeConfiguration<IncomingInvoiceReading>
+{
+    public void Configure(EntityTypeBuilder<IncomingInvoiceReading> b)
+    {
+        b.ToTable("incoming_invoice_readings", FiscalSchema.Name, t => t.HasCheckConstraint("ck_incoming_invoice_readings_access_key", "access_key IS NULL OR length(access_key) = 44"));
+        b.Property(e => e.Source).HasConversion<string>().HasMaxLength(8);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.Result).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.FileName).HasMaxLength(IncomingInvoiceReading.FileNameMaxLength);
+        b.Property(e => e.AccessKey).HasMaxLength(44);
+        b.Property(e => e.Fields).Jsonb<IReadOnlyList<ReadingField>>([]);
+        b.Property(e => e.Warnings).Jsonb<IReadOnlyList<string>>([]);
+        b.Property(e => e.CorrectedFields).Jsonb<IReadOnlyList<string>>([]);
+        b.Ignore(e => e.IsOpen);
+        b.HasIndex(e => new { e.Status, e.CreatedAt }).HasDatabaseName("ix_incoming_invoice_readings_status_created_at");
+        b.HasIndex(e => e.AccessKey).HasFilter("access_key IS NOT NULL").HasDatabaseName("ix_incoming_invoice_readings_access_key");
+        b.HasIndex(e => e.InvoiceId).IsUnique().HasFilter("invoice_id IS NOT NULL").HasDatabaseName("ux_incoming_invoice_readings_invoice_id");
+    }
 }
 
 /// <summary>Itens da NF-e de entrada (FIS-04a): quantidades com 4 casas, preço da nota com até 10, preço em unidade de estoque com 6.</summary>

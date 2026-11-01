@@ -46,6 +46,11 @@ public sealed partial class UserService
             return Error.NotFound(Error.Codes.NotFound, "Usuário não encontrado.");
         }
 
+        if (user.AnonymizedAt is not null)
+        {
+            return Error.Conflict("user_anonymized", "Usuário anonimizado a pedido do titular: não pode ser reativado. Convide a pessoa de novo, com outro cadastro.");
+        }
+
         if (user.Status != UserStatus.Inactive || user.PasswordHash is null)
         {
             return Error.Validation("user_not_inactive", "Só dá para reativar quem já entrou e foi desativado. Para quem não entrou, reenvie o convite.");

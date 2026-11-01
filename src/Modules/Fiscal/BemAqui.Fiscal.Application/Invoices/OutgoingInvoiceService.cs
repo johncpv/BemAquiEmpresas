@@ -28,7 +28,7 @@ public sealed partial class OutgoingInvoiceService(
     IFiscalDb db, IShipments shipments, IProjects projects, IParties parties, IItems catalog, IReceivables receivables, IFiscalSettings settings, ICompanyFiscalProfile company,
     OutgoingInvoiceCalculator calculator, OutgoingNfePayloads payloads, NfeSubmissionService submissions, FiscalEmitterAccess access, OutgoingInvoiceEffects effects,
     AttachmentService attachments, IFileStorage storage, IPdfRenderer renderer, IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users,
-    IBusinessCalendar calendar, TimeProvider clock)
+    IBusinessCalendar calendar, BemAqui.BuildingBlocks.Notifications.INotificationService notifications, TimeProvider clock)
 {
     public const string ShipmentLink = "/app/producao/expedicao/";
     public const string PartyLink = "/app/terceiros/";
@@ -223,6 +223,7 @@ public sealed partial class OutgoingInvoiceService(
             canCreate && invoice.Status == OutgoingInvoiceStatus.Authorized && invoice.XmlAttachmentId is not null && invoice.DanfeAttachmentId is not null,
             invoice.XmlAttachmentId is not null || invoice.DanfeAttachmentId is not null);
         var createdBy = invoice.CreatedBy is { } u ? await users.DisplayNameAsync(u, ct) : null;
+        var cancellation = await CancellationViewAsync(invoice, canEdit, ct);
         return new OutgoingInvoiceView(
             invoice.Id, invoice.Type, invoice.Status, invoice.Environment, invoice.Operation, invoice.NatureOfOperation, invoice.Series, invoice.Number, invoice.AccessKey, invoice.Protocol,
             invoice.AuthorizedAt, invoice.IssuedOn, invoice.Attempt, invoice.ProjectId, project?.Number, project?.Name, invoice.ShipmentId, invoice.ShipmentNumber, invoice.PartyId,
@@ -233,7 +234,7 @@ public sealed partial class OutgoingInvoiceService(
             invoice.AdditionalInformation, itemViews, invoice.Totals, invoice.TotalAmount, invoice.CostTaxAmount, invoice.CalculationError, invoice.RejectionCode, invoice.RejectionReason,
             invoice.SuggestedAction, invoice.Status == OutgoingInvoiceStatus.Denied ? OutgoingInvoice.DeniedGuidance : null, invoice.ProcessingSince, invoice.ContingencySince,
             invoice.XmlAttachmentId, invoice.DanfeAttachmentId, invoice.SendToCustomer, invoice.EmailCc, invoice.EmailedAt, installments, actions, invoice.CreatedAt, createdBy,
-            invoice.DiscardedAt, invoice.Version);
+            invoice.DiscardedAt, invoice.Version, cancellation);
     }
 
     private static bool NeedsIpiRate(OutgoingInvoiceItem item, TaxRuleCandidates? candidates, TaxRecipient recipient)
@@ -279,6 +280,12 @@ public sealed partial class OutgoingInvoiceService(
         if (query.ProjectId is { } project)
         {
             invoices = invoices.Where(i => i.ProjectId == project);
+        }
+
+        if (query.CancellationRequested == true)
+        {
+            // FIS-03b: filtro "Cancelamento pedido" (pedido pendente).
+            invoices = invoices.Where(i => db.CancellationRequests.Any(r => r.InvoiceId == i.Id && r.Status == CancellationRequestStatus.Pending));
         }
 
         var totals = await invoices.GroupBy(_ => 1).Select(g => new { Count = g.Count(), Amount = g.Sum(i => i.TotalAmount), Taxes = g.Sum(i => i.TaxAmount) }).FirstOrDefaultAsync(cancellationToken);

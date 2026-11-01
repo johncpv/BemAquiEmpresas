@@ -121,6 +121,10 @@ public static class AuthRateLimiting
             o.AddPolicy(BemAqui.Fiscal.Application.Incoming.IncomingInvoiceService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
                 "fiscal-incoming|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? http.Connection.RemoteIpAddress?.ToString() ?? "-"),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, fiscal.IncomingImportsPerHour), Window = TimeSpan.FromHours(1), QueueLimit = 0 }));
+            // "Importar PDF da DANFE" (FIS-05 CA 1): 30 PDFs por hora por usuário dentro do tenant (cada um vai ao worker isolado).
+            o.AddPolicy(BemAqui.Fiscal.Domain.IncomingReadingRules.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "fiscal-pdf|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? http.Connection.RemoteIpAddress?.ToString() ?? "-"),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, fiscal.PdfReadingsPerHour), Window = TimeSpan.FromHours(1), QueueLimit = 0 }));
             o.OnRejected = async (context, cancellationToken) =>
             {
                 var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : TimeSpan.FromMinutes(1);

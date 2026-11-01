@@ -19,6 +19,8 @@ import { formatDate, formatInstantDate } from '@/lib/format'
 import { useNavigation } from '@/navigation/navigation-context'
 import { PageHeading } from '@/shell/PageHeading'
 import { SettingsTabs } from '../SettingsTabs'
+import { anonymizationOf, responseSuggestion } from './anonymization'
+import { AnonymizationPanel } from './AnonymizationPanel'
 import { OwnerOnlyNotice } from './PrivacyRequestsPage'
 import { channelLabel, dueChipOf, exportOf, exportsData, IDENTITY_METHODS, identityMethodLabel, kindLabel, nextStepOf, statusOf, subjectTypeLabel } from './privacy'
 
@@ -26,7 +28,7 @@ const button = 'inline-flex min-h-11 items-center gap-1.5 rounded-md border bord
 const primary = 'inline-flex min-h-11 items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50'
 const today = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
 
-const ACTIONS: Record<string, string> = { Created: 'Registrado', Updated: 'Alterado', SensitiveRead: 'Leitura dos dados (exportação ou download)', Exported: 'Exportação gerada' }
+const ACTIONS: Record<string, string> = { Created: 'Registrado', Updated: 'Alterado', SensitiveRead: 'Leitura dos dados (exportação ou download)', Exported: 'Exportação gerada', AnonymizationPreviewed: 'Prévia da anonimização', Anonymized: 'Anonimização (resumo por módulo)' }
 
 /**
  * Pedido do titular (LGPD-01a, /app/configuracoes/privacidade/$id): "Conferir identidade", "Exportar dados do titular" (assíncrono, com o
@@ -38,7 +40,7 @@ export function PrivacyRequestPage() {
   const { isOwner } = useNavigation()
   const client = useQueryClient()
   const navigate = useNavigate()
-  const query = useGetPrivacyRequest(id, { query: { enabled: isOwner, retry: false, refetchInterval: (q) => (q.state.data?.exportStatus === 'Running' ? 3000 : false) } })
+  const query = useGetPrivacyRequest(id, { query: { enabled: isOwner, retry: false, refetchInterval: (q) => (q.state.data?.exportStatus === 'Running' || q.state.data?.anonymizationStatus === 'Running' ? 3000 : false) } })
   const history = useGetPrivacyRequestHistory(id, { query: { enabled: isOwner, retry: false } })
 
   if (!isOwner || (query.error instanceof ApiError && query.error.code === 'forbidden')) {
@@ -72,6 +74,7 @@ export function PrivacyRequestPage() {
   const status = statusOf(r.status)
   const due = dueChipOf(r.dueChip)
   const exported = exportOf(r.exportStatus)
+  const anonymization = anonymizationOf(r.anonymizationStatus)
   const open = r.status === 'Open'
   const needsIdentity = r.requiresIdentity && !r.identityVerified
   const download = async () => {
@@ -100,6 +103,7 @@ export function PrivacyRequestPage() {
           <StatusChip tone={status.tone}>{status.label}</StatusChip>
           {due ? <StatusChip tone={due.tone}>{due.label}</StatusChip> : null}
           {exported ? <StatusChip tone={exported.tone}>{exported.label}</StatusChip> : null}
+          {anonymization ? <StatusChip tone={anonymization.tone}>{anonymization.label}</StatusChip> : null}
         </div>
       </PageHeading>
       {back}
@@ -152,12 +156,10 @@ export function PrivacyRequestPage() {
                 {r.kind === 'Correction' ? (
                   <button type="button" onClick={() => void correction()} disabled={!r.identityVerified} title={r.identityVerified ? undefined : 'Confira a identidade antes de abrir o cadastro.'} className={primary}><PencilLine aria-hidden="true" className="size-4" /> Abrir cadastro</button>
                 ) : null}
-                {r.kind === 'Anonymization' || r.kind === 'Deletion' ? (
-                  <button type="button" disabled title="A anonimização entra numa próxima versão." className={button}>Prever anonimização</button>
-                ) : null}
                 <ConcludeDialog request={r} onDone={reload} />
-                <RefuseDialog request={r} onDone={reload} />
+                {r.anonymizationStatus === 'Running' || r.anonymizationStatus === 'Done' ? null : <RefuseDialog request={r} onDone={reload} />}
               </div>
+              {r.kind === 'Anonymization' || r.kind === 'Deletion' ? <AnonymizationPanel request={r} onChanged={reload} /> : null}
               {r.exportStatus === 'Running' ? <p role="status" className="mt-3 text-sm text-muted-foreground">Gerando a exportação… pode levar alguns minutos. Você pode sair desta tela: o aviso chega no sino.</p> : null}
               {r.exportStatus === 'Failed' ? <p role="alert" className="mt-3 text-sm font-medium text-crit-ink">{r.exportError ?? 'A exportação falhou.'} Tente exportar de novo; se continuar, fale com o suporte.</p> : null}
               {r.exportStatus === 'Ready' && r.exportedAt ? <p className="mt-3 text-xs text-muted-foreground">Gerada em {formatInstantDate(r.exportedAt)}. O link de download vale uma vez e por 15 minutos.</p> : null}
@@ -226,7 +228,7 @@ function ConcludeDialog({ request, onDone }: { request: PrivacyRequestDetail; on
   const [fileSent, setFileSent] = useState(request.exportStatus === 'Ready')
   return (
     <ConfirmDialog verb="Concluir pedido" done="Pedido concluído" title="Registrar a resposta e concluir o pedido"
-      onOpen={() => { setRespondedOn(today()); setResponse(''); setFileSent(request.exportStatus === 'Ready') }}
+      onOpen={() => { setRespondedOn(today()); setResponse(request.anonymizationStatus === 'Done' ? responseSuggestion(request.kind, request.anonymizedAt, request.anonymizationSummary?.retained ?? 0) : ''); setFileSent(request.exportStatus === 'Ready') }}
       preconditions={[{ ok: response.trim().length > 0, text: 'Descreva o que foi feito.' }]}
       onConfirm={async () => { await concludePrivacyRequest(request.id, { respondedOn, response: response.trim(), fileSent, version: request.version }); await onDone() }}
       trigger={<button type="button" className={button}>Registrar resposta</button>}>

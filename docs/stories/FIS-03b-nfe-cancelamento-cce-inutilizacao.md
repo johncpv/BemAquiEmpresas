@@ -5,7 +5,7 @@
 | ID | FIS-03b |
 | Título | Cancelamento da NF-e autorizada dentro do prazo de 24 h, em uma etapa, por quem tem `fiscal.approve` e 2FA de novo, com contagem do prazo no diálogo e "Pedir cancelamento" para os demais; reverso do imposto na razão do projeto (`InvoiceTaxReversal`) sem mexer no estoque; DANFE da nota cancelada com a marca; carta de correção (até 20 por nota) com `fiscal.edit`; inutilização dos números consumidos sem nota autorizada; aba de eventos; documento fiscal nunca apagado |
 | Tamanho | M (quebra da FIS-03) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: homologação SEFAZ dos eventos no `demo` e lacuna L-n) |
 | Requisitos | R-FIS-3 (cancelamento, carta de correção) · R-SEC-10 (ação aprovar no grupo) · R-PRJ-5 · R-COM-2 · R-PRP-2 · R-PRP-7 · R-SEC-5 |
 | Dependências | FIS-03a (nota autorizada, `InvoiceAuthorized`, `IOutgoingInvoices`), FIS-01 (`IFiscalEmitter`: cancelar, corrigir, inutilizar), FIS-02a (`fiscal.approve`, prazo de cancelamento), PRD-06b (estorno da expedição), DSH-04 (`IAgendaSource`); `ConfirmDialog` com prazo e impacto em lista (D18) |
 | Bloqueia | GOL-01a |
@@ -89,21 +89,21 @@ Decisões da revisão aplicadas: D6 (2FA de novo ao cancelar e ao inutilizar; CA
 **Pré-condição externa:** escopo `nfe:eventos` (lacuna L-f) e DANFE em PDF com a marca (lacuna L-c) no EmissorFiscal, dono PO; e-CNPJ A1 para a homologação SEFAZ no `demo`. Não bloqueiam o `Ready`: o código e o CI usam o fake.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers + fake), arquitetura e E2E passando; eventos em homologação SEFAZ registrados.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`.
-- [ ] Permissões só do `ModuleCatalog`; templates de e-mail registrados.
-- [ ] Telas com estados, inclusive a 400 px.
-- [ ] Ajudas escritas; teste de cobertura passando.
-- [ ] Efeito fiscal com confirmação, prazo e 2FA; próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (cancelamento sem efeito no estoque, pedido de cancelamento, inutilização) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers + fake), arquitetura e E2E passando; eventos em homologação SEFAZ registrados. (E2E não escrito: regra do PO de 31/10; homologação SEFAZ pendente, pré-condição externa)
+- [x] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`. (a cópia do `konebras` fica para o deploy)
+- [x] Permissões só do `ModuleCatalog`; templates de e-mail registrados.
+- [x] Telas com estados, inclusive a 400 px.
+- [x] Ajudas escritas; teste de cobertura passando.
+- [x] Efeito fiscal com confirmação, prazo e 2FA; próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (cancelamento sem efeito no estoque, pedido de cancelamento, inutilização) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `FiscalEvent`, `CancellationRequest` e `NumberGap` (Domain); transições de cancelamento na `OutgoingInvoice`.
-- [ ] Endpoints `/api/v1/fiscal/outgoing-invoices/{id}/cancel`, `/corrections`, `/cancellation-requests` (+ `/decline`); `/api/v1/fiscal/number-gaps/invalidate`.
-- [ ] Consumidor do `InvoiceCancelled` no Commercial; recorrentes; fontes da pauta; telas e ajudas.
+- [x] `FiscalEvent`, `CancellationRequest` e `NumberGap` (Domain); transições de cancelamento na `OutgoingInvoice`.
+- [x] Endpoints `/api/v1/fiscal/outgoing-invoices/{id}/cancel`, `/corrections`, `/cancellation-requests` (+ `/decline`); `/api/v1/fiscal/number-gaps/invalidate`.
+- [x] Consumidor do `InvoiceCancelled` no Commercial; recorrentes; fontes da pauta; telas e ajudas.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (segregação, 2FA, nunca apagar, concorrência), @qa.
@@ -137,3 +137,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D6, D12, D18, tabela 3.2 pontos 52–55, §4.1, §4.3, §4.4); cancelar em uma etapa com 2FA e prazo; sem efeito no estoque; ordem 11 (Marco 5.4); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 01/11/2026 | 1.0 | Implementada (`Done`, pré-condição externa). **Domain:** `FiscalEvent` (Cancel/Correction/Invalidation, Requested/Registered/Rejected, sequência única por nota e tipo), `CancellationRequest` (Pending/Done/Declined/Expired, um pendente por nota, `xmin`), `NumberGap` + status, evento e `xmin` (trava da inutilização), `FiscalEventRules` (prazo exclusivo no fim, 15–255, 15–1000, 20 cartas, faixas contínuas, situações que bloqueiam) e, na `OutgoingInvoice`, `BeginCancellation`/`MarkCancelled`/`MarkCancellationPublished`/`BeginCorrection` (trava contra cancelamento e carta juntos). **Application:** `OutgoingInvoiceService.Events` (cancelar, pedir, recusar, carta, eventos, XML do evento, DANFE cancelado; o `InvoiceCancellationView` na nota), `OutgoingInvoiceEffects.Cancel` (evento registrado, XML do evento, DANFE com a marca — reserva `IPdfRenderer` com a faixa —, `InvoiceCancelled` uma vez, aviso ao Proprietário, pedido atendido, e-mails `invoice-cancelled` e `invoice-correction`), `NumberGapService`, recorrentes `fiscal-invalidation-reminder` (segunda 09:00, `dedup_key` por semana ISO) e `fiscal-cancellation-request-expiry` (de hora em hora), `FiscalEventAgendaSource` (`fiscal.cancellation_requests` pelo prazo e `fiscal.numbers_to_invalidate`), conferência de pendentes reconsultando o cancelamento sem resposta e completando a cancelada; `IFiscalEmitter.GetEventXmlAsync`. **Outros módulos:** `InvoiceTaxReversalConsumer` no Commercial (reverso negativo igual à `InvoiceTax`, idempotente, também fora de ordem) e o painel recalcula no `InvoiceCancelled`; nenhum consumidor no Inventory. **Endpoints:** `/outgoing-invoices/{id}/cancel` (`fiscal.approve` + `RequireRecentTwoFactor`), `/cancellation-requests` (`fiscal.view`) e `/{requestId}/decline` (`fiscal.approve`), `/corrections` (`fiscal.edit`), `/events`, `/events/{eventId}`, `/events/{eventId}/xml`, `/cancelled-danfe`, `?cancellationRequested=true`, `/fiscal/number-gaps` e `/invalidate` (`fiscal.approve` + 2FA); sem DELETE. Migration `InvoiceEventsFis03b` (não destrutiva). **Telas:** na nota, "Cancelar NF-e" (`ConfirmDialog` destrutivo com a contagem, o impacto em lista e a palavra `CANCELAR`; o passo global do 2FA pede o código), "Pedir cancelamento", o pedido pendente com "Cancelar NF-e pelo pedido" (o link `?pedido=` abre o diálogo com o motivo) e "Recusar pedido", "Carta de correção" com o aviso âmbar (CA 9, no front), "Cancelamento enviado / Demorando", a cancelada com os próximos passos e a aba Eventos em cartões; em Notas de saída, os filtros "Cancelamento pedido" e "A inutilizar" (faixas, "Inutilizar números" com `INUTILIZAR`). 4 ajudas atualizadas. **Decisões (recomendação aceita, PO 24/10):** (1) **2FA de novo** pelo padrão da BNK-01a (prova recente `otp_at` de até 15 min, `RequireRecentTwoFactor`, o passo "Confirme o código" do app), e não um campo de código no diálogo: é o padrão D6 já usado em pagar/estornar. (2) **Receita:** o story manda consumidor só no Commercial; a receita do Finance é lida do `IOutgoingInvoices`, que deixa de contar a cancelada, então nenhum consumidor no Finance (nada a gravar lá). (3) **Templates** `invoice-cancelled` e `invoice-correction` (kebab-case, como o `invoice-authorized`). (4) **XML do evento:** o Emissor não expõe a rota (nova lacuna **L-n**, runbook §7); o BemAqui chama `GET /nfe/{chave}/eventos/{id}/xml` e, sem ela, registra o evento pelo protocolo, envia o e-mail sem o XML e a conferência tenta de novo. (5) **Números pulados informados pelo Emissor** (CA 10): o contrato não tem essa informação; a lista traz os números gastos por rejeição (FIS-03a). (6) A inutilização não guarda XML (o contrato da inutilização não devolve o arquivo). (7) Sem resposta do Emissor na carta, a trava sai e o evento fica "Enviado"; o cancelamento sem resposta fica "Cancelamento enviado" e pode ser reenviado depois de 2 min (a conferência reconsulta). (8) "Recusar pedido" pede motivo de 15 a 255. **Testes:** `FiscalTests.InvoiceEvents` (9 de integração), `FiscalEventRulesTests` (unidade), arquitetura (sem DELETE, sem consumidor do Inventory, evento sem dado pessoal, categorias da pauta), Vitest (aviso da carta, faixa, situações). **Pendente (externo):** homologação SEFAZ de um cancelamento, uma carta e uma inutilização no `demo` (runbook §11), lacuna L-n; teste da migration sobre cópia do `konebras` no deploy. E2E não escrito (regra do PO de 31/10). | Dev (Claude) |

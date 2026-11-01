@@ -18,5 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Host\BemAqui.Host\BemAqui.Host.csproj" />
+    <!-- FIS-05: o worker fiscal-pdf-reader roda dentro do teste (socket Unix temporário): a API fala com o leitor de verdade. -->
+    <ProjectReference Include="..\..\src\Workers\BemAqui.PdfReader\BemAqui.PdfReader.csproj" />
   </ItemGroup>
 </Project>

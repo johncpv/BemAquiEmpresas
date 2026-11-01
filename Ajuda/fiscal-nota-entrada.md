@@ -25,3 +25,5 @@ O custo de entrada segue o parâmetro **Crédito de impostos na entrada** (Confi
 **O item não existe no estoque.** Quem pode cadastrar itens clica em **Cadastrar item** e volta para ligar. Ou marque **Sem item de estoque**, se não for material de estoque.
 
 **Errei o de-para.** Enquanto a nota não foi conferida, escolha o item certo de novo. Depois de conferida, a nota não muda.
+
+**A nota mostra "Lida do PDF, sem XML".** Ela foi lida do PDF da DANFE e conferida campo a campo. Segue igual: de-para, pedido, conferência e recebimento. No aviso do topo, **Pedir o XML ao fornecedor** e **Substituir pelo XML** quando ele chegar.

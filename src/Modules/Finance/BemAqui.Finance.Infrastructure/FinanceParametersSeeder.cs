@@ -29,5 +29,8 @@ public sealed class FinanceParametersSeeder : ITenantSeeder
 
         // BNK-01b (ADR 0042): Configurações → Cobrança, com multa, juros e a regra do vencido "A confirmar com a contadora".
         await BillingSettingsService.SeedAsync(db, clock, cancellationToken);
+
+        // FIN-09 (ADR 0042): a régua de cobrança sugerida (−3, 0, +3 e +10 dias, 09:00), desligada.
+        await CollectionRuleService.SeedAsync(db, clock, cancellationToken);
     }
 }

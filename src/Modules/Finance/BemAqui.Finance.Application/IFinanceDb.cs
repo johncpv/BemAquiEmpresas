@@ -76,6 +76,12 @@ public interface IFinanceDb
 
     DbSet<BillingReferenceSequence> BillingReferenceSequences { get; }
 
+    DbSet<CollectionRule> CollectionRules { get; }
+
+    DbSet<CollectionNotice> CollectionNotices { get; }
+
+    DbSet<CollectionPause> CollectionPauses { get; }
+
     /// <summary>Para trocar a conta padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

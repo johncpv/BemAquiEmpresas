@@ -13,12 +13,16 @@ public enum IncomingInvoiceStatus
     Rejected,
 }
 
-/// <summary>De onde veio a nota de entrada: o XML do fornecedor (FIS-04a) ou a leitura do PDF (FIS-05).</summary>
+/// <summary>
+/// De onde veio a nota de entrada: o XML do fornecedor (FIS-04a), a leitura assistida do PDF da DANFE ou a nota digitada (FIS-05). As duas
+/// últimas são marcadas ("Lida do PDF, sem XML" e "Digitada, sem XML") e podem ser substituídas pelo XML depois (CA 10).
+/// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<IncomingInvoiceSource>))]
 public enum IncomingInvoiceSource
 {
     Xml,
     Pdf,
+    Manual,
 }
 
 /// <summary>Como o item da nota foi ligado ao nosso (CA 7): de-para lembrado, sugestão aceita ou escolha do usuário.</summary>
@@ -51,6 +55,9 @@ public sealed record IncomingIssuerAddress(string? Street, string? Number, strin
 
 /// <summary>Impostos do item (<c>imposto</c>): CST/CSOSN do ICMS, bases, alíquotas e valores; PIS e COFINS só o valor.</summary>
 public sealed record IncomingItemTaxes(string? IcmsCst, decimal IcmsBase, decimal IcmsRate, decimal Icms, decimal IcmsStBase, decimal IcmsSt, decimal IpiRate, decimal Ipi, decimal Pis, decimal Cofins);
+
+/// <summary>Diferença entre o valor conferido (lido do PDF ou digitado) e o do XML (FIS-05 CA 10): o campo, em texto, e os dois valores.</summary>
+public sealed record IncomingXmlDifference(string Field, string Checked, string Xml);
 
 /// <summary>Divergência gravada na conferência (CA 12): por item, contra a linha do pedido, em unidade de estoque.</summary>
 public sealed record IncomingDivergence(int Sequence, Guid? PoLineId, decimal QuantityDifference, decimal PriceDifference, decimal? PricePercent, DivergenceLevel QuantityLevel, DivergenceLevel PriceLevel);
@@ -87,7 +94,7 @@ public sealed class IncomingInvoice : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>O fornecedor no Parties, achado pelo CNPJ; null enquanto não existir o cadastro (CA 6).</summary>
     public Guid? PartyId { get; private set; }
 
-    public IncomingInvoiceSource Source { get; init; } = IncomingInvoiceSource.Xml;
+    public IncomingInvoiceSource Source { get; private set; } = IncomingInvoiceSource.Xml;
 
     public IncomingInvoiceStatus Status { get; private set; } = IncomingInvoiceStatus.Imported;
 
@@ -103,15 +110,15 @@ public sealed class IncomingInvoice : Entity, IAuditable, IConcurrencyVersioned
     public IReadOnlyList<IncomingDuplicate> Duplicates { get; init; } = [];
 
     /// <summary>Assinatura conferida (sempre verdadeira: nota com assinatura inválida não entra).</summary>
-    public bool SignatureValid { get; init; }
+    public bool SignatureValid { get; private set; }
 
     /// <summary>CNPJ do certificado que assinou.</summary>
-    public string SignerDocument { get; init; } = string.Empty;
+    public string SignerDocument { get; private set; } = string.Empty;
 
     /// <summary>Protocolo de autorização da SEFAZ (<c>nProt</c>) e quando.</summary>
-    public string Protocol { get; init; } = string.Empty;
+    public string Protocol { get; private set; } = string.Empty;
 
-    public DateTimeOffset? AuthorizedAt { get; init; }
+    public DateTimeOffset? AuthorizedAt { get; private set; }
 
     /// <summary>Sempre falso no MVP: o sistema não consulta a situação da nota na SEFAZ (CA 3, ADR 0027).</summary>
     public bool SefazStatusChecked { get; init; }
@@ -156,9 +163,56 @@ public sealed class IncomingInvoice : Entity, IAuditable, IConcurrencyVersioned
 
     public uint Version { get; set; }
 
+    /// <summary>Diferenças entre o XML que chegou depois e os valores conferidos da nota lida do PDF ou digitada (FIS-05 CA 10).</summary>
+    public IReadOnlyList<IncomingXmlDifference> XmlDifferences { get; private set; } = [];
+
+    /// <summary>Quando e quem trocou a nota lida do PDF ou digitada pelo XML (FIS-05 CA 10).</summary>
+    public DateTimeOffset? ReplacedByXmlAt { get; private set; }
+
+    public Guid? ReplacedByXmlBy { get; private set; }
+
     public bool IsEditable => Status == IncomingInvoiceStatus.Imported;
 
+    /// <summary>Lida do PDF ou digitada: sem XML, sem assinatura e sem protocolo (FIS-05 CA 8 e 9).</summary>
+    public bool WithoutXml => Source != IncomingInvoiceSource.Xml;
+
     public void AttachXml(Guid attachmentId) => XmlAttachmentId = attachmentId;
+
+    /// <summary>Prova do XML (FIS-04a): a assinatura conferida, o CNPJ do certificado e o protocolo da SEFAZ.</summary>
+    public void SetXmlProof(string signerDocument, string protocol, DateTimeOffset? authorizedAt)
+    {
+        Source = IncomingInvoiceSource.Xml;
+        SignatureValid = true;
+        SignerDocument = signerDocument;
+        Protocol = protocol;
+        AuthorizedAt = authorizedAt;
+    }
+
+    /// <summary>Nota que nasce da leitura do PDF (com o PDF de anexo) ou digitada (FIS-05 CA 8 e 9): sem assinatura nem protocolo.</summary>
+    public void FromReading(IncomingInvoiceSource source, Guid? pdfAttachmentId)
+    {
+        Source = source;
+        PdfAttachmentId = pdfAttachmentId;
+        SignatureValid = false;
+        SignerDocument = string.Empty;
+        Protocol = string.Empty;
+        AuthorizedAt = null;
+    }
+
+    /// <summary>
+    /// "Substituir pelo XML" (FIS-05 CA 10): a nota lida do PDF ou digitada passa a ter o XML validado (assinatura e protocolo) e a origem
+    /// <c>Xml</c>. Os valores conferidos ficam (o recebimento e os títulos já feitos continuam valendo); as diferenças com o XML ficam guardadas.
+    /// </summary>
+    public void ReplaceWithXml(Guid xmlAttachmentId, string signerDocument, string protocol, DateTimeOffset? authorizedAt, IReadOnlyList<IncomingXmlDifference> differences, Guid? by, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(differences);
+        XmlAttachmentId = xmlAttachmentId;
+        SetXmlProof(signerDocument, protocol, authorizedAt);
+        XmlDifferences = differences;
+        ReplacedByXmlAt = now;
+        ReplacedByXmlBy = by;
+        UpdatedAt = now;
+    }
 
     public void SetParty(Guid? partyId, DateTimeOffset now)
     {

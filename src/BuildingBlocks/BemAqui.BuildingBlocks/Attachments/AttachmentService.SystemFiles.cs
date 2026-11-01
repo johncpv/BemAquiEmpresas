@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.BuildingBlocks.Attachments;
@@ -49,6 +50,40 @@ public sealed partial class AttachmentService
         db.Attachments.Remove(attachment);
         return true;
     }
+
+    /// <summary>
+    /// Anonimização do titular (LGPD-01b CA 7): apaga do storage o conteúdo dos anexos do dono e mantém só a linha, com o nome trocado pelo
+    /// marcador. Idempotente (anexo já apagado fica como está). O chamador confere o dono e salva (a auditoria leva só o nome dos campos).
+    /// Devolve quantos anexos o dono tem (apagados agora ou antes).
+    /// </summary>
+    public async Task<int> RemoveContentAsync(string ownerType, IReadOnlyCollection<Guid> ownerIds, string marker, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(ownerIds);
+        if (ownerIds.Count == 0)
+        {
+            return 0;
+        }
+
+        var list = await db.Attachments.Where(a => a.OwnerType == ownerType && ownerIds.Contains(a.OwnerId)).ToListAsync(cancellationToken);
+        foreach (var attachment in list.Where(a => a.ContentRemovedAt is null))
+        {
+            if (!string.IsNullOrEmpty(attachment.StoragePath))
+            {
+                await storage.DeleteAsync(attachment.StoragePath, cancellationToken);
+            }
+
+            db.Entry(attachment).Property(a => a.FileName).CurrentValue = SafeDisplayName(marker);
+            attachment.ContentRemovedAt = clock.GetUtcNow();
+        }
+
+        return list.Count;
+    }
+
+    /// <summary>Quantos anexos o dono tem (prévia da anonimização, CA 7).</summary>
+    public Task<int> CountAsync(string ownerType, IReadOnlyCollection<Guid> ownerIds, CancellationToken cancellationToken = default) =>
+        ownerIds is { Count: > 0 } ? db.Attachments.CountAsync(a => a.OwnerType == ownerType && ownerIds.Contains(a.OwnerId), cancellationToken) : Task.FromResult(0);
+
+    private static Error ContentRemoved() => Error.NotFound("attachment.content_removed", "O arquivo foi apagado na anonimização do titular.");
 
     /// <summary>Anexo por id, para quem já conferiu a permissão do dono (ex.: o PDF atual do orçamento).</summary>
     public Task<Attachment?> FindAsync(Guid id, CancellationToken cancellationToken = default) =>

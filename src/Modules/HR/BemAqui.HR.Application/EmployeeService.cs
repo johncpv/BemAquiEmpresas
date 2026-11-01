@@ -139,7 +139,7 @@ public sealed partial class EmployeeService(
         {
             var (positionName, center) = positions.GetValueOrDefault(e.PositionId, (string.Empty, null));
             return new EmployeeDetail(e.Id, e.Name, e.Registration, e.PositionId, positionName, center, center is { } c ? centers.GetValueOrDefault(c) : null,
-                e.WorkScheduleId, e.UnionId, e.AdmissionDate, e.TerminationDate, EmployeeLeaveRules.Situation(e.Status, onLeave.Contains(e.Id)), e.Version);
+                e.WorkScheduleId, e.UnionId, e.AdmissionDate, e.TerminationDate, EmployeeLeaveRules.Situation(e.Status, onLeave.Contains(e.Id)), e.Version, e.AnonymizedAt, e.AnonymizationRequest);
         }).ToList();
     }
 

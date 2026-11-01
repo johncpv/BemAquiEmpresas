@@ -47,4 +47,10 @@ public sealed class Attachment : Entity, IAuditable
     public Guid? UploadedBy { get; init; }
 
     public AttachmentOrigin Origin { get; init; } = AttachmentOrigin.User;
+
+    /// <summary>
+    /// Conteúdo apagado do storage na anonimização do titular (LGPD-01b CA 7): a linha fica, com o nome trocado pelo marcador, e o download
+    /// responde que o arquivo não existe mais.
+    /// </summary>
+    public DateTimeOffset? ContentRemovedAt { get; set; }
 }

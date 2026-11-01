@@ -3558,6 +3558,183 @@
         }
       }
     },
+    "/api/v1/settings/privacy-requests/{id}/anonymization/preview": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "PreviewPrivacyAnonymization",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyAnonymizationPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/anonymization": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "AnonymizePrivacySubject",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnonymizePrivacySubjectInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyAnonymizationStarted"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-retention": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ListRetentionRules",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RetentionRuleRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-retention/{id}": {
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SaveRetentionRule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveRetentionRuleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionRuleRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-retention/{id}/confirm": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ConfirmRetentionRule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmRetentionRuleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionRuleRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/parties": {
       "get": {
         "tags": [
@@ -27587,6 +27764,107 @@
         }
       }
     },
+    "/api/v1/finance/receivables/{id}/collection": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetReceivableCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableCollectionView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/collection-pause": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "PauseReceivableCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionPauseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableCollectionView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ResumeReceivableCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableCollectionView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/receivables/{id}/billing-slips": {
       "get": {
         "tags": [
@@ -27864,6 +28142,107 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BillingSlipResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/parties/{id}/collection": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetPartyCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyCollectionView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/parties/{id}/collection-pause": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "PausePartyCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionPauseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyCollectionView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ResumePartyCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyCollectionView"
                 }
               }
             }
@@ -30978,6 +31357,84 @@
         }
       }
     },
+    "/api/v1/settings/billing/collection-rule": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetCollectionRule",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionRuleView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SaveCollectionRule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionRuleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionRuleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/billing/collection-rule/preview": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "PreviewCollectionReminder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionPreviewInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/fiscal/integration": {
       "get": {
         "tags": [
@@ -31598,6 +32055,13 @@
             }
           },
           {
+            "name": "cancellationRequested",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "name": "page",
             "in": "query",
             "schema": {
@@ -32134,6 +32598,390 @@
         }
       }
     },
+    "/api/v1/fiscal/outgoing-invoices/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "CancelOutgoingInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelInvoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalEventResultView"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalEventResultView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/cancellation-requests": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "RequestOutgoingInvoiceCancellation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancellationRequestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancellationRequestView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/cancellation-requests/{requestId}/decline": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "DeclineOutgoingInvoiceCancellation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeclineCancellationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancellationRequestView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/corrections": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "CorrectOutgoingInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectInvoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalEventResultView"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalEventResultView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/events": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ListOutgoingInvoiceEvents",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FiscalEventView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/events/{eventId}": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetOutgoingInvoiceEvent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalEventView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/events/{eventId}/xml": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "DownloadOutgoingInvoiceEventXml",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/outgoing-invoices/{id}/cancelled-danfe": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "DownloadCancelledOutgoingInvoiceDanfe",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/number-gaps": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ListNumberGaps",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NumberGapList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/number-gaps/invalidate": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "InvalidateNumberGaps",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvalidateNumbersRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidationResultView"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidationResultView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/fiscal/incoming-invoices": {
       "get": {
         "tags": [
@@ -32551,6 +33399,279 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RejectIncomingInvoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingInvoiceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/pdf": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "UploadIncomingInvoicePdf",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/IncomingXmlForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingReadingView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/manual": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "StartManualIncomingInvoice",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingReadingView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "GetIncomingInvoiceReading",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingReadingView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading/pdf": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "DownloadIncomingInvoiceReadingPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading/manual": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "SwitchIncomingInvoiceReadingToManual",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingReadingView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading/xml-request": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "RequestIncomingInvoiceXml",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/XmlRequestResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading/check": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "CheckIncomingInvoiceReading",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckReadingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckReadingResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "DownloadIncomingInvoicePdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/fiscal/incoming-invoices/{id}/replace-xml": {
+      "post": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ReplaceIncomingInvoiceWithXml",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/IncomingXmlForm"
               }
             }
           },
@@ -34682,6 +35803,49 @@
           }
         }
       },
+      "AccessKeyView": {
+        "required": [
+          "key",
+          "stateCode",
+          "year",
+          "month",
+          "issuerDocument",
+          "model",
+          "series",
+          "number"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "stateCode": {
+            "type": "string"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "month": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "issuerDocument": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "series": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "AccessTokenResponse": {
         "required": [
           "accessToken",
@@ -36277,6 +37441,39 @@
         ],
         "type": "object",
         "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "AnonymizationAction": {
+        "enum": [
+          "Anonymize",
+          "Retain",
+          "Keep"
+        ]
+      },
+      "AnonymizePrivacySubjectInput": {
+        "required": [
+          "confirmation",
+          "twoFactorCode",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "confirmation": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "twoFactorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "version": {
             "type": "integer",
             "format": "uint32"
@@ -42261,6 +43458,37 @@
         },
         "additionalProperties": false
       },
+      "CancelInvoiceRequest": {
+        "required": [
+          "reason",
+          "requestId",
+          "notifyCustomer",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requestId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "notifyCustomer": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "CancellationLine": {
         "required": [
           "receivableId",
@@ -42304,6 +43532,97 @@
           "isPayable": {
             "type": "boolean",
             "default": false
+          }
+        }
+      },
+      "CancellationRequestInput": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CancellationRequestStatus": {
+        "enum": [
+          "Pending",
+          "Done",
+          "Declined",
+          "Expired"
+        ]
+      },
+      "CancellationRequestView": {
+        "required": [
+          "id",
+          "invoiceId",
+          "reason",
+          "status",
+          "requestedAt",
+          "requestedByName",
+          "expiresAt",
+          "decidedAt",
+          "decidedByName",
+          "decisionReason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CancellationRequestStatus"
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "requestedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "decidedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "decisionReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -43212,6 +44531,122 @@
           null
         ]
       },
+      "CheckReadingRequest": {
+        "required": [
+          "accessKey",
+          "issuedOn",
+          "issuerName",
+          "recipientDocument",
+          "totals",
+          "items",
+          "confirmed"
+        ],
+        "type": "object",
+        "properties": {
+          "accessKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issuedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "issuerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "recipientDocument": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "totals": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReadingTotalsInput"
+              }
+            ]
+          },
+          "items": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ReadingItemInput"
+            }
+          },
+          "confirmed": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CheckReadingResult": {
+        "required": [
+          "invoiceId",
+          "accessKey",
+          "number",
+          "series",
+          "issuerName",
+          "total",
+          "items",
+          "remembered",
+          "source"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accessKey": {
+            "type": "string"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "series": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "issuerName": {
+            "type": "string"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remembered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "source": {
+            "$ref": "#/components/schemas/IncomingInvoiceSource"
+          }
+        }
+      },
       "CloseInventoryCountInput": {
         "required": [
           "uncountedPolicy",
@@ -43462,6 +44897,394 @@
           },
           "fromCache": {
             "type": "boolean"
+          }
+        }
+      },
+      "CollectionNext": {
+        "required": [
+          "date",
+          "step",
+          "stepLabel",
+          "blocked"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "step": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "stepLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "blocked": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CollectionNoticeView": {
+        "required": [
+          "id",
+          "receivableId",
+          "receivableNumber",
+          "step",
+          "stepLabel",
+          "scheduledFor",
+          "status",
+          "reason",
+          "createdAt",
+          "sentAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receivableNumber": {
+            "type": "string"
+          },
+          "step": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stepLabel": {
+            "type": "string"
+          },
+          "scheduledFor": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sentAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "CollectionPauseInput": {
+        "required": [
+          "reason",
+          "until"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "until": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionPauseView": {
+        "required": [
+          "id",
+          "target",
+          "reason",
+          "from",
+          "until",
+          "createdByName",
+          "createdAt",
+          "resumedByName",
+          "resumedAt",
+          "active"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "target": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "until": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resumedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "resumedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CollectionPreview": {
+        "required": [
+          "subject",
+          "body",
+          "digitableLine",
+          "sampleNote"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "digitableLine": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sampleNote": {
+            "type": "string"
+          }
+        }
+      },
+      "CollectionPreviewInput": {
+        "required": [
+          "days",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionRuleInput": {
+        "required": [
+          "isActive",
+          "sendTime",
+          "steps",
+          "replyTo",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean"
+          },
+          "sendTime": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "steps": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/CollectionStepInput"
+            }
+          },
+          "replyTo": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionRuleView": {
+        "required": [
+          "id",
+          "isActive",
+          "sendTime",
+          "steps",
+          "replyTo",
+          "companyEmail",
+          "placeholders",
+          "maxSteps",
+          "nextRunCount",
+          "nextRunDate",
+          "canEdit",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sendTime": {
+            "type": "string"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionStepView"
+            }
+          },
+          "replyTo": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "companyEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "placeholders": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "maxSteps": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextRunCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextRunDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "CollectionStepInput": {
+        "required": [
+          "days",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionStepView": {
+        "required": [
+          "days",
+          "label",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "label": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
           }
         }
       },
@@ -44168,6 +45991,18 @@
         },
         "additionalProperties": false
       },
+      "ConfirmRetentionRuleInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "ConfirmTwoFactorRequest": {
         "required": [
           "code"
@@ -44765,6 +46600,29 @@
           "factor": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "CorrectInvoiceRequest": {
+        "required": [
+          "text",
+          "notifyCustomer",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "notifyCustomer": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -45427,6 +47285,20 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "DeclineCancellationInput": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -47079,6 +48951,19 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "anonymizedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "anonymizationRequest": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -49213,6 +51098,126 @@
           "Homologation",
           "Production"
         ]
+      },
+      "FiscalEventResultView": {
+        "required": [
+          "status",
+          "message",
+          "invoice"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/FiscalEventStatus"
+          },
+          "message": {
+            "type": "string"
+          },
+          "invoice": {
+            "$ref": "#/components/schemas/OutgoingInvoiceView"
+          }
+        }
+      },
+      "FiscalEventStatus": {
+        "enum": [
+          "Requested",
+          "Registered",
+          "Rejected"
+        ]
+      },
+      "FiscalEventType": {
+        "enum": [
+          "Cancel",
+          "Correction",
+          "Invalidation"
+        ]
+      },
+      "FiscalEventView": {
+        "required": [
+          "id",
+          "type",
+          "typeLabel",
+          "sequence",
+          "text",
+          "status",
+          "protocol",
+          "requestedAt",
+          "requestedByName",
+          "registeredAt",
+          "rejectionCode",
+          "rejectionReason",
+          "hasXml",
+          "cancellationRequestId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/FiscalEventType"
+          },
+          "typeLabel": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FiscalEventStatus"
+          },
+          "protocol": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "requestedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "registeredAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "rejectionCode": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "rejectionReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hasXml": {
+            "type": "boolean"
+          },
+          "cancellationRequestId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
       },
       "FiscalIntegrationView": {
         "required": [
@@ -52972,7 +54977,8 @@
           "page",
           "pageSize",
           "total",
-          "canImport"
+          "canImport",
+          "readings"
         ],
         "type": "object",
         "properties": {
@@ -52996,6 +55002,12 @@
           },
           "canImport": {
             "type": "boolean"
+          },
+          "readings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IncomingReadingSummary"
+            }
           }
         }
       },
@@ -53034,6 +55046,13 @@
           }
         }
       },
+      "IncomingInvoiceSource": {
+        "enum": [
+          "Xml",
+          "Pdf",
+          "Manual"
+        ]
+      },
       "IncomingInvoiceStage": {
         "enum": [
           "Imported",
@@ -53065,7 +55084,8 @@
           "hasOrder",
           "itemsCount",
           "pendingItems",
-          "importedAt"
+          "importedAt",
+          "source"
         ],
         "type": "object",
         "properties": {
@@ -53118,6 +55138,9 @@
           "importedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "source": {
+            "$ref": "#/components/schemas/IncomingInvoiceSource"
           }
         }
       },
@@ -53381,6 +55404,58 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "source": {
+            "$ref": "#/components/schemas/IncomingInvoiceSource"
+          },
+          "sourceMark": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pdfAttachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "xmlDifferences": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/IncomingXmlDifference"
+            }
+          },
+          "replacedByXmlAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "replacedByXmlByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "readingId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "xmlRequestedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -53828,6 +55903,231 @@
           }
         }
       },
+      "IncomingReadingPermissions": {
+        "required": [
+          "import",
+          "createParty"
+        ],
+        "type": "object",
+        "properties": {
+          "import": {
+            "type": "boolean"
+          },
+          "createParty": {
+            "type": "boolean"
+          }
+        }
+      },
+      "IncomingReadingStatus": {
+        "enum": [
+          "Reading",
+          "Ready",
+          "Failed",
+          "Checked"
+        ]
+      },
+      "IncomingReadingSummary": {
+        "required": [
+          "id",
+          "source",
+          "status",
+          "result",
+          "fileName",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "$ref": "#/components/schemas/IncomingInvoiceSource"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IncomingReadingStatus"
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PdfReadingOutcome"
+              }
+            ]
+          },
+          "fileName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "IncomingReadingView": {
+        "required": [
+          "id",
+          "source",
+          "status",
+          "result",
+          "message",
+          "hasPdf",
+          "fileName",
+          "pages",
+          "durationMs",
+          "fields",
+          "warnings",
+          "key",
+          "supplier",
+          "tenantDocument",
+          "duplicateInvoiceId",
+          "duplicateMessage",
+          "xmlByKeyAvailable",
+          "xmlByKeyMessage",
+          "xmlRequestedAt",
+          "invoiceId",
+          "createdAt",
+          "can"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "$ref": "#/components/schemas/IncomingInvoiceSource"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IncomingReadingStatus"
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PdfReadingOutcome"
+              }
+            ]
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hasPdf": {
+            "type": "boolean"
+          },
+          "fileName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pages": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "durationMs": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReadingField"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "key": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AccessKeyView"
+              }
+            ]
+          },
+          "supplier": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IncomingSupplierView"
+              }
+            ]
+          },
+          "tenantDocument": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "duplicateInvoiceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "duplicateMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "xmlByKeyAvailable": {
+            "type": "boolean"
+          },
+          "xmlByKeyMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "xmlRequestedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "invoiceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "can": {
+            "$ref": "#/components/schemas/IncomingReadingPermissions"
+          }
+        }
+      },
       "IncomingReceiptDuplicate": {
         "required": [
           "number",
@@ -53886,6 +56186,25 @@
           },
           "isActive": {
             "type": "boolean"
+          }
+        }
+      },
+      "IncomingXmlDifference": {
+        "required": [
+          "field",
+          "checked",
+          "xml"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "checked": {
+            "type": "string"
+          },
+          "xml": {
+            "type": "string"
           }
         }
       },
@@ -54573,6 +56892,77 @@
           "amount": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "InvalidateNumbersRequest": {
+        "required": [
+          "series",
+          "firstNumber",
+          "lastNumber",
+          "justification"
+        ],
+        "type": "object",
+        "properties": {
+          "series": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "firstNumber": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "lastNumber": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "justification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "InvalidationResultView": {
+        "required": [
+          "status",
+          "message",
+          "series",
+          "firstNumber",
+          "lastNumber",
+          "protocol",
+          "eventId"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/FiscalEventStatus"
+          },
+          "message": {
+            "type": "string"
+          },
+          "series": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "firstNumber": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "lastNumber": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "protocol": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -55364,6 +57754,108 @@
               "type": "string",
               "format": "uuid"
             }
+          }
+        }
+      },
+      "InvoiceCancellationView": {
+        "required": [
+          "deadline",
+          "withinWindow",
+          "canCancel",
+          "canRequest",
+          "canDecline",
+          "canCorrect",
+          "corrections",
+          "correctionsLeft",
+          "cancellationSentAt",
+          "pendingRequest",
+          "cancelledAt",
+          "cancelledByName",
+          "cancellationReason",
+          "cancellationProtocol",
+          "hasCancelledDanfe",
+          "eventCount"
+        ],
+        "type": "object",
+        "properties": {
+          "deadline": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "withinWindow": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "canRequest": {
+            "type": "boolean"
+          },
+          "canDecline": {
+            "type": "boolean"
+          },
+          "canCorrect": {
+            "type": "boolean"
+          },
+          "corrections": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "correctionsLeft": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancellationSentAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "pendingRequest": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CancellationRequestView"
+              }
+            ]
+          },
+          "cancelledAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "cancelledByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancellationReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancellationProtocol": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hasCancelledDanfe": {
+            "type": "boolean"
+          },
+          "eventCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -60806,6 +63298,112 @@
           }
         }
       },
+      "NumberGapList": {
+        "required": [
+          "ranges",
+          "total",
+          "canInvalidate"
+        ],
+        "type": "object",
+        "properties": {
+          "ranges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NumberGapRangeView"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "canInvalidate": {
+            "type": "boolean"
+          }
+        }
+      },
+      "NumberGapRangeView": {
+        "required": [
+          "series",
+          "firstNumber",
+          "lastNumber",
+          "count",
+          "label",
+          "oldestAt",
+          "old",
+          "numbers"
+        ],
+        "type": "object",
+        "properties": {
+          "series": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "firstNumber": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "lastNumber": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "label": {
+            "type": "string"
+          },
+          "oldestAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "old": {
+            "type": "boolean"
+          },
+          "numbers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NumberGapRow"
+            }
+          }
+        }
+      },
+      "NumberGapRow": {
+        "required": [
+          "id",
+          "series",
+          "number",
+          "reason",
+          "createdAt",
+          "invoiceId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "series": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
       "OfxContingencyInput": {
         "required": [
           "reason",
@@ -62899,7 +65497,8 @@
           "createdAt",
           "createdByName",
           "discardedAt",
-          "version"
+          "version",
+          "cancellation"
         ],
         "type": "object",
         "properties": {
@@ -63183,6 +65782,9 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "cancellation": {
+            "$ref": "#/components/schemas/InvoiceCancellationView"
           }
         }
       },
@@ -64527,6 +67129,51 @@
           }
         }
       },
+      "PartyCollectionView": {
+        "required": [
+          "ruleActive",
+          "sentThisMonth",
+          "notices",
+          "activePause",
+          "pauses",
+          "canEdit"
+        ],
+        "type": "object",
+        "properties": {
+          "ruleActive": {
+            "type": "boolean"
+          },
+          "sentThisMonth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionNoticeView"
+            }
+          },
+          "activePause": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CollectionPauseView"
+              }
+            ]
+          },
+          "pauses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionPauseView"
+            }
+          },
+          "canEdit": {
+            "type": "boolean"
+          }
+        }
+      },
       "PartyContactDto": {
         "required": [
           "id",
@@ -64721,6 +67368,19 @@
             ]
           },
           "importSource": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "anonymizedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "anonymizationRequest": {
             "type": [
               "null",
               "string"
@@ -69961,6 +72621,18 @@
           }
         }
       },
+      "PdfReadingOutcome": {
+        "enum": [
+          "Read",
+          "NoText",
+          "Unsafe",
+          "TooManyPages",
+          "Invalid",
+          "Failed",
+          "TimedOut",
+          null
+        ]
+      },
       "PendingFabricationItem": {
         "required": [
           "projectItemId",
@@ -70057,6 +72729,74 @@
           "total": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "PersonalDataAnonymizationPlan": {
+        "required": [
+          "module",
+          "title",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonalDataPlanItem"
+            }
+          },
+          "blocker": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isEmpty": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PersonalDataPlanItem": {
+        "required": [
+          "action",
+          "label",
+          "source",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/AnonymizationAction"
+          },
+          "label": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "retainedUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -71151,6 +73891,166 @@
           }
         }
       },
+      "PrivacyAnonymizationPreview": {
+        "required": [
+          "requestId",
+          "requestNumber",
+          "confirmationText",
+          "marker",
+          "modules",
+          "blockers",
+          "deletionNotice",
+          "backupNotice",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestNumber": {
+            "type": "string"
+          },
+          "confirmationText": {
+            "type": "string"
+          },
+          "marker": {
+            "type": "string"
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonalDataAnonymizationPlan"
+            }
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "deletionNotice": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "backupNotice": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PrivacyAnonymizationStarted": {
+        "required": [
+          "request",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/PrivacyRequestDetail"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "PrivacyAnonymizationStatus": {
+        "enum": [
+          "None",
+          "Running",
+          "Partial",
+          "Done"
+        ],
+        "default": "None"
+      },
+      "PrivacyAnonymizationStep": {
+        "required": [
+          "module",
+          "title",
+          "status",
+          "at",
+          "error",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PrivacyAnonymizationStepStatus"
+          },
+          "at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonalDataPlanItem"
+            }
+          }
+        }
+      },
+      "PrivacyAnonymizationStepStatus": {
+        "enum": [
+          "Pending",
+          "Done",
+          "Failed"
+        ]
+      },
+      "PrivacyAnonymizationSummary": {
+        "required": [
+          "anonymized",
+          "retained",
+          "kept",
+          "retainedUntil",
+          "retainedWithoutDate"
+        ],
+        "type": "object",
+        "properties": {
+          "anonymized": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "retained": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "kept": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "retainedUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "retainedWithoutDate": {
+            "type": "boolean"
+          }
+        }
+      },
       "PrivacyCorrectionTarget": {
         "required": [
           "link",
@@ -71461,6 +74361,51 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "canAnonymize": {
+            "type": "boolean",
+            "default": false
+          },
+          "anonymizationStatus": {
+            "$ref": "#/components/schemas/PrivacyAnonymizationStatus"
+          },
+          "anonymizationSteps": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PrivacyAnonymizationStep"
+            }
+          },
+          "anonymizationSummary": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PrivacyAnonymizationSummary"
+              }
+            ]
+          },
+          "anonymizedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "anonymizedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "backupNotice": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -78201,6 +81146,189 @@
           }
         }
       },
+      "ReadingField": {
+        "required": [
+          "key",
+          "value",
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "$ref": "#/components/schemas/ReadingFieldState"
+          }
+        }
+      },
+      "ReadingFieldState": {
+        "enum": [
+          "Read",
+          "Uncertain",
+          "NotFound"
+        ]
+      },
+      "ReadingItemInput": {
+        "required": [
+          "code",
+          "description",
+          "ncm",
+          "unit",
+          "quantity",
+          "unitPrice",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ncm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ReadingTotalsInput": {
+        "required": [
+          "products",
+          "freight",
+          "insurance",
+          "discount",
+          "otherExpenses",
+          "ipi",
+          "icmsBase",
+          "icms",
+          "icmsStBase",
+          "icmsSt",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "products": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "freight": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "insurance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "discount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "otherExpenses": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "ipi": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "icmsBase": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "icms": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "icmsStBase": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "icmsSt": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "total": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "ReadyToShipLine": {
         "required": [
           "itemId",
@@ -78367,6 +81495,61 @@
             "type": "string"
           },
           "isDefault": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReceivableCollectionView": {
+        "required": [
+          "ruleActive",
+          "next",
+          "notices",
+          "activePause",
+          "partyPause",
+          "pauses",
+          "canEdit"
+        ],
+        "type": "object",
+        "properties": {
+          "ruleActive": {
+            "type": "boolean"
+          },
+          "next": {
+            "$ref": "#/components/schemas/CollectionNext"
+          },
+          "notices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionNoticeView"
+            }
+          },
+          "activePause": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CollectionPauseView"
+              }
+            ]
+          },
+          "partyPause": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CollectionPauseView"
+              }
+            ]
+          },
+          "pauses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionPauseView"
+            }
+          },
+          "canEdit": {
             "type": "boolean"
           }
         }
@@ -80942,6 +84125,81 @@
           }
         }
       },
+      "RetentionBase": {
+        "enum": [
+          "None",
+          "LastPayment",
+          "Termination",
+          "FiscalYearEnd"
+        ]
+      },
+      "RetentionRuleKind": {
+        "enum": [
+          "Anytime",
+          "AfterYears"
+        ]
+      },
+      "RetentionRuleRow": {
+        "required": [
+          "id",
+          "subjectType",
+          "fieldGroup",
+          "label",
+          "rule",
+          "years",
+          "baseDate",
+          "confirmed",
+          "confirmedAt",
+          "confirmedByName",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subjectType": {
+            "$ref": "#/components/schemas/PersonalDataSubjectKind"
+          },
+          "fieldGroup": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "rule": {
+            "$ref": "#/components/schemas/RetentionRuleKind"
+          },
+          "years": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baseDate": {
+            "$ref": "#/components/schemas/RetentionBase"
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "confirmedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "RetentionSuggestion": {
         "required": [
           "payableId",
@@ -83070,6 +86328,27 @@
             "items": {
               "$ref": "#/components/schemas/ModuleReleaseChange"
             }
+          }
+        }
+      },
+      "SaveRetentionRuleInput": {
+        "required": [
+          "rule",
+          "years",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "rule": {
+            "$ref": "#/components/schemas/RetentionRuleKind"
+          },
+          "years": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -91657,6 +94936,19 @@
           },
           "inviteOpen": {
             "type": "boolean"
+          },
+          "anonymizedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "anonymizationRequest": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -92114,6 +95406,22 @@
           }
         },
         "additionalProperties": false
+      },
+      "XmlRequestResult": {
+        "required": [
+          "to",
+          "requestedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string"
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     }
   },

@@ -53,6 +53,13 @@ public sealed partial class OutgoingInvoiceReconciler(
         return stored;
     }
 
+    /// <summary>Cancelada que ficou sem o evento no outbox, o DANFE com a marca ou o XML do evento (FIS-03b): a conferência completa.</summary>
+    public Task CompleteCancelledAsync(OutgoingInvoice invoice, IFiscalEmitter emitter, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(invoice);
+        return effects.OnStateAsync(invoice, OutgoingInvoiceStatus.Cancelled, emitter, cancellationToken);
+    }
+
     /// <summary>Baixa e guarda o XML autorizado; falhou, fica para a próxima conferência (a nota já está autorizada).</summary>
     public async Task<bool> StoreXmlAsync(OutgoingInvoice invoice, string accessKey, IFiscalEmitter emitter, CancellationToken cancellationToken = default)
     {

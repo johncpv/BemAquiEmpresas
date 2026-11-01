@@ -41,6 +41,7 @@ docker run --rm --network bqe-restore -v "$PWD/restore:/dumps:ro" -v "$PWD/bqe-b
 #    AllowKeyRingCreation=false. Se ela subir e o tenant responder, os segredos decifram.
 ```
 
+- **Anonimizações do titular (LGPD-01b, ADR 0037 §2):** o backup não é editado; antes de devolver o banco restaurado ao uso, **reaplique os pedidos de anonimização concluídos depois da data do backup**. Liste-os no banco vivo (`select number, subject_type, subject_id, anonymized_at from settings.privacy_requests where anonymization_status = 'Done' and anonymized_at > '<data do backup>'`) e, no ambiente restaurado, refaça cada um em Configurações → Privacidade (o pedido, a identidade conferida e "Anonimizar", com o mesmo titular). Sem isso, o dado de quem pediu a anonimização volta ao banco. Os backups expiram em até 30 dias (FND-10b).
 - **Outros tenants:** os que não foram restaurados aparecem no log com "database does not exist". Fica restrito a eles; o tenant restaurado funciona normalmente.
 - **Banco de produção:** para trocar o banco de **um** tenant no PostgreSQL de produção, siga os mesmos passos com outro nome de banco e troque só depois de conferir. Isso exige ADR e janela combinada com o PO.
 
