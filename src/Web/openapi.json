@@ -3058,6 +3058,506 @@
         }
       }
     },
+    "/api/v1/settings/privacy-requests": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ListPrivacyRequests",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PrivacyRequestStatus"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PrivacyRequestKind"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfPrivacyRequestRow"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "CreatePrivacyRequest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePrivacyRequestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequestDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/subjects": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SearchPrivacySubjects",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/PersonalDataSubjectKind"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PersonalDataSubjectMatch"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/settings": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetPrivacySettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacySettingsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SavePrivacySettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacySettingsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacySettingsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetPrivacyRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequestDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/history": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetPrivacyRequestHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PrivacyHistoryEntry"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/identity": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "VerifyPrivacySubjectIdentity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyIdentityInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequestDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/conclude": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ConcludePrivacyRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConcludePrivacyRequestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequestDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/refuse": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "RefusePrivacyRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefusePrivacyRequestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequestDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/correction": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "OpenPrivacyCorrection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyCorrectionTarget"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/export": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ExportPrivacySubjectData",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyExportStarted"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/export/link": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "CreatePrivacyExportLink",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyDownloadLink"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/export/download": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "DownloadPrivacyExport",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/parties": {
       "get": {
         "tags": [
@@ -23983,6 +24483,98 @@
         }
       }
     },
+    "/api/v1/finance/bank-statement-rules": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListBankStatementRules",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BankStatementRuleView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreateBankStatementRule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankStatementRuleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankStatementRuleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-statement-rules/{ruleId}": {
+      "put": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "UpdateBankStatementRule",
+        "parameters": [
+          {
+            "name": "ruleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankStatementRuleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankStatementRuleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/revenue-targets/{year}": {
       "get": {
         "tags": [
@@ -28083,6 +28675,555 @@
         }
       }
     },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetReconciliation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconciliationView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/candidates": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListReconciliationCandidates",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "outflow",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "paymentsOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReconTransaction"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/pending-lines": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListReconciliationPendingLines",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "outflow",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReconLine"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliations": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "Reconcile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReconcileInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconcileResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliations/accept-high": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "AcceptHighReconciliations",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptHighInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptHighResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliations/{rid}/undo": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "UndoReconciliation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "rid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UndoReconciliationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconcileResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/lines/{lineId}/bank-entry": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreateBankEntryFromLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LineBankEntryInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconcileResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/lines/{lineId}/settle": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "SettleFromLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LineSettlementInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconcileResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/lines/{lineId}/history": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetStatementLineHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconHistory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/transactions/{transactionId}/history": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetTransactionReconciliationHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "transactionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconHistory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/closing-preview": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetReconciliationClosingPreview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClosingPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/close": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CloseReconciliation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseReconciliationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconciliationClosingView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/billing-slips/pending-review": {
       "get": {
         "tags": [
@@ -31295,6 +32436,49 @@
           "Leave",
           "Both"
         ]
+      },
+      "AcceptHighInput": {
+        "required": [
+          "from",
+          "to",
+          "pairs"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "pairs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconcilePairInput"
+            }
+          }
+        }
+      },
+      "AcceptHighResult": {
+        "required": [
+          "reconciled",
+          "refused"
+        ],
+        "type": "object",
+        "properties": {
+          "reconciled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "refused": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RefusedPair"
+            }
+          }
+        }
       },
       "AcceptInviteRequest": {
         "required": [
@@ -35628,6 +36812,110 @@
           }
         }
       },
+      "BankStatementRuleInput": {
+        "required": [
+          "keyword",
+          "lineKind",
+          "entryKind",
+          "accountId"
+        ],
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lineKind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatementLineKind"
+              }
+            ]
+          },
+          "entryKind": {
+            "$ref": "#/components/schemas/BankEntryKind"
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32",
+            "default": 0
+          }
+        }
+      },
+      "BankStatementRuleView": {
+        "required": [
+          "id",
+          "keyword",
+          "lineKind",
+          "entryKind",
+          "accountId",
+          "accountName",
+          "isActive",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "keyword": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lineKind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatementLineKind"
+              }
+            ]
+          },
+          "entryKind": {
+            "$ref": "#/components/schemas/BankEntryKind"
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "accountName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "BankStatementView": {
         "required": [
           "accountId",
@@ -39152,6 +40440,95 @@
         },
         "additionalProperties": false
       },
+      "CloseReconciliationInput": {
+        "required": [
+          "until"
+        ],
+        "type": "object",
+        "properties": {
+          "until": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "ClosingPreview": {
+        "required": [
+          "until",
+          "from",
+          "allowed",
+          "refusal",
+          "lines",
+          "reconciled",
+          "ignored",
+          "credits",
+          "debits",
+          "bankBalance",
+          "systemBalance",
+          "difference"
+        ],
+        "type": "object",
+        "properties": {
+          "until": {
+            "type": "string",
+            "format": "date"
+          },
+          "from": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "allowed": {
+            "type": "boolean"
+          },
+          "refusal": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reconciled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ignored": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "credits": {
+            "type": "number",
+            "format": "double"
+          },
+          "debits": {
+            "type": "number",
+            "format": "double"
+          },
+          "bankBalance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "systemBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "difference": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "CnpjAddress": {
         "required": [
           "zipCode",
@@ -39952,6 +41329,31 @@
           },
           "completedWithoutStock": {
             "type": "boolean"
+          }
+        }
+      },
+      "ConcludePrivacyRequestInput": {
+        "required": [
+          "respondedOn",
+          "response",
+          "fileSent",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "respondedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "response": {
+            "type": "string"
+          },
+          "fileSent": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -40850,6 +42252,59 @@
           },
           "confirmation": {
             "type": "string"
+          }
+        }
+      },
+      "CreatePrivacyRequestInput": {
+        "required": [
+          "subjectType",
+          "subjectId",
+          "subjectName",
+          "subjectContact",
+          "kind",
+          "requestedOn",
+          "channel",
+          "notes"
+        ],
+        "type": "object",
+        "properties": {
+          "subjectType": {
+            "$ref": "#/components/schemas/PersonalDataSubjectKind"
+          },
+          "subjectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "subjectName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "subjectContact": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PrivacyRequestKind"
+          },
+          "requestedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/PrivacyRequestChannel"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -44393,6 +45848,11 @@
             "type": "number",
             "format": "double",
             "default": 20
+          },
+          "ofxBankEntryCap": {
+            "type": "number",
+            "format": "double",
+            "default": 500
           }
         }
       },
@@ -44436,6 +45896,13 @@
             "default": 10000
           },
           "adjustedDefaultThresholdPct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "ofxBankEntryCap": {
             "type": [
               "null",
               "number"
@@ -47847,6 +49314,15 @@
             "format": "double"
           }
         }
+      },
+      "IdentityCheckMethod": {
+        "enum": [
+          "DocumentPresented",
+          "RegisteredEmail",
+          "RegisteredPhone",
+          "InPerson",
+          null
+        ]
       },
       "IFormFile": {
         "type": "string",
@@ -52818,6 +54294,199 @@
         },
         "additionalProperties": false
       },
+      "LineAction": {
+        "required": [
+          "kind",
+          "text",
+          "entryKind",
+          "accountId",
+          "accountName",
+          "ruleId",
+          "receivableId",
+          "receivableNumber",
+          "customerName",
+          "receivableBalance",
+          "receivableVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/LineActionKind"
+          },
+          "text": {
+            "type": "string"
+          },
+          "entryKind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BankEntryKind"
+              }
+            ]
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "accountName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ruleId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "receivableId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "receivableNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "customerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "receivableBalance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "receivableVersion": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "LineActionKind": {
+        "enum": [
+          "BankEntry",
+          "Settle",
+          "PaymentOrder"
+        ]
+      },
+      "LineBankEntryInput": {
+        "required": [
+          "kind",
+          "accountId",
+          "costCenterId",
+          "reason",
+          "backdateReason",
+          "lineVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/BankEntryKind"
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "costCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lineVersion": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "LineSettlementInput": {
+        "required": [
+          "receivableId",
+          "principal",
+          "interest",
+          "fine",
+          "discount",
+          "backdateReason",
+          "receivableVersion",
+          "lineVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "principal": {
+            "type": "number",
+            "format": "double"
+          },
+          "interest": {
+            "type": "number",
+            "format": "double"
+          },
+          "fine": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "receivableVersion": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "lineVersion": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "cancelBillingSlip": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
       "LinkableUser": {
         "required": [
           "userId",
@@ -57488,6 +59157,35 @@
           }
         }
       },
+      "PagedListOfPrivacyRequestRow": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrivacyRequestRow"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfPurchaseItemRow": {
         "required": [
           "items",
@@ -62010,6 +63708,42 @@
           }
         }
       },
+      "PersonalDataSubjectKind": {
+        "enum": [
+          "Party",
+          "Contact",
+          "Employee",
+          "User",
+          "Unknown"
+        ]
+      },
+      "PersonalDataSubjectMatch": {
+        "required": [
+          "kind",
+          "id",
+          "name",
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/PersonalDataSubjectKind"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "PickingRow": {
         "required": [
           "productionOrderId",
@@ -63042,6 +64776,439 @@
         "properties": {
           "mode": {
             "$ref": "#/components/schemas/PricingMode"
+          }
+        }
+      },
+      "PrivacyCorrectionTarget": {
+        "required": [
+          "link",
+          "request"
+        ],
+        "type": "object",
+        "properties": {
+          "link": {
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/PrivacyRequestDetail"
+          }
+        }
+      },
+      "PrivacyDownloadLink": {
+        "required": [
+          "url",
+          "expiresAt",
+          "fileName"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fileName": {
+            "type": "string"
+          }
+        }
+      },
+      "PrivacyExportStarted": {
+        "required": [
+          "request",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/PrivacyRequestDetail"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "PrivacyExportStatus": {
+        "enum": [
+          "None",
+          "Running",
+          "Ready",
+          "Failed",
+          "Expired"
+        ]
+      },
+      "PrivacyHistoryEntry": {
+        "required": [
+          "id",
+          "at",
+          "action",
+          "userName",
+          "ip",
+          "changes"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "action": {
+            "type": "string"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "ip": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "changes": {
+            "type": "string"
+          }
+        }
+      },
+      "PrivacyRequestChannel": {
+        "enum": [
+          "Email",
+          "Phone",
+          "InPerson",
+          "Letter",
+          "Other"
+        ]
+      },
+      "PrivacyRequestDetail": {
+        "required": [
+          "id",
+          "number",
+          "subjectType",
+          "subjectId",
+          "subjectName",
+          "subjectContact",
+          "kind",
+          "requestedOn",
+          "channel",
+          "notes",
+          "dueOn",
+          "dueChip",
+          "status",
+          "requiresIdentity",
+          "identityVerified",
+          "identityVerifiedAt",
+          "identityVerifiedByName",
+          "identityMethod",
+          "identityCheckedOn",
+          "identityNotes",
+          "response",
+          "respondedOn",
+          "fileSent",
+          "refusalReason",
+          "closedAt",
+          "correctionLink",
+          "canExport",
+          "exportStatus",
+          "exportedAt",
+          "exportError",
+          "exportExpiresAt",
+          "createdAt",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "subjectType": {
+            "$ref": "#/components/schemas/PersonalDataSubjectKind"
+          },
+          "subjectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "subjectName": {
+            "type": "string"
+          },
+          "subjectContact": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PrivacyRequestKind"
+          },
+          "requestedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/PrivacyRequestChannel"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "dueChip": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/PrivacyRequestStatus"
+          },
+          "requiresIdentity": {
+            "type": "boolean"
+          },
+          "identityVerified": {
+            "type": "boolean"
+          },
+          "identityVerifiedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "identityVerifiedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "identityMethod": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IdentityCheckMethod"
+              }
+            ]
+          },
+          "identityCheckedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "identityNotes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "response": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "respondedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "fileSent": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "refusalReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "correctionLink": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "canExport": {
+            "type": "boolean"
+          },
+          "exportStatus": {
+            "$ref": "#/components/schemas/PrivacyExportStatus"
+          },
+          "exportedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "exportError": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "exportExpiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PrivacyRequestKind": {
+        "enum": [
+          "Confirmation",
+          "Access",
+          "Correction",
+          "Anonymization",
+          "Deletion",
+          "Portability",
+          "ConsentRevocation",
+          "SharingInformation"
+        ]
+      },
+      "PrivacyRequestRow": {
+        "required": [
+          "id",
+          "number",
+          "subjectType",
+          "subjectMasked",
+          "kind",
+          "requestedOn",
+          "dueOn",
+          "status",
+          "dueChip",
+          "identityVerified",
+          "exportStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "subjectType": {
+            "$ref": "#/components/schemas/PersonalDataSubjectKind"
+          },
+          "subjectMasked": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PrivacyRequestKind"
+          },
+          "requestedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PrivacyRequestStatus"
+          },
+          "dueChip": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "identityVerified": {
+            "type": "boolean"
+          },
+          "exportStatus": {
+            "$ref": "#/components/schemas/PrivacyExportStatus"
+          }
+        }
+      },
+      "PrivacyRequestStatus": {
+        "enum": [
+          "Open",
+          "Done",
+          "Refused"
+        ]
+      },
+      "PrivacySettingsDto": {
+        "required": [
+          "responseDays",
+          "settingId"
+        ],
+        "type": "object",
+        "properties": {
+          "responseDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "settingId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "PrivacySettingsInput": {
+        "required": [
+          "responseDays"
+        ],
+        "type": "object",
+        "properties": {
+          "responseDays": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PrivacyVersionInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -70205,6 +72372,58 @@
           "NonContributor"
         ]
       },
+      "ReconcileInput": {
+        "required": [
+          "lines",
+          "transactions"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VersionedRef"
+            }
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VersionedRef"
+            }
+          },
+          "accepted": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "ReconcilePairInput": {
+        "required": [
+          "lineId",
+          "lineVersion",
+          "transactionId",
+          "transactionVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lineVersion": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "transactionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "transactionVersion": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "ReconcileReport": {
         "required": [
           "from",
@@ -70254,6 +72473,643 @@
           "failed": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "ReconcileResult": {
+        "required": [
+          "reconciliationId",
+          "kind",
+          "lines",
+          "transactions",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "reconciliationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ReconciliationKind"
+          },
+          "lines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transactions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ReconciliationClosingView": {
+        "required": [
+          "id",
+          "until",
+          "lines",
+          "bankBalance",
+          "systemBalance",
+          "closedByName",
+          "closedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "until": {
+            "type": "string",
+            "format": "date"
+          },
+          "lines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bankBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "systemBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "closedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "closedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReconciliationConfidence": {
+        "enum": [
+          "High",
+          "Medium"
+        ]
+      },
+      "ReconciliationKind": {
+        "enum": [
+          "Suggested",
+          "Manual",
+          "BankEntry",
+          "Settlement"
+        ]
+      },
+      "ReconciliationView": {
+        "required": [
+          "accountId",
+          "accountName",
+          "from",
+          "to",
+          "hasStatement",
+          "pairs",
+          "bankOnly",
+          "systemOnly",
+          "done",
+          "totals",
+          "reconciledUntil",
+          "closedUntil",
+          "ofxBankEntryCap",
+          "counterpartyMasked"
+        ],
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "hasStatement": {
+            "type": "boolean"
+          },
+          "pairs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconPair"
+            }
+          },
+          "bankOnly": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconUnpairedLine"
+            }
+          },
+          "systemOnly": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconUnpairedTransaction"
+            }
+          },
+          "done": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconDone"
+            }
+          },
+          "totals": {
+            "$ref": "#/components/schemas/ReconTotals"
+          },
+          "reconciledUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "closedUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "ofxBankEntryCap": {
+            "type": "number",
+            "format": "double"
+          },
+          "counterpartyMasked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReconDone": {
+        "required": [
+          "id",
+          "kind",
+          "confidence",
+          "reason",
+          "lines",
+          "transactions",
+          "createdByName",
+          "createdAt",
+          "inClosedPeriod",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ReconciliationKind"
+          },
+          "confidence": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReconciliationConfidence"
+              }
+            ]
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconLine"
+            }
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconTransaction"
+            }
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "inClosedPeriod": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ReconHistory": {
+        "required": [
+          "importedByName",
+          "importedAt",
+          "source",
+          "entries"
+        ],
+        "type": "object",
+        "properties": {
+          "importedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "importedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatementSource"
+              }
+            ]
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconHistoryEntry"
+            }
+          }
+        }
+      },
+      "ReconHistoryEntry": {
+        "required": [
+          "reconciliationId",
+          "kind",
+          "confidence",
+          "reason",
+          "closedPeriodReason",
+          "createdByName",
+          "createdAt",
+          "undoneByName",
+          "undoneAt",
+          "undoReason",
+          "lines",
+          "transactions"
+        ],
+        "type": "object",
+        "properties": {
+          "reconciliationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ReconciliationKind"
+          },
+          "confidence": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReconciliationConfidence"
+              }
+            ]
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "closedPeriodReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "undoneByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "undoneAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "undoReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconLine"
+            }
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconTransaction"
+            }
+          }
+        }
+      },
+      "ReconLine": {
+        "required": [
+          "id",
+          "date",
+          "amount",
+          "description",
+          "kind",
+          "counterpartyName",
+          "counterpartyDocument",
+          "source",
+          "bankVerified",
+          "status",
+          "importedByName",
+          "blocked",
+          "blockedReason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/StatementLineKind"
+          },
+          "counterpartyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "counterpartyDocument": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/StatementSource"
+          },
+          "bankVerified": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StatementLineStatus"
+          },
+          "importedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "blocked": {
+            "type": "boolean"
+          },
+          "blockedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ReconPair": {
+        "required": [
+          "line",
+          "transaction",
+          "confidence",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "line": {
+            "$ref": "#/components/schemas/ReconLine"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/ReconTransaction"
+          },
+          "confidence": {
+            "$ref": "#/components/schemas/ReconciliationConfidence"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "ReconTotals": {
+        "required": [
+          "pending",
+          "reconciled",
+          "ignored",
+          "balanceDate",
+          "bankBalance",
+          "systemBalance",
+          "difference"
+        ],
+        "type": "object",
+        "properties": {
+          "pending": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reconciled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ignored": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "balanceDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "bankBalance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "systemBalance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "difference": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ReconTransaction": {
+        "required": [
+          "id",
+          "date",
+          "amount",
+          "description",
+          "type",
+          "origin",
+          "link",
+          "pendingReview",
+          "reconciled",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TransactionType"
+          },
+          "origin": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pendingReview": {
+            "type": "boolean"
+          },
+          "reconciled": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ReconUnpairedLine": {
+        "required": [
+          "line",
+          "action",
+          "canBankEntry",
+          "suggestRule"
+        ],
+        "type": "object",
+        "properties": {
+          "line": {
+            "$ref": "#/components/schemas/ReconLine"
+          },
+          "action": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LineAction"
+              }
+            ]
+          },
+          "canBankEntry": {
+            "type": "boolean"
+          },
+          "suggestRule": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReconUnpairedTransaction": {
+        "required": [
+          "transaction",
+          "daysWithoutBank",
+          "stale"
+        ],
+        "type": "object",
+        "properties": {
+          "transaction": {
+            "$ref": "#/components/schemas/ReconTransaction"
+          },
+          "daysWithoutBank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stale": {
+            "type": "boolean"
           }
         }
       },
@@ -70479,6 +73335,38 @@
               "string"
             ],
             "format": "date"
+          }
+        }
+      },
+      "RefusedPair": {
+        "required": [
+          "lineId",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "RefusePrivacyRequestInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -76567,6 +79455,33 @@
           }
         }
       },
+      "StatementLineKind": {
+        "enum": [
+          "Pix",
+          "Boleto",
+          "Ted",
+          "Doc",
+          "Transfer",
+          "Fee",
+          "Interest",
+          "Yield",
+          "Tax",
+          "Card",
+          "Check",
+          "Deposit",
+          "Reversal",
+          "Other",
+          null
+        ]
+      },
+      "StatementLineStatus": {
+        "enum": [
+          "Pending",
+          "Reconciled",
+          "Ignored",
+          "Undone"
+        ]
+      },
       "StatementOfxForm": {
         "type": "object",
         "properties": {
@@ -76662,6 +79577,12 @@
             "$ref": "#/components/schemas/StatementPage"
           }
         }
+      },
+      "StatementSource": {
+        "enum": [
+          "Api",
+          "Ofx"
+        ]
       },
       "StepForecastInfo": {
         "required": [
@@ -81002,6 +83923,14 @@
           }
         }
       },
+      "TransactionType": {
+        "enum": [
+          "Receipt",
+          "Payment",
+          "Transfer",
+          "BankEntry"
+        ]
+      },
       "TransferInput": {
         "required": [
           "fromAccountId",
@@ -81121,6 +84050,22 @@
           "KeepSystem",
           null
         ]
+      },
+      "UndoReconciliationInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
       },
       "UndoStatementBatchInput": {
         "required": [
@@ -81402,6 +84347,34 @@
           }
         }
       },
+      "VerifyIdentityInput": {
+        "required": [
+          "method",
+          "checkedOn",
+          "notes",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "method": {
+            "$ref": "#/components/schemas/IdentityCheckMethod"
+          },
+          "checkedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "VerifyTwoFactorRequest": {
         "required": [
           "challenge",
@@ -81428,6 +84401,23 @@
           "ephemeral": {
             "type": "boolean",
             "default": false
+          }
+        }
+      },
+      "VersionedRef": {
+        "required": [
+          "id",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },

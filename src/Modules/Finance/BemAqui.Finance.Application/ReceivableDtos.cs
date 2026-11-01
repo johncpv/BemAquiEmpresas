@@ -108,7 +108,7 @@ public sealed record DiscountsAndCancellations(DateOnly From, DateOnly To, IRead
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record FinanceLimitsInput(decimal DiscountApprovalPct, decimal DiscountApprovalAmount, decimal CancelApprovalAmount, int BackdateDays, bool OwnerCanApproveOwn = false, decimal PaymentTolerance = 0, decimal TransferNotifyAmount = 10_000,
-    decimal? AdjustedDefaultThresholdPct = null);
+    decimal? AdjustedDefaultThresholdPct = null, decimal? OfxBankEntryCap = null);
 
 /// <summary>Cliente para o seletor do título (CA 2): só PJ mostra o documento (CPF não aparece em lista, D9).</summary>
 public sealed record CustomerOption(Guid Id, string Name, string? Document, Guid? DefaultPaymentTermId);

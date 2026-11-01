@@ -2779,6 +2779,159 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("bank_ofx_contingencies", "finance");
                 });
 
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankReconciliation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("BankAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
+
+                    b.Property<string>("ClosedPeriodReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("closed_period_reason");
+
+                    b.Property<string>("Confidence")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("confidence");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("UndoReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("undo_reason");
+
+                    b.Property<DateTimeOffset?>("UndoneAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("undone_at");
+
+                    b.Property<Guid?>("UndoneBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("undone_by");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bank_reconciliations");
+
+                    b.HasIndex("BankAccountId", "CreatedAt")
+                        .HasDatabaseName("ix_bank_reconciliations_bank_account_id_created_at");
+
+                    b.ToTable("bank_reconciliations", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankReconciliationClosing", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("BankAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bank_account_id");
+
+                    b.Property<decimal>("BankBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("bank_balance");
+
+                    b.Property<DateTimeOffset>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<Guid?>("ClosedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("closed_by");
+
+                    b.Property<int>("LineCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("line_count");
+
+                    b.Property<decimal>("SystemBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("system_balance");
+
+                    b.Property<DateOnly>("UntilDate")
+                        .HasColumnType("date")
+                        .HasColumnName("until_date");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bank_reconciliation_closings");
+
+                    b.HasIndex("BankAccountId", "UntilDate")
+                        .HasDatabaseName("ix_bank_reconciliation_closings_bank_account_id_until_date");
+
+                    b.ToTable("bank_reconciliation_closings", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankReconciliationLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<Guid>("ReconciliationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reconciliation_id");
+
+                    b.Property<Guid>("StatementLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("statement_line_id");
+
+                    b.Property<Guid>("TransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("transaction_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bank_reconciliation_links");
+
+                    b.HasIndex("ReconciliationId")
+                        .HasDatabaseName("ix_bank_reconciliation_links_reconciliation_id");
+
+                    b.HasIndex("StatementLineId")
+                        .HasDatabaseName("ix_bank_reconciliation_links_statement_line_id");
+
+                    b.HasIndex("TransactionId")
+                        .HasDatabaseName("ix_bank_reconciliation_links_transaction_id");
+
+                    b.ToTable("bank_reconciliation_links", "finance");
+                });
+
             modelBuilder.Entity("BemAqui.Finance.Domain.BankStatementBalance", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3047,6 +3200,60 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasFilter("status <> 'Undone'");
 
                     b.ToTable("bank_statement_lines", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankStatementRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("EntryKind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("entry_kind");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Keyword")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("keyword");
+
+                    b.Property<string>("LineKind")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("line_kind");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bank_statement_rules");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_bank_statement_rules_is_active");
+
+                    b.ToTable("bank_statement_rules", "finance");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.BankTransfer", b =>
@@ -3605,6 +3812,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("receivable_id");
 
+                    b.Property<bool>("Reconciled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("reconciled");
+
                     b.Property<Guid?>("ReversesTransactionId")
                         .HasColumnType("uuid")
                         .HasColumnName("reverses_transaction_id");
@@ -3612,6 +3823,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid?>("SettlementId")
                         .HasColumnType("uuid")
                         .HasColumnName("settlement_id");
+
+                    b.Property<Guid?>("StatementLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("statement_line_id");
 
                     b.Property<Guid?>("TransferId")
                         .HasColumnType("uuid")
@@ -3622,6 +3837,12 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)")
                         .HasColumnName("type");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id")
                         .HasName("pk_financial_transactions");
@@ -3637,6 +3858,9 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasIndex("ReceivableId")
                         .HasDatabaseName("ix_financial_transactions_receivable_id");
+
+                    b.HasIndex("StatementLineId")
+                        .HasDatabaseName("ix_financial_transactions_statement_line_id");
 
                     b.HasIndex("TransferId")
                         .HasDatabaseName("ix_financial_transactions_transfer_id");
@@ -7928,6 +8152,184 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_password_resets_user_id");
 
                     b.ToTable("password_resets", "identity");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.PrivacyRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("channel");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<Guid?>("ClosedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("closed_by");
+
+                    b.Property<string>("CorrectionLink")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("correction_link");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTimeOffset?>("DownloadTokenExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("download_token_expires_at");
+
+                    b.Property<string>("DownloadTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("download_token_hash");
+
+                    b.Property<DateOnly>("DueOn")
+                        .HasColumnType("date")
+                        .HasColumnName("due_on");
+
+                    b.Property<Guid?>("ExportAttachmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("export_attachment_id");
+
+                    b.Property<string>("ExportError")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("export_error");
+
+                    b.Property<string>("ExportStatus")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("export_status");
+
+                    b.Property<DateTimeOffset?>("ExportedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("exported_at");
+
+                    b.Property<bool?>("FileSent")
+                        .HasColumnType("boolean")
+                        .HasColumnName("file_sent");
+
+                    b.Property<DateOnly?>("IdentityCheckedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("identity_checked_on");
+
+                    b.Property<string>("IdentityMethod")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("identity_method");
+
+                    b.Property<string>("IdentityNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("identity_notes");
+
+                    b.Property<DateTimeOffset?>("IdentityVerifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("identity_verified_at");
+
+                    b.Property<Guid?>("IdentityVerifiedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("identity_verified_by");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("number");
+
+                    b.Property<string>("RefusalReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("refusal_reason");
+
+                    b.Property<DateOnly>("RequestedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("requested_on");
+
+                    b.Property<DateOnly?>("RespondedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("responded_on");
+
+                    b.Property<string>("Response")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("response");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("SubjectContact")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("subject_contact");
+
+                    b.Property<Guid?>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.Property<string>("SubjectName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("subject_name");
+
+                    b.Property<string>("SubjectType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("subject_type");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_privacy_requests");
+
+                    b.HasIndex("DownloadTokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_privacy_requests_download_token_hash")
+                        .HasFilter("download_token_hash IS NOT NULL");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_privacy_requests_number");
+
+                    b.HasIndex("Status", "DueOn")
+                        .HasDatabaseName("ix_privacy_requests_status_due_on");
+
+                    b.ToTable("privacy_requests", "settings");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.RecoveryCode", b =>
@@ -14180,6 +14582,50 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_bank_ofx_contingencies_bank_accounts_bank_account_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankReconciliation", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.BankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("BankAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_reconciliations_bank_accounts_bank_account_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankReconciliationClosing", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.BankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("BankAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_reconciliation_closings_bank_accounts_bank_account_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.BankReconciliationLink", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.BankReconciliation", null)
+                        .WithMany()
+                        .HasForeignKey("ReconciliationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_reconciliation_links_bank_reconciliations_reconciliati");
+
+                    b.HasOne("BemAqui.Finance.Domain.BankStatementLine", null)
+                        .WithMany()
+                        .HasForeignKey("StatementLineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_reconciliation_links_bank_statement_lines_statement_li");
+
+                    b.HasOne("BemAqui.Finance.Domain.FinancialTransaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_reconciliation_links_financial_transactions_transactio");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.BankStatementBalance", b =>

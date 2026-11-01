@@ -37,6 +37,20 @@ public sealed partial class BankMovementService
             return dateError;
         }
 
+        // BNK-03b CA 11: data no período de conciliação fechado de qualquer das contas.
+        var closed = false;
+        foreach (var side in accounts)
+        {
+            if (await period.IsClosedAsync(side.Id, input.Date, cancellationToken))
+            {
+                closed = true;
+                if (await period.CheckAsync(side.Id, input.Date, input.BackdateReason, "backdateReason", "transferir", cancellationToken) is { } closedError)
+                {
+                    return closedError;
+                }
+            }
+        }
+
         var age = (clock.GetUtcNow() - to.CreatedAt).TotalDays;
         if (age < 30 && !await permissions.HasPermissionAsync("finance", "approve", cancellationToken))
         {
@@ -48,7 +62,7 @@ public sealed partial class BankMovementService
         var transfer = new BankTransfer
         {
             FromAccountId = from.Id, ToAccountId = to.Id, Amount = input.Amount, Date = input.Date, Description = Cut(description, 200),
-            BackdateReason = backdated ? Trim(input.BackdateReason) : null, CreatedAt = clock.GetUtcNow(), CreatedBy = currentUser.UserId,
+            BackdateReason = backdated || closed ? Trim(input.BackdateReason) : null, CreatedAt = clock.GetUtcNow(), CreatedBy = currentUser.UserId,
         };
         db.BankTransfers.Add(transfer);
         db.FinancialTransactions.AddRange(TransferLine(transfer, from.Id, -input.Amount, null), TransferLine(transfer, to.Id, input.Amount, null));
@@ -86,6 +100,14 @@ public sealed partial class BankMovementService
         if (transfer.ReversedAt is not null || transfer.Version != input.Version)
         {
             return AlreadyReversed();
+        }
+
+        foreach (var side in new[] { transfer.FromAccountId, transfer.ToAccountId })
+        {
+            if (await period.CheckAsync(side, Today, input.Reason, "reason", "estornar uma transferência", cancellationToken) is { } closedError)
+            {
+                return closedError;
+            }
         }
 
         db.Entry(transfer).Property(t => t.Version).OriginalValue = input.Version;

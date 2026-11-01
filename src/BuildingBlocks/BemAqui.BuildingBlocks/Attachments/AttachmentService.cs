@@ -21,6 +21,8 @@ public sealed record AttachmentContent(Stream Content, string ContentType, strin
 /// <c>ExtraTypes</c> são tipos fora da lista geral aceitos só por este dono (o OFX do <c>BankStatementBatch</c>, ADR 0009 adendo).
 /// <c>StripImageMetadata</c>: a imagem (PNG, JPEG, WebP) é regravada sem EXIF, GPS e textos antes do hash, do storage e do antivírus
 /// (<see cref="ImageMetadata"/>, PAT-01a CA 8); imagem que não dá para percorrer é recusada.
+/// <c>CheckedOnly</c>: as rotas genéricas de anexos recusam sempre; o arquivo só sai pelo serviço do dono, que confere o acesso (a exportação do
+/// titular, LGPD-01a CA 10: só o Proprietário, pelo link de uso único).
 /// </summary>
 public sealed record AttachmentOwnerRules(
     string Module,
@@ -35,6 +37,7 @@ public sealed record AttachmentOwnerRules(
     string? AlternateWriteAction = null,
     bool AuditReads = false,
     IReadOnlyCollection<AllowedFileType>? ExtraTypes = null,
+    bool CheckedOnly = false,
     bool StripImageMetadata = false);
 
 /// <summary>Arquivo já aceito pela allowlist, para a regra do dono que depende do documento (ex.: tipo da OS, PRD-01 CA 12).</summary>
@@ -102,8 +105,8 @@ public sealed partial class AttachmentService(
             return Error.NotFound(Error.Codes.NotFound, "Este tipo de documento não aceita anexos.");
         }
 
-        if (!await permissions.HasPermissionAsync(rules.Module, rules.WriteAction, cancellationToken)
-            && !(rules.AlternateWriteAction is { } alternate && await permissions.HasPermissionAsync(rules.Module, alternate, cancellationToken)))
+        if (!await AllowedAsync(rules, rules.WriteAction, cancellationToken)
+            && !(rules.AlternateWriteAction is { } alternate && await AllowedAsync(rules, alternate, cancellationToken)))
         {
             return Forbidden();
         }
@@ -185,7 +188,7 @@ public sealed partial class AttachmentService(
         }
 
         var rules = owners.RulesOf(attachment.OwnerType);
-        if (rules is null || !await permissions.HasPermissionAsync(rules.Module, rules.ReadAction, cancellationToken))
+        if (rules is null || !await AllowedAsync(rules, rules.ReadAction, cancellationToken))
         {
             return Forbidden();
         }
@@ -231,7 +234,7 @@ public sealed partial class AttachmentService(
     public async Task<Result<IReadOnlyList<AttachmentDto>>> ListAsync(string ownerType, Guid ownerId, CancellationToken cancellationToken = default)
     {
         var rules = owners.RulesOf(ownerType);
-        if (rules is null || !await permissions.HasPermissionAsync(rules.Module, rules.ReadAction, cancellationToken))
+        if (rules is null || !await AllowedAsync(rules, rules.ReadAction, cancellationToken))
         {
             return Forbidden();
         }
@@ -314,6 +317,10 @@ public sealed partial class AttachmentService(
         var since = clock.GetUtcNow().AddHours(-1);
         return await db.Attachments.CountAsync(a => a.UploadedBy == user && a.Origin == AttachmentOrigin.User && a.CreatedAt > since, ct) >= limit;
     }
+
+    /// <summary>Ação do dono no grupo; o dono <c>CheckedOnly</c> nunca passa pelas rotas genéricas.</summary>
+    private async Task<bool> AllowedAsync(AttachmentOwnerRules rules, string action, CancellationToken ct) =>
+        !rules.CheckedOnly && await permissions.HasPermissionAsync(rules.Module, action, ct);
 
     private static Error Forbidden() => Error.Forbidden(Error.Codes.Forbidden, "Você não tem acesso a esta funcionalidade. Fale com o administrador.");
 

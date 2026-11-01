@@ -52,6 +52,9 @@ public interface IIdentityDb
 
     DbSet<SeedPatch> SeedPatches { get; }
 
+    /// <summary>Pedidos do titular (<c>settings.privacy_requests</c>, LGPD-01a).</summary>
+    DbSet<PrivacyRequest> PrivacyRequests { get; }
+
     /// <summary>Eventos de segurança (login, bloqueio, reuso de refresh...) entram na auditoria imutável.</summary>
     DbSet<AuditEntry> AuditEntries { get; }
 

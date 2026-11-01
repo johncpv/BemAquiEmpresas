@@ -42,7 +42,7 @@ public sealed record ReceivableSettled(
 /// <summary>Parâmetros do Finance (ADR 0016 adendo M6): limites de desconto, cancelamento e data retroativa (FIN-01 CA 13, 14 e 18).</summary>
 public sealed record FinanceLimits(
     decimal DiscountApprovalPct, decimal DiscountApprovalAmount, decimal CancelApprovalAmount, int BackdateDays, bool OwnerCanApproveOwn = false, decimal PaymentTolerance = 0, decimal TransferNotifyAmount = 10_000,
-    decimal AdjustedDefaultThresholdPct = 20);
+    decimal AdjustedDefaultThresholdPct = 20, decimal OfxBankEntryCap = 500);
 
 /// <summary>Leitura dos parâmetros do Finance pelos outros módulos e telas (Configurações → Parâmetros, seção Financeiro).</summary>
 public interface IFinanceParameters

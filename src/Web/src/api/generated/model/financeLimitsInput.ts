@@ -15,4 +15,6 @@ export interface FinanceLimitsInput {
   transferNotifyAmount?: number;
   /** @nullable */
   adjustedDefaultThresholdPct?: number | null;
+  /** @nullable */
+  ofxBankEntryCap?: number | null;
 }

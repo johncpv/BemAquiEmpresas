@@ -34,6 +34,8 @@ public static class ProductionInfrastructure
         services.TryAddScoped<IInstallationOrders, InstallationOrdersContract>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, InstallationTemplateSeeder>());
         services.AddAuditableEntity<ProductionOrder>("production");
+        // LGPD-01a: quem aceitou a instalação e os romaneios (cliente, motorista ou transportadora PF).
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Privacy.IPersonalDataProvider, ProductionPersonalDataProvider>());
         services.AddAuditableEntity<ProductionOrderStep>("production");
         services.AddAuditableEntity<ProductionOrderChecklistItem>("production");
         services.AddAuditableEntity<InstallationTemplateLine>("production");

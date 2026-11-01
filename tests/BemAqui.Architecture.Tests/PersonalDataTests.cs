@@ -58,9 +58,9 @@ public class PersonalDataTests
         ["PayrollItem"] = ["Id", "Code", "Name", "Kind", "InssBase", "FgtsBase", "IrrfBase", "IsActive", "SeedKey", "ConfirmedAt", "ConfirmedBy", "CreatedAt", "Version", "IsDeleted", "DeletedAt"],
         // RH-02c: a data de pagamento, quantos títulos, o pago e a reabertura não são dado pessoal; os totais congelados são (ClosedNet, ClosedCharges).
         ["PayrollRun"] = ["Id", "Period", "Type", "Mode", "Status", "Number", "CreatedAt", "CreatedBy", "ClosedAt", "ClosedBy", "Version",
-            "PaymentDate", "ClosedPayables", "PaidAt", "ReopenReason", "ReopenedAt", "ReopenedBy"],
+            "PaymentDate", "ClosedPayables", "PaidAt", "ReopenedAt", "ReopenedBy"],
         // RH-02c: na previsão, só o valor é dado da folha.
-        ["PayrollForecast"] = ["Id", "Period", "Kind", "EmployeeId", "ChargeKind", "DueDate", "SourceRunId", "CreatedAt", "UpdatedAt", "CancelledAt", "CancelReason", "Key"],
+        ["PayrollForecast"] = ["Id", "Period", "Kind", "EmployeeId", "ChargeKind", "DueDate", "SourceRunId", "CreatedAt", "UpdatedAt", "CancelledAt", "Key"],
         // RH-02b: o PDF guardado (id do anexo), o aviso (quando, id do e-mail), a primeira leitura e a marca "alterado" não são dado pessoal.
         ["Payslip"] = ["Id", "PayrollRunId", "EmployeeId", "CreatedAt", "UpdatedAt", "Version", "PdfAttachmentId", "NotifiedAt", "NoticeEmailLogId", "FirstViewedAt", "ChangedAfterNotice"],
         ["PayslipLine"] = ["Id", "PayslipId", "PayrollItemId", "Code", "Description", "Type", "Sort"],

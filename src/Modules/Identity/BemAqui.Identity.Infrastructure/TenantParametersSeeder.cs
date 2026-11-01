@@ -25,6 +25,8 @@ public sealed class TenantParametersSeeder : ITenantSeeder
             (TenantParametersService.ChargesKey, "80.00"), (TenantParametersService.PricingKey, "markup"),
             // PRD-03b (ADR 0026 §1 e §3): teto de aparelhos da fábrica e prazo absoluto da sessão completa.
             (TenantSetting.MaxShopfloorDevices, "10"), (TenantSetting.SessionAbsoluteDays, "30"),
+            // LGPD-01a CA 1: prazo de resposta ao titular, 15 dias corridos (pré-configurado, editável em Configurações → Privacidade).
+            (Application.Privacy.PrivacyRequestService.ResponseDaysKey, "15"),
         })
         {
             if (!existing.Contains(key))

@@ -478,7 +478,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIN-8, R-FIN-2, R-FIN-10.
 - CA: importação às 06:30 e "Buscar agora" sem duplicar; OFX bloqueado em conta com API (contingência por conta com `finance.approve`), parser sem DTD, hash e FITID únicos, linhas "não verificadas pelo banco"; contraparte mascarada para `finance.view`; aviso ao Proprietário a cada importação.
 
-**BNK-03b [ ] Conciliação bancária: sugestão de par, conciliação manual, lançamento a partir do extrato e fechamento do período (G)** — 5.3, ordem 6 — `Ready (pré-condição externa)` — [story](stories/BNK-03b-conciliacao-bancaria.md)
+**BNK-03b [x] Conciliação bancária: sugestão de par, conciliação manual, lançamento a partir do extrato e fechamento do período (G)** — 5.3, ordem 6 — `Done` — [story](stories/BNK-03b-conciliacao-bancaria.md)
 - Requisitos: R-FIN-8, R-FIN-5, R-FIN-3, R-PRP-6, R-PRP-7.
 - CA: sugestão por valor, data (janela de 3 dias) e documento; uma linha por par e as seções "Sem par no banco" e "No sistema, não no banco"; quem confirma não é quem importou; lançamento sem OP com `finance.pay`, teto e 2FA de novo; fechamento por período com `finance.approve`.
 
@@ -565,7 +565,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-RH-4 (parte), R-RH-5, R-COM-3, PRD §6 (Desempenho, LGPD), R-SEC-5, R-PRP-2, R-PRP-5.
 - CA: espelho por dia pela jornada e pelo `IBusinessCalendar`; tolerância de 5/10 min, banco de horas só com acordo e apuração pelo mês civil, pré-configurados "a confirmar"; fecha quem tem `hr.edit`; "Li e confirmo" no Meu espelho; "Usar horas do espelho" na folha; PDF com a faixa de controle interno; 50 funcionários em menos de 1 s.
 
-**LGPD-01a [ ] Direitos do titular: registro do pedido, inventário do dado pessoal e exportação dos dados (JSON e PDF) (M)** — 6.3, ordem 9 — `Ready (pré-condição externa)` — [story](stories/LGPD-01a-pedido-titular-exportacao.md)
+**LGPD-01a [x] Direitos do titular: registro do pedido, inventário do dado pessoal e exportação dos dados (JSON e PDF) (M)** — 6.3, ordem 9 — `Done (pré-condição externa: jurídico)` — [story](stories/LGPD-01a-pedido-titular-exportacao.md)
 - Requisitos: PRD §6 LGPD, ADR 0018, R-SEC-5, R-COM-3.
 - CA: pedido do titular em Configurações → Privacidade, só o Proprietário, prazo de 15 dias; identidade conferida antes de exportar; exportação JSON e PDF por `IPersonalDataProvider` em cada módulo, com o inventário da ADR 0037; dependentes mascarados; usuários do sistema como titulares; arquivo por 30 dias, download autenticado de uso único.
 

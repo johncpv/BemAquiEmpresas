@@ -67,6 +67,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<SeedPatch> SeedPatches => Set<SeedPatch>();
 
+    public DbSet<PrivacyRequest> PrivacyRequests => Set<PrivacyRequest>();
+
     public DbSet<Party> Parties => Set<Party>();
 
     public DbSet<PartyRole> PartyRoles => Set<PartyRole>();
@@ -132,6 +134,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BankStatementBalance> BankStatementBalances => Set<BankStatementBalance>();
 
     public DbSet<BankOfxContingency> BankOfxContingencies => Set<BankOfxContingency>();
+
+    public DbSet<BankReconciliation> BankReconciliations => Set<BankReconciliation>();
+
+    public DbSet<BankReconciliationLink> BankReconciliationLinks => Set<BankReconciliationLink>();
+
+    public DbSet<BankStatementRule> BankStatementRules => Set<BankStatementRule>();
+
+    public DbSet<BankReconciliationClosing> BankReconciliationClosings => Set<BankReconciliationClosing>();
 
     public DbSet<BillingSlip> BillingSlips => Set<BillingSlip>();
 

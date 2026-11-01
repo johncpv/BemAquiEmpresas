@@ -19,6 +19,8 @@ public static class FinanceInfrastructure
     public static IServiceCollection AddFinanceInfrastructure(this IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration? configuration = null)
     {
         services.TryAddSingleton(TimeProvider.System);
+        // LGPD-01a: títulos, boletos, extrato e o retrato do favorecido do titular.
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Privacy.IPersonalDataProvider, FinancePersonalDataProvider>());
         services.TryAddScoped<BankAccountService>();
         services.TryAddScoped<PaymentTermService>();
         services.TryAddScoped<IPaymentTerms, PaymentTermsContract>();
@@ -115,6 +117,13 @@ public static class FinanceInfrastructure
         services.AddAuditableEntity<BankStatementBatch>("finance");
         services.AddAuditableEntity<BankStatementLine>("finance");
         services.AddAuditableEntity<BankOfxContingency>("finance");
+        // Conciliação bancária (BNK-03b): sugestão, conciliar, lançar sem OP e baixar a partir da linha, desfazer, fechar o período; o
+        // fechamento é conferido pelo lançamento, pela baixa, pelo pagamento da OP e pelo ignorar linha.
+        services.TryAddScoped<BemAqui.Finance.Application.Reconciliation.ReconciliationPeriodGuard>();
+        services.TryAddScoped<BemAqui.Finance.Application.Reconciliation.ReconciliationService>();
+        services.AddAuditableEntity<BankReconciliation>("finance");
+        services.AddAuditableEntity<BankStatementRule>("finance");
+        services.AddAuditableEntity<BankReconciliationClosing>("finance");
         services.AddAttachmentOwner(BemAqui.Finance.Application.Statements.BankStatementImportService.AttachmentOwner, new AttachmentOwnerRules("finance", [AttachmentPolicy.Ofx.ContentType], 5 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFinanceDb>().BankStatementBatches.AnyAsync(b => b.Id == id, ct),
             ReadAction: "view", WriteAction: "edit",

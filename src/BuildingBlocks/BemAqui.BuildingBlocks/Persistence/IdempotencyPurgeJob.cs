@@ -13,6 +13,7 @@ public sealed record IdempotencyPurgeArgs;
 /// Expurgo diário de <c>shared.idempotency_records</c> com mais de <see cref="Retention"/> (D19): a chave só protege
 /// contra clique duplo e reenvio próximos; guardar a resposta para sempre só acumula dado.
 /// </summary>
+[Privacy.PersonalDataPurge(typeof(IdempotencyRecord), 30, "Registro apagado em 30 dias (D19); do pedido fica só o hash")]
 public sealed partial class IdempotencyPurgeJob(ITenantDirectory directory, ITenantScopeFactory scopes, ILogger<IdempotencyPurgeJob> logger)
     : TenantJob<IdempotencyPurgeArgs>(directory, scopes, logger)
 {

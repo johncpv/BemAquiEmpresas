@@ -39,6 +39,12 @@ public sealed partial class BankStatementImportService
             return Error.Forbidden(Error.Codes.Forbidden, DebitNeedsApprove);
         }
 
+        // BNK-03b CA 11: linha no período de conciliação fechado.
+        if (await period.CheckAsync(accountId, line.Date, reason, "reason", "ignorar uma linha do extrato", cancellationToken) is { } closed)
+        {
+            return closed;
+        }
+
         line.Ignore(reason, currentUser.UserId, clock.GetUtcNow());
         await db.SaveChangesAsync(cancellationToken);
         return View(line, full: true);
