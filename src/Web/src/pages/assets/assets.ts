@@ -96,3 +96,74 @@ export function assetInput(d: AssetDraft, canEditValue: boolean, version?: numbe
     version: version ?? null,
   }
 }
+
+// ---- PAT-02: movimentação e baixa ----
+
+export type MovementKind = 'Transfer' | 'Disposal' | 'Reactivation'
+export type DisposalReason = 'Sale' | 'Scrap' | 'Loss' | 'Donation' | 'Other'
+
+export const MOVEMENT_KIND_LABELS: Record<MovementKind, string> = { Transfer: 'Transferência', Disposal: 'Baixa', Reactivation: 'Reativação' }
+
+export const DISPOSAL_REASON_LABELS: Record<DisposalReason, string> = { Sale: 'Venda', Scrap: 'Descarte', Loss: 'Perda ou roubo', Donation: 'Doação', Other: 'Outro' }
+
+export const DISPOSAL_REASON_OPTIONS = (Object.keys(DISPOSAL_REASON_LABELS) as DisposalReason[]).map((value) => ({ value, label: DISPOSAL_REASON_LABELS[value] }))
+
+/** Motivo sugerido para o filtro "Responsável desligado" (CA 5, propositivo). */
+export const TERMINATED_REASON = 'Responsável desligado'
+
+export const REASON_MAX = 200
+
+/** Hoje em America/Sao_Paulo (AAAA-MM-DD), para a data padrão das movimentações. */
+export const todayIso = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
+
+/** Aviso da reativação de um bem vendido (CA 8). */
+export const SALE_REVERTED_WARNING = 'Cancele o título da venda no Financeiro, se for o caso.'
+
+export const MOVEMENT_DICAS = {
+  movimentacao: 'Registra a troca de local, de responsável ou de centro de trabalho. Fica no histórico do bem e não é apagada; um erro se corrige com outra movimentação.',
+  baixa: 'O bem sai da empresa (venda, descarte, perda, doação). Some das listas e dos seletores, mas nada é apagado; dá para reativar se foi engano.',
+}
+
+export interface Place {
+  siteName?: string | null
+  responsibleName?: string | null
+  workCenterName?: string | null
+}
+
+/** "Local · Responsável · Centro" do movimento, com "—" no que estiver vazio. */
+export function placeText(p: Place): string {
+  return [p.siteName ?? 'Sem local', p.responsibleName ?? 'Sem responsável', p.workCenterName ?? 'Sem centro'].join(' · ')
+}
+
+/** O que mudou de um lado para o outro: só os campos diferentes ("Local: Fábrica → Escritório"). */
+export function movementChanges(from: Place, to: Place): string[] {
+  const rows: [string, string | null | undefined, string | null | undefined][] = [
+    ['Local', from.siteName, to.siteName], ['Responsável', from.responsibleName, to.responsibleName], ['Centro', from.workCenterName, to.workCenterName],
+  ]
+  return rows.filter(([, a, b]) => (a ?? null) !== (b ?? null)).map(([label, a, b]) => `${label}: ${a ?? '—'} → ${b ?? '—'}`)
+}
+
+/** Rascunho de "Registrar movimentação": vem com o lugar atual (o usuário só troca o que muda). */
+export interface MovementDraft {
+  siteId: string
+  responsibleEmployeeId: string
+  workCenterId: string
+  movedOn: string
+  reason: string
+}
+
+export function movementDraft(a: { siteId?: string | null; responsibleEmployeeId?: string | null; workCenterId?: string | null }, today: string, reason = ''): MovementDraft {
+  return { siteId: a.siteId ?? '', responsibleEmployeeId: a.responsibleEmployeeId ?? '', workCenterId: a.workCenterId ?? '', movedOn: today, reason }
+}
+
+/** CA 2 (conferido de novo no servidor): ao menos um de local, responsável ou centro diferente do atual. */
+export function movementChanged(d: MovementDraft, a: { siteId?: string | null; responsibleEmployeeId?: string | null; workCenterId?: string | null }): boolean {
+  return d.siteId !== (a.siteId ?? '') || d.responsibleEmployeeId !== (a.responsibleEmployeeId ?? '') || d.workCenterId !== (a.workCenterId ?? '')
+}
+
+/** Busca do "Novo título a receber" pré-preenchido pela venda (CA 7): nada é gravado no Financeiro sem a confirmação de lá. */
+export function receivableSearch(r: { partyId?: string | null; partyName?: string | null; amount: number; issueDate: string; description: string }) {
+  return {
+    cliente: r.partyId ?? undefined, clienteNome: r.partyName ?? undefined, valor: String(r.amount), emissao: r.issueDate, descricao: r.description,
+  }
+}

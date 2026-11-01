@@ -159,6 +159,104 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("assets", "assets");
                 });
 
+            modelBuilder.Entity("BemAqui.Assets.Domain.AssetMovement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("asset_id");
+
+                    b.Property<Guid?>("BuyerPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("buyer_party_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("DisposalReason")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("disposal_reason");
+
+                    b.Property<decimal?>("DisposalValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("disposal_value");
+
+                    b.Property<Guid?>("FromEmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("from_employee_id");
+
+                    b.Property<Guid?>("FromSiteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("from_site_id");
+
+                    b.Property<Guid?>("FromWorkCenterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("from_work_center_id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<DateOnly>("MovedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("moved_on");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reason");
+
+                    b.Property<Guid?>("ToEmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("to_employee_id");
+
+                    b.Property<Guid?>("ToSiteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("to_site_id");
+
+                    b.Property<Guid?>("ToWorkCenterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("to_work_center_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_asset_movements");
+
+                    b.HasIndex("BuyerPartyId")
+                        .HasDatabaseName("ix_asset_movements_buyer_party_id")
+                        .HasFilter("buyer_party_id IS NOT NULL");
+
+                    b.HasIndex("FromEmployeeId")
+                        .HasDatabaseName("ix_asset_movements_from_employee_id")
+                        .HasFilter("from_employee_id IS NOT NULL");
+
+                    b.HasIndex("ToEmployeeId")
+                        .HasDatabaseName("ix_asset_movements_to_employee_id")
+                        .HasFilter("to_employee_id IS NOT NULL");
+
+                    b.HasIndex("AssetId", "MovedOn", "CreatedAt")
+                        .HasDatabaseName("ix_asset_movements_asset_id_moved_on");
+
+                    b.ToTable("asset_movements", "assets", t =>
+                        {
+                            t.HasCheckConstraint("ck_asset_movements_disposal_value", "disposal_value IS NULL OR disposal_value >= 0");
+
+                            t.HasCheckConstraint("ck_asset_movements_kind", "kind IN ('Transfer', 'Disposal', 'Reactivation')");
+                        });
+                });
+
             modelBuilder.Entity("BemAqui.Assets.Domain.AssetParameter", b =>
                 {
                     b.Property<Guid>("Id")
@@ -14623,6 +14721,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasForeignKey("SiteId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_assets_asset_sites_site_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Assets.Domain.AssetMovement", b =>
+                {
+                    b.HasOne("BemAqui.Assets.Domain.Asset", null)
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_asset_movements_assets_asset_id");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.Contract", b =>

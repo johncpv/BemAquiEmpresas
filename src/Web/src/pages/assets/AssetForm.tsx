@@ -21,10 +21,12 @@ interface Props {
   disabled?: boolean
   /** Responsável que já estava no bem e foi desligado (CA 4): continua na lista, marcado. */
   terminatedResponsible?: { id: string; name: string } | null
+  /** Na edição (PAT-02): local, responsável e centro só mudam por "Registrar movimentação"; `onMove` abre o diálogo. */
+  placementLocked?: { onMove?: () => void }
 }
 
 /** Formulário do bem em seções (Identificação, Aquisição, Onde está), usado no Novo bem e na aba Dados. */
-export function AssetForm({ draft, onChange, errors, canEditValue, disabled, terminatedResponsible }: Props) {
+export function AssetForm({ draft, onChange, errors, canEditValue, disabled, terminatedResponsible, placementLocked }: Props) {
   const client = useQueryClient()
   const responsibles = useListAssetResponsibleChoices()
   const centers = useListAssetWorkCenterChoices()
@@ -105,7 +107,13 @@ export function AssetForm({ draft, onChange, errors, canEditValue, disabled, ter
           </Field>
         ) : null}
       </FormSection>
-      <FormSection title="Onde está">
+      <FormSection title="Onde está" description={placementLocked ? 'Para trocar o local, o responsável ou o centro, registre uma movimentação: ela fica no histórico do bem.' : undefined}>
+        {placementLocked?.onMove ? (
+          <div className="sm:col-span-2">
+            <button type="button" onClick={placementLocked.onMove} className="inline-flex min-h-11 items-center rounded-md border border-border px-3 py-2 text-sm font-semibold">Registrar movimentação</button>
+          </div>
+        ) : null}
+        <fieldset disabled={!!placementLocked} className="contents">
         <Field label="Centro de trabalho" dica={ASSET_DICAS.centro} error={errors.workCenterId}>
           {(p) => (
             <select {...p} value={draft.workCenterId} onChange={(e) => void chooseCenter(e.target.value)} className={inputClass}>
@@ -133,6 +141,7 @@ export function AssetForm({ draft, onChange, errors, canEditValue, disabled, ter
             </select>
           )}
         </Field>
+        </fieldset>
       </FormSection>
     </fieldset>
   )

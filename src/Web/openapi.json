@@ -31400,6 +31400,13 @@
             }
           },
           {
+            "name": "responsibleTerminated",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "name": "page",
             "in": "query",
             "schema": {
@@ -31750,6 +31757,261 @@
         }
       }
     },
+    "/api/v1/assets/assets/{id}/movements": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ListAssetMovements",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetMovementView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "MoveAsset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetMovementInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetMovementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/{id}/movements/{movementId}": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetAssetMovement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "movementId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetMovementView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/{id}/dispose": {
+      "post": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "DisposeAsset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetDisposalInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetMovementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/{id}/reactivate": {
+      "post": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ReactivateAsset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetReactivationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetMovementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/transfer/preview": {
+      "post": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "PreviewAssetTransfer",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetTransferInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetTransferPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/transfer": {
+      "post": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "TransferAssets",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetTransferInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetTransferResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assets/assets/by-tag/{tag}": {
       "get": {
         "tags": [
@@ -32031,6 +32293,38 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/AssetSupplierChoice"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/choices/buyers": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ListAssetBuyerChoices",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetBuyerChoice"
                   }
                 }
               }
@@ -35307,6 +35601,29 @@
           }
         }
       },
+      "AssetBuyerChoice": {
+        "required": [
+          "id",
+          "name",
+          "document"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "AssetCardView": {
         "required": [
           "id",
@@ -35563,6 +35880,69 @@
             "format": "double"
           }
         }
+      },
+      "AssetDisposalInput": {
+        "required": [
+          "disposalReason",
+          "disposedOn"
+        ],
+        "type": "object",
+        "properties": {
+          "disposalReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssetDisposalReason"
+              }
+            ]
+          },
+          "disposedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "buyerPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "AssetDisposalReason": {
+        "enum": [
+          "Sale",
+          "Scrap",
+          "Loss",
+          "Donation",
+          "Other",
+          null
+        ]
       },
       "AssetFiles": {
         "required": [
@@ -36000,6 +36380,190 @@
           }
         }
       },
+      "AssetMovementInput": {
+        "required": [
+          "siteId",
+          "responsibleEmployeeId",
+          "workCenterId",
+          "movedOn",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "siteId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "responsibleEmployeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "movedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "AssetMovementKind": {
+        "enum": [
+          "Transfer",
+          "Disposal",
+          "Reactivation"
+        ]
+      },
+      "AssetMovementResult": {
+        "required": [
+          "asset",
+          "movement"
+        ],
+        "type": "object",
+        "properties": {
+          "asset": {
+            "$ref": "#/components/schemas/AssetDetail"
+          },
+          "movement": {
+            "$ref": "#/components/schemas/AssetMovementView"
+          },
+          "receivable": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssetReceivableDraft"
+              }
+            ]
+          },
+          "saleReverted": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "AssetMovementView": {
+        "required": [
+          "id",
+          "assetId",
+          "kind",
+          "movedOn",
+          "from",
+          "to",
+          "reason",
+          "disposalReason",
+          "buyerPartyId",
+          "buyerName",
+          "createdBy",
+          "createdByName",
+          "createdAt",
+          "disposalValue"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AssetMovementKind"
+          },
+          "movedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "from": {
+            "$ref": "#/components/schemas/AssetPlaceView"
+          },
+          "to": {
+            "$ref": "#/components/schemas/AssetPlaceView"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "disposalReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssetDisposalReason"
+              }
+            ]
+          },
+          "buyerPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "buyerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "disposalValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "AssetParametersInput": {
         "required": [
           "labelWidthMm",
@@ -36039,6 +36603,122 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "AssetPlaceView": {
+        "required": [
+          "siteId",
+          "siteName",
+          "responsibleEmployeeId",
+          "responsibleName",
+          "workCenterId",
+          "workCenterName"
+        ],
+        "type": "object",
+        "properties": {
+          "siteId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "siteName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "responsibleEmployeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "responsibleName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AssetReactivationInput": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reactivatedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "AssetReceivableDraft": {
+        "required": [
+          "partyId",
+          "partyName",
+          "amount",
+          "issueDate",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "partyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "issueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": {
+            "type": "string"
           }
         }
       },
@@ -36182,6 +36862,152 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "AssetTransferInput": {
+        "required": [
+          "assetIds",
+          "siteId",
+          "responsibleEmployeeId",
+          "workCenterId",
+          "movedOn",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "assetIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "siteId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "responsibleEmployeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "movedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AssetTransferLine": {
+        "required": [
+          "assetId",
+          "tag",
+          "name",
+          "from",
+          "to"
+        ],
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "from": {
+            "$ref": "#/components/schemas/AssetPlaceView"
+          },
+          "to": {
+            "$ref": "#/components/schemas/AssetPlaceView"
+          }
+        }
+      },
+      "AssetTransferPreview": {
+        "required": [
+          "items",
+          "refused"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetTransferLine"
+            }
+          },
+          "refused": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetTransferRefusal"
+            }
+          }
+        }
+      },
+      "AssetTransferRefusal": {
+        "required": [
+          "assetId",
+          "tag",
+          "name",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "AssetTransferResult": {
+        "required": [
+          "moved",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "moved": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
           }
         }
       },

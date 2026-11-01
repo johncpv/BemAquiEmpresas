@@ -12,7 +12,7 @@ Ver na hora, no celular ou no tablet, a ficha resumida do bem cuja etiqueta voc�
 ## Como usar
 - A ficha mostra a foto, o número do bem, o nome, o tipo, o local, o responsável, o centro de trabalho, a situação, a próxima manutenção prevista e a última manutenção feita.
 - **Abrir OS de manutenção corretiva** (para quem pode abrir manutenção) leva à aba **Manutenção** deste bem.
-- **Registrar movimentação** (para quem pode editar o patrimônio) leva à aba **Movimentações** deste bem: troca de local, de responsável ou baixa.
+- **Registrar movimentação** (para quem pode editar o patrimônio) abre a ficha do bem já com a movimentação: troque o local, o responsável ou o centro, diga o motivo e confirme.
 - **Ver ficha completa** abre o bem no sistema, com todas as abas.
 - **Ler outra etiqueta** abre a câmera de novo.
 
