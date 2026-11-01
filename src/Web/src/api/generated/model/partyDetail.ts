@@ -38,4 +38,8 @@ export interface PartyDetail {
   defaultPaymentTerm?: null | PaymentTermRef;
   /** @nullable */
   importSource?: string | null;
+  /** @nullable */
+  anonymizedAt?: string | null;
+  /** @nullable */
+  anonymizationRequest?: string | null;
 }

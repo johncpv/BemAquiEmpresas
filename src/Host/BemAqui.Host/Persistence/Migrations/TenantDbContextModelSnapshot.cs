@@ -347,6 +347,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTimeOffset?>("ContentRemovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("content_removed_at");
+
                     b.Property<string>("ContentType")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -6988,6 +6992,15 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("admission_date");
 
+                    b.Property<string>("AnonymizationRequest")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("anonymization_request");
+
+                    b.Property<DateTimeOffset?>("AnonymizedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("anonymized_at");
+
                     b.Property<string>("BankAccount")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
@@ -9329,6 +9342,28 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("AnonymizationStatus")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("anonymization_status");
+
+                    b.Property<string>("AnonymizationSteps")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("anonymization_steps");
+
+                    b.Property<string>("AnonymizationSummary")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("anonymization_summary");
+
+                    b.Property<DateTimeOffset?>("AnonymizedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("anonymized_at");
+
+                    b.Property<Guid?>("AnonymizedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("anonymized_by");
+
                     b.Property<string>("Channel")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -9621,6 +9656,79 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("refresh_tokens", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.RetentionRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BaseDate")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("base_date");
+
+                    b.Property<DateTimeOffset?>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("confirmed_at");
+
+                    b.Property<Guid?>("ConfirmedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("confirmed_by");
+
+                    b.Property<string>("FieldGroup")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("field_group");
+
+                    b.Property<string>("Rule")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("rule");
+
+                    b.Property<string>("SeedKey")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("seed_key");
+
+                    b.Property<string>("SubjectType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("subject_type");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<int>("Years")
+                        .HasColumnType("integer")
+                        .HasColumnName("years");
+
+                    b.HasKey("Id")
+                        .HasName("pk_retention_rules");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_retention_rules_seed_key");
+
+                    b.HasIndex("SubjectType", "FieldGroup")
+                        .IsUnique()
+                        .HasDatabaseName("ix_retention_rules_subject_type_field_group");
+
+                    b.ToTable("retention_rules", "settings");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.SeedPatch", b =>
                 {
                     b.Property<Guid>("Id")
@@ -9847,6 +9955,15 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer")
                         .HasColumnName("access_failed_count");
+
+                    b.Property<string>("AnonymizationRequest")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("anonymization_request");
+
+                    b.Property<DateTimeOffset?>("AnonymizedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("anonymized_at");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -12374,6 +12491,15 @@ namespace BemAqui.Host.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<string>("AnonymizationRequest")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("anonymization_request");
+
+                    b.Property<DateTimeOffset?>("AnonymizedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("anonymized_at");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")

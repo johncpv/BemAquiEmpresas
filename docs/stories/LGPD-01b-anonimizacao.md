@@ -5,7 +5,7 @@
 | ID | LGPD-01b |
 | Título | Anonimização de terceiro PF, contato, funcionário ou usuário a pedido do titular, pelo Proprietário, com 2FA de novo e confirmação digitada: troca de cada dado pessoal por um marcador em todos os módulos, preservando títulos, notas, movimentos, folha e auditoria; prévia do que muda e do que fica retido pela tabela de retenção pré-configurada e editável; uma transação por módulo, idempotente e retomável; eliminação atendida por anonimização |
 | Tamanho | M (quebra da LGPD-01) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: contadora e jurídico) |
 | Requisitos | PRD §6 LGPD · ADR 0018 (anonimização que mantém os documentos com movimento, trocando o dado pessoal por um marcador; retenção por tipo de dado) · R-SEC-5 · R-PRP-7 |
 | Dependências | LGPD-01a (pedido, identidade conferida, `IPersonalDataProvider`, inventário) |
 | Bloqueia | — |
@@ -85,18 +85,18 @@ Decisões da revisão aplicadas: §4.2 (anonimização coberta pela ADR 0037; in
 **Pré-condição externa:** a contadora e o jurídico conferem a tabela de retenção (pré-configurada em Configurações → Privacidade → Retenção com o chip "A confirmar com a contadora"); não bloqueia o `Ready`.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, canário em todas as tabelas) e E2E passando.
-- [ ] Migration criada (não destrutiva: só colunas e tabela novas).
-- [ ] Provedores de todos os módulos com dado pessoal.
-- [ ] Telas com estados; ajuda escrita e atualizada; runbook atualizado.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade e integração (Testcontainers, canário em todas as tabelas do tenant, no outbox, nos argumentos do job e no log) passando. E2E: pela regra do PO de 31/10, a story não escreve nem roda Playwright; o front é coberto com Vitest.
+- [x] Migration criada (não destrutiva: só colunas e tabela novas): `20261101005418_AnonymizationLgpd01b`.
+- [x] Provedores de todos os módulos com dado pessoal (Parties, HR, Identity, Finance, Commercial, Purchasing, Production, e-mails e notificações; Fiscal sem entidade até a FIS-03a); `PersonalDataInventoryTests` obriga.
+- [x] Telas com estados; ajuda escrita e atualizada; runbook atualizado.
+- [x] Auditoria ligada (ação `Anonymized` sem valores; retenção com antes e depois).
+- [x] OpenAPI e cliente Orval regenerados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `RetentionRule` e seed; tela de retenção.
-- [ ] `PlanAnonymizationAsync` e `AnonymizeAsync` em cada provedor; orquestrador por módulo, retomável.
-- [ ] Consumidor do `SubjectAnonymized` no Finance; tela, ajuda e runbook.
+- [x] `RetentionRule` e seed; tela de retenção.
+- [x] `PlanAnonymizationAsync` e `AnonymizeAsync` em cada provedor; orquestrador por módulo, retomável.
+- [x] Consumidor do `SubjectAnonymized` no Finance; tela, ajuda e runbook.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (orquestração por módulo), cybersecurity (canário, irreversibilidade, 2FA), @qa.
@@ -130,3 +130,13 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D6, tabela 3.3 pontos 36–39, ADR 0037, §4.2, §4.4 padrão 7); nova ordem (Marco 6.3, ordem 10); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 01/11/2026 | 1.0 | Implementação (@dev): contrato `IPersonalDataProvider` com `RetentionAnchorsAsync`, `PlanAnonymizationAsync` e `AnonymizeAsync` (contexto com o titular, o número do pedido, hoje, a tabela de retenção e as datas base reunidas de todos os módulos); provedores de Parties, HR, Identity, Finance, Commercial, Purchasing, Production, e-mails e notificações; `settings.retention_rules` com seed pela ADR 0018 (`RetentionRulesSeeder` e primeira abertura) e a tela Configurações → Privacidade → Retenção; `PrivacyAnonymizationService` (prévia, "Anonimizar"/"Tentar de novo" com o nome digitado e o 2FA de novo, job `PrivacyAnonymizationJob` só com ids, um escopo e uma transação por módulo, etapas no pedido, dono do cadastro por último); auditoria em modo `Anonymized` pelo `AuditOrigin` (só o nome dos campos); `shared.attachments.content_removed_at`; `SubjectAnonymized` (só ids, o número e `IdentityRemoved`) consumido pelo Finance no retrato do favorecido das OPs terminadas; faixa "Cadastro anonimizado" e só leitura no terceiro (409 `party_anonymized`), no funcionário (409 `employee_anonymized`) e no usuário (não reativa); ajuda e runbook. Migration `AnonymizationLgpd01b` (só colunas e uma tabela) | @dev |
+| 01/11/2026 | 1.0 | Recomendação aceita (PO 24/10): a permissão é ser membro do Proprietário (conferido no serviço, como na LGPD-01a), sem ação nova no `ModuleCatalog`; as rotas ficam em `settings.edit` (camadas 1 a 3) e o 2FA de novo vai no corpo (`IStepUpTwoFactor`, 403 `mfa_step_up_required`, conferido antes de qualquer gravação) | @dev |
+| 01/11/2026 | 1.0 | Recomendação aceita (PO 24/10), a mais conservadora: endereço do funcionário retido 5 anos depois do desligamento (o texto diz "depois do prazo trabalhista"; a prescrição bienal seria 2 anos); endereço do terceiro PF segue o nome nas notas (fim do exercício + 5 anos); forma de pagamento de título em aberto e de despesa recorrente ativa fica retida até o pagamento; motorista e "aceito por" da Produção seguem o nome do titular com a data do próprio documento. Todos editáveis na tabela, com o chip "A confirmar" | @dev |
+| 01/11/2026 | 1.0 | Recomendação aceita (PO 24/10): funcionário **ativo** não recebe a marca "Anonimizado" nem sai dos seletores (o cadastro continua em uso pela folha); só os campos sem obrigação legal saem. A marca vale para o desligado. O usuário ligado ao funcionário é outro titular (pedido próprio): anonimizar um não mexe no outro | @dev |
+| 01/11/2026 | 1.0 | Recomendação aceita (PO 24/10): campos obrigatórios sem nulo recebem valor neutro: CPF do funcionário `X` + 10 posições do id (único, nunca um CPF válido), nascimento 01/01/1900, e-mail do usuário `anonimizado.{pedido}.{id}@anonimizado.invalid`; o pedido do titular fica com o nome abreviado ("Maria S.", ou o e-mail mascarado), sem contato nem textos livres, como prova do atendimento. Ninguém anonimiza o próprio usuário e o último membro ativo do Proprietário não pode ser anonimizado | @dev |
+| 01/11/2026 | 1.0 | Regra do PO de 31/10: sem E2E nesta story; o fluxo é provado por integração (Testcontainers) e o front por Vitest | @dev |
+| 01/11/2026 | 1.0 | Pendente externo: a contadora e o jurídico conferem a tabela de retenção (prazos pré-configurados, editáveis e com "Marcar como conferido"), inclusive o prazo do endereço do funcionário e se algum documento pede guarda maior | @dev |
+| 01/11/2026 | 1.2 | Depois do merge com a FIS-03a: o Fiscal entra na prévia e na anonimização. A NF-e emitida (autorizada, cancelada ou denegada) fica, com número, chave, valores, datas, XML e DANFE. Nela, o nome, o CPF e a IE do destinatário seguem o grupo de identificação, e o endereço segue o grupo de endereço, os dois contados do fim do exercício da data da nota. O e-mail e o telefone do destinatário e o endereço do titular na cópia do e-mail saem já, porque o XML não os exige. O rascunho descartado perde o destinatário inteiro. A nota em andamento (rascunho, processando, contingência ou rejeitada) fica retida até o desfecho. O Fiscal também informa a data da última nota emitida como base da retenção. Depois da PAT-02, o Patrimônio também entra: os bens e as movimentações ficam, e o motivo da movimentação (texto livre) vira o marcador quando o funcionário entregou ou recebeu o bem ou quando o terceiro o comprou. Os dois casos têm teste de integração com canário | @dev |
+| 01/11/2026 | 1.1 | Depois do merge com a RH-01c: o espelho de ponto entra na prévia e na anonimização pelo grupo trabalhista (desligamento + 5 anos). Os totais do espelho fechado e o resumo da ciência ficam. Nos dias congelados (`days_snapshot`) e no abono por motivo (`justified_by_reason`), o motivo de saúde vira "Falta justificada", com as horas abonadas batendo, e o afastamento fica sem o tipo. O motivo da reabertura e o comentário da revisão do dia viram o marcador. O acordo de banco de horas fica nulo e o PDF do espelho é apagado (ele é regerado sob demanda). O caso tem teste de integração com canário | @dev |
+| 01/11/2026 | 1.0 | Pendente de outra story: o PDF "Baixar todos" da folha (`PayslipBatch`, todos os funcionários num arquivo) não é apagado na anonimização de um titular (fica retido pela obrigação trabalhista de todos); notas fiscais do titular entram com a FIS-03a; usuários do portal com a POR-01a; anonimização automática ao fim do prazo depois do MVP | @dev |

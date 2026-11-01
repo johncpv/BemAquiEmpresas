@@ -53,6 +53,7 @@ import type {
   AmendmentInput,
   AmendmentSummary,
   AmendmentVersionInput,
+  AnonymizePrivacySubjectInput,
   ApprovalCostView,
   ApprovalPreview,
   ApprovalResult,
@@ -170,6 +171,7 @@ import type {
   CompleteStockOpeningInput,
   ConcludePrivacyRequestInput,
   ConfirmFiscalSettingsRequest,
+  ConfirmRetentionRuleInput,
   ConfirmTwoFactorRequest,
   ConfirmWithChallengeRequest,
   ContactInput,
@@ -694,6 +696,8 @@ import type {
   PreviewPayrollImportBody,
   PriceCorrectionRequestResult,
   PricingModeInput,
+  PrivacyAnonymizationPreview,
+  PrivacyAnonymizationStarted,
   PrivacyCorrectionTarget,
   PrivacyDownloadLink,
   PrivacyExportStarted,
@@ -826,6 +830,7 @@ import type {
   ReservationDetail,
   ResetPasswordRequest,
   ResubmitInput,
+  RetentionRuleRow,
   ReturnInput,
   RevenueCard,
   RevenueTargetsInput,
@@ -856,6 +861,7 @@ import type {
   SaveFiscalSettingsRequest,
   SaveGroupRequest,
   SaveModuleReleaseRequest,
+  SaveRetentionRuleInput,
   ScheduleDayProposal,
   ScheduleDetail,
   ScheduleInput,
@@ -11367,6 +11373,418 @@ export function useDownloadPrivacyExport<TData = Awaited<ReturnType<typeof downl
 
 
 
+
+export const getPreviewPrivacyAnonymizationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/settings/privacy-requests/${id}/anonymization/preview`
+}
+
+export const previewPrivacyAnonymization = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PrivacyAnonymizationPreview> => {
+
+  return apiFetch<PrivacyAnonymizationPreview>(getPreviewPrivacyAnonymizationUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getPreviewPrivacyAnonymizationMutationKey = () => ['previewPrivacyAnonymization'] as const;
+
+export const getPreviewPrivacyAnonymizationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewPrivacyAnonymization>>, TError,PreviewPrivacyAnonymizationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewPrivacyAnonymization>>, TError,PreviewPrivacyAnonymizationMutationVariables, TContext> => {
+
+const mutationKey = getPreviewPrivacyAnonymizationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewPrivacyAnonymization>>, PreviewPrivacyAnonymizationMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  previewPrivacyAnonymization(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewPrivacyAnonymizationMutationResult = NonNullable<Awaited<ReturnType<typeof previewPrivacyAnonymization>>>
+
+    export type PreviewPrivacyAnonymizationMutationError = unknown
+    export type PreviewPrivacyAnonymizationMutationVariables = {id: string}
+
+    export const usePreviewPrivacyAnonymization = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewPrivacyAnonymization>>, TError,PreviewPrivacyAnonymizationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof previewPrivacyAnonymization>>,
+        TError,
+        PreviewPrivacyAnonymizationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPreviewPrivacyAnonymizationMutationOptions(options), queryClient);
+    }
+
+export const getAnonymizePrivacySubjectUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/settings/privacy-requests/${id}/anonymization`
+}
+
+export const anonymizePrivacySubject = async (id: string,
+    anonymizePrivacySubjectInput: AnonymizePrivacySubjectInput, options?: Parameters<typeof apiFetch>[1]): Promise<PrivacyAnonymizationStarted> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PrivacyAnonymizationStarted>(getAnonymizePrivacySubjectUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(anonymizePrivacySubjectInput)
+  }
+);}
+
+
+
+
+
+export const getAnonymizePrivacySubjectMutationKey = () => ['anonymizePrivacySubject'] as const;
+
+export const getAnonymizePrivacySubjectMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof anonymizePrivacySubject>>, TError,AnonymizePrivacySubjectMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof anonymizePrivacySubject>>, TError,AnonymizePrivacySubjectMutationVariables, TContext> => {
+
+const mutationKey = getAnonymizePrivacySubjectMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof anonymizePrivacySubject>>, AnonymizePrivacySubjectMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  anonymizePrivacySubject(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AnonymizePrivacySubjectMutationResult = NonNullable<Awaited<ReturnType<typeof anonymizePrivacySubject>>>
+    export type AnonymizePrivacySubjectMutationBody = AnonymizePrivacySubjectInput
+    export type AnonymizePrivacySubjectMutationError = unknown
+    export type AnonymizePrivacySubjectMutationVariables = {id: string;data: AnonymizePrivacySubjectInput}
+
+    export const useAnonymizePrivacySubject = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof anonymizePrivacySubject>>, TError,AnonymizePrivacySubjectMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof anonymizePrivacySubject>>,
+        TError,
+        AnonymizePrivacySubjectMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAnonymizePrivacySubjectMutationOptions(options), queryClient);
+    }
+
+export const getListRetentionRulesUrl = () => {
+
+
+
+
+  return `/api/v1/settings/privacy-retention`
+}
+
+export const listRetentionRules = async ( options?: Parameters<typeof apiFetch>[1]): Promise<RetentionRuleRow[]> => {
+
+  return apiFetch<RetentionRuleRow[]>(getListRetentionRulesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRetentionRulesQueryKey = () => {
+    return [
+    `/api/v1/settings/privacy-retention`
+    ] as const;
+    }
+
+
+export const getListRetentionRulesQueryOptions = <TData = Awaited<ReturnType<typeof listRetentionRules>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetentionRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRetentionRulesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRetentionRules>>> = ({ signal }) => listRetentionRules({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRetentionRules>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListRetentionRulesQueryResult = NonNullable<Awaited<ReturnType<typeof listRetentionRules>>>
+export type ListRetentionRulesQueryError = unknown
+
+
+export function useListRetentionRules<TData = Awaited<ReturnType<typeof listRetentionRules>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetentionRules>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRetentionRules>>,
+          TError,
+          Awaited<ReturnType<typeof listRetentionRules>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRetentionRules<TData = Awaited<ReturnType<typeof listRetentionRules>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetentionRules>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listRetentionRules>>,
+          TError,
+          Awaited<ReturnType<typeof listRetentionRules>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListRetentionRules<TData = Awaited<ReturnType<typeof listRetentionRules>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetentionRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListRetentionRules<TData = Awaited<ReturnType<typeof listRetentionRules>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetentionRules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListRetentionRulesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveRetentionRuleUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/settings/privacy-retention/${id}`
+}
+
+export const saveRetentionRule = async (id: string,
+    saveRetentionRuleInput: SaveRetentionRuleInput, options?: Parameters<typeof apiFetch>[1]): Promise<RetentionRuleRow> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RetentionRuleRow>(getSaveRetentionRuleUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(saveRetentionRuleInput)
+  }
+);}
+
+
+
+
+
+export const getSaveRetentionRuleMutationKey = () => ['saveRetentionRule'] as const;
+
+export const getSaveRetentionRuleMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveRetentionRule>>, TError,SaveRetentionRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveRetentionRule>>, TError,SaveRetentionRuleMutationVariables, TContext> => {
+
+const mutationKey = getSaveRetentionRuleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveRetentionRule>>, SaveRetentionRuleMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  saveRetentionRule(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveRetentionRuleMutationResult = NonNullable<Awaited<ReturnType<typeof saveRetentionRule>>>
+    export type SaveRetentionRuleMutationBody = SaveRetentionRuleInput
+    export type SaveRetentionRuleMutationError = unknown
+    export type SaveRetentionRuleMutationVariables = {id: string;data: SaveRetentionRuleInput}
+
+    export const useSaveRetentionRule = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveRetentionRule>>, TError,SaveRetentionRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveRetentionRule>>,
+        TError,
+        SaveRetentionRuleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveRetentionRuleMutationOptions(options), queryClient);
+    }
+
+export const getConfirmRetentionRuleUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/settings/privacy-retention/${id}/confirm`
+}
+
+export const confirmRetentionRule = async (id: string,
+    confirmRetentionRuleInput: ConfirmRetentionRuleInput, options?: Parameters<typeof apiFetch>[1]): Promise<RetentionRuleRow> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RetentionRuleRow>(getConfirmRetentionRuleUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(confirmRetentionRuleInput)
+  }
+);}
+
+
+
+
+
+export const getConfirmRetentionRuleMutationKey = () => ['confirmRetentionRule'] as const;
+
+export const getConfirmRetentionRuleMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmRetentionRule>>, TError,ConfirmRetentionRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmRetentionRule>>, TError,ConfirmRetentionRuleMutationVariables, TContext> => {
+
+const mutationKey = getConfirmRetentionRuleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmRetentionRule>>, ConfirmRetentionRuleMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  confirmRetentionRule(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmRetentionRuleMutationResult = NonNullable<Awaited<ReturnType<typeof confirmRetentionRule>>>
+    export type ConfirmRetentionRuleMutationBody = ConfirmRetentionRuleInput
+    export type ConfirmRetentionRuleMutationError = unknown
+    export type ConfirmRetentionRuleMutationVariables = {id: string;data: ConfirmRetentionRuleInput}
+
+    export const useConfirmRetentionRule = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmRetentionRule>>, TError,ConfirmRetentionRuleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof confirmRetentionRule>>,
+        TError,
+        ConfirmRetentionRuleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConfirmRetentionRuleMutationOptions(options), queryClient);
+    }
 
 export const getListPartiesUrl = (params?: ListPartiesParams,) => {
   const normalizedParams = new URLSearchParams();

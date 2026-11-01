@@ -30,5 +30,25 @@ internal sealed class PrivacyRequestConfiguration : IEntityTypeConfiguration<Pri
         b.HasIndex(e => e.DownloadTokenHash).IsUnique().HasFilter("download_token_hash IS NOT NULL");
         b.HasIndex(e => new { e.Status, e.DueOn });
         b.Ignore(e => e.IsIdentityVerified);
+        // LGPD-01b: as etapas e o resumo da anonimização, sem dado pessoal.
+        b.Property(e => e.AnonymizationStatus).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.AnonymizationSteps).HasColumnType("jsonb");
+        b.Property(e => e.AnonymizationSummary).HasColumnType("jsonb");
+    }
+}
+
+/// <summary>Tabela de retenção (<c>settings.retention_rules</c>, LGPD-01b CA 1): uma linha por tipo de titular e grupo de campos.</summary>
+internal sealed class RetentionRuleConfiguration : IEntityTypeConfiguration<RetentionRule>
+{
+    public void Configure(EntityTypeBuilder<RetentionRule> b)
+    {
+        b.ToTable("retention_rules", "settings");
+        b.Property(e => e.SubjectType).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.FieldGroup).HasMaxLength(32);
+        b.Property(e => e.Rule).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.BaseDate).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.SeedKey).HasMaxLength(64);
+        b.HasIndex(e => e.SeedKey).IsUnique();
+        b.HasIndex(e => new { e.SubjectType, e.FieldGroup }).IsUnique();
     }
 }

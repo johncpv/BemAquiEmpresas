@@ -5,6 +5,7 @@ import { deleteParty, getGetPartyQueryKey, inactivateParty, reactivateParty, use
 import type { AddressKind, PartyDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { RecordHistory } from '@/components/history/RecordHistory'
+import { AnonymizedBand } from '@/components/ui/anonymized-band'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { NextSteps } from '@/components/ui/next-steps'
 import { ErrorState, Skeleton } from '@/components/ui/states'
@@ -38,7 +39,7 @@ export function PartyPage() {
   const navigate = useNavigate()
   const client = useQueryClient()
   const query = useGetParty(id)
-  const canEdit = useCanParties('edit')
+  const canEditParties = useCanParties('edit')
   const business = usePartyBusinessVisible()
   const [, setTab] = useUrlTab('dados')
   const [steps, setSteps] = useState(search.novo === '1')
@@ -54,6 +55,9 @@ export function PartyPage() {
   }
 
   const party = query.data
+  // LGPD-01b: cadastro anonimizado é só leitura (a API recusa com 409 party_anonymized).
+  const anonymized = !!party.anonymizedAt
+  const canEdit = canEditParties && !anonymized
   const setActive = async (active: boolean) => setParty(active ? await reactivateParty(id) : await inactivateParty(id))
 
   return (
@@ -67,7 +71,7 @@ export function PartyPage() {
             <ImportedTag source={party.importSource} />
             <Link to="/app/cadastros/terceiros" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
           </div>
-          <div className="flex flex-wrap gap-2">
+          {anonymized ? null : <div className="flex flex-wrap gap-2">
             <Can perm="parties.edit">
               {party.kind === 'PJ' && party.document ? (
                 <button type="button" onClick={() => setReceita(true)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Atualizar pela Receita</button>
@@ -89,9 +93,10 @@ export function PartyPage() {
             <Can perm="parties.edit">
               <button type="submit" form="dados-terceiro" onClick={() => setTab('dados')} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar terceiro</button>
             </Can>
-          </div>
+          </div>}
         </div>
       </PageHeading>
+      <AnonymizedBand at={party.anonymizedAt} request={party.anonymizationRequest} />
 
       {steps && canEdit ? (
         <div className="mb-4">

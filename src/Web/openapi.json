@@ -3558,6 +3558,183 @@
         }
       }
     },
+    "/api/v1/settings/privacy-requests/{id}/anonymization/preview": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "PreviewPrivacyAnonymization",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyAnonymizationPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-requests/{id}/anonymization": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "AnonymizePrivacySubject",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnonymizePrivacySubjectInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyAnonymizationStarted"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-retention": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ListRetentionRules",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RetentionRuleRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-retention/{id}": {
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SaveRetentionRule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveRetentionRuleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionRuleRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/privacy-retention/{id}/confirm": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "ConfirmRetentionRule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmRetentionRuleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionRuleRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/parties": {
       "get": {
         "tags": [
@@ -36221,6 +36398,39 @@
           }
         }
       },
+      "AnonymizationAction": {
+        "enum": [
+          "Anonymize",
+          "Retain",
+          "Keep"
+        ]
+      },
+      "AnonymizePrivacySubjectInput": {
+        "required": [
+          "confirmation",
+          "twoFactorCode",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "confirmation": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "twoFactorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "ApprovalAccount": {
         "required": [
           "id",
@@ -44494,6 +44704,18 @@
         },
         "additionalProperties": false
       },
+      "ConfirmRetentionRuleInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "ConfirmTwoFactorRequest": {
         "required": [
           "code"
@@ -47397,6 +47619,19 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "anonymizedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "anonymizationRequest": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -65060,6 +65295,19 @@
               "null",
               "string"
             ]
+          },
+          "anonymizedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "anonymizationRequest": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -69717,6 +69965,74 @@
           }
         }
       },
+      "PersonalDataAnonymizationPlan": {
+        "required": [
+          "module",
+          "title",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonalDataPlanItem"
+            }
+          },
+          "blocker": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isEmpty": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PersonalDataPlanItem": {
+        "required": [
+          "action",
+          "label",
+          "source",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/AnonymizationAction"
+          },
+          "label": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "retainedUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "PersonalDataSubjectKind": {
         "enum": [
           "Party",
@@ -70808,6 +71124,166 @@
           }
         }
       },
+      "PrivacyAnonymizationPreview": {
+        "required": [
+          "requestId",
+          "requestNumber",
+          "confirmationText",
+          "marker",
+          "modules",
+          "blockers",
+          "deletionNotice",
+          "backupNotice",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestNumber": {
+            "type": "string"
+          },
+          "confirmationText": {
+            "type": "string"
+          },
+          "marker": {
+            "type": "string"
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonalDataAnonymizationPlan"
+            }
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "deletionNotice": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "backupNotice": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PrivacyAnonymizationStarted": {
+        "required": [
+          "request",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/PrivacyRequestDetail"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "PrivacyAnonymizationStatus": {
+        "enum": [
+          "None",
+          "Running",
+          "Partial",
+          "Done"
+        ],
+        "default": "None"
+      },
+      "PrivacyAnonymizationStep": {
+        "required": [
+          "module",
+          "title",
+          "status",
+          "at",
+          "error",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PrivacyAnonymizationStepStatus"
+          },
+          "at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonalDataPlanItem"
+            }
+          }
+        }
+      },
+      "PrivacyAnonymizationStepStatus": {
+        "enum": [
+          "Pending",
+          "Done",
+          "Failed"
+        ]
+      },
+      "PrivacyAnonymizationSummary": {
+        "required": [
+          "anonymized",
+          "retained",
+          "kept",
+          "retainedUntil",
+          "retainedWithoutDate"
+        ],
+        "type": "object",
+        "properties": {
+          "anonymized": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "retained": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "kept": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "retainedUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "retainedWithoutDate": {
+            "type": "boolean"
+          }
+        }
+      },
       "PrivacyCorrectionTarget": {
         "required": [
           "link",
@@ -71118,6 +71594,51 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "canAnonymize": {
+            "type": "boolean",
+            "default": false
+          },
+          "anonymizationStatus": {
+            "$ref": "#/components/schemas/PrivacyAnonymizationStatus"
+          },
+          "anonymizationSteps": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PrivacyAnonymizationStep"
+            }
+          },
+          "anonymizationSummary": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PrivacyAnonymizationSummary"
+              }
+            ]
+          },
+          "anonymizedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "anonymizedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "backupNotice": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -80654,6 +81175,81 @@
           }
         }
       },
+      "RetentionBase": {
+        "enum": [
+          "None",
+          "LastPayment",
+          "Termination",
+          "FiscalYearEnd"
+        ]
+      },
+      "RetentionRuleKind": {
+        "enum": [
+          "Anytime",
+          "AfterYears"
+        ]
+      },
+      "RetentionRuleRow": {
+        "required": [
+          "id",
+          "subjectType",
+          "fieldGroup",
+          "label",
+          "rule",
+          "years",
+          "baseDate",
+          "confirmed",
+          "confirmedAt",
+          "confirmedByName",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subjectType": {
+            "$ref": "#/components/schemas/PersonalDataSubjectKind"
+          },
+          "fieldGroup": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "rule": {
+            "$ref": "#/components/schemas/RetentionRuleKind"
+          },
+          "years": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baseDate": {
+            "$ref": "#/components/schemas/RetentionBase"
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "confirmedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "RetentionSuggestion": {
         "required": [
           "payableId",
@@ -82782,6 +83378,27 @@
             "items": {
               "$ref": "#/components/schemas/ModuleReleaseChange"
             }
+          }
+        }
+      },
+      "SaveRetentionRuleInput": {
+        "required": [
+          "rule",
+          "years",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "rule": {
+            "$ref": "#/components/schemas/RetentionRuleKind"
+          },
+          "years": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
           }
         }
       },
@@ -91369,6 +91986,19 @@
           },
           "inviteOpen": {
             "type": "boolean"
+          },
+          "anonymizedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "anonymizationRequest": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

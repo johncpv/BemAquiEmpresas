@@ -95,6 +95,11 @@ public static class IdentityInfrastructure
         services.TryAddScoped<Application.Privacy.PrivacyExportService>();
         services.TryAddScoped<Application.Privacy.PrivacyDueNotices>();
         services.TryAddScoped<Application.Privacy.PrivacyExportPurge>();
+        // LGPD-01b: anonimização pelos provedores (um escopo e uma transação por módulo) e a tabela de retenção pré-configurada e editável.
+        services.TryAddScoped<Application.Privacy.PrivacyAnonymizationService>();
+        services.TryAddScoped<Application.Privacy.RetentionRuleService>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, RetentionRulesSeeder>());
+        services.AddAuditableEntity<RetentionRule>("settings");
         services.TryAddSingleton<BemAqui.BuildingBlocks.Pdf.IPdfRenderer, BemAqui.BuildingBlocks.Pdf.QuestPdfRenderer>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Privacy.IPersonalDataProvider, Application.Privacy.IdentityPersonalDataProvider>());
         services.AddAttachmentOwner(PrivacyRequest.OwnerType, new AttachmentOwnerRules("settings", ["application/zip"],

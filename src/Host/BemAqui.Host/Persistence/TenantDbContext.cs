@@ -69,6 +69,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<PrivacyRequest> PrivacyRequests => Set<PrivacyRequest>();
 
+    public DbSet<RetentionRule> RetentionRules => Set<RetentionRule>();
+
     public DbSet<Party> Parties => Set<Party>();
 
     public DbSet<PartyRole> PartyRoles => Set<PartyRole>();
