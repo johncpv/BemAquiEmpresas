@@ -34,6 +34,8 @@ interface Draft {
   amount: string | null
   dueDate: string
   payee: ComboOption | null
+  /** Guia da folha calculada (FLH-02a): o tipo e o valor vêm do cálculo; só o vencimento e o órgão mudam. */
+  calculated?: boolean
 }
 
 /**
@@ -75,7 +77,7 @@ function Charges({ run, view, editable }: { run: PayrollRunSummary; view: Payrol
   }
   const edit = (c: PayrollChargeDetail) => {
     setError(null)
-    setDraft({ id: c.id, version: c.version, kind: c.kind, description: c.description, amount: c.amount.toFixed(2), dueDate: c.dueDate, payee: c.payeePartyId ? { id: c.payeePartyId, label: c.payeeName ?? '' } : null })
+    setDraft({ id: c.id, version: c.version, kind: c.kind, description: c.description, amount: c.amount.toFixed(2), dueDate: c.dueDate, payee: c.payeePartyId ? { id: c.payeePartyId, label: c.payeeName ?? '' } : null, calculated: c.calculated ?? false })
   }
 
   const newButton = editable ? <button type="button" onClick={() => { setError(null); setDraft(fresh('Fgts')) }} className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Adicionar guia</button> : null
@@ -98,7 +100,7 @@ function Charges({ run, view, editable }: { run: PayrollRunSummary; view: Payrol
           {view.items.map((c) => (
             <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
               <span className="space-y-0.5">
-                <span className="block font-semibold">{CHARGE_LABELS[c.kind]} · {c.description}</span>
+                <span className="block font-semibold">{CHARGE_LABELS[c.kind]} · {c.description}{c.calculated ? <span className="ml-2 text-xs font-normal text-muted-foreground">Calculada</span> : null}</span>
                 <span className="block text-muted-foreground">Vence em {formatDate(c.dueDate)} · {c.payeeName ?? 'Sem órgão'}{c.kind === 'Fgts' ? <> · soma dos holerites <Money value={view.payslipsFgts} /></> : null}</span>
               </span>
               <span className="flex items-center gap-2">
@@ -106,8 +108,8 @@ function Charges({ run, view, editable }: { run: PayrollRunSummary; view: Payrol
                 {editable ? (
                   <>
                     <button type="button" onClick={() => edit(c)} className="min-h-11 rounded-md border border-border px-2 py-1 text-xs font-semibold sm:min-h-0">Editar</button>
-                    <ConfirmDialog verb="Remover" done="Guia removida" destructive title={`Remover a guia ${CHARGE_LABELS[c.kind]}?`} onConfirm={async () => client.setQueryData(getListPayrollChargesSensitiveQueryKey(run.id), await deletePayrollCharge(run.id, c.id))}
-                      trigger={<button type="button" className="min-h-11 rounded-md border border-border px-2 py-1 text-xs font-semibold text-crit-ink sm:min-h-0">Remover</button>} />
+                    {c.calculated ? null : <ConfirmDialog verb="Remover" done="Guia removida" destructive title={`Remover a guia ${CHARGE_LABELS[c.kind]}?`} onConfirm={async () => client.setQueryData(getListPayrollChargesSensitiveQueryKey(run.id), await deletePayrollCharge(run.id, c.id))}
+                      trigger={<button type="button" className="min-h-11 rounded-md border border-border px-2 py-1 text-xs font-semibold text-crit-ink sm:min-h-0">Remover</button>} />}
                   </>
                 ) : null}
               </span>
@@ -122,7 +124,7 @@ function Charges({ run, view, editable }: { run: PayrollRunSummary; view: Payrol
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Guia" required error={error?.fields.kind?.[0]}>
                 {(p) => (
-                  <select {...p} value={draft.kind} onChange={(e) => {
+                  <select {...p} value={draft.kind} disabled={draft.calculated} onChange={(e) => {
                     const kind = e.target.value as PayrollChargeKind
                     const d = fresh(kind)
                     set({ kind, dueDate: draft.id ? draft.dueDate : d.dueDate, payee: draft.id ? draft.payee : d.payee })
@@ -132,7 +134,7 @@ function Charges({ run, view, editable }: { run: PayrollRunSummary; view: Payrol
                 )}
               </Field>
               <Field label="Valor" required error={error?.fields.amount?.[0]} hint={draft.kind === 'Fgts' ? `Soma do FGTS dos holerites: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(view.payslipsFgts)}` : undefined}>
-                {(p) => <MoneyInput {...p} value={draft.amount} onChange={(amount) => set({ amount })} />}
+                {(p) => <MoneyInput {...p} value={draft.amount} disabled={draft.calculated} onChange={(amount) => set({ amount })} />}
               </Field>
               <Field label="Descrição" required={draft.kind === 'Other'} error={error?.fields.description?.[0]} hint="Vazio: o nome da guia e a competência.">
                 {(p) => <input {...p} value={draft.description} maxLength={100} onChange={(e) => set({ description: e.target.value })} className={inputClass} />}

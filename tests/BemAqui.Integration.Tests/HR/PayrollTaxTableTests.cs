@@ -137,7 +137,7 @@ public class PayrollTaxTableTests(TenancyFixture tenancy) : IClassFixture<Tenanc
 
         // Sem entrada pendente no pacote, nenhuma seção traz a nota.
         var view = await OkAsync(await editor.Client.GetAsync(Tables));
-        view.GetProperty("sections").EnumerateArray().Should().OnlyContain(s => !s.TryGetProperty("pendingNote", out var note) || note.ValueKind == JsonValueKind.Null);
+        view.GetProperty("sections").EnumerateArray().Where(s => s.TryGetProperty("pendingNote", out var note) && note.ValueKind != JsonValueKind.Null).Should().BeEmpty();
     }
 
     /// <summary>CA 2 a 4, 9 e 15: cadastro de cada tipo com validação no servidor; nasce "A confirmar"; sem hr.view_sensitive, 403.</summary>
@@ -300,12 +300,12 @@ public class PayrollTaxTableTests(TenancyFixture tenancy) : IClassFixture<Tenanc
         june.GetProperty("id").GetGuid().Should().Be(may.GetProperty("id").GetGuid());
         june.GetProperty("status").GetString().Should().Be("Unconfirmed");
 
-        // Antes da primeira versão: 422 com a mensagem e o link (sem tabela de FGTS em 2040 no TenantA).
-        var missing = await checker.Client.GetAsync($"{Tables}/for-competence?kind=Fgts&competence=2040-03");
+        // Antes da primeira versão: 422 com a mensagem e o link (o pacote do seed começa em 2026: sem tabela de FGTS em 2025).
+        var missing = await checker.Client.GetAsync($"{Tables}/for-competence?kind=Fgts&competence=2025-03");
         missing.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
         var body = await JsonAsync(missing);
         body.GetProperty("code").GetString().Should().Be(PayrollTaxRules.MissingCode);
-        body.GetProperty("detail").GetString().Should().Be("Falta a tabela FGTS para março/2040.");
+        body.GetProperty("detail").GetString().Should().Be("Falta a tabela FGTS para março/2025.");
         body.GetProperty("link").GetString().Should().StartWith(PayrollTaxTableService.Link);
 
         // Fechamento oficial (FLH-02a CA 16): todas as versões usadas conferidas.

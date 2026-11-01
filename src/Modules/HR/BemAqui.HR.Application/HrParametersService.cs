@@ -47,6 +47,15 @@ public enum HrParameterKind
 
     /// <summary>Ligado (1) ou desligado (0) (banco de horas, RH-01c CA 1).</summary>
     Toggle,
+
+    /// <summary>Uma das opções da lista (<see cref="HrParameterItem.Options"/>), gravada como número (folha calculada, FLH-02a).</summary>
+    Choice,
+
+    /// <summary>Horas (divisor do valor da hora, FLH-02a; 0 = as horas mensais do cargo).</summary>
+    Hours,
+
+    /// <summary>Anos (idade do salário-família, FLH-02a).</summary>
+    Years,
 }
 
 /// <summary>Parâmetros do espelho de ponto (RH-01c CA 1), lidos de uma vez; fora dos limites, o padrão.</summary>
@@ -72,7 +81,11 @@ public sealed record HrParameterItem(
     DateTimeOffset? ConfirmedAt,
     Guid? ParameterId,
     string? Code = null,
-    string? CodeName = null);
+    string? CodeName = null,
+    IReadOnlyList<HrChoiceOption>? Options = null);
+
+/// <summary>Opção de um parâmetro de escolha (FLH-02a): o número gravado e o rótulo.</summary>
+public sealed record HrChoiceOption(decimal Value, string Label);
 
 /// <summary>Opção de conta ou de centro de custo para os parâmetros da folha (RH-02c CA 4).</summary>
 public sealed record HrCodeOption(string Code, string Name);
@@ -136,7 +149,7 @@ public sealed class HrParametersService(
     public static string PayeeKey(PayrollChargeKind kind) => "hr.charge_payee." + kind.ToString().ToLowerInvariant();
 
     /// <summary>Definição de cada chave: rótulo, descrição, tipo, padrão, limites e se depende da contadora.</summary>
-    public sealed record Definition(string Key, string Label, string Description, HrParameterKind Kind, decimal? Default, decimal? Min, decimal? Max, bool Legal, string? DefaultCode = null);
+    public sealed record Definition(string Key, string Label, string Description, HrParameterKind Kind, decimal? Default, decimal? Min, decimal? Max, bool Legal, string? DefaultCode = null, IReadOnlyList<HrChoiceOption>? Options = null);
 
     public static IReadOnlyList<Definition> Definitions { get; } =
     [
@@ -181,7 +194,74 @@ public sealed class HrParametersService(
             HrParameterKind.Toggle, 1m, 0m, 1m, true),
         new(TimesheetPeriodStartDay, "Início do período de apuração", "Dia do mês em que começa o período do ponto. 1 é o mês civil; 21, por exemplo, faz o corte de 21 a 20. Mudar vale para os períodos em aberto, nunca para os fechados.",
             HrParameterKind.DayOfMonth, 1m, 1m, 28m, true),
+
+        // FLH-02a: regras da folha calculada, pré-configuradas com o valor usual da legislação (PO 21/10/2026), "A confirmar com a contadora".
+        new(SalaryProration, "Salário proporcional", "Como o salário do mês de admissão ou desligamento é proporcional: pelo mês comercial de 30 dias (o usual) ou pelos dias do mês.",
+            HrParameterKind.Choice, 1m, 1m, 2m, true, Options: [new(1m, "Mês comercial de 30 dias"), new(2m, "Dias do mês")]),
+        new(SickLeaveCompanyDays, "Dias de afastamento pagos pela empresa", "No afastamento por doença ou acidente, a empresa paga os primeiros dias; do dia seguinte em diante, quem paga é a previdência (o usual são 15 dias).",
+            HrParameterKind.Days, 15m, 0m, 30m, true),
+        new(AccidentKeepsFgts, "FGTS no afastamento por acidente", "No afastamento por acidente de trabalho, o FGTS continua sobre a remuneração que seria devida (Lei 8.036/1990, art. 15 §5º).",
+            HrParameterKind.Toggle, 1m, 0m, 1m, true),
+        new(InsalubrityBase, "Base da insalubridade", "Sobre o que incide o percentual da insalubridade (10, 20 ou 40%): o salário mínimo da tabela da folha (o usual) ou o salário base, se a convenção coletiva pedir.",
+            HrParameterKind.Choice, 1m, 1m, 2m, true, Options: [new(1m, "Salário mínimo"), new(2m, "Salário base")]),
+        new(HazardPayPct, "Percentual da periculosidade", "Percentual sobre o salário base do adicional de periculosidade (CLT art. 193: 30%).",
+            HrParameterKind.Percent, 30m, 0m, 100m, true),
+        new(AllowancesAccumulate, "Insalubridade e periculosidade acumulam", "Desligado (o usual, CLT art. 193 §2º): quem tem os dois recebe só o de maior valor no mês. Ligue só se a convenção ou a decisão judicial mandar acumular.",
+            HrParameterKind.Toggle, 0m, 0m, 1m, true),
+        new(HourValueDivisor, "Horas do valor da hora", "Divisor do valor da hora nas faltas e nos atrasos: 0 usa as horas mensais da jornada do cargo (ex.: 220); outro número vale para todos.",
+            HrParameterKind.Hours, 0m, 0m, 300m, true),
+        new(FamilyAllowanceMaxAge, "Idade do salário-família", "Até que idade o filho dá direito à cota do salário-família (o usual são 14 anos).",
+            HrParameterKind.Years, 14m, 0m, 24m, true),
+        new(IrrfReductionIncome, "Rendimento da redução do IRRF", "Que rendimento entra na faixa e na fórmula da redução adicional do IRRF: o rendimento tributável bruto do mês, como nos exemplos da Receita Federal, ou a base de cálculo depois das deduções.",
+            HrParameterKind.Choice, 1m, 1m, 2m, true, Options: [new(1m, "Rendimento tributável bruto (exemplos da Receita)"), new(2m, "Base de cálculo, depois das deduções")]),
     ];
+
+    // FLH-02a: folha calculada ("A confirmar com a contadora").
+    public const string SalaryProration = "hr.salary_proration";
+    public const string SickLeaveCompanyDays = "hr.sick_leave_company_days";
+    public const string AccidentKeepsFgts = "hr.accident_keeps_fgts";
+    public const string InsalubrityBase = "hr.insalubrity_base";
+    public const string HazardPayPct = "hr.hazard_pay_pct";
+    public const string AllowancesAccumulate = "hr.allowances_accumulate";
+    public const string HourValueDivisor = "hr.hour_value_divisor";
+    public const string FamilyAllowanceMaxAge = "hr.family_allowance_max_age";
+    public const string IrrfReductionIncome = "hr.irrf_reduction_income";
+
+    /// <summary>As chaves que o motor da folha calculada lê (o holerite guarda os ids delas).</summary>
+    public static readonly string[] CalculationKeys = [SalaryProration, SickLeaveCompanyDays, AccidentKeepsFgts, InsalubrityBase, HazardPayPct, AllowancesAccumulate, HourValueDivisor, FamilyAllowanceMaxAge, IrrfReductionIncome];
+
+    /// <summary>
+    /// Virada da folha calculada (FLH-06, ADR 0039 §5): enquanto não for 1, a calculada é só simulação. Não aparece em Configurações; quem
+    /// grava é a virada da FLH-06 (auditada).
+    /// </summary>
+    public const string CalculatedOfficialKey = "hr.payroll_calculated_official";
+
+    /// <summary>Parâmetros da folha calculada (FLH-02a), com os ids gravados; fora dos limites ou sem gravar, o pré-configurado.</summary>
+    public async Task<(PayrollCalcParameters Parameters, List<Guid> Ids)> CalculationParametersAsync(CancellationToken cancellationToken = default)
+    {
+        var stored = await db.HrParameters.AsNoTracking().Where(p => CalculationKeys.Contains(p.Key)).ToListAsync(cancellationToken);
+        decimal Number(string key)
+        {
+            var d = Definitions.First(x => x.Key == key);
+            return stored.FirstOrDefault(p => p.Key == key)?.Value is { } v && v >= d.Min && v <= d.Max ? v : d.Default!.Value;
+        }
+
+        var parameters = new PayrollCalcParameters(
+            Number(SalaryProration) == 2m ? Domain.SalaryProration.CalendarDays : Domain.SalaryProration.CommercialMonth,
+            (int)Number(SickLeaveCompanyDays),
+            Number(AccidentKeepsFgts) == 1m,
+            Number(InsalubrityBase) == 2m ? Domain.InsalubrityBase.BaseSalary : Domain.InsalubrityBase.MinimumWage,
+            Number(HazardPayPct),
+            Number(AllowancesAccumulate) == 1m,
+            Number(HourValueDivisor),
+            (int)Number(FamilyAllowanceMaxAge),
+            Number(IrrfReductionIncome) == 2m ? Domain.IrrfReductionIncome.CalculationBase : Domain.IrrfReductionIncome.GrossTaxable);
+        return (parameters, stored.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => p.Id).ToList());
+    }
+
+    /// <summary>A virada foi feita (FLH-06): a folha calculada deixa de ser simulação.</summary>
+    public async Task<bool> CalculatedOfficialAsync(CancellationToken cancellationToken = default) =>
+        await NumberAsync(CalculatedOfficialKey, cancellationToken) == 1m;
 
     // RH-01c: espelho de ponto e banco de horas ("A confirmar com a contadora").
     public const string TolerancePerEntry = "hr.time_tolerance_per_entry_minutes";
@@ -296,7 +376,7 @@ public sealed class HrParametersService(
             var codeName = code is null ? null : (d.Kind switch { HrParameterKind.Account => accounts, HrParameterKind.CostCenter => centers, HrParameterKind.Geolocation => geolocation, _ => exportLayouts }).FirstOrDefault(o => o.Code == code)?.Name;
             return new HrParameterItem(d.Key, d.Label, d.Description, d.Kind, d.Kind == HrParameterKind.Party || CodeKinds.Contains(d.Kind) ? null : p?.Value ?? d.Default, d.Min, d.Max, party,
                 party is { } pid ? names.GetValueOrDefault(pid) : null, d.Legal, d.Legal && p?.ConfirmedAt is not null,
-                p?.ConfirmedBy is { } by ? reviewers.GetValueOrDefault(by) : null, d.Legal ? p?.ConfirmedAt : null, p?.Id, code, codeName);
+                p?.ConfirmedBy is { } by ? reviewers.GetValueOrDefault(by) : null, d.Legal ? p?.ConfirmedAt : null, p?.Id, code, codeName, d.Options);
         }).ToList();
         return new HrParametersView(items, items.Count(i => i.Legal && !i.Confirmed), accounts, centers, exportLayouts, geolocation);
     }
@@ -356,7 +436,8 @@ public sealed class HrParametersService(
             }
             else if (change.Value is not { } value || value < definition.Min || value > definition.Max
                 || (definition.Kind == HrParameterKind.Percent ? decimal.Round(value, 2) != value : decimal.Truncate(value) != value)
-                || (definition.Kind == HrParameterKind.MonthDay && !ValidMonthDay(value)))
+                || (definition.Kind == HrParameterKind.MonthDay && !ValidMonthDay(value))
+                || (definition.Options is { } options && options.All(o => o.Value != value)))
             {
                 return PayrollRules.Field(change.Key, definition.Kind switch
                 {
@@ -364,6 +445,9 @@ public sealed class HrParametersService(
                     HrParameterKind.DayOfMonth or HrParameterKind.DayOfPeriod => $"Informe um dia de {definition.Min:0} a {definition.Max:0}.",
                     HrParameterKind.Minutes => $"Informe de {definition.Min:0} a {definition.Max:0} minutos.",
                     HrParameterKind.Toggle => "Escolha ligado ou desligado.",
+                    HrParameterKind.Choice => "Escolha uma das opções.",
+                    HrParameterKind.Hours => $"Informe de {definition.Min:0} a {definition.Max:0} horas (0 usa as horas mensais do cargo).",
+                    HrParameterKind.Years => $"Informe de {definition.Min:0} a {definition.Max:0} anos.",
                     HrParameterKind.BusinessDay => $"Informe um dia útil de {definition.Min:0} a {definition.Max:0}.",
                     HrParameterKind.MonthDay => "Informe uma data válida no formato dia/mês (ex.: 30/11).",
                     HrParameterKind.Months => $"Informe de {definition.Min:0} a {definition.Max:0} meses.",

@@ -53,6 +53,9 @@ public interface IHrDb
 
     DbSet<PayrollTaxTableDataset> PayrollTaxTableDatasets { get; }
 
+    // Histórico do cálculo da folha (FLH-02a CA 19).
+    DbSet<PayrollCalculationLog> PayrollCalculationLogs { get; }
+
     /// <summary>Transação do fechamento: a folha, os títulos do Finance (mesmo contexto) e a numeração gravam juntos ou nada grava.</summary>
     Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
 

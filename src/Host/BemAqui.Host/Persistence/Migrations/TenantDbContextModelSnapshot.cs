@@ -7134,6 +7134,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("family_allowance");
 
+                    b.Property<bool>("FamilyAllowanceDocsOk")
+                        .HasColumnType("boolean")
+                        .HasColumnName("family_allowance_docs_ok");
+
                     b.Property<bool>("IrDependent")
                         .HasColumnType("boolean")
                         .HasColumnName("ir_dependent");
@@ -7446,6 +7450,80 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("unions", "hr");
                 });
 
+            modelBuilder.Entity("BemAqui.HR.Domain.PayrollCalculationLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("action");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.Property<Guid?>("By")
+                        .HasColumnType("uuid")
+                        .HasColumnName("by");
+
+                    b.Property<string>("CalculatorVersion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("calculator_version");
+
+                    b.Property<int>("Employees")
+                        .HasColumnType("integer")
+                        .HasColumnName("employees");
+
+                    b.Property<decimal>("GrossAfter")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("gross_after");
+
+                    b.Property<decimal?>("GrossBefore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("gross_before");
+
+                    b.Property<decimal>("NetAfter")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("net_after");
+
+                    b.Property<decimal?>("NetBefore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("net_before");
+
+                    b.PrimitiveCollection<List<Guid>>("ParameterIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("parameter_ids");
+
+                    b.Property<Guid>("PayrollRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payroll_run_id");
+
+                    b.PrimitiveCollection<List<Guid>>("TaxTableIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("tax_table_ids");
+
+                    b.HasKey("Id")
+                        .HasName("pk_payroll_calculation_logs");
+
+                    b.HasIndex("PayrollRunId", "At")
+                        .HasDatabaseName("ix_payroll_calculation_logs_run");
+
+                    b.ToTable("payroll_calculation_logs", "hr");
+                });
+
             modelBuilder.Entity("BemAqui.HR.Domain.PayrollForecast", b =>
                 {
                     b.Property<Guid>("Id")
@@ -7519,6 +7597,14 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("Calculation")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("None")
+                        .HasColumnName("calculation");
+
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -7536,6 +7622,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<bool>("DeductsIrrfBase")
+                        .HasColumnType("boolean")
+                        .HasColumnName("deducts_irrf_base");
 
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
@@ -7612,6 +7702,23 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTimeOffset?>("CalculatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("calculated_at");
+
+                    b.Property<Guid?>("CalculatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("calculated_by");
+
+                    b.Property<DateTimeOffset?>("CalculatingSince")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("calculating_since");
+
+                    b.Property<string>("CalculatorVersion")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("calculator_version");
+
                     b.Property<DateTimeOffset?>("ClosedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("closed_at");
@@ -7642,6 +7749,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("created_by");
 
+                    b.Property<bool>("IsSimulation")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_simulation");
+
                     b.Property<string>("Mode")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -7663,6 +7774,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<DateOnly>("Period")
                         .HasColumnType("date")
                         .HasColumnName("period");
+
+                    b.Property<Guid?>("RectifiesRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("rectifies_run_id");
 
                     b.Property<string>("ReopenReason")
                         .HasMaxLength(200)
@@ -7698,9 +7813,13 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_payroll_runs");
 
-                    b.HasIndex("Period", "Type")
+                    b.HasIndex("RectifiesRunId")
+                        .HasDatabaseName("ix_payroll_runs_rectifies_run_id");
+
+                    b.HasIndex("Period", "Type", "Mode")
                         .IsUnique()
-                        .HasDatabaseName("ix_payroll_runs_period_type");
+                        .HasDatabaseName("ix_payroll_runs_period_type")
+                        .HasFilter("rectifies_run_id IS NULL");
 
                     b.ToTable("payroll_runs", "hr");
                 });
@@ -7716,6 +7835,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("amount");
+
+                    b.Property<bool>("Calculated")
+                        .HasColumnType("boolean")
+                        .HasColumnName("calculated");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -7926,6 +8049,19 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTimeOffset?>("CalculatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("calculated_at");
+
+                    b.Property<string>("CalculationIssues")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("calculation_issues");
+
+                    b.Property<string>("CalculatorVersion")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("calculator_version");
+
                     b.Property<bool>("ChangedAfterNotice")
                         .HasColumnType("boolean")
                         .HasColumnName("changed_after_notice");
@@ -7942,6 +8078,15 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uuid")
                         .HasColumnName("employee_id");
+
+                    b.Property<decimal>("EmployerCharges")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("employer_charges");
+
+                    b.Property<string>("EmployerChargesMemory")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("employer_charges_memory");
 
                     b.Property<decimal>("FgtsAmount")
                         .HasPrecision(18, 2)
@@ -7961,6 +8106,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("gross");
+
+                    b.Property<string>("InputsSnapshot")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("inputs_snapshot");
 
                     b.Property<decimal>("InssBase")
                         .HasPrecision(18, 2)
@@ -7985,6 +8134,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("notified_at");
 
+                    b.PrimitiveCollection<List<Guid>>("ParameterIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("parameter_ids");
+
                     b.Property<Guid>("PayrollRunId")
                         .HasColumnType("uuid")
                         .HasColumnName("payroll_run_id");
@@ -7992,6 +8146,11 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid?>("PdfAttachmentId")
                         .HasColumnType("uuid")
                         .HasColumnName("pdf_attachment_id");
+
+                    b.PrimitiveCollection<List<Guid>>("TaxTableIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("tax_table_ids");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -8028,6 +8187,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("amount");
 
+                    b.Property<bool>("Calculated")
+                        .HasColumnType("boolean")
+                        .HasColumnName("calculated");
+
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -8039,6 +8202,15 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("description");
+
+                    b.Property<string>("Memory")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("memory");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("note");
 
                     b.Property<Guid>("PayrollItemId")
                         .HasColumnType("uuid")
@@ -15856,6 +16028,25 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasForeignKey("WorkScheduleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_job_positions_work_schedules_work_schedule_id");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.PayrollCalculationLog", b =>
+                {
+                    b.HasOne("BemAqui.HR.Domain.PayrollRun", null)
+                        .WithMany()
+                        .HasForeignKey("PayrollRunId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_payroll_calculation_logs_payroll_runs_payroll_run_id");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.PayrollRun", b =>
+                {
+                    b.HasOne("BemAqui.HR.Domain.PayrollRun", null)
+                        .WithMany()
+                        .HasForeignKey("RectifiesRunId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_payroll_runs_payroll_runs_rectifies_run_id");
                 });
 
             modelBuilder.Entity("BemAqui.HR.Domain.PayrollRunCharge", b =>

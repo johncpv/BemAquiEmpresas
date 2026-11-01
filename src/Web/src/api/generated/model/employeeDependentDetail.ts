@@ -16,4 +16,5 @@ export interface EmployeeDependentDetail {
   /** @nullable */
   cpfMasked: string | null;
   version: number;
+  familyAllowanceDocsOk?: boolean;
 }

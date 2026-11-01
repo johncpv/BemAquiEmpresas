@@ -17,7 +17,7 @@ namespace BemAqui.HR.Application;
 /// com o comentário como a tela do espelho mostra a quem tem <c>hr.view</c>.
 /// </summary>
 [PersonalDataCovers(typeof(Employee), typeof(EmployeeDependent), typeof(EmployeeHistoryEntry), typeof(TimeEntry), typeof(TimeAdjustment), typeof(Timesheet), typeof(TimesheetDayReview),
-    typeof(Payslip), typeof(PayslipLine), typeof(PayrollForecast), typeof(PayrollRunCharge), typeof(PayrollRun), typeof(JobPosition))]
+    typeof(Payslip), typeof(PayslipLine), typeof(PayrollForecast), typeof(PayrollRunCharge), typeof(PayrollRun), typeof(JobPosition), typeof(PayrollCalculationLog))]
 public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachments) : IPersonalDataProvider
 {
     private const string Sensitive = "hr." + PositionService.SensitiveAction;
@@ -158,7 +158,8 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
         var list = await db.EmployeeDependents.AsNoTracking().Where(d => d.EmployeeId == id).OrderBy(d => d.Name).ToListAsync(ct);
         return new PersonalDataBlock("Dependentes (como o titular informou)", "hr.employee_dependents", list.Select(d => PersonalDataRecord.Of(d.CreatedAt,
             ("Nome", d.Name), ("Parentesco", Kinship(d.Kinship)), ("Nascimento", PersonalDataMask.Date(d.BirthDate)), ("CPF", PersonalDataMask.Cpf(d.Cpf)),
-            ("Dependente no IR", PersonalDataMask.YesNo(d.IrDependent)), ("Salário-família", PersonalDataMask.YesNo(d.FamilyAllowance)))).ToList());
+            ("Dependente no IR", PersonalDataMask.YesNo(d.IrDependent)), ("Salário-família", PersonalDataMask.YesNo(d.FamilyAllowance)),
+            ("Documentos do salário-família entregues", PersonalDataMask.YesNo(d.FamilyAllowanceDocsOk)))).ToList());
     }
 
     private async Task<IEnumerable<PersonalDataBlock>> TimeClockAsync(Guid id, bool sensitive, bool health, CancellationToken ct)
@@ -213,7 +214,7 @@ public sealed class HrPersonalDataProvider(IHrDb db, AttachmentService attachmen
         return new PersonalDataBlock("Holerites", "hr.payslips", slips.Select(s => PersonalDataRecord.Of(s.CreatedAt,
             ("Competência", PayrollRules.PeriodLabel(s.Period)), ("Tipo", PayrollRules.TypeLabel(s.Type)), ("Proventos", PersonalDataMask.Money(s.Gross)),
             ("Descontos", PersonalDataMask.Money(s.Deductions)), ("Líquido", PersonalDataMask.Money(s.Net)), ("FGTS do mês", PersonalDataMask.Money(s.FgtsAmount)),
-            ("Linhas", string.Join("; ", lines[s.Id].Select(l => $"{l.Code} {l.Description}: {PersonalDataMask.Money(l.Amount)}" + (l.Reference is null ? string.Empty : $" ({l.Reference})")))))).ToList());
+            ("Linhas", string.Join("; ", lines[s.Id].Select(l => $"{l.Code} {l.Description}: {PersonalDataMask.Money(l.Amount)}" + (l.Reference is null ? string.Empty : $" ({l.Reference})") + (l.Note is null ? string.Empty : $" — motivo: {l.Note}")))))).ToList());
     }
 
     private static string? Join(string? a, string? b) => a is null ? b : b is null ? a : a + " / " + b;

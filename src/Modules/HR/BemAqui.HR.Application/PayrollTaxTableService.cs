@@ -294,8 +294,10 @@ public sealed class PayrollTaxTableService(
         var next = await db.PayrollTaxTables.AsNoTracking()
             .Where(t => t.Kind == table.Kind && t.ValidFrom > table.ValidFrom && t.Status != PayrollTaxTableStatus.Superseded && !(t.Status == PayrollTaxTableStatus.Unconfirmed && t.RectifiesId != null))
             .OrderBy(t => t.ValidFrom).Select(t => (DateOnly?)t.ValidFrom).FirstOrDefaultAsync(cancellationToken);
+        // FLH-02a: a folha calculada guarda as versões usadas (tax_table_ids); a ainda não calculada entra pela vigência.
+        var used = await db.Payslips.AsNoTracking().Where(p => p.TaxTableIds.Contains(id)).Select(p => p.PayrollRunId).Distinct().ToListAsync(cancellationToken);
         var runs = await db.PayrollRuns.AsNoTracking()
-            .Where(r => r.Mode == PayrollRunMode.Calculated && r.Period >= table.ValidFrom && (next == null || r.Period < next))
+            .Where(r => r.Mode == PayrollRunMode.Calculated && (used.Contains(r.Id) || (r.CalculatedAt == null && r.Period >= table.ValidFrom && (next == null || r.Period < next))))
             .OrderBy(r => r.Period).Select(r => new PayrollTaxImpactRun(r.Id, r.Period, r.Type, r.Status)).ToListAsync(cancellationToken);
         return new PayrollTaxTableImpact(runs.Where(r => r.Status == PayrollRunStatus.Draft).ToList(), runs.Where(r => r.Status != PayrollRunStatus.Draft).ToList());
     }

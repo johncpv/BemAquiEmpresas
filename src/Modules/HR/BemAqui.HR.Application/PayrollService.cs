@@ -88,9 +88,15 @@ public sealed partial class PayrollService(
             return PayrollRules.Field("type", "Escolha o tipo da folha.");
         }
 
-        if (await db.PayrollRuns.AnyAsync(r => r.Period == period && r.Type == type, cancellationToken))
+        var mode = input.Mode is { } m && Enum.IsDefined(m) ? m : PayrollRunMode.Entered;
+        if (mode == PayrollRunMode.Calculated && type != PayrollRunType.Monthly)
         {
-            return Duplicate(type, period);
+            return Error.Validation(PayrollCalculationRules.NotSupportedCode, $"O cálculo da folha {PayrollRules.TypeLabel(type)} chega nas próximas etapas. Use a folha lançada.");
+        }
+
+        if (await db.PayrollRuns.AnyAsync(r => r.Period == period && r.Type == type && r.Mode == mode && r.RectifiesRunId == null, cancellationToken))
+        {
+            return Duplicate(type, period, mode);
         }
 
         var eligible = await EligibleQuery(period).Select(e => new { e.Id, e.BaseSalary }).ToListAsync(cancellationToken);
@@ -111,9 +117,10 @@ public sealed partial class PayrollService(
         }
 
         var now = clock.GetUtcNow();
-        var run = new PayrollRun { Period = period, Type = type, CreatedAt = now, CreatedBy = currentUser.UserId };
+        // FLH-02a: a calculada nasce sem linha (o "Calcular" faz todas) e, antes da virada (FLH-06), como simulação.
+        var run = new PayrollRun { Period = period, Type = type, Mode = mode, CreatedAt = now, CreatedBy = currentUser.UserId, IsSimulation = mode == PayrollRunMode.Calculated && !await parameters.CalculatedOfficialAsync(cancellationToken) };
         db.PayrollRuns.Add(run);
-        var salaryItem = type == PayrollRunType.Monthly
+        var salaryItem = type == PayrollRunType.Monthly && mode == PayrollRunMode.Entered
             ? await db.PayrollItems.AsNoTracking().Where(i => i.IsActive && i.Kind == PayrollItemKind.Earning && (i.SeedKey == PayrollItemService.SalarySeedKey || i.Code == "SAL"))
                 .OrderBy(i => i.SeedKey == null).FirstOrDefaultAsync(cancellationToken)
             : null;
@@ -142,7 +149,7 @@ public sealed partial class PayrollService(
         }
         catch (DbUpdateException ex) when (DbErrors.IsUniqueViolation(ex, RunIndex))
         {
-            return Duplicate(type, period);
+            return Duplicate(type, period, mode);
         }
 
         return (await SummariesAsync([run], cancellationToken))[0];
@@ -195,7 +202,7 @@ public sealed partial class PayrollService(
 
         var previous = await (from p in db.Payslips.AsNoTracking()
                               join r in db.PayrollRuns.AsNoTracking() on p.PayrollRunId equals r.Id
-                              where p.EmployeeId == payslip.EmployeeId && r.Type == run.Type && r.Period < run.Period
+                              where p.EmployeeId == payslip.EmployeeId && r.Type == run.Type && r.Mode == run.Mode && r.RectifiesRunId == null && r.Period < run.Period
                               orderby r.Period descending
                               select new { Payslip = p, r.Period }).FirstOrDefaultAsync(cancellationToken);
         await audit.RecordReadAsync(nameof(Payslip) + ".Previous", payslipId.ToString(), cancellationToken);
@@ -233,6 +240,11 @@ public sealed partial class PayrollService(
         if (run.Status != PayrollRunStatus.Draft)
         {
             return PayrollRules.Closed(run.Period);
+        }
+
+        if (run.Mode == PayrollRunMode.Calculated)
+        {
+            return Error.Conflict(PayrollCalculationRules.CalculatedLineCode, PayrollCalculationRules.CalculatedLineMessage);
         }
 
         var lines = input.Lines ?? [];
@@ -309,7 +321,7 @@ public sealed partial class PayrollService(
     /// Salário vigente no fim da competência (CA 5): o atual, ou o de antes do primeiro reajuste com vigência depois do fim da
     /// competência (o reajuste futuro não entra na folha de agora).
     /// </summary>
-    private async Task<Dictionary<Guid, decimal>> SalariesAtAsync(Dictionary<Guid, decimal> current, DateOnly end, CancellationToken ct)
+    internal async Task<Dictionary<Guid, decimal>> SalariesAtAsync(Dictionary<Guid, decimal> current, DateOnly end, CancellationToken ct)
     {
         var ids = current.Keys.ToList();
         var later = await db.EmployeeHistory.AsNoTracking().Where(h => ids.Contains(h.EmployeeId) && h.Kind == EmployeeHistoryKind.Salary && h.EffectiveDate > end)
@@ -328,13 +340,15 @@ public sealed partial class PayrollService(
 
     private async Task<List<PayslipLineDetail>> LinesAsync(Guid payslipId, CancellationToken ct) =>
         await db.PayslipLines.AsNoTracking().Where(l => l.PayslipId == payslipId).OrderBy(l => l.Sort)
-            .Select(l => new PayslipLineDetail(l.PayrollItemId, l.Code, l.Description, l.Type, l.Reference, l.Amount)).ToListAsync(ct);
+            .Select(l => new { l.Id, l.PayrollItemId, l.Code, l.Description, l.Type, l.Reference, l.Amount, l.Calculated, l.Note, l.Memory }).ToListAsync(ct) is var rows
+            ? rows.Select(l => new PayslipLineDetail(l.PayrollItemId, l.Code, l.Description, l.Type, l.Reference, l.Amount, l.Id, l.Calculated, l.Note, PayrollCalculator.ReadMemory(l.Memory))).ToList()
+            : [];
 
     private async Task<PayslipDetail> DetailAsync(PayrollRun run, Payslip p, CancellationToken ct)
     {
         var employee = await db.Employees.IgnoreQueryFilters().AsNoTracking().Where(e => e.Id == p.EmployeeId).Select(e => new { e.Name, e.Registration }).FirstAsync(ct);
         return new PayslipDetail(p.Id, run.Id, p.EmployeeId, employee.Name, employee.Registration, await LinesAsync(p.Id, ct), p.Gross, p.Deductions, p.Net,
-            p.InssBase, p.FgtsBase, p.IrrfBase, p.FgtsAmount, run.Status == PayrollRunStatus.Draft, p.Version);
+            p.InssBase, p.FgtsBase, p.IrrfBase, p.FgtsAmount, run.Status == PayrollRunStatus.Draft, p.Version, run.Mode, await CalculationInfoAsync(run, p, ct));
     }
 
     private async Task<List<PayrollRunSummary>> SummariesAsync(IReadOnlyList<PayrollRun> runs, CancellationToken ct)
@@ -356,7 +370,8 @@ public sealed partial class PayrollService(
         string? Notice(PayrollRun r) => r.ClosedAt is { } closed && reopened.Any(t => t.Key == r.Period && t.At > closed) ? PayrollTimesheetNotice : null;
 
         return runs.Select(r => new PayrollRunSummary(r.Id, r.Period, r.Type, r.Mode, r.Status, counts.GetValueOrDefault(r.Id), r.CreatedAt, r.ClosedAt,
-            r.ClosedBy is { } by ? names.GetValueOrDefault(by) : null, r.Version, r.PaymentDate, r.PaidAt, r.ReopenReason, r.ClosedPayables, Notice(r))).ToList();
+            r.ClosedBy is { } by ? names.GetValueOrDefault(by) : null, r.Version, r.PaymentDate, r.PaidAt, r.ReopenReason, r.ClosedPayables, Notice(r),
+            r.Mode == PayrollRunMode.Calculated && r.IsSimulation, r.CalculatedAt, r.CalculatorVersion, r.CalculatingSince is { } since && clock.GetUtcNow() - since < TimeSpan.FromMinutes(10), r.RectifiesRunId, r.Number)).ToList();
     }
 
     /// <summary>Aviso da folha fechada com o ponto reaberto depois (RH-01c CA 13).</summary>
@@ -376,8 +391,8 @@ public sealed partial class PayrollService(
 
     private ValueTask<bool> CanSensitiveAsync(CancellationToken ct) => permissions.HasPermissionAsync("hr", PositionService.SensitiveAction, ct);
 
-    private static Error Duplicate(PayrollRunType type, DateOnly period) =>
-        Error.Conflict(PayrollRules.DuplicateCode, $"Já existe a folha {PayrollRules.TypeLabel(type)} de {PayrollRules.PeriodLabel(period)}.");
+    private static Error Duplicate(PayrollRunType type, DateOnly period, PayrollRunMode mode = PayrollRunMode.Entered) =>
+        Error.Conflict(PayrollRules.DuplicateCode, $"Já existe a folha {PayrollRules.TypeLabel(type)}{(mode == PayrollRunMode.Calculated ? " calculada" : string.Empty)} de {PayrollRules.PeriodLabel(period)}.");
 
     private static Error RunNotFound() => Error.NotFound("payroll_run_not_found", "Folha não encontrada.");
 

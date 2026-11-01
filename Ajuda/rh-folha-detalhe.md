@@ -19,6 +19,28 @@ Lançar, para cada funcionário, os proventos e descontos que a contadora calcul
 - Se alguma tabela da folha (RH → Tabelas da folha) ou parâmetro do RH mudou desde o último fechamento, o diálogo de fechamento lista cada mudança (o quê, antes e depois, quem e quando) e pede que você marque a ciência antes de fechar.
 
 
+## Folha calculada
+- Na folha criada no modo **Calculada**, clique em **Calcular**. O sistema monta, para cada funcionário, as linhas pelas rubricas com regra: **salário** (proporcional na admissão e no desligamento), **afastamento** (doença ou acidente: a empresa paga os primeiros dias, a previdência o resto), **insalubridade** ou **periculosidade** (sem acúmulo: vale o maior), **faltas** e **atrasos** do espelho fechado, **salário-família**, **vale-transporte**, **INSS**, **IRRF** e o **FGTS do mês**, com as tabelas da competência (RH → Tabelas da folha) e os parâmetros de Configurações → Parâmetros → RH. As guias do FGTS, do INSS (empregados e empresa) e do IRRF saem calculadas.
+- Sem o ponto do mês fechado, aparece "Feche o ponto de {mês} antes de calcular." com o link. Sem uma tabela, "Falta a tabela {tipo} para {mês}."
+- Acima de 20 funcionários, o cálculo roda em segundo plano: a tela mostra "Calculando os holerites…" (e, depois de 30 segundos, o aviso de demora) e você recebe o aviso no sino.
+- Funcionário sem cargo, sem salário ou sem jornada (com falta ou atraso) fica **sem cálculo**, com o motivo; os outros seguem. Avisos como "documentos do salário-família pendentes" aparecem na folha sem travar.
+- O chip **Calculada com tabelas a confirmar** aparece quando alguma tabela usada ainda está "A confirmar com a contadora".
+
+## Simulação
+- Até a virada, a calculada é **simulação**: a faixa "Simulação: em conferência paralela com a folha da contadora" oferece **Comparar com a lançada**. O botão **Fechar folha** não aparece e o holerite sai só como prévia, com a marca "Simulação: não é o holerite oficial"; ele nunca vai para **Meus holerites** nem para o e-mail.
+- Depois da virada, fecha como a lançada (2FA de novo, um título por funcionário e um por guia), e só com todas as tabelas usadas conferidas: senão, "Confirme com a contadora as tabelas {lista} antes de fechar."
+
+## Memória de cálculo
+- No holerite calculado, cada linha tem **Ver memória**: a base, a faixa, a alíquota, a parcela a deduzir, a redução do IRRF, o arredondamento, a tabela e a vigência. No IRRF, a memória mostra se valeu a dedução legal ou o **desconto simplificado** e quanto daria a outra opção.
+- O bloco **Memória de cálculo** mostra a versão do motor, as tabelas usadas, as entradas do cadastro e do ponto, os parâmetros e os encargos da empresa. Só aparece o dado do próprio funcionário; o tipo do afastamento não aparece.
+- Linha calculada não se edita. O ajuste é um **lançamento avulso**: em **Lançar avulso**, escolha uma rubrica sem regra (prêmio, adiantamento, pensão, consignado, vale-transporte fornecido), o valor e o **motivo** (obrigatório). O holerite volta recalculado; o avulso entra nas bases pelas marcas da rubrica e fica a cada **Recalcular**. A pensão judicial (rubrica com "Deduz da base do IRRF") entra na dedução legal do IRRF.
+- Se o cadastro, um parâmetro ou uma tabela mudar depois do cálculo, a folha avisa "Cadastro ou tabela mudou depois do cálculo de {n} funcionários." com **Recalcular**.
+- O **Histórico de alterações** da folha mostra cada cálculo: quem, quando, a versão do motor, as tabelas e os parâmetros e, com a permissão de dados sensíveis, o líquido antes e depois.
+
+## Retificação
+- Folha calculada **fechada nunca é recalculada**. Se algo mudou depois, a folha mostra **Ver diferença** (o que mudaria, por funcionário e rubrica, sem gravar nada) e **Gerar retificação**.
+- A retificação é uma folha complementar **em rascunho**, ligada à fechada, só com as diferenças (o provento que diminuiu vira desconto). Ela segue o fechamento normal e, antes da virada, a conferência paralela. Uma retificação em rascunho por vez.
+
 ## Usar horas do espelho
 - Com o período de ponto do mês **fechado**, o holerite mostra ao lado os totais do espelho do funcionário: extras, faltas, atrasos e, com acordo, o banco de horas.
 - **Usar horas do espelho** preenche só a **referência** das rubricas marcadas com **Origem no ponto** (no padrão: Horas extras 50% ← extras; Faltas ← faltas; Atrasos ← atrasos), como "2:00 h". O **valor** continua vindo da contadora: a linha que ainda não existia entra sem valor, para você informar. Confira e clique em **Salvar holerite**.
@@ -51,5 +73,7 @@ Lançar, para cada funcionário, os proventos e descontos que a contadora calcul
 **O líquido ficou negativo e não salva.** O líquido não pode ser negativo. Confira os descontos com a contadora.
 
 **Apareceu "O holerite mudou desde que você abriu".** Outra pessoa salvou o mesmo holerite. Clique em **Recarregar** e lance de novo.
+
+**Na folha calculada, por que não consigo editar a linha?** A linha calculada é refeita a cada cálculo. Para ajustar, lance um avulso com o motivo.
 
 **Por que a célula "=1+1" virou erro?** O arquivo é lido só como texto: célula que começa com =, +, - ou @ não é número.

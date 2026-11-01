@@ -32,7 +32,8 @@ public sealed record PayslipPdfModel(
     decimal FgtsBase,
     decimal IrrfBase,
     decimal FgtsAmount,
-    bool Draft);
+    bool Draft,
+    string? Watermark = null);
 
 /// <summary>
 /// Layout do holerite (ADR 0022): A4, Archivo, números em pt-BR com dígitos tabulares, um holerite por documento, cabeçalho da tabela
@@ -60,7 +61,7 @@ public sealed class PayslipPdfDocument(PayslipPdfModel model) : IDocument
         page.DefaultTextStyle(t => t.FontFamily(QuestPdfRenderer.FontFamily).FontSize(9).FontColor("#14202b").EnableFontFeature(FontFeatures.TabularFigures));
         if (model.Draft)
         {
-            page.Foreground().AlignCenter().AlignMiddle().Rotate(-30).Text(PayslipDocumentRules.Watermark).FontSize(36).Bold().FontColor("#c9d1d9");
+            page.Foreground().AlignCenter().AlignMiddle().Rotate(-30).Text(model.Watermark ?? PayslipDocumentRules.Watermark).FontSize(model.Watermark is null ? 36 : 28).Bold().FontColor("#c9d1d9");
         }
 
         page.Header().Element(Header);

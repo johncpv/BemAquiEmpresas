@@ -49,6 +49,7 @@ export function EmployeeDependents({ employee, canEdit, onFirstSaved }: { employ
                   <div className="flex flex-wrap gap-1">
                     {d.irDependent ? <Tag>Dependente de IR</Tag> : null}
                     {d.familyAllowance ? <Tag>Salário-família</Tag> : null}
+                    {d.familyAllowance && !d.familyAllowanceDocsOk ? <Tag>Documentos pendentes</Tag> : null}
                   </div>
                 </div>
                 {d.cpfMasked ? <p className="tabular-nums text-muted-foreground">CPF {d.cpfMasked}</p> : null}
@@ -72,7 +73,7 @@ export function EmployeeDependents({ employee, canEdit, onFirstSaved }: { employ
 /** Novo ou editar dependente (CA 1 e 2): o CPF só aparece com "Dependente de IR"; na edição, vazio mantém o gravado. */
 function DependentDialog({ employee, dependent, onClose, onSaved }: { employee: EmployeeDetail; dependent?: EmployeeDependentDetail; onClose: () => void; onSaved: () => Promise<void> }) {
   const [draft, setDraft] = useState<DependentDraft>(() => dependent
-    ? { name: dependent.name, birthDate: dependent.birthDate, kinship: dependent.kinship, irDependent: dependent.irDependent, familyAllowance: dependent.familyAllowance, cpf: '' }
+    ? { name: dependent.name, birthDate: dependent.birthDate, kinship: dependent.kinship, irDependent: dependent.irDependent, familyAllowance: dependent.familyAllowance, familyAllowanceDocsOk: dependent.familyAllowanceDocsOk ?? false, cpf: '' }
     : emptyDependentDraft())
   const [errors, setErrors] = useState<Record<string, string>>({})
   const set = (patch: Partial<DependentDraft>) => { setErrors({}); setDraft((d) => ({ ...d, ...patch })) }
@@ -84,7 +85,7 @@ function DependentDialog({ employee, dependent, onClose, onSaved }: { employee: 
       onConfirm={async () => {
         const found = dependentErrors(draft, todayIso(), keepsCpf)
         if (Object.keys(found).length > 0) { setErrors(found); throw new DialogMessage('Confira os campos destacados.') }
-        const body = { name: draft.name.trim(), birthDate: draft.birthDate, kinship: draft.kinship || null, irDependent: draft.irDependent, familyAllowance: draft.familyAllowance, cpf: draft.irDependent && draft.cpf ? draft.cpf : null }
+        const body = { name: draft.name.trim(), birthDate: draft.birthDate, kinship: draft.kinship || null, irDependent: draft.irDependent, familyAllowance: draft.familyAllowance, familyAllowanceDocsOk: draft.familyAllowance && !!draft.familyAllowanceDocsOk, cpf: draft.irDependent && draft.cpf ? draft.cpf : null }
         if (dependent) await updateEmployeeDependent(employee.id, dependent.id, { ...body, version: dependent.version })
         else await addEmployeeDependent(employee.id, body)
         await onSaved()
@@ -107,7 +108,10 @@ function DependentDialog({ employee, dependent, onClose, onSaved }: { employee: 
           {(p) => <CpfInput {...p} value={draft.cpf} onChange={(cpf) => set({ cpf })} />}
         </Field>
       ) : null}
-      <Check label="Salário-família" dica={COMPLEMENT_DICAS.salarioFamilia} checked={draft.familyAllowance} onChange={(familyAllowance) => set({ familyAllowance })} />
+      <Check label="Salário-família" dica={COMPLEMENT_DICAS.salarioFamilia} checked={draft.familyAllowance} onChange={(familyAllowance) => set({ familyAllowance, familyAllowanceDocsOk: familyAllowance && draft.familyAllowanceDocsOk })} />
+      {draft.familyAllowance ? (
+        <Check label="Documentos do salário-família entregues" dica={COMPLEMENT_DICAS.documentosSalarioFamilia} checked={!!draft.familyAllowanceDocsOk} onChange={(familyAllowanceDocsOk) => set({ familyAllowanceDocsOk })} />
+      ) : null}
     </ConfirmDialog>
   )
 }
