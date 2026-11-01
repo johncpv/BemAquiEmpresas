@@ -200,6 +200,7 @@ public sealed class FiscalFixture : IAsyncLifetime
         fake.NoForceConsult = false;
         fake.SefazOnline = true;
         fake.Scopes = ["consultar", "nfe:emitir", "nfe:eventos"];
+        fake.NfseCities = null;
         fake.Environment = FiscalEnvironment.Homologation;
         fake.Accounts.Clear();
         fake.Certificate = null;

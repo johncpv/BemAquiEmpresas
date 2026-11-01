@@ -6717,6 +6717,42 @@ namespace BemAqui.Host.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BemAqui.Fiscal.Domain.InstallationBilling", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateOnly>("AcceptedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("accepted_on");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("InstallationOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("installation_order_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_installation_billings");
+
+                    b.HasIndex("InstallationOrderId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_installation_billings_order");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_installation_billings_project_id");
+
+                    b.ToTable("installation_billings", "fiscal");
+                });
+
             modelBuilder.Entity("BemAqui.Fiscal.Domain.NumberGap", b =>
                 {
                     b.Property<Guid>("Id")
@@ -6939,6 +6975,20 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("gross_weight");
 
+                    b.Property<Guid?>("InstallationOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("installation_order_id");
+
+                    b.Property<string>("InstallationOrderNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("installation_order_number");
+
+                    b.Property<decimal?>("IssTyped")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("iss_typed");
+
                     b.Property<Guid?>("IssuedBy")
                         .HasColumnType("uuid")
                         .HasColumnName("issued_by");
@@ -6950,6 +7000,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<DateTimeOffset?>("LastCheckedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_checked_at");
+
+                    b.Property<Guid?>("LinkedInvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("linked_invoice_id");
 
                     b.Property<string>("NatureOfOperation")
                         .HasMaxLength(60)
@@ -6968,6 +7022,14 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDefaultValue("OwnProductionSale")
                         .HasColumnName("operation");
 
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasDefaultValue("Emitter")
+                        .HasColumnName("origin");
+
                     b.Property<decimal>("OtherExpenses")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -6981,6 +7043,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
                         .HasColumnName("payload_hash");
+
+                    b.Property<string>("PortalCancellation")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("portal_cancellation");
 
                     b.Property<DateTimeOffset?>("ProcessingSince")
                         .HasColumnType("timestamp with time zone")
@@ -7087,6 +7153,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("series");
 
+                    b.Property<string>("Service")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("service");
+
                     b.Property<Guid?>("ShipmentId")
                         .HasColumnType("uuid")
                         .HasColumnName("shipment_id");
@@ -7140,6 +7210,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
+                    b.Property<string>("VerificationCode")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("verification_code");
+
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -7184,6 +7259,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ux_outgoing_invoices_emitter_document_id")
                         .HasFilter("emitter_document_id IS NOT NULL");
 
+                    b.HasIndex("LinkedInvoiceId")
+                        .HasDatabaseName("ix_outgoing_invoices_linked_invoice_id")
+                        .HasFilter("linked_invoice_id IS NOT NULL");
+
                     b.HasIndex("PartyId")
                         .HasDatabaseName("ix_outgoing_invoices_party_id");
 
@@ -7196,10 +7275,20 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasIndex("Status", "ProcessingSince")
                         .HasDatabaseName("ix_outgoing_invoices_status_processing_since");
 
+                    b.HasIndex(new[] { "InstallationOrderId" }, "ux_outgoing_invoices_active_installation")
+                        .IsUnique()
+                        .HasDatabaseName("ux_outgoing_invoices_active_installation")
+                        .HasFilter("installation_order_id IS NOT NULL AND discarded_at IS NULL AND status NOT IN ('Cancelled', 'Rejected', 'Denied')");
+
                     b.HasIndex(new[] { "ShipmentId" }, "ux_outgoing_invoices_active_shipment")
                         .IsUnique()
                         .HasDatabaseName("ux_outgoing_invoices_active_shipment")
                         .HasFilter("shipment_id IS NOT NULL AND discarded_at IS NULL AND status NOT IN ('Cancelled', 'Rejected', 'Denied')");
+
+                    b.HasIndex(new[] { "Number" }, "ux_outgoing_invoices_nfse_number")
+                        .IsUnique()
+                        .HasDatabaseName("ux_outgoing_invoices_nfse_number")
+                        .HasFilter("type = 'NFSe' AND number IS NOT NULL");
 
                     b.ToTable("outgoing_invoices", "fiscal", t =>
                         {

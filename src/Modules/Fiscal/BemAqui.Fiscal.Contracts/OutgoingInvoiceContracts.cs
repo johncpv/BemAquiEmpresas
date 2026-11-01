@@ -45,8 +45,8 @@ public sealed record OutgoingInvoiceSummary(
     Guid Id, InvoiceType Type, string Status, int? Series, long? Number, string? AccessKey, Guid? ProjectId, Guid? ShipmentId, Guid? PartyId, DateOnly? IssuedOn,
     decimal TotalAmount, string Environment, string Link)
 {
-    /// <summary>"NF-e 2/42" ou "Rascunho" (sem número).</summary>
-    public string Label => Number is { } n ? $"{(Type == InvoiceType.NFe ? "NF-e" : "NFS-e")} {Series}/{n}" : "Rascunho de nota";
+    /// <summary>"NF-e 2/42", "NFS-e 9001" ou "Rascunho" (sem número).</summary>
+    public string Label => Number is { } n ? Type == InvoiceType.NFe ? $"NF-e {Series}/{n}" : $"NFS-e {n}" : "Rascunho de nota";
 }
 
 /// <summary>Receita de uma nota autorizada e não cancelada (FIN-08 pela data da nota, D4): valor total e data da nota.</summary>

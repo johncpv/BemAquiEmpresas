@@ -108,9 +108,42 @@ internal sealed class OutgoingInvoiceConfiguration : IEntityTypeConfiguration<Ou
         b.HasIndex(e => e.ShipmentId, "ux_outgoing_invoices_active_shipment").IsUnique()
             .HasFilter("shipment_id IS NOT NULL AND discarded_at IS NULL AND status NOT IN ('Cancelled', 'Rejected', 'Denied')")
             .HasDatabaseName("ux_outgoing_invoices_active_shipment");
+
+        // FIS-06: NFS-e da instalação (serviço e cancelamento registrado em jsonb, origem, código de verificação, ISS digitado).
+        b.Property(e => e.InstallationOrderNumber).HasMaxLength(20);
+        b.Property(e => e.VerificationCode).HasMaxLength(OutgoingInvoice.VerificationCodeMaxLength);
+        b.Property(e => e.Origin).HasConversion<string>().HasMaxLength(24).HasDefaultValue(InvoiceOrigin.Emitter);
+        b.Property(e => e.IssTyped).HasPrecision(18, 2);
+        b.Property(e => e.Service).HasColumnType("jsonb").HasConversion(
+            v => v == null ? null : System.Text.Json.JsonSerializer.Serialize(v, Json),
+            s => s == null ? null : System.Text.Json.JsonSerializer.Deserialize<NfseServiceInfo>(s, Json),
+            new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<NfseServiceInfo?>((x, y) => Equals(x, y), v => v == null ? 0 : v.GetHashCode(), v => v));
+        b.Property(e => e.PortalCancellation).HasColumnType("jsonb").HasConversion(
+            v => v == null ? null : System.Text.Json.JsonSerializer.Serialize(v, Json),
+            s => s == null ? null : System.Text.Json.JsonSerializer.Deserialize<PortalCancellation>(s, Json),
+            new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<PortalCancellation?>((x, y) => Equals(x, y), v => v == null ? 0 : v.GetHashCode(), v => v));
+        b.HasIndex(e => e.LinkedInvoiceId).HasFilter("linked_invoice_id IS NOT NULL").HasDatabaseName("ix_outgoing_invoices_linked_invoice_id");
+        // CA 12: uma NFS-e ativa por OS de instalação (rascunho, processando, contingência ou autorizada, sem descarte).
+        b.HasIndex(e => e.InstallationOrderId, "ux_outgoing_invoices_active_installation").IsUnique()
+            .HasFilter("installation_order_id IS NOT NULL AND discarded_at IS NULL AND status NOT IN ('Cancelled', 'Rejected', 'Denied')")
+            .HasDatabaseName("ux_outgoing_invoices_active_installation");
+        // CA 6: o número da NFS-e não se repete no tenant (emitida ou registrada).
+        b.HasIndex(e => e.Number, "ux_outgoing_invoices_nfse_number").IsUnique().HasFilter("type = 'NFSe' AND number IS NOT NULL")
+            .HasDatabaseName("ux_outgoing_invoices_nfse_number");
     }
 
     private static readonly System.Text.Json.JsonSerializerOptions Json = new(System.Text.Json.JsonSerializerDefaults.Web);
+}
+
+/// <summary>Instalações aceitas à espera da NFS-e (FIS-06 CA 1): uma por OS.</summary>
+internal sealed class InstallationBillingConfiguration : IEntityTypeConfiguration<InstallationBilling>
+{
+    public void Configure(EntityTypeBuilder<InstallationBilling> b)
+    {
+        b.ToTable("installation_billings", FiscalSchema.Name);
+        b.HasIndex(e => e.InstallationOrderId).IsUnique().HasDatabaseName("ux_installation_billings_order");
+        b.HasIndex(e => e.ProjectId).HasDatabaseName("ix_installation_billings_project_id");
+    }
 }
 
 /// <summary>Itens da NF-e de saída (FIS-03a): tributos do cálculo em jsonb, séries em <c>uuid[]</c>/<c>text[]</c>; sequência única na nota.</summary>

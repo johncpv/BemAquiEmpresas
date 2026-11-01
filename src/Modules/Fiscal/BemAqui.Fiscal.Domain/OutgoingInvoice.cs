@@ -53,7 +53,7 @@ public sealed record EmitterNfeState(
 /// número) e a nota com número só muda por cancelamento ou inutilização (FIS-03b).
 /// </summary>
 [DocumentName("A nota fiscal")]
-public sealed class OutgoingInvoice : Entity, IAuditable, IConcurrencyVersioned
+public sealed partial class OutgoingInvoice : Entity, IAuditable, IConcurrencyVersioned
 {
     public const int ReasonMaxLength = 500;
     public const int EmailMaxLength = 200;
@@ -360,8 +360,8 @@ public sealed class OutgoingInvoice : Entity, IAuditable, IConcurrencyVersioned
 
     public void CorrectionFinished() => CorrectionSentAt = null;
 
-    /// <summary><c>nfe-{invoiceId}-{tentativa}</c> (CA 5, ADR 0027 §4).</summary>
-    public string IdempotencyKey => "nfe-" + Id.ToString("D") + "-" + Attempt.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    /// <summary><c>nfe-{invoiceId}-{tentativa}</c> (CA 5, ADR 0027 §4); a NFS-e usa <c>nfse-{invoiceId}-{tentativa}</c> (FIS-06 CA 3).</summary>
+    public string IdempotencyKey => (Type == InvoiceType.NFSe ? "nfse-" : "nfe-") + Id.ToString("D") + "-" + Attempt.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     public bool IsPending => Status is OutgoingInvoiceStatus.Processing or OutgoingInvoiceStatus.ContingencyPending;
 
@@ -629,6 +629,14 @@ public static class FiscalErrorCodes
     public const string TextTooLong = "fiscal_text_too_long";
     public const string InvoiceNotFound = "fiscal_invoice_not_found";
     public const string NotAuthorized = "fiscal_invoice_not_authorized";
+
+    // FIS-06: NFS-e da instalação.
+    public const string InstallationNotAccepted = "fiscal_installation_not_accepted";
+    public const string NothingToInvoice = "fiscal_nothing_to_invoice";
+    public const string NfseNumberExists = "fiscal_nfse_number_exists";
+    public const string NfseEmitterUnavailable = "fiscal_nfse_emitter_unavailable";
+    public const string TwoFactorRequired = "fiscal_two_factor_required";
+    public const string TwoFactorInvalid = "fiscal_two_factor_invalid";
     public const string CancellationWindowClosed = "fiscal_cancellation_window_closed";
     public const string EventInProgress = "fiscal_event_in_progress";
     public const string EventRejected = "fiscal_event_rejected";

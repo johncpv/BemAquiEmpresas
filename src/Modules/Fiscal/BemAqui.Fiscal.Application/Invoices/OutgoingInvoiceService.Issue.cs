@@ -359,7 +359,9 @@ public sealed partial class OutgoingInvoiceService
     /// <summary>O XML ou o DANFE da nota (CA 18): o anexo tem de ser desta nota (dono <c>OutgoingInvoice</c>, id da nota) e estar <c>Clean</c>.</summary>
     public async Task<Result<InvoiceFileContent>> FileAsync(Guid id, bool xml, CancellationToken cancellationToken = default)
     {
-        var invoice = await db.OutgoingInvoices.AsNoTracking().FirstOrDefaultAsync(i => i.Id == id && i.ShipmentId != null, cancellationToken);
+        // FIS-06: a NFS-e usa as mesmas rotas (XML e o PDF da prefeitura no lugar do DANFE).
+        var invoice = await db.OutgoingInvoices.AsNoTracking()
+            .FirstOrDefaultAsync(i => i.Id == id && (i.ShipmentId != null || i.Type == BemAqui.Fiscal.Contracts.InvoiceType.NFSe), cancellationToken);
         if (invoice is null)
         {
             return NotFound();
@@ -369,7 +371,8 @@ public sealed partial class OutgoingInvoiceService
         var attachment = attachmentId is { } a ? await attachments.FindAsync(a, cancellationToken) : null;
         if (attachment is null || attachment.OwnerType != OutgoingInvoiceReconciler.AttachmentOwner || attachment.OwnerId != invoice.Id)
         {
-            return Error.NotFound(FiscalErrorCodes.NotFound, xml ? "O XML da nota ainda não foi guardado." : "O DANFE da nota ainda não foi guardado.");
+            return Error.NotFound(FiscalErrorCodes.NotFound, xml ? "O XML da nota ainda não foi guardado." : invoice.Type == BemAqui.Fiscal.Contracts.InvoiceType.NFSe
+                ? "O PDF da NFS-e ainda não foi guardado." : "O DANFE da nota ainda não foi guardado.");
         }
 
         if (attachment.ScanStatus != ScanStatus.Clean)
