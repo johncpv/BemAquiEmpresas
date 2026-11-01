@@ -280,7 +280,7 @@ Fases 4 a 8 (decisões do PO de 21/10/2026, revisão pré-Fases 4 a 8 e ADRs 002
 - **asset_movements**: asset_id, from/to location, from/to responsible, at, reason
 - **maintenance_plans**: asset_id, description, frequency_type (Days/Hours), frequency_value, last_done_at, next_due_at, checklist (JSON)
 - **maintenance_orders**: number, asset_id, plan_id, type (Preventive/Corrective), status, scheduled_at, done_at, cost, supplier_party_id, notes, payable_id
-- **Fase 6 (ADR 0038):** **sites** (PAT-01a, local do bem: name único entre os não excluídos, is_active, seed_key `factory`/`office`, soft delete); **parameters** (tamanho da etiqueta, contas da manutenção); **maintenance_orders** + contract_value, expected_hours, hours_per_day; **maintenance_order_costs** e **asset_meter_readings** (horímetro digitado) (PAT-03a/03b)
+- **Fase 6 (ADR 0038):** **sites** (PAT-01a, local do bem: name único entre os não excluídos, is_active, seed_key `factory`/`office`, soft delete); **parameters** (PAT-01b, migration `AssetLabelsPat01b`: key única, value em texto; `assets.label_size` = `50x25` mm por padrão; depois as contas da manutenção); o PDF do lote de etiquetas é o anexo de sistema `AssetLabelBatch` (dono = o usuário que pediu, 7 dias); **maintenance_orders** + contract_value, expected_hours, hours_per_day; **maintenance_order_costs** e **asset_meter_readings** (horímetro digitado) (PAT-03a/03b)
 
 ## portal (POR-01a, ADR 0040; Fase 8)
 - **portal_users**: party_id, contact_id, email, normalized_email (único no tenant), password_hash, security_stamp, status (Invited/Active/Inactive), access_failed_count, lockout_end, totp_*, last_login_at, notify_email (POR-01b)

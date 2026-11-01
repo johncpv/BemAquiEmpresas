@@ -14,6 +14,7 @@ import { useHelp } from '@/help/help-context'
 import { refreshShopfloor, useProductionLive } from '@/pages/production/kanban/useBoardLive'
 import { FAB_DICAS, filterQueue, floorDate, loadMyCenter, markStepSeen, NO_EMPLOYEE, saveMyCenter, stepSeen } from './shopfloor'
 import { QueueCard } from './QueueCard'
+import { ReadTagEntry } from '@/pages/assets/TagReader'
 
 
 
@@ -58,6 +59,7 @@ export function FabQueuePage() {
     return (
       <>{header}<div className="mx-auto max-w-3xl space-y-4 p-4">
         <QualityEntry />
+        <ReadTagEntry />
         {notActive ? <FloorState title={NO_EMPLOYEE} message="Sem funcionário ativo ligado ao seu usuário, o apontamento fica bloqueado." />
           : <FloorState tone="error" title="Não foi possível carregar a fila." message="Verifique a conexão do tablet e tente de novo."
             action={<FloorButton onClick={() => void queue.refetch()}>Tentar de novo</FloorButton>} />}
@@ -79,6 +81,7 @@ export function FabQueuePage() {
         <CreatePinOffer />
         <TimeClockEntry />
         <QualityEntry />
+        <ReadTagEntry />
         <div className="flex flex-wrap items-center gap-[8px]">
           <FloorButton tone={onlyMine ? 'primary' : 'secondary'} aria-pressed={onlyMine} onClick={toggle}>Só meu centro</FloorButton>
           <FloorDica nome="Só meu centro" texto={FAB_DICAS.meuCentro} />

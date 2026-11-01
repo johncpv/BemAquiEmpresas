@@ -14,6 +14,7 @@ Ver tudo o que a empresa tem (máquinas, ferramentas, mobiliário, veículos e T
 - Filtre por tipo, local, centro de trabalho, responsável e situação. Os filtros ficam no endereço da página: dá para salvar ou mandar o link.
 - Clique na etiqueta para abrir a ficha do bem.
 - Clique em **Novo bem** para cadastrar.
+- Para imprimir as etiquetas com QR code, marque os bens (ou filtre a lista) e clique em **Imprimir etiquetas**. Até 50 o PDF baixa na hora; acima disso, o sino avisa quando estiver pronto.
 
 ## Perguntas frequentes
 **O que é a etiqueta?** O código do bem, gerado ao salvar. Ele não muda e não é reaproveitado, nem quando o bem é excluído. É ele que vai na etiqueta com QR code.
