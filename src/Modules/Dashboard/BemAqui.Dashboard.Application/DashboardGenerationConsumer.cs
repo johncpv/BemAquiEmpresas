@@ -2,6 +2,7 @@ using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.Commercial.Contracts;
 using BemAqui.Finance.Contracts;
+using BemAqui.Fiscal.Contracts;
 using BemAqui.Inventory.Contracts;
 using BemAqui.Production.Contracts;
 
@@ -26,7 +27,8 @@ public sealed class DashboardGenerationConsumer(DashboardCache cache, ITenantCon
       IIntegrationEventConsumer<StockIssued>,
       IIntegrationEventConsumer<StockReturned>,
       IIntegrationEventConsumer<LaborEntryClosed>,
-      IIntegrationEventConsumer<LaborEntryCorrected>
+      IIntegrationEventConsumer<LaborEntryCorrected>,
+      IIntegrationEventConsumer<InvoiceAuthorized>
 {
     public Task HandleAsync(RevenueTargetsChanged integrationEvent, CancellationToken cancellationToken) => Bump();
 
@@ -53,6 +55,9 @@ public sealed class DashboardGenerationConsumer(DashboardCache cache, ITenantCon
     public Task HandleAsync(LaborEntryClosed integrationEvent, CancellationToken cancellationToken) => Bump();
 
     public Task HandleAsync(LaborEntryCorrected integrationEvent, CancellationToken cancellationToken) => Bump();
+
+    /// <summary>FIS-03a: a nota autorizada muda a receita (pela data da nota) e o imposto realizado do projeto.</summary>
+    public Task HandleAsync(InvoiceAuthorized integrationEvent, CancellationToken cancellationToken) => Bump();
 
     private Task Bump()
     {

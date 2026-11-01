@@ -267,7 +267,7 @@ public partial class FiscalTests
             sim.Calculation.Blocks.Should().Equal(TaxCalculator.DifalBlockedMessage);
             sim.Calculation.Totals.Single(t => t.Code == TaxCodes.Difal).Amount.Should().Be(115.50m, "(18% − 7%) × 1.050");
             sim.Calculation.Items[0].Cfop.Should().Be("6107");
-            sim.Calculation.ProjectCost.Should().Be(73.50m + 6.50m + 30m + 9m + 1m, "ICMS 73,50 + PIS + COFINS + IBS/CBS; IPI e DIFAL fora (CA 11)");
+            sim.Calculation.CostTax.Should().Be(73.50m + 6.50m + 30m + 9m + 1m, "ICMS 73,50 + PIS + COFINS + IBS/CBS; IPI e DIFAL fora (CA 11)");
             sim.Warnings.Should().Contain(w => w.Contains("rascunho"));
             sim.IssuerState.Should().Be("SP");
 

@@ -181,6 +181,14 @@ public partial class PrivacyRequestTests
             var shared = sp.GetRequiredService<BemAquiDbContext>();
             shared.EmailLogs.Add(new EmailLog { To = email, Template = "quote", Subject = "Seu orçamento ORC-TESTE", Model = "{\"segredo\":\"nao-sai\"}", Cc = "copia.outra@exemplo.com", Status = EmailStatus.Sent, CreatedAt = DateTimeOffset.UtcNow });
             await shared.SaveChangesAsync();
+            var fiscal = sp.GetRequiredService<BemAqui.Fiscal.Application.IFiscalDb>();
+            fiscal.OutgoingInvoices.Add(new BemAqui.Fiscal.Domain.OutgoingInvoice
+            {
+                PartyId = party.Id, ShipmentNumber = "ROM-TESTE-PF", RecipientName = "Carlos Cliente Pereira", RecipientDocument = cpf, RecipientEmail = email,
+                RecipientStreet = "Rua do Titular", RecipientNumber = "10", RecipientCityName = "São Paulo", RecipientState = "SP",
+                EmailCc = "fiscal.outra@exemplo.com", TotalAmount = 4321.09m, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow,
+            });
+            await fiscal.SaveChangesAsync();
             return party.Id;
         });
 
@@ -192,6 +200,9 @@ public partial class PrivacyRequestTests
         json.Should().Contain("Carlos Cliente Pereira").And.Contain("Rua do Titular").And.Contain("Seu orçamento ORC-TESTE").And.Contain(email);
         json.Should().NotContain("joana.outra@exemplo.com", "contato é outra pessoa").And.NotContain("Joana Outra Pessoa").And.Contain("Joana P.");
         json.Should().NotContain("copia.outra@exemplo.com", "cópia de outra pessoa mascarada").And.NotContain("nao-sai", "o modelo do e-mail não sai");
+        // NF-e de saída em que o titular é o destinatário: a nota, o valor e o destinatário guardado; a cópia de outra pessoa mascarada.
+        json.Should().Contain("\"modulo\": \"fiscal\"").And.Contain("fiscal.outgoing_invoices").And.Contain("ROM-TESTE-PF").And.Contain("4.321,09")
+            .And.Contain(BemAqui.SharedKernel.BrazilianDocuments.Format(cpf)).And.NotContain("fiscal.outra@exemplo.com");
 
         // Usuário do sistema (CA 9): nome, e-mail, grupos, acessos e notificações.
         var user = await ActorAsync("settings:view");

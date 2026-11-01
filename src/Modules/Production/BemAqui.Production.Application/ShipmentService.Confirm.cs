@@ -162,6 +162,14 @@ public sealed partial class ShipmentService
             return Error.Conflict("shipment_not_shipped", "Só romaneio expedido tem a expedição estornada.");
         }
 
+        // FIS-03a CA 12 (PRD-06b CA 11): com NF-e ativa, o estorno espera o cancelamento da nota (a nota só referencia o romaneio).
+        if (await invoices.ActiveForShipmentAsync(shipment.Id, cancellationToken) is { } invoice)
+        {
+            return Error.Conflict("shipment_has_invoice", invoice.Number is null
+                ? "Descarte o rascunho da NF-e antes de estornar a expedição."
+                : $"Cancele a NF-e {invoice.Number} antes de estornar a expedição.");
+        }
+
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         var now = clock.GetUtcNow();
         shipment.Status = ShipmentState.Reversed;

@@ -175,7 +175,7 @@ function SimulationResult({ view }: { view: TaxSimulationView }) {
           <div key={t.code} className="contents"><dt className="text-muted-foreground">{TAX_LABEL[t.code] ?? t.code}</dt><dd className="text-right">{formatMoney(t.amount)}</dd></div>
         ))}
         <dt className="font-semibold">Total da nota</dt><dd className="text-right font-semibold">{formatMoney(c.invoiceTotal)}</dd>
-        <dt className="flex items-center font-semibold">Entra no custo do projeto<Dica nome="Entra no custo do projeto" texto={DICAS.custo} /></dt><dd className="text-right font-semibold">{formatMoney(c.projectCost)}</dd>
+        <dt className="flex items-center font-semibold">Entra no custo do projeto<Dica nome="Entra no custo do projeto" texto={DICAS.custo} /></dt><dd className="text-right font-semibold">{formatMoney(c.costTax)}</dd>
       </dl>
     </section>
   )
