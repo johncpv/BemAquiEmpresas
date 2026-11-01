@@ -1,4 +1,6 @@
+import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useListWorkCenterDowntimes } from '@/api/generated/bemaqui'
 import { createWorkCenter, deleteWorkCenter, inactivateWorkCenter, reactivateWorkCenter, updateWorkCenter } from '@/api/generated/bemaqui'
 import type { Shift, WorkCenterDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
@@ -79,6 +81,7 @@ export function WorkCenterPanel({ center, suggested, onClose, onSaved }: { cente
           {localShiftError ?? field('shifts') ? <p role="alert" className="text-sm text-crit-ink">{localShiftError ?? field('shifts')}</p> : null}
         </div>
       </fieldset>
+      {center ? <CenterDowntimes centerId={center.id} /> : null}
       {center ? (
         <details className="mt-5 rounded-md border border-border bg-card px-3 py-2 text-sm">
           <summary className="cursor-pointer font-semibold">Histórico de alterações</summary>
@@ -109,5 +112,37 @@ function WorkCenterActions({ center, onDone }: { center: WorkCenterDetail; onDon
           trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold text-crit-ink">Excluir centro</button>} />
       </Can>
     </span>
+  )
+}
+
+/**
+ * "Paradas por manutenção" do centro (PAT-03b CA 10): as OS de manutenção das máquinas do centro, com o período e as horas paradas por dia
+ * que saem da capacidade (de 30 dias atrás a 180 à frente). Só leitura: a parada muda pela OS de manutenção.
+ */
+function CenterDowntimes({ centerId }: { centerId: string }) {
+  const query = useListWorkCenterDowntimes(centerId)
+  const date = (v: string) => { const [y, m, d] = v.split('-').map(Number); return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(y, m - 1, d))) }
+  return (
+    <section aria-label="Paradas por manutenção" className="mt-5 space-y-2 text-sm">
+      <h3 className="font-semibold">Paradas por manutenção</h3>
+      {query.isPending ? <p className="text-muted-foreground">Carregando as paradas…</p>
+        : query.isError || !query.data ? <p role="alert" className="text-crit-ink">Não foi possível carregar as paradas. <button type="button" onClick={() => void query.refetch()} className="min-h-11 font-semibold underline">Tentar de novo</button></p>
+        : query.data.length === 0 ? <p className="text-muted-foreground">Nenhuma parada por manutenção no período. As OS de manutenção das máquinas deste centro aparecem aqui.</p> : (
+          <ul className="divide-y divide-border rounded-md border border-border bg-card">
+            {query.data.map((d) => (
+              <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 p-3">
+                <span>
+                  <Link to={'/app/patrimonio/manutencao/$id' as never} params={{ id: d.orderId } as never} className="font-semibold text-primary hover:underline">{d.orderNumber ?? 'OS de manutenção'}</Link>
+                  <span className="block text-xs text-muted-foreground">{d.assetTag ? `${d.assetTag} · ${d.assetName}` : ''}</span>
+                </span>
+                <span className="text-right tabular-nums">
+                  {d.hoursPerDay.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} h por dia
+                  <span className="block text-xs text-muted-foreground">{date(d.startsOn)}{d.endsOn !== d.startsOn ? ` a ${date(d.endsOn)}` : ''}{d.ongoing ? ' · em andamento' : d.ended ? ' · encerrada' : ''}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+    </section>
   )
 }

@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { QrCode } from 'lucide-react'
 import { useId, useState } from 'react'
-import { getGetAssetParametersQueryKey, updateAssetParameters, useGetAssetParameters } from '@/api/generated/bemaqui'
+import { confirmAssetParameter, getGetAssetParametersQueryKey, updateAssetMaintenanceParameters, updateAssetParameters, useGetAssetParameters } from '@/api/generated/bemaqui'
 import type { AssetParametersView } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { FormSection } from '@/components/form/form'
@@ -9,6 +9,8 @@ import { inputClass } from '@/components/form/form-utils'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { notifySuccess } from '@/components/ui/messages'
 import { Skeleton } from '@/components/ui/states'
+import { StatusChip } from '@/components/ui/status-chip'
+import { formatDateTime } from '@/lib/format'
 import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
 import { LABEL_DICAS, labelSizeError } from '@/pages/assets/labels'
@@ -24,7 +26,12 @@ export function AssetsParametersSection({ canEdit }: { canEdit: boolean }) {
   if (query.isPending) return <Skeleton className="h-24" />
   if (query.isError) return null
   const p = query.data
-  return <AssetsForm key={`${p.labelWidthMm}x${p.labelHeightMm}`} params={p} canEdit={canEdit} />
+  return (
+    <>
+      <AssetsForm key={`${p.labelWidthMm}x${p.labelHeightMm}`} params={p} canEdit={canEdit} />
+      <MaintenanceAccounts key={JSON.stringify(p.maintenance.map((i) => [i.code, i.confirmed]))} params={p} canEdit={canEdit} />
+    </>
+  )
 }
 
 function AssetsForm({ params, canEdit }: { params: AssetParametersView; canEdit: boolean }) {
@@ -99,5 +106,72 @@ function LabelPreview({ width, height }: { width: number; height: number }) {
       </div>
       <figcaption className="text-xs text-muted-foreground tabular-nums">Prévia: {width} × {height} mm</figcaption>
     </figure>
+  )
+}
+
+const PENDING = 'A confirmar com a contadora'
+const PENDING_DICA = 'Valor sugerido pelo sistema. Confira com a contadora e clique em "Marcar como conferido". Se o valor mudar depois, volta para "A confirmar".'
+
+/**
+ * Contas da manutenção (PAT-03b CA 5, ADR 0042): a conta do plano e o centro de custo do título do prestador e do custo da manutenção, para
+ * bem com centro de trabalho (2.6 e Produção) e para os demais (3.3 e Administrativo), cada um "A confirmar com a contadora" com "Marcar como
+ * conferido". Salvar e conferir com settings.edit.
+ */
+function MaintenanceAccounts({ params, canEdit }: { params: AssetParametersView; canEdit: boolean }) {
+  const client = useQueryClient()
+  const initial = Object.fromEntries(params.maintenance.map((i) => [i.key, i.code]))
+  const [draft, setDraft] = useState<Record<string, string>>(initial)
+  const [error, setError] = useState<string>()
+  const changed = params.maintenance.filter((i) => draft[i.key] !== initial[i.key])
+  const saved = (next: AssetParametersView, message: string) => {
+    client.setQueryData(getGetAssetParametersQueryKey(), next)
+    void client.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).startsWith('/api/v1/audit/AssetParameter/') })
+    notifySuccess(message)
+    setError(undefined)
+  }
+  const fail = (e: unknown, fallback: string) => setError(e instanceof ApiError ? e.message : fallback)
+  const save = async () => {
+    try { saved(await updateAssetMaintenanceParameters({ changes: changed.map((i) => ({ key: i.key, code: draft[i.key] })) }), 'Contas da manutenção salvas') } catch (e) { fail(e, 'Não foi possível salvar as contas da manutenção.') }
+  }
+  const confirm = async (key: string) => {
+    try { saved(await confirmAssetParameter({ key }), 'Conferido') } catch (e) { fail(e, 'Não foi possível marcar como conferido.') }
+  }
+  return (
+    <FormSection title="Patrimônio: contas da manutenção" description={`A conta e o centro de custo do título do prestador e do custo da manutenção. Nenhum custo de manutenção vai para projeto. ${params.pendingCount > 0 ? `${params.pendingCount} ${params.pendingCount === 1 ? 'valor a confirmar' : 'valores a confirmar'} com a contadora.` : 'Tudo conferido com a contadora.'}`}>
+      <div className="space-y-3 sm:col-span-2">
+        {error ? <p role="alert" className="text-sm text-crit-ink">{error}</p> : null}
+        {params.maintenance.map((item) => {
+          const id = `assets-${item.key}`
+          const options = item.kind === 'Account' ? params.accounts : params.costCenters
+          return (
+            <div key={item.key} role="group" aria-label={item.label} className="space-y-2 rounded-md border border-border p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="inline-flex items-center text-sm font-semibold"><label htmlFor={id}>{item.label}</label><Dica nome={item.label} texto={item.description} /></span>
+                {item.confirmed ? (
+                  <StatusChip tone="ok">Conferido{item.confirmedByName ? ` por ${item.confirmedByName}` : ''}{item.confirmedAt ? ` em ${formatDateTime(item.confirmedAt)}` : ''}</StatusChip>
+                ) : (
+                  <span className="inline-flex flex-wrap items-center gap-2">
+                    <StatusChip tone="warn">{PENDING}</StatusChip>
+                    <Dica nome={PENDING} texto={PENDING_DICA} />
+                    {canEdit ? <button type="button" onClick={() => void confirm(item.key)} className="min-h-11 rounded-md border border-border px-2 py-1 text-xs font-semibold">Marcar como conferido</button> : null}
+                  </span>
+                )}
+              </div>
+              <select id={id} disabled={!canEdit} value={draft[item.key]} onChange={(e) => setDraft((d) => ({ ...d, [item.key]: e.target.value }))} className={inputClass + ' max-w-md'}>
+                {options.map((o) => <option key={o.code} value={o.code}>{o.code} {o.name}</option>)}
+                {!options.some((o) => o.code === draft[item.key]) ? <option value={draft[item.key]}>{draft[item.key]} (não encontrado)</option> : null}
+              </select>
+              {item.parameterId ? (
+                <details className="text-sm">
+                  <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">Histórico de alterações</summary>
+                  <div className="mt-2"><RecordHistory entity="AssetParameter" id={item.parameterId} /></div>
+                </details>
+              ) : null}
+            </div>
+          )
+        })}
+        {canEdit ? <button type="button" disabled={changed.length === 0} onClick={() => void save()} className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">Salvar contas da manutenção</button> : null}
+      </div>
+    </FormSection>
   )
 }

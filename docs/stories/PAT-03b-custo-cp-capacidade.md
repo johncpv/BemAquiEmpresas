@@ -5,7 +5,7 @@
 | ID | PAT-03b |
 | Título | Valor combinado com o prestador gera o título a pagar previsto (origem `Maintenance`) e é confirmado na conclusão, para ordem de pagamento, com conta e centro de custo pré-configurados "A confirmar com a contadora"; custo da manutenção por bem e por centro de trabalho (mão de obra interna, prestador, peças informadas), visível com `assets.edit`; manutenção programada e máquina parada viram parada no `IWorkCenterCapacity`, pelas horas por dia informadas na OS, e o planejamento recalcula |
 | Tamanho | M (quebra da PAT-03) |
-| Status | Ready (pré-condição externa) |
+| Status | Done |
 | Requisitos | R-PAT-4 (parte: custo, CP do prestador) · R-PAT-5 (D: manutenção programada reduz a capacidade) · R-FIN-4 · R-FIN-10 · R-PRD-9 (D, paradas por manutenção) · R-PRP-7 · R-SEC-5 |
 | Dependências | PAT-03a (OS de manutenção), FIN-02 (`IPayables`, origem `Maintenance`), FIN-03a (OP), FIN-05 (estimativa no fluxo de caixa), CAD-03 (capacidade do centro, `IWorkCenterCapacity`), CAD-04a (`IHourlyCost`), PLN-01a (plano finito que consome a capacidade), PLN-01b (pedido de recálculo agrupado), PLN-04 (ocupação da fábrica) |
 | Bloqueia | — |
@@ -89,20 +89,20 @@ Decisões da revisão aplicadas: §4.2 (custo com `assets.edit`, CA 7); D10 (par
 **Pré-condição externa:** a contadora confere as contas e os centros da manutenção (pré-configurados em Configurações → Parâmetros → Patrimônio com o chip "A confirmar com a contadora"); a Konebras confere as horas paradas por dia sugeridas; não bloqueia o `Ready`.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers, cadeia até o título e até a capacidade) e E2E passando.
-- [ ] Migration criada (não destrutiva).
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados; ajuda atualizada; teste de cobertura passando.
-- [ ] Confirmação com impacto financeiro aplicada.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (eventos e paradas) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade, integração (Testcontainers, cadeia até o título e até a capacidade) passando (E2E não escrito: regra do PO de 31/10).
+- [x] Migration criada (não destrutiva).
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Telas com estados; ajuda atualizada; teste de cobertura passando.
+- [x] Confirmação com impacto financeiro aplicada.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (eventos e paradas) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Integração com `IPayables`; `MaintenanceOrderCost`; parâmetros do Patrimônio.
-- [ ] Eventos em `Assets.Contracts`; consumidor no Production (paradas, `IWorkCenterCapacity`, pedido de recálculo).
-- [ ] Relatório de custo; telas e ajuda.
+- [x] Integração com `IPayables`; `MaintenanceOrderCost`; parâmetros do Patrimônio.
+- [x] Eventos em `Assets.Contracts`; consumidor no Production (paradas, `IWorkCenterCapacity`, pedido de recálculo).
+- [x] Relatório de custo; telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (eventos, capacidade e recálculo), @qa.
@@ -136,3 +136,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D10, tabela 3.3 pontos 55–58, ADR 0038, ADR 0029, ADR 0042, §4.2, §4.4 padrões 1 e 2); nova ordem (Marco 6.4, ordem 15); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 01/11/2026 | 1.0 | Implementada (migration `MaintenanceCostPat03b`, só `ADD COLUMN`/`CREATE TABLE`/`CREATE INDEX`): `assets.maintenance_orders` + `contract_value`, `expected_hours`, `hours_per_day`, `downtime_from`/`downtime_to`, `downtime_revision`, `cost`, `payable_id`; `assets.maintenance_order_costs` (Labor/Service/Parts/Other, custo-hora congelado, executor e título só por id); `assets.parameters` + `confirmed_at`/`confirmed_by` e as quatro chaves da manutenção (2.6/3 para bem com centro, 3.3/1 para os demais), "A confirmar com a contadora" com "Marcar como conferido" (`PUT /assets/parameters/maintenance`, `POST /assets/parameters/confirm`, `settings.edit`); `production.downtimes` (dona a Produção, linha única por OS). Título do prestador pelo `IPayables` na transação da OS: `CreatePlannedInstallmentsAsync` (parcela 1, `Planned`, estimado = agendada + 1ª parcela da condição padrão do prestador, conta e centro dos parâmetros, sem projeto) na abertura e no `PUT /maintenance-orders/{id}/schedule` (troca com `ReplacePlannedAsync`; valor novo avisa `finance.edit`); conclusão com prestador exige `confirmPayable` (422 `maintenance_payable_confirmation_required` com o texto do diálogo) e chama `ConfirmAsync` (vencimento real = conclusão + 1ª parcela) com o `xmin` da OS (duas conclusões: uma grava, título confirmado uma vez); o prestador vira a linha de custo `Service`; cancelamento cancela o `Planned` pela origem. Custo: `GET/POST/DELETE /maintenance-orders/{id}/costs`, `GET /maintenance-costs` (mês, bem, centro, preventiva × corretiva), `GET /maintenance-costs/orders` (drill-down com o mesmo total), `GET /assets/{id}/maintenance-cost` (ficha), tudo com `assets.edit`; valor, custo, título e vencimento só no JSON com `assets.edit`; custo-hora e nome da mão de obra só com `hr.view_sensitive`; histórico com `contractValue`/`cost` restritos a `assets.edit`. Parada: `MaintenanceScheduled`/`MaintenanceUnscheduled`/`MaintenanceCompleted` (`Assets.Contracts`, só ids, datas, horas e revisão) na abertura, no reagendamento, no início, na conclusão e no cancelamento; `MaintenanceDowntimeConsumers` (Production) reconcilia pela fonte `IMaintenanceDowntimes` (inbox + `ux_downtimes_source`), pede o recálculo agrupado (PLN-01b); `IWorkCenterCapacity` desconta as horas por dia (o motor e a ocupação não mudaram); `GET /production/work-centers/{id}/downtimes` ("Paradas por manutenção" no painel do centro). Sugestões: prestador do plano, valor da última OS do plano (só como dica, nunca enviado sozinho), horas paradas = horas do centro ÷ máquinas ativas. Front: campos na abertura e no "Planejar" (`<Dica>` em "Valor combinado" e "Horas paradas por dia"), `Tag` "Estimado", link do título (com `finance.view`), aba Custo, diálogo de conclusão com o impacto, próximo passo "Lançar o custo da manutenção", Patrimônio → Custo de manutenção (`/app/patrimonio/custo`, `ColumnChart`, resumo, tabela, totais clicáveis, "Como calculamos", "Atualizado às", "Dados protegidos"), parâmetros do Patrimônio, link da origem `Maintenance` no título a pagar; ajuda nova (`patrimonio-custo`, `patrimonio-manutencao-os-custo`) e atualizada (`patrimonio-manutencao-os`, `producao-centros-de-trabalho`, `configuracoes-parametros`). LGPD: a mão de obra do funcionário entra na exportação e no plano de anonimização (mantida, só o id). **Recomendações aceitas (PO 24/10), pela opção mais conservadora:** (1) o título nasce pelo `CreatePlannedInstallmentsAsync` (parcela 1), não pelo `CreateFromOriginAsync`, porque só ele recebe a conta e o centro de custo do CA 5; `UpdatePlannedAsync` virou `ReplacePlannedAsync` (troca também o favorecido, a conta e o centro); (2) "duração prevista" = horas paradas no total (`expected_hours`, como no modelo); o período vai pelos dias úteis do calendário padrão e as datas da parada ficam em `date` (`starts_on`/`planned_end_on`/`ended_on`), a capacidade é diária; (3) a OS em andamento também mantém a parada até a conclusão (além da máquina parada, CA 9); (4) o consumidor reconcilia pela fonte (`IMaintenanceDowntimes`), nunca pelo delta do evento (ADR 0023 §1); (5) o valor sugerido nunca é enviado sozinho (efeito financeiro com confirmação) e o job do plano abre a OS sem valor; (6) o custo é lançado só na OS concluída; o prestador só pelo título; (7) no celular, OS com prestador conclui na OS completa (o diálogo com o impacto financeiro); (8) valor combinado com o Financeiro não liberado: 403 `module_not_released` (CA 12, checado no serviço); (9) `MaintenanceOrderOpened`/`MaintenanceOrderCompleted` da PAT-03a não estavam no `HostEvents` (iriam para dead-letter): registrados como só aviso; (10) o título já em aberto de OS cancelada (não acontece hoje: o `Open` só nasce na conclusão) avisa `finance.edit`, sem marcar o título como órfão no Finance. E2E não escrito (regra do PO de 31/10). Pendência externa: a contadora confere as contas e os centros; a Konebras confere as horas paradas sugeridas. Status `Done` | Dex (dev) |
