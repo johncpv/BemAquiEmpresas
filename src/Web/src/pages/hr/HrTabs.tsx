@@ -9,6 +9,7 @@ const TABS = [
   { to: '/app/rh/ponto/marcacoes', label: 'Ponto' },
   { to: '/app/rh/folha', label: 'Folha' },
   { to: '/app/rh/rubricas', label: 'Rubricas' },
+  { to: '/app/rh/tabelas-folha', label: 'Tabelas da folha' },
 ] as const
 
 /** Abas do RH (CAD-04a): cada aba é uma rota própria (FND-09b CA 8). "Exportar para a contadora" só com hr.view_sensitive (RH-03 CA 8). */

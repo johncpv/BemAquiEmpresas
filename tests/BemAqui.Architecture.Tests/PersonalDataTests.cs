@@ -81,6 +81,12 @@ public class PersonalDataTests
             "JustifiedMinutes", "BankMonthMinutes", "BankBalanceMinutes", "WorkedDays", "AbsenceDays", "ClosedAt", "ClosedBy", "ReopenedAt", "ReopenedBy", "ReopenReason",
             "EmployeeAckAt", "EmployeeAckBy", "EmployeeAckSummary", "PdfAttachmentId", "CreatedAt", "Version"],
         ["TimesheetDayReview"] = ["Id", "EmployeeId", "Day", "ReviewedBy", "ReviewedAt"],
+
+        // FLH-01: tabela legal da folha não é dado pessoal (CA 14); o dataset da contadora são casos "base → esperado" montados ou
+        // anonimizados, sem funcionário.
+        ["PayrollTaxTable"] = ["Id", "Kind", "ValidFrom", "Status", "RectifiesId", "RectifyReason", "Content", "SchemaVersion", "Rounding", "Source", "SeedPackage",
+            "CreatedBy", "CreatedAt", "EditedBy", "EditedAt", "CheckedBy", "CheckedAt", "CheckedNote", "CheckedWithDatasetId", "SupersededAt", "Version", "IsCurrent"],
+        ["PayrollTaxTableDataset"] = ["Id", "TableId", "Cases", "CaseCount", "CreatedBy", "CreatedAt"],
     };
 
     /// <summary>

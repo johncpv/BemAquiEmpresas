@@ -396,6 +396,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<TimesheetDayReview> TimesheetDayReviews => Set<TimesheetDayReview>();
 
+    public DbSet<PayrollTaxTable> PayrollTaxTables => Set<PayrollTaxTable>();
+
+    public DbSet<PayrollTaxTableDataset> PayrollTaxTableDatasets => Set<PayrollTaxTableDataset>();
+
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
 
     public DbSet<ImportItem> ImportItems => Set<ImportItem>();

@@ -601,7 +601,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-7--folha-calculad
 
 **Ordem de execução:** **7.1:** FLH-01 → FLH-02a → FLH-02b → **7.2:** FLH-03 → FLH-04 → FLH-05 → **7.3:** FLH-06 (começa depois da FLH-02b, em paralelo ao 7.2). **Quebra:** FLH-02 → 02a/02b.
 
-**FLH-01 [ ] Folha calculada: tabelas legais por vigência (INSS, IRRF, salário-família e parâmetros) (M)** — 7.1, ordem 1 — `Ready (pré-condição externa)` — [story](stories/FLH-01-tabelas-legais-vigencia.md)
+**FLH-01 [x] Folha calculada: tabelas legais por vigência (INSS, IRRF, salário-família e parâmetros) (M)** — 7.1, ordem 1 — `Done (pré-condição externa: contadora e tabelas oficiais)` — [story](stories/FLH-01-tabelas-legais-vigencia.md)
 - Requisitos: R-RH-6, R-SEC-5.
 - CA: INSS, IRRF, salário-família, salário mínimo, FGTS, VT e encargos por vigência, pré-cadastrados "a confirmar"; quem cadastra não confere; esquema por tipo versionado; arredondamento parametrizado; versão ativa imutável e retificação explícita.
 

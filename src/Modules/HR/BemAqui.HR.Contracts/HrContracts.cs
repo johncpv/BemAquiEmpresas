@@ -141,3 +141,9 @@ public sealed record EmployeeLeaveStarted(Guid EmployeeId, DateOnly StartDate, D
 
 /// <summary>Afastamento terminou (no dia seguinte ao fim previsto, CA 7): só o id do funcionário e as datas.</summary>
 public sealed record EmployeeLeaveEnded(Guid EmployeeId, DateOnly StartDate, DateOnly EndDate) : IIntegrationEvent;
+
+/// <summary>
+/// Versão de tabela legal da folha conferida (FLH-01): o tipo (<c>Inss</c>, <c>Irrf</c>...), o "vale a partir de" e o id. Dentro do HR
+/// (o motor da FLH-02a marca as folhas em rascunho); sem valores.
+/// </summary>
+public sealed record PayrollTaxTableActivated(string Kind, DateOnly ValidFrom, Guid TableId) : IIntegrationEvent;
