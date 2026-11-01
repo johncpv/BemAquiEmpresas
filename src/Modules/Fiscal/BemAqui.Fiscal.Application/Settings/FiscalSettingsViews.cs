@@ -46,7 +46,8 @@ public sealed record FiscalSettingsValues(
     int CancellationWindowHours,
     int FreightMode,
     string VolumeSpecies,
-    bool IncludeDuplicates);
+    bool IncludeDuplicates,
+    IReadOnlyList<string>? InputTaxCredit = null);
 
 /// <summary>"Salvar configuração fiscal" (CA 4, 8): <c>Code</c> só na troca para produção (2FA de novo); <c>ConfirmSeriesChange</c> depois do aviso da série.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]

@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
   correctPurchaseOrderPrice, useGetPurchaseOrderDecisions, useGetPurchaseOrderHistory, useListPurchaseOrderPayables, useListPurchaseOrderReceipts,
@@ -22,6 +22,9 @@ import { DECISION, LEVEL_STATUS, ORDER_DICAS } from './purchase-orders'
  * tolerância, o pedido volta para a aprovação.
  */
 function CorrectPrice({ order, line, set, refresh }: { order: PurchaseOrderDetail; line: PurchaseOrderLineView; set: (o: PurchaseOrderDetail) => void; refresh: () => Promise<unknown> }) {
+  // FIS-04b CA 3: o aviso "Pedir correção de preço" traz a linha e o preço da nota na URL; o diálogo abre com ele sugerido.
+  const { corrigir, preco } = useSearch({ strict: false }) as { corrigir?: string; preco?: string | number }
+  const suggested = corrigir === line.id && preco != null ? String(preco).replace('.', ',') : ''
   const [price, setPrice] = useState('')
   const [reason, setReason] = useState('')
   const value = Number(price.trim().replace(',', '.'))
@@ -30,9 +33,9 @@ function CorrectPrice({ order, line, set, refresh }: { order: PurchaseOrderDetai
     <ConfirmDialog verb="Corrigir preço" done="Preço corrigido" title={`Corrigir o preço de ${line.itemCode}?`}
       description={<span className="inline-flex items-center">O preço novo vale para o saldo de {formatQuantity(line.quantityOpen ?? 0)} {line.unitCode}; o que já entrou fica com o preço de antes.<Dica nome="Corrigir preço" texto={ORDER_DICAS.corrigirPreco} /></span>}
       impact={<p className="tabular-nums">Preço atual <Money value={line.unitPrice} />{valid ? <> → <Money value={value} className="font-semibold" /></> : null} · aprovado <Money value={order.approvedTotal ?? order.total} /></p>}
-      onOpen={() => { setPrice(''); setReason('') }} preconditions={[{ ok: valid, text: 'Preço novo, maior que zero e diferente do atual.' }, { ok: reason.trim().length > 0, text: 'Motivo escrito.' }]}
+      onOpen={() => { setPrice(suggested); setReason(suggested ? 'Preço da NF-e de entrada' : '') }} preconditions={[{ ok: valid, text: 'Preço novo, maior que zero e diferente do atual.' }, { ok: reason.trim().length > 0, text: 'Motivo escrito.' }]}
       onConfirm={async () => { set(await correctPurchaseOrderPrice(order.id, line.id, { unitPrice: value, reason: reason.trim(), version: order.version })) }} onReload={refresh}
-      trigger={<button type="button" className="text-xs font-semibold text-primary">Corrigir preço</button>}>
+      trigger={<button type="button" className="text-xs font-semibold text-primary">Corrigir preço{suggested ? <Tag className="ml-1">Preço da nota sugerido</Tag> : null}</button>}>
       <div className="space-y-1">
         <label htmlFor={`preco-${line.id}`} className="text-sm font-medium">Preço novo</label>
         <input id={`preco-${line.id}`} inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^0-9,.]/g, ''))} className={inputClass + ' tabular-nums'} />

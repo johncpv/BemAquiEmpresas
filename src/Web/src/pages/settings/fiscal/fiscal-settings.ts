@@ -1,7 +1,7 @@
 import type { FiscalSettingsValues } from '@/api/generated/model'
 
 /** Tipo de controle de cada campo de Configurações → Fiscal. */
-export type FieldKind = 'select' | 'text' | 'percent' | 'int' | 'bool' | 'cnaes' | 'costTaxes' | 'fixed' | 'derived'
+export type FieldKind = 'select' | 'text' | 'percent' | 'int' | 'bool' | 'cnaes' | 'costTaxes' | 'inputTaxCredit' | 'fixed' | 'derived'
 
 export interface FieldOption { value: string; label: string }
 
@@ -47,6 +47,14 @@ export const COST_TAX_OPTIONS: FieldOption[] = [
   { value: 'IBS_CBS', label: 'IBS/CBS' },
 ]
 
+/** Tributos da NF-e de entrada que podem ser recuperáveis (FIS-04b CA 5); nenhum marcado = todos ficam no custo. */
+export const INPUT_TAX_CREDIT_OPTIONS: FieldOption[] = [
+  { value: 'ICMS', label: 'ICMS' },
+  { value: 'IPI', label: 'IPI' },
+  { value: 'PIS', label: 'PIS' },
+  { value: 'COFINS', label: 'COFINS' },
+]
+
 export const FIRST_CONFIGURATION = 'Valores sugeridos pelo sistema. Confira cada um com a contadora antes de emitir em produção.'
 export const PRODUCTION_TEXT = 'Notas em produção têm valor fiscal e só podem ser canceladas no prazo legal.'
 
@@ -58,6 +66,7 @@ export const DICAS = {
   lc116: 'Alternativa: 14.06 (instalação e montagem de aparelhos). Com 7.02, o ISS é devido no município da obra; com 14.06, no da empresa.',
   ibsCbs: 'Tributos da Reforma Tributária (IBS e CBS). Em 2026 as alíquotas são de teste e aparecem na nota sem cobrança.',
   custo: 'Tributos que o sistema soma ao custo do projeto para mostrar a margem real. Não muda a nota.',
+  credito: 'Crédito de impostos é o tributo da nota de entrada que a empresa recupera na apuração. Marcado aqui, ele sai do custo de entrada do material e fica guardado na nota. Nenhum marcado (o padrão): ICMS, IPI, PIS e COFINS ficam no custo, até a contadora confirmar.',
   difal: 'Para não contribuinte de outro estado, o DIFAL ainda não é calculado: a emissão recusa até a contadora orientar.',
   a1: 'Certificado digital do tipo A1 (arquivo .pfx com senha) do CNPJ da empresa. Assina as notas; fica guardado só no cofre do Emissor Fiscal.',
 }
@@ -96,6 +105,7 @@ export const SECTION_FIELDS: Record<string, FieldConfig[]> = {
     { key: 'ipiFromNcm', kind: 'bool', hint: 'A alíquota do IPI vem da TIPI pelo NCM de cada item.' },
   ],
   custo: [{ key: 'costTaxes', kind: 'costTaxes', dica: DICAS.custo }],
+  entrada: [{ key: 'inputTaxCredit', kind: 'inputTaxCredit', dica: DICAS.credito }],
   nfse: [
     { key: 'nfseServiceItem', kind: 'text', maxLength: 5, dica: DICAS.lc116, hint: 'Ex.: 7.02.' },
     { key: 'nfseMunicipalCode', kind: 'text', maxLength: 8, hint: 'Formato NN.NN.NN, da lista da prefeitura. Vazio bloqueia só a NFS-e em produção.' },

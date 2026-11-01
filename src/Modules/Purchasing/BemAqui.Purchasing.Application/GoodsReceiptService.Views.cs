@@ -32,7 +32,8 @@ public sealed partial class GoodsReceiptService
             receipt.ReceivedBy is { } by ? await users.DisplayNameAsync(by, cancellationToken) : null, receipt.SoleOwner, receipt.CreatedAt, receipt.ReversedAt,
             receipt.ReversedBy is { } rb ? await users.DisplayNameAsync(rb, cancellationToken) : null, receipt.ReversalReason,
             lines.Select(l => View(l, info.GetValueOrDefault(l.ItemId), places.GetValueOrDefault(l.LocationId)?.Name)).ToList(), served,
-            canApprove && receipt.Status == GoodsReceiptStatus.Completed && order.ClosedBalanceAmount is null && order.Status != PurchaseOrderStatus.PendingApproval, receipt.Version);
+            canApprove && receipt.Status == GoodsReceiptStatus.Completed && order.ClosedBalanceAmount is null && order.Status != PurchaseOrderStatus.PendingApproval, receipt.Version,
+            receipt.Origin, receipt.IncomingInvoiceId, receipt.Insurance, receipt.OtherExpenses, receipt.TaxCredit);
     }
 
     /// <summary>O recebimento pelo pedido da URL (IDOR, CA 16): recebimento de outro pedido é 404.</summary>
@@ -169,5 +170,5 @@ public sealed partial class GoodsReceiptService
     private static GoodsReceiptLineView View(GoodsReceiptLine l, BemAqui.Inventory.Contracts.ItemSummary? item, string? location) => new(
         l.Id, l.Sequence, l.PoLineId, l.ItemId, item?.Code ?? string.Empty, item?.Name ?? "Item removido", item?.UnitCode ?? string.Empty, l.Quantity, l.SupplierUnit, l.SupplierQuantity,
         l.LotNumber, l.LotExpiry, l.LocationId, location ?? "Local removido", l.UnitPrice, l.LineAmount, l.FreightShare, l.IpiShare, l.UnitCost, l.MovementId, l.MovementNumber,
-        l.ReversalMovementId);
+        l.ReversalMovementId, l.InsuranceShare, l.OtherShare, l.TaxCreditShare);
 }

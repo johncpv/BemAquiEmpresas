@@ -23,4 +23,7 @@ export interface GoodsReceiptPreview {
   plannedAfter: number;
   orderCompletes: boolean;
   soleOwner: boolean;
+  insurance?: number;
+  otherExpenses?: number;
+  taxCredit?: number;
 }

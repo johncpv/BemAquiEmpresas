@@ -506,7 +506,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-5, R-CMP-5, R-PRP-3, R-EST-3.
 - CA: XML sem DTD, XSD, um `infNFe` e uma assinatura com `Reference URI` igual ao `Id`, CNPJ do certificado igual ao do emitente, sem protocolo recusado; importação com `fiscal.import_incoming`; aviso "situação na SEFAZ não conferida"; chave duplicada recusada; de-para lembrado; nota sem pedido exige `purchasing.approve`.
 
-**FIS-04b [ ] Recebimento pela NF-e de entrada: estoque pelo custo da nota e títulos a pagar pelas duplicatas, na mesma transação (M)** — 5.5, ordem 13 — `Ready (pré-condição externa)` — [story](stories/FIS-04b-recebimento-pela-nota.md)
+**FIS-04b [x] Recebimento pela NF-e de entrada: estoque pelo custo da nota e títulos a pagar pelas duplicatas, na mesma transação (M)** — 5.5, ordem 13 — `Done` — [story](stories/FIS-04b-recebimento-pela-nota.md)
 - Requisitos: R-CMP-5, R-EST-7, R-FIN-4, R-FIN-10.
 - CA: recebimento da CMP-04 preenchido pela nota, chamada síncrona com `purchasing.receive`; duplicatas pelo `CreateOpenInstallmentsAsync` na transação do recebimento (ADR 0024); sem duplicatas, vale a condição do pedido; crédito de impostos pré-configurado "Nenhum" até a P-01; uma vez só.
 

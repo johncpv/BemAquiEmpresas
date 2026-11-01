@@ -5,7 +5,7 @@
 | ID | FIS-04b |
 | Título | "Receber pela nota" a partir da NF-e de entrada conferida, com `purchasing.receive`: o recebimento da CMP-04 nasce preenchido com quantidades, lote, frete, seguro, outras despesas e IPI da nota (rateio da P-16, crédito de impostos pelo parâmetro da P-01, pré-configurado "nenhum"); na mesma transação o Purchasing chama o `IPayables.CreateOpenInstallmentsAsync` com as duplicatas da nota (ADR 0024, chamada síncrona) e replaneja o previsto do pedido; nota e recebimento ligados nos dois sentidos |
 | Tamanho | M (quebra da FIS-04) |
-| Status | Ready (pré-condição externa) |
+| Status | Done |
 | Requisitos | R-CMP-5 (recebimento por NF-e, entrada no estoque com lote, efetivação do CP) · R-EST-7 (custo médio na entrada) · R-FIN-4 · R-FIN-10 · R-PRP-2 · R-PRP-3 · R-PRP-7 · R-SEC-5 |
 | Dependências | FIS-04a (nota `Checked`), CMP-04 (recebimento com `purchasing.receive`, títulos do recebimento, teto e correção de preço), CMP-03a (`IPayables` por parcela: `CreateOpenInstallmentsAsync`, `ReplacePlannedAsync`, `CancelAllFromOriginAsync`), EST-01a (`IStockMovements`), FIS-02a (Configurações → Fiscal) |
 | Bloqueia | FIS-05 (a nota lida do PDF segue por aqui), GOL-01a |
@@ -84,21 +84,21 @@ Decisões da revisão aplicadas: ADR 0024 (§1 chamada síncrona, §2 `CreateOpe
 **Pré-condição externa:** conteúdo da contadora para o crédito de impostos (P-01), pré-configurado "Nenhum"; não bloqueia o `Ready`.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Tela com estados; seção "Entrada" em Configurações → Fiscal.
-- [ ] Ajudas atualizadas; teste de cobertura passando.
-- [ ] Efeito em estoque e caixa com confirmação; próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (recebimento pela nota síncrono; `GoodsReceived` só aviso) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos (CA 4: a recusa não grava a diferença no histórico da nota, ver Change Log; nota conferida sem pedido não é recebida nesta story).
+- [x] Testes de unidade, integração (Testcontainers) e E2E (Playwright com a API simulada) passando. O E2E contra o backend real fica para a rodada de E2E da fase.
+- [x] Migration `InvoiceReceiptFis04b` criada (não destrutiva: só colunas, índices e troca de CHECK). A conferência sobre cópia do banco do `konebras` fica para o deploy.
+- [x] Permissões só do `ModuleCatalog` (nenhuma ação nova: `purchasing.receive`, `purchasing.approve`, `settings.edit`).
+- [x] Tela com estados; seção "Entrada" em Configurações → Fiscal.
+- [x] Ajudas atualizadas (`fiscal-nota-entrada-receber` nova; `fiscal-nota-entrada` e `configuracoes-fiscal`); teste de cobertura passando.
+- [x] Efeito em estoque e caixa com confirmação; próximos passos aplicados.
+- [x] Auditoria ligada (nota, recebimento, linhas e Configurações → Fiscal já auditados; as colunas novas entram no antes/depois).
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (recebimento pela nota síncrono; `GoodsReceived` só aviso) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `IIncomingInvoices` (Fiscal) e o preenchimento do recebimento a partir da nota no Purchasing.
-- [ ] Parcelas pelas duplicatas no serviço da CMP-04 (`CreateOpenInstallmentsAsync`), parte sem item de estoque com `DocumentOrigin.IncomingInvoice`.
-- [ ] Parâmetro `input_tax_credit` e o cálculo do custo com e sem crédito; seção "Entrada" e ajuda.
+- [x] `IIncomingInvoiceReceipts` (Fiscal; nome da story `IIncomingInvoices`, já usado pela PAT-01a) e o preenchimento do recebimento a partir da nota no Purchasing.
+- [x] Parcelas pelas duplicatas no serviço da CMP-04 (`CreateOpenInstallmentsAsync`), parte sem item de estoque com `DocumentOrigin.IncomingInvoice`.
+- [x] Parâmetro `input_tax_credit` e o cálculo do custo com e sem crédito; seção "Entrada" e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (transação única Purchasing × Inventory × Finance × Fiscal), @qa.
@@ -132,3 +132,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D12, novo requisito de Configurações, tabela 3.2 pontos 61–63, §4.1; ADR 0024); chamada síncrona pelas duplicatas; antes do go-live, na ordem da fase (13, Marco 5.5); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 31/10/2026 | 1.0 | **Implementação.** Contrato novo `IIncomingInvoiceReceipts` (Fiscal.Contracts; o `IIncomingInvoices` é o seletor da PAT-01a: a nota conferida com itens, duplicatas e a regra de crédito; `MarkReceivedAsync` `Checked → Received` com a versão `xmin`; `ReturnToCheckedAsync`), implementado no Fiscal e chamado pelo Purchasing na **mesma transação** do recebimento (o mesmo `TenantDbContext` do request, como a CMP-04 faz com o `IStockMovements` e o `IPayables`). `GoodsReceiptService` com o caminho único da CMP-04: o registro virou `CommitAsync` comum ao manual e ao pela nota; "Receber pela nota" (`/api/v1/purchasing/incoming-invoices/{id}/receipt-defaults`, `/receipt/preview`, `/receipt` com `Idempotency-Key`, `/price-correction-request`, todos com `purchasing.receive` e os módulos `fiscal` e `inventory`) monta o recebimento com a quantidade da nota (itens da mesma linha somam; lotes diferentes na mesma linha: 422), o lote do `rastro`, frete, seguro, outras despesas e o IPI da parte de estoque, rateados pelo valor das linhas (a última absorve o centavo) e conferidos pelas mesmas regras da CMP-04 (saldo + tolerância, frete e IPI até o proporcional do pedido, teto). Ordem na transação: recebimento e pedido (xmin), nota `Received` (xmin), entradas no estoque, títulos (`CreateOpenInstallmentsAsync` origem `GoodsReceipt`, uma parcela por duplicata, descrição "NF-e {número} · recebimento {número} — parcela {n}/{m}"; e os da parte "Sem item de estoque", origem `IncomingInvoice` nova no SharedKernel, por conta, numerados depois da conta anterior para a idempotência por parcela), replanejamento do previsto e `GoodsReceived` com `incomingInvoiceId` (só aviso). Índice único parcial `ux_goods_receipts_incoming_invoice` (um recebimento `Completed` por nota) além do xmin do pedido e da nota (CA 13). Estorno: cancela as duas origens antes do estoque e devolve a nota a `Checked`. Parâmetro `inputTaxCredit` (`fiscal.fiscal_settings.input_tax_credit`, seção "Entrada", padrão vazio = nenhum, selo "A confirmar"); com crédito, ICMS/PIS/COFINS dos itens e o IPI rateado saem do custo e ficam na nota (`input_tax_credit_applied`, `input_tax_credit_amount`) e no recebimento (`tax_credit`). Migration `InvoiceReceiptFis04b` (colunas `origin`, `insurance`, `other_expenses`, `tax_credit` e as partes das linhas; CHECKs do valor e da origem trocados por SQL). Telas: "Receber pela nota" (`/app/fiscal/entrada/$id/recebimento`, com a faixa "Valores da NF-e", o diálogo grande do impacto e o bloqueio de preço com "Pedir correção de preço"), botão e modo leitura na nota, origem e link da nota no recebimento, "Corrigir preço" do pedido com o preço da nota sugerido pelo link do aviso, seção "Entrada" em Configurações → Fiscal; o próximo passo da FIS-04a agora leva a esta tela. **Recomendações aceitas (PO 24/10), pela opção mais conservadora:** nota conferida **sem pedido** (FIS-04a CA 11) não é recebida nesta story (o recebimento da CMP-04 exige pedido, condição de pagamento e teto): a tela mostra "Ligue a nota a um pedido para receber."; o preço comparado é o da nota em unidade de estoque e o recebimento usa sempre o do pedido (diferença acima de R$ 0,01 bloqueia, CA 3); seguro e outras despesas (que o pedido não tem) entram no valor e passam pelo teto do pedido (acima, a recusa da CMP-04); o frete, o seguro e as outras despesas vão todos para os itens de estoque, e a parte sem estoque leva só o valor dela − desconto + o IPI dela; duplicata sem vencimento faz valer a condição do pedido a partir da emissão (como sem duplicatas); a recusa (CA 4) não grava nada, nem a diferença no histórico da nota (a conferência da FIS-04a já guardou as divergências por item); "Pedir correção de preço" avisa todos com `purchasing.approve` menos quem pediu. **Pendências:** conteúdo da contadora para o crédito de impostos (P-01, **pré-condição externa**: segue pré-configurado "Nenhum", "a confirmar"); E2E contra o backend real fica para a rodada de E2E da fase (o E2E com a API simulada cobre a tela). | Dex (dev) |

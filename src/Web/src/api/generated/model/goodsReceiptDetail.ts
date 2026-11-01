@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { GoodsReceiptLineView } from './goodsReceiptLineView';
+import type { GoodsReceiptOrigin } from './goodsReceiptOrigin';
 import type { GoodsReceiptStatus } from './goodsReceiptStatus';
 import type { ServedOrderRef } from './servedOrderRef';
 
@@ -43,4 +44,10 @@ export interface GoodsReceiptDetail {
   servedOrders: ServedOrderRef[];
   canReverse: boolean;
   version: number;
+  origin?: GoodsReceiptOrigin;
+  /** @nullable */
+  incomingInvoiceId?: string | null;
+  insurance?: number;
+  otherExpenses?: number;
+  taxCredit?: number;
 }
