@@ -8573,6 +8573,302 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("payroll_items", "hr");
                 });
 
+            modelBuilder.Entity("BemAqui.HR.Domain.PayrollItemMapping", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CalculatedCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("calculated_code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("EnteredCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("entered_code");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_payroll_item_mappings");
+
+                    b.HasIndex("EnteredCode")
+                        .IsUnique()
+                        .HasDatabaseName("ix_payroll_item_mappings_entered");
+
+                    b.ToTable("payroll_item_mappings", "hr");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.PayrollModeChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AccountantCrc")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("accountant_crc");
+
+                    b.Property<string>("AccountantName")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("accountant_name");
+
+                    b.Property<DateTimeOffset>("ChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("changed_at");
+
+                    b.Property<Guid?>("ChangedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("changed_by");
+
+                    b.Property<DateOnly>("FromPeriod")
+                        .HasColumnType("date")
+                        .HasColumnName("from_period");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("mode");
+
+                    b.PrimitiveCollection<List<Guid>>("ParallelRunIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("parallel_run_ids");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("RunType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("run_type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_payroll_mode_changes");
+
+                    b.HasIndex("RunType", "ChangedAt")
+                        .HasDatabaseName("ix_payroll_mode_changes_type");
+
+                    b.ToTable("payroll_mode_changes", "hr");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.PayrollParallelDifference", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("CalculatedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("calculated_amount");
+
+                    b.Property<string>("Classification")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("classification");
+
+                    b.Property<DateTimeOffset?>("ClassifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("classified_at");
+
+                    b.Property<Guid?>("ClassifiedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("classified_by");
+
+                    b.Property<string>("CorrectionCase")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("correction_case");
+
+                    b.Property<decimal>("Difference")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("difference");
+
+                    b.Property<decimal?>("DifferencePct")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("difference_pct");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<decimal>("EnteredAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("entered_amount");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("item_name");
+
+                    b.Property<string>("Justification")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("justification");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("ParallelRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("parallel_run_id");
+
+                    b.Property<string>("PayrollItemCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("payroll_item_code");
+
+                    b.HasKey("Id")
+                        .HasName("pk_parallel_differences");
+
+                    b.HasIndex("EmployeeId")
+                        .HasDatabaseName("ix_parallel_differences_employee");
+
+                    b.HasIndex("ParallelRunId", "EmployeeId", "PayrollItemCode")
+                        .IsUnique()
+                        .HasDatabaseName("ix_parallel_differences_row");
+
+                    b.ToTable("parallel_differences", "hr");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.PayrollParallelRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("accepted_at");
+
+                    b.Property<Guid?>("AcceptedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("accepted_by");
+
+                    b.Property<string>("AccountantCrc")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("accountant_crc");
+
+                    b.Property<string>("AccountantName")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("accountant_name");
+
+                    b.Property<decimal>("CalculatedNet")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("calculated_net");
+
+                    b.Property<Guid>("CalculatedRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("calculated_run_id");
+
+                    b.Property<DateTimeOffset>("ComparedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("compared_at");
+
+                    b.Property<Guid?>("ComparedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("compared_by");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("Differences")
+                        .HasColumnType("integer")
+                        .HasColumnName("differences");
+
+                    b.Property<int>("Employees")
+                        .HasColumnType("integer")
+                        .HasColumnName("employees");
+
+                    b.Property<decimal>("EnteredNet")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("entered_net");
+
+                    b.Property<Guid>("EnteredRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("entered_run_id");
+
+                    b.Property<string>("PayrollType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("payroll_type");
+
+                    b.Property<DateOnly>("Period")
+                        .HasColumnType("date")
+                        .HasColumnName("period");
+
+                    b.Property<string>("RunType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("run_type");
+
+                    b.Property<Guid?>("SignedTermAttachmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("signed_term_attachment_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_parallel_runs");
+
+                    b.HasIndex("CalculatedRunId")
+                        .HasDatabaseName("ix_parallel_runs_calculated_run_id");
+
+                    b.HasIndex("EnteredRunId")
+                        .HasDatabaseName("ix_parallel_runs_entered_run_id");
+
+                    b.HasIndex("Period", "PayrollType")
+                        .IsUnique()
+                        .HasDatabaseName("ix_parallel_runs_period_type");
+
+                    b.ToTable("parallel_runs", "hr");
+                });
+
             modelBuilder.Entity("BemAqui.HR.Domain.PayrollRun", b =>
                 {
                     b.Property<Guid>("Id")
@@ -17126,6 +17422,40 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_payroll_calculation_logs_payroll_runs_payroll_run_id");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.PayrollParallelDifference", b =>
+                {
+                    b.HasOne("BemAqui.HR.Domain.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_parallel_differences_employees_employee_id");
+
+                    b.HasOne("BemAqui.HR.Domain.PayrollParallelRun", null)
+                        .WithMany()
+                        .HasForeignKey("ParallelRunId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_parallel_differences_payroll_parallel_runs_parallel_run_id");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.PayrollParallelRun", b =>
+                {
+                    b.HasOne("BemAqui.HR.Domain.PayrollRun", null)
+                        .WithMany()
+                        .HasForeignKey("CalculatedRunId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_parallel_runs_payroll_runs_calculated_run_id");
+
+                    b.HasOne("BemAqui.HR.Domain.PayrollRun", null)
+                        .WithMany()
+                        .HasForeignKey("EnteredRunId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_parallel_runs_payroll_runs_entered_run_id");
                 });
 
             modelBuilder.Entity("BemAqui.HR.Domain.PayrollRun", b =>

@@ -9210,6 +9210,444 @@
         }
       }
     },
+    "/api/v1/hr/payroll-parallel": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayrollParallelOverview",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollParallelOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/history": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListPayrollParallelHistory",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayrollParallelHistoryEntry"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/compare": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ComparePayrollParallel",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollParallelCompareInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollParallelDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/{id}/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayrollParallelSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollParallelDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/{id}/differences/{differenceId}": {
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ClassifyPayrollDifference",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "differenceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollDifferenceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollDifferenceResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/{id}/correction-cases": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadPayrollCorrectionCases",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/{id}/term": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadPayrollParallelTerm",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "AttachPayrollParallelTerm",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/{id}/accept": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "AcceptPayrollParallel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollParallelAcceptInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollParallelDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/switch": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "SwitchPayrollToCalculated",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollModeSwitchInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollModeResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/revert": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "RevertPayrollToEntered",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollModeRevertInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollModeResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/mappings": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListPayrollItemMappings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayrollItemMappingRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "SavePayrollItemMapping",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollItemMappingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayrollItemMappingRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-parallel/mappings/{id}": {
+      "delete": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DeletePayrollItemMapping",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayrollItemMappingRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/time-entries": {
       "get": {
         "tags": [
@@ -71858,6 +72296,15 @@
           }
         }
       },
+      "PayrollDifferenceClassification": {
+        "enum": [
+          "SystemError",
+          "AccountantError",
+          "RuleDifference",
+          "Rounding",
+          null
+        ]
+      },
       "PayrollDifferenceEmployee": {
         "required": [
           "employeeId",
@@ -71898,6 +72345,31 @@
           }
         }
       },
+      "PayrollDifferenceInput": {
+        "required": [
+          "classification",
+          "justification"
+        ],
+        "type": "object",
+        "properties": {
+          "classification": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollDifferenceClassification"
+              }
+            ]
+          },
+          "justification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "PayrollDifferenceLine": {
         "required": [
           "payrollItemId",
@@ -71929,6 +72401,28 @@
           "after": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "PayrollDifferenceResult": {
+        "required": [
+          "cell",
+          "nextStep"
+        ],
+        "type": "object",
+        "properties": {
+          "cell": {
+            "$ref": "#/components/schemas/PayrollParallelCell"
+          },
+          "nextStep": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollNextStep"
+              }
+            ]
           }
         }
       },
@@ -72409,6 +72903,54 @@
           "Information"
         ]
       },
+      "PayrollItemMappingInput": {
+        "required": [
+          "enteredCode",
+          "calculatedCode"
+        ],
+        "type": "object",
+        "properties": {
+          "enteredCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "calculatedCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollItemMappingRow": {
+        "required": [
+          "id",
+          "enteredCode",
+          "calculatedCode",
+          "calculatedName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "enteredCode": {
+            "type": "string"
+          },
+          "calculatedCode": {
+            "type": "string"
+          },
+          "calculatedName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "PayrollManualLineInput": {
         "required": [
           "payrollItemId",
@@ -72443,6 +72985,104 @@
           }
         }
       },
+      "PayrollModeResult": {
+        "required": [
+          "message",
+          "overview"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "overview": {
+            "$ref": "#/components/schemas/PayrollParallelOverview"
+          }
+        }
+      },
+      "PayrollModeRevertInput": {
+        "required": [
+          "type",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollParallelType"
+              }
+            ]
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollModeSwitchInput": {
+        "required": [
+          "confirmed"
+        ],
+        "type": "object",
+        "properties": {
+          "confirmed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PayrollModeView": {
+        "required": [
+          "type",
+          "label",
+          "mode",
+          "fromPeriod",
+          "since",
+          "situation",
+          "acceptedCase"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/PayrollParallelType"
+          },
+          "label": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/PayrollRunMode"
+          },
+          "fromPeriod": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "since": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "situation": {
+            "type": "string"
+          },
+          "acceptedCase": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
       "PayrollNextStep": {
         "required": [
           "label",
@@ -72457,6 +73097,578 @@
             "type": "string"
           }
         }
+      },
+      "PayrollParallelAcceptInput": {
+        "required": [
+          "accountantName",
+          "accountantCrc",
+          "signedTermAttachmentId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "accountantName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountantCrc": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "signedTermAttachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollParallelCell": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "kind",
+          "entered",
+          "calculated",
+          "difference",
+          "differencePct",
+          "equal",
+          "classification",
+          "classificationLabel",
+          "justification",
+          "classifiedByName",
+          "classifiedAt",
+          "hasCorrectionCase",
+          "memory"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PayrollItemKind"
+          },
+          "entered": {
+            "type": "number",
+            "format": "double"
+          },
+          "calculated": {
+            "type": "number",
+            "format": "double"
+          },
+          "difference": {
+            "type": "number",
+            "format": "double"
+          },
+          "differencePct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "equal": {
+            "type": "boolean"
+          },
+          "classification": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollDifferenceClassification"
+              }
+            ]
+          },
+          "classificationLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "justification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "classifiedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "classifiedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "hasCorrectionCase": {
+            "type": "boolean"
+          },
+          "memory": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PayrollParallelCompareInput": {
+        "required": [
+          "period",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "type": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollRunType"
+              }
+            ]
+          }
+        }
+      },
+      "PayrollParallelDetail": {
+        "required": [
+          "run",
+          "enteredRunId",
+          "calculatedRunId",
+          "enteredNet",
+          "calculatedNet",
+          "netDifference",
+          "canAccept",
+          "employees",
+          "items",
+          "nextStep"
+        ],
+        "type": "object",
+        "properties": {
+          "run": {
+            "$ref": "#/components/schemas/PayrollParallelMonthRow"
+          },
+          "enteredRunId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "calculatedRunId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "enteredNet": {
+            "type": "number",
+            "format": "double"
+          },
+          "calculatedNet": {
+            "type": "number",
+            "format": "double"
+          },
+          "netDifference": {
+            "type": "number",
+            "format": "double"
+          },
+          "canAccept": {
+            "type": "boolean"
+          },
+          "employees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollParallelEmployee"
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollParallelItemSummary"
+            }
+          },
+          "nextStep": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollNextStep"
+              }
+            ]
+          }
+        }
+      },
+      "PayrollParallelEmployee": {
+        "required": [
+          "employeeId",
+          "name",
+          "registration",
+          "enteredNet",
+          "calculatedNet",
+          "netDifference",
+          "differences",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "enteredNet": {
+            "type": "number",
+            "format": "double"
+          },
+          "calculatedNet": {
+            "type": "number",
+            "format": "double"
+          },
+          "netDifference": {
+            "type": "number",
+            "format": "double"
+          },
+          "differences": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollParallelCell"
+            }
+          }
+        }
+      },
+      "PayrollParallelHistoryEntry": {
+        "required": [
+          "at",
+          "userName",
+          "action",
+          "description",
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "userName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "action": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollParallelItemSummary": {
+        "required": [
+          "code",
+          "name",
+          "differences",
+          "totalDifference"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "differences": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalDifference": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PayrollParallelMonthRow": {
+        "required": [
+          "id",
+          "period",
+          "runType",
+          "payrollType",
+          "status",
+          "statusLabel",
+          "employees",
+          "differences",
+          "comparedAt",
+          "comparedByName",
+          "acceptedAt",
+          "acceptedByName",
+          "accountantName",
+          "accountantCrc",
+          "hasSignedTerm",
+          "countsForSwitch",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "runType": {
+            "$ref": "#/components/schemas/PayrollParallelType"
+          },
+          "payrollType": {
+            "$ref": "#/components/schemas/PayrollRunType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayrollParallelStatus"
+          },
+          "statusLabel": {
+            "type": "string"
+          },
+          "employees": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "differences": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "comparedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "comparedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "acceptedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "acceptedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountantName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountantCrc": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hasSignedTerm": {
+            "type": "boolean"
+          },
+          "countsForSwitch": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollParallelOverview": {
+        "required": [
+          "runs",
+          "pending",
+          "required",
+          "consecutive",
+          "canSwitch",
+          "switchFrom",
+          "modes",
+          "isOwner",
+          "lastAccountantName",
+          "lastAccountantCrc"
+        ],
+        "type": "object",
+        "properties": {
+          "runs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollParallelMonthRow"
+            }
+          },
+          "pending": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollParallelPending"
+            }
+          },
+          "required": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "consecutive": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          "canSwitch": {
+            "type": "boolean"
+          },
+          "switchFrom": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "modes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollModeView"
+            }
+          },
+          "isOwner": {
+            "type": "boolean"
+          },
+          "lastAccountantName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastAccountantCrc": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollParallelPending": {
+        "required": [
+          "period",
+          "type",
+          "calculatedRunId",
+          "enteredRunId",
+          "canCompare",
+          "message",
+          "actionLabel",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PayrollRunType"
+          },
+          "calculatedRunId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "enteredRunId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "canCompare": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "actionLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollParallelStatus": {
+        "enum": [
+          "Open",
+          "Accepted",
+          "Rejected"
+        ]
+      },
+      "PayrollParallelType": {
+        "enum": [
+          "Monthly",
+          "Vacation",
+          "Thirteenth",
+          "Termination"
+        ]
       },
       "PayrollPayeeOption": {
         "required": [

@@ -162,7 +162,7 @@ public sealed class AccountantPayrollSection(IHrDb db) : IAccountantExportSectio
         var period = context.Period;
         var runs = await db.PayrollRuns.AsNoTracking().Where(r => r.Period == period).OrderBy(r => r.Type).ToListAsync(cancellationToken);
         var closed = runs.Where(r => r.Status is PayrollRunStatus.Closed or PayrollRunStatus.Paid).ToList();
-        var notIncluded = runs.Where(r => r.Status == PayrollRunStatus.Draft)
+        var notIncluded = runs.Where(r => r.Status == PayrollRunStatus.Draft && !r.IsSimulation)
             .Select(r => $"Folha {PayrollRules.TypeLabel(r.Type)}: em rascunho, não entrou. Feche a folha e gere o pacote de novo.").ToList();
         if (closed.Count == 0)
         {
