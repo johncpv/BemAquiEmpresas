@@ -7080,6 +7080,76 @@
         }
       }
     },
+    "/api/v1/hr/employees/{id}/vacations": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployeeVacations",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeVacations"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ScheduleVacation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VacationScheduleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacationScheduleResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/payroll-items": {
       "get": {
         "tags": [
@@ -9699,6 +9769,132 @@
         }
       }
     },
+    "/api/v1/hr/vacations": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetVacationOverview",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacationOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/vacations/{id}/cancel": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CancelVacationSchedule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VacationCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacationScheduleItem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/vacations/{id}/calculate": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CalculateVacation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacationCalculationResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/vacations/{id}/notice": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadVacationNotice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/me/hr/link": {
       "get": {
         "tags": [
@@ -9782,6 +9978,26 @@
                   "items": {
                     "$ref": "#/components/schemas/AbsenceReasonOption"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/hr/vacations": {
+      "get": {
+        "tags": [
+          "Autoatendimento"
+        ],
+        "operationId": "ListMyVacations",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyVacations"
                 }
               }
             }
@@ -50203,6 +50419,51 @@
           "OnLeave"
         ]
       },
+      "EmployeeVacations": {
+        "required": [
+          "employeeId",
+          "name",
+          "periods",
+          "schedules",
+          "suggestion",
+          "rules"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "periods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VacationPeriodItem"
+            }
+          },
+          "schedules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VacationScheduleItem"
+            }
+          },
+          "suggestion": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/VacationSuggestionView"
+              }
+            ]
+          },
+          "rules": {
+            "$ref": "#/components/schemas/VacationRulesView"
+          }
+        }
+      },
       "EmployerChargesContent": {
         "required": [
           "taxRegime",
@@ -54988,7 +55249,8 @@
           "Choice",
           "Hours",
           "Years",
-          "HourOfDay"
+          "HourOfDay",
+          "Count"
         ]
       },
       "HrParametersInput": {
@@ -64490,6 +64752,117 @@
           }
         }
       },
+      "MyVacationPeriod": {
+        "required": [
+          "startsOn",
+          "endsOn",
+          "entitledDays",
+          "takenDays",
+          "soldDays",
+          "balance",
+          "concessionEndsOn",
+          "status",
+          "statusLabel"
+        ],
+        "type": "object",
+        "properties": {
+          "startsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "endsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "entitledDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "takenDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "soldDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "balance": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "concessionEndsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VacationPeriodStatus"
+          },
+          "statusLabel": {
+            "type": "string"
+          }
+        }
+      },
+      "MyVacations": {
+        "required": [
+          "periods",
+          "schedules"
+        ],
+        "type": "object",
+        "properties": {
+          "periods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyVacationPeriod"
+            }
+          },
+          "schedules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyVacationSchedule"
+            }
+          }
+        }
+      },
+      "MyVacationSchedule": {
+        "required": [
+          "id",
+          "startsOn",
+          "endsOn",
+          "days",
+          "soldDays",
+          "status",
+          "statusLabel"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "endsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "soldDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VacationScheduleStatus"
+          },
+          "statusLabel": {
+            "type": "string"
+          }
+        }
+      },
       "NonConformityActionInput": {
         "required": [
           "cause",
@@ -71141,7 +71514,12 @@
           "Dsr",
           "DsrLoss",
           "HourBankPayout",
-          "HourBankDiscount"
+          "HourBankDiscount",
+          "VacationPay",
+          "VacationAverages",
+          "VacationThird",
+          "VacationSale",
+          "VacationSaleThird"
         ],
         "default": "None"
       },
@@ -71830,6 +72208,19 @@
             "items": {
               "$ref": "#/components/schemas/PayrollChangeNotice"
             }
+          },
+          "legalPaymentDeadline": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "latePaymentWarning": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -95256,7 +95647,8 @@
           "DayOff",
           "Inconsistent",
           "NotEmployed",
-          "Upcoming"
+          "Upcoming",
+          "Vacation"
         ]
       },
       "TimesheetDayView": {
@@ -96813,6 +97205,549 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "VacationCalculationResult": {
+        "required": [
+          "schedule",
+          "run",
+          "payslipId",
+          "message",
+          "nextSteps"
+        ],
+        "type": "object",
+        "properties": {
+          "schedule": {
+            "$ref": "#/components/schemas/VacationScheduleItem"
+          },
+          "run": {
+            "$ref": "#/components/schemas/PayrollRunSummary"
+          },
+          "payslipId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "message": {
+            "type": "string"
+          },
+          "nextSteps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollNextStep"
+            }
+          }
+        }
+      },
+      "VacationCalendarEntry": {
+        "required": [
+          "scheduleId",
+          "employeeId",
+          "name",
+          "startsOn",
+          "endsOn",
+          "days",
+          "status",
+          "statusLabel"
+        ],
+        "type": "object",
+        "properties": {
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "endsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VacationScheduleStatus"
+          },
+          "statusLabel": {
+            "type": "string"
+          }
+        }
+      },
+      "VacationCalendarMonth": {
+        "required": [
+          "month",
+          "entries"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string",
+            "format": "date"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VacationCalendarEntry"
+            }
+          }
+        }
+      },
+      "VacationCancelInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "VacationDueRow": {
+        "required": [
+          "employeeId",
+          "name",
+          "registration",
+          "periodId",
+          "periodStart",
+          "periodEnd",
+          "balance",
+          "concessionEndsOn",
+          "status",
+          "statusLabel",
+          "tone"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "periodId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "periodStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "balance": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "concessionEndsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VacationPeriodStatus"
+          },
+          "statusLabel": {
+            "type": "string"
+          },
+          "tone": {
+            "type": "string"
+          }
+        }
+      },
+      "VacationOverview": {
+        "required": [
+          "days",
+          "due",
+          "calendar"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "due": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VacationDueRow"
+            }
+          },
+          "calendar": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VacationCalendarMonth"
+            }
+          }
+        }
+      },
+      "VacationPeriodItem": {
+        "required": [
+          "id",
+          "sequence",
+          "startsOn",
+          "endsOn",
+          "absences",
+          "entitledDays",
+          "takenDays",
+          "soldDays",
+          "balance",
+          "concessionEndsOn",
+          "status",
+          "statusLabel",
+          "tone",
+          "restartedReason",
+          "restartedOn",
+          "memory"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "endsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "absences": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "entitledDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "takenDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "soldDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "balance": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "concessionEndsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VacationPeriodStatus"
+          },
+          "statusLabel": {
+            "type": "string"
+          },
+          "tone": {
+            "type": "string"
+          },
+          "restartedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "restartedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "memory": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "VacationPeriodStatus": {
+        "enum": [
+          "Accruing",
+          "Available",
+          "Expired",
+          "Closed"
+        ]
+      },
+      "VacationRulesView": {
+        "required": [
+          "maxParts",
+          "firstPartMinDays",
+          "otherPartMinDays",
+          "noticeDays",
+          "paymentDaysBefore"
+        ],
+        "type": "object",
+        "properties": {
+          "maxParts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "firstPartMinDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "otherPartMinDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "noticeDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "paymentDaysBefore": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "VacationScheduleInput": {
+        "required": [
+          "periodId",
+          "startsOn",
+          "days",
+          "soldDays",
+          "advance13th"
+        ],
+        "type": "object",
+        "properties": {
+          "periodId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "startsOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "soldDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "advance13th": {
+            "type": "boolean"
+          }
+        }
+      },
+      "VacationScheduleItem": {
+        "required": [
+          "id",
+          "employeeId",
+          "periodId",
+          "startsOn",
+          "endsOn",
+          "days",
+          "soldDays",
+          "advance13th",
+          "paymentDueOn",
+          "status",
+          "statusLabel",
+          "payrollRunId",
+          "payslipId",
+          "calculated",
+          "runClosed",
+          "isSimulation",
+          "createdAt",
+          "cancelledAt",
+          "cancelReason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "periodId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "endsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "soldDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "advance13th": {
+            "type": "boolean"
+          },
+          "paymentDueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VacationScheduleStatus"
+          },
+          "statusLabel": {
+            "type": "string"
+          },
+          "payrollRunId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "payslipId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "calculated": {
+            "type": "boolean"
+          },
+          "runClosed": {
+            "type": "boolean"
+          },
+          "isSimulation": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cancelledAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "VacationScheduleResult": {
+        "required": [
+          "schedule",
+          "warnings",
+          "nextSteps",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "schedule": {
+            "$ref": "#/components/schemas/VacationScheduleItem"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "nextSteps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollNextStep"
+            }
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "VacationScheduleStatus": {
+        "enum": [
+          "Scheduled",
+          "Paid",
+          "Taken",
+          "Cancelled"
+        ]
+      },
+      "VacationSuggestionView": {
+        "required": [
+          "periodId",
+          "startsOn",
+          "days",
+          "maxSoldDays"
+        ],
+        "type": "object",
+        "properties": {
+          "periodId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxSoldDays": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

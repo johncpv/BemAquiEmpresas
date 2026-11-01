@@ -21,4 +21,5 @@ export const TimesheetDayStatus = {
   Inconsistent: 'Inconsistent',
   NotEmployed: 'NotEmployed',
   Upcoming: 'Upcoming',
+  Vacation: 'Vacation',
 } as const;

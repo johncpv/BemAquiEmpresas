@@ -237,6 +237,7 @@ import type {
   EmployeePaymentDetail,
   EmployeePersonalInput,
   EmployeeSensitiveDetail,
+  EmployeeVacations,
   ExtendValidityInput,
   FabricationBatchInput,
   FabricationBatchResult,
@@ -329,6 +330,7 @@ import type {
   GetSupervisorQualityParams,
   GetSupervisorShortagesParams,
   GetTimesheetOverviewParams,
+  GetVacationOverviewParams,
   GoodsReceiptDefaults,
   GoodsReceiptDetail,
   GoodsReceiptInput,
@@ -556,6 +558,7 @@ import type {
   MyTimeClock,
   MyTimeEntry,
   MyTimesheetPeriod,
+  MyVacations,
   NonConformityActionInput,
   NonConformityCloseInput,
   NonConformityCostInput,
@@ -1021,6 +1024,12 @@ import type {
   UserInvited,
   UserLinkInput,
   UserRow,
+  VacationCalculationResult,
+  VacationCancelInput,
+  VacationOverview,
+  VacationScheduleInput,
+  VacationScheduleItem,
+  VacationScheduleResult,
   VerifyIdentityInput,
   VerifyTwoFactorRequest,
   VersionInput,
@@ -19861,6 +19870,184 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getSetHourBankAgreementMutationOptions(options), queryClient);
     }
 
+export const getGetEmployeeVacationsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/vacations`
+}
+
+export const getEmployeeVacations = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeVacations> => {
+
+  return apiFetch<EmployeeVacations>(getGetEmployeeVacationsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmployeeVacationsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/vacations`
+    ] as const;
+    }
+
+
+export const getGetEmployeeVacationsQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeVacations>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeVacations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeVacationsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeVacations>>> = ({ signal }) => getEmployeeVacations(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeVacations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEmployeeVacationsQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeVacations>>>
+export type GetEmployeeVacationsQueryError = unknown
+
+
+export function useGetEmployeeVacations<TData = Awaited<ReturnType<typeof getEmployeeVacations>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeVacations>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeVacations>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeVacations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeVacations<TData = Awaited<ReturnType<typeof getEmployeeVacations>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeVacations>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeVacations>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeVacations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeVacations<TData = Awaited<ReturnType<typeof getEmployeeVacations>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeVacations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEmployeeVacations<TData = Awaited<ReturnType<typeof getEmployeeVacations>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeVacations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEmployeeVacationsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getScheduleVacationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/vacations`
+}
+
+export const scheduleVacation = async (id: string,
+    vacationScheduleInput: VacationScheduleInput, options?: Parameters<typeof apiFetch>[1]): Promise<VacationScheduleResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<VacationScheduleResult>(getScheduleVacationUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(vacationScheduleInput)
+  }
+);}
+
+
+
+
+
+export const getScheduleVacationMutationKey = () => ['scheduleVacation'] as const;
+
+export const getScheduleVacationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof scheduleVacation>>, TError,ScheduleVacationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof scheduleVacation>>, TError,ScheduleVacationMutationVariables, TContext> => {
+
+const mutationKey = getScheduleVacationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof scheduleVacation>>, ScheduleVacationMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  scheduleVacation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ScheduleVacationMutationResult = NonNullable<Awaited<ReturnType<typeof scheduleVacation>>>
+    export type ScheduleVacationMutationBody = VacationScheduleInput
+    export type ScheduleVacationMutationError = unknown
+    export type ScheduleVacationMutationVariables = {id: string;data: VacationScheduleInput}
+
+    export const useScheduleVacation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof scheduleVacation>>, TError,ScheduleVacationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof scheduleVacation>>,
+        TError,
+        ScheduleVacationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getScheduleVacationMutationOptions(options), queryClient);
+    }
+
 export const getListPayrollItemsUrl = () => {
 
 
@@ -26562,6 +26749,354 @@ export function useDownloadTimesheetBatch<TData = Awaited<ReturnType<typeof down
 
 
 
+export const getGetVacationOverviewUrl = (params?: GetVacationOverviewParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/hr/vacations?${stringifiedParams}` : `/api/v1/hr/vacations`
+}
+
+export const getVacationOverview = async (params?: GetVacationOverviewParams, options?: Parameters<typeof apiFetch>[1]): Promise<VacationOverview> => {
+
+  return apiFetch<VacationOverview>(getGetVacationOverviewUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetVacationOverviewQueryKey = (params?: GetVacationOverviewParams,) => {
+    return [
+    `/api/v1/hr/vacations`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetVacationOverviewQueryOptions = <TData = Awaited<ReturnType<typeof getVacationOverview>>, TError = unknown>(params?: GetVacationOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVacationOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetVacationOverviewQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getVacationOverview>>> = ({ signal }) => getVacationOverview(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getVacationOverview>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetVacationOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getVacationOverview>>>
+export type GetVacationOverviewQueryError = unknown
+
+
+export function useGetVacationOverview<TData = Awaited<ReturnType<typeof getVacationOverview>>, TError = unknown>(
+ params: undefined |  GetVacationOverviewParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVacationOverview>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getVacationOverview>>,
+          TError,
+          Awaited<ReturnType<typeof getVacationOverview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetVacationOverview<TData = Awaited<ReturnType<typeof getVacationOverview>>, TError = unknown>(
+ params?: GetVacationOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVacationOverview>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getVacationOverview>>,
+          TError,
+          Awaited<ReturnType<typeof getVacationOverview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetVacationOverview<TData = Awaited<ReturnType<typeof getVacationOverview>>, TError = unknown>(
+ params?: GetVacationOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVacationOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetVacationOverview<TData = Awaited<ReturnType<typeof getVacationOverview>>, TError = unknown>(
+ params?: GetVacationOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVacationOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetVacationOverviewQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCancelVacationScheduleUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/vacations/${id}/cancel`
+}
+
+export const cancelVacationSchedule = async (id: string,
+    vacationCancelInput: VacationCancelInput, options?: Parameters<typeof apiFetch>[1]): Promise<VacationScheduleItem> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<VacationScheduleItem>(getCancelVacationScheduleUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(vacationCancelInput)
+  }
+);}
+
+
+
+
+
+export const getCancelVacationScheduleMutationKey = () => ['cancelVacationSchedule'] as const;
+
+export const getCancelVacationScheduleMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelVacationSchedule>>, TError,CancelVacationScheduleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelVacationSchedule>>, TError,CancelVacationScheduleMutationVariables, TContext> => {
+
+const mutationKey = getCancelVacationScheduleMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelVacationSchedule>>, CancelVacationScheduleMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelVacationSchedule(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelVacationScheduleMutationResult = NonNullable<Awaited<ReturnType<typeof cancelVacationSchedule>>>
+    export type CancelVacationScheduleMutationBody = VacationCancelInput
+    export type CancelVacationScheduleMutationError = unknown
+    export type CancelVacationScheduleMutationVariables = {id: string;data: VacationCancelInput}
+
+    export const useCancelVacationSchedule = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelVacationSchedule>>, TError,CancelVacationScheduleMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelVacationSchedule>>,
+        TError,
+        CancelVacationScheduleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelVacationScheduleMutationOptions(options), queryClient);
+    }
+
+export const getCalculateVacationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/vacations/${id}/calculate`
+}
+
+export const calculateVacation = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<VacationCalculationResult> => {
+
+  return apiFetch<VacationCalculationResult>(getCalculateVacationUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCalculateVacationMutationKey = () => ['calculateVacation'] as const;
+
+export const getCalculateVacationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calculateVacation>>, TError,CalculateVacationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof calculateVacation>>, TError,CalculateVacationMutationVariables, TContext> => {
+
+const mutationKey = getCalculateVacationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calculateVacation>>, CalculateVacationMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  calculateVacation(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalculateVacationMutationResult = NonNullable<Awaited<ReturnType<typeof calculateVacation>>>
+
+    export type CalculateVacationMutationError = unknown
+    export type CalculateVacationMutationVariables = {id: string}
+
+    export const useCalculateVacation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calculateVacation>>, TError,CalculateVacationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calculateVacation>>,
+        TError,
+        CalculateVacationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalculateVacationMutationOptions(options), queryClient);
+    }
+
+export const getDownloadVacationNoticeUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/vacations/${id}/notice`
+}
+
+export const downloadVacationNotice = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadVacationNoticeUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadVacationNoticeQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/vacations/${id}/notice`
+    ] as const;
+    }
+
+
+export const getDownloadVacationNoticeQueryOptions = <TData = Awaited<ReturnType<typeof downloadVacationNotice>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadVacationNotice>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadVacationNoticeQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadVacationNotice>>> = ({ signal }) => downloadVacationNotice(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadVacationNotice>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadVacationNoticeQueryResult = NonNullable<Awaited<ReturnType<typeof downloadVacationNotice>>>
+export type DownloadVacationNoticeQueryError = unknown
+
+
+export function useDownloadVacationNotice<TData = Awaited<ReturnType<typeof downloadVacationNotice>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadVacationNotice>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadVacationNotice>>,
+          TError,
+          Awaited<ReturnType<typeof downloadVacationNotice>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadVacationNotice<TData = Awaited<ReturnType<typeof downloadVacationNotice>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadVacationNotice>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadVacationNotice>>,
+          TError,
+          Awaited<ReturnType<typeof downloadVacationNotice>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadVacationNotice<TData = Awaited<ReturnType<typeof downloadVacationNotice>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadVacationNotice>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadVacationNotice<TData = Awaited<ReturnType<typeof downloadVacationNotice>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadVacationNotice>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadVacationNoticeQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetMyEmployeeLinkUrl = () => {
 
 
@@ -26930,6 +27465,101 @@ export function useListMyAbsenceReasons<TData = Awaited<ReturnType<typeof listMy
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListMyAbsenceReasonsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListMyVacationsUrl = () => {
+
+
+
+
+  return `/api/v1/me/hr/vacations`
+}
+
+export const listMyVacations = async ( options?: Parameters<typeof apiFetch>[1]): Promise<MyVacations> => {
+
+  return apiFetch<MyVacations>(getListMyVacationsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMyVacationsQueryKey = () => {
+    return [
+    `/api/v1/me/hr/vacations`
+    ] as const;
+    }
+
+
+export const getListMyVacationsQueryOptions = <TData = Awaited<ReturnType<typeof listMyVacations>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyVacations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMyVacationsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyVacations>>> = ({ signal }) => listMyVacations({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyVacations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListMyVacationsQueryResult = NonNullable<Awaited<ReturnType<typeof listMyVacations>>>
+export type ListMyVacationsQueryError = unknown
+
+
+export function useListMyVacations<TData = Awaited<ReturnType<typeof listMyVacations>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyVacations>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyVacations>>,
+          TError,
+          Awaited<ReturnType<typeof listMyVacations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyVacations<TData = Awaited<ReturnType<typeof listMyVacations>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyVacations>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyVacations>>,
+          TError,
+          Awaited<ReturnType<typeof listMyVacations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyVacations<TData = Awaited<ReturnType<typeof listMyVacations>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyVacations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListMyVacations<TData = Awaited<ReturnType<typeof listMyVacations>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyVacations>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListMyVacationsQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

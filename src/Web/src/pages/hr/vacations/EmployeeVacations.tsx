@@ -25,7 +25,7 @@ const button = 'min-h-11 rounded-md border border-border px-3 text-sm font-semib
 
 const download = (url: string, name: string) => apiDownload(url, name).catch((e: unknown) => notifyError(e instanceof Error ? e.message : 'Não foi possível baixar o arquivo.'))
 
-export const downloadNotice = (s: { id: string; startsOn: string }) => download(getDownloadVacationNoticeUrl(s.id), `aviso-ferias-${s.startsOn}.pdf`)
+const downloadNotice = (s: { id: string; startsOn: string }) => download(getDownloadVacationNoticeUrl(s.id), `aviso-ferias-${s.startsOn}.pdf`)
 
 /** Período aquisitivo em cartão (CA 1): datas, dias de direito, gozados, vendidos, saldo, o concessivo e o chip. */
 function PeriodCard({ p }: { p: VacationPeriodItem }) {

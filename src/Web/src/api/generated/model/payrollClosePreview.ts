@@ -26,4 +26,8 @@ export interface PayrollClosePreview {
   chargeTotal: number;
   version: number;
   changes: PayrollChangeNotice[];
+  /** @nullable */
+  legalPaymentDeadline?: string | null;
+  /** @nullable */
+  latePaymentWarning?: string | null;
 }
