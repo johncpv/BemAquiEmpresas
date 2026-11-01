@@ -15,7 +15,7 @@ namespace BemAqui.Assets.Endpoints;
 /// (403 <c>module_not_released</c>) e <c>assets.view/create/edit/delete</c>; respostas sem cache (o valor de aquisição só vai para quem
 /// tem <c>assets.edit</c>).
 /// </summary>
-internal static class AssetsEndpoints
+internal static partial class AssetsEndpoints
 {
     public static IEndpointRouteBuilder MapAssetsEndpoints(this IEndpointRouteBuilder api)
     {
@@ -27,6 +27,7 @@ internal static class AssetsEndpoints
             });
         MapAssets(root.MapGroup("/assets"));
         MapMovements(root.MapGroup("/assets"));
+        MapMaintenance(root);
         MapLabels(root);
         MapChoices(root.MapGroup("/choices"));
         MapSites(root.MapGroup("/sites"));

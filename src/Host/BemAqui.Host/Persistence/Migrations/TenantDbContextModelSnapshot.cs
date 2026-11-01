@@ -160,6 +160,46 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("assets", "assets");
                 });
 
+            modelBuilder.Entity("BemAqui.Assets.Domain.AssetMeterReading", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("asset_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("ReadOn")
+                        .HasColumnType("date")
+                        .HasColumnName("read_on");
+
+                    b.Property<decimal>("Value")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("pk_asset_meter_readings");
+
+                    b.HasIndex("AssetId", "ReadOn", "Value")
+                        .HasDatabaseName("ix_asset_meter_readings_asset_id_read_on");
+
+                    b.ToTable("asset_meter_readings", "assets", t =>
+                        {
+                            t.HasCheckConstraint("ck_asset_meter_readings_value", "value >= 0");
+                        });
+                });
+
             modelBuilder.Entity("BemAqui.Assets.Domain.AssetMovement", b =>
                 {
                     b.Property<Guid>("Id")
@@ -338,6 +378,276 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasFilter("seed_key IS NOT NULL");
 
                     b.ToTable("sites", "assets");
+                });
+
+            modelBuilder.Entity("BemAqui.Assets.Domain.MaintenanceOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("asset_id");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid?>("CancelledBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancelled_by");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTimeOffset?>("DoneAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("done_at");
+
+                    b.Property<Guid?>("DoneBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("done_by");
+
+                    b.Property<string>("DueKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("due_key");
+
+                    b.Property<bool>("MachineStopped")
+                        .HasColumnType("boolean")
+                        .HasColumnName("machine_stopped");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("number");
+
+                    b.Property<Guid?>("PlanId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("plan_id");
+
+                    b.Property<string>("Problem")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("problem");
+
+                    b.Property<DateOnly>("ScheduledOn")
+                        .HasColumnType("date")
+                        .HasColumnName("scheduled_on");
+
+                    b.Property<DateTimeOffset?>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<Guid?>("StartedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("started_by");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("SupplierPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("supplier_party_id");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("type");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<string>("WorkDone")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("work_done");
+
+                    b.HasKey("Id")
+                        .HasName("pk_maintenance_orders");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_maintenance_orders_number");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_maintenance_orders_status");
+
+                    b.HasIndex("SupplierPartyId")
+                        .HasDatabaseName("ix_maintenance_orders_supplier_party_id")
+                        .HasFilter("supplier_party_id IS NOT NULL");
+
+                    b.HasIndex("AssetId", "CreatedAt")
+                        .HasDatabaseName("ix_maintenance_orders_asset_id_created_at");
+
+                    b.HasIndex("PlanId", "DueKey")
+                        .IsUnique()
+                        .HasDatabaseName("ux_maintenance_orders_plan_due_key")
+                        .HasFilter("due_key IS NOT NULL");
+
+                    b.ToTable("maintenance_orders", "assets", t =>
+                        {
+                            t.HasCheckConstraint("ck_maintenance_orders_status", "status IN ('Open', 'InProgress', 'Done', 'Cancelled')");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Assets.Domain.MaintenanceOrderChecklistItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("MarkedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("marked_at");
+
+                    b.Property<Guid?>("MarkedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("marked_by");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<string>("Result")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("result");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("text");
+
+                    b.HasKey("Id")
+                        .HasName("pk_maintenance_order_checklist");
+
+                    b.HasIndex("OrderId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ix_maintenance_order_checklist_order_id_sequence");
+
+                    b.ToTable("maintenance_order_checklist", "assets");
+                });
+
+            modelBuilder.Entity("BemAqui.Assets.Domain.MaintenancePlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("asset_id");
+
+                    b.Property<string>("Checklist")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("checklist");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("DefaultSupplierPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("default_supplier_party_id");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("FrequencyType")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("frequency_type");
+
+                    b.Property<int>("FrequencyValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("frequency_value");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<DateOnly?>("LastDoneAt")
+                        .HasColumnType("date")
+                        .HasColumnName("last_done_at");
+
+                    b.Property<decimal?>("LastDoneMeter")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("last_done_meter");
+
+                    b.Property<int>("LeadDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("lead_days");
+
+                    b.Property<DateOnly?>("NextDueAt")
+                        .HasColumnType("date")
+                        .HasColumnName("next_due_at");
+
+                    b.Property<decimal?>("NextDueMeter")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("next_due_meter");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_maintenance_plans");
+
+                    b.HasIndex("AssetId")
+                        .HasDatabaseName("ix_maintenance_plans_asset_id");
+
+                    b.HasIndex("DefaultSupplierPartyId")
+                        .HasDatabaseName("ix_maintenance_plans_default_supplier_party_id")
+                        .HasFilter("default_supplier_party_id IS NOT NULL");
+
+                    b.HasIndex("NextDueAt")
+                        .HasDatabaseName("ix_maintenance_plans_next_due_at")
+                        .HasFilter("is_active");
+
+                    b.ToTable("maintenance_plans", "assets", t =>
+                        {
+                            t.HasCheckConstraint("ck_maintenance_plans_frequency_value", "frequency_value > 0");
+
+                            t.HasCheckConstraint("ck_maintenance_plans_lead_days", "lead_days >= 0");
+                        });
                 });
 
             modelBuilder.Entity("BemAqui.BuildingBlocks.Attachments.Attachment", b =>
@@ -16095,6 +16405,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasConstraintName("fk_assets_asset_sites_site_id");
                 });
 
+            modelBuilder.Entity("BemAqui.Assets.Domain.AssetMeterReading", b =>
+                {
+                    b.HasOne("BemAqui.Assets.Domain.Asset", null)
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_asset_meter_readings_assets_asset_id");
+                });
+
             modelBuilder.Entity("BemAqui.Assets.Domain.AssetMovement", b =>
                 {
                     b.HasOne("BemAqui.Assets.Domain.Asset", null)
@@ -16103,6 +16423,42 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_asset_movements_assets_asset_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Assets.Domain.MaintenanceOrder", b =>
+                {
+                    b.HasOne("BemAqui.Assets.Domain.Asset", null)
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_maintenance_orders_assets_asset_id");
+
+                    b.HasOne("BemAqui.Assets.Domain.MaintenancePlan", null)
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_maintenance_orders_maintenance_plans_plan_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Assets.Domain.MaintenanceOrderChecklistItem", b =>
+                {
+                    b.HasOne("BemAqui.Assets.Domain.MaintenanceOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_maintenance_order_checklist_maintenance_orders_order_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Assets.Domain.MaintenancePlan", b =>
+                {
+                    b.HasOne("BemAqui.Assets.Domain.Asset", null)
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_maintenance_plans_assets_asset_id");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.Contract", b =>

@@ -111,6 +111,8 @@ import { ReceivablesPage } from '@/pages/finance/receivables/ReceivablesPage'
 import { CostCentersPage } from '@/pages/finance/CostCentersPage'
 import { AssetPage } from '@/pages/assets/AssetPage'
 import { AssetSitesPage } from '@/pages/assets/AssetSitesPage'
+import { MaintenanceOrderPage } from '@/pages/assets/MaintenanceOrderPage'
+import { MaintenancePage } from '@/pages/assets/MaintenancePage'
 import { AssetsPage } from '@/pages/assets/AssetsPage'
 import { NewAssetPage } from '@/pages/assets/NewAssetPage'
 import { EmployeePage } from '@/pages/hr/EmployeePage'
@@ -174,6 +176,7 @@ import { PartyPage } from '@/pages/parties/PartyPage'
 import { AppShell } from '@/shell/AppShell'
 import { FloorHelp } from '@/help/FloorHelp'
 import { FabAssetPage, TagPage } from '@/pages/assets/AssetCardPages'
+import { FabMaintenancePage } from '@/pages/assets/FabMaintenancePage'
 
 // Galerias (FND-09a e FND-09d): em desenvolvimento e no build da homologação (VITE_GALERIA=true); nunca em produção.
 const galleryEnabled = import.meta.env.DEV || import.meta.env.VITE_GALERIA === 'true'
@@ -371,6 +374,9 @@ const assetsRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimo
 const newAssetRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/bens/novo', component: gated('assets', NewAssetPage), validateSearch: (s: Record<string, unknown>): { de?: string } => ({ de: text(s.de) }) })
 const assetRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/bens/$id', component: gated('assets', AssetPage) })
 const assetSitesRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/locais', component: gated('assets', AssetSitesPage) })
+// Manutenção (PAT-03a): lista com filtros na URL (bem, centro, tipo, situação) e a OS de manutenção com abas.
+const maintenanceRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/manutencao', component: gated('assets', MaintenancePage) })
+const maintenanceOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/manutencao/$id', component: gated('assets', MaintenanceOrderPage) })
 // URL do QR da etiqueta (PAT-01b CA 2, 5 e 8): exige sessão (sem ela, o login volta só para caminho relativo); resolve a etiqueta e abre a
 // ficha resumida no celular e no tablet ou a completa no computador. Não é rota anônima: a API confere módulo e assets.view.
 const tagRoute = createRoute({
@@ -503,6 +509,8 @@ const fabQualityStepRoute = createRoute({ getParentRoute: () => fabRoute, path: 
 const fabTimeClockRoute = createRoute({ getParentRoute: () => fabRoute, path: 'ponto', component: FabTimeClockPage })
 // Ficha resumida do bem pela leitura da etiqueta (PAT-01b CA 5 e 6): o layout confere o módulo assets.
 const fabAssetRoute = createRoute({ getParentRoute: () => fabRoute, path: 'bens/$id', component: FabAssetPage })
+// OS de manutenção no celular (PAT-03a): checklist com alvos de 56 px; o layout confere o módulo assets.
+const fabMaintenanceRoute = createRoute({ getParentRoute: () => fabRoute, path: 'manutencao/$id', component: FabMaintenancePage })
 // Contagem do inventário no celular (EST-05 CA 4): tela dedicada com o kit chão de fábrica, sem o dock, com a sessão do backoffice.
 const countingRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -528,7 +536,7 @@ export const routeTree = rootRoute.addChildren([
   resetRoute,
   inviteRoute,
   tagRoute,
-  appRoute.addChildren([appIndexRoute, assetsRootRoute, assetsRoute, newAssetRoute, assetRoute, assetSitesRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute, myPayslipsRoute, myTimeClockRoute,
+  appRoute.addChildren([appIndexRoute, assetsRootRoute, assetsRoute, newAssetRoute, assetRoute, assetSitesRoute, maintenanceRoute, maintenanceOrderRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute, myPayslipsRoute, myTimeClockRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, interAccountsRoute, interAccountRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, billingSettingsRoute,
     inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute, capacityRoute, planningRoute, supervisorRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, reconciliationRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, hrTimeRoute, timeEntriesRoute, timeAdjustmentsRoute, timesheetsRoute, timesheetRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, payrollTaxTablesRoute, fiscalIntegrationRoute, fiscalSettingsRoute, fiscalCertificateRoute, privacyRequestsRoute, privacyRequestRoute, privacyRetentionRoute, fiscalRootRoute, taxRulesRoute, newTaxRuleRoute, taxRuleRoute, outgoingInvoicesRoute, outgoingInvoiceRoute, incomingInvoicesRoute, importIncomingRoute, importPdfRoute, incomingReadingRoute, incomingInvoiceRoute, invoiceReceiptRoute, accountantExportRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
@@ -536,7 +544,7 @@ export const routeTree = rootRoute.addChildren([
   platformPasswordRoute,
   platformRoute.addChildren([platformIndexRoute, tenantsRoute, tenantRoute]),
   fabEntryRoute,
-  fabRoute.addChildren([fabQueueRoute, fabStepRoute, fabQualityRoute, fabQualityStepRoute, fabTimeClockRoute, fabAssetRoute]),
+  fabRoute.addChildren([fabQueueRoute, fabStepRoute, fabQualityRoute, fabQualityStepRoute, fabTimeClockRoute, fabAssetRoute, fabMaintenanceRoute]),
   countingRoute.addChildren([countingIndexRoute]),
   tvRoute.addChildren([tvIndexRoute, tvLegacyRoute]),
   galleryRoute,

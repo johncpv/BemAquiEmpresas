@@ -51,5 +51,7 @@ export interface AssetDetail {
   createdAt: string;
   version: number;
   /** @nullable */
+  nextMaintenanceOn: string | null;
+  /** @nullable */
   acquisitionValue: number | null;
 }

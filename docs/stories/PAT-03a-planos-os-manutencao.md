@@ -5,7 +5,7 @@
 | ID | PAT-03a |
 | Título | Plano de manutenção preventiva por bem (periodicidade em dias ou em horas de uso pelo horímetro digitado, checklist), job diário que abre as OS devidas e avisa antes; OS de manutenção preventiva e corretiva (`MAN-2026-0001`, dona o Assets, `assets.maintenance_orders`) com agendamento, execução interna ou por prestador, checklist, conclusão, bem em "Em manutenção" enquanto parado; próximo vencimento contado da conclusão; histórico de manutenção por bem |
 | Tamanho | M (quebra da PAT-03 em 03a planos e OS, 03b custo, CP do prestador e capacidade) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: lista das máquinas com plano e horímetro da Konebras) |
 | Requisitos | R-PAT-4 (plano preventivo por tempo ou horas, OS de manutenção, histórico) · R-COM-2 · R-COM-3 · R-COM-4 (numeração MAN) · R-PRP-2 · R-PRP-5 · R-SEC-5 |
 | Dependências | PAT-01a (bens, pipeline de foto sem EXIF), PAT-01b (atalho pela leitura), PAT-02 (baixa do bem), DSH-04 (`IAgendaSource`), FND-07 (jobs, notificações, anexos), FND-09e |
 | Bloqueia | PAT-03b |
@@ -93,19 +93,19 @@ Decisões da revisão aplicadas: §4.3 (job com `tenantId` e módulo liberado, C
 **Pré-condição externa:** a Konebras lista as máquinas com plano preventivo, a periodicidade e as que têm horímetro, para o cadastro inicial; não bloqueia o `Ready`.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva).
-- [ ] Permissões só do `ModuleCatalog`; dono de anexo com `OwnerExists`; job no `RecurringJobsRegistrar`.
-- [ ] Telas com estados; ajuda de cada rota e aba; teste de cobertura passando.
-- [ ] Alertas acionáveis e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (máquina da OS de manutenção) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade e integração (Testcontainers) passando; front com Vitest. E2E não escrito (regra do PO de 31/10).
+- [x] Migration criada (não destrutiva).
+- [x] Permissões só do `ModuleCatalog`; dono de anexo com `OwnerExists`; job no `RecurringJobsRegistrar`.
+- [x] Telas com estados; ajuda de cada rota e aba; teste de cobertura passando.
+- [x] Alertas acionáveis e próximos passos aplicados.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (máquina da OS de manutenção) atualizados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `MaintenancePlan`, `MaintenanceOrder`, `AssetMeterReading` (Domain).
-- [ ] `MaintenanceDueJob`; `IAgendaSource` do Assets; regra da baixa; endpoints `/api/v1/assets/maintenance-plans`, `/maintenance-orders`, `/assets/{id}/meter-readings`; telas e ajuda.
+- [x] `MaintenancePlan`, `MaintenanceOrder`, `AssetMeterReading` (Domain).
+- [x] `MaintenanceDueJob`; `IAgendaSource` do Assets; regra da baixa; endpoints `/api/v1/assets/maintenance-plans`, `/maintenance-orders`, `/assets/{id}/meter-readings`; telas e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, design (checklist no celular), @qa.
@@ -139,3 +139,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (tabela 3.3 pontos 50–54, ADR 0038, §4.3, §4.4 padrão 2); nova ordem (Marco 6.4, ordem 14); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 01/11/2026 | 1.0 | Implementada: `assets.maintenance_plans`, `assets.asset_meter_readings`, `assets.maintenance_orders` e `assets.maintenance_order_checklist` (migration `MaintenancePat03a`, só `CREATE TABLE`/`CREATE INDEX`); `MaintenancePlan`, `AssetMeterReading`, `MaintenanceOrder` (transições `Start`/`Complete`/`Cancel`), `MaintenanceRules` (próxima data e próximo horímetro a partir da última execução, estimativa pela média das últimas 5 leituras, chave do vencimento, o bem "Em manutenção" enquanto alguma OS o segura); `MaintenanceService` e as rotas `GET /api/v1/assets/assets/{id}/maintenance`, `GET/PUT /assets/assets/{id}/plans/{planId}` (pela rota do bem, IDOR), `POST .../plans`, `GET/POST .../meter-readings`, `GET/POST /assets/maintenance-orders` (abrir com `assets.create` e `Idempotency-Key`), `GET .../{id}`, `POST .../start`, `PUT .../checklist/{itemId}`, `POST .../complete`, `POST .../cancel`, `GET/POST .../attachments` e `GET .../attachments/{attId}/content` (o anexo é da OS da rota); `MaintenanceDueRecurringJob` (`assets-maintenance-due`, 06:00 de São Paulo) → `MaintenanceDueJob` (`TenantJob`) → `MaintenanceDueNotifier` (módulo liberado, aviso `maint-due:{planId}:{data}`, OS do vencimento num escopo próprio com índice único `(plan_id, due_key)`); `AssetsAgendaSource` (`assets.maintenance_overdue`, `assets.machines_stopped`, com `assets.edit`); baixa recusada com OS aberta (409 `asset_has_open_maintenance`, com os links) e planos inativos na baixa; `MaintenanceUsage` (bem com manutenção não é excluído) e o prestador nos usos do terceiro; ficha, aba e leitura da etiqueta com a próxima preventiva e a última manutenção; eventos `MaintenanceOrderOpened`/`MaintenanceOrderCompleted` (só ids, sem consumidor); problema, o que foi feito e motivo do cancelamento `[PersonalData]`, exportados pelo `AssetsPersonalDataProvider` (para quem escreveu e, sem os textos, para o prestador). Front: Patrimônio → Manutenção (`/app/patrimonio/manutencao`, filtros na URL, faixa vermelha na máquina parada e âmbar/vermelha na preventiva), OS de manutenção (`/app/patrimonio/manutencao/$id`, abas Resumo, Checklist, Documentos e Histórico), aba Manutenção do bem (planos, horímetro, OS), OS no celular (`/fab/manutencao/$id`, alvos de 56 px), atalho da leitura da etiqueta abrindo a corretiva com o bem e voltando para o celular; ajuda de cada rota e aba. **Recomendações aceitas (PO 24/10), pela opção mais conservadora:** (1) `cost` e `payable_id` não foram criados agora: entram na PAT-03b, que os usa (migration não destrutiva lá); (2) "Lançar o custo da manutenção" no `NextSteps` da conclusão também fica para a PAT-03b; a conclusão oferece "Ver o bem" e "Voltar à manutenção"; (3) a preventiva cancelada não reabre sozinha pelo job (uma OS por vencimento); o plano continua "Vencida" na lista e na pauta, e "Abrir OS agora" no cartão do plano abre a preventiva do plano com o checklist (recusada se o plano já tem OS aberta); (4) "Vencida" no plano por dias é a data que passou (no dia do vencimento é "A vencer" e o job abre a OS); no plano por horas, a leitura que alcançou o previsto; a data estimada nunca vence o plano; (5) sem leitura do horímetro na conclusão da preventiva por horas, vale a última leitura (ou o previsto, se não houver nenhuma); (6) a OS segura o bem "Em manutenção" quando está em andamento ou aberta com a máquina parada; (7) além do aviso da antecedência, o job avisa a abertura da OS (`maint-open:{orderId}`); (8) o checklist só é marcado com a OS em andamento; (9) o bem baixado não recebe plano, leitura nem OS (409 `asset_disposed`), e o plano dele só é reativado com o bem reativado; (10) a OS do celular não cancela (o cancelamento fica na OS completa); (11) a anonimização (`PlanAnonymizationAsync`/`AnonymizeAsync`) ainda não existe no `IPersonalDataProvider` da `main`: a cobertura é a exportação; a LGPD-01b inclui as OS. E2E não escrito (regra do PO de 31/10). Pendência externa: a lista das máquinas com plano e horímetro (Konebras). Status `Done` | Dex (dev) |

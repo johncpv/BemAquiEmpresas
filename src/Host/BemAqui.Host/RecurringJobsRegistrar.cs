@@ -103,6 +103,9 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
         recurring.AddOrUpdate<BemAqui.Purchasing.Application.MinStockPurchaseRequestRecurringJob>(BemAqui.Purchasing.Application.MinStockPurchaseRequestRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             configuration["Jobs:Cron:" + BemAqui.Purchasing.Application.MinStockPurchaseRequestRecurringJob.Id] is { Length: > 0 } minStock ? minStock : BemAqui.Purchasing.Application.MinStockPurchaseRequestRecurringJob.Cron,
             new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // Manutenção preventiva (PAT-03a CA 3): 06:00 de São Paulo, um job por tenant com o assets liberado (aviso na antecedência e OS no vencimento).
+        recurring.AddOrUpdate<BemAqui.Assets.Application.MaintenanceDueRecurringJob>(BemAqui.Assets.Application.MaintenanceDueRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Assets.Application.MaintenanceDueRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         return Task.CompletedTask;
     }
 
