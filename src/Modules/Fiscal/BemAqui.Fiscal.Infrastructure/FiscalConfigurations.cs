@@ -233,13 +233,39 @@ internal sealed class IncomingInvoiceConfiguration : IEntityTypeConfiguration<In
         b.Property(e => e.InputTaxCreditApplied).HasMaxLength(IncomingInvoice.InputTaxCreditRuleMaxLength);
         b.Property(e => e.InputTaxCreditAmount).HasPrecision(18, 2);
         b.HasIndex(e => e.GoodsReceiptId).HasFilter("goods_receipt_id IS NOT NULL").HasDatabaseName("ix_incoming_invoices_goods_receipt_id");
+        b.Property(e => e.XmlDifferences).Jsonb<IReadOnlyList<IncomingXmlDifference>>([]);
         b.Ignore(e => e.IsEditable);
+        b.Ignore(e => e.WithoutXml);
         b.HasIndex(e => e.AccessKey).IsUnique().HasFilter("status <> 'Rejected'").HasDatabaseName(IncomingInvoiceConfiguration.AccessKeyIndex);
         b.HasIndex(e => new { e.Status, e.ImportedAt }).HasDatabaseName("ix_incoming_invoices_status_imported_at");
         b.HasIndex(e => e.PartyId).HasDatabaseName("ix_incoming_invoices_party_id");
     }
 
     public const string AccessKeyIndex = "ux_incoming_invoices_access_key";
+}
+
+/// <summary>
+/// Rascunho da leitura do PDF da DANFE e da nota digitada (FIS-05): campos lidos e avisos em jsonb, o que foi corrigido, quem conferiu, a
+/// duração e o resultado. O id é o da nota que nasce dele; nunca guarda o texto do PDF.
+/// </summary>
+internal sealed class IncomingInvoiceReadingConfiguration : IEntityTypeConfiguration<IncomingInvoiceReading>
+{
+    public void Configure(EntityTypeBuilder<IncomingInvoiceReading> b)
+    {
+        b.ToTable("incoming_invoice_readings", FiscalSchema.Name, t => t.HasCheckConstraint("ck_incoming_invoice_readings_access_key", "access_key IS NULL OR length(access_key) = 44"));
+        b.Property(e => e.Source).HasConversion<string>().HasMaxLength(8);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.Result).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.FileName).HasMaxLength(IncomingInvoiceReading.FileNameMaxLength);
+        b.Property(e => e.AccessKey).HasMaxLength(44);
+        b.Property(e => e.Fields).Jsonb<IReadOnlyList<ReadingField>>([]);
+        b.Property(e => e.Warnings).Jsonb<IReadOnlyList<string>>([]);
+        b.Property(e => e.CorrectedFields).Jsonb<IReadOnlyList<string>>([]);
+        b.Ignore(e => e.IsOpen);
+        b.HasIndex(e => new { e.Status, e.CreatedAt }).HasDatabaseName("ix_incoming_invoice_readings_status_created_at");
+        b.HasIndex(e => e.AccessKey).HasFilter("access_key IS NOT NULL").HasDatabaseName("ix_incoming_invoice_readings_access_key");
+        b.HasIndex(e => e.InvoiceId).IsUnique().HasFilter("invoice_id IS NOT NULL").HasDatabaseName("ux_incoming_invoice_readings_invoice_id");
+    }
 }
 
 /// <summary>Itens da NF-e de entrada (FIS-04a): quantidades com 4 casas, preço da nota com até 10, preço em unidade de estoque com 6.</summary>

@@ -30,6 +30,8 @@ x-api-env: &api-env
   Email__SmtpUsername: ${SMTP_USERNAME}
   Storage__Root: /data/files
   ClamAV__Host: bqe-homolog-clamav
+  # Worker de leitura do PDF da DANFE (FIS-05): só pelo socket Unix do volume pdf-socket.
+  Fiscal__PdfReader__SocketPath: /run/pdf-reader/reader.sock
   # Endereço dos webhooks mostrado para o cadastro no provedor: o host da plataforma, pelo stack-nginx (ADR 0031 §1).
   Webhooks__PublicBaseUrl: https://${PLATFORM_HOST}
   # EmissorFiscal (ADR 0027, adendo de 27/10/2026): a API pública https://api.fiscal.bemaquiapp.com.br (padrão do appsettings), com saída
@@ -138,13 +140,49 @@ services:
     tmpfs: ["/tmp:size=128m"]
     volumes:
       - files:/data/files
+      - pdf-socket:/run/pdf-reader
     networks: [internal, stack]
     depends_on:
       migrator: { condition: service_completed_successfully }
       clamav: { condition: service_started }
+      fiscal-pdf-reader: { condition: service_started }
     deploy:
       resources:
         limits: { cpus: "1.5", memory: 1536m }
+
+  # Leitura do PDF da DANFE (FIS-05 CA 2, ADR 0043): container próprio, sem rede, só leitura (tmpfs só para o runtime), não-root, sem
+  # capabilities, 256 MB e morto no tempo limite (o processo sai e o Docker reinicia). A API fala com ele pelo socket Unix do volume
+  # pdf-socket, montado só nos dois. Regras conferidas no CI (scripts/check-compose.mjs).
+  fiscal-pdf-reader:
+    image: ${REGISTRY}/bemaqui-empresas-api:${IMAGE_TAG}
+    container_name: bqe-homolog-fiscal-pdf-reader
+    entrypoint: ["dotnet", "/app/pdf-reader/BemAqui.PdfReader.dll"]
+    user: "1655:1654"
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+    environment:
+      PDF_READER_SOCKET: /run/pdf-reader/reader.sock
+      PDF_READER_TIMEOUT_SECONDS: "30"
+      DOTNET_GCHeapHardLimit: "0x9600000"
+      DOTNET_gcServer: "0"
+      DOTNET_EnableDiagnostics: "0"
+    tmpfs: ["/tmp:size=16m,noexec,nosuid,nodev"]
+    volumes:
+      - pdf-socket:/run/pdf-reader
+    healthcheck:
+      test: ["CMD-SHELL", "test -S /run/pdf-reader/reader.sock"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "5" }
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256m, pids: 64 }
 
   bqe-homolog-web:
     <<: *app
@@ -204,6 +242,8 @@ volumes:
   pgdata: { name: bqe-homolog-pgdata }
   files: { name: bqe-homolog-files }
   clamdb: { name: bqe-homolog-clamdb }
+  # Só o socket do fiscal-pdf-reader (FIS-05): nada de arquivo do usuário passa por aqui.
+  pdf-socket: { name: bqe-homolog-pdf-socket }
 
 secrets:
   catalog-connection: { file: ./secrets/catalog-connection }

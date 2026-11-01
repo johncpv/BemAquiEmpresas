@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Worker fiscal-pdf-reader (FIS-05 CA 2, ADR 0043): lê o PDF da DANFE num container próprio, sem rede, só leitura, com memória
+    limitada e morto no tempo limite. Só o PdfPig (Apache 2.0) e o .NET: nenhuma referência ao Host nem aos módulos.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>BemAqui.PdfReader</AssemblyName>
+    <RootNamespace>BemAqui.PdfReader</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="PdfPig" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="BemAqui.Integration.Tests" />
+  </ItemGroup>
+</Project>

@@ -49,6 +49,25 @@ public sealed class FiscalFixture : IAsyncLifetime
     /// <summary>Limite de importação de XML por usuário no teste (o de produção é 60 por hora, FIS-04a CA 1); cada teste usa usuários novos.</summary>
     public const int IncomingImportsPerHour = 8;
 
+    /// <summary>Limite de PDFs para leitura por usuário no teste (o de produção é 30 por hora, FIS-05 CA 1).</summary>
+    public const int PdfReadingsPerHour = 6;
+
+    /// <summary>Tempo limite do worker de teste (o de produção é 30 s): o teste do "falhou por tempo" não espera meio minuto.</summary>
+    public const int PdfTimeoutSeconds = 3;
+
+    private readonly CancellationTokenSource _pdfStop = new();
+    private Task? _pdfServer;
+    private int _pdfKills;
+
+    /// <summary>Socket do worker fiscal-pdf-reader que roda dentro do teste (FIS-05): a API fala com o leitor de verdade.</summary>
+    public string PdfSocket { get; } = Path.Combine(Path.GetTempPath(), "bq-fx-" + Guid.NewGuid().ToString("N")[..12] + ".sock");
+
+    /// <summary>Troca a leitura do worker de teste (ex.: uma leitura presa, para o tempo limite); null = o leitor de verdade.</summary>
+    internal Func<byte[], CancellationToken, BemAqui.PdfReader.ReadResponse>? PdfBehavior { get; set; }
+
+    /// <summary>Quantas vezes o worker foi "morto" no tempo limite (e reiniciado, como o Docker faz).</summary>
+    public int PdfReaderKills => Volatile.Read(ref _pdfKills);
+
     /// <summary>Antivírus de teste (sem clamd): limpo por padrão.</summary>
     public BemAqui.Integration.Tests.Attachments.FakeScanner Scanner { get; } = new();
 
@@ -72,6 +91,9 @@ public sealed class FiscalFixture : IAsyncLifetime
             b.UseSetting("Webhooks:PerIpPerMinute", "100000");
             b.UseSetting("Fiscal:Emissor:TestsPerMinute", "5");
             b.UseSetting("Fiscal:Emissor:IncomingImportsPerHour", IncomingImportsPerHour.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            b.UseSetting("Fiscal:Emissor:PdfReadingsPerHour", PdfReadingsPerHour.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            b.UseSetting("Fiscal:PdfReader:SocketPath", PdfSocket);
+            b.UseSetting("Fiscal:PdfReader:TimeoutSeconds", PdfTimeoutSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture));
             b.UseSetting("Fiscal:Emissor:CertificateUploadsPerHour", CertificateUploadsPerHour.ToString(System.Globalization.CultureInfo.InvariantCulture));
             b.ConfigureTestServices(s =>
             {
@@ -90,10 +112,47 @@ public sealed class FiscalFixture : IAsyncLifetime
         });
         _ = Factory.Server;
         await SetAllowanceAsync(Tenancy.TenantA, FiscalEnvironmentAllowance.Homologation);
+
+        // O worker fiscal-pdf-reader de verdade, num socket temporário; morto no tempo limite, sobe de novo (como o restart do Docker).
+        _pdfServer = Task.Run(async () =>
+        {
+            while (!_pdfStop.IsCancellationRequested)
+            {
+                var server = new BemAqui.PdfReader.ReaderServer(PdfSocket, TimeSpan.FromSeconds(PdfTimeoutSeconds), (pdf, ct) => (PdfBehavior ?? BemAqui.PdfReader.DanfePdfReader.Read)(pdf, ct),
+                    _ => { }, () => Interlocked.Increment(ref _pdfKills));
+                try
+                {
+                    await server.RunAsync(_pdfStop.Token);
+                }
+                catch (Exception) when (!_pdfStop.IsCancellationRequested)
+                {
+                    await Task.Delay(100);
+                }
+            }
+        });
+        var until = DateTime.UtcNow.AddSeconds(10);
+        while (!File.Exists(PdfSocket) && DateTime.UtcNow < until)
+        {
+            await Task.Delay(50);
+        }
+    }
+
+    /// <summary>Roda a leitura do PDF como o Hangfire faria (o job com o tenantId e o id do rascunho).</summary>
+    public async Task RunPdfReadingAsync(Tenant tenant, Guid readingId)
+    {
+        var job = ActivatorUtilities.CreateInstance<BemAqui.Fiscal.Application.Incoming.PdfInvoiceReadingJob>(Factory.Services);
+        await job.ExecuteAsync(tenant.Id, new BemAqui.Fiscal.Application.Incoming.PdfInvoiceReadingArgs(readingId), CancellationToken.None);
     }
 
     public async ValueTask DisposeAsync()
     {
+        await _pdfStop.CancelAsync();
+        if (_pdfServer is not null)
+        {
+            await _pdfServer.WaitAsync(TimeSpan.FromSeconds(5)).ContinueWith(_ => { }, TaskScheduler.Default);
+        }
+
+        _pdfStop.Dispose();
         if (Factory is not null)
         {
             await Factory.DisposeAsync();

@@ -50,8 +50,9 @@ public class InvoiceReceiptTests(TenancyFixture tenancy) : GoodsReceiptTestBase(
             {
                 AccessKey = key, Number = Random.Shared.Next(1000, 999999), Series = 1, IssuedAt = now.AddDays(-3), IssuerDocument = "12345678000199", IssuerName = "Fornecedor da nota",
                 Totals = new IncomingInvoiceTotals(products, freight, insurance, 0m, 0m, ipi, 0m, items.Sum(i => i.Icms), 0m, 0m, total), Total = total, Duplicates = duplicates,
-                SignatureValid = true, SignerDocument = "12345678000199", Protocol = "135260000000001", ImportedAt = now,
+                ImportedAt = now,
             };
+            invoice.SetXmlProof("12345678000199", "135260000000001", null);
             invoice.SetParty(s.Supplier, now);
             invoice.LinkOrder(s.OrderId, false, now);
             db.IncomingInvoices.Add(invoice);
@@ -209,6 +210,21 @@ public class InvoiceReceiptTests(TenancyFixture tenancy) : GoodsReceiptTestBase(
         var titles = await PayablesAsync(DocumentOrigin.GoodsReceipt, (await JsonAsync(created)).GetProperty("id").GetGuid());
         titles.Should().ContainSingle().Which.DueDate.Should().Be(DateOnly.FromDateTime(issuedOn.DateTime), "À vista a partir da emissão");
         titles[0].Amount.Should().Be(1090m);
+    }
+
+    /// <summary>FIS-05 CA 8: a nota lida do PDF (sem XML) é recebida pelo mesmo caminho e a marca "Lida do PDF, sem XML" vai para os títulos a pagar.</summary>
+    [Fact]
+    public async Task Nota_lida_do_pdf_e_recebida_igual_e_leva_a_marca_nos_titulos()
+    {
+        var s = await ScenarioAsync();
+        var invoiceId = await CheckedInvoiceAsync(s, 40m, 0m, [], Standard(s));
+        await WithDbAsync(db => db.Database.ExecuteSqlInterpolatedAsync($"UPDATE fiscal.incoming_invoices SET source = 'Pdf', signature_valid = false, protocol = '' WHERE id = {invoiceId}"));
+
+        var created = await RegisterAsync(s.Receiver, invoiceId, Body(await DefaultsAsync(s.Receiver, invoiceId)));
+
+        created.StatusCode.Should().Be(HttpStatusCode.Created, await created.Content.ReadAsStringAsync());
+        var titles = await PayablesAsync(DocumentOrigin.GoodsReceipt, (await JsonAsync(created)).GetProperty("id").GetGuid());
+        titles.Should().ContainSingle().Which.Description.Should().Contain(BemAqui.Fiscal.Domain.IncomingReadingRules.PdfMark);
     }
 
     /// <summary>

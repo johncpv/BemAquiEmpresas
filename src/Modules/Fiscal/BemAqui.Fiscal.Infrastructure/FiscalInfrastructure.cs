@@ -70,7 +70,7 @@ public static class FiscalInfrastructure
         services.TryAddScoped<TaxSimulationService>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, TaxRuleSeeder>());
         services.AddAuditableEntity<TaxRule>("fiscal");
-        // FIS-04a: nota de entrada por XML. O dono IncomingInvoice aceita só XML (o PDF entra com a FIS-05), até 2 MB; lê com fiscal.view e grava
+        // FIS-04a: nota de entrada por XML. O dono IncomingInvoice aceita só XML (o PDF da FIS-05 tem o dono IncomingInvoicePdf), até 2 MB; lê com fiscal.view e grava
         // com fiscal.import_incoming, só pela importação (a rota genérica de anexos é fechada) e debaixo do prefixo do tenant.
         services.TryAddSingleton<BemAqui.Fiscal.Application.Incoming.INfeTrustAnchors, BemAqui.Fiscal.Application.Incoming.IcpBrasilTrustAnchors>();
         services.TryAddScoped<BemAqui.Fiscal.Application.Incoming.IncomingInvoiceService>();
@@ -83,6 +83,19 @@ public static class FiscalInfrastructure
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFiscalDb>().IncomingInvoices.AnyAsync(i => i.Id == id, ct),
             ReadAction: "view", WriteAction: "import_incoming",
             CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O XML da nota de entrada entra pela importação."))));
+        // FIS-05: NF-e de entrada pelo PDF da DANFE (worker isolado fiscal-pdf-reader pelo socket Unix) ou digitada. O PDF é anexo de sistema do
+        // rascunho (dono IncomingInvoicePdf, só PDF, até 5 MB), gravado só pela importação e lido com fiscal.view pelo registro.
+        services.Configure<BemAqui.Fiscal.Infrastructure.PdfReader.PdfReaderOptions>(configuration.GetSection(BemAqui.Fiscal.Infrastructure.PdfReader.PdfReaderOptions.Section));
+        services.TryAddSingleton<BemAqui.Fiscal.Application.Incoming.IPdfInvoiceReader, BemAqui.Fiscal.Infrastructure.PdfReader.SocketPdfInvoiceReader>();
+        services.TryAddSingleton<BemAqui.Fiscal.Application.Incoming.IIncomingXmlDownloader, BemAqui.Fiscal.Application.Incoming.NoIncomingXmlDownloader>();
+        services.TryAddScoped<BemAqui.Fiscal.Application.Incoming.IncomingReadingDependencies>();
+        services.TryAddTransient<BemAqui.Fiscal.Application.Incoming.PdfInvoiceReadingJob>();
+        services.AddAuditableEntity<IncomingInvoiceReading>("fiscal");
+        services.AddAttachmentOwner(BemAqui.Fiscal.Application.Incoming.IncomingInvoiceService.PdfAttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/pdf"],
+            IncomingReadingRules.MaxPdfBytes,
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFiscalDb>().IncomingInvoiceReadings.AnyAsync(r => r.Id == id, ct),
+            ReadAction: "view", WriteAction: "import_incoming",
+            CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O PDF da nota de entrada entra pela importação do PDF."))));
         services.AddAttachmentOwner(OutgoingInvoiceReconciler.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml"], 5 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFiscalDb>().OutgoingInvoices.AnyAsync(i => i.Id == id, ct),
             CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O XML da nota é guardado pelo sistema."))));
