@@ -81,6 +81,27 @@ public interface IPersonalDataProvider
 
     /// <summary>O que o módulo guarda do titular; null quando não guarda nada.</summary>
     Task<PersonalDataSection?> ExportAsync(PersonalDataExportContext context, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Datas base da retenção que este módulo conhece do titular (LGPD-01b CA 1 e 3): ex.: o RH informa o desligamento e o último pagamento; o
+    /// Financeiro, a data do último título. Chaves em <see cref="RetentionAnchors"/>; o orquestrador fica com a maior data de cada chave.
+    /// </summary>
+    Task<IReadOnlyDictionary<string, DateOnly>> RetentionAnchorsAsync(PersonalDataSubject subject, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyDictionary<string, DateOnly>>(new Dictionary<string, DateOnly>());
+
+    /// <summary>
+    /// Prévia (LGPD-01b CA 2 e 3): o que o módulo troca pelo marcador, o que fica retido (com o motivo e a data) e os documentos que continuam
+    /// existindo. Não grava nada; null quando o módulo não guarda nada do titular.
+    /// </summary>
+    Task<PersonalDataAnonymizationPlan?> PlanAnonymizationAsync(PersonalDataAnonymizationContext context, CancellationToken cancellationToken = default) =>
+        Task.FromResult<PersonalDataAnonymizationPlan?>(null);
+
+    /// <summary>
+    /// Anonimiza o que a prévia listou (CA 4 a 9): o orquestrador abre uma transação por módulo, e o provedor só grava as tabelas dele.
+    /// Idempotente pelo número do pedido: rodar de novo dá o mesmo resultado. Devolve o que foi feito (os mesmos itens da prévia).
+    /// </summary>
+    Task<PersonalDataAnonymizationPlan?> AnonymizeAsync(PersonalDataAnonymizationContext context, CancellationToken cancellationToken = default) =>
+        Task.FromResult<PersonalDataAnonymizationPlan?>(null);
 }
 
 /// <summary>As entidades com <c>[PersonalData]</c> que o provedor exporta (e que a LGPD-01b anonimiza).</summary>

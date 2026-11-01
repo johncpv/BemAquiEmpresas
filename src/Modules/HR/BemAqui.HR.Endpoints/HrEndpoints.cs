@@ -1,9 +1,12 @@
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.HR.Application;
+using BemAqui.SharedKernel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.HR.Endpoints;
 
@@ -24,7 +27,20 @@ internal static partial class HrEndpoints
         MapPositions(hr.MapGroup("/positions"));
         MapSchedules(hr.MapGroup("/schedules"));
         MapUnions(hr.MapGroup("/unions"));
-        var employees = hr.MapGroup("/employees");
+        // LGPD-01b CA 4: funcionário anonimizado é só leitura; toda escrita na rota dele responde 409 employee_anonymized.
+        var employees = hr.MapGroup("/employees").AddEndpointFilter(async (context, next) =>
+        {
+            var http = context.HttpContext;
+            if (!HttpMethods.IsGet(http.Request.Method) && !HttpMethods.IsHead(http.Request.Method)
+                && (http.Request.RouteValues.TryGetValue("id", out var raw) || http.Request.RouteValues.TryGetValue("employeeId", out raw))
+                && Guid.TryParse(raw?.ToString(), out var employeeId)
+                && await http.RequestServices.GetRequiredService<IHrDb>().Employees.IgnoreQueryFilters().AnyAsync(e => e.Id == employeeId && e.AnonymizedAt != null, http.RequestAborted))
+            {
+                return Result.Failure(Error.Conflict("employee_anonymized", "Cadastro anonimizado a pedido do titular: não pode ser alterado.")).ToHttpResult();
+            }
+
+            return await next(context);
+        });
         MapEmployees(employees);
         MapEmployeeComplement(employees);
         MapPayrollItems(hr.MapGroup("/payroll-items"));

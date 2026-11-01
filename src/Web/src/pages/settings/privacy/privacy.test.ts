@@ -17,6 +17,7 @@ describe('pedido do titular (LGPD-01a)', () => {
     expect(nextStepOf('Access', true)).toBe('Exporte os dados do titular.')
     expect(nextStepOf('Access', true, 'Ready')).toContain('Baixe a exportação')
     expect(nextStepOf('Correction', true)).toContain('Abra o cadastro')
-    expect(nextStepOf('Anonymization', true)).toContain('próxima versão')
+    expect(nextStepOf('Anonymization', true)).toContain('Preveja a anonimização')
+    expect(nextStepOf('Deletion', true)).toContain('Preveja a anonimização')
   })
 })

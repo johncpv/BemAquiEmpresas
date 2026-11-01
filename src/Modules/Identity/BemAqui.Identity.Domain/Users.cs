@@ -144,6 +144,37 @@ public sealed class User : Entity, IAuditable
         RotateSecurityStamp();
     }
 
+    /// <summary>Usuário anonimizado a pedido do titular (LGPD-01b CA 4): bloqueado, com o nome e o e-mail trocados pelo marcador.</summary>
+    public DateTimeOffset? AnonymizedAt { get; private set; }
+
+    /// <summary>Número do pedido do titular que anonimizou.</summary>
+    public string? AnonymizationRequest { get; private set; }
+
+    /// <summary>
+    /// Anonimiza (LGPD-01b CA 4): nome pelo marcador, sem senha, sem 2FA, sem vínculo com funcionário, desativado (as sessões caem pela troca
+    /// do <c>sstamp</c>). O e-mail (obrigatório e único) é trocado por quem chama, com o endereço <c>.invalid</c>. Idempotente.
+    /// </summary>
+    public void Anonymize(string marker, string requestNumber, DateTimeOffset at)
+    {
+        Name = marker;
+        PasswordHash = null;
+        TotpEnabled = false;
+        TotpSecretCipher = null;
+        TotpLastStep = null;
+        EmployeeId = null;
+        AccessFailedCount = 0;
+        LockoutEnd = null;
+        if (Status != UserStatus.Inactive || AnonymizedAt is null)
+        {
+            Status = UserStatus.Inactive;
+            PermVersion++;
+            RotateSecurityStamp();
+        }
+
+        AnonymizedAt ??= at;
+        AnonymizationRequest ??= requestNumber;
+    }
+
     public void RotateSecurityStamp() => SecurityStamp = NewStamp();
 
     private static string NewStamp() => Guid.NewGuid().ToString("N");

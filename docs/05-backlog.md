@@ -569,7 +569,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: PRD §6 LGPD, ADR 0018, R-SEC-5, R-COM-3.
 - CA: pedido do titular em Configurações → Privacidade, só o Proprietário, prazo de 15 dias; identidade conferida antes de exportar; exportação JSON e PDF por `IPersonalDataProvider` em cada módulo, com o inventário da ADR 0037; dependentes mascarados; usuários do sistema como titulares; arquivo por 30 dias, download autenticado de uso único.
 
-**LGPD-01b [ ] Direitos do titular: anonimização e eliminação que preservam os documentos com movimento (M)** — 6.3, ordem 10 — `Ready (pré-condição externa)` — [story](stories/LGPD-01b-anonimizacao.md)
+**LGPD-01b [x] Direitos do titular: anonimização e eliminação que preservam os documentos com movimento (M)** — 6.3, ordem 10 — `Done (pré-condição externa: contadora e jurídico)` — [story](stories/LGPD-01b-anonimizacao.md)
 - Requisitos: PRD §6 LGPD, ADR 0018, R-SEC-5, R-PRP-7.
 - CA: tabela de retenção pré-configurada e editável; prévia por módulo; anonimização irreversível com confirmação digitada e 2FA de novo, uma transação por módulo, retomável; preserva documentos com movimento e a auditoria; canário em todas as tabelas.
 

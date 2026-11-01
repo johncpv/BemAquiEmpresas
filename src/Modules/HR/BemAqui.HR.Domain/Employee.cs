@@ -208,6 +208,15 @@ public sealed class Employee : Entity, IAuditable, ISoftDeletable, IConcurrencyV
     [PersonalData]
     public string? MilitaryCertificate { get; set; }
 
+    /// <summary>
+    /// Funcionário desligado anonimizado a pedido do titular (LGPD-01b CA 4): some dos seletores e fica só leitura, com a faixa "Cadastro
+    /// anonimizado". O que tem obrigação trabalhista continua até o fim do prazo da tabela de retenção.
+    /// </summary>
+    public DateTimeOffset? AnonymizedAt { get; set; }
+
+    /// <summary>Número do pedido do titular que anonimizou.</summary>
+    public string? AnonymizationRequest { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     /// <summary><c>xmin</c> (ADR 0019 §2): o registro de afastamento confere a versão do funcionário (CAD-04c1).</summary>

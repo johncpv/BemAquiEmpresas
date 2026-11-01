@@ -12,6 +12,8 @@ public static class HostEvents
     {
         ArgumentNullException.ThrowIfNull(events);
         events.AddEmailEvents().AddWebhookEvents().AddEvent<UserActivated>()
+            // LGPD-01b CA 9: titular anonimizado; o Financeiro troca o retrato do favorecido nas OPs terminadas.
+            .AddHandler<BemAqui.BuildingBlocks.Privacy.SubjectAnonymized, BemAqui.Finance.Application.SubjectAnonymizedConsumer>()
             // CAD-06 → CAD-04a: o % de encargos recalcula o custo-hora dos cargos.
             .AddHandler<PayrollChargesChanged, BemAqui.HR.Application.PayrollChargesChangedHandler>()
             .AddEvent<BemAqui.HR.Contracts.HourlyCostChanged>()

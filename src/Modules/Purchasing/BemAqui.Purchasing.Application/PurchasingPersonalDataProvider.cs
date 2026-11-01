@@ -44,4 +44,62 @@ public sealed class PurchasingPersonalDataProvider(IPurchasingDb db) : IPersonal
             new PersonalDataBlock("Pedidos enviados por e-mail", "purchasing.purchase_order_dispatches", dispatches),
         ]);
     }
+
+    /// <summary>Data do último pedido de compra do terceiro PF fornecedor, para a retenção (CA 3).</summary>
+    public async Task<IReadOnlyDictionary<string, DateOnly>> RetentionAnchorsAsync(PersonalDataSubject subject, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(subject);
+        if (subject.Kind != PersonalDataSubjectKind.Party || subject.PartyId is not { } party)
+        {
+            return new Dictionary<string, DateOnly>();
+        }
+
+        var dates = (await db.PurchaseOrders.Where(o => o.PartyId == party).Select(o => o.CreatedAt).ToListAsync(cancellationToken))
+            .Select(at => DateOnly.FromDateTime(BemAqui.BuildingBlocks.Time.BusinessTime.ToBusiness(at).DateTime)).ToList();
+        return dates.Count == 0 ? new Dictionary<string, DateOnly>() : new Dictionary<string, DateOnly> { [RetentionAnchors.LastDocument] = dates.Max() };
+    }
+
+    public Task<PersonalDataAnonymizationPlan?> PlanAnonymizationAsync(PersonalDataAnonymizationContext context, CancellationToken cancellationToken = default) =>
+        RunAsync(context, false, cancellationToken);
+
+    public Task<PersonalDataAnonymizationPlan?> AnonymizeAsync(PersonalDataAnonymizationContext context, CancellationToken cancellationToken = default) =>
+        RunAsync(context, true, cancellationToken);
+
+    /// <summary>LGPD-01b CA 2 e 9: pedidos de compra ficam; nos envios por e-mail, o endereço do titular vira o marcador.</summary>
+    private async Task<PersonalDataAnonymizationPlan?> RunAsync(PersonalDataAnonymizationContext context, bool apply, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        var subject = context.Subject;
+        var plan = new PersonalDataPlanBuilder(Module, Title);
+        if (subject.Kind == PersonalDataSubjectKind.Party && subject.PartyId is { } party)
+        {
+            plan.Keep("Pedidos de compra: mantidos", "purchasing.purchase_orders", await db.PurchaseOrders.CountAsync(o => o.PartyId == party, ct));
+        }
+
+        var dispatches = new Dictionary<Guid, PurchaseOrderDispatch>();
+        foreach (var email in subject.Emails)
+        {
+            var pattern = PersonalDataQuery.Contains(email);
+            foreach (var d in await db.PurchaseOrderDispatches.Where(d => EF.Functions.ILike(d.To, PersonalDataQuery.Exact(email)) || (d.Cc != null && EF.Functions.ILike(d.Cc, pattern))).ToListAsync(ct))
+            {
+                dispatches[d.Id] = d;
+            }
+        }
+
+        var decision = context.Decide(context.ContactGroup);
+        if (apply && !decision.Retained && dispatches.Count > 0)
+        {
+            foreach (var d in dispatches.Values)
+            {
+                var entry = db.Entry(d);
+                entry.Property(x => x.To).CurrentValue = PersonalDataMarker.Recipients(d.To, subject.Emails, context.Marker)!;
+                entry.Property(x => x.Cc).CurrentValue = PersonalDataMarker.HasAny(d.Cc, subject.Emails) ? PersonalDataMarker.Recipients(d.Cc, subject.Emails, context.Marker) : d.Cc;
+            }
+
+            await db.SaveChangesAsync(ct);
+        }
+
+        var built = plan.Fields(decision, "Destinatário dos pedidos enviados por e-mail", "purchasing.purchase_order_dispatches", dispatches.Count).Build();
+        return built.Items.Count == 0 ? null : built;
+    }
 }

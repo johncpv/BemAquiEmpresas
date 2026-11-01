@@ -42,7 +42,14 @@ public sealed record PrivacyRequestDetail(
     string? ExportError,
     DateTimeOffset? ExportExpiresAt,
     DateTimeOffset CreatedAt,
-    uint Version);
+    uint Version,
+    bool CanAnonymize = false,
+    PrivacyAnonymizationStatus AnonymizationStatus = PrivacyAnonymizationStatus.None,
+    IReadOnlyList<PrivacyAnonymizationStep>? AnonymizationSteps = null,
+    PrivacyAnonymizationSummary? AnonymizationSummary = null,
+    DateTimeOffset? AnonymizedAt = null,
+    string? AnonymizedByName = null,
+    string? BackupNotice = null);
 
 public sealed record CreatePrivacyRequestInput(
     PersonalDataSubjectKind SubjectType, Guid? SubjectId, string? SubjectName, string? SubjectContact, PrivacyRequestKind Kind, DateOnly RequestedOn,

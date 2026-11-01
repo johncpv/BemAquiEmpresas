@@ -64,6 +64,25 @@ internal static class PrivacyEndpoints
         privacy.MapGet("/{id:guid}/export/download", async (Guid id, string? token, PrivacyRequestService service, CancellationToken ct) =>
                 (await service.DownloadAsync(id, token, ct)).ToHttpResult(f => Results.File(f.Content, f.ContentType, f.FileName)))
             .RequirePermission("settings.edit").WithName("DownloadPrivacyExport").Produces(StatusCodes.Status200OK, contentType: PrivacyRequestService.ZipContentType);
+
+        // LGPD-01b: prévia e anonimização (só o Proprietário, no serviço; o 2FA de novo vai no corpo e é conferido antes de gravar).
+        privacy.MapPost("/{id:guid}/anonymization/preview", async (Guid id, PrivacyAnonymizationService service, CancellationToken ct) =>
+                (await service.PreviewAsync(id, ct)).ToHttpResult())
+            .RequirePermission("settings.edit").WithName("PreviewPrivacyAnonymization").Produces<PrivacyAnonymizationPreview>();
+        privacy.MapPost("/{id:guid}/anonymization", async (Guid id, AnonymizePrivacySubjectInput input, PrivacyAnonymizationService service, CancellationToken ct) =>
+                (await service.StartAsync(id, input, ct)).ToHttpResult(r => Results.Accepted($"/api/v1/settings/privacy-requests/{id}", r)))
+            .RequirePermission("settings.edit").WithName("AnonymizePrivacySubject").Produces<PrivacyAnonymizationStarted>(StatusCodes.Status202Accepted);
+
+        // Configurações → Privacidade → Retenção (LGPD-01b CA 1).
+        var retention = api.MapGroup("/settings/privacy-retention").WithTags("Configurações").RequireModule("settings");
+        retention.MapGet(string.Empty, async (RetentionRuleService service, CancellationToken ct) => (await service.ListAsync(ct)).ToHttpResult())
+            .RequirePermission("settings.view").WithName("ListRetentionRules").Produces<IReadOnlyList<RetentionRuleRow>>();
+        retention.MapPut("/{id:guid}", async (Guid id, SaveRetentionRuleInput input, RetentionRuleService service, CancellationToken ct) =>
+                (await service.SaveAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("settings.edit").WithName("SaveRetentionRule").Produces<RetentionRuleRow>();
+        retention.MapPost("/{id:guid}/confirm", async (Guid id, ConfirmRetentionRuleInput input, RetentionRuleService service, CancellationToken ct) =>
+                (await service.ConfirmAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("settings.edit").WithName("ConfirmRetentionRule").Produces<RetentionRuleRow>();
         return api;
     }
 }
