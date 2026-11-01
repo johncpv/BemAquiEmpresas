@@ -57,7 +57,7 @@ function InvoiceDetail({ view, onChange }: { view: IncomingInvoiceView; onChange
   const status = INCOMING_STATUS[view.status]
   const editable = view.status === 'Imported' && view.can.import
   const steps: Step[] = stepsShown && view.status === 'Checked' ? [
-    ...(view.can.receive && view.order.purchaseOrderId ? [{ label: 'Receber pela nota', onSelect: () => void navigate({ to: '/app/compras/pedidos/$id/recebimento', params: { id: view.order.purchaseOrderId! } } as never) }] : []),
+    ...(view.can.receive && view.order.purchaseOrderId ? [{ label: 'Receber pela nota', onSelect: () => void navigate({ to: '/app/fiscal/entrada/$id/recebimento', params: { id: view.id } } as never) }] : []),
     { label: 'Importar outra nota', onSelect: () => void navigate({ to: '/app/fiscal/entrada/importar' }) },
     { label: 'Ver notas a conferir', onSelect: () => void navigate({ to: '/app/fiscal/entrada', search: { situacao: 'Imported' } } as never) },
   ] : []
@@ -91,6 +91,20 @@ function InvoiceDetail({ view, onChange }: { view: IncomingInvoiceView; onChange
           Conferida por {view.checkedByName ?? 'usuário removido'} em {view.checkedAt ? formatDateTime(view.checkedAt) : '—'}.
           {view.withoutOrder ? <> Sem pedido, autorizada por {view.withoutOrderApprovedByName ?? 'usuário removido'}: {view.withoutOrderReason}</> : null}
         </p>
+      ) : null}
+      {view.status === 'Received' && view.goodsReceiptId ? (
+        <div role="note" className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted p-3 text-sm">
+          <span>Recebida pelo recebimento do pedido: só para consulta.{view.inputTaxCreditApplied ? <> Regra de crédito usada: <b className="font-semibold">{view.inputTaxCreditApplied}</b>{view.inputTaxCreditAmount ? <> (crédito <Money value={view.inputTaxCreditAmount} />)</> : null}.</> : null}</span>
+          <Link to={'/app/compras/recebimentos/$id' as never} params={{ id: view.goodsReceiptId } as never} className="font-semibold text-primary">Ver o recebimento</Link>
+          <Link to={'/app/compras/recebimentos/$id' as never} params={{ id: view.goodsReceiptId } as never} search={{ aba: 'financeiro' } as never} className="font-semibold text-primary">Ver os títulos a pagar</Link>
+        </div>
+      ) : null}
+      {view.status === 'Checked' && view.can.receive ? (
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {view.order.purchaseOrderId
+            ? <button type="button" onClick={() => void navigate({ to: '/app/fiscal/entrada/$id/recebimento', params: { id: view.id } } as never)} className={primary}>Receber pela nota</button>
+            : <><button type="button" disabled aria-describedby="receber-sem-pedido" className={primary}>Receber pela nota</button><p id="receber-sem-pedido" className="text-sm text-muted-foreground">Ligue a nota a um pedido para receber.</p></>}
+        </div>
       ) : null}
 
       <Supplier view={view} onChange={onChange} />

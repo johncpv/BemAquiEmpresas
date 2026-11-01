@@ -38,6 +38,10 @@ Tela do chão de fábrica, no tablet ou no celular, para ver as etapas prontas e
 ## Qualidade
 - Quem tem a ação **Aprovar ou reprovar a qualidade** vê no topo da fila a entrada **Qualidade**, com quantas OS aguardam você. Toque para abrir a fila de qualidade.
 
+## Ler etiqueta
+- Quem vê o patrimônio tem **Ler etiqueta** na fila: a câmera lê o QR code da etiqueta do bem e abre a ficha da máquina. Sem câmera, digite o número da etiqueta.
+- Na entrada pelo PIN do tablet, **Ler etiqueta** não aparece: entre com o seu login completo.
+
 ## Aparelho, tema e PIN
 - Toque em **Aparelho** no topo para escolher o tema do app neste tablet (**Automático**, **Claro** ou **Escuro**). O tema vale para todos os operadores do tablet.
 - Entrou com e-mail e senha num tablet registrado? O app oferece **Criar PIN para entrar mais rápido**. Nas próximas vezes, você toca no seu nome e digita o PIN.

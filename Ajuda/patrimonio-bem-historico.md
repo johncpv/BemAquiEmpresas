@@ -7,7 +7,7 @@ modulo: assets
 ---
 
 ## Para que serve
-Ver tudo o que mudou no bem: o valor antes e depois, quem alterou e quando.
+Ver tudo o que mudou no bem: o valor antes e depois, quem alterou e quando. A impressão e a reimpressão da etiqueta também aparecem aqui ("Imprimiu etiqueta", "Reimprimiu etiqueta"); a leitura do QR code não é registrada.
 
 ## Como usar
 - Abra o bem e clique na aba **Histórico de alterações**. As mudanças aparecem da mais recente para a mais antiga.

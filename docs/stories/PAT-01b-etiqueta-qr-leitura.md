@@ -5,7 +5,7 @@
 | ID | PAT-01b |
 | Título | Etiqueta do bem com QR code gerado no servidor (biblioteca MIT; só a URL curta `/b/{etiqueta}`, sem dado), impressão em lote em PDF no tamanho configurável da impressora de etiquetas, reimpressão; leitura pela câmera no app (`BarcodeDetector`, "Ler etiqueta" no `/fab`) ou por qualquer leitor do celular, que abre a ficha resumida do bem depois do login, com os atalhos "Abrir OS de manutenção" e "Registrar movimentação" |
 | Tamanho | M (quebra da PAT-01) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (teste manual com a impressora pendente, P-13) |
 | Requisitos | R-PAT-2 (etiqueta com QR code, impressão em lote; leitura pelo PWA abre a ficha) · R-PRP-6 (D, impressão em lote) · R-COM-3 · R-SEC-5 |
 | Dependências | PAT-01a (bens, etiqueta, foto sem EXIF), COM-03 (`IPdfRenderer`, ADR 0022), PRD-03a (layout `/fab`) |
 | Bloqueia | PAT-02 e PAT-03a (atalhos pela leitura) |
@@ -82,17 +82,17 @@ Decisões da revisão aplicadas: §4.3 (`returnUrl` só relativo, CA 8; `assets.
 **Pré-condição externa:** a Konebras informa o modelo da impressora de etiquetas e o tamanho da etiqueta (P-13); até lá vale o seed 50 × 25 mm, editável; o teste manual de impressão espera a impressora; não bloqueia o `Ready`.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando; teste manual com a impressora quando ela chegar.
-- [ ] Pacote novo (QR, MIT) aprovado na varredura de vulnerabilidades e de licença.
-- [ ] Telas com estados; ajuda das rotas novas; teste de cobertura passando.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade e integração (Testcontainers) e Vitest passando. E2E fica para o fechamento da feature Patrimônio (regra do PO de 31/10); teste manual com a impressora quando ela chegar (P-13).
+- [x] Pacote novo (QRCoder 1.6.0, MIT) sem vulnerabilidade conhecida e fora da lista de licenças proibidas (`Architecture.Tests`); ZXing.Net (Apache 2.0) só nos testes.
+- [x] Telas com estados; ajuda das rotas novas; teste de cobertura passando.
+- [x] Auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `AssetLabelPdfDocument` (unitária e grade); job de lote.
-- [ ] Endpoint `by-tag`; rota `/b/$tag` com `returnUrl` relativo; componente de leitura por câmera com `BarcodeDetector`, reaproveitável (PRD-03a).
-- [ ] Parâmetro `assets.label_size` e a seção Patrimônio em Configurações → Parâmetros.
+- [x] `AssetLabelPdfDocument` (unitária e grade); job de lote.
+- [x] Endpoint `by-tag`; rota `/b/$tag` com `returnUrl` relativo; componente de leitura por câmera com `BarcodeDetector`, reaproveitável (PRD-03a).
+- [x] Parâmetro `assets.label_size` e a seção Patrimônio em Configurações → Parâmetros.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (conteúdo do QR, 404 uniforme, `returnUrl`), design (ficha no celular), @qa.
@@ -126,3 +126,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (tabela 3.3 pontos 45–47, ADR 0038, §4.3); nova ordem (Marco 6.4, ordem 12); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 31/10/2026 | 1.0 | Implementada: `assets.parameters` (migration `AssetLabelsPat01b`), `AssetLabelPdfDocument` (QR em vetor pelo QRCoder, MIT), `AssetLabelBatchJob`, `GET by-tag` e `card`, `/b/$tag`, `/fab/bens/$id`, "Ler etiqueta" (`QrScanner` reaproveitável), seção Patrimônio nos Parâmetros e ajuda. Recomendações aceitas (PO 24/10): (1) o histórico do bem é a auditoria (`Exported`, formatos `etiqueta` e `etiqueta-reimpressao`), gravada no pedido, com quem pediu, também no lote em segundo plano; (2) reimprimir é `GET .../label/reprint` com `assets.edit` e o PDF tem as datas fixas na criação do bem (sai igual byte a byte); (3) o PDF do lote é anexo de sistema do dono `AssetLabelBatch` com o usuário que pediu como dono (só ele baixa) e a validade de 7 dias é conferida no download (expurgo físico dos arquivos fica para um job de limpeza de anexos de sistema, pendente); (4) o nome fantasia vem do catálogo do tenant (sem nova referência de módulo); (5) o `returnUrl` aceito ficou só `/app`, `/fab` e `/b` (antes: qualquer caminho começando por `/`), sem `//`, barra invertida nem caractere de controle; (6) `/b/$tag` abre `/fab/bens/$id` em aparelho de toque e a ficha completa no computador; (7) os atalhos "Abrir OS de manutenção corretiva" (`assets.create`) e "Registrar movimentação" (`assets.edit`) levam às abas Manutenção e Movimentações do bem até a PAT-03a e a PAT-02 ligarem as telas; próxima e última manutenção ficam vazias até a PAT-03a; (8) faixa do tamanho: largura de 30 a 150 mm e altura de 15 a 150 mm; (9) CA 10 (PIN fora) coberto pela varredura `Sessao_por_PIN_nao_alcanca_nenhum_endpoint_do_backoffice`. Pendência externa: impressora e etiqueta da Konebras (P-13) e o teste manual de impressão e leitura num Android de entrada. E2E no fechamento da feature. Status `Done` | Dex (dev) |

@@ -161,13 +161,16 @@ internal sealed class PurchaseOrderApprovalConfiguration : IEntityTypeConfigurat
 /// </summary>
 internal sealed class GoodsReceiptConfiguration : IEntityTypeConfiguration<GoodsReceipt>
 {
+    public const string IncomingInvoiceIndex = "ux_goods_receipts_incoming_invoice";
+
     public void Configure(EntityTypeBuilder<GoodsReceipt> b)
     {
         b.ToTable("goods_receipts", PurchasingSchema.Name);
         b.Property(e => e.Number).HasMaxLength(30);
         b.Property(e => e.Status).HasConversion<string>().HasMaxLength(12);
         b.Property(e => e.OrderStatusBefore).HasConversion<string>().HasMaxLength(20);
-        foreach (var money in new[] { nameof(GoodsReceipt.Subtotal), nameof(GoodsReceipt.Freight), nameof(GoodsReceipt.IpiAmount), nameof(GoodsReceipt.Amount) })
+        b.Property(e => e.Origin).HasConversion<string>().HasMaxLength(8);
+        foreach (var money in new[] { nameof(GoodsReceipt.Subtotal), nameof(GoodsReceipt.Freight), nameof(GoodsReceipt.IpiAmount), nameof(GoodsReceipt.Insurance), nameof(GoodsReceipt.OtherExpenses), nameof(GoodsReceipt.TaxCredit), nameof(GoodsReceipt.Amount) })
         {
             b.Property(money).HasPrecision(18, 2);
         }
@@ -178,6 +181,8 @@ internal sealed class GoodsReceiptConfiguration : IEntityTypeConfiguration<Goods
         b.HasIndex(e => e.Number).IsUnique().HasDatabaseName("ux_goods_receipts_number");
         b.HasIndex(e => e.PurchaseOrderId).HasDatabaseName("ix_goods_receipts_purchase_order_id");
         b.HasIndex(e => new { e.Status, e.ReceivedOn }).HasDatabaseName("ix_goods_receipts_status_received_on");
+        // FIS-04b CA 13: a mesma nota tem no máximo um recebimento registrado (o estornado libera a nota para receber de novo).
+        b.HasIndex(e => e.IncomingInvoiceId).IsUnique().HasFilter("incoming_invoice_id IS NOT NULL AND status = 'Completed'").HasDatabaseName(IncomingInvoiceIndex);
     }
 }
 
@@ -195,6 +200,9 @@ internal sealed class GoodsReceiptLineConfiguration : IEntityTypeConfiguration<G
         b.Property(e => e.LineAmount).HasPrecision(18, 2);
         b.Property(e => e.FreightShare).HasPrecision(18, 2);
         b.Property(e => e.IpiShare).HasPrecision(18, 2);
+        b.Property(e => e.InsuranceShare).HasPrecision(18, 2);
+        b.Property(e => e.OtherShare).HasPrecision(18, 2);
+        b.Property(e => e.TaxCreditShare).HasPrecision(18, 2);
         b.Property(e => e.UnitCost).HasPrecision(18, 6);
         b.Property(e => e.MovementNumber).HasMaxLength(30);
         b.HasOne<GoodsReceipt>().WithMany().HasForeignKey(e => e.ReceiptId).OnDelete(DeleteBehavior.Restrict);

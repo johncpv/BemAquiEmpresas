@@ -38,6 +38,7 @@ function ReceiptItems({ receipt }: { receipt: GoodsReceiptDetail }) {
           <span className="inline-flex items-center tabular-nums">custo de entrada <Money value={l.unitCost} className="ml-1 font-semibold" /><Dica nome="Custo de entrada" texto={RECEIPT_DICAS.custoEntrada} /></span>
           <span className="basis-full text-xs text-muted-foreground tabular-nums">
             <Money value={l.lineAmount} /> + frete <Money value={l.freightShare} /> + IPI <Money value={l.ipiShare} />
+            {l.insuranceShare ? <> + seguro <Money value={l.insuranceShare} /></> : null}{l.otherShare ? <> + outras despesas <Money value={l.otherShare} /></> : null}{l.taxCreditShare ? <> − crédito <Money value={l.taxCreditShare} /></> : null}
             {l.movementId ? <> · <Link to={'/app/estoque/movimentos/$id' as never} params={{ id: l.movementId } as never} className="font-semibold text-primary">{l.movementNumber ?? 'Movimento'}</Link></> : null}
             {l.reversalMovementId ? <> · <Link to={'/app/estoque/movimentos/$id' as never} params={{ id: l.reversalMovementId } as never} className="font-semibold text-primary">estorno</Link></> : null}
           </span>
@@ -143,7 +144,7 @@ export function GoodsReceiptPage() {
   const go = (to: string, params?: Record<string, string>, search?: Record<string, unknown>) => () => void navigate({ to, params, search } as never)
   const firstMovement = r.lines.find((l) => l.movementId)?.movementId
   const steps: Step[] = stepsShown && r.status === 'Completed' ? [
-    ...(canFinance ? [{ label: 'Conferir título a pagar', onSelect: go('/app/compras/recebimentos/$id', { id: r.id }, { aba: 'financeiro' }) }] : []),
+    ...(canFinance ? [{ label: r.origin === 'Invoice' ? 'Conferir títulos a pagar' : 'Conferir título a pagar', onSelect: go('/app/compras/recebimentos/$id', { id: r.id }, { aba: 'financeiro' }) }] : []),
     ...(firstMovement ? [{ label: 'Ver movimentos de estoque', onSelect: go('/app/estoque/movimentos/$id', { id: firstMovement }) }] : []),
     ...(r.servedOrders.length ? [{ label: 'Ver OS que receberam material', onSelect: r.servedOrders.length === 1 ? go('/app/producao/os/$id', { id: r.servedOrders[0].id }) : go('/app/producao/os') }] : []),
   ] : []
@@ -170,6 +171,7 @@ export function GoodsReceiptPage() {
             <StatusChip tone={RECEIPT_STATUS[r.status].tone}>{RECEIPT_STATUS[r.status].label}</StatusChip>
             <Link to={'/app/compras/pedidos/$id' as never} params={{ id: r.purchaseOrderId } as never} className="font-semibold text-primary">{r.purchaseOrderNumber}</Link>
             <span>{r.projectNumber ?? 'Estoque geral'}</span>
+            {r.origin === 'Invoice' && r.incomingInvoiceId ? <Link to="/app/fiscal/entrada/$id" params={{ id: r.incomingInvoiceId }} className="font-semibold text-primary">Pela NF-e de entrada</Link> : null}
             {r.soleOwner ? <Tag>Recebido pelo Proprietário único</Tag> : null}
             <Link to={'/app/compras/recebimentos' as never} search={{ aba: 'recebidos' } as never} className="font-semibold text-primary">Voltar aos recebimentos</Link>
           </p>

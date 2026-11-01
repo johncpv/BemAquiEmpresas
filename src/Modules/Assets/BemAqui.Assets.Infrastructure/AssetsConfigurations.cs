@@ -38,6 +38,19 @@ internal sealed class AssetConfiguration : IEntityTypeConfiguration<Asset>
     }
 }
 
+/// <summary><c>assets.parameters</c> (PAT-01b): chave única, valor em texto (<c>50x25</c>).</summary>
+internal sealed class AssetParameterConfiguration : IEntityTypeConfiguration<AssetParameter>
+{
+    public void Configure(EntityTypeBuilder<AssetParameter> b)
+    {
+        b.ToTable("parameters", AssetsSchema.Name);
+        b.HasKey(e => e.Id).HasName("pk_assets_parameters");
+        b.Property(e => e.Key).HasMaxLength(64);
+        b.Property(e => e.Value).HasMaxLength(100);
+        b.HasIndex(e => e.Key).IsUnique().HasDatabaseName("ix_assets_parameters_key");
+    }
+}
+
 /// <summary><c>assets.sites</c> (ADR 0038 §2): nome único entre os não excluídos e <c>seed_key</c> única.</summary>
 internal sealed class AssetSiteConfiguration : IEntityTypeConfiguration<AssetSite>
 {

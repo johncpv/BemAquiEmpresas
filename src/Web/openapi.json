@@ -24184,6 +24184,150 @@
         }
       }
     },
+    "/api/v1/purchasing/incoming-invoices/{id}/receipt-defaults": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "GetInvoiceReceiptDefaults",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceReceiptDefaults"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/incoming-invoices/{id}/receipt/preview": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "PreviewInvoiceReceipt",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceReceiptInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceReceiptPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/incoming-invoices/{id}/receipt": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "RegisterInvoiceReceipt",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceReceiptInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoodsReceiptDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/incoming-invoices/{id}/price-correction-request": {
+      "post": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "RequestInvoicePriceCorrection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriceCorrectionRequestResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/purchasing/locations": {
       "get": {
         "tags": [
@@ -31264,6 +31408,217 @@
         }
       }
     },
+    "/api/v1/assets/assets/by-tag/{tag}": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetAssetByTag",
+        "parameters": [
+          {
+            "name": "tag",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetCardView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/{id}/card": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetAssetCard",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetCardView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/{id}/label": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "PrintAssetLabel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/{id}/label/reprint": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ReprintAssetLabel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/label-batches": {
+      "post": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "StartAssetLabelBatch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLabelBatchInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLabelBatchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/label-batches/{attachmentId}": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "DownloadAssetLabelBatch",
+        "parameters": [
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/parameters": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetAssetParameters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetParametersView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "UpdateAssetParameters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetParametersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assets/choices/responsibles": {
       "get": {
         "tags": [
@@ -34643,6 +34998,83 @@
           }
         }
       },
+      "AssetCardView": {
+        "required": [
+          "id",
+          "tag",
+          "name",
+          "type",
+          "status",
+          "siteName",
+          "responsibleName",
+          "responsibleTerminated",
+          "workCenterName",
+          "photoId",
+          "nextMaintenanceDate",
+          "lastMaintenanceDate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/AssetType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AssetStatus"
+          },
+          "siteName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "responsibleName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "responsibleTerminated": {
+            "type": "boolean"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "photoId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "nextMaintenanceDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "lastMaintenanceDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
       "AssetDetail": {
         "required": [
           "id",
@@ -35029,6 +35461,136 @@
           }
         }
       },
+      "AssetLabelBatchInput": {
+        "required": [
+          "assetIds"
+        ],
+        "type": "object",
+        "properties": {
+          "assetIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "allFromFilter": {
+            "type": "boolean",
+            "default": false
+          },
+          "filter": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssetLabelFilter"
+              }
+            ]
+          },
+          "layout": {
+            "$ref": "#/components/schemas/AssetLabelLayout"
+          }
+        }
+      },
+      "AssetLabelBatchResult": {
+        "required": [
+          "queued",
+          "count",
+          "attachmentId",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "queued": {
+            "type": "boolean"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AssetLabelFilter": {
+        "required": [
+          "q",
+          "type",
+          "siteId",
+          "workCenterId",
+          "responsibleEmployeeId",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "type": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssetType"
+              }
+            ]
+          },
+          "siteId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "responsibleEmployeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssetStatus"
+              }
+            ]
+          }
+        }
+      },
+      "AssetLabelLayout": {
+        "enum": [
+          "Label",
+          "A4Sheet"
+        ],
+        "default": "Label"
+      },
       "AssetListItem": {
         "required": [
           "id",
@@ -35126,6 +35688,48 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "AssetParametersInput": {
+        "required": [
+          "labelWidthMm",
+          "labelHeightMm"
+        ],
+        "type": "object",
+        "properties": {
+          "labelWidthMm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "labelHeightMm": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "AssetParametersView": {
+        "required": [
+          "labelWidthMm",
+          "labelHeightMm",
+          "labelSizeId"
+        ],
+        "type": "object",
+        "properties": {
+          "labelWidthMm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "labelHeightMm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "labelSizeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -42658,7 +43262,8 @@
           "Payroll",
           "Maintenance",
           "GoodsReceipt",
-          "PayrollForecast"
+          "PayrollForecast",
+          "IncomingInvoice"
         ]
       },
       "DreAccountOption": {
@@ -46548,6 +47153,15 @@
           },
           "includeDuplicates": {
             "type": "boolean"
+          },
+          "inputTaxCredit": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         },
         "additionalProperties": false
@@ -47830,6 +48444,31 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/GoodsReceiptOrigin"
+          },
+          "incomingInvoiceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "insurance": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "otherExpenses": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "taxCredit": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -48080,8 +48719,30 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "insuranceShare": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "otherShare": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "taxCreditShare": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
+      },
+      "GoodsReceiptOrigin": {
+        "enum": [
+          "Manual",
+          "Invoice"
+        ],
+        "default": "Manual"
       },
       "GoodsReceiptPayableView": {
         "required": [
@@ -48210,6 +48871,21 @@
           },
           "soleOwner": {
             "type": "boolean"
+          },
+          "insurance": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "otherExpenses": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "taxCredit": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -48275,6 +48951,21 @@
               "number"
             ],
             "format": "double"
+          },
+          "insuranceShare": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "otherShare": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "taxCreditShare": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -49714,6 +50405,14 @@
           }
         }
       },
+      "IncomingInvoiceStage": {
+        "enum": [
+          "Imported",
+          "Checked",
+          "Received",
+          "Rejected"
+        ]
+      },
       "IncomingInvoiceStatus": {
         "enum": [
           "Imported",
@@ -50035,6 +50734,24 @@
           },
           "can": {
             "$ref": "#/components/schemas/IncomingInvoicePermissions"
+          },
+          "goodsReceiptId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "inputTaxCreditApplied": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "inputTaxCreditAmount": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -50479,6 +51196,30 @@
             "items": {
               "$ref": "#/components/schemas/IncomingOrderLineOption"
             }
+          }
+        }
+      },
+      "IncomingReceiptDuplicate": {
+        "required": [
+          "number",
+          "dueDate",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -51980,6 +52721,448 @@
               "type": "string",
               "format": "uuid"
             }
+          }
+        }
+      },
+      "InvoiceNoStockInstallmentPreview": {
+        "required": [
+          "accountName",
+          "number",
+          "count",
+          "dueDate",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "accountName": {
+            "type": "string"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "InvoiceNoStockLine": {
+        "required": [
+          "sequence",
+          "description",
+          "accountId",
+          "accountName",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "accountName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "InvoiceReceiptDefaultLine": {
+        "required": [
+          "poLineId",
+          "sequence",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "tracksLot",
+          "quantity",
+          "open",
+          "maxQuantity",
+          "orderPrice",
+          "invoicePrice",
+          "priceDiffers",
+          "suggestedLot",
+          "invoiceItems"
+        ],
+        "type": "object",
+        "properties": {
+          "poLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "tracksLot": {
+            "type": "boolean"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "open": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "orderPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "invoicePrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "priceDiffers": {
+            "type": "boolean"
+          },
+          "suggestedLot": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "invoiceItems": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        }
+      },
+      "InvoiceReceiptDefaults": {
+        "required": [
+          "invoiceId",
+          "invoiceNumber",
+          "series",
+          "supplierName",
+          "issuedOn",
+          "stage",
+          "goodsReceiptId",
+          "invoiceVersion",
+          "orderId",
+          "orderNumber",
+          "orderVersion",
+          "projectNumber",
+          "today",
+          "defaultLocationId",
+          "locations",
+          "lines",
+          "noStock",
+          "freight",
+          "insurance",
+          "otherExpenses",
+          "ipiAmount",
+          "freightMax",
+          "ipiMax",
+          "total",
+          "duplicates",
+          "creditRule",
+          "creditConfirmed",
+          "priceBlocked",
+          "soleOwner",
+          "blocker",
+          "blockerCode"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "invoiceNumber": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "series": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "issuedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/IncomingInvoiceStage"
+          },
+          "goodsReceiptId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "invoiceVersion": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "orderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "orderVersion": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "projectNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "defaultLocationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceiptLocationOption"
+            }
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceReceiptDefaultLine"
+            }
+          },
+          "noStock": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceNoStockLine"
+            }
+          },
+          "freight": {
+            "type": "number",
+            "format": "double"
+          },
+          "insurance": {
+            "type": "number",
+            "format": "double"
+          },
+          "otherExpenses": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "freightMax": {
+            "type": "number",
+            "format": "double"
+          },
+          "ipiMax": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "duplicates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IncomingReceiptDuplicate"
+            }
+          },
+          "creditRule": {
+            "type": "string"
+          },
+          "creditConfirmed": {
+            "type": "boolean"
+          },
+          "priceBlocked": {
+            "type": "boolean"
+          },
+          "soleOwner": {
+            "type": "boolean"
+          },
+          "blocker": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "blockerCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "InvoiceReceiptInput": {
+        "required": [
+          "receivedOn",
+          "notes",
+          "lines",
+          "orderVersion",
+          "invoiceVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "receivedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/InvoiceReceiptLineInput"
+            }
+          },
+          "orderVersion": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "invoiceVersion": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "InvoiceReceiptLineInput": {
+        "required": [
+          "poLineId",
+          "lotNumber",
+          "lotExpiry",
+          "locationId"
+        ],
+        "type": "object",
+        "properties": {
+          "poLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lotExpiry": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "locationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "InvoiceReceiptPreview": {
+        "required": [
+          "receipt",
+          "noStock",
+          "creditRule",
+          "fromDuplicates",
+          "duplicatesMismatch",
+          "invoiceTotal"
+        ],
+        "type": "object",
+        "properties": {
+          "receipt": {
+            "$ref": "#/components/schemas/GoodsReceiptPreview"
+          },
+          "noStock": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceNoStockInstallmentPreview"
+            }
+          },
+          "creditRule": {
+            "type": "string"
+          },
+          "fromDuplicates": {
+            "type": "boolean"
+          },
+          "duplicatesMismatch": {
+            "type": "boolean"
+          },
+          "invoiceTotal": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -64615,6 +65798,26 @@
         "properties": {
           "theme": {
             "type": "string"
+          }
+        }
+      },
+      "PriceCorrectionRequestResult": {
+        "required": [
+          "notified",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "notified": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         }
       },

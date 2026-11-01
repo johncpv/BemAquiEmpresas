@@ -506,7 +506,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-5, R-CMP-5, R-PRP-3, R-EST-3.
 - CA: XML sem DTD, XSD, um `infNFe` e uma assinatura com `Reference URI` igual ao `Id`, CNPJ do certificado igual ao do emitente, sem protocolo recusado; importação com `fiscal.import_incoming`; aviso "situação na SEFAZ não conferida"; chave duplicada recusada; de-para lembrado; nota sem pedido exige `purchasing.approve`.
 
-**FIS-04b [ ] Recebimento pela NF-e de entrada: estoque pelo custo da nota e títulos a pagar pelas duplicatas, na mesma transação (M)** — 5.5, ordem 13 — `Ready (pré-condição externa)` — [story](stories/FIS-04b-recebimento-pela-nota.md)
+**FIS-04b [x] Recebimento pela NF-e de entrada: estoque pelo custo da nota e títulos a pagar pelas duplicatas, na mesma transação (M)** — 5.5, ordem 13 — `Done` — [story](stories/FIS-04b-recebimento-pela-nota.md)
 - Requisitos: R-CMP-5, R-EST-7, R-FIN-4, R-FIN-10.
 - CA: recebimento da CMP-04 preenchido pela nota, chamada síncrona com `purchasing.receive`; duplicatas pelo `CreateOpenInstallmentsAsync` na transação do recebimento (ADR 0024); sem duplicatas, vale a condição do pedido; crédito de impostos pré-configurado "Nenhum" até a P-01; uma vez só.
 
@@ -577,7 +577,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-PAT-1, R-COM-3, R-COM-4, R-SEC-5, R-PRP-1, R-PRP-3.
 - CA: permissões do `assets` por seed patch; bem com etiqueta `PAT-00001`, responsável, centro e local em `assets.sites`; valor de aquisição com `assets.edit`; foto sem EXIF/GPS; lista com 5 mil bens em menos de 1 s; excluir × baixar.
 
-**PAT-01b [ ] Patrimônio: etiquetas com QR code em lote e leitura pelo app (M)** — 6.4, ordem 12 — `Ready (pré-condição externa)` — [story](stories/PAT-01b-etiqueta-qr-leitura.md)
+**PAT-01b [x] Patrimônio: etiquetas com QR code em lote e leitura pelo app (M)** — 6.4, ordem 12 — `Done` (teste manual com a impressora pendente, P-13; E2E no fechamento da feature) — [story](stories/PAT-01b-etiqueta-qr-leitura.md)
 - Requisitos: R-PAT-2, R-PRP-6 (D), R-COM-3, R-SEC-5.
 - CA: QR gerado no servidor só com a URL `/b/{etiqueta}`; PDF de etiqueta no tamanho do parâmetro (seed 50 × 25 mm) e em grade A4; leitura pelo `BarcodeDetector` e "Ler etiqueta" no `/fab`, depois do login, com `assets.view` conferido antes; `returnUrl` só relativo; 404 uniforme.
 
