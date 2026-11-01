@@ -10,6 +10,11 @@ public sealed partial class PartyService
     /// <summary>Novo endereço (CA 12): o primeiro de cada tipo vira o padrão; marcar como padrão desmarca o anterior.</summary>
     public async Task<Result<PartyDetail>> AddAddressAsync(Guid partyId, AddressInput input, CancellationToken cancellationToken = default)
     {
+        if (await AnonymizedAsync(partyId, cancellationToken) is { } anonymized)
+        {
+            return anonymized;
+        }
+
         ArgumentNullException.ThrowIfNull(input);
         if (!await db.Parties.AnyAsync(p => p.Id == partyId, cancellationToken))
         {
@@ -30,6 +35,11 @@ public sealed partial class PartyService
 
     public async Task<Result<PartyDetail>> UpdateAddressAsync(Guid partyId, Guid addressId, AddressInput input, CancellationToken cancellationToken = default)
     {
+        if (await AnonymizedAsync(partyId, cancellationToken) is { } anonymized)
+        {
+            return anonymized;
+        }
+
         ArgumentNullException.ThrowIfNull(input);
         var address = await OwnAddressAsync(partyId, addressId, cancellationToken);
         if (address is null)
@@ -56,6 +66,11 @@ public sealed partial class PartyService
     /// <summary>Remover endereço: se era o padrão do tipo, o mais antigo do mesmo tipo assume.</summary>
     public async Task<Result<PartyDetail>> RemoveAddressAsync(Guid partyId, Guid addressId, CancellationToken cancellationToken = default)
     {
+        if (await AnonymizedAsync(partyId, cancellationToken) is { } anonymized)
+        {
+            return anonymized;
+        }
+
         var address = await OwnAddressAsync(partyId, addressId, cancellationToken);
         if (address is null)
         {
@@ -75,6 +90,11 @@ public sealed partial class PartyService
 
     public async Task<Result<PartyDetail>> AddContactAsync(Guid partyId, ContactInput input, CancellationToken cancellationToken = default)
     {
+        if (await AnonymizedAsync(partyId, cancellationToken) is { } anonymized)
+        {
+            return anonymized;
+        }
+
         ArgumentNullException.ThrowIfNull(input);
         if (!await db.Parties.AnyAsync(p => p.Id == partyId, cancellationToken))
         {
@@ -93,6 +113,11 @@ public sealed partial class PartyService
 
     public async Task<Result<PartyDetail>> UpdateContactAsync(Guid partyId, Guid contactId, ContactInput input, CancellationToken cancellationToken = default)
     {
+        if (await AnonymizedAsync(partyId, cancellationToken) is { } anonymized)
+        {
+            return anonymized;
+        }
+
         ArgumentNullException.ThrowIfNull(input);
         var contact = await db.PartyContacts.FirstOrDefaultAsync(c => c.Id == contactId && c.PartyId == partyId, cancellationToken);
         if (contact is null)
@@ -112,6 +137,11 @@ public sealed partial class PartyService
 
     public async Task<Result<PartyDetail>> RemoveContactAsync(Guid partyId, Guid contactId, CancellationToken cancellationToken = default)
     {
+        if (await AnonymizedAsync(partyId, cancellationToken) is { } anonymized)
+        {
+            return anonymized;
+        }
+
         var contact = await db.PartyContacts.FirstOrDefaultAsync(c => c.Id == contactId && c.PartyId == partyId, cancellationToken);
         if (contact is null)
         {
@@ -122,6 +152,12 @@ public sealed partial class PartyService
         await db.SaveChangesAsync(cancellationToken);
         return await GetAsync(partyId, cancellationToken);
     }
+
+    /// <summary>Cadastro anonimizado (LGPD-01b) é só leitura: 409 <c>party_anonymized</c>.</summary>
+    private async Task<Error?> AnonymizedAsync(Guid partyId, CancellationToken cancellationToken) =>
+        await db.Parties.IgnoreQueryFilters().AnyAsync(p => p.Id == partyId && p.AnonymizedAt != null, cancellationToken) ? Anonymized() : null;
+
+    public static Error Anonymized() => Error.Conflict(AnonymizedCode, "Cadastro anonimizado a pedido do titular: não pode ser alterado.");
 
     /// <summary>IDOR pai/filho (CA 13): o endereço só existe para a rota do próprio terceiro; o terceiro precisa existir.</summary>
     private Task<PartyAddress?> OwnAddressAsync(Guid partyId, Guid addressId, CancellationToken cancellationToken) =>

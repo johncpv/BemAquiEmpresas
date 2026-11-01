@@ -498,7 +498,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-3, R-PRD-8, R-PRJ-5, R-FIS-4, R-COM-1, R-COM-3.
 - CA: rascunho a partir do romaneio (a nota só referencia o romaneio, sem baixar estoque); venda mista pela D4 (equipamento em NF-e, instalação em NFS-e, parcela é só cobrança); saneamento pelos limites do esquema antes de reservar o número; emissão idempotente com reconciliação no Emissor; `InvoiceAuthorized` lança o imposto como `InvoiceTax`; imposto nunca digitado; os 3 cenários em homologação SEFAZ no `demo`.
 
-**FIS-03b [ ] NF-e de saída: cancelamento em uma etapa com `fiscal.approve`, carta de correção e inutilização de numeração (M)** — 5.4, ordem 11 — `Ready (pré-condição externa)` — [story](stories/FIS-03b-nfe-cancelamento-cce-inutilizacao.md)
+**FIS-03b [x] NF-e de saída: cancelamento em uma etapa com `fiscal.approve`, carta de correção e inutilização de numeração (M)** — 5.4, ordem 11 — `Done` (homologação SEFAZ dos eventos no `demo` e lacuna L-n do XML do evento: pré-condição externa) — [story](stories/FIS-03b-nfe-cancelamento-cce-inutilizacao.md)
 - Requisitos: R-FIS-3, R-SEC-10, R-PRJ-5.
 - CA: cancelamento em uma etapa com `fiscal.approve` e 2FA de novo, "Pedir cancelamento" para os demais, prazo de 24 h com contagem no `ConfirmDialog`; cancelar não mexe no estoque (`InvoiceTaxReversal` no custo); carta de correção com `fiscal.edit`; inutilização pelo filtro "A inutilizar"; DANFE de nota cancelada com marca.
 
@@ -569,7 +569,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: PRD §6 LGPD, ADR 0018, R-SEC-5, R-COM-3.
 - CA: pedido do titular em Configurações → Privacidade, só o Proprietário, prazo de 15 dias; identidade conferida antes de exportar; exportação JSON e PDF por `IPersonalDataProvider` em cada módulo, com o inventário da ADR 0037; dependentes mascarados; usuários do sistema como titulares; arquivo por 30 dias, download autenticado de uso único.
 
-**LGPD-01b [ ] Direitos do titular: anonimização e eliminação que preservam os documentos com movimento (M)** — 6.3, ordem 10 — `Ready (pré-condição externa)` — [story](stories/LGPD-01b-anonimizacao.md)
+**LGPD-01b [x] Direitos do titular: anonimização e eliminação que preservam os documentos com movimento (M)** — 6.3, ordem 10 — `Done (pré-condição externa: contadora e jurídico)` — [story](stories/LGPD-01b-anonimizacao.md)
 - Requisitos: PRD §6 LGPD, ADR 0018, R-SEC-5, R-PRP-7.
 - CA: tabela de retenção pré-configurada e editável; prévia por módulo; anonimização irreversível com confirmação digitada e 2FA de novo, uma transação por módulo, retomável; preserva documentos com movimento e a auditoria; canário em todas as tabelas.
 

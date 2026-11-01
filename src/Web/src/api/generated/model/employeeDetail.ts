@@ -26,4 +26,8 @@ export interface EmployeeDetail {
   terminationDate: string | null;
   status: EmployeeStatus;
   version: number;
+  /** @nullable */
+  anonymizedAt?: string | null;
+  /** @nullable */
+  anonymizationRequest?: string | null;
 }

@@ -16,4 +16,8 @@ export interface UserRow {
   lastLoginAt: string | null;
   status: string;
   inviteOpen: boolean;
+  /** @nullable */
+  anonymizedAt?: string | null;
+  /** @nullable */
+  anonymizationRequest?: string | null;
 }

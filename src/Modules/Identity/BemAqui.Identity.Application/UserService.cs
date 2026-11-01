@@ -10,7 +10,7 @@ namespace BemAqui.Identity.Application;
 public sealed record GroupChip(Guid Id, string Name);
 
 /// <summary>Linha da aba Usuários (protótipo): grupos, 2FA (<c>active</c>, <c>pending</c>, <c>required_pending</c>), último acesso e situação.</summary>
-public sealed record UserRow(Guid Id, string Name, string Email, IReadOnlyList<GroupChip> Groups, string TwoFactor, DateTimeOffset? LastLoginAt, string Status, bool InviteOpen);
+public sealed record UserRow(Guid Id, string Name, string Email, IReadOnlyList<GroupChip> Groups, string TwoFactor, DateTimeOffset? LastLoginAt, string Status, bool InviteOpen, DateTimeOffset? AnonymizedAt = null, string? AnonymizationRequest = null);
 
 public sealed record InviteUserRequest(string Name, string Email, IReadOnlyList<Guid>? GroupIds);
 
@@ -34,7 +34,7 @@ public sealed partial class UserService(IIdentityDb db, Invites invites, GroupSe
         {
             var chips = memberships.Where(m => m.UserId == user.Id && m.IsActive).Select(m => new GroupChip(m.Id, m.Name)).ToList();
             var tfa = user.TotpEnabled ? "active" : user.Status == UserStatus.Active && await twoFactor.IsRequiredAsync(user, cancellationToken) ? "required_pending" : "pending";
-            rows.Add(new UserRow(user.Id, user.Name, user.Email, chips, tfa, user.LastLoginAt, user.Status.ToString(), open.Contains(user.Id)));
+            rows.Add(new UserRow(user.Id, user.Name, user.Email, chips, tfa, user.LastLoginAt, user.Status.ToString(), open.Contains(user.Id), user.AnonymizedAt, user.AnonymizationRequest));
         }
 
         return rows;

@@ -63,5 +63,7 @@ public sealed partial class PartyService
         p.Addresses.OrderBy(a => a.Kind).ThenByDescending(a => a.IsDefault).Select(ToDto).ToList(),
         p.Contacts.OrderByDescending(c => c.ReceivesBilling).ThenBy(c => c.Name).Select(ToDto).ToList(),
         p.CreatedAt,
-        ImportSource: p.ImportSource);
+        ImportSource: p.ImportSource,
+        AnonymizedAt: p.AnonymizedAt,
+        AnonymizationRequest: p.AnonymizationRequest);
 }

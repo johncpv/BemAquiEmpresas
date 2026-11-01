@@ -84,6 +84,127 @@ public sealed class FinancePersonalDataProvider(IFinanceDb db) : IPersonalDataPr
             ("Vencimento", PersonalDataMask.Date(p.DueDate)), ("Situação", p.Status.ToString()), ("Forma de pagamento", Method(p.PaymentDetails)))).ToList());
     }
 
+    /// <summary>Data do último documento com movimento do titular no Financeiro (CA 3): títulos e linhas de extrato.</summary>
+    public async Task<IReadOnlyDictionary<string, DateOnly>> RetentionAnchorsAsync(PersonalDataSubject subject, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(subject);
+        var dates = new List<DateOnly>();
+        if (subject.Kind == PersonalDataSubjectKind.Party && subject.PartyId is { } party)
+        {
+            dates.AddRange(await db.Receivables.Where(r => r.PartyId == party).Select(r => r.IssueDate).ToListAsync(cancellationToken));
+            dates.AddRange(await db.Payables.Where(p => p.PayeeType == PayeeType.Party && p.PayeeId == party).Select(p => p.IssueDate).ToListAsync(cancellationToken));
+        }
+        else if (subject.Kind == PersonalDataSubjectKind.Employee && subject.EmployeeId is { } employee)
+        {
+            dates.AddRange(await db.Payables.Where(p => p.PayeeType == PayeeType.Employee && p.PayeeId == employee).Select(p => p.IssueDate).ToListAsync(cancellationToken));
+        }
+
+        var document = BrazilianDocuments.Normalize(subject.Document);
+        if (document.Length == 11)
+        {
+            dates.AddRange(await db.BankStatementLines.Where(l => l.CounterpartyDocument == document).Select(l => l.Date).ToListAsync(cancellationToken));
+        }
+
+        return dates.Count == 0 ? new Dictionary<string, DateOnly>() : new Dictionary<string, DateOnly> { [RetentionAnchors.LastDocument] = dates.Max() };
+    }
+
+    public Task<PersonalDataAnonymizationPlan?> PlanAnonymizationAsync(PersonalDataAnonymizationContext context, CancellationToken cancellationToken = default) =>
+        RunAsync(context, false, cancellationToken);
+
+    public Task<PersonalDataAnonymizationPlan?> AnonymizeAsync(PersonalDataAnonymizationContext context, CancellationToken cancellationToken = default) =>
+        RunAsync(context, true, cancellationToken);
+
+    /// <summary>
+    /// LGPD-01b CA 2, 4 e 9: títulos a receber e a pagar ficam (valores, datas, ids e situação; o nome não mora aqui, vem do cadastro). A forma
+    /// de pagamento (chave Pix, conta, titular) sai dos títulos pagos ou cancelados e das despesas recorrentes encerradas, e fica só o tipo;
+    /// com título em aberto, fica retida até o pagamento. O envio de boleto agendado ao e-mail do titular é desfeito. A contraparte do extrato
+    /// (nome e CPF) segue o nome nas notas e títulos: fim do exercício da linha + 5 anos. O retrato do favorecido nas OPs troca pelo
+    /// <c>SubjectAnonymized</c> (<see cref="SubjectAnonymizedConsumer"/>).
+    /// </summary>
+    private async Task<PersonalDataAnonymizationPlan?> RunAsync(PersonalDataAnonymizationContext context, bool apply, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        var subject = context.Subject;
+        var plan = new PersonalDataPlanBuilder(Module, Title);
+        var payables = new List<Payable>();
+        if (subject.Kind == PersonalDataSubjectKind.Party && subject.PartyId is { } party)
+        {
+            var receivables = await db.Receivables.Where(r => r.PartyId == party).Select(r => r.Id).ToListAsync(ct);
+            plan.Keep("Títulos a receber: mantidos, com valores, datas e situação", "finance.receivables", receivables.Count);
+            var slips = await db.BillingSlips.Where(b => receivables.Contains(b.ReceivableId) && (b.ScheduledEmailTo != null || b.ScheduledEmailCc != null)).ToListAsync(ct);
+            slips = slips.Where(b => PersonalDataMarker.HasAny(b.ScheduledEmailTo, subject.Emails) || PersonalDataMarker.HasAny(b.ScheduledEmailCc, subject.Emails)).ToList();
+            var contact = context.Decide(RetentionGroups.Contact);
+            if (apply && !contact.Retained)
+            {
+                slips.ForEach(b => b.CancelScheduledEmail());
+            }
+
+            plan.Fields(contact, "Envio de boleto agendado ao e-mail do titular", "finance.billing_slips", slips.Count);
+            payables = await db.Payables.Where(p => p.PayeeType == PayeeType.Party && p.PayeeId == party).ToListAsync(ct);
+            var recurring = await db.RecurringExpenses.IgnoreQueryFilters().Where(r => r.PartyId == party && r.PaymentDetails != null).ToListAsync(ct);
+            var activeRecurring = recurring.Where(r => r.IsActive && !r.IsDeleted).ToList();
+            var bank = activeRecurring.Count > 0 ? new RetentionDecision(true, null, RetentionGroups.ReasonOf(RetentionBase.LastPayment)) : RetentionDecision.Free;
+            if (apply && !bank.Retained)
+            {
+                recurring.ForEach(r => r.PaymentDetails = OnlyKind(r.PaymentDetails));
+            }
+
+            plan.Fields(bank, "Forma de pagamento das despesas recorrentes", "finance.recurring_expenses", recurring.Count);
+        }
+        else if (subject.Kind == PersonalDataSubjectKind.Employee && subject.EmployeeId is { } employee)
+        {
+            payables = await db.Payables.Where(p => p.PayeeType == PayeeType.Employee && p.PayeeId == employee).ToListAsync(ct);
+        }
+
+        plan.Keep("Títulos a pagar: mantidos, com valores, datas e situação", "finance.payables", payables.Count);
+        var withDetails = payables.Where(p => p.PaymentDetails != null && !IsKindOnly(p.PaymentDetails)).ToList();
+        var closed = withDetails.Where(p => p.Status is PayableStatus.Paid or PayableStatus.Cancelled).ToList();
+        var open = withDetails.Count - closed.Count;
+        if (apply)
+        {
+            closed.ForEach(p => p.PaymentDetails = OnlyKind(p.PaymentDetails));
+        }
+
+        plan.Anonymize("Forma de pagamento dos títulos pagos ou cancelados (fica só o tipo)", "finance.payables", closed.Count);
+        plan.Fields(new RetentionDecision(true, null, RetentionGroups.ReasonOf(RetentionBase.LastPayment)), "Forma de pagamento dos títulos em aberto", "finance.payables", open);
+
+        var payableIds = payables.Select(p => p.Id).ToList();
+        var snapshots = payableIds.Count == 0 ? 0 : await db.PaymentOrderItems.CountAsync(i => payableIds.Contains(i.PayableId), ct);
+        plan.Anonymize("Retrato do favorecido nas ordens de pagamento (forma de pagamento; o nome segue o cadastro)", "finance.payment_order_items", snapshots);
+
+        var document = BrazilianDocuments.Normalize(subject.Document);
+        if (document.Length == 11)
+        {
+            var lines = await db.BankStatementLines.Where(l => l.CounterpartyDocument == document).ToListAsync(ct);
+            foreach (var group in lines.GroupBy(l => context.Decide(RetentionGroups.Identification, l.Date)))
+            {
+                if (apply && !group.Key.Retained)
+                {
+                    foreach (var line in group)
+                    {
+                        db.Entry(line).Property(l => l.CounterpartyName).CurrentValue = context.Marker;
+                        db.Entry(line).Property(l => l.CounterpartyDocument).CurrentValue = null;
+                    }
+                }
+
+                plan.Fields(group.Key, "Nome e CPF da contraparte no extrato bancário", "finance.bank_statement_lines", group.Count());
+            }
+        }
+
+        if (apply)
+        {
+            await db.SaveChangesAsync(ct);
+        }
+
+        var built = plan.Build();
+        return built.Items.Count == 0 ? null : built;
+    }
+
+    /// <summary>Forma de pagamento sem dado pessoal: só o tipo (Pix, boleto, transferência).</summary>
+    internal static string? OnlyKind(string? json) => PaymentDetails.Deserialize(json) is { } d ? PaymentDetails.Serialize(new PaymentDetailsInput(d.Kind)) : null;
+
+    private static bool IsKindOnly(string? json) => PaymentDetails.Deserialize(json) is { } d && d == new PaymentDetailsInput(d.Kind);
+
     private static string? Method(string? json) => PaymentDetails.Deserialize(json) is { } d
         ? d.Kind + (d.HolderDocument is { } doc ? " · titular " + PaymentDetails.Mask(doc) : string.Empty)
         : null;

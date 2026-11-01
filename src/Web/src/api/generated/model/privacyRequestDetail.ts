@@ -6,6 +6,9 @@
  */
 import type { IdentityCheckMethod } from './identityCheckMethod';
 import type { PersonalDataSubjectKind } from './personalDataSubjectKind';
+import type { PrivacyAnonymizationStatus } from './privacyAnonymizationStatus';
+import type { PrivacyAnonymizationStep } from './privacyAnonymizationStep';
+import type { PrivacyAnonymizationSummary } from './privacyAnonymizationSummary';
 import type { PrivacyExportStatus } from './privacyExportStatus';
 import type { PrivacyRequestChannel } from './privacyRequestChannel';
 import type { PrivacyRequestKind } from './privacyRequestKind';
@@ -62,4 +65,15 @@ export interface PrivacyRequestDetail {
   exportExpiresAt: string | null;
   createdAt: string;
   version: number;
+  canAnonymize?: boolean;
+  anonymizationStatus?: PrivacyAnonymizationStatus;
+  /** @nullable */
+  anonymizationSteps?: PrivacyAnonymizationStep[] | null;
+  anonymizationSummary?: null | PrivacyAnonymizationSummary;
+  /** @nullable */
+  anonymizedAt?: string | null;
+  /** @nullable */
+  anonymizedByName?: string | null;
+  /** @nullable */
+  backupNotice?: string | null;
 }

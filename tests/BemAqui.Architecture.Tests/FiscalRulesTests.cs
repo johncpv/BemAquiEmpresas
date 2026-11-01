@@ -341,31 +341,37 @@ public class FiscalRulesTests
         new FiscalIntegrationOptions().AllowedHosts.Should().Equal("api.fiscal.bemaquiapp.com.br");
     }
 
-    // ---------- FIS-03a CA 12 e 20 ----------
+    // ---------- FIS-03a CA 12 e 20; FIS-03b CA 5 e 13 ----------
 
-    /// <summary>CA 20: nota nunca é apagada; nenhuma rota DELETE nas notas de saída (o rascunho é descartado, a nota com número é cancelada ou inutilizada).</summary>
+    /// <summary>
+    /// FIS-03a CA 20 e FIS-03b CA 13: nota nunca é apagada; nenhuma rota DELETE nas notas de saída, nos eventos, nos pedidos de cancelamento
+    /// e nos números a inutilizar (todos no mesmo arquivo; o rascunho é descartado, a nota com número é cancelada ou inutilizada).
+    /// </summary>
     [Fact]
     public void Nenhuma_rota_DELETE_nas_notas_de_saida()
     {
         var endpoints = Path.Combine(Solution.RootDirectory, "src", "Modules", "Fiscal", "BemAqui.Fiscal.Endpoints");
-        File.ReadAllText(Path.Combine(endpoints, "FiscalEndpoints.OutgoingInvoices.cs"))
-            .Should().NotContain("MapDelete", "a nota fiscal nunca é apagada (CA 20)");
+        var source = File.ReadAllText(Path.Combine(endpoints, "FiscalEndpoints.OutgoingInvoices.cs"));
+        source.Should().NotContain("MapDelete", "a nota fiscal e os eventos nunca são apagados");
+        source.Should().Contain("/cancellation-requests").And.Contain("/number-gaps").And.Contain("/events");
     }
 
-    /// <summary>CA 12 (D4): nenhum consumidor do Inventory reage à nota autorizada; a baixa foi no romaneio.</summary>
+    /// <summary>FIS-03a CA 12 (D4) e FIS-03b CA 5 (D12): nenhum consumidor do Inventory reage à nota autorizada nem à cancelada; a baixa foi no romaneio.</summary>
     [Fact]
     public void Nenhum_consumidor_do_Inventory_para_a_nota_autorizada()
     {
+        Type[] events = [typeof(BemAqui.Fiscal.Contracts.InvoiceAuthorized), typeof(BemAqui.Fiscal.Contracts.InvoiceCancelled)];
         var consumers = Solution.Assemblies.Where(a => (a.GetName().Name ?? string.Empty).StartsWith("BemAqui.Inventory", StringComparison.Ordinal))
             .SelectMany(a => a.GetTypes())
-            .Where(t => t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericArguments().Any(g => g == typeof(BemAqui.Fiscal.Contracts.InvoiceAuthorized))))
+            .Where(t => t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericArguments().Any(events.Contains)))
             .ToList();
-        consumers.Should().BeEmpty("a NF-e só referencia o romaneio e nunca baixa o estoque de novo (D4)");
+        consumers.Should().BeEmpty("a NF-e só referencia o romaneio: emitir e cancelar nunca mexem no estoque (D4, D12)");
     }
 
-    /// <summary>CA 7: o evento da nota autorizada não leva dado do destinatário.</summary>
+    /// <summary>FIS-03a CA 7 e FIS-03b CA 1: os eventos da nota não levam dado do destinatário nem o motivo.</summary>
     [Fact]
     public void InvoiceAuthorized_sem_dado_pessoal() =>
-        typeof(BemAqui.Fiscal.Contracts.InvoiceAuthorized).GetProperties().Select(p => p.Name).Should()
-            .NotContain(n => n.Contains("Name", StringComparison.Ordinal) || n.Contains("Document", StringComparison.Ordinal) || n.Contains("Email", StringComparison.Ordinal));
+        new[] { typeof(BemAqui.Fiscal.Contracts.InvoiceAuthorized), typeof(BemAqui.Fiscal.Contracts.InvoiceCancelled) }.SelectMany(t => t.GetProperties()).Select(p => p.Name).Should()
+            .NotContain(n => n.Contains("Name", StringComparison.Ordinal) || n.Contains("Document", StringComparison.Ordinal) || n.Contains("Email", StringComparison.Ordinal)
+                || n.Contains("Reason", StringComparison.Ordinal));
 }

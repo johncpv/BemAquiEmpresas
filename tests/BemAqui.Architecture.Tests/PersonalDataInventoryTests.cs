@@ -78,6 +78,20 @@ public class PersonalDataInventoryTests
             "o expurgo é um job de tenant");
     }
 
+    /// <summary>
+    /// LGPD-01b (ADR 0037 §1): todo provedor que cobre entidade com dado pessoal planeja e anonimiza o que é dele (não fica no padrão do
+    /// contrato, que não faz nada); entidade nova coberta por um provedor entra na anonimização junto.
+    /// </summary>
+    [Fact]
+    public void Provedor_que_cobre_dado_pessoal_planeja_e_anonimiza()
+    {
+        const BindingFlags declared = BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+        var providers = Types().Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IPersonalDataProvider).IsAssignableFrom(t) && t.GetCustomAttribute<PersonalDataCoversAttribute>() is not null).ToList();
+        providers.Should().HaveCountGreaterThan(5);
+        providers.Where(p => p.GetMethod(nameof(IPersonalDataProvider.PlanAnonymizationAsync), declared) is null || p.GetMethod(nameof(IPersonalDataProvider.AnonymizeAsync), declared) is null)
+            .Select(p => p.FullName).Should().BeEmpty("cada módulo anonimiza o que é dele pelo contrato");
+    }
+
     [Fact]
     public void Texto_livre_do_RH_e_dado_pessoal()
     {
@@ -100,7 +114,8 @@ public class PersonalDataInventoryTests
         CarriesPersonalData(events).Should().BeEmpty();
 
         var args = Types().Where(t => t is { IsClass: true, IsAbstract: false }).Select(JobArgs).OfType<Type>().Distinct().ToList();
-        args.Should().Contain(typeof(BemAqui.Identity.Application.Privacy.PrivacyExportArgs));
+        args.Should().Contain([typeof(BemAqui.Identity.Application.Privacy.PrivacyExportArgs), typeof(BemAqui.Identity.Application.Privacy.PrivacyAnonymizationArgs)]);
+        events.Should().Contain(typeof(SubjectAnonymized), "o aviso da anonimização leva só ids e o número do pedido (LGPD-01b CA 9)");
         CarriesPersonalData(args).Should().BeEmpty();
     }
 

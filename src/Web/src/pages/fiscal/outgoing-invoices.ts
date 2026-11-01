@@ -40,6 +40,54 @@ export const INVOICE_DICAS = {
   vendaMista: 'Venda mista: o equipamento e as peças saem em NF-e na expedição; a instalação sai em NFS-e no aceite técnico.',
 } as const
 
+/** FIS-03b: verbos e confirmações do cancelamento, do pedido, da carta e da inutilização. */
+export const EVENT_TEXTS = {
+  cancelled: 'NF-e cancelada',
+  requested: 'Pedido de cancelamento enviado',
+  declined: 'Pedido recusado',
+  corrected: 'Carta de correção registrada',
+  invalidated: 'Números inutilizados',
+  onlyOwner: 'Só o Proprietário cancela notas fiscais.',
+  outOfWindow: 'Fora do prazo de cancelamento. A devolução fica com a contadora.',
+  sent: 'Cancelamento enviado. Aguardando a SEFAZ…',
+  slow: 'A SEFAZ está demorando para confirmar o cancelamento. A conferência automática confirma depois; não peça de novo.',
+  noEvents: 'Nenhum evento nesta nota.',
+  noGaps: 'Nenhum número pendente.',
+  correctionLimits: 'A carta de correção não pode mudar valores, impostos, quantidades, destinatário nem a data de emissão.',
+  irreversible: 'Esta ação não pode ser desfeita.',
+} as const
+
+export const EVENT_DICAS = {
+  prazo: 'A SEFAZ aceita o cancelamento só por um tempo depois da autorização (24 horas, em Configurações → Fiscal). Depois, a saída é a nota de devolução, com a contadora.',
+  carta: 'A carta de correção (CC-e) corrige um dado simples da nota sem cancelá-la. Cada nota aceita até 20; a última vale sobre as anteriores.',
+  inutilizar: 'Inutilizar avisa a SEFAZ que um número gasto não vai virar nota. A SEFAZ exige que a lacuna na numeração seja explicada.',
+  devolucao: 'Passado o prazo, a nota não é mais cancelada: a contadora emite a nota de devolução (entrada) que anula a venda.',
+} as const
+
+export const EVENT_STATUS: Record<'Requested' | 'Registered' | 'Rejected', { label: string; tone: StatusTone }> = {
+  Requested: { label: 'Enviado', tone: 'info' },
+  Registered: { label: 'Registrado', tone: 'ok' },
+  Rejected: { label: 'Recusado', tone: 'crit' },
+}
+
+/**
+ * Indício de mudança proibida na carta de correção (CA 9): valor em R$, CNPJ/CPF ou data no texto. Só avisa (âmbar), nunca bloqueia.
+ */
+export function correctionWarnings(text: string): string[] {
+  const warnings: string[] = []
+  if (/R\$\s*\d|\b\d{1,3}(\.\d{3})*,\d{2}\b/.test(text)) warnings.push('O texto parece mudar um valor em R$. A carta de correção não muda valores nem impostos.')
+  if (/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b|\b\d{3}\.\d{3}\.\d{3}-\d{2}\b|\b\d{11}\b/.test(text)) warnings.push('O texto parece ter um CNPJ ou CPF. A carta de correção não muda o destinatário.')
+  if (/\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/.test(text)) warnings.push('O texto parece ter uma data. A carta de correção não muda a data de emissão.')
+  return warnings
+}
+
+/** Faixa de números para o impacto em lista ("10, 11, 12"); longa demais, resume. */
+export function rangeNumbers(first: number, last: number, max = 50): number[] {
+  const all: number[] = []
+  for (let n = first; n <= last && all.length < max; n++) all.push(n)
+  return all
+}
+
 /** Processando há mais de 30 s ou em contingência: "Demorando" (CA 10). */
 export function isSlow(status: OutgoingInvoiceStatus, processingSince: string | null | undefined, now = Date.now()): boolean {
   if (status === 'ContingencyPending') return true

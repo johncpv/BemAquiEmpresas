@@ -24,6 +24,7 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         b.Property(e => e.SecurityStamp).HasMaxLength(64);
         b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
         b.Property(e => e.TotpSecretCipher).HasMaxLength(1024);
+        b.Property(e => e.AnonymizationRequest).HasMaxLength(20);
     }
 }
 

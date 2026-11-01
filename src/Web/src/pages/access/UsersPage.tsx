@@ -29,8 +29,9 @@ export function UsersPage() {
     { id: 'grupos', header: 'Grupos', meta: { secondary: true }, cell: ({ row: { original: u } }) => <span className="flex flex-wrap gap-1">{u.groups.map((g) => <span key={g.id} className="rounded-full bg-primary-soft px-2 py-0.5 text-xs">{g.name}</span>)}</span> },
     { id: '2fa', header: 'Verificação em duas etapas', meta: { secondary: true }, cell: ({ row: { original: u } }) => { const [tone, label] = TWO_FA[u.twoFactor as keyof typeof TWO_FA] ?? TWO_FA.pending; return <StatusChip tone={tone}>{label}</StatusChip> } },
     { id: 'acesso', header: 'Último acesso', meta: { sortField: 'lastLoginAt', secondary: true }, cell: ({ row: { original: u } }) => <span className="tabular-nums">{u.lastLoginAt ? formatDateTime(u.lastLoginAt) : '—'}</span> },
-    { id: 'situacao', header: 'Situação', cell: ({ row: { original: u } }) => { const [tone, label] = STATUS[u.status as keyof typeof STATUS] ?? STATUS.Active; return <StatusChip tone={tone}>{label}</StatusChip> } },
-    { id: 'acoes', header: '', cell: ({ row: { original: u } }) => <Can perm="identity.edit"><UserRowActions user={u} refresh={refresh} /></Can> },
+    // LGPD-01b: usuário anonimizado fica bloqueado e sem ações, com o pedido que anonimizou.
+    { id: 'situacao', header: 'Situação', cell: ({ row: { original: u } }) => { if (u.anonymizedAt) return <span title={`Cadastro anonimizado em ${formatDateTime(u.anonymizedAt)}${u.anonymizationRequest ? ` (pedido ${u.anonymizationRequest})` : ''}`}><StatusChip tone="neutral">Anonimizado</StatusChip></span>; const [tone, label] = STATUS[u.status as keyof typeof STATUS] ?? STATUS.Active; return <StatusChip tone={tone}>{label}</StatusChip> } },
+    { id: 'acoes', header: '', cell: ({ row: { original: u } }) => u.anonymizedAt ? null : <Can perm="identity.edit"><UserRowActions user={u} refresh={refresh} /></Can> },
   ]
 
   return (
