@@ -7220,6 +7220,304 @@
         }
       }
     },
+    "/api/v1/hr/payroll-tax-tables": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListPayrollTaxTables",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollTaxTablesView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CreatePayrollTaxTable",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollTaxTableInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollTaxTableDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-tax-tables/{id}": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayrollTaxTable",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollTaxTableDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "UpdatePayrollTaxTable",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollTaxTableInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollTaxTableDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-tax-tables/for-competence": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayrollTaxTableForCompetence",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/PayrollTaxTableKind"
+            }
+          },
+          {
+            "name": "competence",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollTaxTableInForce"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-tax-tables/simulate": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "SimulatePayrollTaxTables",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollTaxSimulationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollTaxSimulation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-tax-tables/{id}/impact": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayrollTaxTableImpact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollTaxTableImpact"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-tax-tables/{id}/rectify": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "RectifyPayrollTaxTable",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollTaxTableRectifyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollTaxTableDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-tax-tables/{id}/check": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CheckPayrollTaxTable",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollTaxTableCheckInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollTaxTableDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/payroll-runs": {
       "get": {
         "tags": [
@@ -26947,6 +27245,107 @@
         }
       }
     },
+    "/api/v1/finance/receivables/{id}/collection": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetReceivableCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableCollectionView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/collection-pause": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "PauseReceivableCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionPauseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableCollectionView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ResumeReceivableCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableCollectionView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/receivables/{id}/billing-slips": {
       "get": {
         "tags": [
@@ -27224,6 +27623,107 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BillingSlipResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/parties/{id}/collection": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetPartyCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyCollectionView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/parties/{id}/collection-pause": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "PausePartyCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionPauseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyCollectionView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ResumePartyCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyCollectionView"
                 }
               }
             }
@@ -30331,6 +30831,84 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BillingSettingsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/billing/collection-rule": {
+      "get": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "GetCollectionRule",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionRuleView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SaveCollectionRule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionRuleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionRuleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/billing/collection-rule/preview": {
+      "post": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "PreviewCollectionReminder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionPreviewInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionPreview"
                 }
               }
             }
@@ -43338,6 +43916,394 @@
           }
         }
       },
+      "CollectionNext": {
+        "required": [
+          "date",
+          "step",
+          "stepLabel",
+          "blocked"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "step": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "stepLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "blocked": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CollectionNoticeView": {
+        "required": [
+          "id",
+          "receivableId",
+          "receivableNumber",
+          "step",
+          "stepLabel",
+          "scheduledFor",
+          "status",
+          "reason",
+          "createdAt",
+          "sentAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receivableNumber": {
+            "type": "string"
+          },
+          "step": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stepLabel": {
+            "type": "string"
+          },
+          "scheduledFor": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sentAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "CollectionPauseInput": {
+        "required": [
+          "reason",
+          "until"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "until": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionPauseView": {
+        "required": [
+          "id",
+          "target",
+          "reason",
+          "from",
+          "until",
+          "createdByName",
+          "createdAt",
+          "resumedByName",
+          "resumedAt",
+          "active"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "target": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "until": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resumedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "resumedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CollectionPreview": {
+        "required": [
+          "subject",
+          "body",
+          "digitableLine",
+          "sampleNote"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "digitableLine": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sampleNote": {
+            "type": "string"
+          }
+        }
+      },
+      "CollectionPreviewInput": {
+        "required": [
+          "days",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionRuleInput": {
+        "required": [
+          "isActive",
+          "sendTime",
+          "steps",
+          "replyTo",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean"
+          },
+          "sendTime": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "steps": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/CollectionStepInput"
+            }
+          },
+          "replyTo": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionRuleView": {
+        "required": [
+          "id",
+          "isActive",
+          "sendTime",
+          "steps",
+          "replyTo",
+          "companyEmail",
+          "placeholders",
+          "maxSteps",
+          "nextRunCount",
+          "nextRunDate",
+          "canEdit",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sendTime": {
+            "type": "string"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionStepView"
+            }
+          },
+          "replyTo": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "companyEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "placeholders": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "maxSteps": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextRunCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextRunDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "CollectionStepInput": {
+        "required": [
+          "days",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionStepView": {
+        "required": [
+          "days",
+          "label",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "label": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
       "CommercialCard": {
         "required": [
           "from",
@@ -47433,6 +48399,37 @@
           "OnLeave"
         ]
       },
+      "EmployerChargesContent": {
+        "required": [
+          "taxRegime",
+          "employerRate",
+          "ratRate",
+          "fap",
+          "thirdPartiesRate"
+        ],
+        "type": "object",
+        "properties": {
+          "taxRegime": {
+            "type": "string"
+          },
+          "employerRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "ratRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "fap": {
+            "type": "number",
+            "format": "double"
+          },
+          "thirdPartiesRate": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "EntitySummary": {
         "required": [
           "entity",
@@ -48479,6 +49476,23 @@
           }
         }
       },
+      "FamilyAllowanceContent": {
+        "required": [
+          "maxRemuneration",
+          "quotaPerChild"
+        ],
+        "type": "object",
+        "properties": {
+          "maxRemuneration": {
+            "type": "number",
+            "format": "double"
+          },
+          "quotaPerChild": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "FcpParameters": {
         "required": [
           "rate"
@@ -48486,6 +49500,28 @@
         "type": "object",
         "properties": {
           "rate": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "FgtsContent": {
+        "required": [
+          "monthlyRate",
+          "terminationRate",
+          "apprenticeRate"
+        ],
+        "type": "object",
+        "properties": {
+          "monthlyRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "terminationRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "apprenticeRate": {
             "type": "number",
             "format": "double"
           }
@@ -53828,6 +54864,20 @@
           }
         }
       },
+      "InssContent": {
+        "required": [
+          "brackets"
+        ],
+        "type": "object",
+        "properties": {
+          "brackets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxBracket"
+            }
+          }
+        }
+      },
       "InstallationAcceptInput": {
         "required": [
           "date",
@@ -56020,6 +57070,62 @@
           },
           "fromNcm": {
             "type": "boolean"
+          },
+          "rate": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "IrrfContent": {
+        "required": [
+          "brackets",
+          "dependentDeduction",
+          "simplifiedDiscount",
+          "reductions"
+        ],
+        "type": "object",
+        "properties": {
+          "brackets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxBracket"
+            }
+          },
+          "dependentDeduction": {
+            "type": "number",
+            "format": "double"
+          },
+          "simplifiedDiscount": {
+            "type": "number",
+            "format": "double"
+          },
+          "reductions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IrrfReduction"
+            }
+          }
+        }
+      },
+      "IrrfReduction": {
+        "required": [
+          "upTo",
+          "fixedAmount",
+          "rate"
+        ],
+        "type": "object",
+        "properties": {
+          "upTo": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "fixedAmount": {
+            "type": "number",
+            "format": "double"
           },
           "rate": {
             "type": "number",
@@ -59531,6 +60637,18 @@
           "Date",
           "Event"
         ]
+      },
+      "MinimumWageContent": {
+        "required": [
+          "monthly"
+        ],
+        "type": "object",
+        "properties": {
+          "monthly": {
+            "type": "number",
+            "format": "double"
+          }
+        }
       },
       "MissingCostPosition": {
         "required": [
@@ -64652,6 +65770,51 @@
           }
         }
       },
+      "PartyCollectionView": {
+        "required": [
+          "ruleActive",
+          "sentThisMonth",
+          "notices",
+          "activePause",
+          "pauses",
+          "canEdit"
+        ],
+        "type": "object",
+        "properties": {
+          "ruleActive": {
+            "type": "boolean"
+          },
+          "sentThisMonth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionNoticeView"
+            }
+          },
+          "activePause": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CollectionPauseView"
+              }
+            ]
+          },
+          "pauses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionPauseView"
+            }
+          },
+          "canEdit": {
+            "type": "boolean"
+          }
+        }
+      },
       "PartyContactDto": {
         "required": [
           "id",
@@ -66792,6 +67955,65 @@
           }
         }
       },
+      "PayrollChangeField": {
+        "required": [
+          "field",
+          "before",
+          "after"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "before": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "after": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollChangeNotice": {
+        "required": [
+          "what",
+          "action",
+          "fields",
+          "byName",
+          "at"
+        ],
+        "type": "object",
+        "properties": {
+          "what": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollChangeField"
+            }
+          },
+          "byName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "PayrollChargeDefault": {
         "required": [
           "kind",
@@ -67025,6 +68247,10 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "acknowledgedChanges": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -67096,7 +68322,8 @@
           "salaryTotal",
           "chargeCount",
           "chargeTotal",
-          "version"
+          "version",
+          "changes"
         ],
         "type": "object",
         "properties": {
@@ -67161,6 +68388,12 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollChangeNotice"
+            }
           }
         }
       },
@@ -67902,6 +69135,13 @@
           }
         }
       },
+      "PayrollRounding": {
+        "enum": [
+          "AwayFromZero",
+          "ToEven",
+          "Truncate"
+        ]
+      },
       "PayrollRunCreateInput": {
         "required": [
           "period",
@@ -68079,6 +69319,653 @@
           "Thirteenth2",
           "Termination"
         ]
+      },
+      "PayrollTaxContent": {
+        "type": "object",
+        "properties": {
+          "inss": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/InssContent"
+              }
+            ]
+          },
+          "irrf": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IrrfContent"
+              }
+            ]
+          },
+          "familyAllowance": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FamilyAllowanceContent"
+              }
+            ]
+          },
+          "minimumWage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MinimumWageContent"
+              }
+            ]
+          },
+          "fgts": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FgtsContent"
+              }
+            ]
+          },
+          "transportVoucher": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TransportVoucherContent"
+              }
+            ]
+          },
+          "employerCharges": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EmployerChargesContent"
+              }
+            ]
+          }
+        }
+      },
+      "PayrollTaxImpactRun": {
+        "required": [
+          "runId",
+          "period",
+          "type",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "period": {
+            "type": "string",
+            "format": "date"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PayrollRunType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayrollRunStatus"
+          }
+        }
+      },
+      "PayrollTaxSimulation": {
+        "required": [
+          "competence",
+          "base",
+          "dependents",
+          "children",
+          "lines",
+          "missing"
+        ],
+        "type": "object",
+        "properties": {
+          "competence": {
+            "type": "string",
+            "format": "date"
+          },
+          "base": {
+            "type": "number",
+            "format": "double"
+          },
+          "dependents": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "children": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollTaxSimulationLine"
+            }
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PayrollTaxSimulationInput": {
+        "required": [
+          "competence",
+          "base",
+          "dependents",
+          "children"
+        ],
+        "type": "object",
+        "properties": {
+          "competence": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "base": {
+            "type": "number",
+            "format": "double"
+          },
+          "dependents": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "children": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PayrollTaxSimulationLine": {
+        "required": [
+          "kind",
+          "label",
+          "tableId",
+          "status",
+          "validFrom",
+          "amount",
+          "memory"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/PayrollTaxTableKind"
+          },
+          "label": {
+            "type": "string"
+          },
+          "tableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayrollTaxTableStatus"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "memory": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PayrollTaxTableCheckInput": {
+        "required": [
+          "accountant",
+          "checkedOn",
+          "dataset",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "accountant": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "checkedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "dataset": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollTaxTableDetail": {
+        "required": [
+          "id",
+          "kind",
+          "kindLabel",
+          "validFrom",
+          "status",
+          "rectifiesId",
+          "rectifyReason",
+          "content",
+          "schemaVersion",
+          "rounding",
+          "source",
+          "seedPackage",
+          "createdByName",
+          "createdAt",
+          "editedByNames",
+          "editedAt",
+          "checkedByName",
+          "checkedAt",
+          "checkedNote",
+          "checkedWithDataset",
+          "inForceToday",
+          "isFuture",
+          "mineToCheck",
+          "warnings",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PayrollTaxTableKind"
+          },
+          "kindLabel": {
+            "type": "string"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayrollTaxTableStatus"
+          },
+          "rectifiesId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "rectifyReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "content": {
+            "$ref": "#/components/schemas/PayrollTaxContent"
+          },
+          "schemaVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rounding": {
+            "$ref": "#/components/schemas/PayrollRounding"
+          },
+          "source": {
+            "type": "string"
+          },
+          "seedPackage": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "editedByNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "editedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "checkedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "checkedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "checkedNote": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "checkedWithDataset": {
+            "type": "boolean"
+          },
+          "inForceToday": {
+            "type": "boolean"
+          },
+          "isFuture": {
+            "type": "boolean"
+          },
+          "mineToCheck": {
+            "type": "boolean"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollTaxTableImpact": {
+        "required": [
+          "draftRuns",
+          "closedRuns"
+        ],
+        "type": "object",
+        "properties": {
+          "draftRuns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollTaxImpactRun"
+            }
+          },
+          "closedRuns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollTaxImpactRun"
+            }
+          }
+        }
+      },
+      "PayrollTaxTableInForce": {
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "validFrom",
+          "schemaVersion",
+          "content",
+          "rounding"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PayrollTaxTableKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayrollTaxTableStatus"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "schemaVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "$ref": "#/components/schemas/PayrollTaxContent"
+          },
+          "rounding": {
+            "$ref": "#/components/schemas/PayrollRounding"
+          }
+        }
+      },
+      "PayrollTaxTableInput": {
+        "required": [
+          "kind",
+          "validFrom",
+          "content",
+          "rounding",
+          "source",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollTaxTableKind"
+              }
+            ]
+          },
+          "validFrom": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "content": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollTaxContent"
+              }
+            ]
+          },
+          "rounding": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollRounding"
+              }
+            ]
+          },
+          "source": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollTaxTableKind": {
+        "enum": [
+          "Inss",
+          "Irrf",
+          "FamilyAllowance",
+          "MinimumWage",
+          "Fgts",
+          "TransportVoucher",
+          "EmployerCharges"
+        ]
+      },
+      "PayrollTaxTableRectifyInput": {
+        "required": [
+          "reason",
+          "content",
+          "rounding",
+          "source",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "content": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollTaxContent"
+              }
+            ]
+          },
+          "rounding": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollRounding"
+              }
+            ]
+          },
+          "source": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "PayrollTaxTableSection": {
+        "required": [
+          "kind",
+          "label",
+          "inForceId",
+          "versions",
+          "pendingNote"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/PayrollTaxTableKind"
+          },
+          "label": {
+            "type": "string"
+          },
+          "inForceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollTaxTableDetail"
+            }
+          },
+          "pendingNote": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollTaxTableStatus": {
+        "enum": [
+          "Unconfirmed",
+          "Active",
+          "Superseded"
+        ]
+      },
+      "PayrollTaxTablesView": {
+        "required": [
+          "sections",
+          "unconfirmed",
+          "singleApprover",
+          "suggestedBase"
+        ],
+        "type": "object",
+        "properties": {
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollTaxTableSection"
+            }
+          },
+          "unconfirmed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "singleApprover": {
+            "type": "boolean"
+          },
+          "suggestedBase": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
       },
       "PayrollTimesheetSource": {
         "enum": [
@@ -77090,6 +78977,61 @@
             "type": "string"
           },
           "isDefault": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReceivableCollectionView": {
+        "required": [
+          "ruleActive",
+          "next",
+          "notices",
+          "activePause",
+          "partyPause",
+          "pauses",
+          "canEdit"
+        ],
+        "type": "object",
+        "properties": {
+          "ruleActive": {
+            "type": "boolean"
+          },
+          "next": {
+            "$ref": "#/components/schemas/CollectionNext"
+          },
+          "notices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionNoticeView"
+            }
+          },
+          "activePause": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CollectionPauseView"
+              }
+            ]
+          },
+          "partyPause": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CollectionPauseView"
+              }
+            ]
+          },
+          "pauses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionPauseView"
+            }
+          },
+          "canEdit": {
             "type": "boolean"
           }
         }
@@ -86678,6 +88620,31 @@
           }
         }
       },
+      "TaxBracket": {
+        "required": [
+          "upTo",
+          "rate"
+        ],
+        "type": "object",
+        "properties": {
+          "upTo": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "rate": {
+            "type": "number",
+            "format": "double"
+          },
+          "deduction": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          }
+        }
+      },
       "TaxCalculation": {
         "required": [
           "items",
@@ -89921,6 +91888,18 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "TransportVoucherContent": {
+        "required": [
+          "maxDiscountRate"
+        ],
+        "type": "object",
+        "properties": {
+          "maxDiscountRate": {
+            "type": "number",
+            "format": "double"
           }
         }
       },

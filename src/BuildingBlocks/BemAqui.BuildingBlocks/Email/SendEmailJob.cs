@@ -41,9 +41,22 @@ public sealed partial class SendEmailJob(ITenantDirectory directory, ITenantScop
         var db = services.GetRequiredService<BemAquiDbContext>();
         var clock = services.GetRequiredService<TimeProvider>();
         var log = await db.EmailLogs.FindAsync([args.EmailLogId], cancellationToken);
-        if (log is null || log.Status is EmailStatus.Sent or EmailStatus.Failed)
+        if (log is null || log.Status is EmailStatus.Sent or EmailStatus.Failed or EmailStatus.Skipped)
         {
             return; // já resolvido: reentrega do Hangfire não envia de novo
+        }
+
+        // Guarda por template (FIN-09 CA 5): a situação do documento é conferida de novo no momento do envio.
+        foreach (var guard in services.GetServices<IEmailSendGuard>().Where(g => string.Equals(g.Template, log.Template, StringComparison.Ordinal)))
+        {
+            if (await guard.SkipReasonAsync(log, cancellationToken) is { } reason)
+            {
+                log.Status = EmailStatus.Skipped;
+                log.Error = reason;
+                log.RedactSecrets();
+                await db.SaveChangesAsync(cancellationToken);
+                return;
+            }
         }
 
         var (files, wait, refused) = await AttachmentsAsync(services, db, log, cancellationToken);

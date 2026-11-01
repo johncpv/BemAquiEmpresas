@@ -162,7 +162,7 @@ public partial class PayslipDocumentTests
     private static async Task<HttpResponseMessage> CloseAsync(Actor actor, Guid run)
     {
         var version = (await JsonAsync(await actor.Client.GetAsync($"{Runs}/{run}"))).GetProperty("version").GetUInt32();
-        return await actor.Client.SendAsync(Post($"{Runs}/{run}/close", new { paymentDate = "2034-02-05", twoFactorCode = actor.Codes!.Next(), version }));
+        return await actor.Client.SendAsync(Post($"{Runs}/{run}/close", new { paymentDate = "2034-02-05", twoFactorCode = actor.Codes!.Next(), version, acknowledgedChanges = true }));
     }
 
     private Task<int> SetAccountAsync(Guid employeeId) =>

@@ -518,7 +518,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-7, R-FIS-8, R-PRJ-3, R-PRJ-5.
 - CA: NFS-e a partir do aceite técnico, com o código de serviço e o ISS de Configurações → Fiscal; vínculo à NF-e do equipamento; ISS no custo do projeto; até o provider de Caçapava no Emissor, processo provisório pelo portal da prefeitura com o registro manual.
 
-**FIN-09 [ ] Régua de cobrança por e-mail (M)** — D — 5.6, ordem 16 — `Ready` — [story](stories/FIN-09-regua-de-cobranca.md)
+**FIN-09 [x] Régua de cobrança por e-mail (M)** — D — 5.6, ordem 16 — `Done` (textos padrão a revisar pelo comercial e pelo jurídico; SMTP real: pré-condição externa) — [story](stories/FIN-09-regua-de-cobranca.md)
 - Requisitos: R-FIN-9, R-COM-1, R-FIN-12.
 - CA: seção "Régua de cobrança" em Configurações → Cobrança (passos −3, 0, +3, +10 dias); uma vez por passo; títulos de implantação fora; conferência antes de enfileirar e de novo no envio; texto editável literal e escapado, com placeholders de lista fixa; pausa por cliente e título.
 
@@ -601,7 +601,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-7--folha-calculad
 
 **Ordem de execução:** **7.1:** FLH-01 → FLH-02a → FLH-02b → **7.2:** FLH-03 → FLH-04 → FLH-05 → **7.3:** FLH-06 (começa depois da FLH-02b, em paralelo ao 7.2). **Quebra:** FLH-02 → 02a/02b.
 
-**FLH-01 [ ] Folha calculada: tabelas legais por vigência (INSS, IRRF, salário-família e parâmetros) (M)** — 7.1, ordem 1 — `Ready (pré-condição externa)` — [story](stories/FLH-01-tabelas-legais-vigencia.md)
+**FLH-01 [x] Folha calculada: tabelas legais por vigência (INSS, IRRF, salário-família e parâmetros) (M)** — 7.1, ordem 1 — `Done (pré-condição externa: contadora e tabelas oficiais)` — [story](stories/FLH-01-tabelas-legais-vigencia.md)
 - Requisitos: R-RH-6, R-SEC-5.
 - CA: INSS, IRRF, salário-família, salário mínimo, FGTS, VT e encargos por vigência, pré-cadastrados "a confirmar"; quem cadastra não confere; esquema por tipo versionado; arredondamento parametrizado; versão ativa imutável e retificação explícita.
 

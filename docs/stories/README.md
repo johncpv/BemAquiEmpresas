@@ -746,7 +746,7 @@ Stories da Fase 5 sem o go-live (as GOL foram para o [marco final](#marco-final-
 | 13 (5.5) | FIS-04b | Recebimento pela NF-e de entrada: estoque pelo custo da nota e títulos a pagar pelas duplicatas, na mesma transação | M | Done | R-CMP-5, R-EST-7, R-FIN-4, R-FIN-10, R-PRP-2, R-PRP-3 | FIS-04a, CMP-04, CMP-03a, EST-01a, FIS-02a | [FIS-04b](FIS-04b-recebimento-pela-nota.md) |
 | 14 (5.5) | FIS-05 | NF-e de entrada por PDF (DANFE): chave, leitura assistida em worker isolado, "Digitar a nota" e conferência obrigatória | M | Ready | R-FIS-6, R-PRP-3, R-SEC-5 | FIS-04a, FIS-04b, FIS-01, FND-07 | [FIS-05](FIS-05-nfe-entrada-pdf.md) |
 | 15 (5.6) | FIS-06 | NFS-e da instalação no aceite técnico, com o processo provisório pelo portal da prefeitura | M | Ready (pré-condição externa) | R-FIS-7, R-FIS-8, R-PRJ-3, R-PRJ-5, R-COM-1, R-PRP-2 | FIS-01, FIS-02a, FIS-02b, FIS-03a, COM-06, PRD-04 | [FIS-06](FIS-06-nfse-instalacao.md) |
-| 16 (5.6) | FIN-09 | Régua de cobrança por e-mail (D) | M | Ready | R-FIN-9, R-COM-1, R-FIN-12, R-PRP-5, R-SEC-5 | BNK-01b, BNK-02, FIN-01, FND-08, COM-03, FIN-06a | [FIN-09](FIN-09-regua-de-cobranca.md) |
+| 16 (5.6) | FIN-09 | Régua de cobrança por e-mail (D) | M | Done | R-FIN-9, R-COM-1, R-FIN-12, R-PRP-5, R-SEC-5 | BNK-01b, BNK-02, FIN-01, FND-08, COM-03, FIN-06a | [FIN-09](FIN-09-regua-de-cobranca.md) |
 
 Total da Fase 5: 16 stories (M: 8 · G: 8), todas `Ready`; 11 com pré-condição externa explícita, que não bloqueia.
 
@@ -849,7 +849,7 @@ Ver as [decisões do PO](#decisões-do-po-21102026-john-1) na Fase 4. A Fase 7 e
 ## Índice
 | Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
 |---|---|---|---|---|---|---|---|
-| 1 (7.1) | FLH-01 | Folha calculada: tabelas legais por vigência (INSS, IRRF, salário-família e parâmetros) | M | Ready (pré-condição externa) | R-RH-6, R-SEC-5, PRD §6 | RH-02a, RH-02c, CAD-06, ADR 0016, FND-09e | [FLH-01](FLH-01-tabelas-legais-vigencia.md) |
+| 1 (7.1) | FLH-01 | Folha calculada: tabelas legais por vigência (INSS, IRRF, salário-família e parâmetros) | M | Done (pré-condição externa) | R-RH-6, R-SEC-5, PRD §6 | RH-02a, RH-02c, CAD-06, ADR 0016, FND-09e | [FLH-01](FLH-01-tabelas-legais-vigencia.md) |
 | 2 (7.1) | FLH-02a | Folha calculada: cálculo mensal (salário, adicionais, faltas, INSS, IRRF, FGTS, salário-família, VT) | G | Ready (pré-condição externa) | R-RH-6, R-RH-5, R-FIN-10, PRD §6, R-SEC-5, R-PRP-7 | FLH-01, RH-02a, RH-02b, RH-02c, ADR 0036, RH-01c, CAD-04c2 | [FLH-02a](FLH-02a-calculo-mensal.md) |
 | 3 (7.1) | FLH-02b | Folha calculada: horas extras, adicional noturno e DSR a partir do ponto | M | Ready (pré-condição externa) | R-RH-6, R-RH-4, R-SEC-5 | FLH-02a, RH-01c, FLH-01, CAD-03 | [FLH-02b](FLH-02b-horas-extras-dsr.md) |
 | 4 (7.2) | FLH-03 | Folha calculada: férias (períodos aquisitivos, programação, cálculo e recibo) | G | Ready (pré-condição externa) | R-RH-6, R-RH-4, R-RH-5, R-FIN-10, R-PRP-5, R-SEC-5 | FLH-02a, FLH-02b, FLH-01, RH-01c, RH-02b, ADR 0036, CAD-04b | [FLH-03](FLH-03-ferias.md) |

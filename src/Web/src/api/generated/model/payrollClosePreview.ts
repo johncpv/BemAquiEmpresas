@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { PayrollChangeNotice } from './payrollChangeNotice';
 import type { PayrollCloseIssue } from './payrollCloseIssue';
 import type { PayrollClosePerson } from './payrollClosePerson';
 import type { PayrollRunType } from './payrollRunType';
@@ -24,4 +25,5 @@ export interface PayrollClosePreview {
   chargeCount: number;
   chargeTotal: number;
   version: number;
+  changes: PayrollChangeNotice[];
 }

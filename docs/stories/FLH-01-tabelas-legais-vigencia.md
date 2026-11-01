@@ -5,7 +5,7 @@
 | ID | FLH-01 |
 | Título | Tabelas e parâmetros legais da folha versionados por vigência, nunca fixos no código: INSS do empregado (faixas progressivas e teto), IRRF (faixas, parcela a deduzir, dedução por dependente, desconto simplificado e redução adicional da norma vigente), salário-família (limite e cota), salário mínimo, FGTS, vale-transporte e encargos da empresa (Lucro Presumido, P-01); pré-cadastradas pela legislação vigente com o chip "A confirmar com a contadora", editáveis até a conferência, imutáveis depois; histórico e leitura "pela data" para o motor |
 | Tamanho | M |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: conferência da contadora e tabelas oficiais de 2026) |
 | Requisitos | R-RH-6 ("tabelas parametrizadas por vigência") · R-SEC-5 · PRD §6 (Riscos: folha calculada com responsabilidade legal) |
 | Dependências | Fase 6 concluída (ordem das fases); RH-02a (rubricas e folha), RH-02c (fechamento, onde entra o aviso do CA 12), CAD-06 (Configurações → Parâmetros, ADR 0016 M6), FND-09e |
 | Bloqueia | FLH-02a, FLH-02b, FLH-03, FLH-04, FLH-05 |
@@ -96,20 +96,20 @@ Decisões da revisão aplicadas: D1 (Fase 7 antes do go-live); §4.3 FLH-01/02 (
 **Pré-condição externa:** conferência dos valores pré-cadastrados pela contadora (o valor proposto já está cadastrado como "A confirmar com a contadora"; não bloqueia o `Ready` nem a simulação; o fechamento oficial só existe depois da virada da FLH-06).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade (dataset sintético), integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva); seed patch `hr-payroll-tables-{ano}` com o pacote de dados e a fonte de cada tabela; nenhum valor legal no código C#.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Tela com estados; ajuda prevista escrita; teste de cobertura passando.
-- [ ] Auditoria ligada (antes/depois, conferência com quem e quando).
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos (CA 7 e 13: a marca "Tabela alterada/retificada depois do cálculo" nas folhas calculadas entra com a FLH-02a; ver Change Log).
+- [x] Testes de unidade (dataset sintético) e integração (Testcontainers) passando; E2E não escrito (regra do PO de 31/10: a story prova os CAs com unidade, integração e Vitest).
+- [x] Migration criada (não destrutiva); seed patch `hr-payroll-tables-{ano}` com o pacote de dados e a fonte de cada tabela; nenhum valor legal no código C#.
+- [x] Permissões só do `ModuleCatalog`.
+- [x] Tela com estados; ajuda prevista escrita; teste de cobertura passando.
+- [x] Auditoria ligada (antes/depois, conferência com quem e quando).
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Esquemas por tipo e validação; `IPayrollTaxTables`; pacote de dados do ano e seed patch.
-- [ ] Endpoints `/api/v1/hr/payroll-tax-tables` (cadastro, edição, conferência, retificação, simulação).
-- [ ] Lista de mudanças desde o último fechamento para o diálogo da RH-02c (CA 12).
-- [ ] Tela, simulador e ajuda.
+- [x] Esquemas por tipo e validação; `IPayrollTaxTables`; pacote de dados do ano e seed patch.
+- [x] Endpoints `/api/v1/hr/payroll-tax-tables` (cadastro, edição, conferência, retificação, simulação).
+- [x] Lista de mudanças desde o último fechamento para o diálogo da RH-02c (CA 12).
+- [x] Tela, simulador e ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @architect (esquema por tipo, determinismo), @qa, revisão da contadora (externa, nos valores).
@@ -143,3 +143,6 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D1, tabela 3.4 pontos 1–6 e "Determinismo", §4.3 FLH-01/02, §4.4 padrão 7, ADR 0042); nova ordem (Marco 7.1, ordem 1, antes do go-live); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 31/10/2026 | 1.0 | Implementação (@dev): `hr.payroll_tax_tables` e `hr.payroll_tax_table_datasets` (migration `PayrollTaxTablesFlh01`, não destrutiva); esquema 1 por tipo e validação no Domain (`PayrollTaxRules`, faixas crescentes, alíquota 0–100% com 4 casas, dinheiro com 2, continuidade do IRRF como aviso, arredondamento `AwayFromZero`/`ToEven`/`Truncate`); `IPayrollTaxTables.ForCompetenceAsync` (422 `payroll_tax_table_missing` "Falta a tabela {tipo} para {mês}." com o link) e `RequireActiveAsync` (fechamento oficial, FLH-02a CA 16); cadastro, edição, conferência com segregação e a exceção do Proprietário único com o dataset, retificação e impacto em `/api/v1/hr/payroll-tax-tables`; simulador com a memória; evento `PayrollTaxTableActivated`; mudanças de tabela e de `hr.parameters` desde o último fechamento no diálogo de fechamento, com ciência obrigatória (CA 12); tela RH → Tabelas da folha e `Ajuda/rh-tabelas-folha.md`; ADR 0039 com o adendo do esquema 1 | @dev |
+| 31/10/2026 | 1.0 | **Pendência externa (tabelas oficiais):** o repositório não tem a fonte oficial dos valores de 2026 de INSS (faixas e teto), IRRF (faixas, dedução por dependente, desconto simplificado e redução adicional), salário-família, salário mínimo, FGTS e vale-transporte; para não inventar valor, o pacote `hr-payroll-tables-2026.json` traz essas entradas como `pending` (sem versão criada; a tela mostra a nota do pacote e "Nova versão"). Só os **encargos da empresa** (Lucro Presumido, P-01: patronal 20%, RAT 3% × FAP 1,0000, terceiros 5,8%, CA 4) entram pré-cadastrados "A confirmar com a contadora". Para completar: preencher `content`, `validFrom` e `source` no JSON (o próximo deploy cria a versão em cada tenant, uma vez) ou cadastrar pela tela. **Pendência externa (contadora):** conferência de todas as versões | @dev |
+| 31/10/2026 | 1.0 | Recomendações aceitas (PO 24/10): (1) vigência sem `valid_to` — vale até a próxima versão do tipo, com índice único parcial (kind, valid_from) entre as vigentes no lugar do `EXCLUDE USING gist` (mesma garantia, ADR 0039 adendo); (2) o seed patch é marcado por (`seed_package`, tipo) com índice único, não em `identity.seed_patches` (tabela do Identity, ADR 0006); (3) as marcas "Tabela alterada/retificada depois do cálculo" e "Recalcular"/"Ver diferença" nas folhas calculadas entram com a FLH-02a, que cria o cálculo e os `tax_table_ids` do holerite — até lá não existe folha calculada; o impacto (padrão 7) já lista as folhas calculadas da vigência; (4) sem nenhum fechamento anterior, o aviso do CA 12 lista só as mudanças feitas por usuário (o seed já aparece como "A confirmar"); (5) `edited_by` guarda todos que editaram (`uuid[]`), para "quem editou não confere" valer para cada um; (6) E2E não escrito (regra do PO de 31/10) | @dev |
