@@ -14,6 +14,7 @@ Baixar o XML autorizado e o DANFE em PDF da nota e reenviar os dois ao cliente.
 2. Para mandar de novo ao cliente, clique em **Reenviar XML e DANFE**. O e-mail vai para o e-mail de cobrança do cliente, com a cópia informada nos dados da nota.
 
 ## Situações
+- **Cancelada**: além do XML e do DANFE originais, fica o **DANFE da nota cancelada**, com a marca CANCELADA. Use **Baixar DANFE cancelado**. O XML do evento de cancelamento fica na aba Eventos.
 - Antes da autorização não há documento. Se o Emissor Fiscal demorar para entregar o XML ou o DANFE, a conferência automática guarda depois.
 - O XML e o DANFE ficam guardados por 5 anos, sem expurgo.
 

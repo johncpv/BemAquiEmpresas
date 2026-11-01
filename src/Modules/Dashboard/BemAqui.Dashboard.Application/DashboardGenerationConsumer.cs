@@ -28,7 +28,8 @@ public sealed class DashboardGenerationConsumer(DashboardCache cache, ITenantCon
       IIntegrationEventConsumer<StockReturned>,
       IIntegrationEventConsumer<LaborEntryClosed>,
       IIntegrationEventConsumer<LaborEntryCorrected>,
-      IIntegrationEventConsumer<InvoiceAuthorized>
+      IIntegrationEventConsumer<InvoiceAuthorized>,
+      IIntegrationEventConsumer<InvoiceCancelled>
 {
     public Task HandleAsync(RevenueTargetsChanged integrationEvent, CancellationToken cancellationToken) => Bump();
 
@@ -58,6 +59,9 @@ public sealed class DashboardGenerationConsumer(DashboardCache cache, ITenantCon
 
     /// <summary>FIS-03a: a nota autorizada muda a receita (pela data da nota) e o imposto realizado do projeto.</summary>
     public Task HandleAsync(InvoiceAuthorized integrationEvent, CancellationToken cancellationToken) => Bump();
+
+    /// <summary>FIS-03b: a nota cancelada sai da receita e o imposto dela sai do custo do projeto.</summary>
+    public Task HandleAsync(InvoiceCancelled integrationEvent, CancellationToken cancellationToken) => Bump();
 
     private Task Bump()
     {

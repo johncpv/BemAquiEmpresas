@@ -233,6 +233,133 @@ public sealed class OutgoingInvoice : Entity, IAuditable, IConcurrencyVersioned
 
     public uint Version { get; set; }
 
+    // ---------- FIS-03b: cancelamento e carta de correção ----------
+
+    /// <summary>"Cancelamento enviado" (CA 1): o pedido foi ao Emissor e a nota espera a SEFAZ; nulo depois do desfecho.</summary>
+    public DateTimeOffset? CancellationSentAt { get; private set; }
+
+    /// <summary>Carta de correção em andamento: trava a nota contra cancelamento e outra carta ao mesmo tempo (CA 15).</summary>
+    public DateTimeOffset? CorrectionSentAt { get; private set; }
+
+    /// <summary>Motivo do cancelamento (a justificativa enviada à SEFAZ).</summary>
+    public string? CancellationReason { get; private set; }
+
+    /// <summary>Quem mandou cancelar (sempre com <c>fiscal.approve</c>).</summary>
+    public Guid? CancelledBy { get; private set; }
+
+    public DateTimeOffset? CancelledAt { get; private set; }
+
+    /// <summary>Data do cancelamento (dia de São Paulo): o reverso do imposto do projeto conta por ela.</summary>
+    public DateOnly? CancelledOn { get; private set; }
+
+    public string? CancellationProtocol { get; private set; }
+
+    /// <summary>Quando o <c>InvoiceCancelled</c> foi para o outbox (uma vez só, mesmo com resposta, webhook e conferência).</summary>
+    public DateTimeOffset? CancellationPublishedAt { get; private set; }
+
+    /// <summary>DANFE da nota cancelada, com a marca "CANCELADA" (CA 6), guardado ao lado do original.</summary>
+    public Guid? CancelledDanfeAttachmentId { get; private set; }
+
+    /// <summary>
+    /// "Cancelar NF-e" (CA 1 e 15): só a autorizada, dentro do prazo, sem carta de correção em andamento. Grava "Cancelamento enviado"
+    /// antes de chamar o Emissor; com o <c>xmin</c>, dois pedidos juntos deixam só um ir. Reenviar o mesmo cancelamento sem resposta só
+    /// depois de <see cref="FiscalEventRules.ResendAfter"/>.
+    /// </summary>
+    public Error? BeginCancellation(string reason, Guid? by, DateTimeOffset now, DateTimeOffset? deadline)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(reason);
+        if (Status != OutgoingInvoiceStatus.Authorized)
+        {
+            return Error.Conflict(FiscalErrorCodes.NotAuthorized, Status == OutgoingInvoiceStatus.Cancelled ? "A nota já está cancelada." : "Só a nota autorizada é cancelada.");
+        }
+
+        if (!FiscalEventRules.WithinWindow(deadline, now))
+        {
+            return Error.Conflict(FiscalErrorCodes.CancellationWindowClosed, FiscalEventRules.OutOfWindow);
+        }
+
+        if (CorrectionSentAt is not null)
+        {
+            return Error.Conflict(FiscalErrorCodes.EventInProgress, "Uma carta de correção desta nota está sendo registrada. Recarregue e tente de novo.");
+        }
+
+        if (CancellationSentAt is { } sent && now - sent < FiscalEventRules.ResendAfter)
+        {
+            return Error.Conflict(FiscalErrorCodes.EventInProgress, "O cancelamento já foi enviado. Aguarde a resposta da SEFAZ.");
+        }
+
+        CancellationSentAt = now;
+        CancellationReason = reason;
+        CancelledBy = by;
+        UpdatedAt = now;
+        UpdatedBy = by;
+        return null;
+    }
+
+    /// <summary>A SEFAZ (ou o Emissor, antes dela) recusou o cancelamento: a nota continua autorizada.</summary>
+    public void CancellationRefused(DateTimeOffset at)
+    {
+        CancellationSentAt = null;
+        UpdatedAt = at;
+    }
+
+    /// <summary>Cancelamento homologado (resposta do evento): a nota passa a <c>Cancelled</c> com o protocolo do evento.</summary>
+    public bool MarkCancelled(string? protocol, DateTimeOffset at)
+    {
+        if (Status is not (OutgoingInvoiceStatus.Authorized or OutgoingInvoiceStatus.Cancelled))
+        {
+            return false;
+        }
+
+        var changed = Status != OutgoingInvoiceStatus.Cancelled;
+        Status = OutgoingInvoiceStatus.Cancelled;
+        CancellationProtocol ??= protocol;
+        CancelledAt ??= at;
+        CancellationSentAt = null;
+        return changed;
+    }
+
+    /// <summary>Grava a data do cancelamento e devolve true na primeira vez, para o <c>InvoiceCancelled</c> ir uma vez só ao outbox (CA 1 e 5).</summary>
+    public bool MarkCancellationPublished(DateOnly cancelledOn, DateTimeOffset at)
+    {
+        if (Status != OutgoingInvoiceStatus.Cancelled || CancellationPublishedAt is not null)
+        {
+            return false;
+        }
+
+        CancelledOn = cancelledOn;
+        CancellationPublishedAt = at;
+        return true;
+    }
+
+    public void AttachCancelledDanfe(Guid attachmentId) => CancelledDanfeAttachmentId ??= attachmentId;
+
+    /// <summary>"Registrar carta de correção" (CA 8 e 15): só a autorizada, sem cancelamento nem outra carta em andamento.</summary>
+    public Error? BeginCorrection(Guid? by, DateTimeOffset now)
+    {
+        if (Status != OutgoingInvoiceStatus.Authorized)
+        {
+            return Error.Conflict(FiscalErrorCodes.NotAuthorized, "Só a nota autorizada recebe carta de correção.");
+        }
+
+        if (CancellationSentAt is not null)
+        {
+            return Error.Conflict(FiscalErrorCodes.EventInProgress, "O cancelamento desta nota foi enviado. Aguarde a resposta da SEFAZ.");
+        }
+
+        if (CorrectionSentAt is { } sent && now - sent < FiscalEventRules.ResendAfter)
+        {
+            return Error.Conflict(FiscalErrorCodes.EventInProgress, "Outra carta de correção desta nota está sendo registrada. Recarregue e tente de novo.");
+        }
+
+        CorrectionSentAt = now;
+        UpdatedAt = now;
+        UpdatedBy = by;
+        return null;
+    }
+
+    public void CorrectionFinished() => CorrectionSentAt = null;
+
     /// <summary><c>nfe-{invoiceId}-{tentativa}</c> (CA 5, ADR 0027 §4).</summary>
     public string IdempotencyKey => "nfe-" + Id.ToString("D") + "-" + Attempt.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
@@ -444,6 +571,13 @@ public sealed class OutgoingInvoice : Entity, IAuditable, IConcurrencyVersioned
             ContingencySince = null;
         }
 
+        if (target == OutgoingInvoiceStatus.Cancelled)
+        {
+            // FIS-03b: confirmado pela reconsulta (webhook nfe.cancelada ou conferência); o protocolo do evento vem do evento.
+            CancelledAt ??= now;
+            CancellationSentAt = null;
+        }
+
         Status = target;
         return changed;
     }
@@ -495,4 +629,10 @@ public static class FiscalErrorCodes
     public const string TextTooLong = "fiscal_text_too_long";
     public const string InvoiceNotFound = "fiscal_invoice_not_found";
     public const string NotAuthorized = "fiscal_invoice_not_authorized";
+    public const string CancellationWindowClosed = "fiscal_cancellation_window_closed";
+    public const string EventInProgress = "fiscal_event_in_progress";
+    public const string EventRejected = "fiscal_event_rejected";
+    public const string TooManyCorrections = "fiscal_too_many_corrections";
+    public const string NumberNotInvalidable = "fiscal_number_not_invalidable";
+    public const string RequestClosed = "fiscal_cancellation_request_closed";
 }

@@ -498,7 +498,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-3, R-PRD-8, R-PRJ-5, R-FIS-4, R-COM-1, R-COM-3.
 - CA: rascunho a partir do romaneio (a nota só referencia o romaneio, sem baixar estoque); venda mista pela D4 (equipamento em NF-e, instalação em NFS-e, parcela é só cobrança); saneamento pelos limites do esquema antes de reservar o número; emissão idempotente com reconciliação no Emissor; `InvoiceAuthorized` lança o imposto como `InvoiceTax`; imposto nunca digitado; os 3 cenários em homologação SEFAZ no `demo`.
 
-**FIS-03b [ ] NF-e de saída: cancelamento em uma etapa com `fiscal.approve`, carta de correção e inutilização de numeração (M)** — 5.4, ordem 11 — `Ready (pré-condição externa)` — [story](stories/FIS-03b-nfe-cancelamento-cce-inutilizacao.md)
+**FIS-03b [x] NF-e de saída: cancelamento em uma etapa com `fiscal.approve`, carta de correção e inutilização de numeração (M)** — 5.4, ordem 11 — `Done` (homologação SEFAZ dos eventos no `demo` e lacuna L-n do XML do evento: pré-condição externa) — [story](stories/FIS-03b-nfe-cancelamento-cce-inutilizacao.md)
 - Requisitos: R-FIS-3, R-SEC-10, R-PRJ-5.
 - CA: cancelamento em uma etapa com `fiscal.approve` e 2FA de novo, "Pedir cancelamento" para os demais, prazo de 24 h com contagem no `ConfirmDialog`; cancelar não mexe no estoque (`InvoiceTaxReversal` no custo); carta de correção com `fiscal.edit`; inutilização pelo filtro "A inutilizar"; DANFE de nota cancelada com marca.
 
