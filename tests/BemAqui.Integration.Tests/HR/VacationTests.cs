@@ -35,7 +35,11 @@ public class VacationTests(TenancyFixture tenancy) : IClassFixture<TenancyFixtur
 
         public string Next()
         {
-            var step = Math.Max(_last + 1, Totp.StepAt(DateTimeOffset.UtcNow) - 1);
+            // O servidor aceita o passo anterior, o atual e o próximo. O código do passo anterior vence quando o relógio vira o passo: nos
+            // últimos 10 s do passo ele podia vencer no meio da requisição (2FA "inválido" intermitente), então ali já vai o código do atual.
+            var now = DateTimeOffset.UtcNow;
+            var late = now.ToUnixTimeSeconds() % Totp.StepSeconds >= Totp.StepSeconds - 10;
+            var step = Math.Max(_last + 1, Totp.StepAt(now) - (late ? 0 : 1));
             _last = step;
             return Totp.Code(secret, step);
         }
