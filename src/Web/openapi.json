@@ -8791,6 +8791,125 @@
         }
       }
     },
+    "/api/v1/hr/payroll-runs/{id}/hour-bank/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPayrollHourBankSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollHourBank"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/payslips/{payslipId}/hour-bank": {
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "SetPayslipHourBank",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "payslipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollHourBankInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayslipDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ClearPayslipHourBank",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "payslipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayslipDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/payroll-runs/{id}/payslips/{payslipId}/pdf": {
       "get": {
         "tags": [
@@ -55294,7 +55413,8 @@
           "Toggle",
           "Choice",
           "Hours",
-          "Years"
+          "Years",
+          "HourOfDay"
         ]
       },
       "HrParametersInput": {
@@ -72221,7 +72341,15 @@
           "TransportVoucherSupplied",
           "Inss",
           "Irrf",
-          "Fgts"
+          "Fgts",
+          "OvertimeWorkday",
+          "OvertimeRestDay",
+          "OvertimeHoliday",
+          "NightShift",
+          "Dsr",
+          "DsrLoss",
+          "HourBankPayout",
+          "HourBankDiscount"
         ],
         "default": "None"
       },
@@ -73078,6 +73206,132 @@
               "string"
             ],
             "format": "date"
+          }
+        }
+      },
+      "PayrollHourBank": {
+        "required": [
+          "runId",
+          "editable",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "editable": {
+            "type": "boolean"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollHourBankRow"
+            }
+          }
+        }
+      },
+      "PayrollHourBankAction": {
+        "enum": [
+          "Pay",
+          "Discount",
+          null
+        ]
+      },
+      "PayrollHourBankInput": {
+        "required": [
+          "action",
+          "minutes",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "action": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PayrollHourBankAction"
+              }
+            ]
+          },
+          "minutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PayrollHourBankRow": {
+        "required": [
+          "payslipId",
+          "employeeId",
+          "employeeName",
+          "registration",
+          "balanceMinutes",
+          "monthMinutes",
+          "decisionMinutes",
+          "decisionNote",
+          "balanceAfterMinutes",
+          "suggestedPayMinutes"
+        ],
+        "type": "object",
+        "properties": {
+          "payslipId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "balanceMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "monthMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "decisionMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "decisionNote": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "balanceAfterMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "suggestedPayMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -74827,6 +75081,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "timesheetLink": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

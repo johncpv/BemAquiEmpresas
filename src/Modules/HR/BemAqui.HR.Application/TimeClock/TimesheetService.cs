@@ -274,8 +274,9 @@ public sealed partial class TimesheetService(
     private async Task<Dictionary<Guid, int>> PreviousBalancesAsync(List<Guid> ids, DateOnly period, CancellationToken ct)
     {
         var rows = await db.Timesheets.AsNoTracking().Where(t => ids.Contains(t.EmployeeId) && t.Status == TimesheetStatus.Closed && t.Period < period)
-            .Select(t => new { t.EmployeeId, t.Period, t.BankBalanceMinutes }).ToListAsync(ct);
-        return rows.GroupBy(r => r.EmployeeId).ToDictionary(g => g.Key, g => g.OrderByDescending(r => r.Period).First().BankBalanceMinutes ?? 0);
+            .Select(t => new { t.EmployeeId, t.Period, t.BankBalanceMinutes, t.BankPayoutMinutes }).ToListAsync(ct);
+        // FLH-02b CA 2: o saldo que segue é o de depois da folha (o pago ou descontado no fechamento da folha sai do saldo).
+        return rows.GroupBy(r => r.EmployeeId).ToDictionary(g => g.Key, g => g.OrderByDescending(r => r.Period).Select(r => (r.BankBalanceMinutes ?? 0) - r.BankPayoutMinutes).First());
     }
 
     internal async Task<Dictionary<Guid, int>> PendingByEmployeeAsync(List<Guid> ids, DateOnly start, DateOnly end, CancellationToken ct) =>

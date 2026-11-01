@@ -55,7 +55,7 @@ export function CalculatedPayslip({ payslip, items, editable, onClose, onChanged
             ) : null}
             {payslip.lines.length === 0 ? <p className="text-sm text-muted-foreground">Sem linhas: confira os avisos do cálculo.</p> : (
               <ul aria-label="Linhas do holerite" className="space-y-2">
-                {payslip.lines.map((l, i) => <LineCard key={l.lineId ?? i} payslip={payslip} line={l} editable={editable} onChanged={onChanged} />)}
+                {payslip.lines.map((l, i) => <LineCard key={l.lineId ?? i} payslip={payslip} line={l} editable={editable} timesheetLink={info.timesheetLink ?? null} onChanged={onChanged} />)}
               </ul>
             )}
             <dl className="grid gap-2 rounded-md border border-border p-3 text-sm sm:grid-cols-2">
@@ -96,14 +96,19 @@ function Pairs({ title, rows }: { title: string; rows: { label: string; value: s
   )
 }
 
-function LineCard({ payslip, line, editable, onChanged }: { payslip: PayslipDetail; line: PayslipLineDetail; editable: boolean; onChanged: () => Promise<unknown> }) {
+/** FLH-02b: linhas que vêm das horas do espelho fechado (a memória leva os dias) e a dica das linhas de DSR. */
+const fromTimesheet = (line: PayslipLineDetail) => /^(Horas extras|Adicional noturno|DSR|Banco de horas|Faltas|Atrasos)/.test(line.description)
+const lineDica = (line: PayslipLineDetail) => (line.description === 'DSR sobre variáveis' ? { nome: 'DSR sobre variáveis', texto: PAYROLL_DICAS.dsr } : line.description.startsWith('DSR da semana de') ? { nome: 'Perda do DSR', texto: PAYROLL_DICAS.perdaDsr } : null)
+
+function LineCard({ payslip, line, editable, timesheetLink, onChanged }: { payslip: PayslipDetail; line: PayslipLineDetail; editable: boolean; timesheetLink: string | null; onChanged: () => Promise<unknown> }) {
   const [open, setOpen] = useState(false)
   const memory = line.memory ?? []
+  const dica = lineDica(line)
   const id = `memoria-${line.lineId ?? line.code}`
   return (
     <li className="space-y-1 rounded-md border border-border p-3 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="font-semibold">{line.code} · {line.description}</span>
+        <span className="inline-flex items-center font-semibold">{line.code} · {line.description}{dica ? <Dica nome={dica.nome} texto={dica.texto} /> : null}</span>
         <span className="flex items-center gap-2 tabular-nums">
           {line.reference ? <span className="text-muted-foreground">{line.reference}</span> : null}
           <span className="text-muted-foreground">{KIND_LABELS[line.type]}</span>
@@ -122,6 +127,7 @@ function LineCard({ payslip, line, editable, onChanged }: { payslip: PayslipDeta
         ) : null}
       </div>
       {open ? <ul id={id} className="list-disc space-y-0.5 pl-5 text-muted-foreground">{memory.map((m) => <li key={m}>{m}</li>)}</ul> : null}
+      {open && line.calculated && timesheetLink && fromTimesheet(line) ? <a href={timesheetLink} className="inline-block min-h-11 text-xs font-semibold text-primary sm:min-h-0">Ver os dias no espelho de ponto</a> : null}
     </li>
   )
 }

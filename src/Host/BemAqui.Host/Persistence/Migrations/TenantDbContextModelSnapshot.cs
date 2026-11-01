@@ -9074,6 +9074,15 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("gross");
 
+                    b.Property<int>("HourBankDecisionMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("hour_bank_decision_minutes");
+
+                    b.Property<string>("HourBankDecisionNote")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("hour_bank_decision_note");
+
                     b.Property<string>("InputsSnapshot")
                         .HasColumnType("jsonb")
                         .HasColumnName("inputs_snapshot");
@@ -9489,6 +9498,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<int?>("BankMonthMinutes")
                         .HasColumnType("integer")
                         .HasColumnName("bank_month_minutes");
+
+                    b.Property<int>("BankPayoutMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("bank_payout_minutes");
 
                     b.Property<DateTimeOffset?>("ClosedAt")
                         .HasColumnType("timestamp with time zone")
