@@ -110,6 +110,8 @@ public static class HrInfrastructure
         services.TryAddScoped<PayrollTaxTableService>();
         services.TryAddScoped<IPayrollTaxTables>(sp => sp.GetRequiredService<PayrollTaxTableService>());
         services.TryAddScoped<PayrollChangeNotices>();
+        // Folha calculada (FLH-02a, ADR 0039 §2): o motor é puro (Domain); o serviço monta o retrato, grava e roda o job acima de 20.
+        services.TryAddScoped<PayrollCalculationService>();
         services.AddAuditableEntity<PayrollTaxTable>("hr");
         services.AddAuditableEntity<PayrollTaxTableDataset>("hr");
         // Pacote para a contadora (RH-03): um layout (o padrão v1) e as seções dele; a RH-01c registra a do ponto.

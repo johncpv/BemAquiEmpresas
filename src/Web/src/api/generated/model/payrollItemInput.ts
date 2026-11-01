@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { PayrollCalculation } from './payrollCalculation';
 import type { PayrollItemKind } from './payrollItemKind';
 import type { PayrollTimesheetSource } from './payrollTimesheetSource';
 
@@ -19,4 +20,7 @@ export interface PayrollItemInput {
   /** @nullable */
   version: number | null;
   timesheetSource?: null | PayrollTimesheetSource;
+  calculation?: null | PayrollCalculation;
+  /** @nullable */
+  deductsIrrfBase?: boolean | null;
 }

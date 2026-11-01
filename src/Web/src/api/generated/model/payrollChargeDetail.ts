@@ -17,4 +17,5 @@ export interface PayrollChargeDetail {
   /** @nullable */
   payeeName: string | null;
   version: number;
+  calculated?: boolean;
 }

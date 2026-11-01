@@ -12,6 +12,7 @@ import { SidePanel } from '@/components/ui/side-panel'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { formatMoney } from '@/lib/format'
 import { minutes, signed } from '../timeclock/timesheet'
+import { CalculatedPayslip } from './CalculatedPayslip'
 import { KIND_LABELS, PAYROLL_DICAS, periodLabel, totals } from './payroll'
 
 interface Row {
@@ -47,6 +48,11 @@ export function PayslipPanel({ runId, payslipId, editable, onClose, onSaved }: {
 
   if (query.isError || items.isError || !query.data) {
     return <SidePanel open onOpenChange={(o) => !o && onClose()} title="Holerite"><ErrorState title="Não foi possível carregar o holerite." onRetry={() => { void query.refetch(); void items.refetch() }} /></SidePanel>
+  }
+
+  // FLH-02a: na folha calculada, as linhas vêm do motor; o ajuste é avulso com motivo.
+  if (query.data.mode === 'Calculated') {
+    return <CalculatedPayslip payslip={query.data} items={items.data} editable={editable && query.data.editable} onClose={onClose} onChanged={async () => { await query.refetch(); onSaved() }} />
   }
 
   return <PayslipForm key={query.data.version} payslip={query.data} items={items.data} editable={editable && query.data.editable} onClose={onClose} onReload={() => query.refetch()} onSaved={onSaved} />

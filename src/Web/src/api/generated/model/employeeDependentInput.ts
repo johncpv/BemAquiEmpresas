@@ -18,4 +18,5 @@ export interface EmployeeDependentInput {
   cpf: string | null;
   /** @nullable */
   version?: number | null;
+  familyAllowanceDocsOk?: boolean;
 }

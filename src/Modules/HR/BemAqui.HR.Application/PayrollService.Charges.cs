@@ -68,9 +68,16 @@ public sealed partial class PayrollService
             return run.Error!;
         }
 
+        // FLH-02a: a guia calculada só troca o vencimento e o órgão; o tipo e o valor vêm do cálculo.
+        var (kind, amount) = (charge.Kind, charge.Amount);
         if (await ApplyChargeAsync(charge, run.Value, input, cancellationToken) is { } invalid)
         {
             return invalid;
+        }
+
+        if (charge.Calculated && (charge.Kind != kind || charge.Amount != amount))
+        {
+            return Error.Conflict(PayrollCalculationRules.CalculatedLineCode, "A guia calculada só muda o vencimento e o órgão: o valor vem do cálculo.");
         }
 
         if (input.Version is { } version)
@@ -99,6 +106,11 @@ public sealed partial class PayrollService
         if (run.IsFailure)
         {
             return run.Error!;
+        }
+
+        if (charge.Calculated)
+        {
+            return Error.Conflict(PayrollCalculationRules.CalculatedLineCode, "A guia calculada sai do cálculo: recalcule a folha em vez de excluir.");
         }
 
         db.PayrollRunCharges.Remove(charge);
@@ -162,7 +174,7 @@ public sealed partial class PayrollService
         var fgts = await db.Payslips.AsNoTracking().Where(p => p.PayrollRunId == run.Id).SumAsync(p => p.FgtsAmount, ct);
         var fgtsCharges = charges.Where(c => c.Kind == PayrollChargeKind.Fgts).Select(c => c.Amount).DefaultIfEmpty().Sum();
         var hasFgts = charges.Any(c => c.Kind == PayrollChargeKind.Fgts);
-        var items = charges.Select(c => new PayrollChargeDetail(c.Id, c.Kind, c.Description, c.Amount, c.DueDate, c.PayeePartyId, c.PayeePartyId is { } id ? names.GetValueOrDefault(id) : null, c.Version)).ToList();
+        var items = charges.Select(c => new PayrollChargeDetail(c.Id, c.Kind, c.Description, c.Amount, c.DueDate, c.PayeePartyId, c.PayeePartyId is { } id ? names.GetValueOrDefault(id) : null, c.Version, c.Calculated)).ToList();
         return new PayrollChargesView(items, await parameters.ChargeDefaultsAsync(run.Period, ct), fgts, hasFgts ? fgtsCharges : null,
             hasFgts && fgtsCharges != fgts, run.Status == PayrollRunStatus.Draft);
     }

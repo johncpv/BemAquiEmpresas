@@ -14,4 +14,11 @@ export interface PayslipLineDetail {
   /** @nullable */
   reference: string | null;
   amount: number;
+  /** @nullable */
+  lineId?: string | null;
+  calculated?: boolean;
+  /** @nullable */
+  note?: string | null;
+  /** @nullable */
+  memory?: string[] | null;
 }

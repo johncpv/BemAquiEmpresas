@@ -422,6 +422,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<PayrollTaxTableDataset> PayrollTaxTableDatasets => Set<PayrollTaxTableDataset>();
 
+    public DbSet<PayrollCalculationLog> PayrollCalculationLogs => Set<PayrollCalculationLog>();
+
     public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
 
     public DbSet<ImportItem> ImportItems => Set<ImportItem>();

@@ -34,7 +34,7 @@ const monthDayValue = (t: string) => { const [d, m] = t.split('/').map(Number); 
 const initialOf = (items: HrParameterItem[]) =>
   Object.fromEntries(items.map((i) => [i.key, { value: i.value == null ? '' : i.kind === 'MonthDay' ? monthDayText(i.value) : String(i.value), code: i.code ?? '', party: i.partyId ? { id: i.partyId, label: i.partyName ?? '' } : null } satisfies Value]))
 
-const suffix = (i: HrParameterItem) => (i.kind === 'Percent' ? '%' : i.key === 'hr.timesheet_period_start_day' ? 'dia de início do período (1 = mês civil)' : i.kind === 'Minutes' ? 'minutos' : i.kind === 'DayOfMonth' ? 'dia do mês seguinte' : i.kind === 'Days' ? 'dias' : i.kind === 'BusinessDay' ? 'º dia útil do mês seguinte' : i.kind === 'DayOfPeriod' ? 'dia da competência' : i.kind === 'Months' ? 'meses' : i.kind === 'MonthDay' ? 'dia/mês' : '')
+const suffix = (i: HrParameterItem) => (i.kind === 'Percent' ? '%' : i.key === 'hr.timesheet_period_start_day' ? 'dia de início do período (1 = mês civil)' : i.kind === 'Minutes' ? 'minutos' : i.kind === 'DayOfMonth' ? 'dia do mês seguinte' : i.kind === 'Days' ? 'dias' : i.kind === 'BusinessDay' ? 'º dia útil do mês seguinte' : i.kind === 'DayOfPeriod' ? 'dia da competência' : i.kind === 'Months' ? 'meses' : i.kind === 'MonthDay' ? 'dia/mês' : i.kind === 'Hours' ? 'horas (0 = horas mensais do cargo)' : i.kind === 'Years' ? 'anos' : '')
 
 /**
  * Configurações → Parâmetros → RH (RH-02a CA 3, ADR 0042, dono HR): alerta de variação do líquido, vencimento e órgão padrão de cada
@@ -80,7 +80,7 @@ function HrForm({ view, canEdit }: { view: HrParametersView; canEdit: boolean })
 
   return (
     <section id="secao-rh" aria-label="RH">
-      <FormSection title="RH: folha e ponto" description={`Alerta da conferência, vencimento e órgão de cada guia, a quarentena da conta trocada, o pagamento dos salários, a folha prevista, a conta e o centro de custo dos títulos da folha, o layout do pacote para a contadora e, no ponto, a tolerância, o banco de horas e o início do período de apuração. Contribuição sindical e "Outros" têm o vencimento informado na folha; o dia não útil antecipa pelo calendário padrão. ${view.pendingCount > 0 ? `${view.pendingCount} ${view.pendingCount === 1 ? 'valor a confirmar' : 'valores a confirmar'} com a contadora.` : 'Tudo conferido com a contadora.'}`}>
+      <FormSection title="RH: folha e ponto" description={`Alerta da conferência, vencimento e órgão de cada guia, a quarentena da conta trocada, o pagamento dos salários, a folha prevista, a conta e o centro de custo dos títulos da folha, o layout do pacote para a contadora, no ponto a tolerância, o banco de horas e o início do período de apuração e, na folha calculada, a proporcionalidade, o afastamento, os adicionais, o valor da hora, o salário-família e a redução do IRRF. Contribuição sindical e "Outros" têm o vencimento informado na folha; o dia não útil antecipa pelo calendário padrão. ${view.pendingCount > 0 ? `${view.pendingCount} ${view.pendingCount === 1 ? 'valor a confirmar' : 'valores a confirmar'} com a contadora.` : 'Tudo conferido com a contadora.'}`}>
         <div className="space-y-3 sm:col-span-2">
           <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
           {view.items.map((item) => {
@@ -108,6 +108,11 @@ function HrForm({ view, canEdit }: { view: HrParametersView; canEdit: boolean })
                     aria-invalid={fieldError ? true : undefined} className={inputClass + ' max-w-md'}>
                     {codeOptions(view, item.kind).map((o) => <option key={o.code} value={o.code}>{item.kind === 'ExportLayout' || item.kind === 'Geolocation' ? o.name : `${o.code} ${o.name}`}</option>)}
                     {draft[item.key].code && !codeOptions(view, item.kind).some((o) => o.code === draft[item.key].code) ? <option value={draft[item.key].code}>{draft[item.key].code} (não encontrado)</option> : null}
+                  </select>
+                ) : item.kind === 'Choice' ? (
+                  <select id={id} disabled={!canEdit} value={draft[item.key].value} onChange={(e) => setDraft((d) => ({ ...d, [item.key]: { ...d[item.key], value: e.target.value } }))}
+                    aria-invalid={fieldError ? true : undefined} className={inputClass + ' max-w-md'}>
+                    {(item.options ?? []).map((o) => <option key={o.value} value={String(o.value)}>{o.label}</option>)}
                   </select>
                 ) : item.kind === 'Toggle' ? (
                   <select id={id} disabled={!canEdit} value={draft[item.key].value} onChange={(e) => setDraft((d) => ({ ...d, [item.key]: { ...d[item.key], value: e.target.value } }))}

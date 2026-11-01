@@ -33,6 +33,7 @@ export const COMPLEMENT_DICAS = {
   titular: 'Quem é o dono da conta. Vem preenchido com o funcionário; se a conta ou a chave Pix for de outra pessoa, o sistema pede uma segunda confirmação.',
   quarentena: 'Conta trocada fica 30 dias fora do pagamento automático da folha, até alguém que não fez a troca revisar. É uma proteção contra desvio de salário.',
   revisar: 'Quem não fez a troca confere a conta com o funcionário (por telefone ou pessoalmente) e libera a conta antes do fim da quarentena.',
+  documentosSalarioFamilia: 'Marque quando o funcionário entregar a certidão de nascimento e, conforme a idade, a carteira de vacinação ou a frequência escolar. Sem a marca, a folha calculada não paga a cota e avisa "documentos pendentes".',
   valeTransporte: 'Só "usa" ou "não usa". O valor do vale e o desconto do funcionário são calculados na folha.',
 }
 
@@ -114,7 +115,7 @@ export function maskCpf(cpf: string) {
 export const maskName = (name: string) => name.trim().split(/\s+/).filter(Boolean).map((w) => w[0] + '*'.repeat(Math.max(w.length - 1, 1))).join(' ')
 
 /** Dependente (CA 1 e 2): CPF só no de IR. */
-export interface DependentDraft { name: string; birthDate: string; kinship: Kinship | ''; irDependent: boolean; familyAllowance: boolean; cpf: string }
+export interface DependentDraft { name: string; birthDate: string; kinship: Kinship | ''; irDependent: boolean; familyAllowance: boolean; familyAllowanceDocsOk?: boolean; cpf: string }
 
 export const emptyDependentDraft = (): DependentDraft => ({ name: '', birthDate: '', kinship: '', irDependent: false, familyAllowance: false, cpf: '' })
 

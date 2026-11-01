@@ -28,6 +28,7 @@ public sealed class PayrollClosingService(
     PayrollService runs,
     Documents.PayslipDocumentService documents,
     PayrollChangeNotices changeNotices,
+    PayrollCalculationService calculation,
     IEventPublisher events,
     INotificationService notifications,
     IUserDirectory users,
@@ -83,6 +84,12 @@ public sealed class PayrollClosingService(
         if (run.Version != input.Version)
         {
             return Stale();
+        }
+
+        // FLH-02a CA 15 e 16: a calculada antes da virada não fecha (409); depois, só calculada, atualizada e com as tabelas conferidas (422).
+        if (await calculation.CloseErrorAsync(run, cancellationToken) is { } calculated)
+        {
+            return calculated;
         }
 
         var snapshot = await SnapshotAsync(run, cancellationToken);
@@ -422,6 +429,7 @@ public sealed class PayrollClosingService(
             blockers.Add(new PayrollCloseIssue("payroll_empty", "A folha não tem nada a pagar: lance os holerites ou os encargos.", RunLink(run.Id, "holerites")));
         }
 
+        blockers.AddRange(await calculation.CloseBlockersAsync(run, ct));
         var cost = await targets.ResolveAsync(ct);
         if (cost.IsFailure)
         {

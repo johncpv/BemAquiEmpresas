@@ -15,6 +15,7 @@ internal sealed class PayrollItemConfiguration : IEntityTypeConfiguration<Payrol
         b.Property(e => e.Name).HasMaxLength(PayrollRules.NameMaxLength);
         b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(20);
         b.Property(e => e.TimesheetSource).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.Calculation).HasConversion<string>().HasMaxLength(30).HasDefaultValue(PayrollCalculation.None).HasSentinel(PayrollCalculation.None);
         b.Property(e => e.SeedKey).HasMaxLength(50);
         b.HasIndex(e => e.Code).IsUnique().HasFilter("NOT is_deleted").HasDatabaseName(PayrollItemService.CodeIndex);
         b.HasIndex(e => e.SeedKey).IsUnique().HasFilter("seed_key IS NOT NULL").HasDatabaseName("ix_payroll_items_seed_key");
@@ -30,7 +31,10 @@ internal sealed class PayrollRunConfiguration : IEntityTypeConfiguration<Payroll
         b.Property(e => e.Type).HasConversion<string>().HasMaxLength(20);
         b.Property(e => e.Mode).HasConversion<string>().HasMaxLength(20);
         b.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
-        b.HasIndex(e => new { e.Period, e.Type }).IsUnique().HasDatabaseName(PayrollService.RunIndex);
+        // FLH-02a: a calculada (simulação) convive com a lançada da mesma competência e tipo; a retificação é a complementar da fechada.
+        b.HasIndex(e => new { e.Period, e.Type, e.Mode }).IsUnique().HasFilter("rectifies_run_id IS NULL").HasDatabaseName(PayrollService.RunIndex);
+        b.Property(e => e.CalculatorVersion).HasMaxLength(20);
+        b.HasOne<PayrollRun>().WithMany().HasForeignKey(e => e.RectifiesRunId).OnDelete(DeleteBehavior.Restrict);
         b.Property(e => e.ClosedNet).HasPrecision(18, 2);
         b.Property(e => e.ClosedCharges).HasPrecision(18, 2);
         b.Property(e => e.ReopenReason).HasMaxLength(200);
@@ -65,6 +69,11 @@ internal sealed class PayslipConfiguration : IEntityTypeConfiguration<Payslip>
         b.Property(e => e.FgtsBase).HasPrecision(18, 2);
         b.Property(e => e.IrrfBase).HasPrecision(18, 2);
         b.Property(e => e.FgtsAmount).HasPrecision(18, 2);
+        b.Property(e => e.EmployerCharges).HasPrecision(18, 2);
+        b.Property(e => e.CalculatorVersion).HasMaxLength(20);
+        b.Property(e => e.InputsSnapshot).HasColumnType("jsonb");
+        b.Property(e => e.CalculationIssues).HasColumnType("jsonb");
+        b.Property(e => e.EmployerChargesMemory).HasColumnType("jsonb");
         b.HasOne<PayrollRun>().WithMany().HasForeignKey(e => e.PayrollRunId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<Employee>().WithMany().HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => new { e.PayrollRunId, e.EmployeeId }).IsUnique().HasDatabaseName(PayrollService.PayslipIndex);
@@ -86,6 +95,8 @@ internal sealed class PayslipLineConfiguration : IEntityTypeConfiguration<Paysli
         b.HasOne<PayrollItem>().WithMany().HasForeignKey(e => e.PayrollItemId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => e.PayslipId).HasDatabaseName("ix_payslip_lines_payslip");
         b.HasIndex(e => e.PayrollItemId).HasDatabaseName("ix_payslip_lines_item");
+        b.Property(e => e.Memory).HasColumnType("jsonb");
+        b.Property(e => e.Note).HasMaxLength(PayrollCalculationRules.NoteMax);
     }
 }
 
@@ -151,5 +162,22 @@ internal sealed class PayrollTaxTableDatasetConfiguration : IEntityTypeConfigura
         b.Property(e => e.Cases).HasColumnType("jsonb");
         b.HasOne<PayrollTaxTable>().WithMany().HasForeignKey(e => e.TableId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => e.TableId);
+    }
+}
+
+/// <summary>Histórico do cálculo da folha (FLH-02a CA 19): só cresce; os totais em numeric(18,2).</summary>
+internal sealed class PayrollCalculationLogConfiguration : IEntityTypeConfiguration<PayrollCalculationLog>
+{
+    public void Configure(EntityTypeBuilder<PayrollCalculationLog> b)
+    {
+        b.ToTable("payroll_calculation_logs", HrSchema.Name);
+        b.Property(e => e.Action).HasConversion<string>().HasMaxLength(30);
+        b.Property(e => e.CalculatorVersion).HasMaxLength(20);
+        b.Property(e => e.GrossBefore).HasPrecision(18, 2);
+        b.Property(e => e.NetBefore).HasPrecision(18, 2);
+        b.Property(e => e.GrossAfter).HasPrecision(18, 2);
+        b.Property(e => e.NetAfter).HasPrecision(18, 2);
+        b.HasOne<PayrollRun>().WithMany().HasForeignKey(e => e.PayrollRunId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.PayrollRunId, e.At }).HasDatabaseName("ix_payroll_calculation_logs_run");
     }
 }

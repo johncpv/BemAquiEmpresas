@@ -59,16 +59,22 @@ public class PersonalDataTests
         ["EmployeeHistoryEntry"] = ["Id", "EmployeeId", "Kind", "EffectiveDate", "UserId", "CreatedAt", "StartPublishedAt", "EndPublishedAt", "LeaveId", "LeaveChange", "CancelledAt"],
         // RH-02a: a rubrica, a folha (competência, tipo, situação, quem fechou) e o parâmetro não são dado pessoal; no holerite, na linha e
         // na guia, todo valor, base, referência e o FGTS do mês são [PersonalData] (CA 13); só as chaves, a rubrica e as datas ficam fora.
-        ["PayrollItem"] = ["Id", "Code", "Name", "Kind", "InssBase", "FgtsBase", "IrrfBase", "IsActive", "SeedKey", "ConfirmedAt", "ConfirmedBy", "CreatedAt", "Version", "IsDeleted", "DeletedAt", "TimesheetSource"],
+        ["PayrollItem"] = ["Id", "Code", "Name", "Kind", "InssBase", "FgtsBase", "IrrfBase", "IsActive", "SeedKey", "ConfirmedAt", "ConfirmedBy", "CreatedAt", "Version", "IsDeleted", "DeletedAt", "TimesheetSource",
+            "Calculation", "DeductsIrrfBase"],
         // RH-02c: a data de pagamento, quantos títulos, o pago e a reabertura não são dado pessoal; os totais congelados são (ClosedNet, ClosedCharges).
         ["PayrollRun"] = ["Id", "Period", "Type", "Mode", "Status", "Number", "CreatedAt", "CreatedBy", "ClosedAt", "ClosedBy", "Version",
-            "PaymentDate", "ClosedPayables", "PaidAt", "ReopenedAt", "ReopenedBy"],
+            "PaymentDate", "ClosedPayables", "PaidAt", "ReopenedAt", "ReopenedBy",
+            // FLH-02a: quando e com qual versão do motor calculou, a simulação e a retificação não são dado pessoal.
+            "CalculatedAt", "CalculatedBy", "CalculatorVersion", "CalculatingSince", "IsSimulation", "RectifiesRunId"],
         // RH-02c: na previsão, só o valor é dado da folha.
         ["PayrollForecast"] = ["Id", "Period", "Kind", "EmployeeId", "ChargeKind", "DueDate", "SourceRunId", "CreatedAt", "UpdatedAt", "CancelledAt", "Key"],
         // RH-02b: o PDF guardado (id do anexo), o aviso (quando, id do e-mail), a primeira leitura e a marca "alterado" não são dado pessoal.
-        ["Payslip"] = ["Id", "PayrollRunId", "EmployeeId", "CreatedAt", "UpdatedAt", "Version", "PdfAttachmentId", "NotifiedAt", "NoticeEmailLogId", "FirstViewedAt", "ChangedAfterNotice"],
-        ["PayslipLine"] = ["Id", "PayslipId", "PayrollItemId", "Code", "Description", "Type", "Sort"],
-        ["PayrollRunCharge"] = ["Id", "PayrollRunId", "Kind", "Description", "DueDate", "PayeePartyId", "CreatedAt", "Version"],
+        // FLH-02a: a versão do motor, quando e os ids das tabelas e dos parâmetros usados não são dado pessoal; o retrato, os avisos e os
+        // encargos são [PersonalData].
+        ["Payslip"] = ["Id", "PayrollRunId", "EmployeeId", "CreatedAt", "UpdatedAt", "Version", "PdfAttachmentId", "NotifiedAt", "NoticeEmailLogId", "FirstViewedAt", "ChangedAfterNotice",
+            "CalculatedAt", "CalculatorVersion", "TaxTableIds", "ParameterIds"],
+        ["PayslipLine"] = ["Id", "PayslipId", "PayrollItemId", "Code", "Description", "Type", "Sort", "Calculated"],
+        ["PayrollRunCharge"] = ["Id", "PayrollRunId", "Kind", "Description", "DueDate", "PayeePartyId", "CreatedAt", "Version", "Calculated"],
         ["HrParameter"] = ["Id", "Key", "Value", "Text", "ConfirmedAt", "ConfirmedBy", "UpdatedAt"],
         // RH-01a: a marcação (quem, quando, tipo, origem, aparelho e se tem localização) é dado de jornada, não sensível; a latitude, a
         // longitude e a precisão são [PersonalData] (LGPD: localização). A ciência da geolocalização não tem dado pessoal.
@@ -102,8 +108,10 @@ public class PersonalDataTests
     {
         foreach (var (type, props) in new (Type, string[])[]
         {
-            (typeof(BemAqui.HR.Domain.Payslip), ["Gross", "Deductions", "Net", "InssBase", "FgtsBase", "IrrfBase", "FgtsAmount"]),
-            (typeof(BemAqui.HR.Domain.PayslipLine), ["Amount", "Reference"]),
+            (typeof(BemAqui.HR.Domain.Payslip), ["Gross", "Deductions", "Net", "InssBase", "FgtsBase", "IrrfBase", "FgtsAmount", "InputsSnapshot", "EmployerCharges", "CalculationIssues"]),
+            (typeof(BemAqui.HR.Domain.PayslipLine), ["Amount", "Reference", "Memory", "Note"]),
+            (typeof(BemAqui.HR.Domain.PayrollCalculationLog), ["GrossBefore", "NetBefore", "GrossAfter", "NetAfter"]),
+            (typeof(BemAqui.HR.Domain.EmployeeDependent), ["FamilyAllowanceDocsOk"]),
             (typeof(BemAqui.HR.Domain.PayrollRunCharge), ["Amount"]),
             (typeof(BemAqui.HR.Domain.PayrollRun), ["ClosedNet", "ClosedCharges"]),
             (typeof(BemAqui.HR.Domain.PayrollForecast), ["Amount"]),
@@ -127,7 +135,8 @@ public class PersonalDataTests
 
         // RH-02b CA 1, 8 e 12: o aviso, o lote e o argumento do job não levam valor; o funcionário no PDF não tem CPF completo, endereço,
         // dados bancários nem dependentes.
-        foreach (var dto in new[] { "PayslipNoticeRow", "PayslipNotices", "PayslipNoticePerson", "PayslipNotifyResult", "PayslipBatchResult", "PayslipBatchArgs", "MyEmployeeLink" })
+        foreach (var dto in new[] { "PayslipNoticeRow", "PayslipNotices", "PayslipNoticePerson", "PayslipNotifyResult", "PayslipBatchResult", "PayslipBatchArgs", "MyEmployeeLink",
+            "PayrollCalculationArgs", "PayrollCalculationStatus", "PayrollCalculationEntry", "PayrollCalcEmployeeIssue" })
         {
             application.GetTypes().Single(t => t.Name == dto).GetProperties().Select(p => p.Name).Should().NotIntersectWith(values, dto + " não leva valor do holerite");
         }

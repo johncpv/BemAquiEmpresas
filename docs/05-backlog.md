@@ -605,7 +605,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-7--folha-calculad
 - Requisitos: R-RH-6, R-SEC-5.
 - CA: INSS, IRRF, salário-família, salário mínimo, FGTS, VT e encargos por vigência, pré-cadastrados "a confirmar"; quem cadastra não confere; esquema por tipo versionado; arredondamento parametrizado; versão ativa imutável e retificação explícita.
 
-**FLH-02a [ ] Folha calculada: cálculo mensal (salário, adicionais, faltas, INSS, IRRF, FGTS, salário-família, VT) (G)** — 7.1, ordem 2 — `Ready (pré-condição externa)` — [story](stories/FLH-02a-calculo-mensal.md)
+**FLH-02a [x] Folha calculada: cálculo mensal (salário, adicionais, faltas, INSS, IRRF, FGTS, salário-família, VT) (G)** — 7.1, ordem 2 — `Done (pré-condição externa: contadora e conferência paralela)` — [story](stories/FLH-02a-calculo-mensal.md)
 - Requisitos: R-RH-6, R-RH-5, R-FIN-10, PRD §6 LGPD, R-SEC-5, R-PRP-7.
 - CA: salário proporcional, adicionais, faltas, salário-família (documentos entregues no dependente), VT, INSS, IRRF e FGTS pelo motor puro, centavo a centavo com o dataset sintético do CI; memória de cálculo e retrato das entradas (`calculator_version`); só simulação até a virada.
 

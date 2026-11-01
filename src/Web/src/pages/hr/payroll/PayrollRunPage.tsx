@@ -13,10 +13,11 @@ import { UrlTabs } from '@/components/ui/url-tabs'
 import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
+import { CalculationBar, CalculationHistory } from './CalculationBar'
 import { ChargesTab } from './ChargesTab'
 import { ClosedBand, CloseRunDialog, ReopenRunDialog } from './ClosingDialogs'
 import { PaymentsTab } from './PaymentsTab'
-import { PAYROLL_DICAS, periodLabel, STATUS_LABELS, STATUS_TONES, typeLabel } from './payroll'
+import { MODE_LABELS, PAYROLL_DICAS, periodLabel, STATUS_LABELS, STATUS_TONES, typeLabel } from './payroll'
 import { PayslipsTab } from './PayslipsTab'
 import { NotifyDialog } from './PayslipNotices'
 import { ReviewTab } from './ReviewTab'
@@ -66,6 +67,7 @@ export function PayrollRunPage() {
     await client.invalidateQueries({ predicate: (q) => String(q.queryKey[0] ?? '').includes(id) })
   }
   const draft = run.status === 'Draft'
+  const calculated = run.mode === 'Calculated'
   const editable = draft && canEdit
   const protectedTab = <PayrollProtected />
   return (
@@ -73,7 +75,7 @@ export function PayrollRunPage() {
       <PageHeading title={`Folha ${typeLabel(run.type)} de ${periodLabel(run.period)}`}>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <StatusChip tone={STATUS_TONES[run.status] ?? 'neutral'}>{STATUS_LABELS[run.status] ?? run.status}</StatusChip>
-          <span className="inline-flex items-center text-sm text-muted-foreground">Folha lançada<Dica nome="Folha lançada" texto={PAYROLL_DICAS.lancada} /></span>
+          <span className="inline-flex items-center text-sm text-muted-foreground">{MODE_LABELS[run.mode] ?? run.mode}{run.rectifiesRunId ? ' (retificação)' : ''}<Dica nome={MODE_LABELS[run.mode] ?? 'Folha'} texto={calculated ? PAYROLL_DICAS.calculada : PAYROLL_DICAS.lancada} /></span>
           <span className="text-sm tabular-nums text-muted-foreground">{run.payslipCount === 1 ? '1 holerite' : `${run.payslipCount} holerites`}</span>
           {run.closedByName ? <span className="text-sm text-muted-foreground">Fechada por {run.closedByName}</span> : null}
           <Link to="/app/rh/folha" className="ml-2 text-sm font-semibold text-primary">Voltar às folhas</Link>
@@ -81,10 +83,11 @@ export function PayrollRunPage() {
       </PageHeading>
       {canClose ? (
         <div className="mb-4 flex flex-wrap gap-2">
-          {draft ? <CloseRunDialog run={run} onClosed={async (result) => { setChangedAfterNotice(result.changedAfterNotice ?? 0); await refresh(); setClosedSteps(true); setTab('pagamentos') }} /> : null}
+          {draft && !run.isSimulation ? <CloseRunDialog run={run} onClosed={async (result) => { setChangedAfterNotice(result.changedAfterNotice ?? 0); await refresh(); setClosedSteps(true); setTab('pagamentos') }} /> : null}
           {run.status === 'Closed' ? <ReopenRunDialog run={run} onReopened={refresh} /> : null}
         </div>
       ) : null}
+      {calculated ? <CalculationBar run={run} onChanged={refresh} /> : null}
       {!draft ? <ClosedBand run={run} /> : null}
       {run.timesheetNotice ? (
         <p role="status" className="mb-4 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">
@@ -106,7 +109,7 @@ export function PayrollRunPage() {
         <NotifyDialog run={run} notices={notices.data} onlyChanged={notifying === 'changed'} open onOpenChange={(o) => { if (!o) setNotifying(null) }}
           onDone={async () => { setClosedSteps(false); await refresh() }} />
       ) : null}
-      {steps && editable ? (
+      {steps && editable && !calculated ? (
         <div className="mb-4">
           <NextSteps onDismiss={() => setSteps(false)} steps={[
             { label: 'Importar lançamentos', onSelect: () => { setTab('holerites'); setImporting(true); setSteps(false) } },
@@ -119,7 +122,7 @@ export function PayrollRunPage() {
         { id: 'encargos', label: 'Encargos da empresa', content: canSensitive ? <ChargesTab run={run} editable={editable} /> : protectedTab },
         { id: 'conferencia', label: 'Conferência', content: canSensitive ? <ReviewTab run={run} /> : protectedTab },
         { id: 'pagamentos', label: 'Pagamentos', content: canSensitive ? <PaymentsTab run={run} /> : protectedTab },
-        { id: 'historico', label: 'Histórico de alterações', content: canSensitive ? <RecordHistory entity="PayrollRun" id={run.id} /> : protectedTab },
+        { id: 'historico', label: 'Histórico de alterações', content: calculated ? <div className="space-y-4"><CalculationHistory run={run} />{canSensitive ? <RecordHistory entity="PayrollRun" id={run.id} /> : null}</div> : canSensitive ? <RecordHistory entity="PayrollRun" id={run.id} /> : protectedTab },
       ]} />
     </>
   )

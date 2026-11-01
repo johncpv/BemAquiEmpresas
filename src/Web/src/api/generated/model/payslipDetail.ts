@@ -4,6 +4,8 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { PayrollRunMode } from './payrollRunMode';
+import type { PayslipCalculationInfo } from './payslipCalculationInfo';
 import type { PayslipLineDetail } from './payslipLineDetail';
 
 export interface PayslipDetail {
@@ -23,4 +25,6 @@ export interface PayslipDetail {
   fgtsAmount: number;
   editable: boolean;
   version: number;
+  mode?: PayrollRunMode;
+  calculation?: null | PayslipCalculationInfo;
 }

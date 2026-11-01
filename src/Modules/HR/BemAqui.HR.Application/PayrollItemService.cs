@@ -22,10 +22,14 @@ public sealed record PayrollItemDetail(
     DateTimeOffset? ConfirmedAt,
     bool InUse,
     uint Version,
-    PayrollTimesheetSource? TimesheetSource = null);
+    PayrollTimesheetSource? TimesheetSource = null,
+    PayrollCalculation Calculation = PayrollCalculation.None,
+    bool DeductsIrrfBase = false);
 
 /// <summary>Rubrica (CA 1 e 2); <c>TimesheetSource</c> é a "Origem no ponto" (RH-01c CA 16), nula sem ligação com o espelho.</summary>
-public sealed record PayrollItemInput(string? Code, string? Name, PayrollItemKind? Kind, bool InssBase, bool FgtsBase, bool IrrfBase, uint? Version, PayrollTimesheetSource? TimesheetSource = null);
+/// <summary>FLH-02a: <c>Calculation</c> é a regra da folha calculada (uma rubrica ativa por regra); <c>DeductsIrrfBase</c>, "Deduz da base do IRRF".</summary>
+public sealed record PayrollItemInput(string? Code, string? Name, PayrollItemKind? Kind, bool InssBase, bool FgtsBase, bool IrrfBase, uint? Version, PayrollTimesheetSource? TimesheetSource = null,
+    PayrollCalculation? Calculation = null, bool? DeductsIrrfBase = null);
 
 /// <summary>
 /// Rubricas (RH-02a CA 1 e 2): a lista padrão nasce do seed "A confirmar com a contadora"; criar, editar, inativar, excluir (só sem
@@ -38,30 +42,34 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
     public const string SalarySeedKey = "salario";
 
     /// <summary>Rubrica do seed: chave, código, nome, tipo e as marcas de base (propostas, a confirmar com a contadora).</summary>
-    public sealed record Standard(string SeedKey, string Code, string Name, PayrollItemKind Kind, bool Inss, bool Fgts, bool Irrf, PayrollTimesheetSource? Source = null);
+    public sealed record Standard(string SeedKey, string Code, string Name, PayrollItemKind Kind, bool Inss, bool Fgts, bool Irrf, PayrollTimesheetSource? Source = null,
+        PayrollCalculation Calc = PayrollCalculation.None, bool DeductsIrrf = false);
 
     /// <summary>A lista padrão (CA 1). As marcas de base são informativas (a folha calculada da Fase 7 usa); nada é calculado aqui.</summary>
     public static IReadOnlyList<Standard> Standards { get; } =
     [
-        new(SalarySeedKey, "SAL", "Salário", PayrollItemKind.Earning, true, true, true),
+        new(SalarySeedKey, "SAL", "Salário", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.BaseSalary),
         new("horas_extras_50", "HE50", "Horas extras 50%", PayrollItemKind.Earning, true, true, true, PayrollTimesheetSource.Overtime),
         new("horas_extras_100", "HE100", "Horas extras 100%", PayrollItemKind.Earning, true, true, true),
         new("dsr", "DSR", "DSR", PayrollItemKind.Earning, true, true, true),
-        new("insalubridade", "INSAL", "Adicional de insalubridade", PayrollItemKind.Earning, true, true, true),
-        new("periculosidade", "PERIC", "Adicional de periculosidade", PayrollItemKind.Earning, true, true, true),
+        new("insalubridade", "INSAL", "Adicional de insalubridade", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.Insalubrity),
+        new("periculosidade", "PERIC", "Adicional de periculosidade", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.HazardPay),
         new("adicional_noturno", "ADNOT", "Adicional noturno", PayrollItemKind.Earning, true, true, true),
         new("ferias", "FERIAS", "Férias", PayrollItemKind.Earning, true, true, true),
         new("terco_ferias", "FER13", "1/3 de férias", PayrollItemKind.Earning, true, true, true),
         new("decimo_terceiro", "13SAL", "13º salário", PayrollItemKind.Earning, true, true, true),
-        new("salario_familia", "SALFAM", "Salário-família", PayrollItemKind.Earning, false, false, false),
-        new("faltas", "FALTAS", "Faltas", PayrollItemKind.Deduction, true, true, true, PayrollTimesheetSource.Absence),
-        new("atrasos", "ATRASOS", "Atrasos", PayrollItemKind.Deduction, true, true, true, PayrollTimesheetSource.Late),
-        new("inss", "INSS", "INSS", PayrollItemKind.Deduction, false, false, true),
-        new("irrf", "IRRF", "IRRF", PayrollItemKind.Deduction, false, false, false),
-        new("vale_transporte", "VT", "Vale-transporte", PayrollItemKind.Deduction, false, false, false),
+        new("salario_familia", "SALFAM", "Salário-família", PayrollItemKind.Earning, false, false, false, Calc: PayrollCalculation.FamilyAllowance),
+        new("faltas", "FALTAS", "Faltas", PayrollItemKind.Deduction, true, true, true, PayrollTimesheetSource.Absence, PayrollCalculation.Absence),
+        new("atrasos", "ATRASOS", "Atrasos", PayrollItemKind.Deduction, true, true, true, PayrollTimesheetSource.Late, PayrollCalculation.Lateness),
+        new("inss", "INSS", "INSS", PayrollItemKind.Deduction, false, false, true, Calc: PayrollCalculation.Inss),
+        new("irrf", "IRRF", "IRRF", PayrollItemKind.Deduction, false, false, false, Calc: PayrollCalculation.Irrf),
+        new("vale_transporte", "VT", "Vale-transporte", PayrollItemKind.Deduction, false, false, false, Calc: PayrollCalculation.TransportVoucher),
         new("adiantamento", "ADIANT", "Adiantamento", PayrollItemKind.Deduction, false, false, false),
-        new("pensao_alimenticia", "PENSAO", "Pensão alimentícia", PayrollItemKind.Deduction, false, false, true),
-        new("fgts", "FGTS", "FGTS", PayrollItemKind.Information, false, false, false),
+        new("pensao_alimenticia", "PENSAO", "Pensão alimentícia", PayrollItemKind.Deduction, false, false, true, DeductsIrrf: true),
+        new("fgts", "FGTS", "FGTS", PayrollItemKind.Information, false, false, false, Calc: PayrollCalculation.Fgts),
+        // FLH-02a: o afastamento pela previdência (informativa, CA 3) e o benefício do vale-transporte do mês (avulso que limita o desconto, CA 7).
+        new("afastamento_previdencia", "AFAST", "Afastamento pela previdência", PayrollItemKind.Information, false, false, false, Calc: PayrollCalculation.SickLeave),
+        new("vale_transporte_fornecido", "VTFORN", "Vale-transporte fornecido", PayrollItemKind.Information, false, false, false, Calc: PayrollCalculation.TransportVoucherSupplied),
     ];
 
     public async Task<IReadOnlyList<PayrollItemDetail>> ListAsync(CancellationToken cancellationToken = default)
@@ -93,13 +101,13 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
             return NotFound();
         }
 
-        var before = (item.Code, item.Kind, item.InssBase, item.FgtsBase, item.IrrfBase);
+        var before = (item.Code, item.Kind, item.InssBase, item.FgtsBase, item.IrrfBase, item.Calculation, item.DeductsIrrfBase);
         if (Apply(item, input) is { } invalid)
         {
             return invalid;
         }
 
-        if (before != (item.Code, item.Kind, item.InssBase, item.FgtsBase, item.IrrfBase))
+        if (before != (item.Code, item.Kind, item.InssBase, item.FgtsBase, item.IrrfBase, item.Calculation, item.DeductsIrrfBase))
         {
             item.ResetConfirmation();
         }
@@ -169,7 +177,7 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
         var codes = (await db.PayrollItems.Select(i => i.Code).ToListAsync(cancellationToken)).ToHashSet(StringComparer.Ordinal);
         foreach (var s in Standards.Where(s => !keys.Contains(s.SeedKey) && !codes.Contains(s.Code)))
         {
-            db.PayrollItems.Add(new PayrollItem { SeedKey = s.SeedKey, Code = s.Code, Name = s.Name, Kind = s.Kind, InssBase = s.Inss, FgtsBase = s.Fgts, IrrfBase = s.Irrf, TimesheetSource = s.Source, CreatedAt = clock.GetUtcNow() });
+            db.PayrollItems.Add(new PayrollItem { SeedKey = s.SeedKey, Code = s.Code, Name = s.Name, Kind = s.Kind, InssBase = s.Inss, FgtsBase = s.Fgts, IrrfBase = s.Irrf, TimesheetSource = s.Source, Calculation = s.Calc, DeductsIrrfBase = s.DeductsIrrf, CreatedAt = clock.GetUtcNow() });
         }
 
         // RH-01c CA 16: "Origem no ponto" nas rubricas do seed que já existiam, uma vez só (nenhuma das três marcada ainda), sem desfazer a
@@ -185,7 +193,32 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
             }
         }
 
+        // FLH-02a: a regra da folha calculada e o "Deduz da base do IRRF" nas rubricas do seed que já existiam, uma vez só (nenhuma rubrica
+        // com regra ainda), sem desfazer a escolha de quem mudou depois. A rubrica de outra com a mesma regra ativa não ganha a regra.
+        var ruled = Standards.Where(s => s.Calc != PayrollCalculation.None || s.DeductsIrrf).ToDictionary(s => s.SeedKey);
+        var ruledKeys = ruled.Keys.ToList();
+        if (!await db.PayrollItems.AnyAsync(i => i.Calculation != PayrollCalculation.None, cancellationToken))
+        {
+            foreach (var item in await db.PayrollItems.Where(i => i.SeedKey != null && ruledKeys.Contains(i.SeedKey)).ToListAsync(cancellationToken))
+            {
+                item.Calculation = ruled[item.SeedKey!].Calc;
+                item.DeductsIrrfBase = ruled[item.SeedKey!].DeductsIrrf;
+            }
+        }
+
         await db.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>Uma rubrica ativa por regra da folha calculada (FLH-02a): a outra com a mesma regra, ou null.</summary>
+    private async Task<Error?> RuleTakenAsync(PayrollItem item, CancellationToken ct)
+    {
+        if (item.Calculation == PayrollCalculation.None || !item.IsActive)
+        {
+            return null;
+        }
+
+        var other = await db.PayrollItems.AsNoTracking().Where(i => i.Id != item.Id && i.IsActive && i.Calculation == item.Calculation).Select(i => i.Code).FirstOrDefaultAsync(ct);
+        return other is null ? null : Error.Conflict("payroll_item_rule_taken", $"A rubrica {other} já tem a regra {PayrollCalculator.Label(item.Calculation)}. Tire a regra de lá ou inative a outra.");
     }
 
     private static Error? Apply(PayrollItem item, PayrollItemInput input)
@@ -213,11 +246,27 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
         item.FgtsBase = input.FgtsBase;
         item.IrrfBase = input.IrrfBase;
         item.TimesheetSource = input.TimesheetSource is { } source && Enum.IsDefined(source) ? source : null;
+        if (input.Calculation is { } calculation)
+        {
+            if (!Enum.IsDefined(calculation))
+            {
+                return PayrollRules.Field("calculation", "Escolha a regra da folha calculada.");
+            }
+
+            item.Calculation = calculation;
+        }
+
+        item.DeductsIrrfBase = (input.DeductsIrrfBase ?? item.DeductsIrrfBase) && item.Kind == PayrollItemKind.Deduction;
         return null;
     }
 
     private async Task<Result<PayrollItemDetail>> SaveAsync(PayrollItem item, CancellationToken ct)
     {
+        if (await RuleTakenAsync(item, ct) is { } taken)
+        {
+            return taken;
+        }
+
         try
         {
             await db.SaveChangesAsync(ct);
@@ -240,7 +289,7 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
         }
 
         return items.Select(i => new PayrollItemDetail(i.Id, i.Code, i.Name, i.Kind, i.InssBase, i.FgtsBase, i.IrrfBase, i.IsActive, i.SeedKey is not null, i.ConfirmedAt is not null,
-            i.ConfirmedBy is { } by ? names.GetValueOrDefault(by) : null, i.ConfirmedAt, used.Contains(i.Id), i.Version, i.TimesheetSource)).ToList();
+            i.ConfirmedBy is { } by ? names.GetValueOrDefault(by) : null, i.ConfirmedAt, used.Contains(i.Id), i.Version, i.TimesheetSource, i.Calculation, i.DeductsIrrfBase)).ToList();
     }
 
     private static Error NotFound() => Error.NotFound("payroll_item_not_found", "Rubrica não encontrada.");

@@ -153,6 +153,7 @@ public sealed partial class EmployeeComplementService(
         dependent.Kinship = kinship;
         dependent.IrDependent = input.IrDependent;
         dependent.FamilyAllowance = input.FamilyAllowance;
+        dependent.FamilyAllowanceDocsOk = input.FamilyAllowance && input.FamilyAllowanceDocsOk;
         dependent.Cpf = cpf;
         return null;
     }
@@ -172,7 +173,7 @@ public sealed partial class EmployeeComplementService(
     }
 
     private static EmployeeDependentDetail ToDetail(EmployeeDependent d) =>
-        new(d.Id, d.Name, d.BirthDate, d.Kinship, d.IrDependent, d.FamilyAllowance, d.Cpf is null ? null : EmployeeBankRules.MaskCpf(d.Cpf), d.Version);
+        new(d.Id, d.Name, d.BirthDate, d.Kinship, d.IrDependent, d.FamilyAllowance, d.Cpf is null ? null : EmployeeBankRules.MaskCpf(d.Cpf), d.Version, d.FamilyAllowanceDocsOk);
 
     private ValueTask<bool> CanSensitiveAsync(CancellationToken ct) => permissions.HasPermissionAsync("hr", PositionService.SensitiveAction, ct);
 

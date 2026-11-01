@@ -110,7 +110,10 @@ public class PayrollTaxTableTests(TenancyFixture tenancy) : IClassFixture<Tenanc
         charges.Source.Should().Contain("P-01");
         charges.ValidFrom.Should().Be(new DateOnly(2026, 1, 1));
         charges.ReadContent().EmployerCharges!.EmployerRate.Should().Be(20m);
-        seeded.Should().NotContain(t => t.Kind == PayrollTaxTableKind.Inss, "sem fonte oficial no repositório, a entrada fica pendente");
+        // FLH-02a: o pacote de 2026 traz todos os tipos com a fonte oficial, todos "A confirmar com a contadora".
+        seeded.Select(t => t.Kind).Should().BeEquivalentTo(Enum.GetValues<PayrollTaxTableKind>());
+        seeded.Should().OnlyContain(t => t.Status == PayrollTaxTableStatus.Unconfirmed && t.Source.Contains("A confirmar com a contadora"));
+        seeded.Single(t => t.Kind == PayrollTaxTableKind.Inss).ReadContent().Inss!.Brackets[^1].UpTo.Should().Be(8475.55m, "o teto de 2026");
 
         // O tenant edita a versão do seed; o seed roda de novo (próximo deploy) e não duplica nem desfaz.
         var editor = await ActorAsync("hr:view,edit,view_sensitive", b);
@@ -132,13 +135,9 @@ public class PayrollTaxTableTests(TenancyFixture tenancy) : IClassFixture<Tenanc
         after.Should().HaveCount(seeded.Count);
         after.Single(t => t.Id == charges.Id).ReadContent().EmployerCharges!.RatRate.Should().Be(2m);
 
-        // A tela explica o tipo que não veio pré-cadastrado.
+        // Sem entrada pendente no pacote, nenhuma seção traz a nota.
         var view = await OkAsync(await editor.Client.GetAsync(Tables));
-        var inss = view.GetProperty("sections").EnumerateArray().Single(s => s.GetProperty("kind").GetString() == "Inss");
-        if (inss.GetProperty("versions").GetArrayLength() == 0)
-        {
-            inss.GetProperty("pendingNote").GetString().Should().StartWith("Pacote 2026");
-        }
+        view.GetProperty("sections").EnumerateArray().Where(s => s.TryGetProperty("pendingNote", out var note) && note.ValueKind != JsonValueKind.Null).Should().BeEmpty();
     }
 
     /// <summary>CA 2 a 4, 9 e 15: cadastro de cada tipo com validação no servidor; nasce "A confirmar"; sem hr.view_sensitive, 403.</summary>
@@ -301,12 +300,12 @@ public class PayrollTaxTableTests(TenancyFixture tenancy) : IClassFixture<Tenanc
         june.GetProperty("id").GetGuid().Should().Be(may.GetProperty("id").GetGuid());
         june.GetProperty("status").GetString().Should().Be("Unconfirmed");
 
-        // Antes da primeira versão: 422 com a mensagem e o link (sem tabela de FGTS em 2040 no TenantA).
-        var missing = await checker.Client.GetAsync($"{Tables}/for-competence?kind=Fgts&competence=2040-03");
+        // Antes da primeira versão: 422 com a mensagem e o link (o pacote do seed começa em 2026: sem tabela de FGTS em 2025).
+        var missing = await checker.Client.GetAsync($"{Tables}/for-competence?kind=Fgts&competence=2025-03");
         missing.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
         var body = await JsonAsync(missing);
         body.GetProperty("code").GetString().Should().Be(PayrollTaxRules.MissingCode);
-        body.GetProperty("detail").GetString().Should().Be("Falta a tabela FGTS para março/2040.");
+        body.GetProperty("detail").GetString().Should().Be("Falta a tabela FGTS para março/2025.");
         body.GetProperty("link").GetString().Should().StartWith(PayrollTaxTableService.Link);
 
         // Fechamento oficial (FLH-02a CA 16): todas as versões usadas conferidas.

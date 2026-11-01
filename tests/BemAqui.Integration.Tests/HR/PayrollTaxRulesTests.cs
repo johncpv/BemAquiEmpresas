@@ -234,6 +234,34 @@ public class PayrollTaxRulesTests
             .Should().HaveCountGreaterThan(1);
     }
 
+    private static PayrollTaxContent Official2026(PayrollTaxTableKind kind) =>
+        PayrollTaxPackages.All.Single(p => p.Package == 2026).Tables.Single(t => t.Kind == kind).Content!;
+
+    /// <summary>
+    /// FLH-02a: exemplos oficiais da Receita Federal para 2026 (tabela da Lei 15.191/2025 com a redução da Lei 15.270/2025): rendimento
+    /// tributável de R$ 6.000,00 com o desconto simplificado → base 5.392,80, imposto 574,29, redução 179,75 → 394,54; R$ 4.500,00 → 0. O
+    /// rendimento da redução é o bruto tributável (como nos exemplos; parâmetro <c>hr.irrf_reduction_income</c>).
+    /// </summary>
+    [Theory]
+    [InlineData(6000, 394.54)]
+    [InlineData(4500, 0)]
+    [InlineData(5000, 0)]
+    [InlineData(7350, 945.54)]
+    [InlineData(2428.80, 0)]
+    public void Irrf_2026_bate_com_os_exemplos_da_receita(decimal income, decimal expected) =>
+        PayrollTaxRules.Irrf(Official2026(PayrollTaxTableKind.Irrf).Irrf!, PayrollRounding.AwayFromZero, income, 0m, 0).Amount.Should().Be(expected);
+
+    /// <summary>FLH-02a: INSS de 2026 (Portaria MPS/MF 13/2026), progressivo, arredondado no total (regra da FLH-01): no teto, 988,0914 → 988,09.</summary>
+    [Theory]
+    [InlineData(1621.00, 121.58)]
+    [InlineData(2000.00, 155.69)]
+    [InlineData(3000.00, 248.60)]
+    [InlineData(5000.00, 501.51)]
+    [InlineData(8475.55, 988.09)]
+    [InlineData(12000.00, 988.09)]
+    public void Inss_2026_progressivo_com_o_teto(decimal salary, decimal expected) =>
+        PayrollTaxRules.Inss(Official2026(PayrollTaxTableKind.Inss).Inss!, PayrollRounding.AwayFromZero, salary).Amount.Should().Be(expected);
+
     private static Dictionary<string, string[]> Errors(PayrollTaxTableKind kind, DateOnly from, PayrollTaxContent content) =>
         PayrollTaxRules.Validate(kind, from, content, PayrollRounding.AwayFromZero, "Sintética").Errors;
 }

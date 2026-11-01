@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { PayrollRunMode } from './payrollRunMode';
 import type { PayrollRunType } from './payrollRunType';
 
 export interface PayrollRunCreateInput {
@@ -12,4 +13,5 @@ export interface PayrollRunCreateInput {
   type: null | PayrollRunType;
   /** @nullable */
   employeeIds: string[] | null;
+  mode?: null | PayrollRunMode;
 }

@@ -23,4 +23,7 @@ export const HrParameterKind = {
   Geolocation: 'Geolocation',
   Minutes: 'Minutes',
   Toggle: 'Toggle',
+  Choice: 'Choice',
+  Hours: 'Hours',
+  Years: 'Years',
 } as const;
