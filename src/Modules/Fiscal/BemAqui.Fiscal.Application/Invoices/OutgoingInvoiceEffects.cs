@@ -43,7 +43,9 @@ public sealed partial class OutgoingInvoiceEffects(
                 break;
             case OutgoingInvoiceStatus.Rejected when before != OutgoingInvoiceStatus.Rejected:
                 await GapAsync(invoice, NumberGapReasons.Rejected, cancellationToken);
-                Notify(invoice, RejectedType, $"A SEFAZ rejeitou a nota {Label(invoice)}: {invoice.RejectionReason ?? "veja o motivo"}");
+                Notify(invoice, RejectedType, invoice.Type == InvoiceType.NFSe
+                    ? $"A prefeitura rejeitou a NFS-e da {invoice.InstallationOrderNumber ?? "instalação"}: {invoice.RejectionReason ?? "veja o motivo"}"
+                    : $"A SEFAZ rejeitou a nota {Label(invoice)}: {invoice.RejectionReason ?? "veja o motivo"}");
                 events.Publish(new InvoiceRejected(invoice.Id, invoice.Type, invoice.ProjectId, invoice.RejectionCode));
                 break;
             case OutgoingInvoiceStatus.Cancelled:
@@ -76,25 +78,50 @@ public sealed partial class OutgoingInvoiceEffects(
         }
 
         var issuedOn = DateOnly.FromDateTime(BusinessTime.ToBusiness(invoice.AuthorizedAt ?? clock.GetUtcNow()).DateTime);
-        if (invoice.MarkAuthorizationPublished(issuedOn, clock.GetUtcNow()))
-        {
-            var applies = false;
-            if (invoice.Environment == FiscalEnvironment.Production && invoice.Type == InvoiceType.NFe)
-            {
-                // ADR 0025 adendo: a primeira nota real em produção grava a data de corte; homologação nunca entra no custo nem na receita.
-                var settings = await db.FiscalSettings.FirstOrDefaultAsync(ct);
-                var cut = settings?.StartProjectTaxCutover(issuedOn) ?? issuedOn;
-                applies = issuedOn >= cut;
-            }
+        await PublishAuthorizedAsync(invoice, issuedOn, ct);
+        await SendAsync(invoice, resend: false, ct);
+    }
 
-            var items = await db.OutgoingInvoiceItems.AsNoTracking().Where(i => i.InvoiceId == invoice.Id).ToListAsync(ct);
-            var taxes = items.SelectMany(i => i.Taxes).Where(t => t.Code != TaxCodes.Difal).GroupBy(t => (t.Code, t.InProjectCost))
-                .Select(g => new InvoiceTaxAmount(g.Key.Code, g.Sum(t => t.Amount), g.Key.InProjectCost)).OrderBy(t => Array.IndexOf(TaxCodes.Order, t.Tax)).ToList();
-            events.Publish(new InvoiceAuthorized(invoice.Id, invoice.Type, invoice.ProjectId, invoice.ShipmentId, invoice.PartyId, issuedOn, invoice.TotalAmount, taxes,
-                invoice.CostTaxAmount, applies));
+    /// <summary>
+    /// Grava a data da nota e, uma vez só, põe o <see cref="InvoiceAuthorized"/> no outbox (CA 7). Também a NFS-e (FIS-06 CA 6 e 8): a registrada
+    /// do portal da prefeitura passa a data digitada e os tributos já com o ISS da nota da prefeitura. Os itens vêm do contexto (os rastreados
+    /// valem com as mudanças ainda não gravadas).
+    /// </summary>
+    public async Task PublishAuthorizedAsync(OutgoingInvoice invoice, DateOnly issuedOn, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(invoice);
+        if (!invoice.MarkAuthorizationPublished(issuedOn, clock.GetUtcNow()))
+        {
+            return;
         }
 
-        await SendAsync(invoice, resend: false, ct);
+        var applies = false;
+        if (invoice.Environment == FiscalEnvironment.Production)
+        {
+            // ADR 0025 adendo: a primeira nota real em produção (NF-e ou NFS-e) grava a data de corte; homologação nunca entra no custo nem na receita.
+            var settings = await db.FiscalSettings.FirstOrDefaultAsync(cancellationToken);
+            var cut = settings?.StartProjectTaxCutover(issuedOn) ?? issuedOn;
+            applies = issuedOn >= cut;
+        }
+
+        var items = await db.OutgoingInvoiceItems.Where(i => i.InvoiceId == invoice.Id).ToListAsync(cancellationToken);
+        var taxes = items.SelectMany(i => i.Taxes).Where(t => t.Code != TaxCodes.Difal).GroupBy(t => (t.Code, t.InProjectCost))
+            .Select(g => new InvoiceTaxAmount(g.Key.Code, g.Sum(t => t.Amount), g.Key.InProjectCost)).OrderBy(t => Array.IndexOf(TaxCodes.Order, t.Tax)).ToList();
+        events.Publish(new InvoiceAuthorized(invoice.Id, invoice.Type, invoice.ProjectId, invoice.ShipmentId, invoice.PartyId, issuedOn, invoice.TotalAmount, taxes,
+            invoice.CostTaxAmount, applies));
+    }
+
+    /// <summary>A nota contou no custo do projeto? (produção, com data a partir da data de corte): o reverso do cancelamento segue a mesma regra.</summary>
+    public async Task<bool> CountsInProjectAsync(OutgoingInvoice invoice, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(invoice);
+        if (invoice.Environment != FiscalEnvironment.Production || invoice.IssuedOn is not { } issuedOn)
+        {
+            return false;
+        }
+
+        var cut = await db.FiscalSettings.AsNoTracking().Select(s => s.ProjectTaxCutoverOn).FirstOrDefaultAsync(cancellationToken);
+        return cut is { } c && issuedOn >= c;
     }
 
     /// <summary>
@@ -104,6 +131,11 @@ public sealed partial class OutgoingInvoiceEffects(
     public async Task<bool> SendAsync(OutgoingInvoice invoice, bool resend, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(invoice);
+        if (invoice.Type == InvoiceType.NFSe)
+        {
+            return await SendNfseAsync(invoice, resend, cancellationToken);
+        }
+
         if (invoice.Status != OutgoingInvoiceStatus.Authorized || invoice.XmlAttachmentId is not { } xml || invoice.DanfeAttachmentId is not { } danfe
             || (!resend && (!invoice.SendToCustomer || invoice.EmailedAt is not null)) || !EmailAddresses.IsPlain(invoice.RecipientEmail))
         {
@@ -129,12 +161,58 @@ public sealed partial class OutgoingInvoiceEffects(
         return true;
     }
 
-    /// <summary>"NF-e 2/42" ou "sem número".</summary>
+    /// <summary>
+    /// E-mail da NFS-e ao cliente (FIS-06 CA 3): pela fila, com o XML e o PDF da prefeitura guardados (pelo menos um; na registrada do portal,
+    /// o arquivo anexado), corpo só com empresa, número, código de verificação, valor e data.
+    /// </summary>
+    private async Task<bool> SendNfseAsync(OutgoingInvoice invoice, bool resend, CancellationToken ct)
+    {
+        var files = new[] { invoice.XmlAttachmentId, invoice.DanfeAttachmentId }.Where(a => a is not null).Select(a => a!.Value).ToList();
+        if (invoice.Status != OutgoingInvoiceStatus.Authorized || files.Count == 0 || (!resend && (!invoice.SendToCustomer || invoice.EmailedAt is not null))
+            || !EmailAddresses.IsPlain(invoice.RecipientEmail))
+        {
+            return false;
+        }
+
+        var info = await company.GetAsync(ct);
+        var name = EmailAddresses.OneLine(info.TradeName ?? info.LegalName);
+        var model = new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["tenant_name"] = name,
+            ["number"] = invoice.Number?.ToString(CultureInfo.InvariantCulture),
+            ["verification_code"] = invoice.VerificationCode,
+            ["amount"] = invoice.TotalAmount.ToString("C", CultureInfo.GetCultureInfo("pt-BR")),
+            ["issued_on"] = invoice.IssuedOn?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
+        };
+        var cc = (invoice.EmailCc ?? string.Empty).Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(EmailAddresses.IsPlain).Take(3).ToList();
+        email.Enqueue(new EmailRequest(NfseEmailTemplate, invoice.RecipientEmail!.Trim(), model, OutgoingInvoiceReconciler.AttachmentOwner, invoice.Id, files, cc, info.Email,
+            $"{name} via BemAqui", invoice.IssuedBy));
+        invoice.EmailedAt = clock.GetUtcNow();
+        return true;
+    }
+
+    public const string NfseEmailTemplate = "nfse-authorized";
+
+    /// <summary>"NF-e 2/42", "NFS-e 9001" ou "sem número".</summary>
     public static string Label(OutgoingInvoice invoice)
     {
         ArgumentNullException.ThrowIfNull(invoice);
-        return invoice.Number is { } n ? $"{invoice.Series?.ToString(CultureInfo.InvariantCulture)}/{n.ToString(CultureInfo.InvariantCulture)}" : "sem número";
+        if (invoice.Number is not { } n)
+        {
+            return "sem número";
+        }
+
+        return invoice.Series is { } s ? $"{s.ToString(CultureInfo.InvariantCulture)}/{n.ToString(CultureInfo.InvariantCulture)}" : n.ToString(CultureInfo.InvariantCulture);
     }
+
+    /// <summary>A tela da nota: a NFS-e tem a própria (FIS-06).</summary>
+    public static string LinkOf(OutgoingInvoice invoice)
+    {
+        ArgumentNullException.ThrowIfNull(invoice);
+        return invoice.Type == InvoiceType.NFSe ? NfseLink(invoice.Id) : Link(invoice.Id);
+    }
+
+    public static string NfseLink(Guid invoiceId) => "/app/fiscal/saida/nfse/" + invoiceId.ToString("D");
 
     private async Task GapAsync(OutgoingInvoice invoice, string reason, CancellationToken ct)
     {
@@ -154,7 +232,7 @@ public sealed partial class OutgoingInvoiceEffects(
     {
         if (invoice.IssuedBy is { } user)
         {
-            notifications.Notify(user, type, title, Link(invoice.Id));
+            notifications.Notify(user, type, title, LinkOf(invoice));
         }
     }
 

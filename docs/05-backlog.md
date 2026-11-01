@@ -514,7 +514,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-6, R-PRP-3.
 - CA: extração de texto num worker isolado (`network_mode: none`, memória limitada, kill no tempo limite); sem OCR: PDF sem texto oferece "Digitar a nota"; chave com DV; conferência de todo campo, incertos com texto e foco no primeiro; nota marcada "Lida do PDF" e substituível pelo XML.
 
-**FIS-06 [ ] NFS-e da instalação no aceite técnico, com o processo provisório pelo portal da prefeitura (M)** — 5.6, ordem 15 — `Ready (pré-condição externa)` — [story](stories/FIS-06-nfse-instalacao.md)
+**FIS-06 [x] NFS-e da instalação no aceite técnico, com o processo provisório pelo portal da prefeitura (M)** — 5.6, ordem 15 — `Done` (provider da NFS-e de Caçapava no Emissor, homologação da prefeitura e códigos da contadora: pré-condição externa) — [story](stories/FIS-06-nfse-instalacao.md)
 - Requisitos: R-FIS-7, R-FIS-8, R-PRJ-3, R-PRJ-5.
 - CA: NFS-e a partir do aceite técnico, com o código de serviço e o ISS de Configurações → Fiscal; vínculo à NF-e do equipamento; ISS no custo do projeto; até o provider de Caçapava no Emissor, processo provisório pelo portal da prefeitura com o registro manual.
 

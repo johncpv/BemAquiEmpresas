@@ -85,6 +85,8 @@ public static class HostEvents
             // OS de instalação (COM-06).
             .AddHandler<BemAqui.Production.Contracts.InstallationStarted, BemAqui.Commercial.Application.InstallationConsumers>()
             .AddHandler<BemAqui.Production.Contracts.InstallationAccepted, BemAqui.Commercial.Application.InstallationConsumers>()
+            // FIS-06 CA 1: a instalação aceita entra na fila "A emitir" da NFS-e (e na pauta).
+            .AddHandler<BemAqui.Production.Contracts.InstallationAccepted, BemAqui.Fiscal.Application.Invoices.Nfse.InstallationBillingConsumer>()
             // Financeiro (FIN-01, FIN-03a).
             .AddHandler<BemAqui.Finance.Contracts.ReceivableSettled, BemAqui.Commercial.Application.ContractCompletionConsumer>()
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderSubmitted>()

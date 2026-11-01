@@ -74,7 +74,7 @@ public sealed class OutgoingInvoicesContract(IFiscalDb db) : IOutgoingInvoices
     {
         ArgumentNullException.ThrowIfNull(i);
         return new(i.Id, i.Type, i.Status.ToString(), i.Series, i.Number, i.AccessKey, i.ProjectId, i.ShipmentId, i.PartyId, i.IssuedOn, i.TotalAmount, i.Environment.ToString(),
-            OutgoingInvoiceEffects.Link(i.Id));
+            OutgoingInvoiceEffects.LinkOf(i));
     }
 }
 

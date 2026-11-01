@@ -27,6 +27,7 @@ public sealed partial class FiscalPendingChecker(
     NfeSubmissionService submissions,
     IOutgoingNfePayloads payloads,
     FiscalAlerts alerts,
+    Nfse.NfsePendingCheck nfse,
     TenantContextHolder tenant,
     IOptions<FiscalIntegrationOptions> options,
     TimeProvider clock,
@@ -46,8 +47,9 @@ public sealed partial class FiscalPendingChecker(
         var now = clock.GetUtcNow();
         var cutoff = now - options.Value.PendingAfter;
         var ids = await db.OutgoingInvoices.AsNoTracking()
-            .Where(i => (Pending.Contains(i.Status) && i.ProcessingSince <= cutoff) || (i.Status == OutgoingInvoiceStatus.Authorized && (i.XmlAttachmentId == null
-                || (i.ShipmentId != null && (i.DanfeAttachmentId == null || i.AuthorizationPublishedAt == null))))
+            .Where(i => (Pending.Contains(i.Status) && i.ProcessingSince <= cutoff) || (i.Status == OutgoingInvoiceStatus.Authorized && i.Origin == InvoiceOrigin.Emitter
+                && (i.XmlAttachmentId == null || (i.ShipmentId != null && (i.DanfeAttachmentId == null || i.AuthorizationPublishedAt == null))
+                    || (i.Type == BemAqui.Fiscal.Contracts.InvoiceType.NFSe && i.AuthorizationPublishedAt == null)))
                 // FIS-03b: cancelamento enviado sem resposta (reconsulta) e cancelada pela metade (evento, DANFE com a marca).
                 || (i.Status == OutgoingInvoiceStatus.Authorized && i.CancellationSentAt != null && i.CancellationSentAt <= cutoff)
                 || (i.Status == OutgoingInvoiceStatus.Cancelled && i.ShipmentId != null && (i.CancellationPublishedAt == null || i.CancelledDanfeAttachmentId == null)))
@@ -99,6 +101,18 @@ public sealed partial class FiscalPendingChecker(
         }
 
         var now = clock.GetUtcNow();
+        if (invoice.Type == BemAqui.Fiscal.Contracts.InvoiceType.NFSe)
+        {
+            // FIS-06 CA 4: sem webhook de NFS-e no Emissor, a conferência consulta a prefeitura pelo Emissor (nunca reemite).
+            var outcome = await nfse.CheckAsync(invoice, emitter, transaction, cancellationToken);
+            if (outcome.FailureCode is { } code)
+            {
+                return await FailedAsync(invoice, code, cancellationToken);
+            }
+
+            return outcome.Save ? await SaveAsync(transaction, new Step(outcome.Checked, outcome.Changed, outcome.Xml, false), cancellationToken) : new Step(outcome.Checked, outcome.Changed, false, false);
+        }
+
         if (invoice.Status == OutgoingInvoiceStatus.Authorized && invoice.CancellationSentAt is not null && invoice.AccessKey is { } cancelling)
         {
             // FIS-03b CA 1: o cancelamento foi enviado e a resposta não veio; a situação do Emissor decide (nunca reenvia sozinho).

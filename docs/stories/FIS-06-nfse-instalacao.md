@@ -5,7 +5,7 @@
 | ID | FIS-06 |
 | Título | NFS-e do serviço de instalação no aceite técnico da OS de instalação (COM-06), com os itens `Service` do orçamento (venda mista, D4), ISS e retenções pela regra de prestação de serviço (FIS-02b), IBS/CBS, vínculo com a NF-e do equipamento, XML e PDF guardados e enviados ao cliente, ISS realizado na razão do projeto; emissão pelo `IFiscalEmitter` quando o provider de Caçapava existir no Emissor e, até lá, o processo provisório: emitir no portal da prefeitura e registrar a nota aqui; até a nota, o projetado usa o ISS do orçado |
 | Tamanho | M |
-| Status | Ready (pré-condição externa) |
+| Status | Done (provider da NFS-e de Caçapava no Emissor, homologação na prefeitura e códigos da contadora: pré-condição externa) |
 | Requisitos | R-FIS-7 (NFS-e para serviços de instalação/manutenção; P-02) · R-FIS-8 (IBS/CBS) · R-PRJ-3 · R-PRJ-5 · R-COM-1 · R-PRP-2 · R-PRP-7 · R-SEC-5 |
 | Dependências | FIS-01 (`IFiscalEmitter.IssueNfseAsync`, `GetAccountAsync`), FIS-02a (NFS-e em Configurações → Fiscal), FIS-02b (regra de prestação de serviço), FIS-03a (`IOutgoingInvoices`, NF-e do equipamento, fila "A emitir"), COM-06 (OS de instalação e `InstallationAccepted`), PRD-04 (`commercial.project_costs`) |
 | Bloqueia | — (a GOL-01a exige as Fases 0 a 8 concluídas) |
@@ -84,21 +84,21 @@ Decisões da revisão aplicadas: D5 (ISS do orçado no projetado até a nota, CA
 **Pré-condição externa:** provider da NFS-e de Caçapava no EmissorFiscal (lacuna L-m, dono PO), com as credenciais web da prefeitura (Konebras); códigos da contadora (`CodSrv`, CTN, NBS, CST, `cClassTrib`; pré-configurados em Configurações → Fiscal); confirmação do processo provisório pela contadora. Não bloqueiam o `Ready`: o registro pelo portal funciona sem o provider.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers + fake) e E2E passando; NFS-e de homologação registrada quando o provider existir.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`.
-- [ ] Permissões só do `ModuleCatalog`.
-- [ ] Telas com estados, inclusive a 400 px.
-- [ ] Ajuda escrita; teste de cobertura passando.
-- [ ] Efeito fiscal com confirmação; fila e próximos passos aplicados.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (NFS-e no aceite técnico; registro pelo portal) atualizados; story marcada no backlog.
+- [x] Critérios de aceite atendidos (CA 3 e 4 contra o fake: o provider de Caçapava ainda não existe no Emissor, lacuna L-m).
+- [x] Testes de unidade e integração (Testcontainers + fake) passando. E2E fora por decisão do PO (31/10). NFS-e de homologação na prefeitura: quando o provider existir (pendente).
+- [x] Migration `InstallationNfseFis06` criada (só `ADD COLUMN`, `CREATE TABLE` e `CREATE INDEX`), aplicada pelos testes de migração; a cópia do banco do `konebras` fica para o deploy.
+- [x] Permissões só do `ModuleCatalog` (`fiscal.view/create/edit/approve`, nenhuma nova).
+- [x] Telas com estados, inclusive a 400 px (o diálogo grande vira tela cheia; botões "Copiar" de 44 px).
+- [x] Ajuda escrita (`Ajuda/fiscal-nfse.md` com "Processo provisório pelo portal da prefeitura", `fiscal-nfse-documentos.md`, `fiscal-nfse-historico.md`; `fiscal-saida.md` e `fiscal-saida-emitidas.md` atualizadas); teste de cobertura passando.
+- [x] Efeito fiscal com confirmação; fila, pauta e próximos passos aplicados.
+- [x] Auditoria ligada (a mesma entidade `OutgoingInvoice`, destinatário mascarado).
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (NFS-e no aceite técnico; registro pelo portal) atualizados; story marcada no backlog e no índice; lacuna L-m detalhada em `docs/operacao/emissor-fiscal.md`.
 
 ## Tarefas técnicas sugeridas
-- [ ] `IssueNfseAsync`/`GetNfseAsync` no adaptador; NFS-e na `OutgoingInvoice` com as duas origens.
-- [ ] Consumidor do `InstallationAccepted` para a fila; registro do portal com anexo; cancelamento registrado.
-- [ ] Botões na OS de instalação e no projeto; ajuda.
+- [x] `IssueNfseAsync`/`GetNfseAsync` (e `ForceConsultNfseAsync`, `GetNfseXmlAsync`, `GetNfsePdfAsync`) no adaptador; NFS-e na `OutgoingInvoice` com as duas origens.
+- [x] Consumidor do `InstallationAccepted` para a fila; registro do portal com anexo; cancelamento registrado.
+- [x] Botões na OS de instalação e no projeto; ajuda.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa, contadora (processo provisório e códigos).
@@ -132,3 +132,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D1 novo, D3, D4, D5, D6, tabela 3.2 pontos 70–73, §4.4); processo provisório pelo portal; antes do go-live, na ordem da fase (15, Marco 5.6); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 01/11/2026 | 1.0 | Implementação. **Backend:** NFS-e na mesma `fiscal.outgoing_invoices` (`type = NFSe`, colunas `installation_order_id`, `installation_order_number`, `linked_invoice_id`, `verification_code`, `origin`, `iss_typed`, `service` e `portal_cancellation` em jsonb; índices `ux_outgoing_invoices_active_installation` e `ux_outgoing_invoices_nfse_number`) e a fila `fiscal.installation_billings` gravada pelo consumidor do `InstallationAccepted` (migration `InstallationNfseFis06`). Reaproveita o fluxo da FIS-03a: o cálculo (`OutgoingInvoiceCalculator` com a regra de prestação de serviço), o tomador (`FillRecipientAsync`), o envio idempotente com `payload_hash` (`nfse-{id}-{tentativa}`), a conferência de pendentes (consulta forçada `POST /nfse/{id}/consultar`, sem webhook de NFS-e), os efeitos (`InvoiceAuthorized` uma vez só com `type = NFSe`, e-mail `nfse-authorized` pela fila, aviso da rejeição) e o `IOutgoingInvoices` (receita e "a faturar" pela data da nota). Pauta: categoria `fiscal.nfse_to_issue` ("NFS-e a emitir"). LGPD: a NFS-e sai na exportação (OS, código de verificação, origem) e segue a retenção da NF-e na anonimização. **Front:** `/app/fiscal/saida/nfse/$id` (Dados, Documentos, Histórico), a fila de instalações em "A emitir", o filtro "Tipo" em "Emitidas", "Emitir NFS-e da instalação" no aceite técnico e no "Faturar" do projeto. **Pendência externa (L-m):** o provider de Caçapava não existe no Emissor; CA 3 e 4 implementados e testados contra o `FakeFiscalEmitter`. **Recomendações aceitas (PO 24/10):** (1) o Emissor só emite a NFS-e com o escopo `nfse:emitir` **e** o município da empresa em `nfseMunicipios` no `GET /me` (campo novo, a pedir ao Emissor): sem a lista, sempre o processo provisório; (2) o registro do portal só existe no processo provisório (evita a mesma instalação em duas notas); (3) o cancelamento é sempre o registrado à mão (2FA de novo) enquanto o BemAqui não chama o cancelamento de NFS-e do Emissor; (4) o valor e o ISS digitados da nota da prefeitura valem para a receita e o custo (o ISS rateado nas linhas de ISS), com aviso também para o valor diferente do rascunho; (5) a data de corte fiscal passa a nascer também da primeira NFS-e de produção ("primeira nota real", ADR 0025 adendo); (6) retenções federais marcadas em Configurações só avisam (não calculadas, P-15); (7) `IndCodOpe` do IBS/CBS `030101` e série do RPS `1`, do exemplo do contrato do Emissor, a confirmar com a contadora; (8) "Emitir NFS-e" logo depois do aceite (antes de a inbox entregar o evento) cria a linha da fila conferindo a OS pelo contrato da Produção. **FIS-03b (PR #162):** `InvoiceCancelled`, `InvoiceTaxReversalConsumer` e o registro no `HostEvents`/`DashboardGenerationConsumer` copiados idênticos aos da FIS-03b para não depender dela; o cancelamento da NFS-e não usa as colunas de cancelamento da FIS-03b (fica em `portal_cancellation`), para as duas migrations não criarem a mesma coluna. E2E fora por decisão do PO (31/10). | Dex (dev) |

@@ -30,8 +30,8 @@ internal static class FiscalOutgoingInvoiceEndpoints
             });
 
         invoices.MapGet(string.Empty, async (DateOnly? from, DateOnly? to, OutgoingInvoiceStatus? status, Guid? partyId, Guid? projectId, bool? cancellationRequested, int? page, int? pageSize,
-                OutgoingInvoiceService service, CancellationToken ct) =>
-                Results.Ok(await service.ListAsync(new OutgoingInvoiceQuery(from, to, status, partyId, projectId, cancellationRequested),
+                BemAqui.Fiscal.Contracts.InvoiceType? type, OutgoingInvoiceService service, CancellationToken ct) =>
+                Results.Ok(await service.ListAsync(new OutgoingInvoiceQuery(from, to, status, partyId, projectId, type, cancellationRequested),
                     new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)))
             .RequirePermission("fiscal.view").WithName("ListOutgoingInvoices").Produces<OutgoingInvoicePage>();
         invoices.MapGet("/to-issue", async (OutgoingInvoiceService service, CancellationToken ct) => Results.Ok(await service.ToIssueAsync(ct)))
