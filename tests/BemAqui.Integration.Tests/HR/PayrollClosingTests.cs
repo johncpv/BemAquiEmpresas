@@ -46,11 +46,15 @@ public partial class PayrollClosingTests(TenancyFixture tenancy) : IClassFixture
 
         public string Next()
         {
-            // O servidor aceita o passo anterior, o atual e o próximo. O código do passo anterior vence quando o relógio vira o passo: nos
-            // últimos 10 s do passo ele podia vencer no meio da requisição (2FA "inválido" intermitente), então ali já vai o código do atual.
-            var now = DateTimeOffset.UtcNow;
-            var late = now.ToUnixTimeSeconds() % Totp.StepSeconds >= Totp.StepSeconds - 10;
-            var step = Math.Max(_last + 1, Totp.StepAt(now) - (late ? 0 : 1));
+            // O servidor aceita o passo anterior, o atual e o próximo; o código sai do passo anterior (sobram dois à frente). Nos últimos 10 s
+            // do passo, ele venceria no meio da requisição quando o relógio vira (2FA "inválido" intermitente): espera o passo virar antes.
+            var wait = Totp.StepSeconds - (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() % (Totp.StepSeconds * 1000L)) / 1000.0;
+            if (wait < 10)
+            {
+                Thread.Sleep(TimeSpan.FromSeconds(wait + 0.2));
+            }
+
+            var step = Math.Max(_last + 1, Totp.StepAt(DateTimeOffset.UtcNow) - 1);
             _last = step;
             return Totp.Code(secret, step);
         }
