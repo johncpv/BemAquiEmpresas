@@ -195,8 +195,10 @@ public class TimesheetTests(TenancyFixture tenancy) : TimeAdjustmentTestBase(ten
         set.StatusCode.Should().Be(HttpStatusCode.OK, await set.Content.ReadAsStringAsync());
         (await JsonAsync(await sensitive.Client.GetAsync($"/api/v1/hr/employees/{bruno}/hour-bank-agreement"))).GetProperty("agreementOn").GetString().Should().Be("2026-11-01");
         var audit = await AuditAsync(nameof(Employee), bruno.ToString());
-        audit.Should().Contain(a => a.Changes.Contains("hourBankAgreementOn"));
-        audit.Should().NotContain(a => a.Changes.Contains("2026-11-01"), "a data do acordo é [PersonalData]: mascarada na auditoria");
+        // Só a entrada do acordo: o createdAt da criação (UTC) pode cair no mesmo dia quando o teste roda à noite em São Paulo.
+        var agreement = audit.Where(a => a.Changes.Contains("hourBankAgreementOn")).ToList();
+        agreement.Should().NotBeEmpty();
+        agreement.Should().OnlyContain(a => !a.Changes.Contains("2026-11-01") && a.Changes.Contains("***"), "a data do acordo é [PersonalData]: mascarada na auditoria");
     }
 
     /// <summary>
