@@ -23,7 +23,7 @@ namespace BemAqui.Fiscal.Application.Invoices;
 /// </summary>
 public sealed partial class OutgoingInvoiceEffects(
     IFiscalDb db, AttachmentService attachments, IEventPublisher events, INotificationService notifications, IEmailSender email, ICompanyIdentity company, ITenantContext tenant,
-    TimeProvider clock, ILogger<OutgoingInvoiceEffects> logger)
+    BemAqui.BuildingBlocks.Identity.IUserDirectory users, BemAqui.BuildingBlocks.Pdf.IPdfRenderer renderer, TimeProvider clock, ILogger<OutgoingInvoiceEffects> logger)
 {
     public const string EmailTemplate = "invoice-authorized";
     public const string RejectedType = "fiscal.invoice_rejected";
@@ -45,6 +45,9 @@ public sealed partial class OutgoingInvoiceEffects(
                 await GapAsync(invoice, NumberGapReasons.Rejected, cancellationToken);
                 Notify(invoice, RejectedType, $"A SEFAZ rejeitou a nota {Label(invoice)}: {invoice.RejectionReason ?? "veja o motivo"}");
                 events.Publish(new InvoiceRejected(invoice.Id, invoice.Type, invoice.ProjectId, invoice.RejectionCode));
+                break;
+            case OutgoingInvoiceStatus.Cancelled:
+                await CancelledAsync(invoice, emitter, cancellationToken);
                 break;
             case OutgoingInvoiceStatus.Denied when before != OutgoingInvoiceStatus.Denied:
                 await GapAsync(invoice, NumberGapReasons.Denied, cancellationToken);

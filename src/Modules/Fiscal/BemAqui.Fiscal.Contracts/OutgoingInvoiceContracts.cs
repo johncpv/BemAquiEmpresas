@@ -24,6 +24,16 @@ public sealed record InvoiceAuthorized(
     Guid InvoiceId, InvoiceType Type, Guid? ProjectId, Guid? ShipmentId, Guid? PartyId, DateOnly IssuedOn, decimal TotalAmount, IReadOnlyList<InvoiceTaxAmount> Taxes,
     decimal CostTaxAmount, bool ProjectTaxApplies = false) : IIntegrationEvent;
 
+/// <summary>
+/// Nota de saída cancelada na SEFAZ (FIS-03b CA 1 e 5): só ids, datas e valores, nunca o destinatário nem o motivo. O Commercial grava o
+/// reverso do imposto na razão do projeto (fonte <c>InvoiceTaxReversal</c>, valor negativo igual ao da <c>InvoiceTax</c>) quando a nota tinha
+/// entrado no custo (<paramref name="ProjectTaxApplies"/>). A receita sai sozinha: o <c>IOutgoingInvoices</c> deixa de contar a nota. Nenhum
+/// consumidor no Inventory: cancelar não mexe no estoque (D12); o romaneio continua expedido.
+/// </summary>
+public sealed record InvoiceCancelled(
+    Guid InvoiceId, InvoiceType Type, Guid? ProjectId, Guid? ShipmentId, DateOnly CancelledOn, decimal CostTaxAmount, decimal TotalAmount, bool ProjectTaxApplies = false)
+    : IIntegrationEvent;
+
 /// <summary>Nota rejeitada pela SEFAZ (FIS-03a CA 8): só o sino de quem emitiu; o motivo fica na nota.</summary>
 public sealed record InvoiceRejected(Guid InvoiceId, InvoiceType Type, Guid? ProjectId, int? Code) : IIntegrationEvent;
 

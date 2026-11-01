@@ -144,7 +144,7 @@ public static class NumberGapReasons
 /// Número de NF-e gasto sem nota válida (<c>fiscal.number_gaps</c>, CA 8 e 9): a rejeitada entra em "Números a inutilizar" e a denegada fica
 /// registrada. A inutilização (FIS-03b) marca <see cref="InvalidatedAt"/>. Uma linha por série e número.
 /// </summary>
-public sealed class NumberGap : Entity, IAuditable
+public sealed class NumberGap : Entity, IAuditable, IConcurrencyVersioned
 {
     public int Series { get; init; }
 
@@ -158,7 +158,58 @@ public sealed class NumberGap : Entity, IAuditable
 
     public DateTimeOffset CreatedAt { get; init; }
 
-    public DateTimeOffset? InvalidatedAt { get; set; }
+    public DateTimeOffset? InvalidatedAt { get; private set; }
+
+    /// <summary>A inutilizar (só a rejeitada) ou inutilizado com o evento homologado (FIS-03b CA 10).</summary>
+    public NumberGapStatus Status { get; private set; } = NumberGapStatus.Pending;
+
+    public Guid? InvalidationEventId { get; private set; }
+
+    /// <summary>Entra em "A inutilizar": rejeitada e ainda não inutilizada (a denegada fica só registrada).</summary>
+    public bool ToInvalidate => Reason == NumberGapReasons.Rejected && Status == NumberGapStatus.Pending;
+
+    public uint Version { get; set; }
+
+    /// <summary>
+    /// Inutilização enviada (CA 10 e 15): o número fica preso ao evento até o desfecho; com o <c>xmin</c>, dois pedidos juntos da mesma faixa
+    /// deixam só um ir ao Emissor.
+    /// </summary>
+    public Error? BeginInvalidation(Guid eventId, DateTimeOffset? sentAt, DateTimeOffset now)
+    {
+        if (!ToInvalidate)
+        {
+            return Error.Conflict(FiscalErrorCodes.NumberNotInvalidable, $"O número {Number.ToString(System.Globalization.CultureInfo.InvariantCulture)} não está em Números a inutilizar.");
+        }
+
+        if (InvalidationEventId is not null && sentAt is { } sent && now - sent < FiscalEventRules.ResendAfter)
+        {
+            return Error.Conflict(FiscalErrorCodes.EventInProgress, "A inutilização desta faixa já foi enviada. Aguarde a resposta da SEFAZ.");
+        }
+
+        InvalidationEventId = eventId;
+        return null;
+    }
+
+    /// <summary>Recusada: o número volta a ficar só a inutilizar.</summary>
+    public void InvalidationRefused(Guid eventId)
+    {
+        if (Status == NumberGapStatus.Pending && InvalidationEventId == eventId)
+        {
+            InvalidationEventId = null;
+        }
+    }
+
+    public void Invalidate(Guid eventId, DateTimeOffset at)
+    {
+        if (Status == NumberGapStatus.Invalidated)
+        {
+            return;
+        }
+
+        Status = NumberGapStatus.Invalidated;
+        InvalidationEventId = eventId;
+        InvalidatedAt = at;
+    }
 }
 
 /// <summary>

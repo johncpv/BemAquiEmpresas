@@ -23,6 +23,10 @@ public static class HostEvents
             // consumidor no Inventory (a nota só referencia o romaneio). Rejeitada e denegada são só aviso.
             .AddHandler<BemAqui.Fiscal.Contracts.InvoiceAuthorized, BemAqui.Commercial.Application.InvoiceTaxConsumer>()
             .AddHandler<BemAqui.Fiscal.Contracts.InvoiceAuthorized, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
+            // FIS-03b CA 5 (D12): o cancelamento vira o reverso do imposto na razão do projeto (InvoiceTaxReversal); a receita sai pelo
+            // IOutgoingInvoices (a nota cancelada deixa de contar) e nada muda no estoque (nenhum consumidor no Inventory).
+            .AddHandler<BemAqui.Fiscal.Contracts.InvoiceCancelled, BemAqui.Commercial.Application.InvoiceTaxReversalConsumer>()
+            .AddHandler<BemAqui.Fiscal.Contracts.InvoiceCancelled, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
             .AddEvent<BemAqui.Fiscal.Contracts.InvoiceRejected>()
             .AddEvent<BemAqui.Fiscal.Contracts.InvoiceDenied>()
             .AddEvent<BemAqui.HR.Contracts.EmployeeTerminated>()

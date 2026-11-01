@@ -356,6 +356,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Fiscal.Domain.NumberGap> NumberGaps => Set<BemAqui.Fiscal.Domain.NumberGap>();
 
+    public DbSet<BemAqui.Fiscal.Domain.FiscalEvent> FiscalEvents => Set<BemAqui.Fiscal.Domain.FiscalEvent>();
+
+    public DbSet<BemAqui.Fiscal.Domain.CancellationRequest> CancellationRequests => Set<BemAqui.Fiscal.Domain.CancellationRequest>();
+
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoice> IncomingInvoices => Set<BemAqui.Fiscal.Domain.IncomingInvoice>();
 
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoiceItem> IncomingInvoiceItems => Set<BemAqui.Fiscal.Domain.IncomingInvoiceItem>();

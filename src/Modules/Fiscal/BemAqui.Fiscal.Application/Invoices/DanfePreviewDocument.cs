@@ -10,7 +10,8 @@ namespace BemAqui.Fiscal.Application.Invoices;
 /// <summary>Dados da prévia: emitente, a chave e o número que a nota teria agora (podem mudar), os avisos do Emissor e a nota.</summary>
 public sealed record DanfePreviewModel(
     string IssuerName, string? IssuerDocument, string AccessKey, long Number, int Series, IReadOnlyList<string> Warnings, OutgoingInvoice Invoice, IReadOnlyList<OutgoingInvoiceItem> Items,
-    string? Complementary);
+    string? Complementary,
+    string? Band = null);
 
 /// <summary>
 /// "Pré-visualizar" (FIS-03a CA 5): DANFE simplificado em PDF montado pelo BemAqui com o <c>IPdfRenderer</c> (reserva da ADR 0027 para a
@@ -25,7 +26,7 @@ public sealed class DanfePreviewDocument(DanfePreviewModel model) : IDocument
 
     private static readonly string[] Columns = ["Código", "Descrição", "NCM", "CFOP", "Qtde.", "Valor unit.", "Total"];
 
-    public DocumentMetadata GetMetadata() => new() { Title = "Prévia da NF-e — " + Band, Author = model.IssuerName, Creator = "BemAqui Empresas" };
+    public DocumentMetadata GetMetadata() => new() { Title = model.Band is null ? "Prévia da NF-e — " + Band : "NF-e " + model.Series.ToString(CultureInfo.InvariantCulture) + "/" + model.Number.ToString(CultureInfo.InvariantCulture) + " — " + model.Band, Author = model.IssuerName, Creator = "BemAqui Empresas" };
 
     public void Compose(IDocumentContainer container) => container.Page(page =>
     {
@@ -35,7 +36,7 @@ public sealed class DanfePreviewDocument(DanfePreviewModel model) : IDocument
         page.DefaultTextStyle(t => t.FontFamily(QuestPdfRenderer.FontFamily).FontSize(8f).FontColor("#14202b").EnableFontFeature(FontFeatures.TabularFigures));
         page.Header().Column(col =>
         {
-            col.Item().Background("#fde7c3").Padding(6).AlignCenter().Text(Band.ToUpperInvariant()).FontSize(12).Bold().FontColor("#7a4b00");
+            col.Item().Background("#fde7c3").Padding(6).AlignCenter().Text((model.Band ?? Band).ToUpperInvariant()).FontSize(12).Bold().FontColor("#7a4b00");
             col.Item().PaddingTop(6).Row(row =>
             {
                 row.RelativeItem(3).Column(c =>
@@ -122,7 +123,7 @@ public sealed class DanfePreviewDocument(DanfePreviewModel model) : IDocument
         });
         page.Footer().AlignCenter().Text(t =>
         {
-            t.Span(Band + ". O número e a chave podem mudar na emissão.   Página ").FontSize(7f);
+            t.Span((model.Band is null ? Band + ". O número e a chave podem mudar na emissão." : model.Band + ".") + "   Página ").FontSize(7f);
             t.CurrentPageNumber().FontSize(7f);
             t.Span(" de ").FontSize(7f);
             t.TotalPages().FontSize(7f);

@@ -44,7 +44,7 @@ public sealed record OutgoingInvoiceView(
     decimal TotalAmount, decimal CostTaxAmount, string? CalculationError, int? RejectionCode, string? RejectionReason, string? SuggestedAction, string? Guidance,
     DateTimeOffset? ProcessingSince, DateTimeOffset? ContingencySince, Guid? XmlAttachmentId, Guid? DanfeAttachmentId, bool SendToCustomer, string? EmailCc,
     DateTimeOffset? EmailedAt, IReadOnlyList<ContractInstallmentView> Installments, OutgoingInvoiceActions Actions, DateTimeOffset CreatedAt, string? CreatedByName,
-    DateTimeOffset? DiscardedAt, uint Version);
+    DateTimeOffset? DiscardedAt, uint Version, InvoiceCancellationView Cancellation);
 
 /// <summary>Nota na lista "Emitidas" (CA 17): número, série, data, cliente, projeto, valor, impostos, ambiente e situação (sem documento do cliente).</summary>
 public sealed record OutgoingInvoiceRow(
@@ -55,7 +55,59 @@ public sealed record OutgoingInvoiceRow(
 public sealed record OutgoingInvoicePage(IReadOnlyList<OutgoingInvoiceRow> Items, int Total, int Page, int PageSize, decimal TotalAmount, decimal TaxAmount);
 
 /// <summary>Filtros da lista na URL (CA 17).</summary>
-public sealed record OutgoingInvoiceQuery(DateOnly? From, DateOnly? To, OutgoingInvoiceStatus? Status, Guid? PartyId, Guid? ProjectId);
+public sealed record OutgoingInvoiceQuery(DateOnly? From, DateOnly? To, OutgoingInvoiceStatus? Status, Guid? PartyId, Guid? ProjectId, bool? CancellationRequested = null);
+
+// ---------- FIS-03b: cancelamento, carta de correção e inutilização ----------
+
+/// <summary>"Cancelar NF-e" (CA 1 e 3): o motivo (15 a 255), o pedido atendido (se veio do link), o aviso ao cliente e a versão aberta.</summary>
+public sealed record CancelInvoiceRequest(string? Reason, Guid? RequestId, bool NotifyCustomer, uint Version);
+
+/// <summary>"Pedir cancelamento" (CA 2): o motivo (15 a 255).</summary>
+public sealed record CancellationRequestInput(string? Reason);
+
+/// <summary>"Recusar pedido" (CA 3): o motivo, que vai para quem pediu.</summary>
+public sealed record DeclineCancellationInput(string? Reason);
+
+/// <summary>"Registrar carta de correção" (CA 8): o texto (15 a 1000), o aviso ao cliente e a versão aberta.</summary>
+public sealed record CorrectInvoiceRequest(string? Text, bool NotifyCustomer, uint Version);
+
+/// <summary>Evento na aba Eventos (CA 16): tipo, sequência, protocolo, texto, quem pediu e quando, e a recusa com o motivo.</summary>
+public sealed record FiscalEventView(
+    Guid Id, FiscalEventType Type, string TypeLabel, int Sequence, string Text, FiscalEventStatus Status, string? Protocol, DateTimeOffset RequestedAt, string? RequestedByName,
+    DateTimeOffset? RegisteredAt, int? RejectionCode, string? RejectionReason, bool HasXml, Guid? CancellationRequestId);
+
+/// <summary>Pedido de cancelamento na nota (CA 2 e 3): motivo, quem pediu, o prazo e a decisão.</summary>
+public sealed record CancellationRequestView(
+    Guid Id, Guid InvoiceId, string Reason, CancellationRequestStatus Status, DateTimeOffset RequestedAt, string? RequestedByName, DateTimeOffset ExpiresAt, DateTimeOffset? DecidedAt,
+    string? DecidedByName, string? DecisionReason, uint Version);
+
+/// <summary>
+/// O que a nota mostra do cancelamento e da carta (CA 1 a 4 e 8): o prazo (o servidor confere de novo no envio), o que a pessoa pode fazer
+/// agora (<c>fiscal.approve</c> cancela; os demais com <c>fiscal.view</c> pedem; <c>fiscal.edit</c> corrige), o pedido pendente, o envio em
+/// andamento e o desfecho.
+/// </summary>
+public sealed record InvoiceCancellationView(
+    DateTimeOffset? Deadline, bool WithinWindow, bool CanCancel, bool CanRequest, bool CanDecline, bool CanCorrect, int Corrections, int CorrectionsLeft,
+    DateTimeOffset? CancellationSentAt, CancellationRequestView? PendingRequest, DateTimeOffset? CancelledAt, string? CancelledByName, string? CancellationReason,
+    string? CancellationProtocol, bool HasCancelledDanfe, int EventCount);
+
+/// <summary>Resultado de cancelar ou registrar a carta: a situação do evento, a mensagem da tela e a nota de agora.</summary>
+public sealed record FiscalEventResultView(FiscalEventStatus Status, string Message, OutgoingInvoiceView Invoice);
+
+/// <summary>"Inutilizar números" (CA 10): a faixa contínua da mesma série e a justificativa (15 a 255).</summary>
+public sealed record InvalidateNumbersRequest(int Series, long FirstNumber, long LastNumber, string? Justification);
+
+/// <summary>Número a inutilizar (CA 10): série, número, motivo e data.</summary>
+public sealed record NumberGapRow(Guid Id, int Series, long Number, string Reason, DateTimeOffset CreatedAt, Guid InvoiceId);
+
+/// <summary>Faixa contínua a inutilizar (CA 10): os números e se algum passa de 30 dias (CA 12).</summary>
+public sealed record NumberGapRangeView(int Series, long FirstNumber, long LastNumber, long Count, string Label, DateTimeOffset OldestAt, bool Old, IReadOnlyList<NumberGapRow> Numbers);
+
+/// <summary>Filtro "A inutilizar" (CA 10), já em faixas; a inutilização só com <c>fiscal.approve</c>.</summary>
+public sealed record NumberGapList(IReadOnlyList<NumberGapRangeView> Ranges, int Total, bool CanInvalidate);
+
+/// <summary>Resultado de "Inutilizar números" (CA 10): a situação, a mensagem e o protocolo.</summary>
+public sealed record InvalidationResultView(FiscalEventStatus Status, string Message, int Series, long FirstNumber, long LastNumber, string? Protocol, Guid EventId);
 
 /// <summary>Romaneio esperando nota na fila "A emitir" (CA 16).</summary>
 public sealed record InvoiceQueueRow(
