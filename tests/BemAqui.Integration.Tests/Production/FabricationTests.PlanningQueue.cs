@@ -10,19 +10,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// PLN-02 com o banco real: a fila com prometido, previsto, folga e risco (CA 1); entrada pela data prometida, saída e posições contíguas,
-/// com o histórico automático (CA 2 e 8); carga inicial sem tocar <c>commercial.projects.priority</c> (CA 3); prévia sem gravar e igual ao
-/// cálculo depois de salvar (CA 4 e 6); aviso de quem passa a atrasar (CA 5); concorrência com duas abas (CA 6); permutação inválida
-/// (CA 7); histórico manual (CA 8); <see cref="IPlanningQueue"/> (CA 9); rate limit da prévia (CA 10); três camadas (CA 11). A fila é do
-/// tenant inteiro: cada teste usa projetos próprios, com datas prometidas bem no futuro, e filtra pelos ids que criou.
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private const string Queue = "/api/v1/production/planning/queue";
+    protected const string Queue = "/api/v1/production/planning/queue";
 
     /// <summary>Dois projetos no mesmo centro (o roteiro e o centro do primeiro), um OS de fabricação cada, com as datas prometidas dadas.</summary>
-    private async Task<(HttpClient Owner, Guid First, Guid Second, Guid FirstOrder, Guid SecondOrder)> QueuePairAsync(DateOnly firstPromised, DateOnly secondPromised)
+    protected async Task<(HttpClient Owner, Guid First, Guid Second, Guid FirstOrder, Guid SecondOrder)> QueuePairAsync(DateOnly firstPromised, DateOnly secondPromised)
     {
         var (owner, routing, first, orders, _) = await KanbanDatasetAsync(1);
         var product = await ProductAsync();
@@ -33,35 +26,45 @@ public partial class FabricationTests
         return (owner, first, second, orders[0], secondOrder);
     }
 
-    private static async Task<JsonElement> PlanningQueueAsync(HttpClient client)
+    protected static async Task<JsonElement> PlanningQueueAsync(HttpClient client)
     {
         var response = await client.GetAsync(Queue);
         response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
         return await JsonAsync(response);
     }
 
-    private static List<Guid> QueueOrder(JsonElement queue) => [.. queue.GetProperty("rows").EnumerateArray().Select(r => r.GetProperty("projectId").GetGuid())];
+    protected static List<Guid> QueueOrder(JsonElement queue) => [.. queue.GetProperty("rows").EnumerateArray().Select(r => r.GetProperty("projectId").GetGuid())];
 
-    private static JsonElement Row(JsonElement queue, Guid project) =>
+    protected static JsonElement Row(JsonElement queue, Guid project) =>
         queue.GetProperty("rows").EnumerateArray().Single(r => r.GetProperty("projectId").GetGuid() == project);
 
     /// <summary>A ordem com <paramref name="moved"/> logo antes de <paramref name="before"/>.</summary>
-    private static List<Guid> MoveBefore(IEnumerable<Guid> order, Guid moved, Guid before)
+    protected static List<Guid> MoveBefore(IEnumerable<Guid> order, Guid moved, Guid before)
     {
         var list = order.Where(id => id != moved).ToList();
         list.Insert(list.IndexOf(before), moved);
         return list;
     }
 
-    private Task<List<PlanningQueueEntry>> StoredQueueAsync() =>
+    protected Task<List<PlanningQueueEntry>> StoredQueueAsync() =>
         WithDbAsync(db => db.PlanningQueue.AsNoTracking().OrderBy(e => e.Position).ToListAsync());
 
-    private async Task<IReadOnlyList<Guid>> SyncQueueAsync()
+    protected async Task<IReadOnlyList<Guid>> SyncQueueAsync()
     {
         await using var scope = await ScopeAsync();
         return await scope.ServiceProvider.GetRequiredService<PlanningQueueStore>().SyncAsync();
     }
+}
 
+/// <summary>
+/// PLN-02 com o banco real: a fila com prometido, previsto, folga e risco (CA 1); entrada pela data prometida, saída e posições contíguas,
+/// com o histórico automático (CA 2 e 8); carga inicial sem tocar <c>commercial.projects.priority</c> (CA 3); prévia sem gravar e igual ao
+/// cálculo depois de salvar (CA 4 e 6); aviso de quem passa a atrasar (CA 5); concorrência com duas abas (CA 6); permutação inválida
+/// (CA 7); histórico manual (CA 8); <see cref="IPlanningQueue"/> (CA 9); rate limit da prévia (CA 10); três camadas (CA 11). A fila é do
+/// tenant inteiro: cada teste usa projetos próprios, com datas prometidas bem no futuro, e filtra pelos ids que criou.
+/// </summary>
+public partial class FabricationBoardTests
+{
     [Fact]
     public async Task Fila_mostra_os_projetos_pela_data_prometida_e_a_previa_nao_grava()
     {

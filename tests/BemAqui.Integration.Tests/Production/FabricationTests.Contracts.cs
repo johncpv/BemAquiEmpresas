@@ -13,10 +13,44 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Production;
 
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private const string Installations = "/api/v1/production/installations";
+    protected const string Installations = "/api/v1/production/installations";
 
+    protected static byte[] Pad(byte[] head, int size)
+    {
+        var bytes = new byte[size];
+        head.CopyTo(bytes, 0);
+        for (var i = head.Length; i < size; i++)
+        {
+            bytes[i] = (byte)'a';
+        }
+
+        return bytes;
+    }
+
+    protected static async Task<HttpResponseMessage> UploadAsync(HttpClient client, Guid orderId, byte[] content, string name)
+    {
+        using var form = new MultipartFormDataContent();
+        var file = new ByteArrayContent(content);
+        file.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+        form.Add(file, "file", name);
+        return await client.PostAsync($"/api/v1/attachments/ProductionOrder/{orderId}", form);
+    }
+
+    /// <summary>OS de instalação da COM-06 no mesmo projeto (instalador, valor e datas).</summary>
+    protected static async Task<Guid> InstallationAsync(HttpClient owner, Guid projectId)
+    {
+        var party = await owner.PostAsJsonAsync("/api/v1/parties", new { kind = "PJ", document = (string?)null, legalName = "Instalador " + Guid.NewGuid().ToString("N")[..6], roles = new[] { "Installer" } });
+        var installer = (await JsonAsync(party)).GetProperty("id").GetGuid();
+        var created = await owner.SendAsync(Post(Installations, new { projectId, projectItemIds = (Guid[]?)null, installerId = installer, contractValue = 5_000m, plannedStart = Iso(Today), plannedEnd = Iso(Today.AddDays(5)) }));
+        created.StatusCode.Should().Be(HttpStatusCode.Created, await created.Content.ReadAsStringAsync());
+        return (await JsonAsync(created)).GetProperty("id").GetGuid();
+    }
+}
+
+public partial class FabricationOrdersTests
+{
     [Fact]
     public async Task Contratos_separam_os_tipos_e_a_instalacao_continua_lendo_a_mesma_tabela()
     {
@@ -150,16 +184,23 @@ public partial class FabricationTests
         late.GetProperty("total").GetInt32().Should().Be(2);
         late.GetProperty("items")[0].GetProperty("delayDays").GetInt32().Should().Be(3);
 
-        // CA 15: 5 mil OS em menos de 1 s.
+        // CA 15: 5 mil OS em menos de 1 s. As 5 mil saem no fim: o banco é da classe e os outros testes não devem varrê-las.
         await WithDbAsync(db => db.Database.ExecuteSqlAsync(
             $"INSERT INTO production.production_orders (id, number, type, project_id, contract_id, project_item_id, quantity, status, priority, created_at) SELECT gen_random_uuid(), 'OS-P-' || g, 'Fabrication', {projectId}, c.contract_id, gen_random_uuid(), 1, 'Open', 0, now() FROM generate_series(1, 5000) g, (SELECT contract_id FROM production.production_orders WHERE id = {withLine.Id}) c"));
-        await owner.GetAsync($"{Base}?late=true");
-        var watch = Stopwatch.StartNew();
-        var all = await owner.GetAsync($"{Base}?late=true&pageSize=50");
-        watch.Stop();
-        all.StatusCode.Should().Be(HttpStatusCode.OK);
-        (await JsonAsync(all)).GetProperty("total").GetInt32().Should().BeGreaterThanOrEqualTo(5000);
-        watch.ElapsedMilliseconds.Should().BeLessThan(1000);
+        try
+        {
+            await owner.GetAsync($"{Base}?late=true");
+            var watch = Stopwatch.StartNew();
+            var all = await owner.GetAsync($"{Base}?late=true&pageSize=50");
+            watch.Stop();
+            all.StatusCode.Should().Be(HttpStatusCode.OK);
+            (await JsonAsync(all)).GetProperty("total").GetInt32().Should().BeGreaterThanOrEqualTo(5000);
+            watch.ElapsedMilliseconds.Should().BeLessThan(1000);
+        }
+        finally
+        {
+            await WithDbAsync(db => db.Database.ExecuteSqlAsync($"DELETE FROM production.production_orders WHERE project_id = {projectId} AND number LIKE 'OS-P-%'"));
+        }
     }
 
     [Fact]
@@ -187,36 +228,5 @@ public partial class FabricationTests
 
         // Sem Idempotency-Key, o comando que cria documento é recusado.
         (await creator.PostAsJsonAsync(Base, new { projectItemId = items[1] })).StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
-    }
-
-    private static byte[] Pad(byte[] head, int size)
-    {
-        var bytes = new byte[size];
-        head.CopyTo(bytes, 0);
-        for (var i = head.Length; i < size; i++)
-        {
-            bytes[i] = (byte)'a';
-        }
-
-        return bytes;
-    }
-
-    private static async Task<HttpResponseMessage> UploadAsync(HttpClient client, Guid orderId, byte[] content, string name)
-    {
-        using var form = new MultipartFormDataContent();
-        var file = new ByteArrayContent(content);
-        file.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-        form.Add(file, "file", name);
-        return await client.PostAsync($"/api/v1/attachments/ProductionOrder/{orderId}", form);
-    }
-
-    /// <summary>OS de instalação da COM-06 no mesmo projeto (instalador, valor e datas).</summary>
-    private static async Task<Guid> InstallationAsync(HttpClient owner, Guid projectId)
-    {
-        var party = await owner.PostAsJsonAsync("/api/v1/parties", new { kind = "PJ", document = (string?)null, legalName = "Instalador " + Guid.NewGuid().ToString("N")[..6], roles = new[] { "Installer" } });
-        var installer = (await JsonAsync(party)).GetProperty("id").GetGuid();
-        var created = await owner.SendAsync(Post(Installations, new { projectId, projectItemIds = (Guid[]?)null, installerId = installer, contractValue = 5_000m, plannedStart = Iso(Today), plannedEnd = Iso(Today.AddDays(5)) }));
-        created.StatusCode.Should().Be(HttpStatusCode.Created, await created.Content.ReadAsStringAsync());
-        return (await JsonAsync(created)).GetProperty("id").GetGuid();
     }
 }
