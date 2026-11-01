@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { getPreviousPayslipSensitive, savePayslip, useGetPayslipSensitive, useListPayrollItems } from '@/api/generated/bemaqui'
-import type { PayrollItemDetail, PayslipDetail, PayslipLineDetail } from '@/api/generated/model'
+import { getPreviousPayslipSensitive, savePayslip, useGetPayslipSensitive, useGetPayslipTimesheetHours, useListPayrollItems } from '@/api/generated/bemaqui'
+import type { PayrollItemDetail, PayslipDetail, PayslipLineDetail, PayslipTimesheetReference } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { Field, FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
@@ -11,6 +11,7 @@ import { notifySuccess } from '@/components/ui/messages'
 import { SidePanel } from '@/components/ui/side-panel'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { formatMoney } from '@/lib/format'
+import { minutes, signed } from '../timeclock/timesheet'
 import { KIND_LABELS, PAYROLL_DICAS, periodLabel, totals } from './payroll'
 
 interface Row {
@@ -93,6 +94,22 @@ function PayslipForm({ payslip, items, editable, onClose, onReload, onSaved }: {
     }
   }
 
+  // RH-01c CA 16: só a referência muda; a linha que falta entra sem valor, para o valor da contadora.
+  const applyHours = (refs: PayslipTimesheetReference[]) => {
+    setDraft((d) => {
+      const rows = d.rows.map((r) => {
+        const ref = refs.find((x) => x.payrollItemId === r.payrollItemId)
+        return ref ? { ...r, reference: ref.reference } : r
+      })
+      for (const ref of refs) {
+        if (ref.minutes > 0 && !rows.some((r) => r.payrollItemId === ref.payrollItemId)) rows.push({ payrollItemId: ref.payrollItemId, reference: ref.reference, amount: null })
+      }
+
+      return { ...d, rows }
+    })
+    setCopied('Referências preenchidas pelo espelho. Os valores continuam vindo da contadora: confira e salve.')
+  }
+
   const rowError = (i: number) => error?.fields[`lines[${i}]`]?.[0]
   const fieldError = (name: string) => error?.fields[name]?.[0]
   const base = (label: string, key: 'inssBase' | 'fgtsBase' | 'irrfBase' | 'fgtsAmount', dica?: string) => (
@@ -120,6 +137,7 @@ function PayslipForm({ payslip, items, editable, onClose, onReload, onSaved }: {
             {error.code === 'concurrency_conflict' ? <button type="button" onClick={() => void onReload()} className="rounded-md border border-border bg-card px-3 py-1.5 font-semibold text-foreground">Recarregar</button> : null}
           </div>
         ) : error?.fields.lines ? <FormError message={error.fields.lines[0]} /> : null}
+        <TimesheetHours runId={payslip.payrollRunId} payslipId={payslip.id} editable={editable} onUse={applyHours} />
         {editable ? (
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" onClick={() => void copy()} className="min-h-11 rounded-md border border-border px-3 py-2 text-sm font-semibold">Copiar do mês anterior</button>
@@ -160,5 +178,26 @@ function PayslipForm({ payslip, items, editable, onClose, onReload, onSaved }: {
         </fieldset>
       </div>
     </SidePanel>
+  )
+}
+
+/** "Usar horas do espelho" (RH-01c CA 16): os totais do espelho fechado do mês e o botão que preenche só a referência das rubricas "Origem no ponto". */
+function TimesheetHours({ runId, payslipId, editable, onUse }: { runId: string; payslipId: string; editable: boolean; onUse: (refs: PayslipTimesheetReference[]) => void }) {
+  const query = useGetPayslipTimesheetHours(runId, payslipId, { query: { retry: false } })
+  if (query.isPending) return <Skeleton className="h-16" />
+  if (query.isError) return null
+  const h = query.data
+  if (!h.available) return <p role="note" className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">{h.message}</p>
+  return (
+    <section aria-label="Horas do espelho" className="space-y-2 rounded-md border border-info-soft bg-info-soft px-3 py-2 text-sm text-info-ink">
+      <p className="font-semibold">Espelho de ponto · {h.message}</p>
+      <p className="tabular-nums">
+        Extras {minutes(h.overtimeMinutes, '0 min')} · Faltas {minutes(h.absenceMinutes, '0 min')} · Atrasos {minutes(h.lateMinutes, '0 min')}
+        {h.bankBalanceMinutes !== null && h.bankBalanceMinutes !== undefined ? ` · Banco ${signed(h.bankMonthMinutes)} no período, ${signed(h.bankBalanceMinutes)} acumulado` : ''}
+      </p>
+      {editable && h.references.length > 0 ? (
+        <button type="button" onClick={() => onUse(h.references)} className="min-h-11 rounded-md border border-border bg-card px-3 py-2 font-semibold text-foreground">Usar horas do espelho</button>
+      ) : null}
+    </section>
   )
 }

@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { PayrollItemKind } from './payrollItemKind';
+import type { PayrollTimesheetSource } from './payrollTimesheetSource';
 
 export interface PayrollItemDetail {
   id: string;
@@ -23,4 +24,5 @@ export interface PayrollItemDetail {
   confirmedAt: string | null;
   inUse: boolean;
   version: number;
+  timesheetSource?: null | PayrollTimesheetSource;
 }

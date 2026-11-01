@@ -27,6 +27,12 @@ Registrar a sua entrada, a saída e a volta do intervalo e a saída do dia com u
 - O RH aprova antes de mudar o seu ponto, e você recebe o aviso da decisão. O motivo de saúde e o atestado só são vistos por você e por quem tem a permissão de dados de saúde no RH.
 - No tablet da fábrica (entrada por PIN) não dá para pedir ajuste: entre com e-mail e senha no celular ou no computador.
 
+## Meu espelho
+- **Ver o meu espelho** mostra o seu espelho do período: o esperado pela sua jornada, as suas marcações, o trabalhado, as extras, as faltas, os atrasos, os abonos e, se você tem acordo de banco de horas, o saldo no período e o acumulado. Escolha o período na lista: o em aberto e os já fechados pelo RH.
+- No período em aberto os totais mudam até o RH fechar. Dia "Inconsistente" (marcação faltando ou fora de ordem) se resolve com **Pedir ajuste**.
+- Com o período fechado, toque em **Li e confirmo** depois de conferir. Fica registrado quando você confirmou e o resumo dos totais. É uma ciência: não bloqueia nada e não é assinatura legal. Se o RH reabrir o período, a confirmação fica sem efeito e você confirma de novo depois do novo fechamento.
+- **Baixar espelho em PDF** baixa o espelho fechado, com o campo para a sua assinatura. Você só vê o seu espelho, nunca o de outra pessoa.
+
 ## Localização
 - A empresa pode ligar a localização do ponto em Configurações. Desligada, nada é pedido.
 - Ligada, antes do primeiro pedido aparece o aviso: "Para que serve a localização: registrar onde a marcação foi feita, como indício. Só o RH com permissão vê. Você pode negar." Toque em **Entendi e continuar** e o navegador pede a permissão. A sua ciência fica registrada; se o texto mudar, o aviso volta.

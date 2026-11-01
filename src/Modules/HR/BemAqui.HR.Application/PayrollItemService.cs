@@ -21,9 +21,11 @@ public sealed record PayrollItemDetail(
     string? ConfirmedByName,
     DateTimeOffset? ConfirmedAt,
     bool InUse,
-    uint Version);
+    uint Version,
+    PayrollTimesheetSource? TimesheetSource = null);
 
-public sealed record PayrollItemInput(string? Code, string? Name, PayrollItemKind? Kind, bool InssBase, bool FgtsBase, bool IrrfBase, uint? Version);
+/// <summary>Rubrica (CA 1 e 2); <c>TimesheetSource</c> é a "Origem no ponto" (RH-01c CA 16), nula sem ligação com o espelho.</summary>
+public sealed record PayrollItemInput(string? Code, string? Name, PayrollItemKind? Kind, bool InssBase, bool FgtsBase, bool IrrfBase, uint? Version, PayrollTimesheetSource? TimesheetSource = null);
 
 /// <summary>
 /// Rubricas (RH-02a CA 1 e 2): a lista padrão nasce do seed "A confirmar com a contadora"; criar, editar, inativar, excluir (só sem
@@ -36,13 +38,13 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
     public const string SalarySeedKey = "salario";
 
     /// <summary>Rubrica do seed: chave, código, nome, tipo e as marcas de base (propostas, a confirmar com a contadora).</summary>
-    public sealed record Standard(string SeedKey, string Code, string Name, PayrollItemKind Kind, bool Inss, bool Fgts, bool Irrf);
+    public sealed record Standard(string SeedKey, string Code, string Name, PayrollItemKind Kind, bool Inss, bool Fgts, bool Irrf, PayrollTimesheetSource? Source = null);
 
     /// <summary>A lista padrão (CA 1). As marcas de base são informativas (a folha calculada da Fase 7 usa); nada é calculado aqui.</summary>
     public static IReadOnlyList<Standard> Standards { get; } =
     [
         new(SalarySeedKey, "SAL", "Salário", PayrollItemKind.Earning, true, true, true),
-        new("horas_extras_50", "HE50", "Horas extras 50%", PayrollItemKind.Earning, true, true, true),
+        new("horas_extras_50", "HE50", "Horas extras 50%", PayrollItemKind.Earning, true, true, true, PayrollTimesheetSource.Overtime),
         new("horas_extras_100", "HE100", "Horas extras 100%", PayrollItemKind.Earning, true, true, true),
         new("dsr", "DSR", "DSR", PayrollItemKind.Earning, true, true, true),
         new("insalubridade", "INSAL", "Adicional de insalubridade", PayrollItemKind.Earning, true, true, true),
@@ -52,8 +54,8 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
         new("terco_ferias", "FER13", "1/3 de férias", PayrollItemKind.Earning, true, true, true),
         new("decimo_terceiro", "13SAL", "13º salário", PayrollItemKind.Earning, true, true, true),
         new("salario_familia", "SALFAM", "Salário-família", PayrollItemKind.Earning, false, false, false),
-        new("faltas", "FALTAS", "Faltas", PayrollItemKind.Deduction, true, true, true),
-        new("atrasos", "ATRASOS", "Atrasos", PayrollItemKind.Deduction, true, true, true),
+        new("faltas", "FALTAS", "Faltas", PayrollItemKind.Deduction, true, true, true, PayrollTimesheetSource.Absence),
+        new("atrasos", "ATRASOS", "Atrasos", PayrollItemKind.Deduction, true, true, true, PayrollTimesheetSource.Late),
         new("inss", "INSS", "INSS", PayrollItemKind.Deduction, false, false, true),
         new("irrf", "IRRF", "IRRF", PayrollItemKind.Deduction, false, false, false),
         new("vale_transporte", "VT", "Vale-transporte", PayrollItemKind.Deduction, false, false, false),
@@ -167,7 +169,20 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
         var codes = (await db.PayrollItems.Select(i => i.Code).ToListAsync(cancellationToken)).ToHashSet(StringComparer.Ordinal);
         foreach (var s in Standards.Where(s => !keys.Contains(s.SeedKey) && !codes.Contains(s.Code)))
         {
-            db.PayrollItems.Add(new PayrollItem { SeedKey = s.SeedKey, Code = s.Code, Name = s.Name, Kind = s.Kind, InssBase = s.Inss, FgtsBase = s.Fgts, IrrfBase = s.Irrf, CreatedAt = clock.GetUtcNow() });
+            db.PayrollItems.Add(new PayrollItem { SeedKey = s.SeedKey, Code = s.Code, Name = s.Name, Kind = s.Kind, InssBase = s.Inss, FgtsBase = s.Fgts, IrrfBase = s.Irrf, TimesheetSource = s.Source, CreatedAt = clock.GetUtcNow() });
+        }
+
+        // RH-01c CA 16: "Origem no ponto" nas rubricas do seed que já existiam, uma vez só (nenhuma das três marcada ainda), sem desfazer a
+        // escolha de quem tirou a marca depois.
+        var linked = Standards.Where(s => s.Source is not null).ToDictionary(s => s.SeedKey, s => s.Source);
+        var linkedKeys = linked.Keys.ToList();
+        var existing = await db.PayrollItems.Where(i => i.SeedKey != null && linkedKeys.Contains(i.SeedKey)).ToListAsync(cancellationToken);
+        if (existing.Count > 0 && existing.All(i => i.TimesheetSource is null))
+        {
+            foreach (var item in existing)
+            {
+                item.TimesheetSource = linked[item.SeedKey!];
+            }
         }
 
         await db.SaveChangesAsync(cancellationToken);
@@ -197,6 +212,7 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
         item.InssBase = input.InssBase;
         item.FgtsBase = input.FgtsBase;
         item.IrrfBase = input.IrrfBase;
+        item.TimesheetSource = input.TimesheetSource is { } source && Enum.IsDefined(source) ? source : null;
         return null;
     }
 
@@ -224,7 +240,7 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
         }
 
         return items.Select(i => new PayrollItemDetail(i.Id, i.Code, i.Name, i.Kind, i.InssBase, i.FgtsBase, i.IrrfBase, i.IsActive, i.SeedKey is not null, i.ConfirmedAt is not null,
-            i.ConfirmedBy is { } by ? names.GetValueOrDefault(by) : null, i.ConfirmedAt, used.Contains(i.Id), i.Version)).ToList();
+            i.ConfirmedBy is { } by ? names.GetValueOrDefault(by) : null, i.ConfirmedAt, used.Contains(i.Id), i.Version, i.TimesheetSource)).ToList();
     }
 
     private static Error NotFound() => Error.NotFound("payroll_item_not_found", "Rubrica não encontrada.");
