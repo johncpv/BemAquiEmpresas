@@ -29,6 +29,7 @@ internal static partial class HrEndpoints
         MapEmployeeComplement(employees);
         MapPayrollItems(hr.MapGroup("/payroll-items"));
         MapHrParameters(hr.MapGroup("/parameters"));
+        MapPayrollTaxTables(hr.MapGroup("/payroll-tax-tables"));
         var runs = hr.MapGroup("/payroll-runs");
         MapPayrollRuns(runs);
         MapPayslipDocuments(runs);

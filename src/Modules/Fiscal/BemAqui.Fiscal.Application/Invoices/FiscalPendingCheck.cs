@@ -46,7 +46,8 @@ public sealed partial class FiscalPendingChecker(
         var now = clock.GetUtcNow();
         var cutoff = now - options.Value.PendingAfter;
         var ids = await db.OutgoingInvoices.AsNoTracking()
-            .Where(i => (Pending.Contains(i.Status) && i.ProcessingSince <= cutoff) || (i.Status == OutgoingInvoiceStatus.Authorized && i.XmlAttachmentId == null))
+            .Where(i => (Pending.Contains(i.Status) && i.ProcessingSince <= cutoff) || (i.Status == OutgoingInvoiceStatus.Authorized && (i.XmlAttachmentId == null
+                || (i.ShipmentId != null && (i.DanfeAttachmentId == null || i.AuthorizationPublishedAt == null)))))
             .OrderBy(i => i.ProcessingSince).Select(i => i.Id).Take(BatchSize).ToListAsync(cancellationToken);
         if (ids.Count == 0)
         {
@@ -95,9 +96,10 @@ public sealed partial class FiscalPendingChecker(
         }
 
         var now = clock.GetUtcNow();
-        if (invoice.Status == OutgoingInvoiceStatus.Authorized && invoice.XmlAttachmentId is null && invoice.AccessKey is { } authorizedKey)
+        if (invoice.Status == OutgoingInvoiceStatus.Authorized && invoice.AccessKey is not null)
         {
-            var stored = await reconciler.StoreXmlAsync(invoice, authorizedKey, emitter, cancellationToken);
+            // FIS-03a: completa o XML, o DANFE, o evento e o e-mail da autorizada que ficou pela metade.
+            var stored = await reconciler.CompleteAuthorizedAsync(invoice, emitter, cancellationToken);
             return await SaveAsync(transaction, new Step(true, false, stored, false), cancellationToken);
         }
 

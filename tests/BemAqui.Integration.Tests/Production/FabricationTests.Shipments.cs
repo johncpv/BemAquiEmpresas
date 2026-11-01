@@ -13,33 +13,25 @@ using UglyToad.PdfPig;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// PRD-06b, romaneio de expedição (movimenta estoque, Testcontainers obrigatório): montar com ROM e idempotência (CA 1); série repetida, de
-/// outro projeto e estoque geral (CA 2); PDF sem valores (CA 3); confirmar com a saída <c>Shipment</c> síncrona, as séries e o evento na
-/// mesma transação, fora do custo do projeto (CA 4 e 7); 409 <c>insufficient_stock</c> sem gravar (CA 5); estoque geral por outra pessoa
-/// (CA 6); próximos passos (CA 8 e 9); cancelar e estornar (CA 10 e 11); bloqueio do estorno da conclusão com produto expedido ou em
-/// romaneio aberto; anexos (CA 14); três camadas e IDOR (CA 15); concorrência (CA 16); auditoria mascarada (CA 17). Cada teste cria a
-/// própria OS, o projeto, os itens e os locais e filtra pelos ids dele.
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private const string Shipments = "/api/v1/production/shipments";
+    protected const string Shipments = "/api/v1/production/shipments";
 
     /// <summary>OS concluída com o produto no estoque (PRD-06a2), pronta para o romaneio: o dono, a OS, o projeto e o produto.</summary>
-    private async Task<(HttpClient Owner, Guid Order, Guid Project, Guid Product)> ShippableAsync(bool serial = true, decimal quantity = 2m)
+    protected async Task<(HttpClient Owner, Guid Order, Guid Project, Guid Product)> ShippableAsync(bool serial = true, decimal quantity = 2m)
     {
         var (owner, order, project, product, _) = await FinishedDatasetAsync(serial, quantity);
         await OkAsync(await CompleteWithAsync(owner, order, await OrderVersionAsync(order)));
         return (owner, order, project, product);
     }
 
-    private static async Task<JsonElement> ShipmentFormAsync(HttpClient client, Guid project, Guid? order = null) =>
+    protected static async Task<JsonElement> ShipmentFormAsync(HttpClient client, Guid project, Guid? order = null) =>
         await OkAsync(await client.GetAsync($"{Shipments}/form?projectId={project}" + (order is { } o ? $"&productionOrderId={o}" : string.Empty)));
 
-    private static Guid? GuidOrNull(JsonElement e, string name) => e.GetProperty(name).ValueKind == JsonValueKind.Null ? null : e.GetProperty(name).GetGuid();
+    protected static Guid? GuidOrNull(JsonElement e, string name) => e.GetProperty(name).ValueKind == JsonValueKind.Null ? null : e.GetProperty(name).GetGuid();
 
     /// <summary>Linha a partir do que está pronto para expedir: com série, todas as séries; sem série, o que dá para expedir.</summary>
-    private static object LineOf(JsonElement available, bool general = false, decimal? quantity = null)
+    protected static object LineOf(JsonElement available, bool general = false, decimal? quantity = null)
     {
         var serial = available.GetProperty("tracksSerial").GetBoolean();
         var ids = serial ? available.GetProperty("serials").EnumerateArray().Select(s => s.GetProperty("id").GetGuid()).ToArray() : null;
@@ -51,33 +43,33 @@ public partial class FabricationTests
     }
 
     /// <summary>Todas as linhas do formulário (padrão do CA 1: todas as séries e quantidades).</summary>
-    private static object[] AllLines(JsonElement form) => form.GetProperty("available").EnumerateArray().Select(l => LineOf(l)).ToArray();
+    protected static object[] AllLines(JsonElement form) => form.GetProperty("available").EnumerateArray().Select(l => LineOf(l)).ToArray();
 
-    private static object ShipmentBody(Guid project, object[] lines, Guid? carrier = null, string? driver = "José da Silva") => new
+    protected static object ShipmentBody(Guid project, object[] lines, Guid? carrier = null, string? driver = "José da Silva") => new
     {
         projectId = project, deliveryAddress = "Rua da Obra, 100 — Centro — Belo Horizonte/MG", carrierPartyId = carrier, vehiclePlate = "abc 1d23", driverName = driver, volumes = 2,
         grossWeight = 850.5m, plannedDate = Iso(Today.AddDays(2)), lines,
     };
 
-    private static Task<HttpResponseMessage> CreateShipmentAsync(HttpClient client, Guid project, object[] lines, Guid? key = null, Guid? carrier = null) =>
+    protected static Task<HttpResponseMessage> CreateShipmentAsync(HttpClient client, Guid project, object[] lines, Guid? key = null, Guid? carrier = null) =>
         client.SendAsync(Post(Shipments, ShipmentBody(project, lines, carrier), key));
 
-    private static async Task<JsonElement> DraftShipmentAsync(HttpClient client, Guid project)
+    protected static async Task<JsonElement> DraftShipmentAsync(HttpClient client, Guid project)
     {
         var form = await ShipmentFormAsync(client, project);
         return await CreatedAsync(await CreateShipmentAsync(client, project, AllLines(form)));
     }
 
-    private static Task<HttpResponseMessage> ShipmentActionAsync(HttpClient client, Guid id, string action, uint version, string? reason = null) =>
+    protected static Task<HttpResponseMessage> ShipmentActionAsync(HttpClient client, Guid id, string action, uint version, string? reason = null) =>
         client.SendAsync(Post($"{Shipments}/{id}/{action}", reason is null ? new { version } : new { reason, version }));
 
-    private static async Task<JsonElement> ShipmentAsync(HttpClient client, Guid id) => await OkAsync(await client.GetAsync($"{Shipments}/{id}"));
+    protected static async Task<JsonElement> ShipmentAsync(HttpClient client, Guid id) => await OkAsync(await client.GetAsync($"{Shipments}/{id}"));
 
-    private async Task<List<StockMovement>> ShipmentMovementsAsync(Guid shipment) =>
+    protected async Task<List<StockMovement>> ShipmentMovementsAsync(Guid shipment) =>
         await WithDbAsync(db => db.StockMovements.AsNoTracking().Where(m => m.SourceType == StockSources.Shipment && m.SourceId == shipment).OrderBy(m => m.PostedSeq).ToListAsync());
 
     /// <summary>Produto acabado sem projeto (estoque geral): item novo do tipo produto acabado recebido pelo motor num local novo.</summary>
-    private async Task<(Guid Item, Guid Location)> GeneralStockAsync(decimal quantity = 3m)
+    protected async Task<(Guid Item, Guid Location)> GeneralStockAsync(decimal quantity = 3m)
     {
         var item = await MaterialAsync("Cabina avulsa " + Guid.NewGuid().ToString("N")[..4], ItemType.Finished, "UN");
         await using var scope = await ScopeAsync();
@@ -93,16 +85,36 @@ public partial class FabricationTests
         return (item, location.Id);
     }
 
-    private static object GeneralLine(Guid item, Guid location, decimal quantity, bool general = true) =>
+    protected static object GeneralLine(Guid item, Guid location, decimal quantity, bool general = true) =>
         new { itemId = item, locationId = location, lotId = (Guid?)null, quantity, serialIds = (Guid[]?)null, fromGeneralStock = general };
 
-    private static async Task<Guid> CarrierAsync(HttpClient owner)
+    protected static async Task<Guid> CarrierAsync(HttpClient owner)
     {
         var created = await owner.PostAsJsonAsync("/api/v1/parties", new { kind = "PJ", document = (string?)null, legalName = "Transportes " + Guid.NewGuid().ToString("N")[..6], roles = new[] { "Carrier" } });
         created.StatusCode.Should().Be(HttpStatusCode.Created, await created.Content.ReadAsStringAsync());
         return (await JsonAsync(created)).GetProperty("id").GetGuid();
     }
 
+    protected static async Task<HttpResponseMessage> UploadShipmentFileAsync(HttpClient client, Guid shipmentId, byte[] content, string name)
+    {
+        using var form = new MultipartFormDataContent();
+        var file = new ByteArrayContent(content);
+        file.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+        form.Add(file, "file", name);
+        return await client.PostAsync($"/api/v1/attachments/Shipment/{shipmentId}", form);
+    }
+}
+
+/// <summary>
+/// PRD-06b, romaneio de expedição (movimenta estoque, Testcontainers obrigatório): montar com ROM e idempotência (CA 1); série repetida, de
+/// outro projeto e estoque geral (CA 2); PDF sem valores (CA 3); confirmar com a saída <c>Shipment</c> síncrona, as séries e o evento na
+/// mesma transação, fora do custo do projeto (CA 4 e 7); 409 <c>insufficient_stock</c> sem gravar (CA 5); estoque geral por outra pessoa
+/// (CA 6); próximos passos (CA 8 e 9); cancelar e estornar (CA 10 e 11); bloqueio do estorno da conclusão com produto expedido ou em
+/// romaneio aberto; anexos (CA 14); três camadas e IDOR (CA 15); concorrência (CA 16); auditoria mascarada (CA 17). Cada teste cria a
+/// própria OS, o projeto, os itens e os locais e filtra pelos ids dele.
+/// </summary>
+public partial class FabricationDeliveryTests
+{
     [Fact]
     public async Task Novo_romaneio_vem_preenchido_nasce_ROM_em_rascunho_e_repete_pela_chave()
     {
@@ -441,15 +453,6 @@ public partial class FabricationTests
         (await UploadShipmentFileAsync(creator, Guid.CreateVersion7(), png, "canhoto.png")).StatusCode.Should().Be(HttpStatusCode.NotFound, "dono conferido");
         var files = await OkAsync(await viewer.GetAsync($"/api/v1/attachments/Shipment/{id}"));
         files.EnumerateArray().Should().ContainSingle(f => f.GetProperty("fileName").GetString() == "canhoto.png", "ler com production.view");
-    }
-
-    private static async Task<HttpResponseMessage> UploadShipmentFileAsync(HttpClient client, Guid shipmentId, byte[] content, string name)
-    {
-        using var form = new MultipartFormDataContent();
-        var file = new ByteArrayContent(content);
-        file.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-        form.Add(file, "file", name);
-        return await client.PostAsync($"/api/v1/attachments/Shipment/{shipmentId}", form);
     }
 
     [Fact]

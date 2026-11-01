@@ -29,7 +29,15 @@ public partial class WebhookTests
 
         await dispatcher.DispatchOnceAsync(CancellationToken.None);
 
-        fixture.Jobs.Enqueued.Should().Contain((fixture.Tenancy.TenantA.Id, id, WebhookFixture.Hmac.Queue));
+        // O dispatcher do host também roda em segundo plano e acorda pelo sinal do commit: se ele travou a mensagem antes (FOR UPDATE
+        // SKIP LOCKED), a passada acima não a vê e o job sai logo depois, pela outra passada. Espera até 10 s pelo mesmo job.
+        var expected = (fixture.Tenancy.TenantA.Id, id, WebhookFixture.Hmac.Queue);
+        for (var i = 0; i < 100 && !fixture.Jobs.Enqueued.Contains(expected); i++)
+        {
+            await Task.Delay(100, TestContext.Current.CancellationToken);
+        }
+
+        fixture.Jobs.Enqueued.Should().Contain(expected);
         var run = await fixture.RunJobAsync(fixture.Tenancy.TenantA, id);
         run.Should().BeNull();
         var evt = await fixture.EventAsync(fixture.Tenancy.TenantA, id);

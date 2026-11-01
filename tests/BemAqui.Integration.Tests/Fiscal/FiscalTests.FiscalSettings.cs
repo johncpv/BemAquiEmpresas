@@ -230,7 +230,9 @@ public partial class FiscalTests
     public async Task Prontidao_em_homologacao_so_avisa_e_em_producao_recusa_com_a_lista_dos_criticos()
     {
         var tenant = fixture.Tenancy.TenantA;
-        await ResetSettingsAsync(tenant);
+        // Regras do seed de volta ao estado inicial: os testes da NF-e de saída (FIS-03a) ativam as regras sem conferir, e em produção a
+        // prontidão recusa regra ativa não conferida (FIS-02b CA 4). Este teste é sobre os valores críticos, então parte sem regra ativa.
+        await ResetRulesAsync(tenant);
 
         var homolog = await FiscalServiceAsync(tenant, s => s.ReadinessAsync(FiscalDocumentType.Nfe));
         homolog.IsSuccess.Should().BeTrue();
@@ -248,7 +250,8 @@ public partial class FiscalTests
             ((string)blocked.Error.Data["link"]!).Should().Be("/app/configuracoes/fiscal#campo-regime");
 
             await FiscalServiceAsync(tenant, s => s.ConfirmAsync(new ConfirmFiscalSettingsRequest([.. FiscalSettingKeys.CriticalFor(FiscalDocumentType.Nfe).Select(k => k.Key)])));
-            (await FiscalServiceAsync(tenant, s => s.ReadinessAsync(FiscalDocumentType.Nfe))).IsSuccess.Should().BeTrue("NF-e com tudo conferido");
+            var ready = await FiscalServiceAsync(tenant, s => s.ReadinessAsync(FiscalDocumentType.Nfe));
+            ready.IsSuccess.Should().BeTrue("NF-e com tudo conferido, mas veio {0}: {1}", ready.Error?.Code, ready.Error?.Message);
             var nfse = await FiscalServiceAsync(tenant, s => s.ReadinessAsync(FiscalDocumentType.Nfse));
             nfse.Error!.Code.Should().Be(FiscalSettingsErrors.NotConfirmed, "os da NFS-e só valem para a NFS-e, e ainda faltam");
             ((IEnumerable<string>)nfse.Error.Data!["pending"]!).Should().OnlyContain(k => FiscalSettingKeys.Find(k)!.Critical == FiscalCriticality.Nfse);

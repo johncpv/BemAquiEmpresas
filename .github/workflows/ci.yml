@@ -51,14 +51,24 @@ jobs:
               --filter-namespace "BemAqui.Integration.Tests.Commercial*"
               --filter-namespace "BemAqui.Integration.Tests.Dashboard*"
               --filter-namespace "BemAqui.Integration.Tests.Agenda*"
-          # A FabricationTests (168 testes numa classe, em série) era quase todo o tempo do bloco: fica num job próprio.
-          - name: producao-os
-            filter: --filter-class "BemAqui.Integration.Tests.Production.FabricationTests"
+          # Os testes das OS de fabricação (171, cada classe em série sobre o próprio banco) eram quase todo o tempo do bloco:
+          # ficam em quatro classes, cada uma num job próprio (FabricationTests.*.cs, base FabricationTestBase).
+          - name: producao-os-1
+            filter: --filter-class "BemAqui.Integration.Tests.Production.FabricationOrdersTests"
+          - name: producao-os-2
+            filter: --filter-class "BemAqui.Integration.Tests.Production.FabricationShopfloorTests"
+          - name: producao-os-3
+            filter: --filter-class "BemAqui.Integration.Tests.Production.FabricationDeliveryTests"
+          - name: producao-os-4
+            filter: --filter-class "BemAqui.Integration.Tests.Production.FabricationBoardTests"
           - name: producao
             filter: >-
               --filter-namespace "BemAqui.Integration.Tests.Production*"
               --filter-namespace "BemAqui.Integration.Tests.Engineering*"
-              --filter-not-class "BemAqui.Integration.Tests.Production.FabricationTests"
+              --filter-not-class "BemAqui.Integration.Tests.Production.FabricationOrdersTests"
+              --filter-not-class "BemAqui.Integration.Tests.Production.FabricationShopfloorTests"
+              --filter-not-class "BemAqui.Integration.Tests.Production.FabricationDeliveryTests"
+              --filter-not-class "BemAqui.Integration.Tests.Production.FabricationBoardTests"
           - name: estoque
             filter: >-
               --filter-namespace "BemAqui.Integration.Tests.Inventory*"

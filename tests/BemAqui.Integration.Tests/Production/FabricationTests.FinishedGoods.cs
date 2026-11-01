@@ -16,23 +16,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>
-/// PRD-06a2, produto acabado na conclusão da OS (movimenta estoque, Testcontainers obrigatório): sem produto (CA 1); diálogo com e sem
-/// <c>projects.view_cost</c> e o mesmo custo na entrada (CA 2 e 3); entrada <c>Production</c> com séries D15, custo médio, lotes consumidos e
-/// reservas liberadas na mesma transação (CA 4, 5 e 8) e a falha desfazendo tudo; fora do custo do projeto (CA 6); custo zero (CA 7); OS
-/// concluídas antes sem entrada (CA 9); estorno com e sem série expedida e sem saldo (CA 10); três camadas e IDOR (CA 12); conclusão
-/// concorrente (CA 13); DTOs sem custo (CA 14); histórico e linha do tempo (CA 15). Cada teste cria a própria OS, itens e locais e filtra
-/// pelos ids dele.
-/// </summary>
-public partial class FabricationTests
+public abstract partial class FabricationTestBase
 {
-    private static string Year => BusinessTime.Today(TimeProvider.System).Year.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    protected static string Year => BusinessTime.Today(TimeProvider.System).Year.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     /// <summary>
     /// OS de fabricação de <paramref name="quantity"/> unidades com o produto (com série se <paramref name="serial"/>), BOM liberada de uma
     /// chapa com reserva, 4 KG baixados pela requisição (R$ 100,00 cada) e as etapas concluídas pelo supervisor: pronta para concluir.
     /// </summary>
-    private async Task<(HttpClient Owner, Guid Order, Guid Project, Guid Product, Guid Steel)> FinishedDatasetAsync(bool serial = true, decimal quantity = 2m, bool issue = true)
+    protected async Task<(HttpClient Owner, Guid Order, Guid Project, Guid Product, Guid Steel)> FinishedDatasetAsync(bool serial = true, decimal quantity = 2m, bool issue = true)
     {
         var (owner, order, project, steel, line) = await ReservedOrderAsync(perUnit: 6m, stock: 20m, unitCost: 100m);
         var product = (await OrderAsync(order)).ProductId!.Value;
@@ -56,7 +48,7 @@ public partial class FabricationTests
     /// Leva a OS (roteiro C → M → Q do <see cref="BomOrderAsync"/>) até "Pronta para concluir": as etapas produtivas pelo "Concluir etapa" do
     /// supervisor (PRD-02) e a de qualidade pela inspeção (PRD-05: checklist marcado e "Aprovar"), que o quadro não decide (409 quality_step).
     /// </summary>
-    private async Task FinishWithQualityAsync(HttpClient supervisor, Guid orderId)
+    protected async Task FinishWithQualityAsync(HttpClient supervisor, Guid orderId)
     {
         var (_, inspector) = await ActorAsync("production:view,approve_quality");
         for (var round = 0; round < 10; round++)
@@ -82,7 +74,7 @@ public partial class FabricationTests
     }
 
     /// <summary>Apontamento fechado com custo direto no banco (o cálculo do custo tem os testes da PRD-04).</summary>
-    private async Task LaborCostAsync(Guid order, decimal cost) => await WithDbAsync(async db =>
+    protected async Task LaborCostAsync(Guid order, decimal cost) => await WithDbAsync(async db =>
     {
         var step = await db.ProductionOrderSteps.Where(s => s.OrderId == order).OrderBy(s => s.Sequence).Select(s => s.Id).FirstAsync();
         var end = DateTimeOffset.UtcNow.AddHours(-1);
@@ -95,7 +87,7 @@ public partial class FabricationTests
     });
 
     /// <summary>Material com lote baixado direto pelo motor para a OS (como a requisição faria), numa transação própria.</summary>
-    private async Task<Guid> IssueLotAsync(Guid order, Guid project, string lotNumber, decimal quantity, decimal unitCost)
+    protected async Task<Guid> IssueLotAsync(Guid order, Guid project, string lotNumber, decimal quantity, decimal unitCost)
     {
         var item = await MaterialAsync("Cabo " + Guid.NewGuid().ToString("N")[..4]);
         await WithDbAsync(db => db.Database.ExecuteSqlAsync($"UPDATE inventory.items SET tracks_lot = true WHERE id = {item}"));
@@ -114,18 +106,29 @@ public partial class FabricationTests
         return lot;
     }
 
-    private static async Task<HttpResponseMessage> CompleteWithAsync(HttpClient client, Guid order, uint version, object? extra = null) =>
+    protected static async Task<HttpResponseMessage> CompleteWithAsync(HttpClient client, Guid order, uint version, object? extra = null) =>
         await client.SendAsync(Post($"{Base}/{order}/complete", extra ?? new { version, confirmZeroCost = false }));
 
-    private async Task<List<StockMovement>> ProductionMovementsAsync(Guid order) =>
+    protected async Task<List<StockMovement>> ProductionMovementsAsync(Guid order) =>
         await WithDbAsync(db => db.StockMovements.AsNoTracking().Where(m => m.SourceId == order && m.Type == StockMovementType.Production).OrderBy(m => m.PostedSeq).ToListAsync());
 
-    private async Task<List<Serial>> SerialsAsync(Guid order) =>
+    protected async Task<List<Serial>> SerialsAsync(Guid order) =>
         await WithDbAsync(db => db.Serials.AsNoTracking().Where(s => s.ProductionOrderId == order).OrderBy(s => s.SerialNumber).ToListAsync());
 
-    private async Task<List<SerialComponent>> ComponentsAsync(Guid order) =>
+    protected async Task<List<SerialComponent>> ComponentsAsync(Guid order) =>
         await WithDbAsync(db => db.SerialComponents.AsNoTracking().Where(c => c.ProductionOrderId == order).ToListAsync());
+}
 
+/// <summary>
+/// PRD-06a2, produto acabado na conclusão da OS (movimenta estoque, Testcontainers obrigatório): sem produto (CA 1); diálogo com e sem
+/// <c>projects.view_cost</c> e o mesmo custo na entrada (CA 2 e 3); entrada <c>Production</c> com séries D15, custo médio, lotes consumidos e
+/// reservas liberadas na mesma transação (CA 4, 5 e 8) e a falha desfazendo tudo; fora do custo do projeto (CA 6); custo zero (CA 7); OS
+/// concluídas antes sem entrada (CA 9); estorno com e sem série expedida e sem saldo (CA 10); três camadas e IDOR (CA 12); conclusão
+/// concorrente (CA 13); DTOs sem custo (CA 14); histórico e linha do tempo (CA 15). Cada teste cria a própria OS, itens e locais e filtra
+/// pelos ids dele.
+/// </summary>
+public partial class FabricationDeliveryTests
+{
     [Fact]
     public async Task Sem_item_de_estoque_do_produto_a_conclusao_pede_o_item_e_o_atalho_liga_o_produto()
     {

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import { createReceivable, createReceivableInstallments, listFinanceCustomers, previewReceivableSplit, useListAccounts, useListCostCenters, useListPaymentTerms } from '@/api/generated/bemaqui'
 import { ApiError } from '@/api/http'
@@ -16,7 +16,7 @@ import { ErrorState, Skeleton } from '@/components/ui/states'
 import { formatDate } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
 import { type ProjectCost, ProjectCostFields } from '../payables/ProjectCostFields'
-import { today } from './receivables'
+import { receivablePrefill, today } from './receivables'
 
 type Customer = ComboOption & { termId: string | null }
 
@@ -63,9 +63,11 @@ interface FormProps {
 function ReceivableForm({ accounts, centers, terms }: FormProps) {
   const navigate = useNavigate()
   const idempotency = useIdempotencyKey()
+  // PAT-02 CA 7: a venda do bem abre esta tela já com o comprador, o valor, a data e a descrição; grava só com "Salvar" daqui.
+  const prefill = receivablePrefill(useSearch({ strict: false }) as Record<string, unknown>)
   const [initial] = useState<Draft>(() => ({
-    customer: null, description: '', accountId: accounts.find((a) => a.code === '1.1')?.id ?? accounts[0]?.id ?? '', costCenterId: '', amount: null,
-    issueDate: today(), dueDate: '', mode: 'single', termId: '', baseDate: today(), projectCost: { project: null, costType: '' },
+    customer: prefill.customer, description: prefill.description, accountId: accounts.find((a) => a.code === '1.1')?.id ?? accounts[0]?.id ?? '', costCenterId: '', amount: prefill.amount,
+    issueDate: prefill.issueDate ?? today(), dueDate: '', mode: 'single', termId: '', baseDate: prefill.issueDate ?? today(), projectCost: { project: null, costType: '' },
   }))
   const [draft, setDraft] = useState(initial)
   const [submitted, setSubmitted] = useState(false)

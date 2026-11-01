@@ -42,7 +42,16 @@ public static class FiscalInfrastructure
         services.TryAddScoped<FiscalIntegrationService>();
         services.TryAddScoped<OutgoingInvoiceReconciler>();
         services.TryAddScoped<NfeSubmissionService>();
-        services.TryAddScoped<IOutgoingNfePayloads, NoOutgoingNfePayloads>();
+        // FIS-03a: a nota de saída monta o próprio pedido (a conferência reenvia com a mesma chave e o mesmo payload).
+        services.TryAddScoped<OutgoingNfePayloads>();
+        services.TryAddScoped<IOutgoingNfePayloads>(sp => sp.GetRequiredService<OutgoingNfePayloads>());
+        services.TryAddScoped<OutgoingInvoiceEffects>();
+        services.TryAddScoped<OutgoingInvoiceCalculator>();
+        services.TryAddScoped<OutgoingInvoiceService>();
+        services.TryAddScoped<BemAqui.Fiscal.Contracts.IOutgoingInvoices, OutgoingInvoicesContract>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, OutgoingInvoiceAgendaSource>());
+        services.AddAuditableEntity<OutgoingInvoiceItem>("fiscal");
+        services.AddAuditableEntity<NumberGap>("fiscal");
         // PAT-01a CA 7: seletor da NF de entrada do bem; sem notas até a FIS-04a (que troca este registro).
         services.TryAddScoped<BemAqui.Fiscal.Contracts.IIncomingInvoices, NoIncomingInvoices>();
         services.TryAddScoped<FiscalPendingChecker>();
@@ -97,8 +106,11 @@ public static class FiscalInfrastructure
             ReadAction: "view", WriteAction: "import_incoming",
             CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O PDF da nota de entrada entra pela importação do PDF."))));
         services.AddAttachmentOwner(OutgoingInvoiceReconciler.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml"], 5 * 1024 * 1024,
+
+        // XML e DANFE (FIS-03a): só o sistema grava; leitura com fiscal.view pelos endpoints da nota (CA 18).
+        services.AddAttachmentOwner(OutgoingInvoiceReconciler.AttachmentOwner, new AttachmentOwnerRules("fiscal", ["application/xml", "application/pdf"], 5 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<IFiscalDb>().OutgoingInvoices.AnyAsync(i => i.Id == id, ct),
-            CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O XML da nota é guardado pelo sistema."))));
+            CanAttach: (_, _, _) => Task.FromResult<Error?>(Error.Forbidden(Error.Codes.Forbidden, "O XML e o DANFE da nota são guardados pelo sistema."))));
         return services;
     }
 }

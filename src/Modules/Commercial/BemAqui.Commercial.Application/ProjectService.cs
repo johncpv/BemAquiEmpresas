@@ -107,13 +107,13 @@ public sealed partial class ProjectService(
     private async Task<IReadOnlyList<ProjectItemInfo>> ItemInfosAsync(IQueryable<ProjectItem> items, int limit, CancellationToken ct)
     {
         var rows = await items.AsNoTracking()
-            .Join(db.QuoteItems, i => i.QuoteItemId, q => q.Id, (i, q) => new { Item = i, q.Kind })
-            .Join(db.Projects, x => x.Item.ProjectId, p => p.Id, (x, p) => new { x.Item, x.Kind, p.ContractId, p.CreatedAt })
-            .Join(db.Contracts, x => x.ContractId, c => c.Id, (x, c) => new { x.Item, x.Kind, c.IsOnboarding, x.CreatedAt })
+            .Join(db.QuoteItems, i => i.QuoteItemId, q => q.Id, (i, q) => new { Item = i, q.Kind, q.UnitPrice })
+            .Join(db.Projects, x => x.Item.ProjectId, p => p.Id, (x, p) => new { x.Item, x.Kind, x.UnitPrice, p.ContractId, p.CreatedAt })
+            .Join(db.Contracts, x => x.ContractId, c => c.Id, (x, c) => new { x.Item, x.Kind, x.UnitPrice, c.IsOnboarding, x.CreatedAt })
             .OrderBy(x => x.CreatedAt).ThenBy(x => x.Item.ProjectId).ThenBy(x => x.Item.Sequence).Take(limit)
             .ToListAsync(ct);
         return rows.Select(x => new ProjectItemInfo(x.Item.Id, x.Item.ProjectId, x.Item.Sequence, x.Item.Description, x.Item.Quantity, x.Item.ItemId,
-            Enum.Parse<ProjectItemKind>(x.Kind.ToString()), x.IsOnboarding, x.Item.RoutingTemplateId)).ToList();
+            Enum.Parse<ProjectItemKind>(x.Kind.ToString()), x.IsOnboarding, x.Item.RoutingTemplateId, x.UnitPrice)).ToList();
     }
 
     async Task<decimal?> IProjects.BudgetedAsync(Guid projectId, CostType costType, CancellationToken cancellationToken) =>

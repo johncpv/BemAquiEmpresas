@@ -24,13 +24,19 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Production;
 
-/// <summary>PRD-01: OS de fabricação gerada do item do projeto, etapas, anexos, lista, cancelamento e contratos. Banco desta classe.</summary>
-public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>, IDisposable
+/// <summary>
+/// OS de fabricação (PRD-01 em diante): base comum das classes de teste abaixo. Cada classe concreta tem o próprio
+/// <see cref="TenancyFixture"/> (container e banco próprios), então elas rodam em paralelo e um banco não vê os dados da outra.
+/// Os testes moram nos arquivos <c>FabricationTests.*.cs</c>; os auxiliares ficam aqui, na base.
+/// </summary>
+public abstract partial class FabricationTestBase(TenancyFixture tenancy) : IDisposable
 {
-    private const string Host = "a.localhost";
-    private const string Base = "/api/v1/production/production-orders";
-    private const string Quotes = "/api/v1/quotes";
-    private const string Routings = "/api/v1/engineering/routing-templates";
+    protected TenancyFixture Tenancy => tenancy;
+
+    protected const string Host = "a.localhost";
+    protected const string Base = "/api/v1/production/production-orders";
+    protected const string Quotes = "/api/v1/quotes";
+    protected const string Routings = "/api/v1/engineering/routing-templates";
 
     private readonly FakeScanner _scanner = new();
     private readonly string _storage = Path.Combine(Path.GetTempPath(), "bqe-prd01-" + Guid.NewGuid().ToString("N"));
@@ -40,7 +46,7 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
     /// Os testes da PRD-01 a PRD-06a1 andam as etapas sem BOM (Marco 3.1): aqui vale o <see cref="NoBomGate"/>. O bloqueio real da ENG-02
     /// (<see cref="EngineeringBomGate"/>) é testado em <c>FabricationTests.Bom</c>, com <see cref="BomFactory"/>.
     /// </summary>
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b
+    protected WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b
         .UseSetting("Storage:Root", _storage)
         .UseSetting("Attachments:MaxUploadsPerHour", "30")
         .ConfigureTestServices(s =>
@@ -49,7 +55,7 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
             s.AddScoped<IBomGate, NoBomGate>();
         }));
 
-    private static DateOnly Today => BusinessTime.Today(TimeProvider.System);
+    protected static DateOnly Today => BusinessTime.Today(TimeProvider.System);
 
     public void Dispose()
     {
@@ -63,30 +69,30 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
         GC.SuppressFinalize(this);
     }
 
-    private static string Iso(DateOnly d) => d.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+    protected static string Iso(DateOnly d) => d.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
 
-    private static async Task<JsonElement> JsonAsync(HttpResponseMessage response) => await response.Content.ReadFromJsonAsync<JsonElement>();
+    protected static async Task<JsonElement> JsonAsync(HttpResponseMessage response) => await response.Content.ReadFromJsonAsync<JsonElement>();
 
-    private static string Code(JsonElement problem) => problem.GetProperty("code").GetString()!;
+    protected static string Code(JsonElement problem) => problem.GetProperty("code").GetString()!;
 
-    private static uint Version(JsonElement doc) => doc.GetProperty("version").GetUInt32();
+    protected static uint Version(JsonElement doc) => doc.GetProperty("version").GetUInt32();
 
-    private static string Unique(string name) => name + " " + Guid.NewGuid().ToString("N")[..6];
+    protected static string Unique(string name) => name + " " + Guid.NewGuid().ToString("N")[..6];
 
-    private async Task<AsyncServiceScope> ScopeAsync()
+    protected async Task<AsyncServiceScope> ScopeAsync()
     {
         var info = (await tenancy.Factory.Services.GetRequiredService<ITenantDirectory>().FindAsync(tenancy.TenantA.Id))!;
         return await tenancy.Factory.Services.GetRequiredService<ITenantScopeFactory>().CreateScopeAsync(info);
     }
 
-    private async Task<T> WithDbAsync<T>(Func<TenantDbContext, Task<T>> action)
+    protected async Task<T> WithDbAsync<T>(Func<TenantDbContext, Task<T>> action)
     {
         await using var scope = await ScopeAsync();
         return await action(scope.ServiceProvider.GetRequiredService<TenantDbContext>());
     }
 
     /// <summary>Usuário num grupo do seed (seed_key), num grupo com as ações dadas ("production:view,edit") ou sem grupo.</summary>
-    private async Task<(Guid Id, HttpClient Client)> ActorAsync(string? seedKey)
+    protected async Task<(Guid Id, HttpClient Client)> ActorAsync(string? seedKey)
     {
         var (id, stamp) = await tenancy.SeedUserAsync(tenancy.TenantA, "f" + Guid.NewGuid().ToString("N")[..10] + "@teste.com");
         if (seedKey is not null)
@@ -126,7 +132,7 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
         return (id, client);
     }
 
-    private static HttpRequestMessage Post(string url, object body, Guid? key = null)
+    protected static HttpRequestMessage Post(string url, object body, Guid? key = null)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = JsonContent.Create(body) };
         request.Headers.Add("Idempotency-Key", (key ?? Guid.NewGuid()).ToString());
@@ -134,7 +140,7 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
     }
 
     /// <summary>Processa o outbox do tenant até não sobrar mensagem pendente.</summary>
-    private async Task DrainAsync()
+    protected async Task DrainAsync()
     {
         var info = (await tenancy.Factory.Services.GetRequiredService<ITenantDirectory>().FindAsync(tenancy.TenantA.Id))!;
         for (var round = 0; round < 60; round++)
@@ -158,7 +164,7 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
         throw new TimeoutException("O outbox não esvaziou.");
     }
 
-    private static async Task<Guid> CustomerAsync(HttpClient owner)
+    protected static async Task<Guid> CustomerAsync(HttpClient owner)
     {
         var created = await owner.PostAsJsonAsync("/api/v1/parties", new { kind = "PJ", document = (string?)null, legalName = "Cliente " + Guid.NewGuid().ToString("N")[..6], roles = new[] { "Customer" } });
         created.StatusCode.Should().Be(HttpStatusCode.Created, await created.Content.ReadAsStringAsync());
@@ -166,7 +172,7 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
     }
 
     /// <summary>Produto acabado ativo direto no estoque (o cadastro tem os próprios testes).</summary>
-    private async Task<Guid> ProductAsync(string name = "Elevador 6 paradas")
+    protected async Task<Guid> ProductAsync(string name = "Elevador 6 paradas")
     {
         await using var scope = await ScopeAsync();
         var db = scope.ServiceProvider.GetRequiredService<IInventoryDb>();
@@ -178,7 +184,7 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
     }
 
     /// <summary>Centro de trabalho ativo com o calendário padrão; a linha vai para o filtro da lista.</summary>
-    private async Task<Guid> CenterAsync(string name, string? line = null, bool active = true)
+    protected async Task<Guid> CenterAsync(string name, string? line = null, bool active = true)
     {
         await using var scope = await ScopeAsync();
         var calendar = await scope.ServiceProvider.GetRequiredService<CalendarService>().DefaultEntityAsync();
@@ -190,11 +196,11 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
         return center.Id;
     }
 
-    private static object Step(string name, string code, Guid? center, decimal hours = 1m, bool quality = false, string[]? checklist = null, Guid? id = null) =>
+    protected static object Step(string name, string code, Guid? center, decimal hours = 1m, bool quality = false, string[]? checklist = null, Guid? id = null) =>
         new { id, name, code, workCenterId = center, standardHours = hours, isQualityStep = quality, requiresApproval = false, checklist = checklist ?? [] };
 
     /// <summary>Roteiro ativo pelo endpoint da Engenharia (Proprietário), opcionalmente vinculado ao produto.</summary>
-    private static async Task<Guid> RoutingAsync(HttpClient owner, Guid center, Guid? product = null, string? name = null, params object[] steps)
+    protected static async Task<Guid> RoutingAsync(HttpClient owner, Guid center, Guid? product = null, string? name = null, params object[] steps)
     {
         object[] body = steps.Length > 0 ? steps : [Step("Corte", "C", center, 2m), Step("Montagem", "M", center, 3m, checklist: ["Conferir prumo"]), Step("Qualidade", "Q", center, 0.5m, quality: true)];
         var created = await owner.PostAsJsonAsync(Routings, new { name = name ?? Unique("Roteiro"), productType = "Elevador", steps = body });
@@ -212,7 +218,7 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
     /// Orçamento com os itens (tipo, produto, quantidade), enviado e aprovado (implantação opcional), e o outbox processado.
     /// Devolve o projeto e os itens do projeto na ordem.
     /// </summary>
-    private async Task<(Guid Project, Guid Contract, List<Guid> Items)> ApprovedAsync(
+    protected async Task<(Guid Project, Guid Contract, List<Guid> Items)> ApprovedAsync(
         HttpClient owner, (string Kind, Guid? ItemId, decimal Quantity)[] lines, bool onboarding = false, Guid? routingOnItems = null, object[]? milestones = null)
     {
         var customer = await CustomerAsync(owner);
@@ -263,20 +269,20 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
     }
 
     /// <summary>OS de fabricação não cancelada do item do projeto, direto no banco.</summary>
-    private Task<ProductionOrder?> OrderOfAsync(Guid projectItemId) =>
+    protected Task<ProductionOrder?> OrderOfAsync(Guid projectItemId) =>
         WithDbAsync(db => db.ProductionOrders.AsNoTracking().FirstOrDefaultAsync(o => o.ProjectItemId == projectItemId && o.Type == ProductionOrderType.Fabrication && o.Status != ProductionOrderStatus.Cancelled));
 
-    private static async Task<JsonElement> GetOrderAsync(HttpClient client, Guid id)
+    protected static async Task<JsonElement> GetOrderAsync(HttpClient client, Guid id)
     {
         var response = await client.GetAsync($"{Base}/{id}");
         response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
         return await JsonAsync(response);
     }
 
-    private static object StepsBody(JsonElement order, IEnumerable<object> steps) => new { steps, version = Version(order) };
+    protected static object StepsBody(JsonElement order, IEnumerable<object> steps) => new { steps, version = Version(order) };
 
     /// <summary>As etapas atuais da OS no formato do salvar (para editar a partir delas).</summary>
-    private static List<object> CurrentSteps(JsonElement order) => order.GetProperty("steps").EnumerateArray().Select(s => (object)new
+    protected static List<object> CurrentSteps(JsonElement order) => order.GetProperty("steps").EnumerateArray().Select(s => (object)new
     {
         id = s.GetProperty("id").GetGuid(), name = s.GetProperty("name").GetString(), code = s.GetProperty("code").GetString(),
         workCenterId = s.GetProperty("workCenterId").ValueKind == JsonValueKind.Null ? (Guid?)null : s.GetProperty("workCenterId").GetGuid(),
@@ -284,6 +290,18 @@ public partial class FabricationTests(TenancyFixture tenancy) : IClassFixture<Te
         requiresApproval = s.GetProperty("requiresApproval").GetBoolean(), checklist = s.GetProperty("checklist").EnumerateArray().Select(c => c.GetString()).ToArray(),
     }).ToList();
 
-    private Task<int> MarkStepAsync(Guid orderId, int sequence, ProductionStepStatus status) =>
+    protected Task<int> MarkStepAsync(Guid orderId, int sequence, ProductionStepStatus status) =>
         WithDbAsync(db => db.Database.ExecuteSqlAsync($"UPDATE production.production_order_steps SET status = {status.ToString()} WHERE order_id = {orderId} AND sequence = {sequence}"));
 }
+
+/// <summary>PRD-01 (geração, etapas, anexos, lista, cancelamento e contratos), BOM da OS (ENG-02) e requisição de material (EST-02).</summary>
+public sealed partial class FabricationOrdersTests(TenancyFixture tenancy) : FabricationTestBase(tenancy), IClassFixture<TenancyFixture>;
+
+/// <summary>Chão de fábrica (PRD-03), painel da TV, hub da produção, custo da mão de obra e pauta da qualidade.</summary>
+public sealed partial class FabricationShopfloorTests(TenancyFixture tenancy) : FabricationTestBase(tenancy), IClassFixture<TenancyFixture>;
+
+/// <summary>Conclusão da OS (PRD-06a1), produto acabado (PRD-06a2), expedição (PRD-06b) e rastreabilidade.</summary>
+public sealed partial class FabricationDeliveryTests(TenancyFixture tenancy) : FabricationTestBase(tenancy), IClassFixture<TenancyFixture>;
+
+/// <summary>Kanban (PRD-02), qualidade (PRD-05), fila, Gantt, previsão e simulação de prazo do planejamento.</summary>
+public sealed partial class FabricationBoardTests(TenancyFixture tenancy) : FabricationTestBase(tenancy), IClassFixture<TenancyFixture>;

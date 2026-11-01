@@ -171,11 +171,21 @@ public sealed class FiscalSettings : Entity, IAuditable, IConcurrencyVersioned
     [NotAudited]
     public DateTimeOffset? CertificateChangedOutsideAt { get; private set; }
 
+    /// <summary>
+    /// Data de corte fiscal (<c>project_tax_cutover_on</c>, ADR 0025 adendo e FIN-08): a data da primeira NF-e autorizada em produção, gravada
+    /// pela própria autorização (FIS-03a). Daí em diante o imposto da nota entra no custo do projeto e a receita do DRE passa a ser pela nota.
+    /// Homologação nunca grava. Não é campo da tela.
+    /// </summary>
+    public DateOnly? ProjectTaxCutoverOn { get; private set; }
+
     public DateTimeOffset UpdatedAt { get; set; }
 
     public Guid? UpdatedBy { get; set; }
 
     public uint Version { get; set; }
+
+    /// <summary>Primeira nota autorizada em produção (FIS-03a): grava a data de corte uma vez só; devolve a que vale.</summary>
+    public DateOnly StartProjectTaxCutover(DateOnly issuedOn) => ProjectTaxCutoverOn ??= issuedOn;
 
     /// <summary>CRT do regime (CA 9 e tabela "Valores pré-configurados").</summary>
     public static int CrtOf(TaxRegime regime) => regime switch

@@ -27,6 +27,7 @@ public sealed class PayrollClosingService(
     PayrollForecastService forecast,
     PayrollService runs,
     Documents.PayslipDocumentService documents,
+    PayrollChangeNotices changeNotices,
     IEventPublisher events,
     INotificationService notifications,
     IUserDirectory users,
@@ -89,6 +90,12 @@ public sealed class PayrollClosingService(
         if (preview.Blockers.Count > 0)
         {
             return PayrollClosingRules.Blocked(preview.Blockers[0].Message) with { Data = new Dictionary<string, object?> { ["blockers"] = preview.Blockers.Select(b => b.Message).ToList() } };
+        }
+
+        // FLH-01 CA 12: mudança de tabela legal ou de parâmetro desde o último fechamento pede ciência (vem da auditoria, não dá para omitir).
+        if (preview.Changes.Count > 0 && !input.AcknowledgedChanges)
+        {
+            return Error.Validation(PayrollChangeNotices.NotAcknowledgedCode, PayrollChangeNotices.NotAcknowledgedMessage);
         }
 
         if ((input.PaymentDate ?? preview.SuggestedPaymentDate) is not { } paymentDate)
@@ -428,7 +435,7 @@ public sealed class PayrollClosingService(
             .Select(x => new PayrollClosePerson(x.EmployeeId, x.Name, x.Registration, s.Accounts[x.EmployeeId].QuarantineUntil)).ToList();
         var paid = s.Slips.Where(x => x.Net > 0m).ToList();
         return new PayrollClosePreview(run.Id, run.Period, run.Type, blockers, suggested, rule is PaymentDateRule.Informed, await targets.DueConfirmedAsync(run.Type, ct),
-            newcomers, changed, paid.Count, paid.Sum(x => x.Net), s.Charges.Count, s.Charges.Sum(c => c.Amount), run.Version);
+            newcomers, changed, paid.Count, paid.Sum(x => x.Net), s.Charges.Count, s.Charges.Sum(c => c.Amount), run.Version, await changeNotices.SinceLastClosingAsync(ct));
     }
 
     /// <summary>Ids de origem dos títulos da folha: os holerites e as guias.</summary>

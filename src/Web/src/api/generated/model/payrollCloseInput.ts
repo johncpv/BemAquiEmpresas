@@ -11,4 +11,5 @@ export interface PayrollCloseInput {
   /** @nullable */
   twoFactorCode: string | null;
   version: number;
+  acknowledgedChanges?: boolean;
 }

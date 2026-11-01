@@ -5,7 +5,7 @@
 | ID | FIN-09 |
 | Título | Seção **"Régua de cobrança"** em Configurações → Cobrança: lembretes por e-mail antes do vencimento, no dia e depois do atraso (passos −3, 0, +3 e +10 dias), com o boleto (linha digitável e PDF) quando houver; textos editáveis literais e escapados, com placeholders de lista fixa; horário de envio; situação do título conferida antes de enfileirar e de novo no envio; nunca para título pago, cancelado ou com boleto pago aguardando conferência; títulos de implantação fora; pausa por cliente e por título; histórico do que foi enviado |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done |
 | Requisitos | R-FIN-9 (régua de cobrança: lembrete antes do vencimento e após atraso, por e-mail; D) · R-COM-1 · R-FIN-12 · R-PRP-5 · R-SEC-5 |
 | Dependências | BNK-01b (tela Configurações → Cobrança, boleto e PDF, limite diário de e-mails), BNK-02 (baixa automática e `PaidPendingReview`), FIN-01 (títulos), FND-08/COM-03 (e-mail por fila com anexo), FIN-06a (aging) |
 | Bloqueia | WPP-01 (Fase 8, régua por WhatsApp) |
@@ -80,20 +80,28 @@ Decisões da revisão aplicadas: D1 (a FIN-09 entra antes do go-live, na ordem d
 **Pré-condição externa:** nenhuma (os textos padrão podem ser ajustados pela Konebras na tela).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade, integração (Testcontainers) e E2E passando.
-- [ ] Migration criada (não destrutiva), testada sobre cópia do banco do tenant `konebras`; seed da régua desligada.
-- [ ] Permissões só do `ModuleCatalog`; template e guarda de envio registrados.
-- [ ] Seção com estados, inclusive a 400 px.
-- [ ] Ajuda da tela de Cobrança atualizada; teste de cobertura passando.
-- [ ] Auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados.
-- [ ] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
+- [x] Critérios de aceite atendidos (CA 1 a 10; ver "Notas de implementação").
+- [x] Testes de unidade e integração (Testcontainers) passando. E2E (Playwright) fora desta story pela regra do PO de 31/10: sai no fechamento da feature.
+- [x] Migration criada (`CollectionFin09`, só cria tabelas e índices; não destrutiva); seed da régua desligada pelo `FinanceParametersSeeder` (também nos tenants existentes). Teste sobre cópia do banco `konebras`: no deploy.
+- [x] Permissões só do `ModuleCatalog` (nenhuma ação nova); template `collection-reminder` e a guarda de envio (`IEmailSendGuard`) registrados.
+- [x] Seção com estados (carregando, desligada com "Ligar régua", primeira configuração com os sugeridos, erro, modo leitura), passos em lista vertical a 400 px e botões de 44 px.
+- [x] Ajuda da tela de Cobrança atualizada (seção "Régua de cobrança"), ajuda nova da aba "Lembretes" do título e a da aba do terceiro; teste de cobertura passando.
+- [x] Auditoria ligada (`CollectionRule` em settings, `CollectionPause` em finance).
+- [x] OpenAPI e cliente Orval regenerados.
+- [x] `docs/03-modelo-dados.md` atualizado; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] `CollectionRule`, `CollectionNotice`, `CollectionPause`; recorrente `collection-reminders` no horário configurado.
-- [ ] `IEmailSendGuard` no FND-08 e a guarda do `collection_reminder`; montagem com escape e placeholders fixos.
-- [ ] Seção "Régua de cobrança" com prévia; bloco "Lembretes" no título e no cliente; ajuda.
+- [x] `CollectionRule`, `CollectionNotice`, `CollectionPause`; recorrente `collection-reminders` no horário configurado.
+- [x] `IEmailSendGuard` no FND-08 e a guarda do `collection_reminder`; montagem com escape e placeholders fixos.
+- [x] Seção "Régua de cobrança" com prévia; bloco "Lembretes" no título e no cliente; ajuda.
+
+## Notas de implementação
+- **Template:** `collection-reminder` (kebab-case, como os outros templates do FND-08). O corpo é fixo; o texto do passo é montado em C# (os campos da lista trocados numa passada só) e entra como valor, escapado no HTML. Chave solta (`{{`, `{%`) é recusada como campo fora da lista.
+- **Agenda:** recorrente global a cada 15 min das 07:00 às 20:45 (São Paulo); cada tenant envia a partir do horário da régua dele, só em dia útil do calendário padrão (CAD-03). Passo em dia não útil sai no próximo dia útil; dois passos no mesmo dia útil: vale o de mais dias. Rodada sob trava do tenant (`pg_advisory_xact_lock`) e índice único `(receivable_id, step)`.
+- **Limite diário:** o lembrete soma no limite de Configurações → Cobrança junto com orçamentos, pedidos e boletos; o excedente fica `Deferred` e sai na próxima rodada com vaga (próximo dia útil), sem pular o passo.
+- **Guarda:** o `SendEmailJob` chama as guardas do template antes de enviar; a do lembrete relê o título e a régua (pago, cancelado, boleto pago ou aguardando conferência, baixa de hoje, pausa, régua desligada) e marca o e-mail e o lembrete `Skipped` com o motivo.
+- **Destinatário:** só o contato do cliente marcado "recebe cobrança"; sem ele, o lembrete fica ignorado com o motivo. Reply-To: o e-mail informado na régua ou, vazio, o da empresa.
+- **Boleto:** com boleto `Issued`, o e-mail é do dono `BillingSlip` (o PDF só anexa ao mesmo documento) e aparece também na lista de e-mails do boleto.
 
 ## Quality gates
 - Agentes previstos: @dev, cybersecurity (texto do usuário no e-mail, escape), @qa.
@@ -127,3 +135,6 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D1, D17, tabela 3.2 pontos 67–69, §4.3); seção em Configurações → Cobrança; nova ordem (Marco 5.6, ordem 16); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 31/10/2026 | 1.0 | Implementação: régua em Configurações → Cobrança (seção "Régua de cobrança", `#regua`), agenda por dia útil, rodada por tenant sob trava, `collection_notices` único por título e passo, guarda de envio `IEmailSendGuard` no `SendEmailJob`, pausa do título e do cliente, aba "Lembretes" do título e bloco "Lembretes de cobrança" do terceiro (com "Lembretes enviados no mês"), ajuda. Status `Done` | Dex (dev) |
+| 31/10/2026 | 1.0 | Recomendação aceita (PO 24/10): conflitos resolvidos pelo mais conservador. (1) Lembrete só ao contato marcado "recebe cobrança" (sem ele, ignorado com o motivo; o boleto da BNK-01b usa o primeiro contato como reserva). (2) Pausa do cliente e do título: o passo que cai na pausa é registrado como ignorado e não sai depois. (3) Baixa de hoje (inclusive parcial) barra o lembrete do dia. (4) Guarda também barra quando a régua foi desligada entre enfileirar e enviar, e e-mail `Skipped` nunca é reenviado. (5) A guarda relê o título pelo próprio Finance (`CollectionEligibility`, a mesma regra do enfileiramento) em vez de um método novo no `IReceivables`. (6) Lembrete adiado pelo limite sai na próxima rodada com vaga, antes dos novos. (7) Lembrete com boleto fica no dono `BillingSlip` para o PDF anexar (regra da COM-03). (8) Sem E2E nesta story (regra do PO de 31/10). | Dex (dev) |
+| 31/10/2026 | 1.0 | Pendências externas: textos padrão dos quatro passos a revisar pelo comercial e pelo jurídico (editáveis na tela); envio real depende do SMTP/SES de produção (FND-08); teste da migration sobre cópia do banco `konebras` no deploy. | Dex (dev) |

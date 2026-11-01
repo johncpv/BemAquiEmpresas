@@ -17,6 +17,7 @@ import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { useCanSettings } from '@/pages/settings/use-can-settings'
 import { BillingSlipTab } from './BillingSlipTab'
+import { ReceivableCollectionTab } from './CollectionPanel'
 import { slipStatus } from './billing-slips'
 import { IssueBillingSlipDialog } from './IssueBillingSlipDialog'
 import { CancelDialog, DueDateDialog, WriteOffDialog } from './ReceivableDialogs'
@@ -37,6 +38,7 @@ export function ReceivablePage() {
   const query = useGetReceivable(id)
   const canEdit = useCan('finance.edit')
   const canCreate = useCan('finance.create')
+  const canFiscal = useCan('fiscal.view')
   const canConfigure = useCanSettings('edit')
   const [, setTab] = useUrlTab('dados')
   const [dialog, setDialog] = useState<Dialog>(null)
@@ -78,6 +80,7 @@ export function ReceivablePage() {
             {slip ? <StatusChip tone={slip.tone}>{slip.label}</StatusChip> : null}
             {r.origin === 'Opening' ? <Tag>Implantação</Tag> : r.origin === 'Contract' ? <Tag>Contrato</Tag> : null}
             <span className="text-sm text-muted-foreground">{r.description}</span>
+            {canFiscal && r.projectId ? <Link to={'/app/fiscal/saida' as never} search={{ aba: 'emitidas', projeto: r.projectId } as never} className="ml-2 text-sm font-semibold text-primary">Notas fiscais do projeto</Link> : null}
             <Link to="/app/financeiro/receber" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
           </div>
           {canEdit ? (
@@ -104,6 +107,7 @@ export function ReceivablePage() {
         { id: 'dados', label: 'Dados', keepMounted: true, content: <ReceivableDataForm key={r.version} receivable={r} canEdit={canEdit && r.status !== 'Cancelled'} onSaved={done} /> },
         { id: 'baixas', label: 'Baixas', content: <ReceivableSettlements receivable={r} onDone={done} onReload={reload} /> },
         { id: 'boleto', label: 'Boleto', content: <BillingSlipTab receivable={r} canEdit={canEdit} canConfigure={canConfigure} onIssue={issue} onChanged={() => void reload()} onNavigate={(to) => void navigate({ to } as never)} /> },
+        { id: 'lembretes', label: 'Lembretes', content: <ReceivableCollectionTab receivableId={r.id} partyId={r.partyId} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Receivable" id={r.id} /> },
       ]} />
       {dialog === 'billing' ? <IssueBillingSlipDialog receivableId={r.id} open onOpenChange={(o) => !o && setDialog(null)} onNavigate={(to) => void navigate({ to } as never)} onShowSlip={() => setTab('boleto')}

@@ -494,7 +494,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-4, R-FIS-3, R-FIS-8, R-PRJ-5.
 - CA: regras por operação com versão e ativação por outra pessoa, nascidas do seed pré-configurado "a confirmar"; motor puro de ICMS, ST, IPI, PIS, COFINS e IBS/CBS batendo com os casos de referência; "Simular" em painel lateral; sem regra, sem nota; DIFAL bloqueado; tributos que entram no custo do projeto (ICMS, PIS, COFINS, ISS, IBS/CBS; IPI fora).
 
-**FIS-03a [ ] NF-e de saída: rascunho a partir do romaneio, emissão, autorização, rejeição, DANFE e XML ao cliente, impostos e receita pela nota (G)** — 5.4, ordem 10 — `Ready (pré-condição externa)` — [story](stories/FIS-03a-nfe-saida-emissao.md)
+**FIS-03a [x] NF-e de saída: rascunho a partir do romaneio, emissão, autorização, rejeição, DANFE e XML ao cliente, impostos e receita pela nota (G)** — 5.4, ordem 10 — `Done` (homologação SEFAZ dos 3 cenários no `demo`, A1 real e conferência da contadora: pré-condição externa) — [story](stories/FIS-03a-nfe-saida-emissao.md)
 - Requisitos: R-FIS-3, R-PRD-8, R-PRJ-5, R-FIS-4, R-COM-1, R-COM-3.
 - CA: rascunho a partir do romaneio (a nota só referencia o romaneio, sem baixar estoque); venda mista pela D4 (equipamento em NF-e, instalação em NFS-e, parcela é só cobrança); saneamento pelos limites do esquema antes de reservar o número; emissão idempotente com reconciliação no Emissor; `InvoiceAuthorized` lança o imposto como `InvoiceTax`; imposto nunca digitado; os 3 cenários em homologação SEFAZ no `demo`.
 
@@ -518,7 +518,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-5--integrações-
 - Requisitos: R-FIS-7, R-FIS-8, R-PRJ-3, R-PRJ-5.
 - CA: NFS-e a partir do aceite técnico, com o código de serviço e o ISS de Configurações → Fiscal; vínculo à NF-e do equipamento; ISS no custo do projeto; até o provider de Caçapava no Emissor, processo provisório pelo portal da prefeitura com o registro manual.
 
-**FIN-09 [ ] Régua de cobrança por e-mail (M)** — D — 5.6, ordem 16 — `Ready` — [story](stories/FIN-09-regua-de-cobranca.md)
+**FIN-09 [x] Régua de cobrança por e-mail (M)** — D — 5.6, ordem 16 — `Done` (textos padrão a revisar pelo comercial e pelo jurídico; SMTP real: pré-condição externa) — [story](stories/FIN-09-regua-de-cobranca.md)
 - Requisitos: R-FIN-9, R-COM-1, R-FIN-12.
 - CA: seção "Régua de cobrança" em Configurações → Cobrança (passos −3, 0, +3, +10 dias); uma vez por passo; títulos de implantação fora; conferência antes de enfileirar e de novo no envio; texto editável literal e escapado, com placeholders de lista fixa; pausa por cliente e título.
 
@@ -581,7 +581,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-PAT-2, R-PRP-6 (D), R-COM-3, R-SEC-5.
 - CA: QR gerado no servidor só com a URL `/b/{etiqueta}`; PDF de etiqueta no tamanho do parâmetro (seed 50 × 25 mm) e em grade A4; leitura pelo `BarcodeDetector` e "Ler etiqueta" no `/fab`, depois do login, com `assets.view` conferido antes; `returnUrl` só relativo; 404 uniforme.
 
-**PAT-02 [ ] Patrimônio: movimentação de bens e baixa (P)** — 6.4, ordem 13 — `Ready` — [story](stories/PAT-02-movimentacao-bens.md)
+**PAT-02 [x] Patrimônio: movimentação de bens e baixa (P)** — 6.4, ordem 13 — `Done` (E2E no fechamento da feature) — [story](stories/PAT-02-movimentacao-bens.md)
 - Requisitos: R-PAT-3, R-PRP-1, R-PRP-6 (D), R-SEC-5.
 - CA: transferência de local, responsável e centro com histórico imutável; lote; baixa com motivo e reativação; venda do bem com "Lançar título a receber" pré-preenchido.
 
@@ -601,7 +601,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-7--folha-calculad
 
 **Ordem de execução:** **7.1:** FLH-01 → FLH-02a → FLH-02b → **7.2:** FLH-03 → FLH-04 → FLH-05 → **7.3:** FLH-06 (começa depois da FLH-02b, em paralelo ao 7.2). **Quebra:** FLH-02 → 02a/02b.
 
-**FLH-01 [ ] Folha calculada: tabelas legais por vigência (INSS, IRRF, salário-família e parâmetros) (M)** — 7.1, ordem 1 — `Ready (pré-condição externa)` — [story](stories/FLH-01-tabelas-legais-vigencia.md)
+**FLH-01 [x] Folha calculada: tabelas legais por vigência (INSS, IRRF, salário-família e parâmetros) (M)** — 7.1, ordem 1 — `Done (pré-condição externa: contadora e tabelas oficiais)` — [story](stories/FLH-01-tabelas-legais-vigencia.md)
 - Requisitos: R-RH-6, R-SEC-5.
 - CA: INSS, IRRF, salário-família, salário mínimo, FGTS, VT e encargos por vigência, pré-cadastrados "a confirmar"; quem cadastra não confere; esquema por tipo versionado; arredondamento parametrizado; versão ativa imutável e retificação explícita.
 
