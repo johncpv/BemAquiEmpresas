@@ -28,6 +28,9 @@ public interface IAssetsDb
 
     DbSet<MaintenanceOrderChecklistItem> MaintenanceOrderChecklist { get; }
 
+    /// <summary>Linhas de custo da OS de manutenção (PAT-03b).</summary>
+    DbSet<MaintenanceOrderCost> MaintenanceOrderCosts { get; }
+
     /// <summary>Transação da criação: a etiqueta <c>PAT</c> volta se o bem não for salvo (sem lacuna).</summary>
     DatabaseFacade Database { get; }
 

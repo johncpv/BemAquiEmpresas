@@ -21,4 +21,10 @@ export interface MaintenanceOrderInput {
   planId?: string | null;
   /** @nullable */
   checklist?: string[] | null;
+  /** @nullable */
+  contractValue?: number | null;
+  /** @nullable */
+  hoursPerDay?: number | null;
+  /** @nullable */
+  expectedHours?: number | null;
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   addAssetMeterReading, createMaintenancePlan, listAssets, listAssetSupplierChoices, openMaintenanceOrder,
-  updateMaintenancePlan,
+  updateMaintenancePlan, useGetMaintenanceOrderDefaults,
 } from '@/api/generated/bemaqui'
 import type { MaintenanceOrderDetail, MaintenanceOrderType, MaintenancePlanView } from '@/api/generated/model'
 import { useIdempotencyKey } from '@/api/idempotency'
@@ -9,10 +9,12 @@ import type { ApiError } from '@/api/http'
 import { Combobox } from '@/components/form/combobox'
 import { Field } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
-import { DateInput, QuantityInput } from '@/components/form/inputs'
+import { DateInput, MoneyInput, QuantityInput } from '@/components/form/inputs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Dica } from '@/help/Dica'
+import { useCan } from '@/pages/use-can'
 import { todayIso } from './assets'
+import { COST_DICAS, formatHours } from './maintenance-cost'
 import {
   draftFromPlan, emptyPlanDraft, formatMeter, MAINTENANCE_DICAS, ORDER_TYPE_OPTIONS, type PlanDraft, planErrors, planInput,
 } from './maintenance'
@@ -29,7 +31,7 @@ function useFieldErrors(fields: string[]) {
   return { errors, setErrors, onFieldErrors }
 }
 
-function SupplierField({ value, onChange, error, label = 'Executor', hint }: { value: { id: string; label: string } | null; onChange: (v: { id: string; label: string } | null) => void; error?: string; label?: string; hint?: string }) {
+export function SupplierField({ value, onChange, error, label = 'Executor', hint }: { value: { id: string; label: string } | null; onChange: (v: { id: string; label: string } | null) => void; error?: string; label?: string; hint?: string }) {
   return (
     <Field label={label} error={error} hint={hint ?? 'Vazio: equipe interna. Prestador: um fornecedor do cadastro.'}>
       {(p) => (
@@ -149,6 +151,9 @@ interface OrderDraft {
   machineStopped: boolean
   scheduledOn: string
   supplier: { id: string; label: string } | null
+  value: string | null
+  hours: string | null
+  expected: string | null
 }
 
 /**
@@ -169,9 +174,14 @@ export function OpenOrderDialog({ asset, plan, open, onOpenChange, onOpened, def
   const fresh = (): OrderDraft => ({
     asset: asset ? { id: asset.id, label: `${asset.tag} · ${asset.name}` } : null, type: plan ? 'Preventive' : defaultType, problem: plan?.description ?? '', machineStopped: false,
     scheduledOn: todayIso(), supplier: plan?.defaultSupplierPartyId ? { id: plan.defaultSupplierPartyId, label: plan.defaultSupplierName ?? 'Prestador' } : null,
+    value: null, hours: null, expected: null,
   })
   const [draft, setDraft] = useState<OrderDraft>(fresh)
-  const { errors, setErrors, onFieldErrors } = useFieldErrors(['assetId', 'type', 'problem', 'scheduledOn', 'supplierPartyId', 'planId'])
+  const canEdit = useCan('assets.edit')
+  // PAT-03b (propositivo): o valor da última OS do plano e as horas paradas pelo centro vêm sugeridos.
+  const defaults = useGetMaintenanceOrderDefaults({ assetId: draft.asset?.id ?? '', planId: plan?.id }, { query: { enabled: open && !!draft.asset } })
+  const suggested = defaults.data
+  const { errors, setErrors, onFieldErrors } = useFieldErrors(['assetId', 'type', 'problem', 'scheduledOn', 'supplierPartyId', 'planId', 'contractValue', 'hoursPerDay', 'expectedHours'])
   const set = (patch: Partial<OrderDraft>) => { setErrors({}); setDraft((d) => ({ ...d, ...patch })) }
   return (
     <ConfirmDialog verb="Abrir OS de manutenção" done="OS de manutenção aberta" title={plan ? `Abrir a preventiva ${plan.description}` : 'Nova OS de manutenção'} size="lg"
@@ -187,6 +197,8 @@ export function OpenOrderDialog({ asset, plan, open, onOpenChange, onOpened, def
         const order = await openMaintenanceOrder({
           assetId: draft.asset!.id, type: draft.type, problem: draft.problem.trim(), machineStopped: draft.machineStopped, scheduledOn: draft.scheduledOn || null,
           supplierPartyId: draft.supplier?.id ?? null, planId: plan?.id ?? null,
+          contractValue: canEdit && draft.supplier && draft.value ? Number(draft.value) : null,
+          hoursPerDay: draft.hours ? Number(draft.hours) : null, expectedHours: draft.expected ? Number(draft.expected) : null,
         }, options)
         renew()
         refresh()
@@ -223,6 +235,23 @@ export function OpenOrderDialog({ asset, plan, open, onOpenChange, onOpened, def
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Data agendada" required error={errors.scheduledOn}>{(p) => <DateInput {...p} value={draft.scheduledOn} onChange={(scheduledOn) => set({ scheduledOn })} />}</Field>
         <SupplierField value={draft.supplier} onChange={(supplier) => set({ supplier })} error={errors.supplierPartyId} />
+        {canEdit && draft.supplier ? (
+          <Field label="Valor combinado" error={errors.contractValue} dica={COST_DICAS.valorCombinado}
+            hint={suggested?.contractValue != null ? `Sugestão: o valor da última OS do plano (${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(suggested.contractValue)}).` : 'Vazio: sem título a pagar por enquanto.'}>
+            {(p) => <MoneyInput {...p} value={draft.value} onChange={(value) => set({ value })} />}
+          </Field>
+        ) : null}
+        {suggested?.centerHoursPerDay != null ? (
+          <>
+            <Field label="Horas paradas por dia" error={errors.hoursPerDay} dica={COST_DICAS.horasParadas}
+              hint={`Sugestão: ${formatHours(suggested.hoursPerDay ?? suggested.centerHoursPerDay)} (${formatHours(suggested.centerHoursPerDay)} do centro ÷ ${Math.max(1, suggested.activeMachines)} ${suggested.activeMachines === 1 ? 'máquina' : 'máquinas'}).`}>
+              {(p) => <QuantityInput {...p} value={draft.hours ?? (suggested.hoursPerDay != null ? String(suggested.hoursPerDay) : null)} onChange={(hours) => set({ hours })} suffix="h" />}
+            </Field>
+            <Field label="Duração prevista" error={errors.expectedHours} dica={COST_DICAS.duracao} hint="Horas paradas no total. Vazio: um dia de parada.">
+              {(p) => <QuantityInput {...p} value={draft.expected} onChange={(expected) => set({ expected })} suffix="h" />}
+            </Field>
+          </>
+        ) : null}
       </div>
     </ConfirmDialog>
   )

@@ -8449,348 +8449,6 @@
         }
       }
     },
-    "/api/v1/hr/payroll-runs/suggested-period": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "GetPayrollSuggestedPeriod",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PayrollSuggestedPeriod"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/payroll-runs/{id}/calculate": {
-      "post": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "CalculatePayrollRun",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PayrollCalculationStart"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/payroll-runs/{id}/recalculate": {
-      "post": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "RecalculatePayrollRun",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PayrollCalculationStart"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/payroll-runs/{id}/calculation": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "GetPayrollCalculationStatus",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PayrollCalculationStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/payroll-runs/{id}/calculations": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "ListPayrollCalculations",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PayrollCalculationEntry"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/payroll-runs/{id}/calculations/sensitive": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "ListPayrollCalculationTotalsSensitive",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PayrollCalculationTotals"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/payroll-runs/{id}/difference/sensitive": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "GetPayrollDifferenceSensitive",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PayrollRunDifference"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/payroll-runs/{id}/rectify": {
-      "post": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "RectifyPayrollRun",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PayrollRunSummary"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/payroll-runs/{id}/payslips/{payslipId}/manual-lines": {
-      "post": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "AddPayslipManualLine",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "payslipId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PayrollManualLineInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PayslipDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/payroll-runs/{id}/payslips/{payslipId}/manual-lines/{lineId}": {
-      "delete": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "RemovePayslipManualLine",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "payslipId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "lineId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PayslipDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/hr/payroll-runs/{id}/payslips/{payslipId}/pdf": {
       "get": {
         "tags": [
@@ -14297,6 +13955,56 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/production/work-centers/{id}/downtimes": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListWorkCenterDowntimes",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkCenterDowntimeView"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -33418,279 +33126,6 @@
         }
       }
     },
-    "/api/v1/fiscal/incoming-invoices/pdf": {
-      "post": {
-        "tags": [
-          "Fiscal"
-        ],
-        "operationId": "UploadIncomingInvoicePdf",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/IncomingXmlForm"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/IncomingReadingView"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/fiscal/incoming-invoices/manual": {
-      "post": {
-        "tags": [
-          "Fiscal"
-        ],
-        "operationId": "StartManualIncomingInvoice",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/IncomingReadingView"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading": {
-      "get": {
-        "tags": [
-          "Fiscal"
-        ],
-        "operationId": "GetIncomingInvoiceReading",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/IncomingReadingView"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading/pdf": {
-      "get": {
-        "tags": [
-          "Fiscal"
-        ],
-        "operationId": "DownloadIncomingInvoiceReadingPdf",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading/manual": {
-      "post": {
-        "tags": [
-          "Fiscal"
-        ],
-        "operationId": "SwitchIncomingInvoiceReadingToManual",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/IncomingReadingView"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading/xml-request": {
-      "post": {
-        "tags": [
-          "Fiscal"
-        ],
-        "operationId": "RequestIncomingInvoiceXml",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/XmlRequestResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/fiscal/incoming-invoices/{id}/pdf-reading/check": {
-      "post": {
-        "tags": [
-          "Fiscal"
-        ],
-        "operationId": "CheckIncomingInvoiceReading",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CheckReadingRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CheckReadingResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/fiscal/incoming-invoices/{id}/pdf": {
-      "get": {
-        "tags": [
-          "Fiscal"
-        ],
-        "operationId": "DownloadIncomingInvoicePdf",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/v1/fiscal/incoming-invoices/{id}/replace-xml": {
-      "post": {
-        "tags": [
-          "Fiscal"
-        ],
-        "operationId": "ReplaceIncomingInvoiceWithXml",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/IncomingXmlForm"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/IncomingInvoiceView"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/assets/assets": {
       "get": {
         "tags": [
@@ -34589,6 +34024,37 @@
         }
       }
     },
+    "/api/v1/assets/assets/{id}/maintenance-cost": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetAssetMaintenanceCost",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetMaintenanceCost"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assets/maintenance-orders": {
       "get": {
         "tags": [
@@ -34873,6 +34339,204 @@
         }
       }
     },
+    "/api/v1/assets/maintenance-orders/defaults": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetMaintenanceOrderDefaults",
+        "parameters": [
+          {
+            "name": "assetId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "planId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceDefaults"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-orders/{id}/schedule": {
+      "put": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ScheduleMaintenanceOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceScheduleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-orders/{id}/costs": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ListMaintenanceOrderCosts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostsView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "AddMaintenanceOrderCost",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceCostInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-orders/{id}/costs/{costId}": {
+      "delete": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "RemoveMaintenanceOrderCost",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "costId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "uint32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assets/maintenance-orders/{id}/attachments": {
       "get": {
         "tags": [
@@ -34980,6 +34644,124 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-costs": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetMaintenanceCostReport",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-costs/orders": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ListMaintenanceCostOrders",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/MaintenanceOrderType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostOrders"
+                }
+              }
+            }
           }
         }
       }
@@ -35176,6 +34958,66 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AssetParametersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/parameters/maintenance": {
+      "put": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "UpdateAssetMaintenanceParameters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetMaintenanceParametersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/parameters/confirm": {
+      "post": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ConfirmAssetParameter",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetParameterConfirmInput"
               }
             }
           },
@@ -36428,49 +36270,6 @@
           },
           "password": {
             "type": "string"
-          }
-        }
-      },
-      "AccessKeyView": {
-        "required": [
-          "key",
-          "stateCode",
-          "year",
-          "month",
-          "issuerDocument",
-          "model",
-          "series",
-          "number"
-        ],
-        "type": "object",
-        "properties": {
-          "key": {
-            "type": "string"
-          },
-          "stateCode": {
-            "type": "string"
-          },
-          "year": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "month": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "issuerDocument": {
-            "type": "string"
-          },
-          "model": {
-            "type": "string"
-          },
-          "series": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "number": {
-            "type": "integer",
-            "format": "int64"
           }
         }
       },
@@ -38749,6 +38548,21 @@
           }
         }
       },
+      "AssetCodeOption": {
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "AssetDetail": {
         "required": [
           "id",
@@ -39436,6 +39250,45 @@
           }
         }
       },
+      "AssetMaintenanceCost": {
+        "required": [
+          "month",
+          "year",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "number",
+            "format": "double"
+          },
+          "year": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AssetMaintenanceParametersInput": {
+        "required": [
+          "changes"
+        ],
+        "type": "object",
+        "properties": {
+          "changes": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/AssetParameterChange"
+            }
+          }
+        }
+      },
       "AssetMaintenanceView": {
         "required": [
           "plans",
@@ -39652,6 +39505,102 @@
           }
         }
       },
+      "AssetParameterChange": {
+        "required": [
+          "key",
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AssetParameterConfirmInput": {
+        "required": [
+          "key"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        }
+      },
+      "AssetParameterItem": {
+        "required": [
+          "key",
+          "label",
+          "description",
+          "kind",
+          "code",
+          "codeName",
+          "confirmed",
+          "confirmedByName",
+          "confirmedAt",
+          "parameterId"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AssetParameterKind"
+          },
+          "code": {
+            "type": "string"
+          },
+          "codeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "confirmedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "parameterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "AssetParameterKind": {
+        "enum": [
+          "Account",
+          "CostCenter"
+        ]
+      },
       "AssetParametersInput": {
         "required": [
           "labelWidthMm",
@@ -39673,7 +39622,11 @@
         "required": [
           "labelWidthMm",
           "labelHeightMm",
-          "labelSizeId"
+          "labelSizeId",
+          "maintenance",
+          "accounts",
+          "costCenters",
+          "pendingCount"
         ],
         "type": "object",
         "properties": {
@@ -39691,6 +39644,28 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "maintenance": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetParameterItem"
+            }
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetCodeOption"
+            }
+          },
+          "costCenters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetCodeOption"
+            }
+          },
+          "pendingCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -45199,122 +45174,6 @@
           null
         ]
       },
-      "CheckReadingRequest": {
-        "required": [
-          "accessKey",
-          "issuedOn",
-          "issuerName",
-          "recipientDocument",
-          "totals",
-          "items",
-          "confirmed"
-        ],
-        "type": "object",
-        "properties": {
-          "accessKey": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "issuedOn": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date"
-          },
-          "issuerName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "recipientDocument": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "totals": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/ReadingTotalsInput"
-              }
-            ]
-          },
-          "items": {
-            "type": [
-              "null",
-              "array"
-            ],
-            "items": {
-              "$ref": "#/components/schemas/ReadingItemInput"
-            }
-          },
-          "confirmed": {
-            "type": [
-              "null",
-              "array"
-            ],
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "CheckReadingResult": {
-        "required": [
-          "invoiceId",
-          "accessKey",
-          "number",
-          "series",
-          "issuerName",
-          "total",
-          "items",
-          "remembered",
-          "source"
-        ],
-        "type": "object",
-        "properties": {
-          "invoiceId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "accessKey": {
-            "type": "string"
-          },
-          "number": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "series": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "issuerName": {
-            "type": "string"
-          },
-          "total": {
-            "type": "number",
-            "format": "double"
-          },
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "remembered": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "source": {
-            "$ref": "#/components/schemas/IncomingInvoiceSource"
-          }
-        }
-      },
       "CloseInventoryCountInput": {
         "required": [
           "uncountedPolicy",
@@ -49470,10 +49329,6 @@
           "version": {
             "type": "integer",
             "format": "uint32"
-          },
-          "familyAllowanceDocsOk": {
-            "type": "boolean",
-            "default": false
           }
         }
       },
@@ -49529,10 +49384,6 @@
               "integer"
             ],
             "format": "uint32"
-          },
-          "familyAllowanceDocsOk": {
-            "type": "boolean",
-            "default": false
           }
         },
         "additionalProperties": false
@@ -54661,22 +54512,6 @@
         },
         "additionalProperties": false
       },
-      "HrChoiceOption": {
-        "required": [
-          "value",
-          "label"
-        ],
-        "type": "object",
-        "properties": {
-          "value": {
-            "type": "number",
-            "format": "double"
-          },
-          "label": {
-            "type": "string"
-          }
-        }
-      },
       "HrCodeOption": {
         "required": [
           "code",
@@ -54838,15 +54673,6 @@
               "null",
               "string"
             ]
-          },
-          "options": {
-            "type": [
-              "null",
-              "array"
-            ],
-            "items": {
-              "$ref": "#/components/schemas/HrChoiceOption"
-            }
           }
         }
       },
@@ -54865,10 +54691,7 @@
           "ExportLayout",
           "Geolocation",
           "Minutes",
-          "Toggle",
-          "Choice",
-          "Hours",
-          "Years"
+          "Toggle"
         ]
       },
       "HrParametersInput": {
@@ -55645,8 +55468,7 @@
           "page",
           "pageSize",
           "total",
-          "canImport",
-          "readings"
+          "canImport"
         ],
         "type": "object",
         "properties": {
@@ -55670,12 +55492,6 @@
           },
           "canImport": {
             "type": "boolean"
-          },
-          "readings": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/IncomingReadingSummary"
-            }
           }
         }
       },
@@ -55714,13 +55530,6 @@
           }
         }
       },
-      "IncomingInvoiceSource": {
-        "enum": [
-          "Xml",
-          "Pdf",
-          "Manual"
-        ]
-      },
       "IncomingInvoiceStage": {
         "enum": [
           "Imported",
@@ -55752,8 +55561,7 @@
           "hasOrder",
           "itemsCount",
           "pendingItems",
-          "importedAt",
-          "source"
+          "importedAt"
         ],
         "type": "object",
         "properties": {
@@ -55806,9 +55614,6 @@
           "importedAt": {
             "type": "string",
             "format": "date-time"
-          },
-          "source": {
-            "$ref": "#/components/schemas/IncomingInvoiceSource"
           }
         }
       },
@@ -56072,58 +55877,6 @@
             "type": "number",
             "format": "double",
             "default": 0
-          },
-          "source": {
-            "$ref": "#/components/schemas/IncomingInvoiceSource"
-          },
-          "sourceMark": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "pdfAttachmentId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "xmlDifferences": {
-            "type": [
-              "null",
-              "array"
-            ],
-            "items": {
-              "$ref": "#/components/schemas/IncomingXmlDifference"
-            }
-          },
-          "replacedByXmlAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "replacedByXmlByName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "readingId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "xmlRequestedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
           }
         }
       },
@@ -56571,231 +56324,6 @@
           }
         }
       },
-      "IncomingReadingPermissions": {
-        "required": [
-          "import",
-          "createParty"
-        ],
-        "type": "object",
-        "properties": {
-          "import": {
-            "type": "boolean"
-          },
-          "createParty": {
-            "type": "boolean"
-          }
-        }
-      },
-      "IncomingReadingStatus": {
-        "enum": [
-          "Reading",
-          "Ready",
-          "Failed",
-          "Checked"
-        ]
-      },
-      "IncomingReadingSummary": {
-        "required": [
-          "id",
-          "source",
-          "status",
-          "result",
-          "fileName",
-          "createdAt"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "source": {
-            "$ref": "#/components/schemas/IncomingInvoiceSource"
-          },
-          "status": {
-            "$ref": "#/components/schemas/IncomingReadingStatus"
-          },
-          "result": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/PdfReadingOutcome"
-              }
-            ]
-          },
-          "fileName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "IncomingReadingView": {
-        "required": [
-          "id",
-          "source",
-          "status",
-          "result",
-          "message",
-          "hasPdf",
-          "fileName",
-          "pages",
-          "durationMs",
-          "fields",
-          "warnings",
-          "key",
-          "supplier",
-          "tenantDocument",
-          "duplicateInvoiceId",
-          "duplicateMessage",
-          "xmlByKeyAvailable",
-          "xmlByKeyMessage",
-          "xmlRequestedAt",
-          "invoiceId",
-          "createdAt",
-          "can"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "source": {
-            "$ref": "#/components/schemas/IncomingInvoiceSource"
-          },
-          "status": {
-            "$ref": "#/components/schemas/IncomingReadingStatus"
-          },
-          "result": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/PdfReadingOutcome"
-              }
-            ]
-          },
-          "message": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "hasPdf": {
-            "type": "boolean"
-          },
-          "fileName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "pages": {
-            "type": [
-              "null",
-              "integer"
-            ],
-            "format": "int32"
-          },
-          "durationMs": {
-            "type": [
-              "null",
-              "integer"
-            ],
-            "format": "int32"
-          },
-          "fields": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReadingField"
-            }
-          },
-          "warnings": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "key": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/AccessKeyView"
-              }
-            ]
-          },
-          "supplier": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/IncomingSupplierView"
-              }
-            ]
-          },
-          "tenantDocument": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "duplicateInvoiceId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "duplicateMessage": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "xmlByKeyAvailable": {
-            "type": "boolean"
-          },
-          "xmlByKeyMessage": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "xmlRequestedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "invoiceId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "can": {
-            "$ref": "#/components/schemas/IncomingReadingPermissions"
-          }
-        }
-      },
       "IncomingReceiptDuplicate": {
         "required": [
           "number",
@@ -56854,25 +56382,6 @@
           },
           "isActive": {
             "type": "boolean"
-          }
-        }
-      },
-      "IncomingXmlDifference": {
-        "required": [
-          "field",
-          "checked",
-          "xml"
-        ],
-        "type": "object",
-        "properties": {
-          "field": {
-            "type": "string"
-          },
-          "checked": {
-            "type": "string"
-          },
-          "xml": {
-            "type": "string"
           }
         }
       },
@@ -62007,6 +61516,493 @@
               "integer"
             ],
             "format": "uint32"
+          },
+          "confirmPayable": {
+            "type": "boolean",
+            "default": false
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "MaintenanceCostAssetRow": {
+        "required": [
+          "assetId",
+          "tag",
+          "name",
+          "workCenterId",
+          "workCenterName",
+          "cost"
+        ],
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cost": {
+            "$ref": "#/components/schemas/MaintenanceCostCell"
+          }
+        }
+      },
+      "MaintenanceCostCell": {
+        "required": [
+          "preventive",
+          "corrective",
+          "total",
+          "orders"
+        ],
+        "type": "object",
+        "properties": {
+          "preventive": {
+            "type": "number",
+            "format": "double"
+          },
+          "corrective": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "orders": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "MaintenanceCostCenterRow": {
+        "required": [
+          "workCenterId",
+          "workCenterName",
+          "cost"
+        ],
+        "type": "object",
+        "properties": {
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cost": {
+            "$ref": "#/components/schemas/MaintenanceCostCell"
+          }
+        }
+      },
+      "MaintenanceCostInput": {
+        "required": [
+          "costType"
+        ],
+        "type": "object",
+        "properties": {
+          "costType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MaintenanceCostType"
+              }
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "employeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "hours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "MaintenanceCostLineView": {
+        "required": [
+          "id",
+          "costType",
+          "description",
+          "amount",
+          "hours",
+          "hourlyCost",
+          "employeeName",
+          "payableId",
+          "removable",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "costType": {
+            "$ref": "#/components/schemas/MaintenanceCostType"
+          },
+          "description": {
+            "type": "string"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "hours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "hourlyCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "employeeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "payableId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "removable": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MaintenanceCostMonth": {
+        "required": [
+          "month",
+          "cost"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string"
+          },
+          "cost": {
+            "$ref": "#/components/schemas/MaintenanceCostCell"
+          }
+        }
+      },
+      "MaintenanceCostOrderRow": {
+        "required": [
+          "id",
+          "number",
+          "assetId",
+          "assetTag",
+          "assetName",
+          "type",
+          "doneAt",
+          "cost"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "assetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assetTag": {
+            "type": "string"
+          },
+          "assetName": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/MaintenanceOrderType"
+          },
+          "doneAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cost": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "MaintenanceCostOrders": {
+        "required": [
+          "orders",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostOrderRow"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "MaintenanceCostReport": {
+        "required": [
+          "from",
+          "to",
+          "months",
+          "assets",
+          "centers",
+          "total",
+          "computedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostMonth"
+            }
+          },
+          "assets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostAssetRow"
+            }
+          },
+          "centers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostCenterRow"
+            }
+          },
+          "total": {
+            "$ref": "#/components/schemas/MaintenanceCostCell"
+          },
+          "computedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MaintenanceCostsView": {
+        "required": [
+          "orderId",
+          "status",
+          "lines",
+          "totals",
+          "total",
+          "laborDetail",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MaintenanceOrderStatus"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostLineView"
+            }
+          },
+          "totals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostTotal"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "laborDetail": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "MaintenanceCostTotal": {
+        "required": [
+          "costType",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "costType": {
+            "$ref": "#/components/schemas/MaintenanceCostType"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "MaintenanceCostType": {
+        "enum": [
+          "Labor",
+          "Service",
+          "Parts",
+          "Other"
+        ]
+      },
+      "MaintenanceDefaults": {
+        "required": [
+          "supplierPartyId",
+          "supplierName",
+          "contractValue",
+          "workCenterId",
+          "workCenterName",
+          "centerHoursPerDay",
+          "activeMachines",
+          "hoursPerDay",
+          "expectedHours"
+        ],
+        "type": "object",
+        "properties": {
+          "supplierPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "centerHoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "activeMachines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -62288,6 +62284,75 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "hoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "downtimeFrom": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "downtimeTo": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "centerHoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "requiresPayableConfirmation": {
+            "type": "boolean"
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "cost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "payable": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MaintenancePayableView"
+              }
+            ]
+          },
+          "completionDueOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
           }
         }
       },
@@ -62369,6 +62434,27 @@
             "items": {
               "type": "string"
             }
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "hoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -62524,6 +62610,43 @@
             "items": {
               "$ref": "#/components/schemas/MaintenanceDuePlan"
             }
+          }
+        }
+      },
+      "MaintenancePayableView": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "amount",
+          "dueDate",
+          "isEstimate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayableStatus"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "isEstimate": {
+            "type": "boolean"
           }
         }
       },
@@ -62735,6 +62858,56 @@
           },
           "version": {
             "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "MaintenanceScheduleInput": {
+        "required": [
+          "scheduledOn"
+        ],
+        "type": "object",
+        "properties": {
+          "scheduledOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "supplierPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "hoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "uint32"
           }
         }
@@ -70931,334 +71104,6 @@
           }
         }
       },
-      "PayrollCalcEmployeeIssue": {
-        "required": [
-          "employeeId",
-          "employeeName",
-          "message",
-          "blocking"
-        ],
-        "type": "object",
-        "properties": {
-          "employeeId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "employeeName": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "blocking": {
-            "type": "boolean"
-          }
-        }
-      },
-      "PayrollCalcInputView": {
-        "required": [
-          "label",
-          "value"
-        ],
-        "type": "object",
-        "properties": {
-          "label": {
-            "type": "string"
-          },
-          "value": {
-            "type": "string"
-          }
-        }
-      },
-      "PayrollCalcTableRef": {
-        "required": [
-          "id",
-          "kind",
-          "label",
-          "validFrom",
-          "status"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/PayrollTaxTableKind"
-          },
-          "label": {
-            "type": "string"
-          },
-          "validFrom": {
-            "type": "string",
-            "format": "date"
-          },
-          "status": {
-            "$ref": "#/components/schemas/PayrollTaxTableStatus"
-          }
-        }
-      },
-      "PayrollCalculation": {
-        "enum": [
-          "None",
-          "BaseSalary",
-          "SickLeave",
-          "Insalubrity",
-          "HazardPay",
-          "Absence",
-          "Lateness",
-          "FamilyAllowance",
-          "TransportVoucher",
-          "TransportVoucherSupplied",
-          "Inss",
-          "Irrf",
-          "Fgts"
-        ],
-        "default": "None"
-      },
-      "PayrollCalculationAction": {
-        "enum": [
-          "Calculated",
-          "Recalculated",
-          "RectificationCreated"
-        ]
-      },
-      "PayrollCalculationEntry": {
-        "required": [
-          "id",
-          "action",
-          "actionLabel",
-          "at",
-          "byName",
-          "calculatorVersion",
-          "tables",
-          "parameters",
-          "employees"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "action": {
-            "$ref": "#/components/schemas/PayrollCalculationAction"
-          },
-          "actionLabel": {
-            "type": "string"
-          },
-          "at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "byName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "calculatorVersion": {
-            "type": "string"
-          },
-          "tables": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PayrollCalcTableRef"
-            }
-          },
-          "parameters": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "employees": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "PayrollCalculationStart": {
-        "required": [
-          "run",
-          "queued",
-          "employees",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "run": {
-            "$ref": "#/components/schemas/PayrollRunSummary"
-          },
-          "queued": {
-            "type": "boolean"
-          },
-          "employees": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      },
-      "PayrollCalculationStatus": {
-        "required": [
-          "runId",
-          "calculated",
-          "calculating",
-          "calculatingSince",
-          "isSimulation",
-          "official",
-          "calculatorVersion",
-          "calculatedAt",
-          "tables",
-          "unconfirmedTables",
-          "staleCount",
-          "staleMessage",
-          "staleReasons",
-          "issues",
-          "rectifiesRunId",
-          "rectifications",
-          "nextStep"
-        ],
-        "type": "object",
-        "properties": {
-          "runId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "calculated": {
-            "type": "boolean"
-          },
-          "calculating": {
-            "type": "boolean"
-          },
-          "calculatingSince": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "isSimulation": {
-            "type": "boolean"
-          },
-          "official": {
-            "type": "boolean"
-          },
-          "calculatorVersion": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "calculatedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "tables": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PayrollCalcTableRef"
-            }
-          },
-          "unconfirmedTables": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "staleCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "staleMessage": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "staleReasons": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "issues": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PayrollCalcEmployeeIssue"
-            }
-          },
-          "rectifiesRunId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "rectifications": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          "nextStep": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/PayrollNextStep"
-              }
-            ]
-          }
-        }
-      },
-      "PayrollCalculationTotals": {
-        "required": [
-          "id",
-          "grossBefore",
-          "netBefore",
-          "grossAfter",
-          "netAfter"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "grossBefore": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "netBefore": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "grossAfter": {
-            "type": "number",
-            "format": "double"
-          },
-          "netAfter": {
-            "type": "number",
-            "format": "double"
-          }
-        }
-      },
       "PayrollChangeField": {
         "required": [
           "field",
@@ -71407,10 +71252,6 @@
           "version": {
             "type": "integer",
             "format": "uint32"
-          },
-          "calculated": {
-            "type": "boolean",
-            "default": false
           }
         }
       },
@@ -71730,80 +71571,6 @@
           }
         }
       },
-      "PayrollDifferenceEmployee": {
-        "required": [
-          "employeeId",
-          "employeeName",
-          "registration",
-          "netBefore",
-          "netAfter",
-          "lines"
-        ],
-        "type": "object",
-        "properties": {
-          "employeeId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "employeeName": {
-            "type": "string"
-          },
-          "registration": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "netBefore": {
-            "type": "number",
-            "format": "double"
-          },
-          "netAfter": {
-            "type": "number",
-            "format": "double"
-          },
-          "lines": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PayrollDifferenceLine"
-            }
-          }
-        }
-      },
-      "PayrollDifferenceLine": {
-        "required": [
-          "payrollItemId",
-          "code",
-          "name",
-          "kind",
-          "before",
-          "after"
-        ],
-        "type": "object",
-        "properties": {
-          "payrollItemId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "code": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/PayrollItemKind"
-          },
-          "before": {
-            "type": "number",
-            "format": "double"
-          },
-          "after": {
-            "type": "number",
-            "format": "double"
-          }
-        }
-      },
       "PayrollEligibleEmployee": {
         "required": [
           "id",
@@ -72060,13 +71827,6 @@
                 "$ref": "#/components/schemas/PayrollTimesheetSource"
               }
             ]
-          },
-          "calculation": {
-            "$ref": "#/components/schemas/PayrollCalculation"
-          },
-          "deductsIrrfBase": {
-            "type": "boolean",
-            "default": false
           }
         }
       },
@@ -72129,22 +71889,6 @@
                 "$ref": "#/components/schemas/PayrollTimesheetSource"
               }
             ]
-          },
-          "calculation": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/PayrollCalculation"
-              }
-            ]
-          },
-          "deductsIrrfBase": {
-            "type": [
-              "null",
-              "boolean"
-            ]
           }
         }
       },
@@ -72154,55 +71898,6 @@
           "Deduction",
           "Information"
         ]
-      },
-      "PayrollManualLineInput": {
-        "required": [
-          "payrollItemId",
-          "reference",
-          "amount",
-          "note"
-        ],
-        "type": "object",
-        "properties": {
-          "payrollItemId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "reference": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "amount": {
-            "type": "number",
-            "format": "double"
-          },
-          "note": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        }
-      },
-      "PayrollNextStep": {
-        "required": [
-          "label",
-          "link"
-        ],
-        "type": "object",
-        "properties": {
-          "label": {
-            "type": "string"
-          },
-          "link": {
-            "type": "string"
-          }
-        }
       },
       "PayrollPayeeOption": {
         "required": [
@@ -72629,52 +72324,6 @@
               "type": "string",
               "format": "uuid"
             }
-          },
-          "mode": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/PayrollRunMode"
-              }
-            ]
-          }
-        }
-      },
-      "PayrollRunDifference": {
-        "required": [
-          "runId",
-          "employees",
-          "netBefore",
-          "netAfter",
-          "reasons"
-        ],
-        "type": "object",
-        "properties": {
-          "runId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "employees": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PayrollDifferenceEmployee"
-            }
-          },
-          "netBefore": {
-            "type": "number",
-            "format": "double"
-          },
-          "netAfter": {
-            "type": "number",
-            "format": "double"
-          },
-          "reasons": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         }
       },
@@ -72780,41 +72429,6 @@
               "null",
               "string"
             ]
-          },
-          "isSimulation": {
-            "type": "boolean",
-            "default": false
-          },
-          "calculatedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "calculatorVersion": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "calculating": {
-            "type": "boolean",
-            "default": false
-          },
-          "rectifiesRunId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "number": {
-            "type": [
-              "null",
-              "integer"
-            ],
-            "format": "int32"
           }
         }
       },
@@ -72854,20 +72468,6 @@
           "Thirteenth2",
           "Termination"
         ]
-      },
-      "PayrollSuggestedPeriod": {
-        "required": [
-          "period"
-        ],
-        "type": "object",
-        "properties": {
-          "period": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        }
       },
       "PayrollTaxContent": {
         "type": "object",
@@ -73556,72 +73156,6 @@
           }
         }
       },
-      "PayslipCalculationInfo": {
-        "required": [
-          "calculatorVersion",
-          "calculatedAt",
-          "isSimulation",
-          "tables",
-          "parameters",
-          "inputs",
-          "issues",
-          "employerCharges",
-          "employerChargesMemory"
-        ],
-        "type": "object",
-        "properties": {
-          "calculatorVersion": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "calculatedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "isSimulation": {
-            "type": "boolean"
-          },
-          "tables": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PayrollCalcTableRef"
-            }
-          },
-          "parameters": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PayrollCalcInputView"
-            }
-          },
-          "inputs": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PayrollCalcInputView"
-            }
-          },
-          "issues": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "employerCharges": {
-            "type": "number",
-            "format": "double"
-          },
-          "employerChargesMemory": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
       "PayslipDetail": {
         "required": [
           "id",
@@ -73703,19 +73237,6 @@
           "version": {
             "type": "integer",
             "format": "uint32"
-          },
-          "mode": {
-            "$ref": "#/components/schemas/PayrollRunMode"
-          },
-          "calculation": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/PayslipCalculationInfo"
-              }
-            ]
           }
         }
       },
@@ -73794,32 +73315,6 @@
           "amount": {
             "type": "number",
             "format": "double"
-          },
-          "lineId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "calculated": {
-            "type": "boolean",
-            "default": false
-          },
-          "note": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "memory": {
-            "type": [
-              "null",
-              "array"
-            ],
-            "items": {
-              "type": "string"
-            }
           }
         }
       },
@@ -74224,18 +73719,6 @@
             "type": "string"
           }
         }
-      },
-      "PdfReadingOutcome": {
-        "enum": [
-          "Read",
-          "NoText",
-          "Unsafe",
-          "TooManyPages",
-          "Invalid",
-          "Failed",
-          "TimedOut",
-          null
-        ]
       },
       "PendingFabricationItem": {
         "required": [
@@ -82747,189 +82230,6 @@
           },
           "name": {
             "type": "string"
-          }
-        }
-      },
-      "ReadingField": {
-        "required": [
-          "key",
-          "value",
-          "state"
-        ],
-        "type": "object",
-        "properties": {
-          "key": {
-            "type": "string"
-          },
-          "value": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "state": {
-            "$ref": "#/components/schemas/ReadingFieldState"
-          }
-        }
-      },
-      "ReadingFieldState": {
-        "enum": [
-          "Read",
-          "Uncertain",
-          "NotFound"
-        ]
-      },
-      "ReadingItemInput": {
-        "required": [
-          "code",
-          "description",
-          "ncm",
-          "unit",
-          "quantity",
-          "unitPrice",
-          "amount"
-        ],
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "description": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "ncm": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "unit": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "quantity": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "unitPrice": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "amount": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          }
-        }
-      },
-      "ReadingTotalsInput": {
-        "required": [
-          "products",
-          "freight",
-          "insurance",
-          "discount",
-          "otherExpenses",
-          "ipi",
-          "icmsBase",
-          "icms",
-          "icmsStBase",
-          "icmsSt",
-          "total"
-        ],
-        "type": "object",
-        "properties": {
-          "products": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "freight": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "insurance": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "discount": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "otherExpenses": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "ipi": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "icmsBase": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "icms": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "icmsStBase": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "icmsSt": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
-          },
-          "total": {
-            "type": [
-              "null",
-              "number"
-            ],
-            "format": "double"
           }
         }
       },
@@ -96957,6 +96257,75 @@
           }
         }
       },
+      "WorkCenterDowntimeView": {
+        "required": [
+          "id",
+          "orderId",
+          "orderNumber",
+          "assetId",
+          "assetTag",
+          "assetName",
+          "startsOn",
+          "endsOn",
+          "hoursPerDay",
+          "ongoing",
+          "ended"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "assetId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "assetTag": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "assetName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "endsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "hoursPerDay": {
+            "type": "number",
+            "format": "double"
+          },
+          "ongoing": {
+            "type": "boolean"
+          },
+          "ended": {
+            "type": "boolean"
+          }
+        }
+      },
       "WorkCenterInput": {
         "required": [
           "name",
@@ -97010,22 +96379,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "XmlRequestResult": {
-        "required": [
-          "to",
-          "requestedAt"
-        ],
-        "type": "object",
-        "properties": {
-          "to": {
-            "type": "string"
-          },
-          "requestedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
       }
     }
   },

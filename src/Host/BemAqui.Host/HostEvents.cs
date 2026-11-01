@@ -128,6 +128,13 @@ public static class HostEvents
             .AddHandler<BemAqui.Production.Contracts.LaborEntryClosed, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
             .AddHandler<BemAqui.Production.Contracts.LaborEntryCorrected, BemAqui.Dashboard.Application.DashboardGenerationConsumer>()
             // PAT-02: o bem baixado sai da capacidade pelo IAssets; o evento é só aviso (sem consumidor obrigatório).
-            .AddEvent<BemAqui.Assets.Contracts.AssetDisposed>();
+            .AddEvent<BemAqui.Assets.Contracts.AssetDisposed>()
+            // PAT-03a: abertura e conclusão da OS de manutenção são só aviso (sem consumidor).
+            .AddEvent<BemAqui.Assets.Contracts.MaintenanceOrderOpened>()
+            .AddEvent<BemAqui.Assets.Contracts.MaintenanceOrderCompleted>()
+            // PAT-03b (ADR 0038 §4): a parada da manutenção vira parada do centro no Production, reconciliada pela fonte; a capacidade desconta.
+            .AddHandler<BemAqui.Assets.Contracts.MaintenanceScheduled, BemAqui.Production.Application.MaintenanceDowntimeConsumers>()
+            .AddHandler<BemAqui.Assets.Contracts.MaintenanceUnscheduled, BemAqui.Production.Application.MaintenanceDowntimeConsumers>()
+            .AddHandler<BemAqui.Assets.Contracts.MaintenanceCompleted, BemAqui.Production.Application.MaintenanceDowntimeConsumers>();
     }
 }
