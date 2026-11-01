@@ -143,6 +143,16 @@ internal static partial class HrEndpoints
         runs.MapDelete("/{id:guid}/payslips/{payslipId:guid}/manual-lines/{lineId:guid}", async (Guid id, Guid payslipId, Guid lineId, PayrollCalculationService service, CancellationToken ct) =>
                 (await service.RemoveManualLineAsync(id, payslipId, lineId, ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("RemovePayslipManualLine").Produces<PayslipDetail>();
+
+        // FLH-02b: banco de horas na folha calculada. A seção só por /sensitive; "Pagar" e "Descontar" com hr.edit (e hr.view_sensitive no serviço).
+        runs.MapGet("/{id:guid}/hour-bank/sensitive", async (Guid id, PayrollCalculationService service, CancellationToken ct) => (await service.HourBankAsync(id, ct)).ToHttpResult())
+            .RequirePermission("hr.view_sensitive").WithName("GetPayrollHourBankSensitive").Produces<PayrollHourBank>();
+        runs.MapPut("/{id:guid}/payslips/{payslipId:guid}/hour-bank", async (Guid id, Guid payslipId, PayrollHourBankInput input, PayrollCalculationService service, CancellationToken ct) =>
+                (await service.SetHourBankAsync(id, payslipId, input, ct)).ToHttpResult())
+            .RequirePermission("hr.edit").WithName("SetPayslipHourBank").Produces<PayslipDetail>();
+        runs.MapDelete("/{id:guid}/payslips/{payslipId:guid}/hour-bank", async (Guid id, Guid payslipId, PayrollCalculationService service, CancellationToken ct) =>
+                (await service.ClearHourBankAsync(id, payslipId, ct)).ToHttpResult())
+            .RequirePermission("hr.edit").WithName("ClearPayslipHourBank").Produces<PayslipDetail>();
     }
 
     /// <summary>

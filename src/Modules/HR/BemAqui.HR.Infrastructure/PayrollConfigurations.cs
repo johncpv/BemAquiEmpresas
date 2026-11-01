@@ -74,6 +74,7 @@ internal sealed class PayslipConfiguration : IEntityTypeConfiguration<Payslip>
         b.Property(e => e.InputsSnapshot).HasColumnType("jsonb");
         b.Property(e => e.CalculationIssues).HasColumnType("jsonb");
         b.Property(e => e.EmployerChargesMemory).HasColumnType("jsonb");
+        b.Property(e => e.HourBankDecisionNote).HasMaxLength(PayrollCalculationRules.NoteMax);
         b.HasOne<PayrollRun>().WithMany().HasForeignKey(e => e.PayrollRunId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<Employee>().WithMany().HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => new { e.PayrollRunId, e.EmployeeId }).IsUnique().HasDatabaseName(PayrollService.PayslipIndex);

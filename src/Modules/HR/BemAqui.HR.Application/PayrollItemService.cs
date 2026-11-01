@@ -49,12 +49,12 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
     public static IReadOnlyList<Standard> Standards { get; } =
     [
         new(SalarySeedKey, "SAL", "Salário", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.BaseSalary),
-        new("horas_extras_50", "HE50", "Horas extras 50%", PayrollItemKind.Earning, true, true, true, PayrollTimesheetSource.Overtime),
-        new("horas_extras_100", "HE100", "Horas extras 100%", PayrollItemKind.Earning, true, true, true),
-        new("dsr", "DSR", "DSR", PayrollItemKind.Earning, true, true, true),
+        new("horas_extras_50", "HE50", "Horas extras 50%", PayrollItemKind.Earning, true, true, true, PayrollTimesheetSource.Overtime, PayrollCalculation.OvertimeWorkday),
+        new("horas_extras_100", "HE100", "Horas extras 100%", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.OvertimeRestDay),
+        new("dsr", "DSR", "DSR", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.Dsr),
         new("insalubridade", "INSAL", "Adicional de insalubridade", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.Insalubrity),
         new("periculosidade", "PERIC", "Adicional de periculosidade", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.HazardPay),
-        new("adicional_noturno", "ADNOT", "Adicional noturno", PayrollItemKind.Earning, true, true, true),
+        new("adicional_noturno", "ADNOT", "Adicional noturno", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.NightShift),
         new("ferias", "FERIAS", "Férias", PayrollItemKind.Earning, true, true, true),
         new("terco_ferias", "FER13", "1/3 de férias", PayrollItemKind.Earning, true, true, true),
         new("decimo_terceiro", "13SAL", "13º salário", PayrollItemKind.Earning, true, true, true),
@@ -70,6 +70,18 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
         // FLH-02a: o afastamento pela previdência (informativa, CA 3) e o benefício do vale-transporte do mês (avulso que limita o desconto, CA 7).
         new("afastamento_previdencia", "AFAST", "Afastamento pela previdência", PayrollItemKind.Information, false, false, false, Calc: PayrollCalculation.SickLeave),
         new("vale_transporte_fornecido", "VTFORN", "Vale-transporte fornecido", PayrollItemKind.Information, false, false, false, Calc: PayrollCalculation.TransportVoucherSupplied),
+        // FLH-02b: a perda do DSR por falta (CA 5) e o banco de horas pago ou descontado pela decisão do RH (CA 2). O feriado usa a HE100
+        // até alguém criar uma rubrica com a regra "Horas extras em feriado".
+        new("dsr_perda", "DSRFALTA", "Perda do DSR", PayrollItemKind.Deduction, true, true, true, Calc: PayrollCalculation.DsrLoss),
+        new("banco_horas_pago", "BHPAGO", "Banco de horas pago", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.HourBankPayout),
+        new("banco_horas_desconto", "BHDESC", "Banco de horas descontado", PayrollItemKind.Deduction, true, true, true, Calc: PayrollCalculation.HourBankDiscount),
+    ];
+
+    /// <summary>As regras que a FLH-02b trouxe (recebem a rubrica do seed uma vez nos tenants que já tinham a folha calculada).</summary>
+    private static readonly PayrollCalculation[] HourRules =
+    [
+        PayrollCalculation.OvertimeWorkday, PayrollCalculation.OvertimeRestDay, PayrollCalculation.OvertimeHoliday, PayrollCalculation.NightShift, PayrollCalculation.Dsr,
+        PayrollCalculation.DsrLoss, PayrollCalculation.HourBankPayout, PayrollCalculation.HourBankDiscount,
     ];
 
     public async Task<IReadOnlyList<PayrollItemDetail>> ListAsync(CancellationToken cancellationToken = default)
@@ -203,6 +215,18 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
             {
                 item.Calculation = ruled[item.SeedKey!].Calc;
                 item.DeductsIrrfBase = ruled[item.SeedKey!].DeductsIrrf;
+            }
+        }
+        else if (!await db.PayrollItems.AnyAsync(i => HourRules.Contains(i.Calculation), cancellationToken))
+        {
+            // FLH-02b: as regras das horas nas rubricas do seed que já existiam (HE50, HE100, DSR, ADNOT), uma vez só (nenhuma com essas
+            // regras ainda), sem tirar a regra que o tenant deu a outra rubrica e sem pegar a rubrica que já tem outra regra.
+            foreach (var item in await db.PayrollItems.Where(i => i.SeedKey != null && ruledKeys.Contains(i.SeedKey) && i.Calculation == PayrollCalculation.None).ToListAsync(cancellationToken))
+            {
+                if (HourRules.Contains(ruled[item.SeedKey!].Calc))
+                {
+                    item.Calculation = ruled[item.SeedKey!].Calc;
+                }
             }
         }
 

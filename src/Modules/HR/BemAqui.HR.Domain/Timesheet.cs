@@ -78,6 +78,12 @@ public sealed class Timesheet : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>Saldo acumulado: o do fechamento anterior + o do período (null sem banco).</summary>
     public int? BankBalanceMinutes { get; set; }
 
+    /// <summary>
+    /// Baixa do banco pela folha fechada da competência (FLH-02b CA 2), com o sinal: positivo = horas pagas (saem do saldo positivo),
+    /// negativo = horas descontadas (zeram o saldo negativo). O saldo depois da folha é <see cref="BankBalanceMinutes"/> − este valor.
+    /// </summary>
+    public int BankPayoutMinutes { get; set; }
+
     public int WorkedDays { get; set; }
 
     public int AbsenceDays { get; set; }

@@ -26,6 +26,23 @@ Lançar, para cada funcionário, os proventos e descontos que a contadora calcul
 - Funcionário sem cargo, sem salário ou sem jornada (com falta ou atraso) fica **sem cálculo**, com o motivo; os outros seguem. Avisos como "documentos do salário-família pendentes" aparecem na folha sem travar.
 - O chip **Calculada com tabelas a confirmar** aparece quando alguma tabela usada ainda está "A confirmar com a contadora".
 
+## Horas extras e DSR
+- Na folha calculada, as horas vêm só do **espelho de ponto fechado** (nada é recontado). Cada minuto extra do dia é classificado em **dia útil**, **domingo ou folga** (dia sem jornada) ou **feriado** (pelo calendário padrão), e sai na linha **Horas extras {percentual}%**, com as horas na referência: horas × valor da hora × (1 + percentual). Os percentuais vêm de Configurações → Parâmetros → RH (pré-configurados com 50% no dia útil e 100% em domingo, folga e feriado, "A confirmar com a contadora" pela convenção do sindicato).
+- O valor da hora é o salário (com a insalubridade ou a periculosidade do mês, pelo parâmetro) dividido pelas horas mensais do cargo.
+- O **adicional noturno** (22 h às 5 h, 20%, hora reduzida de 52 min 30 s) vem desligado; ligado nos parâmetros, as horas no horário noturno geram a linha **Adicional noturno**.
+- O **DSR sobre variáveis** é o repouso sobre as extras, o adicional noturno e o banco pago: variáveis ÷ dias úteis do mês × (domingos + feriados), com os feriados do calendário padrão.
+- A **falta injustificada** (sem abono aprovado) tira o repouso daquela semana: a linha **DSR da semana de {data}** desconta um dia de salário por semana (parâmetro "Perda do DSR por falta", ligado).
+- Em **Ver memória** das linhas de horas, aparecem os dias de origem com as horas, o percentual, o parâmetro usado e o link **Ver os dias no espelho de ponto**. As horas também entram nas entradas do bloco **Memória de cálculo**.
+- Sem os percentuais das horas extras, aparece "Cadastre os percentuais de horas extras em Configurações → Parâmetros → RH." com o link, e nada é calculado.
+- Se um parâmetro das horas mudar depois do cálculo, a folha avisa "Parâmetro mudou depois do cálculo" com **Recalcular**, e a mudança aparece no diálogo de fechamento.
+
+## Banco de horas na folha
+- Quem tem acordo de banco de horas aparece na seção **Banco de horas** dos holerites, com o saldo do espelho fechado, o do período e o saldo depois da folha. As extras desses dias vão para o saldo, não para pagamento. Sem ninguém, a seção mostra "Sem banco de horas neste mês."
+- O saldo **não vence sozinho**. Só sai por decisão do RH: **Pagar {n} h do banco** (do saldo positivo, pagas como hora extra de dia útil) ou **Descontar {n} h do banco** (do saldo negativo, pelo valor da hora), sempre com o motivo. O holerite é recalculado na hora; **Tirar** desfaz a decisão.
+- Com o saldo acima de 40 h, a seção sugere **Pagar {n} h do banco**; você decide.
+- A baixa do saldo no espelho acontece só no **fechamento** da folha (e é desfeita se a folha for reaberta). O saldo que sobra na rescisão é tratado na folha de rescisão.
+- Pagar e descontar exigem as permissões de editar o RH e de ver dados sensíveis.
+
 ## Simulação
 - Até a virada, a calculada é **simulação**: a faixa "Simulação: em conferência paralela com a folha da contadora" oferece **Comparar com a lançada**. O botão **Fechar folha** não aparece e o holerite sai só como prévia, com a marca "Simulação: não é o holerite oficial"; ele nunca vai para **Meus holerites** nem para o e-mail.
 - Depois da virada, fecha como a lançada (2FA de novo, um título por funcionário e um por guia), e só com todas as tabelas usadas conferidas: senão, "Confirme com a contadora as tabelas {lista} antes de fechar."
@@ -75,5 +92,9 @@ Lançar, para cada funcionário, os proventos e descontos que a contadora calcul
 **Apareceu "O holerite mudou desde que você abriu".** Outra pessoa salvou o mesmo holerite. Clique em **Recarregar** e lance de novo.
 
 **Na folha calculada, por que não consigo editar a linha?** A linha calculada é refeita a cada cálculo. Para ajustar, lance um avulso com o motivo.
+
+**A hora extra do feriado saiu na rubrica de 100%.** O feriado usa a rubrica de domingo ou folga (HE100) até alguém criar, em RH → Rubricas, uma rubrica com a regra "Horas extras em feriado". Se o percentual do feriado for outro, sai numa linha própria com o percentual.
+
+**O sábado sem jornada conta como folga?** Sim: dia sem jornada no cargo é "domingo ou folga" e usa o percentual de domingo ou folga. Se a convenção pedir outro, ajuste o percentual nos parâmetros.
 
 **Por que a célula "=1+1" virou erro?** O arquivo é lido só como texto: célula que começa com =, +, - ou @ não é número.

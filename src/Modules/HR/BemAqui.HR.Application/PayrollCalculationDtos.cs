@@ -59,7 +59,8 @@ public sealed record PayslipCalculationInfo(
     IReadOnlyList<PayrollCalcInputView> Inputs,
     IReadOnlyList<string> Issues,
     decimal EmployerCharges,
-    IReadOnlyList<string> EmployerChargesMemory);
+    IReadOnlyList<string> EmployerChargesMemory,
+    string? TimesheetLink = null);
 
 /// <summary>Linha de "Ver diferença" (CA 14): a rubrica, o valor fechado e o que o cálculo de hoje daria.</summary>
 public sealed record PayrollDifferenceLine(Guid PayrollItemId, string Code, string Name, PayrollItemKind Kind, decimal Before, decimal After);

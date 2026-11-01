@@ -358,6 +358,17 @@ public sealed class Payslip : Entity, IAuditable, IConcurrencyVersioned
     [PersonalData]
     public string? EmployerChargesMemory { get; set; }
 
+    /// <summary>
+    /// Decisão do RH sobre o banco de horas nesta folha (FLH-02b CA 2): minutos com o sinal (positivo = "Pagar", negativo = "Descontar"),
+    /// zero sem decisão; vira linha no cálculo e baixa o saldo do espelho no fechamento.
+    /// </summary>
+    [PersonalData]
+    public int HourBankDecisionMinutes { get; set; }
+
+    /// <summary>Motivo da decisão do banco de horas (texto livre do RH).</summary>
+    [PersonalData]
+    public string? HourBankDecisionNote { get; set; }
+
     public uint Version { get; set; }
 
     /// <summary>Totais pelas linhas (CA 6, ADR 0019 §9).</summary>
