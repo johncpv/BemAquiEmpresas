@@ -19,6 +19,8 @@ public static class FinanceInfrastructure
     public static IServiceCollection AddFinanceInfrastructure(this IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration? configuration = null)
     {
         services.TryAddSingleton(TimeProvider.System);
+        // LGPD-01a: títulos, boletos, extrato e o retrato do favorecido do titular.
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Privacy.IPersonalDataProvider, FinancePersonalDataProvider>());
         services.TryAddScoped<BankAccountService>();
         services.TryAddScoped<PaymentTermService>();
         services.TryAddScoped<IPaymentTerms, PaymentTermsContract>();

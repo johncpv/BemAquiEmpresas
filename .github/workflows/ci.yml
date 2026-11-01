@@ -2,13 +2,18 @@ name: CI
 
 # Roda no PR pronto para revisão, que é o mesmo código que
 # entra na main pelo squash, e não repete no push da main. PR que só muda docs/ não roda; rascunho espera ficar pronto.
-# Rodada manual (ex.: conferir a main) pelo workflow_dispatch.
+# No PR: unidade, integração, arquitetura, Vitest, lint e build, sem E2E nem teste de carga (decisão do PO em 31/10/2026).
+# E2E e carga ficam na rodada completa: à mão no fechamento de cada feature (workflow_dispatch) e toda noite na main.
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore:
       - "docs/**"
+  # Fechamento de feature (marco do backlog) e conferência da main: rodada completa, com E2E e testes de carga, à mão.
   workflow_dispatch:
+  # Toda noite na main (03:00 em Brasília): a rodada completa pega em até um dia a regressão de tela que o PR não roda.
+  schedule:
+    - cron: "0 6 * * *"
 
 permissions:
   contents: read
@@ -46,10 +51,14 @@ jobs:
               --filter-namespace "BemAqui.Integration.Tests.Commercial*"
               --filter-namespace "BemAqui.Integration.Tests.Dashboard*"
               --filter-namespace "BemAqui.Integration.Tests.Agenda*"
+          # A FabricationTests (168 testes numa classe, em série) era quase todo o tempo do bloco: fica num job próprio.
+          - name: producao-os
+            filter: --filter-class "BemAqui.Integration.Tests.Production.FabricationTests"
           - name: producao
             filter: >-
               --filter-namespace "BemAqui.Integration.Tests.Production*"
               --filter-namespace "BemAqui.Integration.Tests.Engineering*"
+              --filter-not-class "BemAqui.Integration.Tests.Production.FabricationTests"
           - name: estoque
             filter: >-
               --filter-namespace "BemAqui.Integration.Tests.Inventory*"
@@ -81,7 +90,7 @@ jobs:
       - name: Testes (unidade, arquitetura, integração com Testcontainers)
         env:
           DOTNET_hostBuilder__reloadConfigOnChange: "false"
-        run: dotnet test --solution BemAquiEmpresas.slnx --no-build -c Release --ignore-exit-code 8 ${{ matrix.chunk.filter }}
+        run: dotnet test --solution BemAquiEmpresas.slnx --no-build -c Release --ignore-exit-code 8 ${{ matrix.chunk.filter }} ${{ github.event_name == 'pull_request' && '--filter-not-trait "Categoria=Carga"' || '' }}
       - name: Pacotes vulneráveis (alta/crítica falham)
         if: matrix.chunk.vuln
         run: |
@@ -114,6 +123,7 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - name: E2E (Playwright, desktop e celular)
+        if: github.event_name != 'pull_request'
         run: |
           pnpm exec playwright install --with-deps chromium
           pnpm e2e

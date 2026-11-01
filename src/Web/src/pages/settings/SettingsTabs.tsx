@@ -14,6 +14,8 @@ const TABS = [
   { to: '/app/configuracoes/cobranca', label: 'Cobrança', slug: 'cobranca' },
   // FIS-02a: com fiscal.view ou settings.view; módulo Fiscal não liberado mostra a tela padrão.
   { to: '/app/configuracoes/fiscal', label: 'Fiscal', slug: 'fiscal' },
+  // LGPD-01a: só o Proprietário (o controlador) vê a aba; a API recusa os demais com 403.
+  { to: '/app/configuracoes/privacidade', label: 'Privacidade (LGPD)', slug: 'privacidade' },
 ] as const
 
 /** Abas de Configurações: cada aba é uma rota própria (FND-09b CA 8). */

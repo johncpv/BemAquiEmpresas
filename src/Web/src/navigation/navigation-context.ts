@@ -7,6 +7,8 @@ export interface NavigationValue {
   tenantName: string
   tenantLogo?: string | null
   status: 'loading' | 'error' | 'ready'
+  /** Membro do grupo Proprietário (abas só dele, ex.: Privacidade, LGPD-01a CA 2). */
+  isOwner: boolean
   retry: () => void
 }
 

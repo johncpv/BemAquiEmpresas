@@ -18,6 +18,7 @@ public sealed class IdempotencyRecord
     public int? StatusCode { get; set; }
 
     /// <summary>Corpo JSON da resposta original, como texto, para o reenvio sair idêntico.</summary>
+    [BemAqui.SharedKernel.PersonalData]
     public string? Response { get; set; }
 
     public DateTimeOffset CreatedAt { get; init; }
