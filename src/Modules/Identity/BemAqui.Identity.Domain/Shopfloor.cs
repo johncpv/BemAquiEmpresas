@@ -65,7 +65,7 @@ public sealed class ShopfloorDevice : Entity, IAuditable
     /// <summary>Quem revogou; null quando foi o job (sem uso ou vencido) ou a detecção de reuso do segredo.</summary>
     public Guid? RevokedBy { get; private set; }
 
-    /// <summary><c>manual</c>, <c>unused</c>, <c>expired</c> ou <c>secret_reused</c>.</summary>
+    /// <summary><c>manual</c>, <c>unused</c>, <c>expired</c>, <c>secret_reused</c> ou <c>go_live</c> (script de acessos da virada, GOL-01a).</summary>
     public string? RevokedReason { get; private set; }
 
     public DeviceTheme Theme { get; set; } = DeviceTheme.System;

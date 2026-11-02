@@ -94,6 +94,13 @@ O Host registra um aviso (Warning) em duas situações:
   1. Troque os segredos na origem: senhas de banco dos tenants, senha SMTP, chaves de IA e, na Fase 5, as credenciais do Inter.
   2. Quando a FND-10b existir, recifre tudo com o certificado novo.
 
+## Troca de ambiente: recifração para um key ring novo (GOL-01a, ADR 0034)
+
+A produção nasce com key ring e certificado novos. Os segredos do banco do `konebras` (e a conexão dele no catálogo) passam do key ring
+da homologação para o novo pelo comando `reencrypt-secrets`, que abre o key ring antigo só durante a execução, a partir de um export de
+`security.data_protection_keys` e do certificado antigo, e confere no fim que nada decifra mais com o antigo. Passo a passo, lista dos
+segredos e recusas em [go-live-scripts.md](go-live-scripts.md) §2.
+
 ## Credenciais e certificado do Banco Inter (BNK-01a)
 
 - Cifrados por tenant **e por integração de conta**: `inter-credentials` (client id e client secret) e `inter-certificate` (certificado,
