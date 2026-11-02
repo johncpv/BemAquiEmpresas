@@ -57,7 +57,7 @@ public static class VacationCalculator
     private static readonly PayrollCalculation[] LineOrder =
     [
         PayrollCalculation.VacationPay, PayrollCalculation.VacationAverages, PayrollCalculation.VacationThird, PayrollCalculation.VacationSale, PayrollCalculation.VacationSaleThird,
-        PayrollCalculation.Inss, PayrollCalculation.Irrf, PayrollCalculation.Fgts,
+        PayrollCalculation.ThirteenthAdvance, PayrollCalculation.Inss, PayrollCalculation.Irrf, PayrollCalculation.Fgts,
     ];
 
     /// <summary>As regras que a folha de férias exige com rubrica ativa.</summary>
@@ -199,9 +199,14 @@ public static class VacationCalculator
             Add(PayrollCalculation.VacationSaleThird, saleThird, "1/3", [$"1/3 do abono: {Brl(sale)} ÷ 3 = {Brl(saleThird)}."]);
         }
 
+        // FLH-04: a 1ª parcela do 13º pedida com as férias (Lei 4.749/1965, art. 2º §2º): metade da remuneração do mês, na rubrica da regra
+        // ThirteenthAdvance (13PARC1: só FGTS, sem INSS nem IRRF); a folha do 13º desconta o que já foi pago aqui.
         if (e.Advance13th)
         {
-            issues.Add(new PayrollCalcIssue("advance_13th", "adiantamento do 13º pedido: entra na folha do 13º (1ª parcela).", false));
+            var advance = Money(monthly / 2m);
+            Add(PayrollCalculation.ThirteenthAdvance, advance, "50%",
+                [$"Adiantamento do 13º pedido com as férias: metade da remuneração do mês, {Brl(monthly)} ÷ 2 = {Brl(advance)}.",
+                 "Entra na base do FGTS; o INSS e o IRRF do 13º saem na 2ª parcela, que desconta este adiantamento."]);
         }
 
         // Bases pelas marcas da rubrica (como na folha mensal).

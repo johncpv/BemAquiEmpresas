@@ -28,4 +28,4 @@ Ver os períodos aquisitivos do funcionário com o saldo de dias, programar as f
 
 **E a folha mensal do mês das férias?** Os dias de férias não entram como salário de novo. A parte das férias do mês entra na base do INSS e do FGTS junto com o salário, e o INSS já descontado no recibo de férias é compensado.
 
-**E o adiantamento do 13º?** Fica marcado na programação e entra na folha do 13º (1ª parcela).
+**E o adiantamento do 13º?** Marcado na programação, o cálculo das férias paga a 1ª parcela do 13º (metade da remuneração do mês, rubrica 13PARC1, só com FGTS) no mesmo recibo, e a folha do 13º desconta o que já foi pago.

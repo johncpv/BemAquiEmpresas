@@ -22,8 +22,8 @@ public class VacationCalculatorTests
     private static DateOnly D(int y, int m, int d) => new(y, m, d);
 
     private static VacationCalcSnapshot Employee(decimal salary, DateOnly start, int days, int sold = 0, decimal variables = 0m, int? insalubrity = null, DateOnly? concession = null,
-        int dependents = 0, VacationTaxation taxation = VacationTaxation.SplitByMonth) =>
-        new(salary, D(2020, 1, 2), insalubrity, false, dependents, D(2025, 1, 2), D(2026, 1, 1), concession ?? D(2027, 1, 1), start, days, sold, false, start.AddDays(-2),
+        int dependents = 0, VacationTaxation taxation = VacationTaxation.SplitByMonth, bool advance13th = false) =>
+        new(salary, D(2020, 1, 2), insalubrity, false, dependents, D(2025, 1, 2), D(2026, 1, 1), concession ?? D(2027, 1, 1), start, days, sold, advance13th, start.AddDays(-2),
             variables > 0m ? Enumerable.Range(0, 12).Select(i => new VacationCalcVariable(D(2025, 1, 1).AddMonths(i), variables / 12m)).ToList() : [],
             PayrollCalcParameters.Default, VacationParameters.Default with { Taxation = taxation });
 
@@ -65,6 +65,10 @@ public class VacationCalculatorTests
         // redução: 5.931,82 × 27,5% − 908,73 = 722,5205 − (978,62 − 0,133145 × 6.666,67) = 631,53.
         new("08 depois do concessivo (em dobro)", Employee(3000m, D(2026, 6, 1), 30, concession: D(2026, 6, 10)), L(("FERIAS", 5000m), ("FER13", 1666.67m), ("INSS", 734.85m), ("IRRF", 631.53m), ("FGTS", 533.33m)),
             6666.67m, 533.33m, 5300.29m),
+        // Adiantamento do 13º com as férias (FLH-04): metade de 3.000 = 1.500 na 13PARC1, só na base do FGTS (5.500 × 8% = 440); o INSS e o
+        // IRRF ficam como nas férias integrais.
+        new("09 com o adiantamento do 13º", Employee(3000m, D(2026, 6, 1), 30, advance13th: true), L(("FERIAS", 3000m), ("FER13", 1000m), ("13PARC1", 1500m), ("INSS", 368.60m), ("FGTS", 440m)),
+            4000m, 440m, 5131.40m),
     ];
 
     /// <summary>CA 7: cada linha, base e líquido do dataset sintético bate centavo a centavo, com a memória em toda linha.</summary>

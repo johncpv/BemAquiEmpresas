@@ -113,6 +113,18 @@ public sealed partial class PayrollService(
             period = checkedPeriod.Value;
         }
 
+        // FLH-04 CA 8: 13º calculado na competência da data limite, um por tipo e ano; a 2ª sem a 1ª fechada pede a confirmação.
+        if (mode == PayrollRunMode.Calculated && ThirteenthCalculator.IsThirteenth(type))
+        {
+            var checkedPeriod = await ThirteenthCreateCheckAsync(type, period, input.ConfirmWithoutAdvance == true, cancellationToken);
+            if (checkedPeriod.IsFailure)
+            {
+                return checkedPeriod.Error!;
+            }
+
+            period = checkedPeriod.Value;
+        }
+
         if (await db.PayrollRuns.AnyAsync(r => r.Period == period && r.Type == type && r.Mode == mode && r.RectifiesRunId == null, cancellationToken))
         {
             return Duplicate(type, period, mode);
