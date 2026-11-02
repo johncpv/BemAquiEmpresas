@@ -9,7 +9,6 @@ import { formatDate } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
 import { ModuleNotReleased } from '@/pages/ModulePage'
 import { useNavigation } from '@/navigation/navigation-context'
-import { SettingsTabs } from '../SettingsTabs'
 import { IntegrationsNav } from './IntegrationsNav'
 import { environmentLabel, situationOf } from './inter'
 
@@ -33,7 +32,6 @@ export function InterAccountsPage() {
       <PageHeading title="Banco Inter">
         <p className="mt-2 text-muted-foreground">Ligue cada conta do Inter ao sistema para emitir boletos e ler o extrato sem digitar nada no banco.</p>
       </PageHeading>
-      <SettingsTabs />
       <IntegrationsNav />
       <EnvironmentBanner service="bank" test={items.some((r) => r.situation === 'Sandbox')} />
       {query.isPending ? (

@@ -14,7 +14,6 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { formatDateTime } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from '../InventoryTabs'
 import { ADJUSTMENT_TONE, closeTotals, COUNT_STATUS, lineLabel, linesLabel, UNCOUNTED_POLICY } from './inventory-counts'
 import { CountHistorySection, CountingSection, DivergencesSection } from './InventoryCountSections'
 import { formatQuantity } from './stock'
@@ -119,7 +118,6 @@ export function InventoryCountPage() {
           </div>
         </div>
       </PageHeading>
-      <InventoryTabs />
       {counting ? (
         <p role="note" className="mb-3 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">
           Inventário {c.number} em contagem neste local: ajustes e estornos manuais em {c.locationName} ficam bloqueados até fechar ou cancelar. Entradas e saídas continuam.

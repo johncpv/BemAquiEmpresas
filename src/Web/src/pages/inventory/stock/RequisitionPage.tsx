@@ -21,7 +21,6 @@ import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from '../InventoryTabs'
 import { REQUISITION_DICAS, REQUISITION_KIND, REQUISITION_STATUS } from './requisitions'
 import { RequisitionDialog } from './RequisitionDialog'
 import { formatQuantity, formatUnitCost } from './stock'
@@ -116,7 +115,6 @@ export function RequisitionPage() {
           </div>
         </div>
       </PageHeading>
-      <InventoryTabs />
       {r.status === 'PendingApproval' && r.decideBlockedReason ? <p role="note" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">{r.decideBlockedReason}</p> : null}
       {r.status === 'Completed' && !r.canReverse && r.reverseBlockedReason ? <p role="note" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">{r.reverseBlockedReason}</p> : null}
       {steps.length ? <div className="mb-3"><NextSteps steps={steps} onDismiss={() => setSteps([])} /></div> : null}

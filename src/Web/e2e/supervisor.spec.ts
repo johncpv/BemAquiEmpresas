@@ -209,7 +209,7 @@ test.describe('Painel do supervisor (DSH-03)', () => {
     await expect(qualidade.getByRole('link', { name: 'NC-2026-0009' })).toBeVisible()
     await expect(block(page, 'Faltas de material')).toHaveCount(0)
     // Quem só vê a produção encontra o painel no fim das abas.
-    await expect(page.getByRole('navigation', { name: 'Produção' }).getByRole('link').last()).toHaveText('Painel do supervisor')
+    await expect(page.getByRole('navigation', { name: 'Telas de Produção' }).getByRole('link').last()).toHaveText('Painel do supervisor')
   })
 
   test('a 400 px os blocos empilham na ordem Qualidade, Faltas, Quadro, Capacidade, Indicadores sem rolagem horizontal', async ({ page }, info) => {

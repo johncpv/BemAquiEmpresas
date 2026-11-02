@@ -12,7 +12,6 @@ import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { Tag } from '@/components/ui/tag'
 import { Dica } from '@/help/Dica'
 import { PageHeading } from '@/shell/PageHeading'
-import { ProductionTabs } from '../ProductionTabs'
 import { choicesToLines, defaultChoices, formProblems, type LineChoice, lineKey, quantity, SHIPMENT_DICAS, SHIPMENT_TEXTS } from './shipments'
 
 const primary = 'inline-flex min-h-10 items-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60'
@@ -31,7 +30,6 @@ export function NewShipmentPage() {
     return (
       <>
         <PageHeading title="Novo romaneio" />
-        <ProductionTabs />
         <EmptyState title="Escolha o projeto." description="O romaneio é de um projeto: abra pela lista Prontos para expedir ou pelo projeto."
           action={<Link to={'/app/producao/expedicao' as never} className={secondary}>Ver prontos para expedir</Link>} />
       </>
@@ -91,7 +89,6 @@ function ShipmentEditor({ form }: { form: ShipmentForm }) {
       <PageHeading title={`Novo romaneio — ${form.projectNumber}`}>
         <p className="mt-1 flex items-center text-sm text-muted-foreground">{form.partyName} · {form.projectName}<Dica nome="Romaneio" texto={SHIPMENT_DICAS.romaneio} /></p>
       </PageHeading>
-      <ProductionTabs />
       <div className="space-y-4">
         <FormError message={error} />
         <fieldset className="grid gap-4 rounded-md border border-border bg-card p-4 sm:grid-cols-2">

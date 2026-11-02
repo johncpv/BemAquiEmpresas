@@ -17,7 +17,6 @@ import { UrlTabs } from '@/components/ui/url-tabs'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from '../InventoryTabs'
 import { DICAS, formatQuantity, formatUnitCost, KIND, POSTING_STATUS } from './stock'
 
 const button = (text: string, primary = false) => <button type="button" className={primary ? 'rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground' : 'rounded-md border border-border px-3 py-2 text-sm font-semibold'}>{text}</button>
@@ -88,7 +87,6 @@ export function ManualPostingPage() {
           </div>
         </div>
       </PageHeading>
-      <InventoryTabs />
       {pending && p.decideBlockedReason ? <p role="note" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">{p.decideBlockedReason}</p> : null}
       {steps.length ? <div className="mb-3"><NextSteps steps={steps} onDismiss={() => setSteps([])} /></div> : null}
       <FactsBar label="Fatos do lançamento" facts={[

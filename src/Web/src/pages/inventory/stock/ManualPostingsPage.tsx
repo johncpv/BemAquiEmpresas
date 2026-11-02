@@ -10,7 +10,6 @@ import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from '../InventoryTabs'
 import { DICAS, KIND, POSTING_STATUS } from './stock'
 
 const STATUS_OPTIONS = (Object.keys(POSTING_STATUS) as ManualPostingStatus[]).map((value) => ({ value, label: POSTING_STATUS[value].label }))
@@ -44,7 +43,6 @@ export function ManualPostingsPage() {
       <PageHeading title="Estoque: Lançamentos pendentes">
         <p className="mt-2 inline-flex items-center text-muted-foreground">Entradas e saídas manuais que esperam a decisão de outra pessoa.<Dica nome="Aguardando aprovação" texto={DICAS.aprovacao} /></p>
       </PageHeading>
-      <InventoryTabs />
       <p className="mb-2 text-sm text-muted-foreground">Mostrando: {SHOW_LABELS[show] ?? SHOW_LABELS.todos}</p>
       <DataTable label="Lançamentos manuais" columns={columns} query={query} searchable={false} getRowId={(p) => p.id}
         filters={[

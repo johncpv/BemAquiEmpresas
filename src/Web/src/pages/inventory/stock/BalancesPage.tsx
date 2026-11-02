@@ -16,7 +16,6 @@ import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { TYPE_LABELS } from '../item-labels'
-import { InventoryTabs } from '../InventoryTabs'
 import { AdjustmentDialog } from './AdjustmentDialog'
 import { OpeningBatchDialog } from './OpeningBatchDialog'
 import { RESERVATION_DICAS } from './reservations'
@@ -100,7 +99,6 @@ export function BalancesPage() {
           </div>
         </div>
       </PageHeading>
-      <InventoryTabs />
       {opening.data?.completed && opening.data.completedAt ? (
         <p role="note" className="mb-3 rounded-md border border-info-soft bg-info-soft px-3 py-2 text-sm text-info-ink">
           Implantação concluída em {formatDateTime(opening.data.completedAt)} por {opening.data.completedByName ?? 'usuário removido'}. Saldo novo entra por entrada ou ajuste de estoque.

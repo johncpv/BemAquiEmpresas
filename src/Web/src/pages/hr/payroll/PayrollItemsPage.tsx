@@ -15,7 +15,6 @@ import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { HrTabs } from '../HrTabs'
 import { CALCULATION_LABELS, KIND_LABELS, PAYROLL_DICAS } from './payroll'
 
 const PENDING = 'A confirmar com a contadora'
@@ -40,7 +39,6 @@ export function PayrollItemsPage() {
           {newButton}
         </div>
       </PageHeading>
-      <HrTabs />
       {query.isPending ? <Skeleton className="h-48" /> : query.isError ? <ErrorState title="Não foi possível carregar as rubricas." onRetry={() => query.refetch()} /> : query.data.length === 0 ? (
         <EmptyState title="Nenhuma rubrica cadastrada." description="Cadastre as rubricas que a contadora usa no holerite." action={newButton} />
       ) : (

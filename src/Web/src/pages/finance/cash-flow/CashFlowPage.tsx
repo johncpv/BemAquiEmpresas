@@ -10,7 +10,6 @@ import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatMoney } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { FinanceTabs } from '../FinanceTabs'
 import { adjustedOf, CASH_FLOW_DICAS, chartPoints, chartReferences, chartSeries, chartSummary, HORIZONS, SCENARIOS, type Scenario, VIEWS } from './cash-flow'
 import { CashFlowDayPanel } from './CashFlowDayPanel'
 import { CashFlowTable } from './CashFlowTable'
@@ -146,7 +145,6 @@ export function CashFlowPage() {
       <PageHeading title="Financeiro: Fluxo de caixa">
         <p className="mt-2 text-muted-foreground">Entradas, saídas e saldo, do realizado ao previsto, na data combinada e com o atraso de sempre de cada cliente.</p>
       </PageHeading>
-      <FinanceTabs />
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <label className="space-y-1 text-sm font-medium">Visão
           <select value={view.value} onChange={(e) => set({ visao: e.target.value === 'diaria' ? undefined : e.target.value })} className={inputClass}>{VIEWS.map((v) => <option key={v.value} value={v.value}>{v.label}</option>)}</select>

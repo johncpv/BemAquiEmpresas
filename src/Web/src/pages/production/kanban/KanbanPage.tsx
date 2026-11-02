@@ -8,10 +8,10 @@ import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StageIndicator } from '@/components/ui/stage-indicator'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
+import { useScrollStrip } from '@/hooks/useScrollStrip'
 import { cn } from '@/lib/utils'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { ProductionTabs } from '../ProductionTabs'
 import { FABRICATION_STATUS } from '../orders/fabrication'
 import { ForecastsContext, useOrderForecasts } from '../planning/use-forecasts'
 import { BoardCard } from './BoardCard'
@@ -54,7 +54,6 @@ export function KanbanPage() {
           <StatusChip tone={live === 'live' ? 'ok' : 'neutral'}>{live === 'live' ? 'Ao vivo' : live === 'offline' ? 'Offline' : 'Conectando'}</StatusChip>
         </div>
       </PageHeading>
-      <ProductionTabs />
       {live === 'offline' ? <p role="status" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">Atualização ao vivo pausada. Tentando reconectar…</p> : null}
       {query.isPending ? <BoardSkeleton /> : query.isError ? (
         <ErrorState title="Não foi possível carregar o quadro." message="Verifique a conexão e tente de novo. Se continuar, fale com o suporte." onRetry={() => query.refetch()} />
@@ -138,6 +137,7 @@ function Columns({ board, selected, onSelect, canApprove, onChanged }: {
   board: ProductionBoard; selected: string | undefined; onSelect: (key: string) => void; canApprove: boolean; onChanged: () => Promise<void>
 }) {
   const ref = useRef<HTMLDivElement>(null)
+  const stageStrip = useScrollStrip<HTMLDivElement>()
   const current = board.columns.find((c) => c.key === selected && c.count > 0)?.key ?? board.columns.find((c) => c.count > 0)?.key ?? board.columns[0]?.key
   const byColumn = (key: string) => board.cards.filter((c) => c.columnKey === key)
   const move = (event: KeyboardEvent) => {
@@ -165,7 +165,7 @@ function Columns({ board, selected, onSelect, canApprove, onChanged }: {
   }
   return (
     <div ref={ref} onKeyDown={move}>
-      <div role="tablist" aria-label="Etapa" className="mb-3 flex gap-1 overflow-x-auto border-b border-border sm:hidden">
+      <div ref={stageStrip} role="tablist" aria-label="Etapa" className="scrollbar-none fade-x mb-3 flex gap-1 overflow-x-auto border-b border-border sm:hidden">
         {board.columns.map((c) => (
           <button key={c.key} type="button" role="tab" aria-selected={c.key === current} onClick={() => onSelect(c.key)}
             className="-mb-px flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent px-2 py-2 text-sm font-semibold text-muted-foreground aria-selected:border-primary aria-selected:text-foreground">

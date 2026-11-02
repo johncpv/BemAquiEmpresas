@@ -7,7 +7,6 @@ import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime } from '@/lib/format'
 import { useProductionLive } from '@/pages/production/kanban/useBoardLive'
 import { PageHeading } from '@/shell/PageHeading'
-import { ProductionTabs } from '../ProductionTabs'
 import { QualityInspection } from './QualityInspection'
 import { QUALITY_DICAS, refreshQuality } from './quality'
 
@@ -74,7 +73,6 @@ export function QualityQueuePage() {
   return (
     <>
       <PageHeading title="Produção: Qualidade" />
-      <ProductionTabs />
       <div role="group" aria-label="Filtro da fila" className="mb-3 flex flex-wrap gap-2">
         <button type="button" className={pill} aria-pressed={!all} onClick={() => setFilter(false)}>Aguardando você{query.data ? ` (${query.data.mineCount})` : ''}</button>
         <button type="button" className={pill} aria-pressed={all} onClick={() => setFilter(true)}>Todas{query.data ? ` (${query.data.totalCount})` : ''}</button>
@@ -90,7 +88,6 @@ export function QualityStepPage() {
   return (
     <>
       <PageHeading title="Produção: Inspeção de qualidade" />
-      <ProductionTabs />
       <div className="max-w-3xl"><QualityInspection stepId={stepId} queue="/app/producao/qualidade" /></div>
     </>
   )

@@ -7,7 +7,6 @@ import { ApiError } from '@/api/http'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { cn } from '@/lib/utils'
 import { PageHeading } from '@/shell/PageHeading'
-import { ProductionTabs } from '../ProductionTabs'
 import { BoardBlock, type BlockProps, CapacityBlock, IndicatorsBlock, QualityBlock, ShortagesBlock } from './blocks'
 import { DESKTOP, MOBILE_ORDER } from './supervisor'
 
@@ -59,7 +58,6 @@ export function SupervisorPage() {
       <PageHeading title={TITLE}>
         <p className="mt-1 text-muted-foreground">Onde agir primeiro: a qualidade, o material que falta, as OS atrasadas, a ocupação e as paradas.</p>
       </PageHeading>
-      <ProductionTabs />
       {overview.isPending ? (
         <div aria-busy="true" aria-label="Carregando o painel do supervisor" className="grid gap-4 lg:grid-cols-12">
           <Skeleton className="h-40 lg:col-span-12" /><Skeleton className="h-64 lg:col-span-6" /><Skeleton className="h-64 lg:col-span-6" />

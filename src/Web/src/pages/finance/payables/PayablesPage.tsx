@@ -12,7 +12,6 @@ import { Tag } from '@/components/ui/tag'
 import { formatDate } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
-import { FinanceTabs } from '../FinanceTabs'
 import { useCan } from '@/pages/use-can'
 import { today } from '../receivables/receivables'
 import { METHOD_LABELS, ORIGIN_LABELS, PAYABLE_SITUATIONS, payableSituation } from './payables'
@@ -74,7 +73,6 @@ export function PayablesPage() {
           </Can>
         </div>
       </PageHeading>
-      <FinanceTabs />
       {canCreate ? (
         <div className="mb-3 flex flex-wrap items-center gap-2">
           {dueSoon.length > 0 ? <button type="button" onClick={() => setSelected([...new Set([...selected, ...dueSoon])])} className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold">Selecionar os que vencem até {formatDate(limit)}</button> : null}

@@ -6,7 +6,6 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
-import { SettingsTabs } from './SettingsTabs'
 import { ShopfloorDevicesSection } from './ShopfloorDevicesSection'
 
 /**
@@ -24,7 +23,6 @@ export function SecurityPage() {
   return (
     <>
       <PageHeading title="Configurações: Segurança" />
-      <SettingsTabs />
       {settings.isPending ? <Skeleton className="h-28 max-w-xl" /> : settings.isError ? <ErrorState onRetry={() => settings.refetch()} /> : (
         <section className="max-w-xl space-y-3 rounded-md border border-border bg-card p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">

@@ -18,7 +18,6 @@ import { Dica } from '@/help/Dica'
 import { formatDate, formatInstantDate } from '@/lib/format'
 import { useNavigation } from '@/navigation/navigation-context'
 import { PageHeading } from '@/shell/PageHeading'
-import { SettingsTabs } from '../SettingsTabs'
 import { anonymizationOf, responseSuggestion } from './anonymization'
 import { AnonymizationPanel } from './AnonymizationPanel'
 import { OwnerOnlyNotice } from './PrivacyRequestsPage'
@@ -47,7 +46,6 @@ export function PrivacyRequestPage() {
     return (
       <>
         <PageHeading title="Pedido do titular" />
-        <SettingsTabs />
         <OwnerOnlyNotice />
       </>
     )

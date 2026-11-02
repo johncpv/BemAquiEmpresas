@@ -11,7 +11,6 @@ import { ErrorState, Skeleton } from '@/components/ui/states'
 import { formatInstantDate } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { AssetsTabs } from './AssetsTabs'
 import { ORDER_TYPE_LABELS } from './maintenance'
 import { COST_DICAS, costSummary, defaultPeriod, monthLabel, shortMoney } from './maintenance-cost'
 
@@ -48,7 +47,6 @@ export function MaintenanceCostPage() {
     return (
       <>
         {heading}
-        <AssetsTabs />
         <div role="status" className="max-w-xl space-y-2 rounded-md border border-border bg-card p-6">
           <p className="flex items-center gap-2 font-semibold"><ShieldCheck aria-hidden="true" className="size-5 text-muted-foreground" />Dados protegidos</p>
           <p className="text-sm text-muted-foreground">O custo de manutenção é visto por quem edita o patrimônio. Peça ao administrador para incluir você num grupo com essa permissão.</p>
@@ -64,7 +62,6 @@ export function MaintenanceCostPage() {
   return (
     <>
       {heading}
-      <AssetsTabs />
       <div role="group" aria-label="Filtros do custo" className="mb-4 grid gap-2 sm:grid-cols-4">
         <label className="space-y-1 text-sm"><span className="font-medium">De</span>
           <input type="month" value={from} onChange={(e) => setFilter({ de: e.target.value || undefined })} className={inputClass} />

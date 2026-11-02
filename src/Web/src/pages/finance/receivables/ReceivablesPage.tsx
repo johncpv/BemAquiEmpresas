@@ -12,7 +12,6 @@ import { Tag } from '@/components/ui/tag'
 import { formatDate } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
-import { FinanceTabs } from '../FinanceTabs'
 import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
 import { BatchBillingDialog } from './BatchBillingDialog'
@@ -86,7 +85,6 @@ export function ReceivablesPage() {
           </div>
         </div>
       </PageHeading>
-      <FinanceTabs />
       <DeadLetterBanner />
       {reviewing || reviewCount > 0 ? (
         <div className="mb-3 flex flex-wrap items-center gap-2">

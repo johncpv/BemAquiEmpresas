@@ -6,7 +6,6 @@ import { useCan } from '@/pages/use-can'
 import { pauseLabel } from '@/pages/shopfloor/shopfloor'
 import { PageHeading } from '@/shell/PageHeading'
 import { hours } from '../orders/fabrication'
-import { ProductionTabs } from '../ProductionTabs'
 
 const action = 'inline-flex min-h-9 items-center rounded-md border border-border px-3 text-sm font-semibold text-primary'
 
@@ -21,7 +20,6 @@ export function OpenLaborPage() {
   return (
     <>
       <PageHeading title="Produção: Apontamentos abertos" />
-      <ProductionTabs />
       <p className="mb-3 text-sm text-muted-foreground">Apontamentos abertos há mais de {limit} h. Normalmente é um operador que esqueceu de finalizar ou pausar no fim do turno.</p>
       {query.isPending ? <Skeleton className="h-40" /> : query.isError ? <ErrorState title="Não foi possível carregar os apontamentos abertos." onRetry={() => query.refetch()} /> : query.data.items.length === 0 ? (
         <EmptyState title={`Nenhum apontamento aberto há mais de ${limit} h.`} description="Quando alguém esquecer de finalizar a etapa, ela aparece aqui para você corrigir ou concluir."

@@ -8,7 +8,6 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { formatDate } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
-import { AssetsTabs } from './AssetsTabs'
 import { OrderCard } from './AssetMaintenance'
 import { formatMeter, isOrderStatus, isOrderType, ORDER_STATUS_OPTIONS, ORDER_TYPE_OPTIONS } from './maintenance'
 import { OpenOrderDialog } from './MaintenanceDialogs'
@@ -41,7 +40,6 @@ export function MaintenancePage() {
           <Can perm="assets.create"><button type="button" onClick={() => setOpening(true)} className={primary}>Nova OS de manutenção</button></Can>
         </div>
       </PageHeading>
-      <AssetsTabs />
       <div role="group" aria-label="Filtros" className="mb-4 grid gap-2 sm:grid-cols-4">
         <label className="space-y-1 text-sm">
           <span className="font-medium">Centro</span>

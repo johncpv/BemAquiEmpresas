@@ -10,7 +10,6 @@ import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { toTree } from './chart'
 import { CostCenterPanel } from './CostCenterPanel'
-import { FinanceTabs } from './FinanceTabs'
 
 /** Financeiro → Centros de custo (CAD-05a CA 16): a mesma árvore do plano de contas. */
 export function CostCentersPage() {
@@ -31,7 +30,6 @@ export function CostCentersPage() {
           {newRoot}
         </div>
       </PageHeading>
-      <FinanceTabs />
       <label className="mb-3 flex items-center justify-end gap-2 text-sm">
         <input type="checkbox" className="size-4" checked={showInactive} onChange={(e) => void navigate({ to: '.', search: (p: Record<string, unknown>) => ({ ...p, inativos: e.target.checked ? 'true' : undefined }) } as never)} />
         Mostrar inativos

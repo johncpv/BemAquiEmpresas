@@ -13,7 +13,6 @@ import { notifySuccess } from '@/components/ui/messages'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from './InventoryTabs'
 
 /** Estoque → Unidades (CAD-02a CA 1 e 2): as do seed já vêm prontas; em uso por item, não inativa nem exclui. */
 export function UnitsPage() {
@@ -30,7 +29,6 @@ export function UnitsPage() {
           <Can perm="inventory.create"><button type="button" onClick={() => setEditing({ unit: null })} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Nova unidade</button></Can>
         </div>
       </PageHeading>
-      <InventoryTabs />
       {query.isPending ? <Skeleton className="h-64" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : (
         <div className="overflow-x-auto rounded-md border border-border">
           <table className="w-full text-sm">

@@ -7,7 +7,6 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { formatHours, WEEKDAY_LABELS } from './hr'
-import { HrTabs } from './HrTabs'
 import { SchedulePanel } from './SchedulePanel'
 
 /** RH → Jornadas (CAD-04a CA 15 e 16): horas por semana e por mês; edição no painel lateral. */
@@ -24,7 +23,6 @@ export function SchedulesPage() {
           {newButton}
         </div>
       </PageHeading>
-      <HrTabs />
       {query.isPending ? <Skeleton className="h-48" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : query.data.length === 0 ? (
         <EmptyState title="Cadastre as jornadas de trabalho da empresa." action={newButton} />
       ) : (

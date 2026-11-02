@@ -9,7 +9,6 @@ import { TreeTable, type TreeNode } from '@/components/ui/tree-table'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { CategoryPanel } from './CategoryPanel'
-import { InventoryTabs } from './InventoryTabs'
 
 type Node = TreeNode & { category: CategoryDetail; children?: Node[] }
 
@@ -32,7 +31,6 @@ export function CategoriesPage() {
           {newButton}
         </div>
       </PageHeading>
-      <InventoryTabs />
       {query.isPending ? <Skeleton className="h-64" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : query.data.length === 0 ? (
         <EmptyState title="Nenhuma categoria cadastrada." description="As categorias são opcionais e podem ter subcategorias." action={newButton} />
       ) : (

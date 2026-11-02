@@ -12,7 +12,6 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { PageHeading } from '@/shell/PageHeading'
 import { useCan } from '@/pages/use-can'
-import { SettingsTabs } from '../SettingsTabs'
 import { AssetsParametersSection } from './AssetsParametersSection'
 import { CommercialPricingSection } from './CommercialPricingSection'
 import { DreParametersSection } from './DreParametersSection'
@@ -44,7 +43,6 @@ export function ParametersPage() {
   return (
     <>
       <PageHeading title="Configurações: Parâmetros" />
-      <SettingsTabs />
       {query.isPending ? <Skeleton className="h-96 max-w-3xl" /> : query.isError || !query.data ? <ErrorState onRetry={() => query.refetch()} /> : (
         <div className="max-w-3xl space-y-6">
           <ChargesSection key={`c${query.data.payrollChargesPct}`} params={query.data} canEdit={canEdit} />

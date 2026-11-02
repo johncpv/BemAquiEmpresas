@@ -37,7 +37,10 @@ export interface Tab {
   firstFor?: readonly string[]
 }
 
-/** Parte de tela de cada módulo do ModuleCatalog: rota, ícone e sub-telas (abas na topbar, CA 8). */
+/**
+ * Parte de tela de cada módulo do ModuleCatalog: rota, ícone e sub-telas (abas na topbar, CA 8). As abas daqui são a
+ * única navegação do módulo: a página não repete essas abas (sub-abas de uma tela, como as do Ponto, ficam na página).
+ */
 export interface ModuleUi {
   slug: string
   /** Outros caminhos do mesmo módulo (ex.: /app/projetos/$id em "Contratos e projetos"), para a topbar achar o módulo. */
@@ -60,7 +63,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   projects: { slug: 'projetos', aliases: ['contratos'], icon: FolderKanban, tabs: [{ slug: 'margens', label: 'Orçado × realizado', action: 'view_cost' }] },
   parties: { slug: 'cadastros', icon: Contact, tabs: [{ slug: 'terceiros', label: 'Terceiros' }] },
   engineering: { slug: 'engenharia', icon: DraftingCompass, tabs: [{ slug: 'roteiros', label: 'Roteiros' }, { slug: 'boms', label: 'BOMs' }] },
-  production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'os', label: 'OS de fabricação' }, { slug: 'kanban', label: 'Kanban' }, { slug: 'planejamento', label: 'Planejamento' }, { slug: 'apontamentos-abertos', label: 'Apontamentos abertos' }, { slug: 'expedicao', label: 'Expedição' }, { slug: 'instalacoes', label: 'Instalações' }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho' }, { slug: 'calendario', label: 'Calendário' }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação' }, { slug: 'supervisor', label: 'Painel do supervisor', firstFor: ['approve', 'approve_quality'] }] },
+  production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'os', label: 'OS de fabricação' }, { slug: 'kanban', label: 'Kanban' }, { slug: 'planejamento', label: 'Planejamento' }, { slug: 'qualidade', label: 'Qualidade' }, { slug: 'nao-conformidades', label: 'Não conformidades' }, { slug: 'apontamentos-abertos', label: 'Apontamentos abertos' }, { slug: 'expedicao', label: 'Expedição' }, { slug: 'instalacoes', label: 'Instalações' }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho' }, { slug: 'calendario', label: 'Calendário' }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação' }, { slug: 'supervisor', label: 'Painel do supervisor', firstFor: ['approve', 'approve_quality'] }] },
   inventory: { slug: 'estoque', icon: Boxes, tabs: [
     { slug: 'saldos', label: 'Saldos', group: STOCK_OPERATION },
     { slug: 'movimentos', label: 'Movimentos', group: STOCK_OPERATION },
@@ -78,8 +81,8 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'garantia', label: 'Garantia padrão', group: STOCK_SETUP },
   ] },
   purchasing: { slug: 'compras', icon: ShoppingCart, tabs: [{ slug: 'solicitacoes', label: 'Solicitações' }, { slug: 'cotacoes', label: 'Cotações' }, { slug: 'pedidos', label: 'Pedidos' }, { slug: 'recebimentos', label: 'Recebimentos' }] },
-  // PAT-01a: bens e locais do patrimônio (área Fábrica).
-  assets: { slug: 'patrimonio', icon: Tag, tabs: [{ slug: 'bens', label: 'Bens' }, { slug: 'locais', label: 'Locais' }] },
+  // PAT-01a: bens e locais do patrimônio (área Fábrica); PAT-03a: manutenção e o custo dela.
+  assets: { slug: 'patrimonio', icon: Tag, tabs: [{ slug: 'bens', label: 'Bens' }, { slug: 'manutencao', label: 'Manutenção' }, { slug: 'custo', label: 'Custo de manutenção' }, { slug: 'locais', label: 'Locais' }] },
   finance: { slug: 'financeiro', icon: Wallet, tabs: [
     { slug: 'receber', label: 'A receber', group: CASH },
     { slug: 'pagar', label: 'A pagar', group: CASH },
@@ -98,7 +101,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   ] },
   // FIS-02b: Regras fiscais no grupo "Configuração fiscal" (a NF-e de saída entra com a FIS-03a). FIS-04a: Notas de entrada.
   fiscal: { slug: 'fiscal', icon: Receipt, tabs: [{ slug: 'entrada', label: 'Notas de entrada' }, { slug: 'regras', label: 'Regras fiscais', group: 'Configuração fiscal' }] },
-  hr: { slug: 'rh', icon: Users, tabs: [{ slug: 'funcionarios', label: 'Funcionários' }, { slug: 'cargos', label: 'Cargos' }, { slug: 'jornadas', label: 'Jornadas' }, { slug: 'sindicatos', label: 'Sindicatos' }, { slug: 'ponto', label: 'Ponto' }] },
+  hr: { slug: 'rh', icon: Users, tabs: [{ slug: 'funcionarios', label: 'Funcionários' }, { slug: 'cargos', label: 'Cargos' }, { slug: 'jornadas', label: 'Jornadas' }, { slug: 'sindicatos', label: 'Sindicatos' }, { slug: 'ponto', label: 'Ponto' }, { slug: 'ferias', label: 'Férias' }, { slug: 'folha', label: 'Folha' }, { slug: 'rubricas', label: 'Rubricas' }, { slug: 'tabelas-folha', label: 'Tabelas da folha' }, { slug: 'conferencia-folha', label: 'Conferência da folha' }, { slug: 'exportar-contadora', label: 'Exportar para a contadora', action: 'view_sensitive' }] },
   kiosk: { slug: 'painel-tv', icon: MonitorPlay },
   shopfloor: { slug: 'operador', icon: HardHat, href: '/fab' },
   identity: { slug: 'acessos', icon: ShieldCheck, tabs: [{ slug: 'usuarios', label: 'Usuários' }, { slug: 'grupos', label: 'Grupos' }] },
@@ -175,9 +178,3 @@ export function findModuleBySlug(modules: readonly NavModule[], slug: string): N
 export function areaOf(areas: readonly NavArea[], module: NavModule): NavArea | undefined {
   return areas.find((a) => a.name === module.area)
 }
-
-/** Grupos das abas do Financeiro, na ordem: operação primeiro, configuração depois (D12). */
-export const FINANCE_GROUPS = [CASH, SETUP].map((label) => ({ label, tabs: (MODULE_UI.finance.tabs ?? []).filter((t) => t.group === label) }))
-
-/** Grupos das abas do Estoque (padrão 9 da Fase 3): operação primeiro, cadastros depois; Saldos é a aba padrão. */
-export const INVENTORY_GROUPS = [STOCK_OPERATION, STOCK_SETUP].map((label) => ({ label, tabs: (MODULE_UI.inventory.tabs ?? []).filter((t) => t.group === label) }))

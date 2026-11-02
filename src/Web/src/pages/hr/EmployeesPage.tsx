@@ -9,7 +9,6 @@ import { formatDate } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { STATUS_LABELS, STATUS_OPTIONS, STATUS_TONES } from './employee'
-import { HrTabs } from './HrTabs'
 
 /** RH → Funcionários (CAD-04b): lista sem dado pessoal (CA 8), com filtros por situação, cargo e centro na URL. */
 export function EmployeesPage() {
@@ -41,7 +40,6 @@ export function EmployeesPage() {
           </Can>
         </div>
       </PageHeading>
-      <HrTabs />
       <DataTable
         label="Funcionários"
         columns={columns}

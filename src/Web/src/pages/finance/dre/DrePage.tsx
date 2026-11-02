@@ -10,7 +10,6 @@ import { Dica } from '@/help/Dica'
 import { MOBILE, useMediaQuery } from '@/hooks/useMediaQuery'
 import { formatDateTime, formatMoney } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { FinanceTabs } from '../FinanceTabs'
 import { addMonths, changesText, currentMonth, DRE_DICAS, monthLabel, monthLong, PERIODS } from './dre'
 import { DreCellPanel } from './DreCellPanel'
 import { DreChangesPanel } from './DreChangesPanel'
@@ -119,7 +118,6 @@ export function DrePage() {
           {query.data?.isProvisional ? <span className="inline-flex items-center"><StatusChip tone="info">Provisório</StatusChip><Dica texto={DRE_DICAS.provisorio} nome="Provisório" /></span> : null}
         </p>
       </PageHeading>
-      <FinanceTabs />
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <label className="space-y-1 text-sm font-medium">Período
           <select value={months} onChange={(e) => set({ meses: e.target.value === '12' ? undefined : e.target.value })} className={inputClass + ' min-h-11 sm:min-h-0'}>

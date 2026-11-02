@@ -14,7 +14,6 @@ import { UrlTabs } from '@/components/ui/url-tabs'
 import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { ProductionTabs } from '../ProductionTabs'
 import { GanttTab } from './GanttTab'
 import { LoadTab } from './LoadTab'
 import { failedLine, PLANNING_DICAS, runLine, warningAction } from './planning'
@@ -79,7 +78,6 @@ export function PlanningPage() {
       <PageHeading title="Produção: Planejamento">
         <p className="mt-2 text-muted-foreground">O plano calcula quando cada etapa de cada OS começa e termina, pela fila e pelas horas que cada centro tem por dia.</p>
       </PageHeading>
-      <ProductionTabs />
       {query.isPending ? <Skeleton className="h-40" /> : query.isError ? (
         <ErrorState title="Não foi possível carregar o planejamento." message="Verifique a conexão e tente de novo. Se continuar, fale com o suporte." onRetry={() => query.refetch()} />
       ) : (

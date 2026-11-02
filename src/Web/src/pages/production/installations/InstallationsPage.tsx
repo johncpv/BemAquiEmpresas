@@ -7,7 +7,6 @@ import { useTableFilters, useTableSearch } from '@/components/data-table/table-s
 import { StatusChip } from '@/components/ui/status-chip'
 import { formatDate } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { ProductionTabs } from '../ProductionTabs'
 import { INSTALLATION_SITUATIONS, INSTALLATION_STATUS } from './installations'
 
 /** Fábrica → Instalações (COM-06): OS de instalação com projeto, instalador, previsão, etapa e situação. */
@@ -29,7 +28,6 @@ export function InstallationsPage() {
       <PageHeading title="Produção: Instalações">
         <p className="mt-2 text-muted-foreground">A instalação é feita pelo instalador terceirizado; o aceite técnico libera a parcela do cliente.</p>
       </PageHeading>
-      <ProductionTabs />
       <DataTable label="OS de instalação" columns={columns} query={query} getRowId={(o) => o.id}
         filters={[{ key: 'situacao', label: 'Situação', options: INSTALLATION_SITUATIONS }]}
         empty={{ title: 'Crie a OS de instalação a partir do projeto.', action: goProjects }} />

@@ -5,7 +5,6 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDate } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { HrTabs } from '../HrTabs'
 import { periodTone, SCHEDULE_TONES, VACATION_DICAS } from './vacations'
 
 const monthLabel = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
@@ -71,7 +70,6 @@ export function VacationsPage() {
       <PageHeading title="RH: Férias">
         <p className="mt-1 text-sm text-muted-foreground">Quem tem férias a vencer e quem está de férias. Programe pela aba "Férias" do funcionário.</p>
       </PageHeading>
-      <HrTabs />
       {content}
     </>
   )

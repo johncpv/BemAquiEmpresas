@@ -20,7 +20,6 @@ import { z } from '@/lib/zod'
 import { ModuleGate } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { SettingsTabs } from '../SettingsTabs'
 import { ENVIRONMENT_LABEL, formatCnpj, HINTS, integrationStatus, isTestEnvironment, isTotpCode, NOT_ALLOWED, NOT_CONFIGURED, pendingText, scopeLabel } from './fiscal-integration'
 import { IntegrationsNav } from './IntegrationsNav'
 
@@ -57,7 +56,6 @@ function FiscalIntegration() {
       <PageHeading title="Integrações: Emissor fiscal">
         <p className="mt-2 text-muted-foreground">O BemAqui emite as notas pelo Emissor Fiscal, pela internet em conexão segura. Aqui ficam a chave, o segredo e o endereço do aviso.</p>
       </PageHeading>
-      <SettingsTabs />
       <IntegrationsNav />
       {query.isPending ? <Skeleton className="h-64 max-w-3xl" /> : query.isError ? (
         <ErrorState className="max-w-3xl" message={query.error instanceof ApiError ? query.error.message : undefined} onRetry={() => query.refetch()} />

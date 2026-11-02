@@ -11,7 +11,6 @@ import { Tag } from '@/components/ui/tag'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { cn } from '@/lib/utils'
-import { FinanceTabs } from '../FinanceTabs'
 import { toNumber } from '../receivables/receivables'
 import { ApprovalRulePanel } from './ApprovalRulePanel'
 
@@ -46,7 +45,6 @@ export function ApprovalRulesPage() {
           {isOwner ? <button type="button" onClick={() => { setEditing(undefined); setOpen(true) }} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Nova regra de alçada</button> : null}
         </div>
       </PageHeading>
-      <FinanceTabs />
       <div role="group" aria-label="Tipo de documento" className="mb-4 flex flex-wrap gap-2">
         {DOCUMENT_TYPES.map((t) => (
           <button key={t.id} type="button" aria-pressed={t.id === type.id}

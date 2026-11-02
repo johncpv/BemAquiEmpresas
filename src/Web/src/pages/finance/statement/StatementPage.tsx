@@ -12,7 +12,6 @@ import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { today } from '../receivables/receivables'
-import { FinanceTabs } from '../FinanceTabs'
 import { EntryDialog } from './EntryDialog'
 import { StatementTable } from './StatementTable'
 import { BankStatementTab } from './BankStatementTab'
@@ -79,7 +78,6 @@ export function StatementPage() {
           {canPay ? <span className="flex flex-wrap gap-2"><TransferDialog fromId={id} onDone={transferred} /><EntryDialog accountId={id} onDone={refresh} /></span> : null}
         </div>
       </PageHeading>
-      <FinanceTabs />
       {next.length ? <div className="mb-3"><NextSteps onDismiss={() => setNext([])} steps={next} /></div> : null}
       <div className="mb-3 flex flex-wrap items-end gap-3">
         <label className="space-y-1 text-sm font-medium">De<DateInput value={from} onChange={(v) => { if (v) set({ de: v, page: undefined }) }} /></label>

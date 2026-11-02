@@ -19,7 +19,6 @@ import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { FinanceTabs } from '../FinanceTabs'
 import { today } from '../receivables/receivables'
 import { CONFIDENCE, fullDate, KIND_LABEL, nextPeriod } from './reconciliation'
 import {
@@ -322,7 +321,6 @@ export function ReconciliationPage() {
   return (
     <>
       {header}
-      <FinanceTabs />
       {filters}
       {body}
     </>

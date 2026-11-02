@@ -5,7 +5,6 @@ import type { NumberFormatRow } from '@/api/generated/model'
 import { StatusChip } from '@/components/ui/status-chip'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { PageHeading } from '@/shell/PageHeading'
-import { SettingsTabs } from '../SettingsTabs'
 import { useCanSettings } from '../use-can-settings'
 import { NumberingPanel } from './NumberingPanel'
 
@@ -24,7 +23,6 @@ export function NumberingPage() {
   return (
     <>
       <PageHeading title="Configurações: Numeração" />
-      <SettingsTabs />
       {query.isPending ? <Skeleton className="h-96" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : (
         <div className="space-y-3">
           {noneIssued ? <p role="status" className="rounded-md border border-border bg-card px-3 py-2 text-sm">Nenhum documento emitido ainda. O primeiro sairá como <b className="tabular-nums">{rows[0].next}</b>.</p> : null}

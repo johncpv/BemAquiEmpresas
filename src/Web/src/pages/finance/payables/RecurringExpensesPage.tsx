@@ -8,7 +8,6 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { formatDate } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
-import { FinanceTabs } from '../FinanceTabs'
 import { RecurringPanel } from './RecurringPanel'
 
 /** Financeiro → Recorrentes (FIN-02 CA 16 a 20): despesas fixas que viram títulos a pagar todo mês. */
@@ -53,7 +52,6 @@ export function RecurringExpensesPage() {
           {newButton}
         </div>
       </PageHeading>
-      <FinanceTabs />
       {body}
       {editing ? <RecurringPanel expense={editing.expense} onClose={() => setEditing(null)} onSaved={refresh} /> : null}
     </>

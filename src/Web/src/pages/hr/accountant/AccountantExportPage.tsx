@@ -15,7 +15,6 @@ import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { HrTabs } from '../HrTabs'
 import { periodLabel, typeLabel } from '../payroll/payroll'
 import { ACCOUNTANT_DICAS, currentMonth, mailtoContadora, monthOf, packageFileName, validMonth } from './accountant'
 
@@ -33,7 +32,6 @@ export function AccountantExportPage() {
       <PageHeading title="RH: Exportar para a contadora">
         <p className="mt-2 text-muted-foreground">O pacote do mês para a contadora calcular a folha com o que já está no sistema, sem redigitar nada.</p>
       </PageHeading>
-      <HrTabs />
       {canSensitive ? <ExportPanel /> : (
         <div className="flex max-w-3xl items-center gap-2 rounded-md border border-border bg-muted px-4 py-6 text-sm text-muted-foreground">
           <Lock aria-hidden="true" className="size-4" />
