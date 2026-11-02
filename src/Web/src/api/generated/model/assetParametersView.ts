@@ -4,10 +4,16 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { AssetCodeOption } from './assetCodeOption';
+import type { AssetParameterItem } from './assetParameterItem';
 
 export interface AssetParametersView {
   labelWidthMm: number;
   labelHeightMm: number;
   /** @nullable */
   labelSizeId: string | null;
+  maintenance: AssetParameterItem[];
+  accounts: AssetCodeOption[];
+  costCenters: AssetCodeOption[];
+  pendingCount: number;
 }

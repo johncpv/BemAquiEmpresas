@@ -53,6 +53,30 @@ internal static partial class AssetsEndpoints
         orders.MapPost("/{id:guid}/cancel", async (Guid id, MaintenanceCancelInput input, MaintenanceService service, CancellationToken ct) => (await service.CancelAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("assets.edit").WithName("CancelMaintenanceOrder").Produces<MaintenanceOrderDetail>();
 
+        // PAT-03b: sugestões da OS, reagendar/planejar (valor combinado, horas paradas), custo por natureza e o relatório, tudo com assets.edit
+        // (as sugestões com assets.view, o valor sugerido só com assets.edit).
+        orders.MapGet("/defaults", async (Guid assetId, Guid? planId, MaintenanceService service, CancellationToken ct) => (await service.DefaultsAsync(assetId, planId, ct)).ToHttpResult())
+            .RequirePermission("assets.view").WithName("GetMaintenanceOrderDefaults").Produces<MaintenanceDefaults>();
+        orders.MapPut("/{id:guid}/schedule", async (Guid id, MaintenanceScheduleInput input, MaintenanceService service, CancellationToken ct) => (await service.ScheduleAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("assets.edit").WithName("ScheduleMaintenanceOrder").Produces<MaintenanceOrderDetail>();
+        orders.MapGet("/{id:guid}/costs", async (Guid id, MaintenanceCostService service, CancellationToken ct) => (await service.ListAsync(id, ct)).ToHttpResult())
+            .RequirePermission("assets.edit").WithName("ListMaintenanceOrderCosts").Produces<MaintenanceCostsView>();
+        orders.MapPost("/{id:guid}/costs", async (Guid id, MaintenanceCostInput input, MaintenanceCostService service, CancellationToken ct) => (await service.AddAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("assets.edit").WithName("AddMaintenanceOrderCost").Produces<MaintenanceCostsView>();
+        orders.MapDelete("/{id:guid}/costs/{costId:guid}", async (Guid id, Guid costId, uint? version, MaintenanceCostService service, CancellationToken ct) =>
+                (await service.RemoveAsync(id, costId, version, ct)).ToHttpResult())
+            .RequirePermission("assets.edit").WithName("RemoveMaintenanceOrderCost").Produces<MaintenanceCostsView>();
+
+        var costs = root.MapGroup("/maintenance-costs");
+        costs.MapGet(string.Empty, async (string? from, string? to, Guid? assetId, Guid? workCenterId, MaintenanceCostService service, CancellationToken ct) =>
+                (await service.ReportAsync(new MaintenanceCostQuery(from, to, assetId, workCenterId), ct)).ToHttpResult())
+            .RequirePermission("assets.edit").WithName("GetMaintenanceCostReport").Produces<MaintenanceCostReport>();
+        costs.MapGet("/orders", async (string? from, string? to, string? month, Guid? assetId, Guid? workCenterId, MaintenanceOrderType? type, MaintenanceCostService service, CancellationToken ct) =>
+                (await service.OrdersAsync(new MaintenanceCostQuery(from, to, assetId, workCenterId, type, month), ct)).ToHttpResult())
+            .RequirePermission("assets.edit").WithName("ListMaintenanceCostOrders").Produces<MaintenanceCostOrders>();
+        assets.MapGet("/{id:guid}/maintenance-cost", async (Guid id, MaintenanceCostService service, CancellationToken ct) => Results.Ok(await service.ForAssetAsync(id, ct)))
+            .RequirePermission("assets.edit").WithName("GetAssetMaintenanceCost").Produces<AssetMaintenanceCost>();
+
         orders.MapGet("/{id:guid}/attachments", async (Guid id, MaintenanceService service, CancellationToken ct) => (await service.FilesAsync(id, ct)).ToHttpResult())
             .RequirePermission("assets.view").WithName("ListMaintenanceOrderFiles").Produces<MaintenanceOrderFiles>();
         orders.MapPost("/{id:guid}/attachments", async (Guid id, IFormFile file, MaintenanceService service, CancellationToken ct) =>

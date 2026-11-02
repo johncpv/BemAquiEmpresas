@@ -45,6 +45,16 @@ public sealed class AssetsPersonalDataProvider(IAssetsDb db) : IPersonalDataProv
             blocks.Add(new PersonalDataBlock("Movimentações de bens", "assets.asset_movements", moved.Select(m => PersonalDataRecord.Of(m.CreatedAt,
                 ("Etiqueta", m.Tag), ("Bem", m.Name), ("Tipo", Kinds[m.Kind]), ("Data", Date(m.MovedOn)),
                 ("Papel", m.FromEmployeeId == m.ToEmployeeId ? "Responsável" : m.ToEmployeeId == employee ? "Recebeu o bem" : "Entregou o bem"), ("Motivo", m.Reason))).ToList()));
+
+            // PAT-03b: a mão de obra interna que o funcionário lançou nas OS de manutenção (horas; sem o custo-hora, que é do cargo).
+            var labor = await (from c in db.MaintenanceOrderCosts.AsNoTracking()
+                               join o in db.MaintenanceOrders.AsNoTracking() on c.OrderId equals o.Id
+                               join a in db.Assets.IgnoreQueryFilters().AsNoTracking() on o.AssetId equals a.Id
+                               where c.EmployeeId == employee
+                               orderby c.CreatedAt
+                               select new { o.Number, a.Tag, c.Hours, c.CreatedAt }).ToListAsync(cancellationToken);
+            blocks.Add(new PersonalDataBlock("Mão de obra em manutenções", "assets.maintenance_order_costs", labor.Select(l => PersonalDataRecord.Of(l.CreatedAt,
+                ("OS", l.Number), ("Etiqueta", l.Tag), ("Horas", l.Hours?.ToString("0.##", CultureInfo.GetCultureInfo("pt-BR"))), ("Lançada em", PersonalDataMask.At(l.CreatedAt)))).ToList()));
         }
 
         if (subject.Kind == PersonalDataSubjectKind.Party && subject.PartyId is { } party)
@@ -122,6 +132,8 @@ public sealed class AssetsPersonalDataProvider(IAssetsDb db) : IPersonalDataProv
         if (employee is not null)
         {
             plan.Keep("Bens sob responsabilidade: mantidos, com o responsável", "assets.assets", await db.Assets.CountAsync(a => a.ResponsibleEmployeeId == employee, ct));
+            plan.Keep("Mão de obra em manutenções: mantida (custo da OS), só com o id do funcionário", "assets.maintenance_order_costs",
+                await db.MaintenanceOrderCosts.CountAsync(c => c.EmployeeId == employee, ct));
         }
 
         var movements = await db.AssetMovements

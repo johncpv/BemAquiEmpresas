@@ -75,8 +75,9 @@ public sealed class Asset : Entity, IAuditable, ISoftDeletable, IConcurrencyVers
 }
 
 /// <summary>
-/// Parâmetro do Patrimônio (<c>assets.parameters</c>, dono Assets, ADR 0016 M6): hoje só o tamanho da etiqueta
-/// (<c>assets.label_size</c>, PAT-01b CA 1). Vazio = padrão; editado em Configurações → Parâmetros com <c>settings.edit</c>, auditado.
+/// Parâmetro do Patrimônio (<c>assets.parameters</c>, dono Assets, ADR 0016 M6): o tamanho da etiqueta (<c>assets.label_size</c>, PAT-01b CA 1)
+/// e as contas e os centros de custo da manutenção (PAT-03b CA 5, código no <c>Value</c>, "A confirmar com a contadora" até alguém conferir,
+/// ADR 0042). Vazio = padrão; editado em Configurações → Parâmetros com <c>settings.edit</c>, auditado.
 /// </summary>
 public sealed class AssetParameter : Entity, IAuditable
 {
@@ -85,6 +86,23 @@ public sealed class AssetParameter : Entity, IAuditable
     public string? Value { get; set; }
 
     public DateTimeOffset UpdatedAt { get; set; }
+
+    /// <summary>Conferido com a contadora (ADR 0042 §1): a troca do valor volta a "A confirmar".</summary>
+    public DateTimeOffset? ConfirmedAt { get; private set; }
+
+    public Guid? ConfirmedBy { get; private set; }
+
+    public void Confirm(Guid? by, DateTimeOffset at)
+    {
+        ConfirmedAt = at;
+        ConfirmedBy = by;
+    }
+
+    public void ResetConfirmation()
+    {
+        ConfirmedAt = null;
+        ConfirmedBy = null;
+    }
 }
 
 /// <summary>

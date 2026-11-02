@@ -114,7 +114,13 @@ export function FabMaintenancePage() {
             <label htmlFor="foto-os" data-floor-target="" className="flex min-h-[56px] w-full cursor-pointer items-center justify-center rounded-md border-2 border-input bg-card px-5 text-[18px] font-semibold">Tirar foto ou anexar relatório</label>
           </>
         ) : null}
-        {canEdit && running ? (
+        {canEdit && running && order.requiresPayableConfirmation ? (
+          // PAT-03b CA 3: com prestador, a conclusão confirma o título a pagar no diálogo com o impacto financeiro, na OS completa.
+          <a href={`/app/patrimonio/manutencao/${order.id}`} data-floor-target="" className="flex min-h-[56px] w-full items-center justify-center rounded-md border-2 border-input bg-card px-5 text-center text-[18px] font-semibold">
+            Concluir na OS completa (confirma o título do prestador)
+          </a>
+        ) : null}
+        {canEdit && running && !order.requiresPayableConfirmation ? (
           <div className="space-y-1">
             <FloorButton tone="ok" className="w-full" disabled={missing > 0} aria-describedby={missing > 0 ? 'faltam' : undefined} onClick={() => { setWorkDone(''); setMeter(''); setError(null); setSheet('complete') }}>
               Concluir manutenção

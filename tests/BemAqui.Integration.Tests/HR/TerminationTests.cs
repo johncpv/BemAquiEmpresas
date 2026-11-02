@@ -354,7 +354,7 @@ public class TerminationTests(TenancyFixture tenancy) : IClassFixture<TenancyFix
         var reopenFirst = await hr.Client.PostAsJsonAsync($"/api/v1/hr/terminations/{terminationId}/cancel", new { reason = "Funcionário voltou", version = current });
         reopenFirst.StatusCode.Should().Be(HttpStatusCode.Conflict);
         (await JsonAsync(reopenFirst)).GetProperty("detail").GetString().Should().Be(TerminationPolicy.ClosedMessage);
-        await DbAsync(tenant, async db => (await db.PayrollRuns.SingleAsync(r => r.Id == runId)).Status = PayrollRunStatus.Paid);
+        await DbAsync(tenant, async db => { (await db.PayrollRuns.SingleAsync(r => r.Id == runId)).Status = PayrollRunStatus.Paid; });
         var paid = await hr.Client.PostAsJsonAsync($"/api/v1/hr/terminations/{terminationId}/cancel", new { reason = "Funcionário voltou", version = current });
         paid.StatusCode.Should().Be(HttpStatusCode.Conflict);
         (await JsonAsync(paid)).GetProperty("detail").GetString().Should().Be("A rescisão já foi paga: fale com a contadora para o estorno.");

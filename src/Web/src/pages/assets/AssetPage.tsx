@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { deleteAsset, getGetAssetQueryKey, getListAssetsQueryKey, updateAsset, useGetAsset } from '@/api/generated/bemaqui'
+import { deleteAsset, getGetAssetQueryKey, getListAssetsQueryKey, updateAsset, useGetAsset, useGetAssetMaintenanceCost } from '@/api/generated/bemaqui'
 import type { AssetDetail, AssetReceivableDraft } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { FormError } from '@/components/form/form'
@@ -10,7 +10,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { notifySuccess } from '@/components/ui/messages'
 import { NextSteps } from '@/components/ui/next-steps'
 import { ErrorState, Skeleton } from '@/components/ui/states'
-import { formatDate } from '@/lib/format'
+import { formatDate, formatMoney } from '@/lib/format'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
 import { useUrlTab } from '@/components/ui/url-tab'
@@ -82,6 +82,7 @@ export function AssetPage() {
             <StatusChip tone={STATUS_TONES[asset.status]}>{STATUS_LABELS[asset.status]}</StatusChip>
             <Tag>{TYPE_LABELS[asset.type]}</Tag>
             {asset.nextMaintenanceOn ? <span className="text-sm text-muted-foreground">Próxima preventiva: <b className="tabular-nums text-foreground">{formatDate(asset.nextMaintenanceOn)}</b></span> : null}
+            {canEdit ? <AssetMaintenanceCostLine assetId={asset.id} /> : null}
             <Link to="/app/patrimonio/bens" className="ml-2 inline-flex min-h-11 items-center text-sm font-semibold text-primary">Voltar à lista</Link>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -195,5 +196,17 @@ function AssetData({ asset, canEdit, readOnly, onSaved, onReload, onMove }: {
         </div>
       ) : null}
     </form>
+  )
+}
+
+/** "Custo de manutenção: {mês} · {ano} · total" (PAT-03b CA 6), só com assets.edit; leva ao relatório filtrado pelo bem. */
+function AssetMaintenanceCostLine({ assetId }: { assetId: string }) {
+  const query = useGetAssetMaintenanceCost(assetId)
+  const c = query.data
+  if (!c || c.total <= 0) return null
+  return (
+    <Link to="/app/patrimonio/custo" search={{ bem: assetId } as never} className="inline-flex min-h-11 items-center text-sm text-muted-foreground hover:underline">
+      Custo de manutenção:&nbsp;<b className="tabular-nums text-foreground">{formatMoney(c.month)} no mês · {formatMoney(c.year)} no ano · {formatMoney(c.total)} no total</b>
+    </Link>
   )
 }

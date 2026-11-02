@@ -98,3 +98,5 @@ Lançar, para cada funcionário, os proventos e descontos que a contadora calcul
 **O sábado sem jornada conta como folga?** Sim: dia sem jornada no cargo é "domingo ou folga" e usa o percentual de domingo ou folga. Se a convenção pedir outro, ajuste o percentual nos parâmetros.
 
 **Por que a célula "=1+1" virou erro?** O arquivo é lido só como texto: célula que começa com =, +, - ou @ não é número.
+
+**Na folha de 13º calculada, onde vejo os avos?** No holerite, em "Ver memória" da linha do 13º (mês a mês: dias no vínculo, faltas, dias pela previdência e se o mês conta) e nas entradas do cálculo ("Avos", "1ª parcela paga", "Adiantamento pago com as férias"). No 13º não há lançamento avulso: o ajuste é feito no cadastro, no ponto e nas folhas do ano, e depois em "Recalcular".

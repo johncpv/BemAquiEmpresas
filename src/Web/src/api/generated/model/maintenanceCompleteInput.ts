@@ -12,4 +12,7 @@ export interface MaintenanceCompleteInput {
   meterValue?: number | null;
   /** @nullable */
   version?: number | null;
+  confirmPayable?: boolean;
+  /** @nullable */
+  contractValue?: number | null;
 }

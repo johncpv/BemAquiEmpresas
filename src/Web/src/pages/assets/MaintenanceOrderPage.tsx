@@ -8,20 +8,23 @@ import type { MaintenanceChecklistResult, MaintenanceOrderDetail } from '@/api/g
 import { ApiError, apiDownload } from '@/api/http'
 import { Field, FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
-import { QuantityInput } from '@/components/form/inputs'
+import { MoneyInput, QuantityInput } from '@/components/form/inputs'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { notifySuccess } from '@/components/ui/messages'
 import { NextSteps } from '@/components/ui/next-steps'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
+import { Tag } from '@/components/ui/tag'
 import { UrlTabs } from '@/components/ui/url-tabs'
-import { formatDate, formatDateTime } from '@/lib/format'
+import { formatDate, formatDateTime, formatMoney } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { STATUS_LABELS, STATUS_TONES } from './assets'
 import { MAINTENANCE_DICAS, missingText, ORDER_STATUS_LABELS, ORDER_STATUS_TONES, ORDER_TYPE_LABELS } from './maintenance'
+import { COST_DICAS, formatHours } from './maintenance-cost'
 import { useOrderActions } from './maintenance-hooks'
+import { CostTab, ProtectedCost, ScheduleDialog } from './MaintenanceCost'
 
 const button = 'inline-flex min-h-11 items-center rounded-md border border-border px-3 py-2 text-sm font-semibold'
 const primary = 'inline-flex min-h-11 items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60'
@@ -36,9 +39,10 @@ export function MaintenanceOrderPage() {
   const navigate = useNavigate()
   const query = useGetMaintenanceOrder(id)
   const canEdit = useCan('assets.edit')
+  const canFinance = useCan('finance.view')
   const [created, setCreated] = useState(search.nova === '1')
   const [completed, setCompleted] = useState(false)
-  const [dialog, setDialog] = useState<'start' | 'complete' | 'cancel' | null>(null)
+  const [dialog, setDialog] = useState<'start' | 'complete' | 'cancel' | 'schedule' | null>(null)
   const actions = useOrderActions(query.data)
 
   if (query.isPending) return <div className="space-y-3"><Skeleton className="h-10 w-2/3" /><Skeleton className="h-96" /></div>
@@ -56,8 +60,9 @@ export function MaintenanceOrderPage() {
     { label: 'Abrir no celular', onSelect: () => void navigate({ to: '/fab/manutencao/$id', params: { id: o.id } }) },
     ...(canEdit ? [{ label: 'Anexar foto', onSelect: () => { setCreated(false); void navigate({ to: '/app/patrimonio/manutencao/$id', params: { id: o.id }, search: { aba: 'documentos' } as never }) } }] : []),
   ]
-  // A conclusão oferece o próximo passo; "Lançar o custo da manutenção" chega com a PAT-03b.
+  // A conclusão oferece o próximo passo (PAT-03b): lançar o custo da manutenção na aba Custo.
   const doneSteps = [
+    ...(canEdit ? [{ label: 'Lançar o custo da manutenção', onSelect: () => { setCompleted(false); void navigate({ to: '/app/patrimonio/manutencao/$id', params: { id: o.id }, search: { aba: 'custo' } as never }) } }] : []),
     { label: 'Ver o bem', onSelect: () => void navigate({ to: '/app/patrimonio/bens/$id', params: { id: o.assetId }, search: { aba: 'manutencao' } as never }) },
     { label: 'Voltar à manutenção', onSelect: () => void navigate({ to: '/app/patrimonio/manutencao' }) },
   ]
@@ -75,6 +80,7 @@ export function MaintenanceOrderPage() {
           {canEdit && (open || running) ? (
             <div className="flex flex-wrap items-center gap-2">
               {open ? <button type="button" onClick={() => setDialog('start')} className={primary}>Iniciar</button> : null}
+              <button type="button" onClick={() => setDialog('schedule')} className={button}>Planejar</button>
               {running ? (
                 <span className="flex flex-col items-end">
                   <button type="button" disabled={missing > 0} aria-describedby={missing > 0 ? 'faltam-itens' : undefined} onClick={() => setDialog('complete')} className={primary}>Concluir manutenção</button>
@@ -89,11 +95,13 @@ export function MaintenanceOrderPage() {
       {created ? <div className="mb-4"><NextSteps title="OS de manutenção aberta" onDismiss={() => setCreated(false)} steps={createdSteps} /></div> : null}
       {completed ? <div className="mb-4"><NextSteps title="Manutenção concluída" onDismiss={() => setCompleted(false)} steps={doneSteps} /></div> : null}
       <StartDialog order={o} open={dialog === 'start'} onOpenChange={(v) => setDialog(v ? 'start' : null)} onConfirm={actions.start} />
-      <CompleteDialog order={o} open={dialog === 'complete'} onOpenChange={(v) => setDialog(v ? 'complete' : null)} onConfirm={async (w, m) => { await actions.complete(w, m); setCompleted(true) }} />
+      <CompleteDialog order={o} open={dialog === 'complete'} onOpenChange={(v) => setDialog(v ? 'complete' : null)} onConfirm={async (w, m, v) => { await actions.complete(w, m, v); setCompleted(true) }} />
+      {canEdit ? <ScheduleDialog order={o} open={dialog === 'schedule'} onOpenChange={(v) => setDialog(v ? 'schedule' : null)} onSaved={actions.apply} /> : null}
       <CancelDialog order={o} open={dialog === 'cancel'} onOpenChange={(v) => setDialog(v ? 'cancel' : null)} onConfirm={actions.cancel} />
       <UrlTabs label="Seções da OS de manutenção" fallback="resumo" tabs={[
-        { id: 'resumo', label: 'Resumo', content: <OrderSummary order={o} /> },
+        { id: 'resumo', label: 'Resumo', content: <OrderSummary order={o} canFinance={canFinance} /> },
         { id: 'checklist', label: `Checklist${o.checklist.length ? ` (${o.checklist.length - missing}/${o.checklist.length})` : ''}`, content: <ChecklistTab order={o} canEdit={canEdit} onMark={actions.mark} /> },
+        { id: 'custo', label: 'Custo', content: canEdit ? <CostTab order={o} canEdit={canEdit} /> : <ProtectedCost /> },
         { id: 'documentos', label: 'Documentos', content: <OrderFiles order={o} canEdit={canEdit} /> },
         { id: 'historico', label: 'Histórico', content: <RecordHistory entity="MaintenanceOrder" id={o.id} /> },
       ]} />
@@ -101,7 +109,7 @@ export function MaintenanceOrderPage() {
   )
 }
 
-function OrderSummary({ order: o }: { order: MaintenanceOrderDetail }) {
+function OrderSummary({ order: o, canFinance }: { order: MaintenanceOrderDetail; canFinance: boolean }) {
   const rows: [string, ReactNode][] = [
     ['Bem', <Link key="bem" to="/app/patrimonio/bens/$id" params={{ id: o.assetId }} search={{ aba: 'manutencao' } as never} className="font-semibold text-primary hover:underline">{o.assetTag} · {o.assetName}</Link>],
     ['Situação do bem', <StatusChip key="sit" tone={STATUS_TONES[o.assetStatus]}>{STATUS_LABELS[o.assetStatus]}</StatusChip>],
@@ -110,6 +118,12 @@ function OrderSummary({ order: o }: { order: MaintenanceOrderDetail }) {
     [o.type === 'Corrective' ? 'Problema' : 'O que será feito', o.problem],
     ['Agendada para', formatDate(o.scheduledOn)],
     ['Executor', o.supplierName ?? 'Equipe interna'],
+    ...(o.contractValue != null ? [['Valor combinado', <span key="valor" className="inline-flex flex-wrap items-center gap-2">{formatMoney(o.contractValue)}{o.payable?.isEstimate ? <Tag title={COST_DICAS.valorCombinado}>Estimado</Tag> : null}</span>] as [string, ReactNode]] : []),
+    ...(o.payable ? [['Título a pagar', canFinance
+      ? <Link key="titulo" to={'/app/financeiro/pagar/$id' as never} params={{ id: o.payable.id } as never} className="font-semibold text-primary hover:underline">{o.payable.number}{o.payable.dueDate ? ` · vence em ${formatDate(o.payable.dueDate)}` : ''}</Link>
+      : `${o.payable.number}${o.payable.dueDate ? ` · vence em ${formatDate(o.payable.dueDate)}` : ''}`] as [string, ReactNode]] : []),
+    ...(o.cost != null && o.status === 'Done' ? [['Custo da manutenção', formatMoney(o.cost)] as [string, ReactNode]] : []),
+    ...(o.downtimeFrom && o.hoursPerDay != null ? [['Parada no centro', `${formatHours(o.hoursPerDay)} por dia, de ${formatDate(o.downtimeFrom)}${o.downtimeTo && o.downtimeTo !== o.downtimeFrom ? ` a ${formatDate(o.downtimeTo)}` : ''}${o.machineStopped || o.status === 'InProgress' ? ' (até a conclusão)' : ''}`] as [string, ReactNode]] : []),
     ['Aberta', `${formatDateTime(o.createdAt)}${o.createdByName ? ` por ${o.createdByName}` : ' pelo plano'}`],
     ...(o.startedAt ? [['Iniciada', `${formatDateTime(o.startedAt)}${o.startedByName ? ` por ${o.startedByName}` : ''}`] as [string, ReactNode]] : []),
     ...(o.doneAt ? [['Concluída', `${formatDateTime(o.doneAt)}${o.doneByName ? ` por ${o.doneByName}` : ''}`] as [string, ReactNode], ['O que foi feito', o.workDone ?? '—'] as [string, ReactNode]] : []),
@@ -222,18 +236,20 @@ export function StartDialog({ order, open, onOpenChange, onConfirm }: { order: M
   )
 }
 
-export function CompleteDialog({ order, open, onOpenChange, onConfirm }: { order: MaintenanceOrderDetail; open: boolean; onOpenChange: (o: boolean) => void; onConfirm: (workDone: string, meter: number | null) => Promise<void> }) {
+export function CompleteDialog({ order, open, onOpenChange, onConfirm }: { order: MaintenanceOrderDetail; open: boolean; onOpenChange: (o: boolean) => void; onConfirm: (workDone: string, meter: number | null, value: number | null) => Promise<void> }) {
   const [workDone, setWorkDone] = useState('')
+  const [value, setValue] = useState<string | null>(null)
   const [meter, setMeter] = useState<string | null>(null)
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({})
   const { missing, text } = missingText(order.checklist)
   return (
     <ConfirmDialog verb="Concluir manutenção" done="Manutenção concluída" title={`Concluir ${order.number}`} size="lg" open={open} onOpenChange={onOpenChange}
       description={order.planId ? 'A conclusão grava a última execução do plano e o próximo vencimento conta de hoje.' : 'O bem volta a Ativo se não houver outra OS em andamento.'}
-      onOpen={() => { setWorkDone(''); setMeter(null); setErrors({}) }}
-      preconditions={[{ ok: missing === 0, text: text ?? '' }, { ok: workDone.trim().length > 0, text: 'Descreva o que foi feito.' }]}
-      onFieldErrors={(e) => { const known = Object.fromEntries(Object.entries(e.fields).filter(([k]) => ['workDone', 'meterValue'].includes(k)).map(([k, v]) => [k, v[0]])); setErrors(known); return Object.keys(known).length > 0 }}
-      onConfirm={() => onConfirm(workDone.trim(), meter == null ? null : Number(meter))}>
+      onOpen={() => { setWorkDone(''); setMeter(null); setValue(order.contractValue != null ? String(order.contractValue) : null); setErrors({}) }}
+      preconditions={[{ ok: missing === 0, text: text ?? '' }, { ok: workDone.trim().length > 0, text: 'Descreva o que foi feito.' },
+        ...(order.requiresPayableConfirmation ? [{ ok: Number(value) > 0, text: 'Informe o valor final do prestador.' }] : [])]}
+      onFieldErrors={(e) => { const known = Object.fromEntries(Object.entries(e.fields).filter(([k]) => ['workDone', 'meterValue', 'contractValue'].includes(k)).map(([k, v]) => [k, v[0]])); setErrors(known); return Object.keys(known).length > 0 }}
+      onConfirm={() => onConfirm(workDone.trim(), meter == null ? null : Number(meter), order.requiresPayableConfirmation && value ? Number(value) : null)}>
       <Field label="O que foi feito" required error={errors.workDone} hint={`${workDone.length}/2000`}>
         {(p) => <textarea {...p} rows={4} value={workDone} maxLength={2000} onChange={(e) => { setErrors({}); setWorkDone(e.target.value) }} className={inputClass} />}
       </Field>
@@ -241,6 +257,18 @@ export function CompleteDialog({ order, open, onOpenChange, onConfirm }: { order
         <Field label="Horímetro na conclusão" error={errors.meterValue} hint="Opcional. O próximo vencimento conta deste valor." dica={MAINTENANCE_DICAS.horimetro}>
           {(p) => <QuantityInput {...p} value={meter} onChange={(v) => { setErrors({}); setMeter(v) }} suffix="h" />}
         </Field>
+      ) : null}
+      {order.requiresPayableConfirmation ? (
+        <div className="space-y-2 rounded-md border border-warn-soft bg-card p-3 text-sm">
+          <Field label="Valor final do prestador" required error={errors.contractValue} dica={COST_DICAS.valorCombinado}>
+            {(p) => <MoneyInput {...p} value={value} onChange={(v) => { setErrors({}); setValue(v) }} />}
+          </Field>
+          <p className="font-semibold" aria-live="polite">
+            {Number(value) > 0
+              ? `Confirma o título a pagar de ${formatMoney(Number(value))} ao prestador ${order.supplierName ?? ''}, com vencimento em ${order.completionDueOn ? formatDate(order.completionDueOn) : 'a data da conclusão'}, que segue para ordem de pagamento.`
+              : 'Informe o valor final para ver o título a pagar.'}
+          </p>
+        </div>
       ) : null}
     </ConfirmDialog>
   )

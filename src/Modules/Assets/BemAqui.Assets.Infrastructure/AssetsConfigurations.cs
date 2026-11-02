@@ -157,6 +157,35 @@ internal sealed class MaintenanceOrderConfiguration : IEntityTypeConfiguration<M
         b.HasIndex(e => new { e.AssetId, e.CreatedAt }).HasDatabaseName("ix_maintenance_orders_asset_id_created_at");
         b.HasIndex(e => e.Status).HasDatabaseName("ix_maintenance_orders_status");
         b.HasIndex(e => e.SupplierPartyId).HasFilter("supplier_party_id IS NOT NULL").HasDatabaseName("ix_maintenance_orders_supplier_party_id");
+
+        // PAT-03b: valor combinado, parada (horas por dia, duração, período), custo total e o título do prestador.
+        b.Property(e => e.ContractValue).HasPrecision(18, 2);
+        b.Property(e => e.ExpectedHours).HasPrecision(18, 4);
+        b.Property(e => e.HoursPerDay).HasPrecision(18, 4);
+        b.Property(e => e.Cost).HasPrecision(18, 2);
+        b.HasIndex(e => e.DoneAt).HasFilter("status = 'Done'").HasDatabaseName("ix_maintenance_orders_done_at");
+    }
+}
+
+/// <summary><c>assets.maintenance_order_costs</c> (PAT-03b CA 6): linhas de custo por natureza; o <c>cost</c> da OS é a soma.</summary>
+internal sealed class MaintenanceOrderCostConfiguration : IEntityTypeConfiguration<MaintenanceOrderCost>
+{
+    public void Configure(EntityTypeBuilder<MaintenanceOrderCost> b)
+    {
+        b.ToTable("maintenance_order_costs", AssetsSchema.Name, t =>
+        {
+            t.HasCheckConstraint("ck_maintenance_order_costs_cost_type", "cost_type IN ('Labor', 'Service', 'Parts', 'Other')");
+            t.HasCheckConstraint("ck_maintenance_order_costs_amount", "amount >= 0");
+        });
+        b.Property(e => e.CostType).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.Description).HasMaxLength(MaintenanceRules.CostDescriptionMax);
+        b.Property(e => e.Amount).HasPrecision(18, 2);
+        b.Property(e => e.Hours).HasPrecision(18, 4);
+        b.Property(e => e.HourlyCostSnapshot).HasPrecision(18, 6);
+        b.HasOne<MaintenanceOrder>().WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => e.OrderId).HasDatabaseName("ix_maintenance_order_costs_order_id");
+        b.HasIndex(e => e.EmployeeId).HasFilter("employee_id IS NOT NULL").HasDatabaseName("ix_maintenance_order_costs_employee_id");
+        b.HasIndex(e => e.PayableId).IsUnique().HasFilter("payable_id IS NOT NULL").HasDatabaseName("ux_maintenance_order_costs_payable_id");
     }
 }
 

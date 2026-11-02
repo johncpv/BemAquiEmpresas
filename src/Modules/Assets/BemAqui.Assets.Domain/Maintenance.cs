@@ -137,6 +137,29 @@ public sealed class MaintenanceOrder : Entity, IAuditable, IConcurrencyVersioned
 
     public DateTimeOffset CreatedAt { get; init; }
 
+    /// <summary>Valor combinado com o prestador (PAT-03b CA 1, <c>numeric(18,2)</c>): gera o título previsto; só com <c>assets.edit</c>.</summary>
+    public decimal? ContractValue { get; set; }
+
+    /// <summary>Duração prevista da parada, em horas paradas no total (PAT-03b CA 8, <c>numeric(18,4)</c>).</summary>
+    public decimal? ExpectedHours { get; set; }
+
+    /// <summary>Horas paradas por dia no centro do bem (PAT-03b CA 8, <c>numeric(18,4)</c>, &gt; 0 e até as horas do centro).</summary>
+    public decimal? HoursPerDay { get; set; }
+
+    /// <summary>Período previsto da parada (datas locais, inclusive), calculado na gravação; nulo sem centro de trabalho.</summary>
+    public DateOnly? DowntimeFrom { get; set; }
+
+    public DateOnly? DowntimeTo { get; set; }
+
+    /// <summary>Sobe a cada evento de parada publicado (PAT-03b CA 11: o consumidor ignora o mais velho).</summary>
+    public int DowntimeRevision { get; set; }
+
+    /// <summary>Custo total da manutenção (PAT-03b CA 6, <c>numeric(18,2)</c>): a soma das linhas de custo.</summary>
+    public decimal Cost { get; set; }
+
+    /// <summary>Título a pagar do prestador (origem <c>Maintenance</c>), só o id (ADR 0006).</summary>
+    public Guid? PayableId { get; set; }
+
     public uint Version { get; set; }
 
     /// <summary>"Iniciar" (CA 5): <c>Open → InProgress</c>, com a data e a hora de início.</summary>
@@ -181,6 +204,40 @@ public sealed class MaintenanceOrder : Entity, IAuditable, IConcurrencyVersioned
         CancelledAt = at;
         CancelledBy = by;
     }
+}
+
+/// <summary>
+/// Linha de custo da OS de manutenção (<c>assets.maintenance_order_costs</c>, PAT-03b CA 6): mão de obra interna (horas × custo-hora do cargo do
+/// executor pelo <c>IHourlyCost</c>, com o custo-hora congelado), prestador (do título confirmado), peças e outros (valor digitado com a
+/// descrição). O <c>cost</c> da OS é a soma. A descrição é do item de custo (peça, serviço), não de pessoa.
+/// </summary>
+[DocumentName("Custo da manutenção")]
+public sealed class MaintenanceOrderCost : Entity, IAuditable
+{
+    public Guid OrderId { get; init; }
+
+    public MaintenanceCostType CostType { get; init; }
+
+    public string Description { get; init; } = string.Empty;
+
+    /// <summary>Valor da linha (<c>numeric(18,2)</c>).</summary>
+    public decimal Amount { get; init; }
+
+    /// <summary>Horas da mão de obra interna (<c>numeric(18,4)</c>).</summary>
+    public decimal? Hours { get; init; }
+
+    /// <summary>Custo-hora do cargo no lançamento (<c>numeric(18,6)</c>); só sai com <c>hr.view_sensitive</c>, junto do nome.</summary>
+    public decimal? HourlyCostSnapshot { get; init; }
+
+    /// <summary>Executor da mão de obra interna (funcionário, só o id).</summary>
+    public Guid? EmployeeId { get; init; }
+
+    /// <summary>Título do prestador que originou a linha (natureza <c>Service</c>).</summary>
+    public Guid? PayableId { get; init; }
+
+    public Guid? CreatedBy { get; init; }
+
+    public DateTimeOffset CreatedAt { get; init; }
 }
 
 /// <summary>Item do checklist da OS de manutenção (<c>assets.maintenance_order_checklist</c>), linha a linha, com o resultado.</summary>
@@ -304,6 +361,73 @@ public static class MaintenanceRules
     /// <summary>Checklist limpo: sem itens vazios nem espaços nas pontas.</summary>
     public static List<string> CleanChecklist(IEnumerable<string?>? items) =>
         (items ?? []).Select(i => i?.Trim()).Where(i => !string.IsNullOrEmpty(i)).Select(i => i!).ToList();
+
+    /// <summary>Teto do valor em reais (<c>numeric(18,2)</c>).</summary>
+    public const decimal MoneyMax = 999_999_999m;
+
+    /// <summary>Descrição da linha de custo, até 150 caracteres.</summary>
+    public const int CostDescriptionMax = 150;
+
+    /// <summary>Teto da duração prevista (horas paradas no total): dois anos de parada contínua.</summary>
+    public const decimal ExpectedHoursMax = 17_520m;
+
+    /// <summary>Teto das horas de mão de obra numa linha.</summary>
+    public const decimal LaborHoursMax = 10_000m;
+
+    /// <summary>Valor em reais válido: maior que zero, em centavos, até o teto.</summary>
+    public static bool IsValidMoney(decimal value) => value > 0 && decimal.Round(value, 2) == value && value <= MoneyMax;
+
+    /// <summary>
+    /// PAT-03b CA 8: horas paradas por dia sugeridas = as horas do centro por dia ÷ as máquinas ativas do centro (pelo menos 1), em
+    /// centésimos de hora para baixo (nunca passa das horas do centro).
+    /// </summary>
+    public static decimal SuggestedHoursPerDay(decimal centerHoursPerDay, int activeMachines) =>
+        centerHoursPerDay <= 0 ? 0m : decimal.Floor(centerHoursPerDay / Math.Max(1, activeMachines) * 100m) / 100m;
+
+    /// <summary>Horas paradas por dia válidas (CA 8): maior que zero, até 4 casas e até as horas do centro por dia.</summary>
+    public static bool IsValidHoursPerDay(decimal value, decimal centerHoursPerDay) =>
+        value > 0 && decimal.Round(value, 4) == value && value <= centerHoursPerDay;
+
+    /// <summary>Duração prevista válida: maior que zero, até 4 casas, até o teto.</summary>
+    public static bool IsValidExpectedHours(decimal value) => value > 0 && decimal.Round(value, 4) == value && value <= ExpectedHoursMax;
+
+    /// <summary>Quantos dias úteis a parada ocupa: as horas no total ÷ as horas por dia, para cima (pelo menos 1).</summary>
+    public static int DowntimeDays(decimal expectedHours, decimal hoursPerDay) =>
+        hoursPerDay <= 0 ? 1 : Math.Max(1, (int)Math.Ceiling(expectedHours / hoursPerDay));
+
+    /// <summary>
+    /// Início da parada (CA 8 e 9): com a máquina parada, o dia da abertura; senão a data agendada, ou o início real se a OS foi iniciada
+    /// antes do agendado.
+    /// </summary>
+    public static DateOnly DowntimeStart(bool machineStopped, DateOnly openedOn, DateOnly scheduledOn, DateOnly? startedOn) =>
+        machineStopped ? openedOn : startedOn is { } started && started < scheduledOn ? started : scheduledOn;
+
+    /// <summary>
+    /// Fim do período previsto: o último dos <paramref name="days"/> dias úteis a partir do início (<paramref name="workingDates"/>); sem
+    /// dias úteis suficientes, conta em dias corridos.
+    /// </summary>
+    public static DateOnly DowntimeEnd(DateOnly from, int days, IReadOnlyList<DateOnly> workingDates)
+    {
+        ArgumentNullException.ThrowIfNull(workingDates);
+        var useful = workingDates.Where(d => d >= from).OrderBy(d => d).ToList();
+        return useful.Count >= days ? useful[days - 1] : from.AddDays(days - 1);
+    }
+
+    /// <summary>CA 8 (cancelamento): a parada que não começou sai (<c>null</c>); a que começou termina no dia do cancelamento.</summary>
+    public static DateOnly? CancelledDowntimeEnd(DateOnly from, DateOnly cancelledOn) => from > cancelledOn ? null : cancelledOn;
+
+    /// <summary>Mão de obra interna (CA 6): horas × custo-hora do cargo, em centavos.</summary>
+    public static decimal LaborAmount(decimal hours, decimal hourlyCost) => decimal.Round(hours * hourlyCost, 2, MidpointRounding.AwayFromZero);
+
+    /// <summary>Vencimento estimado do prestador (CA 1): a data base + a primeira parcela da condição padrão; sem condição, a própria data.</summary>
+    public static DateOnly EstimatedDue(DateOnly baseDate, int? firstInstallmentDays) => baseDate.AddDays(Math.Max(0, firstInstallmentDays ?? 0));
+
+    /// <summary>Descrição do título do prestador (CA 1): "Manutenção {MAN} — {etiqueta} {bem}", até 200 caracteres.</summary>
+    public static string PayableDescription(string number, string assetTag, string assetName)
+    {
+        var text = $"Manutenção {number} — {assetTag} {assetName}".Trim();
+        return text.Length <= 200 ? text : text[..200];
+    }
 
     /// <summary>Texto do horímetro (CA 2): até 4 casas, sem zeros à direita, no formato brasileiro.</summary>
     public static string MeterText(decimal value) => value.ToString("#,##0.####", CultureInfo.GetCultureInfo("pt-BR"));

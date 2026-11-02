@@ -26,7 +26,11 @@ export function useOrderActions(order: MaintenanceOrderDetail | undefined) {
   return {
     start: async () => apply(await startMaintenanceOrder(order!.id, { version: order!.version })),
     mark: async (itemId: string, result: MaintenanceChecklistResult) => apply(await markMaintenanceChecklistItem(order!.id, itemId, { result })),
-    complete: async (workDone: string, meterValue: number | null) => apply(await completeMaintenanceOrder(order!.id, { workDone, meterValue, version: order!.version })),
+    // PAT-03b CA 3: com prestador, o diálogo mostra o título e o valor final; concluir é a confirmação.
+    complete: async (workDone: string, meterValue: number | null, contractValue?: number | null) => apply(await completeMaintenanceOrder(order!.id, {
+      workDone, meterValue, version: order!.version, confirmPayable: !!order!.requiresPayableConfirmation, contractValue: contractValue ?? null,
+    })),
+    apply,
     cancel: async (reason: string) => apply(await cancelMaintenanceOrder(order!.id, { reason, version: order!.version })),
   }
 }

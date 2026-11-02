@@ -103,9 +103,12 @@ public sealed class MaintenanceDueNotifier(
         var asset = await scoped.Assets.FirstAsync(a => a.Id == plan.AssetId, ct);
         try
         {
-            return await services.GetRequiredService<MaintenanceService>().AddOrderAsync(
+            // Sem valor combinado: o título do prestador é decisão de quem edita o patrimônio (efeito financeiro com confirmação, R-PRP-7);
+            // a parada do centro sai com as horas sugeridas (PAT-03b CA 8).
+            var opened = await services.GetRequiredService<MaintenanceService>().AddOrderAsync(
                 asset, plan, dueKey, MaintenanceOrderType.Preventive, plan.Description, false, plan.NextDueAt ?? BusinessTime.Today(clock), plan.DefaultSupplierPartyId,
                 plan.Checklist, null, ct);
+            return opened.IsSuccess ? opened.Value : null;
         }
         catch (DbUpdateException ex) when (DbErrors.IsUniqueViolation(ex, MaintenanceService.DueIndex))
         {

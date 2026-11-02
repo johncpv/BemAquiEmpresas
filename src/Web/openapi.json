@@ -7080,76 +7080,6 @@
         }
       }
     },
-    "/api/v1/hr/employees/{id}/vacations": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "GetEmployeeVacations",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmployeeVacations"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "ScheduleVacation",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/VacationScheduleInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VacationScheduleResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/hr/payroll-items": {
       "get": {
         "tags": [
@@ -8512,6 +8442,43 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PayrollForecastResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/thirteenth-preview/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetThirteenthPreviewSensitive",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PayrollRunType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThirteenthPreview"
                 }
               }
             }
@@ -10207,132 +10174,6 @@
         }
       }
     },
-    "/api/v1/hr/vacations": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "GetVacationOverview",
-        "parameters": [
-          {
-            "name": "days",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VacationOverview"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/vacations/{id}/cancel": {
-      "post": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "CancelVacationSchedule",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/VacationCancelInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VacationScheduleItem"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/vacations/{id}/calculate": {
-      "post": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "CalculateVacation",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VacationCalculationResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/vacations/{id}/notice": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "DownloadVacationNotice",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/api/v1/me/hr/link": {
       "get": {
         "tags": [
@@ -10416,26 +10257,6 @@
                   "items": {
                     "$ref": "#/components/schemas/AbsenceReasonOption"
                   }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/me/hr/vacations": {
-      "get": {
-        "tags": [
-          "Autoatendimento"
-        ],
-        "operationId": "ListMyVacations",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MyVacations"
                 }
               }
             }
@@ -15070,6 +14891,56 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/production/work-centers/{id}/downtimes": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListWorkCenterDowntimes",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkCenterDowntimeView"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -35769,6 +35640,37 @@
         }
       }
     },
+    "/api/v1/assets/assets/{id}/maintenance-cost": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetAssetMaintenanceCost",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetMaintenanceCost"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assets/maintenance-orders": {
       "get": {
         "tags": [
@@ -36053,6 +35955,204 @@
         }
       }
     },
+    "/api/v1/assets/maintenance-orders/defaults": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetMaintenanceOrderDefaults",
+        "parameters": [
+          {
+            "name": "assetId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "planId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceDefaults"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-orders/{id}/schedule": {
+      "put": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ScheduleMaintenanceOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceScheduleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-orders/{id}/costs": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ListMaintenanceOrderCosts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostsView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "AddMaintenanceOrderCost",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceCostInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-orders/{id}/costs/{costId}": {
+      "delete": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "RemoveMaintenanceOrderCost",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "costId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "uint32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assets/maintenance-orders/{id}/attachments": {
       "get": {
         "tags": [
@@ -36160,6 +36260,124 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-costs": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetMaintenanceCostReport",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-costs/orders": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ListMaintenanceCostOrders",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/MaintenanceOrderType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostOrders"
+                }
+              }
+            }
           }
         }
       }
@@ -36356,6 +36574,66 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AssetParametersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/parameters/maintenance": {
+      "put": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "UpdateAssetMaintenanceParameters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetMaintenanceParametersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/parameters/confirm": {
+      "post": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ConfirmAssetParameter",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetParameterConfirmInput"
               }
             }
           },
@@ -39929,6 +40207,21 @@
           }
         }
       },
+      "AssetCodeOption": {
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "AssetDetail": {
         "required": [
           "id",
@@ -40616,6 +40909,45 @@
           }
         }
       },
+      "AssetMaintenanceCost": {
+        "required": [
+          "month",
+          "year",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "number",
+            "format": "double"
+          },
+          "year": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AssetMaintenanceParametersInput": {
+        "required": [
+          "changes"
+        ],
+        "type": "object",
+        "properties": {
+          "changes": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/AssetParameterChange"
+            }
+          }
+        }
+      },
       "AssetMaintenanceView": {
         "required": [
           "plans",
@@ -40832,6 +41164,102 @@
           }
         }
       },
+      "AssetParameterChange": {
+        "required": [
+          "key",
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AssetParameterConfirmInput": {
+        "required": [
+          "key"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        }
+      },
+      "AssetParameterItem": {
+        "required": [
+          "key",
+          "label",
+          "description",
+          "kind",
+          "code",
+          "codeName",
+          "confirmed",
+          "confirmedByName",
+          "confirmedAt",
+          "parameterId"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AssetParameterKind"
+          },
+          "code": {
+            "type": "string"
+          },
+          "codeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "confirmedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "parameterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "AssetParameterKind": {
+        "enum": [
+          "Account",
+          "CostCenter"
+        ]
+      },
       "AssetParametersInput": {
         "required": [
           "labelWidthMm",
@@ -40853,7 +41281,11 @@
         "required": [
           "labelWidthMm",
           "labelHeightMm",
-          "labelSizeId"
+          "labelSizeId",
+          "maintenance",
+          "accounts",
+          "costCenters",
+          "pendingCount"
         ],
         "type": "object",
         "properties": {
@@ -40871,6 +41303,28 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "maintenance": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetParameterItem"
+            }
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetCodeOption"
+            }
+          },
+          "costCenters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetCodeOption"
+            }
+          },
+          "pendingCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -51283,51 +51737,6 @@
           "OnLeave"
         ]
       },
-      "EmployeeVacations": {
-        "required": [
-          "employeeId",
-          "name",
-          "periods",
-          "schedules",
-          "suggestion",
-          "rules"
-        ],
-        "type": "object",
-        "properties": {
-          "employeeId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "periods": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VacationPeriodItem"
-            }
-          },
-          "schedules": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VacationScheduleItem"
-            }
-          },
-          "suggestion": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/VacationSuggestionView"
-              }
-            ]
-          },
-          "rules": {
-            "$ref": "#/components/schemas/VacationRulesView"
-          }
-        }
-      },
       "EmployerChargesContent": {
         "required": [
           "taxRegime",
@@ -56113,8 +56522,7 @@
           "Choice",
           "Hours",
           "Years",
-          "HourOfDay",
-          "Count"
+          "HourOfDay"
         ]
       },
       "HrParametersInput": {
@@ -63317,6 +63725,493 @@
               "integer"
             ],
             "format": "uint32"
+          },
+          "confirmPayable": {
+            "type": "boolean",
+            "default": false
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "MaintenanceCostAssetRow": {
+        "required": [
+          "assetId",
+          "tag",
+          "name",
+          "workCenterId",
+          "workCenterName",
+          "cost"
+        ],
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cost": {
+            "$ref": "#/components/schemas/MaintenanceCostCell"
+          }
+        }
+      },
+      "MaintenanceCostCell": {
+        "required": [
+          "preventive",
+          "corrective",
+          "total",
+          "orders"
+        ],
+        "type": "object",
+        "properties": {
+          "preventive": {
+            "type": "number",
+            "format": "double"
+          },
+          "corrective": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "orders": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "MaintenanceCostCenterRow": {
+        "required": [
+          "workCenterId",
+          "workCenterName",
+          "cost"
+        ],
+        "type": "object",
+        "properties": {
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cost": {
+            "$ref": "#/components/schemas/MaintenanceCostCell"
+          }
+        }
+      },
+      "MaintenanceCostInput": {
+        "required": [
+          "costType"
+        ],
+        "type": "object",
+        "properties": {
+          "costType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MaintenanceCostType"
+              }
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "employeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "hours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "MaintenanceCostLineView": {
+        "required": [
+          "id",
+          "costType",
+          "description",
+          "amount",
+          "hours",
+          "hourlyCost",
+          "employeeName",
+          "payableId",
+          "removable",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "costType": {
+            "$ref": "#/components/schemas/MaintenanceCostType"
+          },
+          "description": {
+            "type": "string"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "hours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "hourlyCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "employeeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "payableId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "removable": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MaintenanceCostMonth": {
+        "required": [
+          "month",
+          "cost"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string"
+          },
+          "cost": {
+            "$ref": "#/components/schemas/MaintenanceCostCell"
+          }
+        }
+      },
+      "MaintenanceCostOrderRow": {
+        "required": [
+          "id",
+          "number",
+          "assetId",
+          "assetTag",
+          "assetName",
+          "type",
+          "doneAt",
+          "cost"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "assetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assetTag": {
+            "type": "string"
+          },
+          "assetName": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/MaintenanceOrderType"
+          },
+          "doneAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cost": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "MaintenanceCostOrders": {
+        "required": [
+          "orders",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostOrderRow"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "MaintenanceCostReport": {
+        "required": [
+          "from",
+          "to",
+          "months",
+          "assets",
+          "centers",
+          "total",
+          "computedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostMonth"
+            }
+          },
+          "assets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostAssetRow"
+            }
+          },
+          "centers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostCenterRow"
+            }
+          },
+          "total": {
+            "$ref": "#/components/schemas/MaintenanceCostCell"
+          },
+          "computedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MaintenanceCostsView": {
+        "required": [
+          "orderId",
+          "status",
+          "lines",
+          "totals",
+          "total",
+          "laborDetail",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MaintenanceOrderStatus"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostLineView"
+            }
+          },
+          "totals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostTotal"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "laborDetail": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "MaintenanceCostTotal": {
+        "required": [
+          "costType",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "costType": {
+            "$ref": "#/components/schemas/MaintenanceCostType"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "MaintenanceCostType": {
+        "enum": [
+          "Labor",
+          "Service",
+          "Parts",
+          "Other"
+        ]
+      },
+      "MaintenanceDefaults": {
+        "required": [
+          "supplierPartyId",
+          "supplierName",
+          "contractValue",
+          "workCenterId",
+          "workCenterName",
+          "centerHoursPerDay",
+          "activeMachines",
+          "hoursPerDay",
+          "expectedHours"
+        ],
+        "type": "object",
+        "properties": {
+          "supplierPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "centerHoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "activeMachines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -63598,6 +64493,75 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "hoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "downtimeFrom": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "downtimeTo": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "centerHoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "requiresPayableConfirmation": {
+            "type": "boolean"
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "cost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "payable": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MaintenancePayableView"
+              }
+            ]
+          },
+          "completionDueOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
           }
         }
       },
@@ -63679,6 +64643,27 @@
             "items": {
               "type": "string"
             }
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "hoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -63834,6 +64819,43 @@
             "items": {
               "$ref": "#/components/schemas/MaintenanceDuePlan"
             }
+          }
+        }
+      },
+      "MaintenancePayableView": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "amount",
+          "dueDate",
+          "isEstimate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayableStatus"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "isEstimate": {
+            "type": "boolean"
           }
         }
       },
@@ -64045,6 +65067,56 @@
           },
           "version": {
             "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "MaintenanceScheduleInput": {
+        "required": [
+          "scheduledOn"
+        ],
+        "type": "object",
+        "properties": {
+          "scheduledOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "supplierPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "hoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "uint32"
           }
         }
@@ -65677,117 +66749,6 @@
               "string"
             ],
             "format": "date-time"
-          }
-        }
-      },
-      "MyVacationPeriod": {
-        "required": [
-          "startsOn",
-          "endsOn",
-          "entitledDays",
-          "takenDays",
-          "soldDays",
-          "balance",
-          "concessionEndsOn",
-          "status",
-          "statusLabel"
-        ],
-        "type": "object",
-        "properties": {
-          "startsOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "endsOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "entitledDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "takenDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "soldDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "balance": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "concessionEndsOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "status": {
-            "$ref": "#/components/schemas/VacationPeriodStatus"
-          },
-          "statusLabel": {
-            "type": "string"
-          }
-        }
-      },
-      "MyVacations": {
-        "required": [
-          "periods",
-          "schedules"
-        ],
-        "type": "object",
-        "properties": {
-          "periods": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MyVacationPeriod"
-            }
-          },
-          "schedules": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MyVacationSchedule"
-            }
-          }
-        }
-      },
-      "MyVacationSchedule": {
-        "required": [
-          "id",
-          "startsOn",
-          "endsOn",
-          "days",
-          "soldDays",
-          "status",
-          "statusLabel"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "startsOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "endsOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "days": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "soldDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "status": {
-            "$ref": "#/components/schemas/VacationScheduleStatus"
-          },
-          "statusLabel": {
-            "type": "string"
           }
         }
       },
@@ -73161,11 +74122,10 @@
           "DsrLoss",
           "HourBankPayout",
           "HourBankDiscount",
-          "VacationPay",
-          "VacationAverages",
-          "VacationThird",
-          "VacationSale",
-          "VacationSaleThird"
+          "ThirteenthAdvance",
+          "ThirteenthFinal",
+          "ThirteenthAverages",
+          "ThirteenthAdvanceDeduction"
         ],
         "default": "None"
       },
@@ -73854,19 +74814,6 @@
             "items": {
               "$ref": "#/components/schemas/PayrollChangeNotice"
             }
-          },
-          "legalPaymentDeadline": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date"
-          },
-          "latePaymentWarning": {
-            "type": [
-              "null",
-              "string"
-            ]
           }
         }
       },
@@ -75703,6 +76650,12 @@
               {
                 "$ref": "#/components/schemas/PayrollRunMode"
               }
+            ]
+          },
+          "confirmWithoutAdvance": {
+            "type": [
+              "null",
+              "boolean"
             ]
           }
         }
@@ -97064,6 +98017,133 @@
         },
         "additionalProperties": false
       },
+      "ThirteenthPreview": {
+        "required": [
+          "year",
+          "type",
+          "period",
+          "dueDate",
+          "firstClosed",
+          "exists",
+          "monthMinDays",
+          "employees"
+        ],
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PayrollRunType"
+          },
+          "period": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "firstClosed": {
+            "type": "boolean"
+          },
+          "exists": {
+            "type": "boolean"
+          },
+          "monthMinDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "employees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ThirteenthPreviewEmployee"
+            }
+          }
+        }
+      },
+      "ThirteenthPreviewEmployee": {
+        "required": [
+          "employeeId",
+          "name",
+          "registration",
+          "avos",
+          "months"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "avos": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ThirteenthPreviewMonth"
+            }
+          }
+        }
+      },
+      "ThirteenthPreviewMonth": {
+        "required": [
+          "month",
+          "label",
+          "employedDays",
+          "absenceDays",
+          "leaveDays",
+          "workedDays",
+          "counts",
+          "projected"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "label": {
+            "type": "string"
+          },
+          "employedDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "absenceDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "leaveDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "workedDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "counts": {
+            "type": "boolean"
+          },
+          "projected": {
+            "type": "boolean"
+          }
+        }
+      },
       "TimeAdjustmentBatchInput": {
         "required": [
           "items"
@@ -98151,8 +99231,7 @@
           "DayOff",
           "Inconsistent",
           "NotEmployed",
-          "Upcoming",
-          "Vacation"
+          "Upcoming"
         ]
       },
       "TimesheetDayView": {
@@ -99742,549 +100821,6 @@
           }
         }
       },
-      "VacationCalculationResult": {
-        "required": [
-          "schedule",
-          "run",
-          "payslipId",
-          "message",
-          "nextSteps"
-        ],
-        "type": "object",
-        "properties": {
-          "schedule": {
-            "$ref": "#/components/schemas/VacationScheduleItem"
-          },
-          "run": {
-            "$ref": "#/components/schemas/PayrollRunSummary"
-          },
-          "payslipId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "message": {
-            "type": "string"
-          },
-          "nextSteps": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PayrollNextStep"
-            }
-          }
-        }
-      },
-      "VacationCalendarEntry": {
-        "required": [
-          "scheduleId",
-          "employeeId",
-          "name",
-          "startsOn",
-          "endsOn",
-          "days",
-          "status",
-          "statusLabel"
-        ],
-        "type": "object",
-        "properties": {
-          "scheduleId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "employeeId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "startsOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "endsOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "days": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "status": {
-            "$ref": "#/components/schemas/VacationScheduleStatus"
-          },
-          "statusLabel": {
-            "type": "string"
-          }
-        }
-      },
-      "VacationCalendarMonth": {
-        "required": [
-          "month",
-          "entries"
-        ],
-        "type": "object",
-        "properties": {
-          "month": {
-            "type": "string",
-            "format": "date"
-          },
-          "entries": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VacationCalendarEntry"
-            }
-          }
-        }
-      },
-      "VacationCancelInput": {
-        "required": [
-          "reason",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "version": {
-            "type": "integer",
-            "format": "uint32"
-          }
-        }
-      },
-      "VacationDueRow": {
-        "required": [
-          "employeeId",
-          "name",
-          "registration",
-          "periodId",
-          "periodStart",
-          "periodEnd",
-          "balance",
-          "concessionEndsOn",
-          "status",
-          "statusLabel",
-          "tone"
-        ],
-        "type": "object",
-        "properties": {
-          "employeeId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "registration": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "periodId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "periodStart": {
-            "type": "string",
-            "format": "date"
-          },
-          "periodEnd": {
-            "type": "string",
-            "format": "date"
-          },
-          "balance": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "concessionEndsOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "status": {
-            "$ref": "#/components/schemas/VacationPeriodStatus"
-          },
-          "statusLabel": {
-            "type": "string"
-          },
-          "tone": {
-            "type": "string"
-          }
-        }
-      },
-      "VacationOverview": {
-        "required": [
-          "days",
-          "due",
-          "calendar"
-        ],
-        "type": "object",
-        "properties": {
-          "days": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "due": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VacationDueRow"
-            }
-          },
-          "calendar": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VacationCalendarMonth"
-            }
-          }
-        }
-      },
-      "VacationPeriodItem": {
-        "required": [
-          "id",
-          "sequence",
-          "startsOn",
-          "endsOn",
-          "absences",
-          "entitledDays",
-          "takenDays",
-          "soldDays",
-          "balance",
-          "concessionEndsOn",
-          "status",
-          "statusLabel",
-          "tone",
-          "restartedReason",
-          "restartedOn",
-          "memory"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "sequence": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "startsOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "endsOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "absences": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "entitledDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "takenDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "soldDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "balance": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "concessionEndsOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "status": {
-            "$ref": "#/components/schemas/VacationPeriodStatus"
-          },
-          "statusLabel": {
-            "type": "string"
-          },
-          "tone": {
-            "type": "string"
-          },
-          "restartedReason": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "restartedOn": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date"
-          },
-          "memory": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "VacationPeriodStatus": {
-        "enum": [
-          "Accruing",
-          "Available",
-          "Expired",
-          "Closed"
-        ]
-      },
-      "VacationRulesView": {
-        "required": [
-          "maxParts",
-          "firstPartMinDays",
-          "otherPartMinDays",
-          "noticeDays",
-          "paymentDaysBefore"
-        ],
-        "type": "object",
-        "properties": {
-          "maxParts": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "firstPartMinDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "otherPartMinDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "noticeDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "paymentDaysBefore": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "VacationScheduleInput": {
-        "required": [
-          "periodId",
-          "startsOn",
-          "days",
-          "soldDays",
-          "advance13th"
-        ],
-        "type": "object",
-        "properties": {
-          "periodId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "startsOn": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date"
-          },
-          "days": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "soldDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "advance13th": {
-            "type": "boolean"
-          }
-        }
-      },
-      "VacationScheduleItem": {
-        "required": [
-          "id",
-          "employeeId",
-          "periodId",
-          "startsOn",
-          "endsOn",
-          "days",
-          "soldDays",
-          "advance13th",
-          "paymentDueOn",
-          "status",
-          "statusLabel",
-          "payrollRunId",
-          "payslipId",
-          "calculated",
-          "runClosed",
-          "isSimulation",
-          "createdAt",
-          "cancelledAt",
-          "cancelReason",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "employeeId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "periodId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "startsOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "endsOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "days": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "soldDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "advance13th": {
-            "type": "boolean"
-          },
-          "paymentDueOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "status": {
-            "$ref": "#/components/schemas/VacationScheduleStatus"
-          },
-          "statusLabel": {
-            "type": "string"
-          },
-          "payrollRunId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "payslipId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "calculated": {
-            "type": "boolean"
-          },
-          "runClosed": {
-            "type": "boolean"
-          },
-          "isSimulation": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "cancelledAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "cancelReason": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "version": {
-            "type": "integer",
-            "format": "uint32"
-          }
-        }
-      },
-      "VacationScheduleResult": {
-        "required": [
-          "schedule",
-          "warnings",
-          "nextSteps",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "schedule": {
-            "$ref": "#/components/schemas/VacationScheduleItem"
-          },
-          "warnings": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "nextSteps": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PayrollNextStep"
-            }
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      },
-      "VacationScheduleStatus": {
-        "enum": [
-          "Scheduled",
-          "Paid",
-          "Taken",
-          "Cancelled"
-        ]
-      },
-      "VacationSuggestionView": {
-        "required": [
-          "periodId",
-          "startsOn",
-          "days",
-          "maxSoldDays"
-        ],
-        "type": "object",
-        "properties": {
-          "periodId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "startsOn": {
-            "type": "string",
-            "format": "date"
-          },
-          "days": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "maxSoldDays": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "VerifyIdentityInput": {
         "required": [
           "method",
@@ -100683,6 +101219,75 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "WorkCenterDowntimeView": {
+        "required": [
+          "id",
+          "orderId",
+          "orderNumber",
+          "assetId",
+          "assetTag",
+          "assetName",
+          "startsOn",
+          "endsOn",
+          "hoursPerDay",
+          "ongoing",
+          "ended"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "assetId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "assetTag": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "assetName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "endsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "hoursPerDay": {
+            "type": "number",
+            "format": "double"
+          },
+          "ongoing": {
+            "type": "boolean"
+          },
+          "ended": {
+            "type": "boolean"
           }
         }
       },

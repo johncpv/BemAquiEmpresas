@@ -35,4 +35,8 @@ export const PayrollCalculation = {
   VacationThird: 'VacationThird',
   VacationSale: 'VacationSale',
   VacationSaleThird: 'VacationSaleThird',
+  ThirteenthAdvance: 'ThirteenthAdvance',
+  ThirteenthFinal: 'ThirteenthFinal',
+  ThirteenthAverages: 'ThirteenthAverages',
+  ThirteenthAdvanceDeduction: 'ThirteenthAdvanceDeduction',
 } as const;

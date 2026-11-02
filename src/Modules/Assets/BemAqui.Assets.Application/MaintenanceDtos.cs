@@ -1,5 +1,7 @@
+using System.Text.Json.Serialization;
 using BemAqui.Assets.Contracts;
 using BemAqui.BuildingBlocks.Attachments;
+using BemAqui.Finance.Contracts;
 
 namespace BemAqui.Assets.Application;
 
@@ -68,7 +70,42 @@ public sealed record MaintenanceOrderInput(
     DateOnly? ScheduledOn = null,
     Guid? SupplierPartyId = null,
     Guid? PlanId = null,
-    IReadOnlyList<string>? Checklist = null);
+    IReadOnlyList<string>? Checklist = null)
+{
+    /// <summary>PAT-03b CA 1: valor combinado com o prestador (só com <c>assets.edit</c>); gera o título previsto.</summary>
+    public decimal? ContractValue { get; init; }
+
+    /// <summary>PAT-03b CA 8: horas paradas por dia (vazio = a sugestão do centro).</summary>
+    public decimal? HoursPerDay { get; init; }
+
+    /// <summary>PAT-03b CA 8: duração prevista, em horas paradas no total (vazio = um dia de parada).</summary>
+    public decimal? ExpectedHours { get; init; }
+}
+
+/// <summary>
+/// Reagendar e planejar a OS aberta ou em andamento (PAT-03b CA 1, 2 e 8): data agendada, prestador, valor combinado, horas paradas por dia e
+/// duração prevista. Tudo é substituído; valor vazio retira o título previsto.
+/// </summary>
+public sealed record MaintenanceScheduleInput(
+    DateOnly? ScheduledOn, Guid? SupplierPartyId = null, decimal? ContractValue = null, decimal? HoursPerDay = null, decimal? ExpectedHours = null, uint? Version = null);
+
+/// <summary>
+/// Sugestões da OS (PAT-03b, propositivo): o prestador pelo executor padrão do plano, o valor pelo da última OS do mesmo plano (só com
+/// <c>assets.edit</c>), as horas paradas por dia pelo centro (horas do centro ÷ máquinas ativas) e as horas do centro (o teto).
+/// </summary>
+public sealed record MaintenanceDefaults(
+    Guid? SupplierPartyId,
+    string? SupplierName,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] decimal? ContractValue,
+    Guid? WorkCenterId,
+    string? WorkCenterName,
+    decimal? CenterHoursPerDay,
+    int ActiveMachines,
+    decimal? HoursPerDay,
+    decimal? ExpectedHours);
+
+/// <summary>Título do prestador na OS (só com <c>assets.edit</c>): número, situação, valor, vencimento e a marca "Estimado".</summary>
+public sealed record MaintenancePayableView(Guid Id, string Number, PayableStatus Status, decimal Amount, DateOnly? DueDate, bool IsEstimate);
 
 /// <summary>OS na lista e na aba do bem (CA 9 e 10).</summary>
 public sealed record MaintenanceOrderListItem(
@@ -125,13 +162,46 @@ public sealed record MaintenanceOrderDetail(
     IReadOnlyList<MaintenanceChecklistItemView> Checklist,
     int Missing,
     bool MeterPlan,
-    uint Version);
+    uint Version)
+{
+    /// <summary>PAT-03b CA 8: horas paradas por dia, duração prevista e o período previsto da parada no centro (sem centro, vazios).</summary>
+    public decimal? HoursPerDay { get; init; }
+
+    public decimal? ExpectedHours { get; init; }
+
+    public DateOnly? DowntimeFrom { get; init; }
+
+    public DateOnly? DowntimeTo { get; init; }
+
+    /// <summary>Horas do centro por dia (o teto das horas paradas por dia).</summary>
+    public decimal? CenterHoursPerDay { get; init; }
+
+    /// <summary>Com prestador, a conclusão confirma o título a pagar (CA 3).</summary>
+    public bool RequiresPayableConfirmation { get; init; }
+
+    /// <summary>PAT-03b CA 7: valor combinado, custo total, o título e o vencimento da confirmação só existem no JSON com <c>assets.edit</c>.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public decimal? ContractValue { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public decimal? Cost { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public MaintenancePayableView? Payable { get; init; }
+
+    /// <summary>Vencimento real se a OS for concluída hoje (a data + a primeira parcela da condição do prestador), para o diálogo (CA 3).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateOnly? CompletionDueOn { get; init; }
+}
 
 /// <summary>"Iniciar" (CA 5): a versão lida.</summary>
 public sealed record MaintenanceStartInput(uint? Version = null);
 
-/// <summary>"Concluir manutenção" (CA 6): o que foi feito e, na preventiva por horas, a leitura do horímetro na conclusão (opcional).</summary>
-public sealed record MaintenanceCompleteInput(string? WorkDone, decimal? MeterValue = null, uint? Version = null);
+/// <summary>
+/// "Concluir manutenção" (CA 6): o que foi feito e, na preventiva por horas, a leitura do horímetro na conclusão (opcional). PAT-03b CA 3: com
+/// prestador, <c>ConfirmPayable</c> é a confirmação do diálogo e <c>ContractValue</c> o valor final (vazio = o combinado).
+/// </summary>
+public sealed record MaintenanceCompleteInput(string? WorkDone, decimal? MeterValue = null, uint? Version = null, bool ConfirmPayable = false, decimal? ContractValue = null);
 
 /// <summary>"Cancelar OS" (CA 7): o motivo, até 200 caracteres.</summary>
 public sealed record MaintenanceCancelInput(string? Reason, uint? Version = null);

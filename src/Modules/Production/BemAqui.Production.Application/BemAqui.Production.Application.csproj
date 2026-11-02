@@ -11,5 +11,6 @@
     <ProjectReference Include="..\..\HR\BemAqui.HR.Contracts\BemAqui.HR.Contracts.csproj" />
     <ProjectReference Include="..\..\Identity\BemAqui.Identity.Contracts\BemAqui.Identity.Contracts.csproj" />
     <ProjectReference Include="..\..\Fiscal\BemAqui.Fiscal.Contracts\BemAqui.Fiscal.Contracts.csproj" />
+    <ProjectReference Include="..\..\Assets\BemAqui.Assets.Contracts\BemAqui.Assets.Contracts.csproj" />
   </ItemGroup>
 </Project>

@@ -32,9 +32,7 @@ public sealed record AssetLabelBatchResult(bool Queued, int Count, Guid? Attachm
 /// <summary>PDF da etiqueta ou do lote.</summary>
 public sealed record AssetLabelFile(Stream Content, string FileName);
 
-/// <summary>Tamanho da etiqueta (CA 1), em mm, e o id do parâmetro para o histórico de alterações.</summary>
-public sealed record AssetParametersView(int LabelWidthMm, int LabelHeightMm, Guid? LabelSizeId);
-
+/// <summary>Tamanho da etiqueta (CA 1), em mm.</summary>
 public sealed record AssetParametersInput(int LabelWidthMm, int LabelHeightMm);
 
 /// <summary>

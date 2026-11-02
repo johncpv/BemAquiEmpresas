@@ -259,6 +259,7 @@ public sealed class TerminationService(
 
         var employee = await db.Employees.FirstAsync(e => e.Id == termination.EmployeeId, cancellationToken);
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        db.Entry(termination).Property(t => t.Version).OriginalValue = input.Version;
         if (run is not null)
         {
             var slips = await db.Payslips.Where(p => p.PayrollRunId == run.Id).ToListAsync(cancellationToken);
@@ -268,7 +269,15 @@ public sealed class TerminationService(
             db.PayrollRunCharges.RemoveRange(await db.PayrollRunCharges.Where(c => c.PayrollRunId == run.Id).ToListAsync(cancellationToken));
             db.PayrollCalculationLogs.RemoveRange(await db.PayrollCalculationLogs.Where(l => l.PayrollRunId == run.Id).ToListAsync(cancellationToken));
             termination.PayrollRunId = null;
-            await db.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await db.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Stale();
+            }
+
             db.PayrollRuns.Remove(run);
         }
 
@@ -276,7 +285,6 @@ public sealed class TerminationService(
         termination.CancelledAt = clock.GetUtcNow();
         termination.CancelledBy = currentUser.UserId;
         termination.CancelReason = reason;
-        db.Entry(termination).Property(t => t.Version).OriginalValue = input.Version;
         employee.TerminationDate = null;
         employee.Status = EmployeeStatus.Active;
         try

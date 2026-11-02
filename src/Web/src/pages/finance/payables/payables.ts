@@ -34,7 +34,7 @@ export const ORIGIN_LABELS: Record<string, string | undefined> = {
 }
 
 /** Link do documento de origem (CMP-04 CA 18): o título do recebimento aponta para o recebimento; o previsto, para o pedido. */
-export const ORIGIN_LINKS: Record<string, string | undefined> = { Purchase: '/app/compras/pedidos/', GoodsReceipt: '/app/compras/recebimentos/', IncomingInvoice: '/app/fiscal/entrada/' }
+export const ORIGIN_LINKS: Record<string, string | undefined> = { Purchase: '/app/compras/pedidos/', GoodsReceipt: '/app/compras/recebimentos/', IncomingInvoice: '/app/fiscal/entrada/', Maintenance: '/app/patrimonio/manutencao/' }
 
 export const PAYABLE_DICAS = {
   retencoes: 'Preencha quando a nota do prestador destacar retenção. O sistema não calcula.',

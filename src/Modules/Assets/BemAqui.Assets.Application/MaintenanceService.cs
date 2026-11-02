@@ -1,8 +1,11 @@
 using BemAqui.Assets.Contracts;
 using BemAqui.Assets.Domain;
 using BemAqui.BuildingBlocks.Attachments;
+using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Messaging;
+using BemAqui.BuildingBlocks.Notifications;
+using BemAqui.Finance.Contracts;
 using BemAqui.BuildingBlocks.Persistence.Numbering;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.BuildingBlocks.Time;
@@ -28,7 +31,14 @@ public sealed partial class MaintenanceService(
     IEventPublisher events,
     AttachmentService attachments,
     ITenantContext tenant,
-    TimeProvider clock)
+    TimeProvider clock,
+    IPayables payables,
+    IPaymentTerms terms,
+    AssetParametersService parameters,
+    IBusinessCalendar calendar,
+    IPermissionChecker permissions,
+    INotificationService notifications,
+    TenantContextHolder tenantHolder)
 {
     public const string DocType = "MAN";
     public const string DueIndex = "ux_maintenance_orders_plan_due_key";

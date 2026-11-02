@@ -27,6 +27,9 @@ public static class ProductionInfrastructure
         services.AddAuditableEntity<WorkCenter>("production");
         services.AddAuditableEntity<Calendar>("production");
         services.AddAuditableEntity<CalendarExceptionDay>("production");
+        // Paradas por manutenção (PAT-03b, ADR 0038 §4): o consumidor grava, a capacidade desconta, a tela do centro lista.
+        services.TryAddScoped<DowntimeService>();
+        services.AddAuditableEntity<Downtime>("production");
 
         // OS de instalação (COM-06).
         services.TryAddScoped<InstallationTemplateService>();

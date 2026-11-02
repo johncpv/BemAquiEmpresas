@@ -87,12 +87,13 @@ public sealed partial class PayrollCalculationService(
             return Error.Conflict(PayrollCalculationRules.CalculatingCode, "O cálculo desta folha já está em andamento. Aguarde o aviso no sino.");
         }
 
-        if (await TimesheetErrorAsync(run, cancellationToken) is { } timesheet)
+        // FLH-04: o 13º não depende do ponto do mês (as faltas do ano vêm dos espelhos fechados de cada mês).
+        if (!ThirteenthCalculator.IsThirteenth(run.Type) && await TimesheetErrorAsync(run, cancellationToken) is { } timesheet)
         {
             return timesheet;
         }
 
-        var context = await ContextAsync(run, cancellationToken);
+        var context = await ContextForAsync(run, cancellationToken);
         if (context.IsFailure)
         {
             return context.Error!;
@@ -143,7 +144,7 @@ public sealed partial class PayrollCalculationService(
         Result<int>? done = null;
         if (result is null)
         {
-            var context = await ContextAsync(run, cancellationToken);
+            var context = await ContextForAsync(run, cancellationToken);
             done = context.IsFailure ? Result<int>.Failure(context.Error!) : await RunAsync(run, context.Value, requestedBy, cancellationToken);
             result = done.IsFailure ? done.Error : null;
         }
@@ -287,6 +288,11 @@ public sealed partial class PayrollCalculationService(
             return Error.Validation(PayrollCalculationRules.NotCalculatedCode, "A diferença compara uma folha calculada com o cálculo de hoje.");
         }
 
+        if (ThirteenthCalculator.IsThirteenth(run.Type))
+        {
+            return ThirteenthNotRectifiable();
+        }
+
         if (run.Type != PayrollRunType.Monthly)
         {
             return NotRectified(run.Type);
@@ -325,6 +331,11 @@ public sealed partial class PayrollCalculationService(
         if (original.Mode != PayrollRunMode.Calculated || original.RectifiesRunId is not null || original.CalculatedAt is null)
         {
             return Error.Validation(PayrollCalculationRules.NotCalculatedCode, "Só a folha calculada é retificada pelo cálculo.");
+        }
+
+        if (ThirteenthCalculator.IsThirteenth(original.Type))
+        {
+            return ThirteenthNotRectifiable();
         }
 
         if (original.Type != PayrollRunType.Monthly)
@@ -424,6 +435,7 @@ public sealed partial class PayrollCalculationService(
             {
                 PayrollRunType.Vacation => (VacationPolicy.SimulationCode, VacationPolicy.SimulationMessage),
                 PayrollRunType.Termination => (TerminationPolicy.SimulationCode, TerminationPolicy.SimulationMessage),
+                _ when ThirteenthCalculator.IsThirteenth(run.Type) => (PayrollCalculationRules.SimulationCode, ThirteenthCalculator.SimulationMessage),
                 _ => (PayrollCalculationRules.SimulationCode, PayrollCalculationRules.SimulationMessage),
             };
             return Error.Conflict(code, message) with
@@ -493,7 +505,7 @@ public sealed partial class PayrollCalculationService(
         }
 
         // FLH-05: a rescisão calculada aceita avulsos (adiantamentos, descontos), refeita pela rescisão.
-        return run.Type != PayrollRunType.Monthly && run.Type != PayrollRunType.Termination
+        return run.Type != PayrollRunType.Monthly && run.Type != PayrollRunType.Termination && !ThirteenthCalculator.IsThirteenth(run.Type)
             ? Error.Validation(PayrollCalculationRules.NotSupportedCode, $"O cálculo da folha {PayrollRules.TypeLabel(run.Type)} chega nas próximas etapas. Use a folha lançada.")
             : null;
     }
@@ -653,19 +665,27 @@ public sealed partial class PayrollCalculationService(
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var payslips = await db.Payslips.Where(p => p.PayrollRunId == run.Id).ToListAsync(ct);
         (decimal Gross, decimal Net)? before = run.CalculatedAt is null ? null : (payslips.Sum(p => p.Gross), payslips.Sum(p => p.Net));
-        await ApplyAsync(run, context, payslips, ct);
+        if (ThirteenthCalculator.IsThirteenth(run.Type))
+        {
+            payslips = await ApplyThirteenthAsync(run, context, payslips, ct);
+        }
+        else
+        {
+            await ApplyAsync(run, context, payslips, ct);
+        }
+
         await db.SaveChangesAsync(ct);
         await ChargesAsync(run, payslips, ct);
         var now = clock.GetUtcNow();
         db.PayrollCalculationLogs.Add(new PayrollCalculationLog
         {
             PayrollRunId = run.Id, Action = run.CalculatedAt is null ? PayrollCalculationAction.Calculated : PayrollCalculationAction.Recalculated, At = now, By = by,
-            CalculatorVersion = PayrollCalculator.Version, TaxTableIds = context.Tables.OrderBy(t => t.Kind).Select(t => t.Id).ToList(), ParameterIds = context.ParameterIds,
+            CalculatorVersion = VersionOf(run), TaxTableIds = context.Tables.OrderBy(t => t.Kind).Select(t => t.Id).ToList(), ParameterIds = context.ParameterIds,
             Employees = payslips.Count, GrossBefore = before?.Gross, NetBefore = before?.Net, GrossAfter = payslips.Sum(p => p.Gross), NetAfter = payslips.Sum(p => p.Net),
         });
         run.CalculatedAt = now;
         run.CalculatedBy = by;
-        run.CalculatorVersion = PayrollCalculator.Version;
+        run.CalculatorVersion = VersionOf(run);
         run.IsSimulation = !context.Official;
         run.CalculatingSince = null;
         await db.SaveChangesAsync(ct);
@@ -917,6 +937,11 @@ public sealed partial class PayrollCalculationService(
             return (0, []);
         }
 
+        if (ThirteenthCalculator.IsThirteenth(run.Type))
+        {
+            return await ThirteenthStaleAsync(run, payslips, ct);
+        }
+
         var current = new List<Guid>();
         foreach (var kind in Enum.GetValues<PayrollTaxTableKind>())
         {
@@ -993,8 +1018,10 @@ public sealed partial class PayrollCalculationService(
             return invalid;
         }
 
-        return run.RectifiesRunId is not null
-            ? Error.Conflict(PayrollCalculationRules.CalculatedLineCode, "Na retificação, o ajuste é feito no cadastro e no cálculo: clique em \"Recalcular\".")
+        return run.RectifiesRunId is not null || ThirteenthCalculator.IsThirteenth(run.Type)
+            ? Error.Conflict(PayrollCalculationRules.CalculatedLineCode, run.RectifiesRunId is not null
+                ? "Na retificação, o ajuste é feito no cadastro e no cálculo: clique em \"Recalcular\"."
+                : "No 13º calculado, o ajuste é feito no cadastro, no ponto e nas folhas do ano: clique em \"Recalcular\".")
             : (run, payslip);
     }
 

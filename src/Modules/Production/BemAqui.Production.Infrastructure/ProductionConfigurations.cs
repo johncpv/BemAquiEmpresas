@@ -65,3 +65,24 @@ internal sealed class CalendarExceptionConfiguration : IEntityTypeConfiguration<
         b.HasIndex(e => new { e.CalendarId, e.Date }).IsUnique().HasDatabaseName(CalendarService.DateIndex);
     }
 }
+
+/// <summary>
+/// <c>production.downtimes</c> (PAT-03b, ADR 0038 §4): uma parada por origem (<c>(source_type, source_id)</c> único, CA 11), índice pelo centro e
+/// período para a capacidade.
+/// </summary>
+internal sealed class DowntimeConfiguration : IEntityTypeConfiguration<Downtime>
+{
+    public void Configure(EntityTypeBuilder<Downtime> b)
+    {
+        b.ToTable("downtimes", ProductionSchema.Name, t =>
+        {
+            t.HasCheckConstraint("ck_downtimes_hours_per_day", "hours_per_day > 0");
+            t.HasCheckConstraint("ck_downtimes_period", "planned_end_on >= starts_on");
+        });
+        b.Property(e => e.Reason).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.SourceType).HasMaxLength(40);
+        b.Property(e => e.HoursPerDay).HasPrecision(18, 4);
+        b.HasIndex(e => new { e.SourceType, e.SourceId }).IsUnique().HasDatabaseName("ux_downtimes_source");
+        b.HasIndex(e => new { e.WorkCenterId, e.StartsOn }).HasDatabaseName("ix_downtimes_work_center_id_starts_on");
+    }
+}
