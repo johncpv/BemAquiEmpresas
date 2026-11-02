@@ -103,7 +103,7 @@ public sealed class PayrollForecastService(IHrDb db, IPayables payables, HrParam
                            join e in db.Employees.IgnoreQueryFilters().AsNoTracking() on p.EmployeeId equals e.Id
                            join pos in db.JobPositions.IgnoreQueryFilters().AsNoTracking() on e.PositionId equals pos.Id
                            where p.PayrollRunId == last.Id && !e.IsDeleted && e.Status != EmployeeStatus.Terminated
-                           select new { p.EmployeeId, p.Net, p.FgtsBase, e.BaseSalary, e.TerminationDate, e.Name, e.Registration, Direct = pos.DefaultWorkCenterId != null }).ToListAsync(ct);
+                           select new { p.EmployeeId, p.Net, p.FgtsBase, e.BaseSalary, e.AdmissionDate, e.TerminationDate, e.Name, e.Registration, Direct = pos.DefaultWorkCenterId != null }).ToListAsync(ct);
         var people = slips.ToDictionary(s => s.EmployeeId);
         var groupOf = slips.ToDictionary(s => s.EmployeeId, s => s.Direct ? PayrollCostGroup.Direct : PayrollCostGroup.Admin);
         var charges = await db.PayrollRunCharges.AsNoTracking().Where(c => c.PayrollRunId == last.Id && c.PayeePartyId != null).ToListAsync(ct);
@@ -114,13 +114,18 @@ public sealed class PayrollForecastService(IHrDb db, IPayables payables, HrParam
         var vacationPeople = await db.Employees.IgnoreQueryFilters().AsNoTracking().Where(e => vacationIdsOfPeople.Contains(e.Id))
             .Join(db.JobPositions.IgnoreQueryFilters().AsNoTracking(), e => e.PositionId, p => p.Id, (e, p) => new { e.Id, e.Name, e.Registration, Direct = p.DefaultWorkCenterId != null })
             .ToDictionaryAsync(e => e.Id, ct);
+        var due = await targets.DueParametersAsync(ct);
+        // FLH-04 CA 7: a estimativa do 13º desde janeiro (salário atual × avos projetados do ano), com hr.forecast_13th ligado.
+        var thirteenth = await parameters.Forecast13thAsync(ct)
+            ? new ThirteenthForecast(slips.Select(s => new ThirteenthForecastEmployee(s.EmployeeId, s.BaseSalary, s.AdmissionDate, s.TerminationDate)).ToList(),
+                due.ThirteenthFirstMonth, due.ThirteenthSecondMonth, (await parameters.ThirteenthParametersAsync(ct)).Parameters.MonthMinDays)
+            : null;
         var input = new ForecastInput(last.Period, last.Id, months,
             slips.Select(s => new ForecastEmployee(s.EmployeeId, s.Net, s.BaseSalary, s.TerminationDate)).ToList(),
             charges.GroupBy(c => c.Kind).Select(g => new ForecastCharge(g.Key, g.Sum(c => c.Amount))).ToList(),
             vacations.Select(v => new ForecastVacation(v.EmployeeId, draftVacations.First(r => r.Id == v.PayrollRunId).Period, v.Net, v.PayrollRunId)).ToList(),
-            runs.Where(r => r.Type is PayrollRunType.Thirteenth1 or PayrollRunType.Thirteenth2 && r.Status != PayrollRunStatus.Draft).Select(r => (r.Type, r.Period.Year)).ToHashSet());
+            runs.Where(r => r.Type is PayrollRunType.Thirteenth1 or PayrollRunType.Thirteenth2 && r.Status != PayrollRunStatus.Draft).Select(r => (r.Type, r.Period.Year)).ToHashSet(), thirteenth);
         var chargeGroup = PayrollClosingRules.ChargeGroup(slips.Select(s => (groupOf[s.EmployeeId], s.FgtsBase)));
-        var due = await targets.DueParametersAsync(ct);
         var result = new List<Desired>();
         foreach (var line in PayrollForecastRules.Plan(input))
         {
@@ -139,7 +144,10 @@ public sealed class PayrollForecastService(IHrDb db, IPayables payables, HrParam
             var date = line.Kind == PayrollForecastKind.Vacation
                 ? draftVacations.First(r => r.Id == line.SourceRunId).PaymentDate ?? line.Period
                 : await targets.PaymentDateAsync(PayrollClosingRules.Rule(type, line.Period, due), ct) ?? PayrollRules.PeriodEnd(line.Period.AddMonths(1));
-            result.Add(new Desired(line, Payee.Employee(employee), group, date, PayrollClosingRules.SalaryDescription(type, line.Period, registration, name, forecast: true)));
+            var description = ThirteenthCalculator.IsThirteenth(type)
+                ? ThirteenthCalculator.ForecastDescription(type, line.Period.Year, registration, name)
+                : PayrollClosingRules.SalaryDescription(type, line.Period, registration, name, forecast: true);
+            result.Add(new Desired(line, Payee.Employee(employee), group, date, description));
         }
 
         return result;

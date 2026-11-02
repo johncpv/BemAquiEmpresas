@@ -30,9 +30,8 @@ export const PayrollCalculation = {
   DsrLoss: 'DsrLoss',
   HourBankPayout: 'HourBankPayout',
   HourBankDiscount: 'HourBankDiscount',
-  VacationPay: 'VacationPay',
-  VacationAverages: 'VacationAverages',
-  VacationThird: 'VacationThird',
-  VacationSale: 'VacationSale',
-  VacationSaleThird: 'VacationSaleThird',
+  ThirteenthAdvance: 'ThirteenthAdvance',
+  ThirteenthFinal: 'ThirteenthFinal',
+  ThirteenthAverages: 'ThirteenthAverages',
+  ThirteenthAdvanceDeduction: 'ThirteenthAdvanceDeduction',
 } as const;

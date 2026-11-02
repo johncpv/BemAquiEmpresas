@@ -14,7 +14,7 @@ Montar a lista de materiais (BOM) desta OS e liberá-la para o estoque reservar 
 - Em cada linha: o item (só materiais ativos; serviço e o próprio produto da OS não entram), a **quantidade por unidade do produto**, a unidade (a de estoque vem preenchida; outra só com a conversão cadastrada no item), a **perda %** e uma observação.
 - A coluna **Necessidade da OS** mostra a conta ao vivo: quantidade por unidade × quantidade da OS × (1 + perda %), na unidade de estoque, com o disponível do estoque e o chip **Falta** quando a necessidade passa dele. Quem vê custo enxerga também o custo previsto (necessidade × custo médio), que não é gravado.
 - **Salvar BOM** grava o rascunho sem mexer no estoque. Mude à vontade.
-- **Liberar BOM** abre o resumo do impacto por item (necessidade, disponível e falta; quanto vai ser reservado aparece numa próxima versão). Ao confirmar, a BOM fica liberada e o estoque começa a reservar o material. BOM sem nenhuma linha também pode ser liberada: é a OS só de mão de obra.
+- **Liberar BOM** abre o resumo do impacto por item (necessidade, disponível, quanto vai reservar e falta). Ao confirmar, a BOM fica liberada e o estoque começa a reservar o material. BOM sem nenhuma linha também pode ser liberada: é a OS só de mão de obra.
 - Depois de liberada, a BOM não é editada. Para mudar, clique em **Revisar BOM**: nasce a revisão seguinte em rascunho, e a liberada continua valendo até a nova ser liberada em **Liberar revisão**. A anterior fica **Substituída**.
 - **Descartar rascunho** apaga a revisão em rascunho. A liberada, se houver, continua valendo.
 - **Revisões** lista todas as revisões e compara duas lado a lado. **Histórico de alterações** mostra quem mudou o quê, inclusive o rascunho descartado.

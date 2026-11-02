@@ -37,6 +37,6 @@ Acompanhar o que a fábrica vai entregar do contrato. O projeto nasce na aprova�
 
 **Posso digitar a entrega prevista?** Não. Ela é calculada pelo plano e não muda a versão nem o histórico do projeto.
 
-**Posso mudar o nome, o responsável ou a data?** Numa próxima versão, na tela completa do projeto.
+**Posso mudar o nome, o responsável ou a data?** O nome, o responsável e o endereço da obra, sim: quem pode editar muda e clica em **Salvar projeto**. A data prometida só muda por aditivo.
 
 **De onde vem o orçado?** Da composição de custo dos itens do orçamento aprovado. A soma das naturezas fecha no custo total do orçamento.

@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { createPayrollRun, getListPayrollRunsQueryKey, recalculatePayrollForecast, useGetPayrollSuggestedPeriod, useListPayrollEligibleEmployees, useListPayrollRuns, useListPayrollRunTotalsSensitive } from '@/api/generated/bemaqui'
+import { createPayrollRun, getListPayrollRunsQueryKey, recalculatePayrollForecast, useGetPayrollSuggestedPeriod, useListPayrollEligibleEmployees, useListPayrollRuns, useGetThirteenthPreviewSensitive, useListPayrollRunTotalsSensitive } from '@/api/generated/bemaqui'
 import type { PayrollRunMode, PayrollRunSummary, PayrollRunType } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
@@ -16,7 +16,8 @@ import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { HrTabs } from '../HrTabs'
-import { choosesEmployees, currentPeriod, PAYROLL_DICAS, periodLabel, RUN_TYPES, STATUS_LABELS, STATUS_TONES, typeLabel } from './payroll'
+import { choosesEmployees, currentPeriod, isThirteenth, PAYROLL_DICAS, periodLabel, RUN_TYPES, STATUS_LABELS, STATUS_TONES, thirteenthPeriod, typeLabel } from './payroll'
+import { ThirteenthPreviewPanel } from './ThirteenthPreview'
 
 const primary = 'min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60'
 
@@ -30,7 +31,9 @@ export function PayrollRunsPage() {
   const canCreate = useCan('hr.create') && canSensitive
   const canForecast = useCan('hr.edit')
   const totals = useListPayrollRunTotalsSensitive({ query: { enabled: canSensitive } })
-  const [creating, setCreating] = useState(false)
+  // FLH-04 (Propositivo): a Minha pauta abre "Nova folha → 13º" com a parcela e o ano (?novo13=1 ou 2).
+  const [initial] = useState<PayrollRunType | null>(() => { try { const v = new URLSearchParams(window.location.search).get('novo13'); return v === '1' ? 'Thirteenth1' : v === '2' ? 'Thirteenth2' : null } catch { return null } })
+  const [creating, setCreating] = useState(initial !== null)
   const net = new Map((totals.data ?? []).map((t) => [t.runId, t.net]))
   const newButton = canCreate ? <button type="button" onClick={() => setCreating(true)} className={primary}>Nova folha</button> : null
 
@@ -70,18 +73,25 @@ export function PayrollRunsPage() {
           ))}
         </ul>
       )}
-      {creating ? <NewRunDialog onClose={() => setCreating(false)} /> : null}
+      {creating && canCreate ? <NewRunDialog initialType={initial} onClose={() => setCreating(false)} /> : null}
     </>
   )
 }
 
-function NewRunDialog({ onClose }: { onClose: () => void }) {
+function NewRunDialog({ onClose, initialType }: { onClose: () => void; initialType?: PayrollRunType | null }) {
   const client = useQueryClient()
   const navigate = useNavigate()
   const idempotency = useIdempotencyKey()
-  const [period, setPeriod] = useState(currentPeriod())
-  const [type, setType] = useState<PayrollRunType>('Monthly')
-  const [mode, setMode] = useState<PayrollRunMode>('Entered')
+  const [type, setType] = useState<PayrollRunType>(initialType ?? 'Monthly')
+  const [period, setPeriod] = useState(() => (initialType ? thirteenthPeriod(initialType, Number(currentPeriod().slice(0, 4))) : currentPeriod()))
+  const [mode, setMode] = useState<PayrollRunMode>(initialType ? 'Calculated' : 'Entered')
+  const [withoutAdvance, setWithoutAdvance] = useState(false)
+  // FLH-04: o 13º também é calculado; a prévia dos avos sai antes de criar.
+  const calculable = type === 'Monthly' || isThirteenth(type)
+  const thirteenth = isThirteenth(type) && mode === 'Calculated'
+  const year = Number(period.slice(0, 4))
+  const preview = useGetThirteenthPreviewSensitive({ year, type }, { query: { enabled: thirteenth } })
+  const needsConfirm = thirteenth && type === 'Thirteenth2' && preview.data !== undefined && !preview.data.firstClosed
   // Propositivo (FLH-02a): na calculada, a competência sugerida é a do último ponto fechado.
   const suggested = useGetPayrollSuggestedPeriod({ query: { enabled: type === 'Monthly' } }).data?.period ?? null
   const [chosen, setChosen] = useState<string[]>([])
@@ -90,7 +100,7 @@ function NewRunDialog({ onClose }: { onClose: () => void }) {
   const eligible = useListPayrollEligibleEmployees({ period }, { query: { enabled: choose && /^\d{4}-\d{2}$/.test(period) } })
   const create = async () => {
     setError(null)
-    const run: PayrollRunSummary = await createPayrollRun({ period, type, employeeIds: choose ? chosen : null, mode: type === 'Monthly' ? mode : 'Entered' }, idempotency.options)
+    const run: PayrollRunSummary = await createPayrollRun({ period, type, employeeIds: choose ? chosen : null, mode: calculable ? mode : 'Entered', confirmWithoutAdvance: needsConfirm ? withoutAdvance : null }, idempotency.options)
     idempotency.renew()
     void client.invalidateQueries({ queryKey: getListPayrollRunsQueryKey() })
     await navigate({ to: '/app/rh/folha/$id', params: { id: run.id }, search: { novo: '1' } as never })
@@ -98,8 +108,8 @@ function NewRunDialog({ onClose }: { onClose: () => void }) {
 
   return (
     <ConfirmDialog open onOpenChange={(o) => !o && onClose()} verb="Criar folha" done="Folha criada" title="Nova folha" size="lg"
-      description={mode === 'Calculated' && type === 'Monthly' ? 'A folha calculada nasce com um holerite por funcionário ativo na competência; depois, "Calcular" faz as linhas pelo cadastro, pelo ponto fechado e pelas tabelas. Até a virada, é só simulação.' : 'A folha nasce em lançamento, com um holerite por funcionário ativo na competência. Na Mensal, o salário já vem preenchido.'}
-      preconditions={choose ? [{ ok: chosen.length > 0, text: 'Escolha os funcionários desta folha.' }] : []}
+      description={thirteenth ? 'A folha de 13º calculada nasce com um holerite por funcionário com avos no ano; depois, "Calcular" faz a parcela pelo cadastro, pelos espelhos fechados e pelas tabelas. Até a virada e o primeiro 13º conferido, é só simulação.' : mode === 'Calculated' && type === 'Monthly' ? 'A folha calculada nasce com um holerite por funcionário ativo na competência; depois, "Calcular" faz as linhas pelo cadastro, pelo ponto fechado e pelas tabelas. Até a virada, é só simulação.' : 'A folha nasce em lançamento, com um holerite por funcionário ativo na competência. Na Mensal, o salário já vem preenchido.'}
+      preconditions={choose ? [{ ok: chosen.length > 0, text: 'Escolha os funcionários desta folha.' }] : needsConfirm ? [{ ok: withoutAdvance, text: 'Confirme o cálculo da 2ª parcela sem adiantamento.' }] : []}
       onFieldErrors={(e: ApiError) => { setError({ message: e.message, fields: e.fields }); return true }}
       onConfirm={create}>
       <div className="space-y-3">
@@ -110,23 +120,24 @@ function NewRunDialog({ onClose }: { onClose: () => void }) {
           </Field>
           <Field label="Tipo" required error={error?.fields.type?.[0]}>
             {(p) => (
-              <select {...p} value={type} onChange={(e) => { setType(e.target.value as PayrollRunType); setChosen([]) }} className={inputClass}>
+              <select {...p} value={type} onChange={(e) => { const next = e.target.value as PayrollRunType; setType(next); setChosen([]); setWithoutAdvance(false); if (isThirteenth(next)) setPeriod(thirteenthPeriod(next, year)) }} className={inputClass}>
                 {RUN_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
             )}
           </Field>
         </div>
-        {type === 'Monthly' ? (
+        {calculable ? (
           <Field label="Modo" required error={error?.fields.mode?.[0]} dica={PAYROLL_DICAS.simulacao}
             hint={mode === 'Calculated' ? `Simulação: roda em paralelo com a folha lançada da contadora, que continua a oficial.${suggested ? ` Competência sugerida: o último ponto fechado (${periodLabel(suggested)}).` : ''}` : 'Os valores vêm da contadora (digitados ou importados).'}>
             {(p) => (
-              <select {...p} value={mode} onChange={(e) => { const next = e.target.value as PayrollRunMode; setMode(next); if (next === 'Calculated' && suggested) setPeriod(suggested) }} className={inputClass}>
+              <select {...p} value={mode} onChange={(e) => { const next = e.target.value as PayrollRunMode; setMode(next); if (next === 'Calculated' && suggested && type === 'Monthly') setPeriod(suggested) }} className={inputClass}>
                 <option value="Entered">Lançada (valores da contadora)</option>
                 <option value="Calculated">Calculada pelo sistema</option>
               </select>
             )}
           </Field>
         ) : null}
+        {thirteenth ? <ThirteenthPreviewPanel query={preview} confirm={withoutAdvance} onConfirm={setWithoutAdvance} /> : null}
         {choose ? (
           <fieldset className="space-y-1">
             <legend className="text-sm font-medium">Funcionários <span className="text-xs font-normal text-muted-foreground">(obrigatório)</span></legend>

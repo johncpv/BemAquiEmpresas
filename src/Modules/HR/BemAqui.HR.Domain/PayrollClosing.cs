@@ -34,10 +34,13 @@ public sealed record ForecastCharge(PayrollChargeKind Kind, decimal Amount);
 /// <summary>Holerite de Férias em rascunho na janela (o líquido entra no mês da competência).</summary>
 public sealed record ForecastVacation(Guid EmployeeId, DateOnly Period, decimal Net, Guid RunId);
 
-/// <summary>O que a previsão sabe da folha: a última Mensal fechada, os meses, as pessoas, as guias, as férias e as folhas de 13º já fechadas.</summary>
+/// <summary>
+/// O que a previsão sabe da folha: a última Mensal fechada, os meses, as pessoas, as guias, as férias, as folhas de 13º já fechadas e a
+/// estimativa do 13º (FLH-04 CA 7; nula com <c>hr.forecast_13th</c> desligado).
+/// </summary>
 public sealed record ForecastInput(
     DateOnly LastMonthly, Guid LastRunId, int Months, IReadOnlyList<ForecastEmployee> Employees, IReadOnlyList<ForecastCharge> Charges, IReadOnlyList<ForecastVacation> Vacations,
-    IReadOnlyCollection<(PayrollRunType Type, int Year)> ClosedThirteenth);
+    IReadOnlyCollection<(PayrollRunType Type, int Year)> ClosedThirteenth, ThirteenthForecast? Thirteenth = null);
 
 /// <summary>Linha desejada da previsão (sem o vencimento, que sai do calendário no serviço).</summary>
 public sealed record ForecastLine(DateOnly Period, PayrollForecastKind Kind, Guid? EmployeeId, PayrollChargeKind? ChargeKind, decimal Amount, Guid? SourceRunId)
@@ -162,8 +165,9 @@ public static class PayrollForecastRules
 
     /// <summary>
     /// Linhas desejadas (CA 14): um salário por funcionário ativo e mês (o líquido da última folha), uma guia por tipo e mês (o valor da
-    /// última), o 13º (50% do salário-base em novembro e em dezembro, se a folha do 13º do ano ainda não fechou) e as férias em rascunho na
-    /// janela (no mês da competência). Funcionário desligado antes do mês sai daquele mês em diante.
+    /// última), as férias em rascunho na janela (no mês da competência) e a estimativa do 13º (FLH-04 CA 7: desde janeiro, as duas parcelas
+    /// do ano de cada mês da janela, nos meses das datas limite, pelo salário atual × avos projetados, se a folha do 13º do ano ainda não
+    /// fechou). Funcionário desligado antes do mês sai daquele mês em diante.
     /// </summary>
     public static IReadOnlyList<ForecastLine> Plan(ForecastInput input)
     {
@@ -175,13 +179,11 @@ public static class PayrollForecastRules
             var active = input.Employees.Where(e => e.TerminationDate is not { } end || end >= month).ToList();
             lines.AddRange(active.Where(e => e.LastNet > 0m).Select(e => new ForecastLine(month, PayrollForecastKind.Salary, e.EmployeeId, null, e.LastNet, input.LastRunId)));
             lines.AddRange(input.Charges.Where(c => c.Amount > 0m).Select(c => new ForecastLine(month, PayrollForecastKind.Charge, null, c.Kind, c.Amount, input.LastRunId)));
-            foreach (var (kind, type, monthOfYear) in new[] { (PayrollForecastKind.Thirteenth1, PayrollRunType.Thirteenth1, 11), (PayrollForecastKind.Thirteenth2, PayrollRunType.Thirteenth2, 12) })
-            {
-                if (month.Month == monthOfYear && !input.ClosedThirteenth.Contains((type, month.Year)))
-                {
-                    lines.AddRange(active.Where(e => e.BaseSalary > 0m).Select(e => new ForecastLine(month, kind, e.EmployeeId, null, PayrollRules.Round(e.BaseSalary * 0.5m), null)));
-                }
-            }
+        }
+
+        if (input.Thirteenth is { } thirteenth && window.Count > 0)
+        {
+            lines.AddRange(ThirteenthCalculator.ForecastLines(thirteenth, window.Select(m => m.Year), input.ClosedThirteenth));
         }
 
         lines.AddRange(input.Vacations.Where(v => v.Net > 0m && window.Contains(v.Period))

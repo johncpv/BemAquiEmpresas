@@ -37,10 +37,10 @@ internal static partial class HrEndpoints
             .RequirePermission("hr.view").WithName("GetHrParameters").Produces<HrParametersView>();
         parameters.MapPut(string.Empty, async (HrParametersInput input, HrParametersService service, PayrollClosingService closing, CancellationToken ct) =>
             {
-                var before = await service.ForecastMonthsAsync(ct);
+                var before = (await service.ForecastMonthsAsync(ct), await service.Forecast13thAsync(ct));
                 var saved = await service.UpdateAsync(input, ct);
-                // Mudou os meses da folha prevista (RH-02c CA 14): a previsão é refeita.
-                if (saved.IsSuccess && await service.ForecastMonthsAsync(ct) != before)
+                // Mudou os meses da folha prevista (RH-02c CA 14) ou o 13º no fluxo (FLH-04 CA 7): a previsão é refeita.
+                if (saved.IsSuccess && (await service.ForecastMonthsAsync(ct), await service.Forecast13thAsync(ct)) != before)
                 {
                     var refreshed = await closing.RecalculateForecastAsync(ct);
                     if (refreshed.IsFailure)
@@ -120,7 +120,11 @@ internal static partial class HrEndpoints
 
         // FLH-02a: folha calculada. Calcular com hr.create e recalcular com hr.edit (os dois com hr.view_sensitive no serviço); a situação e o
         // histórico sem valor com hr.view; a diferença e os totais do histórico só por /sensitive; a retificação e os avulsos com hr.edit.
-        runs.MapGet("/suggested-period", async (PayrollCalculationService service, CancellationToken ct) => Results.Ok(await service.SuggestedPeriodAsync(ct)))
+        // FLH-04: a prévia dos avos do 13º (sem valor, mas com os dias de faltas e afastamentos do ano) só por /sensitive.
+        runs.MapGet("/thirteenth-preview/sensitive", async (int? year, PayrollRunType? type, PayrollCalculationService service, CancellationToken ct) =>
+                (await service.ThirteenthPreviewAsync(year, type, ct)).ToHttpResult())
+            .RequirePermission("hr.view_sensitive").WithName("GetThirteenthPreviewSensitive").Produces<ThirteenthPreview>();
+        runs.MapGet("/suggested-period",async (PayrollCalculationService service, CancellationToken ct) => Results.Ok(await service.SuggestedPeriodAsync(ct)))
             .RequirePermission("hr.create").WithName("GetPayrollSuggestedPeriod").Produces<PayrollSuggestedPeriod>();
         runs.MapPost("/{id:guid}/calculate", async (Guid id, PayrollCalculationService service, CancellationToken ct) => (await service.CalculateAsync(id, ct)).ToHttpResult())
             .RequirePermission("hr.create").WithName("CalculatePayrollRun").Produces<PayrollCalculationStart>();

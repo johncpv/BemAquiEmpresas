@@ -617,7 +617,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-7--folha-calculad
 - Requisitos: R-RH-6, R-RH-4, R-RH-5, R-FIN-10, R-PRP-5, R-SEC-5.
 - CA: períodos aquisitivos com alerta de vencimento; programação validada pelas regras parametrizadas; cálculo com 1/3, abono e médias; título antes do início; dias no espelho e no planejamento.
 
-**FLH-04 [ ] Folha calculada: 13º salário (1ª e 2ª parcelas) (M)** — 7.2, ordem 5 — `Ready (pré-condição externa)` — [story](stories/FLH-04-decimo-terceiro.md)
+**FLH-04 [x] Folha calculada: 13º salário (1ª e 2ª parcelas) (M)** — 7.2, ordem 5 — `Done (pré-condição externa: contadora e conferência paralela)` — [story](stories/FLH-04-decimo-terceiro.md)
 - Requisitos: R-RH-6, R-RH-5, R-FIN-10, R-SEC-5.
 - CA: 1ª e 2ª parcelas com avos e médias pela regra da contadora, adiantamento das férias abatido, previsão no fluxo de caixa.
 

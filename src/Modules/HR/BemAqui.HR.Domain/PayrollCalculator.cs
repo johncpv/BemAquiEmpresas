@@ -41,6 +41,13 @@ public enum PayrollCalculation
     VacationThird,
     VacationSale,
     VacationSaleThird,
+
+    // FLH-04 (13º salário, <see cref="ThirteenthCalculator"/>): a 1ª parcela (também a paga com as férias, FLH-03), o 13º da 2ª parcela,
+    // as médias das variáveis e o desconto do adiantamento já pago. O INSS, o IRRF e o FGTS do 13º usam as rubricas de sempre.
+    ThirteenthAdvance,
+    ThirteenthFinal,
+    ThirteenthAverages,
+    ThirteenthAdvanceDeduction,
 }
 
 /// <summary>Proporcionalidade do salário no mês de admissão ou desligamento (<c>hr.salary_proration</c>, CA 2).</summary>
@@ -828,6 +835,10 @@ public static class PayrollCalculator
         PayrollCalculation.VacationThird => "1/3 de férias",
         PayrollCalculation.VacationSale => "Abono pecuniário",
         PayrollCalculation.VacationSaleThird => "1/3 do abono pecuniário",
+        PayrollCalculation.ThirteenthAdvance => "13º salário, 1ª parcela",
+        PayrollCalculation.ThirteenthFinal => "13º salário",
+        PayrollCalculation.ThirteenthAverages => "Médias do 13º",
+        PayrollCalculation.ThirteenthAdvanceDeduction => "Adiantamento do 13º (desconto)",
         _ => "Sem regra (avulso)",
     };
 

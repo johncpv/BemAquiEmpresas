@@ -36,6 +36,9 @@ public partial class FiscalTests
 
     private static readonly JsonSerializerOptions Relaxed = new() { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
+    /// <summary>Hoje no fuso de negócio (o servidor valida as datas assim; a data UTC vira o dia seguinte depois das 21h).</summary>
+    private static DateOnly NfseToday => BemAqui.BuildingBlocks.Time.BusinessTime.Today(TimeProvider.System);
+
     private sealed record Installation(Guid Order, Guid Project, Guid Party, Guid ServiceItem);
 
     /// <summary>
@@ -46,7 +49,7 @@ public partial class FiscalTests
     private async Task<Installation> AcceptedInstallationAsync(decimal service = 10_000m)
     {
         var tenant = fixture.Tenancy.TenantA;
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = NfseToday;
         Installation result;
         await using (var scope = await fixture.ScopeAsync(tenant))
         {
@@ -127,7 +130,7 @@ public partial class FiscalTests
         {
             { new StringContent(number.ToString(System.Globalization.CultureInfo.InvariantCulture)), "number" },
             { new StringContent("AB-" + number.ToString(System.Globalization.CultureInfo.InvariantCulture)), "verificationCode" },
-            { new StringContent(date ?? DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-3)).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)), "issuedOn" },
+            { new StringContent(date ?? NfseToday.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)), "issuedOn" },
             { new StringContent(amount.ToString(System.Globalization.CultureInfo.InvariantCulture)), "servicesAmount" },
             { new StringContent(iss.ToString(System.Globalization.CultureInfo.InvariantCulture)), "issAmount" },
             { new StringContent(nfse.GetProperty("version").GetUInt32().ToString(System.Globalization.CultureInfo.InvariantCulture)), "version" },
@@ -182,7 +185,7 @@ public partial class FiscalTests
         await NfseSettingsAsync();
         var (_, owner) = await OwnerAsync();
         var installation = await AcceptedInstallationAsync();
-        await AcceptAsync(installation, DateOnly.FromDateTime(DateTime.UtcNow)); // a inbox entregou de novo: nada muda
+        await AcceptAsync(installation, NfseToday); // a inbox entregou de novo: nada muda
         (await fixture.FiscalAsync(fixture.Tenancy.TenantA, db => db.InstallationBillings.CountAsync(b => b.InstallationOrderId == installation.Order))).Should().Be(1);
 
         var queue = await Ok(await owner.GetAsync($"{Nfse}/installations-to-invoice"));
@@ -190,7 +193,7 @@ public partial class FiscalTests
         await using (var scope = await fixture.ScopeAsync(fixture.Tenancy.TenantA))
         {
             var agenda = scope.ServiceProvider.GetServices<IAgendaSource>().OfType<NfseAgendaSource>().Single();
-            var items = await agenda.ItemsAsync(new AgendaRequest(Guid.Empty, null!, new HashSet<string> { NfseAgendaSource.ToIssue }, DateOnly.FromDateTime(DateTime.UtcNow)));
+            var items = await agenda.ItemsAsync(new AgendaRequest(Guid.Empty, null!, new HashSet<string> { NfseAgendaSource.ToIssue }, NfseToday));
             items.Should().ContainSingle().Which.Action.Should().Be("Emitir NFS-e");
         }
 
@@ -325,7 +328,7 @@ public partial class FiscalTests
                 PartyId: installation.Party);
             var section = await provider.ExportAsync(new BemAqui.BuildingBlocks.Privacy.PersonalDataExportContext(subject, "LGPD-T", new HashSet<string>()));
             JsonSerializer.Serialize(section, Relaxed).Should().Contain("AB-" + number.ToString(System.Globalization.CultureInfo.InvariantCulture)).And.Contain("Registrada (portal da prefeitura)");
-            var plan = await provider.PlanAnonymizationAsync(new BemAqui.BuildingBlocks.Privacy.PersonalDataAnonymizationContext(subject, "LGPD-T", DateOnly.FromDateTime(DateTime.UtcNow),
+            var plan = await provider.PlanAnonymizationAsync(new BemAqui.BuildingBlocks.Privacy.PersonalDataAnonymizationContext(subject, "LGPD-T", NfseToday,
                 BemAqui.BuildingBlocks.Privacy.PersonalDataRetention.Defaults, new Dictionary<string, DateOnly>()));
             JsonSerializer.Serialize(plan, Relaxed).Should().Contain("Notas fiscais de saída emitidas");
         }

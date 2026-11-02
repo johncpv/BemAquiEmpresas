@@ -61,7 +61,7 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
         new("ferias_medias", "FERMED", "Médias de férias", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.VacationAverages),
         new("abono_pecuniario", "ABONO", "Abono pecuniário", PayrollItemKind.Earning, false, false, false, Calc: PayrollCalculation.VacationSale),
         new("terco_abono", "ABONO13", "1/3 do abono pecuniário", PayrollItemKind.Earning, false, false, false, Calc: PayrollCalculation.VacationSaleThird),
-        new("decimo_terceiro", "13SAL", "13º salário", PayrollItemKind.Earning, true, true, true),
+        new(ThirteenthSeedKey, "13SAL", "13º salário", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.ThirteenthFinal),
         new("salario_familia", "SALFAM", "Salário-família", PayrollItemKind.Earning, false, false, false, Calc: PayrollCalculation.FamilyAllowance),
         new("faltas", "FALTAS", "Faltas", PayrollItemKind.Deduction, true, true, true, PayrollTimesheetSource.Absence, PayrollCalculation.Absence),
         new("atrasos", "ATRASOS", "Atrasos", PayrollItemKind.Deduction, true, true, true, PayrollTimesheetSource.Late, PayrollCalculation.Lateness),
@@ -79,6 +79,11 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
         new("dsr_perda", "DSRFALTA", "Perda do DSR", PayrollItemKind.Deduction, true, true, true, Calc: PayrollCalculation.DsrLoss),
         new("banco_horas_pago", "BHPAGO", "Banco de horas pago", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.HourBankPayout),
         new("banco_horas_desconto", "BHDESC", "Banco de horas descontado", PayrollItemKind.Deduction, true, true, true, Calc: PayrollCalculation.HourBankDiscount),
+        // FLH-04: a 1ª parcela do 13º (só FGTS; também a paga com as férias, FLH-03), as médias e o desconto do adiantamento na 2ª parcela
+        // (sai da base do FGTS, que a 1ª parcela já teve; o INSS e o IRRF ficam sobre o 13º inteiro).
+        new("decimo_terceiro_1a_parcela", "13PARC1", "13º salário 1ª parcela", PayrollItemKind.Earning, false, true, false, Calc: PayrollCalculation.ThirteenthAdvance),
+        new("decimo_terceiro_medias", "13MED", "Médias do 13º", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.ThirteenthAverages),
+        new("decimo_terceiro_adiantamento", "13ADIANT", "Adiantamento do 13º", PayrollItemKind.Deduction, false, true, false, Calc: PayrollCalculation.ThirteenthAdvanceDeduction),
     ];
 
     /// <summary>As regras que a FLH-02b trouxe (recebem a rubrica do seed uma vez nos tenants que já tinham a folha calculada).</summary>
@@ -87,6 +92,8 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
         PayrollCalculation.OvertimeWorkday, PayrollCalculation.OvertimeRestDay, PayrollCalculation.OvertimeHoliday, PayrollCalculation.NightShift, PayrollCalculation.Dsr,
         PayrollCalculation.DsrLoss, PayrollCalculation.HourBankPayout, PayrollCalculation.HourBankDiscount,
     ];
+
+    public const string ThirteenthSeedKey = "decimo_terceiro";
 
     public async Task<IReadOnlyList<PayrollItemDetail>> ListAsync(CancellationToken cancellationToken = default)
     {
@@ -246,6 +253,14 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
             {
                 item.Calculation = vacationKeys[item.SeedKey!];
             }
+        }
+
+        // FLH-04: o "13º salário" do seed que já existia ganha a regra do 13º uma vez (sem regra ainda e nenhuma outra ativa com ela).
+        var thirteenth = await db.PayrollItems.FirstOrDefaultAsync(i => i.SeedKey == ThirteenthSeedKey && i.Calculation == PayrollCalculation.None, cancellationToken);
+        if (thirteenth is not null && !await db.PayrollItems.AnyAsync(i => i.IsActive && i.Calculation == PayrollCalculation.ThirteenthFinal, cancellationToken)
+            && !db.ChangeTracker.Entries<PayrollItem>().Any(x => x.Entity.Calculation == PayrollCalculation.ThirteenthFinal && x.Entity.Id != thirteenth.Id))
+        {
+            thirteenth.Calculation = PayrollCalculation.ThirteenthFinal;
         }
 
         await db.SaveChangesAsync(cancellationToken);

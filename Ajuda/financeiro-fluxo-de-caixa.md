@@ -41,4 +41,6 @@ Ver quanto entra, quanto sai e qual será o saldo dia a dia, para antecipar falt
 
 **O que é "A receber sem data"?** Parcelas que dependem de um marco, como a entrega. Elas entram no fluxo quando o marco acontecer, na base e no ajustado.
 
+**O que é "Estimativa do 13º"?** Desde janeiro, as duas parcelas do 13º de cada funcionário ativo aparecem no fluxo de caixa como estimativa, nos meses das datas limite (novembro e dezembro): o salário atual × os avos projetados do ano, metade em cada parcela. Quando a folha da parcela fecha, a estimativa sai e entra a folha real. O RH desliga em Configurações → Parâmetros → RH ("13º no fluxo de caixa").
+
 **O que é "Folha prevista"?** Os próximos meses da folha (3, por padrão), com o 13º e as férias, como títulos "Estimado". Quando a folha real do mês fecha, a previsão daquele mês sai e entra a folha real, sem contar duas vezes. Quem não aprova nem paga no Financeiro vê só o total de cada folha, sem o salário de cada pessoa.
