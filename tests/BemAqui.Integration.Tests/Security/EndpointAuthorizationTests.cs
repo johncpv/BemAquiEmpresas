@@ -117,6 +117,7 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
         ["/api/v1/me/hr/timesheets/{period}"] = "Meu espelho do período, só do funcionário da sessão; employeeId na query responde 400 (RH-01c CA 8)",
         ["/api/v1/me/hr/timesheets/{period}/ack"] = "\"Li e confirmo\" do próprio espelho fechado, ciência sem valor legal (RH-01c CA 15)",
         ["/api/v1/me/hr/timesheets/{period}/pdf"] = "o próprio espelho fechado em PDF, sem CPF, salário, motivo de saúde nem localização (RH-01c CA 18)",
+        ["/api/v1/me/hr/vacations"] = "Minhas férias: os próprios períodos e as férias programadas, sem valores (FLH-03)",
     };
 
     private static bool IsSelfService(RouteEndpoint e) =>
