@@ -53,3 +53,11 @@
 ## Alternativas consideradas
 - **Transformar a homologação em produção** (ADR 0020, forma original): rejeitada; leva catálogo, key ring, sessões e tenants de teste para a produção.
 - **Go-live mínimo** (D1 original: Fase 3 + FND-16 + Banco + FIS-01 a FIS-03b, resto depois): rejeitada pelo PO, que prefere virar uma vez só com o produto completo.
+
+## Adendo de 02/11/2026 (decisões do PO): critérios de entrada revistos
+- **Contadora e Inter não seguram o Go.** Saem da §6: P-01, P-02, P-03, os campos fiscais de Configurações → Fiscal e as regras fiscais, a NFS-e de Caçapava, a conta Inter com API de produção (P-08) e o teste de conexão do Inter no D−1. Vão para o checklist **"Antes da primeira operação fiscal e bancária"** (`docs/operacao/go-live.md` §2, GOL-01a CA 14), feito com o sistema já em produção, antes da primeira NF-e, NFS-e ou boleto real, com as marcas `fiscal_environment_allowed = 'Production'` e `bank_production_allowed` ligadas só no fim dele. O **ponto sem retorno** continua sendo a primeira NF-e real ou o primeiro boleto real.
+- **§1: Go-live = Fases 0 a 7 concluídas.** A Fase 8 (POR-*, WPP-01) não segura o Go; o WhatsApp liga quando a WPP-01 for entregue.
+- **§6:** P-19 e P-20 (2FA de novo por ação e estorno com `finance.approve`) saem do Go e voltam à revisão depois do go-live; o critério fica informativo.
+- **Backup:** o backup diário B2 + `age` do ambiente novo liga já na GOL-01a, para o critério de 7 dias de backup verificado estar cumprido antes da data.
+- **Data da virada:** em aberto; recomendada 01/12/2026 (início do mês), alternativa 15–16/11/2026 (exige dispensar o início do mês).
+- **Inventário de segredos (§5):** fica em `docs/operacao/go-live.md` §4, sem valor; `segredos-e-chaves.md` continua com o procedimento.
