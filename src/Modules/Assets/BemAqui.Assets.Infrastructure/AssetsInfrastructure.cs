@@ -62,8 +62,15 @@ public static class AssetsInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, AssetsAgendaSource>());
         services.AddAuditableEntity<MaintenancePlan>(AssetService.Module);
         services.AddAuditableEntity<AssetMeterReading>(AssetService.Module);
-        services.AddAuditableEntity<MaintenanceOrder>(AssetService.Module);
+        // PAT-03b CA 7 e 14: o valor combinado e o custo no histórico da OS só com assets.edit; o custo-hora e o executor da linha de custo também.
+        services.AddAuditableEntity<MaintenanceOrder>(AssetService.Module, "view", new Dictionary<string, string> { ["contractValue"] = "edit", ["cost"] = "edit" });
         services.AddAuditableEntity<MaintenanceOrderChecklistItem>(AssetService.Module);
+
+        // Custo, título do prestador e capacidade (PAT-03b, ADR 0038 §3 e §4): linhas de custo auditadas (valor, horas e custo-hora só com
+        // assets.edit no histórico), relatório de custo e a fonte das paradas para o Production (IMaintenanceDowntimes).
+        services.TryAddScoped<MaintenanceCostService>();
+        services.TryAddScoped<IMaintenanceDowntimes, MaintenanceDowntimesContract>();
+        services.AddAuditableEntity<MaintenanceOrderCost>(AssetService.Module, "edit");
         services.AddAttachmentOwner(MaintenanceService.AttachmentOwner, new AttachmentOwnerRules(AssetService.Module, ["application/pdf", "image/png", "image/jpeg"], 10 * 1024 * 1024,
             OwnerExists: MaintenanceOrderExists, CanAttach: ByOrderOnly, StripImageMetadata: true));
         services.AddAttachmentOwner(AssetLabelService.BatchOwner, new AttachmentOwnerRules(AssetService.Module, [AssetLabelService.PdfContentType],

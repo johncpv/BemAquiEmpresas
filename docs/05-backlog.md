@@ -589,7 +589,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-6--rh-e-patrimôn
 - Requisitos: R-PAT-4, R-COM-2, R-COM-3, R-COM-4, R-PRP-2, R-PRP-5, R-SEC-5.
 - CA: plano por dias ou por horas (horímetro digitado), próximo vencimento a partir da conclusão; job com `tenantId` que avisa e abre a OS uma vez; OS de manutenção no Assets (ADR 0038), aberta com `assets.create`; baixa recusada com OS aberta.
 
-**PAT-03b [ ] Patrimônio: custo da manutenção, CP do prestador e redução da capacidade (M)** — 6.4, ordem 15 — `Ready (pré-condição externa)` — [story](stories/PAT-03b-custo-cp-capacidade.md)
+**PAT-03b [x] Patrimônio: custo da manutenção, CP do prestador e redução da capacidade (M)** — 6.4, ordem 15 — `Done` (pré-condição externa: a contadora confere as contas e os centros da manutenção; a Konebras confere as horas paradas sugeridas; E2E no fechamento da feature) — [story](stories/PAT-03b-custo-cp-capacidade.md)
 - Requisitos: R-PAT-4 (parte), R-PAT-5 (D), R-FIN-4, R-FIN-10, R-PRD-9 (D), R-PRP-7, R-SEC-5.
 - CA: CP previsto do prestador (origem `Maintenance`) confirmado na conclusão; custo por bem e centro com `assets.edit`; contas pré-configuradas "a confirmar"; horas paradas por dia viram parada no `IWorkCenterCapacity` e recálculo do plano.
 

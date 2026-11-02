@@ -13,15 +13,16 @@ public class AssetRulesTests
     private static readonly DateTimeOffset T0 = new(2026, 10, 1, 12, 0, 0, TimeSpan.Zero);
 
     [Fact]
-    public void Assets_so_referencia_os_Contracts_do_RH_da_Producao_dos_Terceiros_e_do_Fiscal()
+    public void Assets_so_referencia_os_Contracts_do_RH_da_Producao_dos_Terceiros_do_Fiscal_e_do_Financeiro()
     {
+        // PAT-03b: o título a pagar do prestador da manutenção sai pelo contrato do Financeiro.
         var others = Solution.Projects.Where(p => p.Module == "Assets")
             .SelectMany(p => p.ProjectReferences.Select(Solution.Classify))
             .Where(t => t.Module is not null && t.Module != "Assets")
             .Select(t => $"BemAqui.{t.Module}.{t.Layer}")
             .Distinct()
             .ToList();
-        others.Should().BeEquivalentTo(["BemAqui.HR.Contracts", "BemAqui.Production.Contracts", "BemAqui.Parties.Contracts", "BemAqui.Fiscal.Contracts"]);
+        others.Should().BeEquivalentTo(["BemAqui.HR.Contracts", "BemAqui.Production.Contracts", "BemAqui.Parties.Contracts", "BemAqui.Fiscal.Contracts", "BemAqui.Finance.Contracts"]);
     }
 
     [Fact]

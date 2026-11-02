@@ -14895,6 +14895,56 @@
         }
       }
     },
+    "/api/v1/production/work-centers/{id}/downtimes": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "ListWorkCenterDowntimes",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkCenterDowntimeView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/production/work-centers/{id}/inactivate": {
       "post": {
         "tags": [
@@ -35590,6 +35640,37 @@
         }
       }
     },
+    "/api/v1/assets/assets/{id}/maintenance-cost": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetAssetMaintenanceCost",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetMaintenanceCost"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assets/maintenance-orders": {
       "get": {
         "tags": [
@@ -35874,6 +35955,204 @@
         }
       }
     },
+    "/api/v1/assets/maintenance-orders/defaults": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetMaintenanceOrderDefaults",
+        "parameters": [
+          {
+            "name": "assetId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "planId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceDefaults"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-orders/{id}/schedule": {
+      "put": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ScheduleMaintenanceOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceScheduleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-orders/{id}/costs": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ListMaintenanceOrderCosts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostsView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "AddMaintenanceOrderCost",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceCostInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-orders/{id}/costs/{costId}": {
+      "delete": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "RemoveMaintenanceOrderCost",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "costId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "uint32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assets/maintenance-orders/{id}/attachments": {
       "get": {
         "tags": [
@@ -35981,6 +36260,124 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-costs": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "GetMaintenanceCostReport",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-costs/orders": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ListMaintenanceCostOrders",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/MaintenanceOrderType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceCostOrders"
+                }
+              }
+            }
           }
         }
       }
@@ -36177,6 +36574,66 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AssetParametersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/parameters/maintenance": {
+      "put": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "UpdateAssetMaintenanceParameters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetMaintenanceParametersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/parameters/confirm": {
+      "post": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ConfirmAssetParameter",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetParameterConfirmInput"
               }
             }
           },
@@ -39750,6 +40207,21 @@
           }
         }
       },
+      "AssetCodeOption": {
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "AssetDetail": {
         "required": [
           "id",
@@ -40437,6 +40909,45 @@
           }
         }
       },
+      "AssetMaintenanceCost": {
+        "required": [
+          "month",
+          "year",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "number",
+            "format": "double"
+          },
+          "year": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AssetMaintenanceParametersInput": {
+        "required": [
+          "changes"
+        ],
+        "type": "object",
+        "properties": {
+          "changes": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/AssetParameterChange"
+            }
+          }
+        }
+      },
       "AssetMaintenanceView": {
         "required": [
           "plans",
@@ -40653,6 +41164,102 @@
           }
         }
       },
+      "AssetParameterChange": {
+        "required": [
+          "key",
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AssetParameterConfirmInput": {
+        "required": [
+          "key"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        }
+      },
+      "AssetParameterItem": {
+        "required": [
+          "key",
+          "label",
+          "description",
+          "kind",
+          "code",
+          "codeName",
+          "confirmed",
+          "confirmedByName",
+          "confirmedAt",
+          "parameterId"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AssetParameterKind"
+          },
+          "code": {
+            "type": "string"
+          },
+          "codeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "confirmedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "parameterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "AssetParameterKind": {
+        "enum": [
+          "Account",
+          "CostCenter"
+        ]
+      },
       "AssetParametersInput": {
         "required": [
           "labelWidthMm",
@@ -40674,7 +41281,11 @@
         "required": [
           "labelWidthMm",
           "labelHeightMm",
-          "labelSizeId"
+          "labelSizeId",
+          "maintenance",
+          "accounts",
+          "costCenters",
+          "pendingCount"
         ],
         "type": "object",
         "properties": {
@@ -40692,6 +41303,28 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "maintenance": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetParameterItem"
+            }
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetCodeOption"
+            }
+          },
+          "costCenters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetCodeOption"
+            }
+          },
+          "pendingCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -63092,6 +63725,493 @@
               "integer"
             ],
             "format": "uint32"
+          },
+          "confirmPayable": {
+            "type": "boolean",
+            "default": false
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "MaintenanceCostAssetRow": {
+        "required": [
+          "assetId",
+          "tag",
+          "name",
+          "workCenterId",
+          "workCenterName",
+          "cost"
+        ],
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cost": {
+            "$ref": "#/components/schemas/MaintenanceCostCell"
+          }
+        }
+      },
+      "MaintenanceCostCell": {
+        "required": [
+          "preventive",
+          "corrective",
+          "total",
+          "orders"
+        ],
+        "type": "object",
+        "properties": {
+          "preventive": {
+            "type": "number",
+            "format": "double"
+          },
+          "corrective": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "orders": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "MaintenanceCostCenterRow": {
+        "required": [
+          "workCenterId",
+          "workCenterName",
+          "cost"
+        ],
+        "type": "object",
+        "properties": {
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cost": {
+            "$ref": "#/components/schemas/MaintenanceCostCell"
+          }
+        }
+      },
+      "MaintenanceCostInput": {
+        "required": [
+          "costType"
+        ],
+        "type": "object",
+        "properties": {
+          "costType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MaintenanceCostType"
+              }
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "employeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "hours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        }
+      },
+      "MaintenanceCostLineView": {
+        "required": [
+          "id",
+          "costType",
+          "description",
+          "amount",
+          "hours",
+          "hourlyCost",
+          "employeeName",
+          "payableId",
+          "removable",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "costType": {
+            "$ref": "#/components/schemas/MaintenanceCostType"
+          },
+          "description": {
+            "type": "string"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "hours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "hourlyCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "employeeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "payableId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "removable": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MaintenanceCostMonth": {
+        "required": [
+          "month",
+          "cost"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string"
+          },
+          "cost": {
+            "$ref": "#/components/schemas/MaintenanceCostCell"
+          }
+        }
+      },
+      "MaintenanceCostOrderRow": {
+        "required": [
+          "id",
+          "number",
+          "assetId",
+          "assetTag",
+          "assetName",
+          "type",
+          "doneAt",
+          "cost"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "assetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assetTag": {
+            "type": "string"
+          },
+          "assetName": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/MaintenanceOrderType"
+          },
+          "doneAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cost": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "MaintenanceCostOrders": {
+        "required": [
+          "orders",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostOrderRow"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "MaintenanceCostReport": {
+        "required": [
+          "from",
+          "to",
+          "months",
+          "assets",
+          "centers",
+          "total",
+          "computedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostMonth"
+            }
+          },
+          "assets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostAssetRow"
+            }
+          },
+          "centers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostCenterRow"
+            }
+          },
+          "total": {
+            "$ref": "#/components/schemas/MaintenanceCostCell"
+          },
+          "computedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MaintenanceCostsView": {
+        "required": [
+          "orderId",
+          "status",
+          "lines",
+          "totals",
+          "total",
+          "laborDetail",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MaintenanceOrderStatus"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostLineView"
+            }
+          },
+          "totals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceCostTotal"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "laborDetail": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "MaintenanceCostTotal": {
+        "required": [
+          "costType",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "costType": {
+            "$ref": "#/components/schemas/MaintenanceCostType"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "MaintenanceCostType": {
+        "enum": [
+          "Labor",
+          "Service",
+          "Parts",
+          "Other"
+        ]
+      },
+      "MaintenanceDefaults": {
+        "required": [
+          "supplierPartyId",
+          "supplierName",
+          "contractValue",
+          "workCenterId",
+          "workCenterName",
+          "centerHoursPerDay",
+          "activeMachines",
+          "hoursPerDay",
+          "expectedHours"
+        ],
+        "type": "object",
+        "properties": {
+          "supplierPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "workCenterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workCenterName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "centerHoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "activeMachines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -63373,6 +64493,75 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "hoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "downtimeFrom": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "downtimeTo": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "centerHoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "requiresPayableConfirmation": {
+            "type": "boolean"
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "cost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "payable": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MaintenancePayableView"
+              }
+            ]
+          },
+          "completionDueOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
           }
         }
       },
@@ -63454,6 +64643,27 @@
             "items": {
               "type": "string"
             }
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "hoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -63609,6 +64819,43 @@
             "items": {
               "$ref": "#/components/schemas/MaintenanceDuePlan"
             }
+          }
+        }
+      },
+      "MaintenancePayableView": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "amount",
+          "dueDate",
+          "isEstimate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayableStatus"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "isEstimate": {
+            "type": "boolean"
           }
         }
       },
@@ -63820,6 +65067,56 @@
           },
           "version": {
             "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "MaintenanceScheduleInput": {
+        "required": [
+          "scheduledOn"
+        ],
+        "type": "object",
+        "properties": {
+          "scheduledOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "supplierPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "contractValue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "hoursPerDay": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "uint32"
           }
         }
@@ -99922,6 +101219,75 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "WorkCenterDowntimeView": {
+        "required": [
+          "id",
+          "orderId",
+          "orderNumber",
+          "assetId",
+          "assetTag",
+          "assetName",
+          "startsOn",
+          "endsOn",
+          "hoursPerDay",
+          "ongoing",
+          "ended"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "assetId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "assetTag": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "assetName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "endsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "hoursPerDay": {
+            "type": "number",
+            "format": "double"
+          },
+          "ongoing": {
+            "type": "boolean"
+          },
+          "ended": {
+            "type": "boolean"
           }
         }
       },

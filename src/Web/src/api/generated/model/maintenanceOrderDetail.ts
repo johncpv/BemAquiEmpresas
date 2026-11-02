@@ -8,6 +8,7 @@ import type { AssetStatus } from './assetStatus';
 import type { MaintenanceChecklistItemView } from './maintenanceChecklistItemView';
 import type { MaintenanceOrderStatus } from './maintenanceOrderStatus';
 import type { MaintenanceOrderType } from './maintenanceOrderType';
+import type { MaintenancePayableView } from './maintenancePayableView';
 
 export interface MaintenanceOrderDetail {
   id: string;
@@ -54,4 +55,22 @@ export interface MaintenanceOrderDetail {
   missing: number;
   meterPlan: boolean;
   version: number;
+  /** @nullable */
+  hoursPerDay?: number | null;
+  /** @nullable */
+  expectedHours?: number | null;
+  /** @nullable */
+  downtimeFrom?: string | null;
+  /** @nullable */
+  downtimeTo?: string | null;
+  /** @nullable */
+  centerHoursPerDay?: number | null;
+  requiresPayableConfirmation?: boolean;
+  /** @nullable */
+  contractValue?: number | null;
+  /** @nullable */
+  cost?: number | null;
+  payable?: null | MaintenancePayableView;
+  /** @nullable */
+  completionDueOn?: string | null;
 }
