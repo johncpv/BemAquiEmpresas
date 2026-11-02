@@ -23,4 +23,4 @@ Ver num lugar só o que está em manutenção: as OS de manutenção abertas e e
 
 **Por que não vejo o botão "Nova OS de manutenção"?** Abrir OS exige a permissão de criar no patrimônio. Peça ao administrador.
 
-**Onde lanço o custo da manutenção?** O custo, o título a pagar do prestador e a redução da capacidade da máquina chegam numa próxima versão.
+**Onde lanço o custo da manutenção?** Na própria OS de manutenção. Ao planejar, o **Valor combinado** com o prestador vira um título a pagar previsto, confirmado na conclusão; depois de concluir, a aba **Custo** recebe a mão de obra interna, as peças e outros custos. As **Horas paradas por dia** saem da capacidade do centro de trabalho da máquina, e o planejamento recalcula as entregas.
