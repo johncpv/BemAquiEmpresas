@@ -17,4 +17,4 @@ Ver os contratos da empresa. Cada contrato nasce quando um orçamento enviado é
 ## Perguntas frequentes
 **Como crio um contrato?** Abra um orçamento enviado e clique em **Aprovar e gerar contrato**. Não existe contrato digitado à mão.
 
-**Posso mudar um contrato?** Não. O contrato é a proposta firmada. Ajustes entram por aditivo, numa próxima versão.
+**Posso mudar um contrato?** Não. O contrato é a proposta firmada. Mudança de valor ou de prazo entra por **aditivo**, aberto no contrato e aprovado antes de valer.

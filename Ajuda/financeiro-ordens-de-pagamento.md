@@ -15,7 +15,7 @@ Garantir que nenhum dinheiro saia da empresa sem uma ordem aprovada. Toda saída
 - O filtro **Aprovadas pelo próprio solicitante** mostra as ordens que o próprio Proprietário pediu e aprovou.
 
 ## Perguntas frequentes
-**Quem aprova?** Quem tem a permissão de aprovar no Financeiro (o Proprietário). Nesta versão, aprova qualquer valor.
+**Quem aprova?** Quem a alçada indicar, em Financeiro → **Alçadas**: por faixa de valor, por conta e em até três níveis, sempre com a permissão de aprovar no Financeiro. A regra padrão é "Proprietário aprova tudo". A ordem guarda a alçada do envio; reenviar recalcula.
 
 **Quem paga?** O Financeiro, depois da aprovação, registrando a saída da conta.
 

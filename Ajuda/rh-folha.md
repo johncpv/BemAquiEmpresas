@@ -24,4 +24,4 @@ Ter a folha do mês no sistema: os proventos e descontos que a contadora calculo
 
 **Por que não vejo os valores?** Os valores da folha são dados pessoais (LGPD). Sem a permissão "Ver dados sensíveis" do RH, a lista mostra só a competência, o tipo, a situação e o número de holerites.
 
-**E as horas extras, faltas e atrasos?** Entram na referência das rubricas (ex.: "10:00 h"), lançadas à mão ou pelo arquivo. Quando o ponto existir no sistema, o espelho fechado aparece ao lado com "Usar horas do espelho".
+**E as horas extras, faltas e atrasos?** Entram na referência das rubricas (ex.: "10:00 h"), lançadas à mão ou pelo arquivo. Com o período de ponto fechado em RH → Ponto → Espelho, o espelho aparece ao lado com "Usar horas do espelho". Na folha calculada, as horas extras, o adicional noturno e o DSR vêm do ponto fechado.
