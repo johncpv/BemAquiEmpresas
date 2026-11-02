@@ -112,9 +112,9 @@ EMISSOR_HOMOLOG_URL=https://api.fiscal.bemaquiapp.com.br EMISSOR_HOMOLOG_KEY=<ch
 
 ## 7. O que conferir no EmissorFiscal (lacunas da ADR 0027 §5)
 
-O lado do BemAqui foi feito contra o contrato do guia de integração do Emissor (lido em 26/10/2026, commit `19e0452`) e provado contra o fake. Conferir no Emissor implantado:
+O lado do BemAqui foi feito contra o contrato do guia de integração do Emissor (lido em 26/10/2026, commit `19e0452`) e provado contra o fake. **Atualização de 02/11/2026:** o Emissor publicou a imagem `be1253e` com o XML do evento (L-n), o XML da inutilização, as lacunas de numeração, o provider da NFS-e de Caçapava (L-m) e o bloco `transporte` (L-d). "Conferir" quer dizer: provar na homologação, no `demo`, e registrar aqui (critério 1b de [go-live.md](go-live.md)). Onde o adaptador do BemAqui ainda não usa o recurso novo, a linha diz.
 
-| Lacuna | O que o BemAqui espera | Situação no guia de 26/10 |
+| Lacuna | O que o BemAqui espera | Situação (guia de 26/10; publicação de 02/11, `be1253e`) |
 |---|---|---|
 | L-a consulta forçada | `POST /api/v1/nfe/{chave}/consultar` devolvendo o mesmo formato do `GET` | Documentada; conferir na homologação. Sem ela, a nota fica "demorando" com alerta, nunca reemitida |
 | L-e `GET /me` | `clienteId`, `tenantId`, `escopos` efetivos, `emitentes[]` com `cnpj`, `ambiente` (`homologacao`/`producao`) e `certificado` | Documentado |
@@ -124,9 +124,14 @@ O lado do BemAqui foi feito contra o contrato do guia de integração do Emissor
 | L-i exposição | Por fora, só `/api/` e `/health` (sem `/api/v1/admin/*` e sem Swagger); 10 req/s por IP com 429 e `Retry-After` | Documentado (ADR 007 de lá). A rede dedicada saiu (ADR 0027, adendo de 27/10/2026) |
 | L-j tenant por tenant | Uma `ClientApplication` por tenant do BemAqui, sem `admin` | Procedimento acima |
 | L-l `tipoOperacao` | `0` entrada, `1` saída | Documentado; conferir pela suíte `emissor-homolog` |
-| L-b, L-d, L-h, L-k | IBS/CBS, `transp`, A1 sem `admin`, cópia offline da chave-mestra | Antes da FIS-03a, FIS-02a e GOL-01a |
-| L-m NFS-e de Caçapava | Provider CONAM/e-Transparência no Emissor, o `GET /me` informando os municípios com a NFS-e habilitada (`nfseMunicipios`, IBGE), webhook `nfse.*` e o cancelamento de NFS-e | **Aberta.** A FIS-06 (01/11/2026) emite pelo Emissor só com o escopo `nfse:emitir` e o município da empresa em `nfseMunicipios`; até lá, o processo provisório: emitir no portal da prefeitura e "Registrar NFS-e emitida na prefeitura". Sem webhook de NFS-e, a conferência de pendentes usa `POST /nfse/{id}/consultar`; o cancelamento é registrado à mão (2FA). O `IndCodOpe` do IBS/CBS vai como `030101` (exemplo do contrato) até a contadora confirmar |
-| L-n XML do evento (FIS-03b) | `GET /api/v1/nfe/{chave}/eventos/{id}/xml` com o `procEventoNFe` (cancelamento e carta de correção), `application/xml` | **Não existe no guia de 26/10** (só `GET /nfe/{chave}/eventos`, a lista). Sem ela, o evento fica registrado pelo protocolo, sem o XML, e o e-mail ao cliente vai sem o XML do evento; a conferência tenta guardar de novo. Dono: PO |
+| L-b IBS/CBS | Grupos IBS/CBS na NF-e e na NFS-e, com CST e `cClassTrib` vindos do BemAqui | Conferir na homologação; os valores dependem da P-03 (contadora, checklist "Antes da primeira operação fiscal" de [go-live.md](go-live.md) §2) |
+| L-d `transp` e volumes | Grupo de transporte (transportadora, volumes, peso) nos campos próprios da NF-e | **Existe no contrato** (bloco `transporte`, 02/11). **A conferir:** o adaptador do BemAqui ainda manda transporte e séries nas informações complementares (§10 item 5); passar a usar o bloco é ajuste do adaptador, com teste no `demo` |
+| L-h A1 sem `admin` | `POST /api/v1/emitentes/{cnpj}/certificado` com escopo próprio, conferência do CNPJ sem aceitar falha | Conferir na homologação (§9); o A1 da Konebras já está no Emissor (31/10) |
+| L-k chave-mestra | Cópia offline da chave-mestra do cofre e teste de restauração | **A conferir** com o time do Emissor; critério 1b do go-live |
+| L-m NFS-e de Caçapava | Provider CONAM/e-Transparência no Emissor, o `GET /me` informando os municípios com a NFS-e habilitada (`nfseMunicipios`, IBGE), webhook `nfse.*` e o cancelamento de NFS-e | **Provider existe no Emissor** (02/11). **A conferir:** usuário e códigos de contribuinte da prefeitura cadastrados no emitente do `konebras`, escopo `nfse:emitir` na chave, Caçapava em `nfseMunicipios`, webhook `nfse.*` e cancelamento (checklist "Antes da primeira operação fiscal" de [go-live.md](go-live.md) §2, F7). Até lá vale o processo provisório da FIS-06: emitir no portal da prefeitura e "Registrar NFS-e emitida na prefeitura"; sem webhook de NFS-e, a conferência usa `POST /nfse/{id}/consultar`; cancelamento registrado à mão (2FA). O `IndCodOpe` do IBS/CBS vai como `030101` até a contadora confirmar |
+| L-n XML do evento (FIS-03b) | `GET /api/v1/nfe/{chave}/eventos/{id}/xml` com o `procEventoNFe` (cancelamento e carta de correção), `application/xml` | **Publicado em 02/11** (`be1253e`): 200 com o `procEventoNFe`, 404 e 409. **A conferir:** o significado do 404 e do 409 no guia e o adaptador do BemAqui passar a baixar e guardar o XML (hoje o evento fica registrado pelo protocolo, sem o XML, e o e-mail vai sem ele) |
+| XML da inutilização (FIS-03b) | `GET /api/v1/nfe/inutilizacoes/{id}/xml`, guardado como arquivo de sistema | **Publicado em 02/11.** **A conferir:** o adaptador do BemAqui ainda não baixa; guardar o XML da inutilização é ajuste do adaptador |
+| Lacunas de numeração | `GET /api/v1/nfe/numeracao/lacunas`, para conferir `fiscal.number_gaps` com a numeração do Emissor | **Publicado em 02/11.** **A conferir:** o BemAqui ainda não consulta; usar na conferência de "A inutilizar" é ajuste do adaptador |
 | Webhook de outro tenant | O corpo traz `tenantId` do Emissor: o BemAqui ignora aviso de outro tenant | Documentado |
 
 ## 8. Problemas comuns
@@ -168,7 +173,7 @@ A FIS-03a foi provada contra o fake do Emissor. A homologação real fica para o
 
 3. Confira em cada nota: situação **Autorizada**, XML e DANFE em **Documentos**, o e-mail `invoice-authorized` com os dois anexos em **Configurações → E-mails**, e que o estoque não mudou (a baixa foi no romaneio). Em homologação, o imposto **não** entra no custo do projeto nem na receita (só a nota de produção, a partir de `fiscal.project_tax_cutover_on`).
 4. Rejeição: emita com um dado que a SEFAZ recuse (ex.: IE inválida do destinatário) e confira o motivo, a ação sugerida, o aviso no sino e o número em `fiscal.number_gaps` (inutilização na FIS-03b). **Corrigir e emitir de novo** usa a tentativa seguinte (`nfe-{id}-2`).
-5. Enquanto a lacuna L-d (grupo de transporte e `infAdProd` no contrato do Emissor) não fechar, as informações de cada item (séries) e o transporte (transportadora, volumes e peso) vão nas informações complementares da nota. Fechada a lacuna, o adaptador passa a mandá-los nos campos próprios.
+5. O contrato do Emissor ganhou o bloco `transporte` em 02/11/2026 (L-d, §7). Enquanto o adaptador não passar a usá-lo, as informações de cada item (séries) e o transporte (transportadora, volumes e peso) continuam nas informações complementares da nota.
 
 ## 11. Cancelamento, carta de correção e inutilização (FIS-03b)
 A FIS-03b foi provada contra o fake do Emissor. A homologação real fica para o tenant `demo`, com o escopo `nfe:eventos` na chave (L-f), o A1 de teste (§9) e uma nota autorizada da §10. Nada é cancelado nem inutilizado no `konebras` antes da GOL-01b.
@@ -177,7 +182,7 @@ A FIS-03b foi provada contra o fake do Emissor. A homologação real fica para o
 2. **Pedir cancelamento** (usuário do Financeiro): o pedido chega ao Proprietário no sino e na pauta, com o prazo; cancele pelo link ou **Recusar pedido**.
 3. **Carta de correção** (Financeiro, `fiscal.edit`): texto de 15 a 1000 caracteres; confira o evento com a sequência e o protocolo e o e-mail `invoice-correction`.
 4. **Inutilização** (Proprietário): gere uma rejeição (§10 item 4), abra **Notas de saída → Emitidas → A inutilizar**, escolha a faixa, justificativa de 15 a 255, digite `INUTILIZAR` e confirme o código. Confira a faixa saindo da lista com o protocolo.
-5. Se o XML do evento não aparecer (lacuna L-n aberta), registre aqui e siga: o evento vale pelo protocolo.
+5. O Emissor publicou o XML do evento em 02/11/2026 (L-n, §7). Se ele não aparecer em **Documentos** (o adaptador ainda não baixa), registre aqui e siga: o evento vale pelo protocolo.
 
 | Evento | Data | Nota / faixa | Protocolo | Resultado | Conferido por |
 |---|---|---|---|---|---|

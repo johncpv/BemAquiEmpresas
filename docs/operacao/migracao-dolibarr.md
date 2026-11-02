@@ -161,4 +161,4 @@ docker ps -a | grep dolibarr-snapshot   # não deve listar nada
 - Sem aceite, o prazo é de 30 dias. Depois disso, o alerta `migration_staging_expired` chega aos super admins todo dia, até o expurgo (`--purge-staging` sem `--accepted`).
 
 ## 7. Go-live (GOL-01)
-Repete as seções 2, 4 e 6 em produção. Depois da carga final, apague o `secrets/dolibarr-api`. Se o snapshot tiver sido usado, faça também `DROP USER 'bqe_migracao_ro'@'localhost';` e apague o `dolibarr-ro.cnf`.
+Repete as seções 2, 4 e 6 na hora H, no banco do `konebras` da homologação, antes do dump que é promovido à produção (ADR 0034; passo a passo em [go-live.md](go-live.md) §5.3). Depois da carga final, apague o `secrets/dolibarr-api`. Se o snapshot tiver sido usado, faça também `DROP USER 'bqe_migracao_ro'@'localhost';` e apague o `dolibarr-ro.cnf`.
