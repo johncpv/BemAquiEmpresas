@@ -1,7 +1,8 @@
 # Homologação, só manual (workflow_dispatch) na main. O gatilho por workflow_run saiu na auditoria de 26/10/2026: ele conferia
 # só o NOME do branch de origem, e com o repositório público um PR de fork vindo de um branch "main" faria deploy de código de fora.
 # Liga com a variável HOMOLOG_DEPLOY=true e o host em HOMOLOG_SSH_HOST (Settings → Variables), depois da preparação da VPS
-# descrita em docs/operacao/deploy.md. Hoje o deploy de homologação é feito pelo script local.
+# descrita em docs/operacao/deploy.md. Hoje o deploy é feito pelo scripts/deploy-homolog.sh. Desde 02/11/2026 esta stack é a PRODUÇÃO
+# (app.konebras.com.br): todo deploy é de produção, só de PR verde (deploy.md, seção do topo).
 name: Deploy homologação
 
 on:
@@ -18,9 +19,8 @@ jobs:
     with:
       environment: homolog
       ref: ${{ github.sha }}
-      tenant_host: ${{ vars.HOMOLOG_TENANT_HOST || 'homolog.konebras.com.br' }}
+      tenant_host: ${{ vars.HOMOLOG_TENANT_HOST || 'app.konebras.com.br' }}
       ssh_host: ${{ vars.HOMOLOG_SSH_HOST }}
-      dolibarr_host: app.konebras.com.br
     secrets:
       DEPLOY_SSH_KEY: ${{ secrets.HOMOLOG_SSH_KEY }}
       DEPLOY_KNOWN_HOSTS: ${{ secrets.HOMOLOG_KNOWN_HOSTS }}

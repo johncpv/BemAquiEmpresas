@@ -4,10 +4,10 @@ Runbook único da virada: critérios de entrada, checklist antes da primeira ope
 
 | Campo | Valor |
 |---|---|
-| Data da virada | **[data da virada, a definir pelo PO]**. Recomendada: operação no BemAqui a partir de **terça, 01/12/2026** (início do mês), com a hora H na **segunda, 30/11, às 18:00**. Alternativa: **15–16/11** (domingo, feriado, e segunda), que fica no meio do mês e exige o PO dispensar o critério 1l |
-| Hora H | Congelamento do Dolibarr. Todos os horários deste runbook são de São Paulo |
+| Data da virada | **02/11/2026 (segunda-feira)**, das 20:16 às 20:20 UTC (17:16 às 17:20 em São Paulo), decidida pelo PO no mesmo dia (dispensou a janela "fora do horário comercial" combinada antes, critério 1l). As datas que estavam em estudo (01/12 e 15–16/11) não valem mais |
+| Hora H | Parada da API para a virada (20:16 UTC). Os horários do §12 estão em UTC; os do resto do runbook, em São Paulo |
 | Responsáveis | **PO** (John): decisões, Go/No-go, cofre, Konebras. **Ops**: quem opera a VPS pelo SSH (o PO ou alguém indicado por ele). **Financeiro** e **Proprietário** da Konebras: conferências. **Contadora**: trilha fiscal (§2) |
-| Situação | Rascunho (GOL-01a). Nada marcado como feito |
+| Situação | **Virada executada em 02/11/2026** pela forma do item 7 abaixo (a homologação virou a produção); registro no §12. GOL-01b em andamento: primeira semana, checklist do §2, cópia do Dolibarr fora da VPS e DNS |
 
 **Decisões do PO de 02/11/2026** (aplicadas aqui):
 1. **A contadora e o Inter não seguram o Go.** Regime, CNAE, IBS/CBS, Configurações → Fiscal e regras fiscais, e a conta e a credencial de produção do Inter são configurados **com o sistema já no ar e antes das primeiras operações** (§2). O ponto sem retorno continua sendo **a primeira NF-e real ou o primeiro boleto real**.
@@ -16,11 +16,18 @@ Runbook único da virada: critérios de entrada, checklist antes da primeira ope
 4. **Backup B2 ligado no ambiente de produção novo já na GOL-01a**, para o critério de 7 dias de backup verificado estar cumprido antes da data.
 5. **Data da virada em aberto** (recomendada 01/12; alternativa 15–16/11).
 6. **EmissorFiscal publicado em 02/11/2026** (imagem `be1253e`), com o XML do evento (L-n), o XML da inutilização, as lacunas de numeração, o provider de Caçapava e o bloco `transporte` (L-d). Detalhe em [emissor-fiscal.md](emissor-fiscal.md) §7.
+7. **A homologação virou a produção** (02/11/2026, à noite; ADR 0034, adendo de 02/11/2026 à noite; volta à forma original da ADR 0020):
+   - **sem ambiente novo, sem promoção, sem recifração e sem cópia de arquivos:** o `konebras` continua no banco, no catálogo e no key ring da stack `bemaqui-empresas-homolog` (`$HM`), que agora serve `app.konebras.com.br`;
+   - o **ambiente novo** (`deploy/prod/`, PRs #175 e #176; §3, §5.4, §5.5 recifração, §5.7 e §7 deste runbook) passa para a **fase 2, depois do go-live**, junto com o **B2**;
+   - **backup:** a política de hoje, dump do `catalog` e do `tenant_konebras` antes de cada deploy (`scripts/deploy-homolog.sh`, [deploy.md](deploy.md) seção do topo);
+   - **Dolibarr e Konebras UI desligados e removidos da VPS** no mesmo dia, a pedido do PO, com backup final e teste de restauração (§8 e §12), no lugar do "só leitura em `adm.`";
+   - as marcas `fiscal_environment_allowed = 'None'` e `bank_production_allowed = false` ficam até o checklist do §2 (contadora e Inter). Até lá, **NF-e fora do sistema** e **boletos como antes**;
+   - `cliente.konebras.com.br` fica reservado para o portal do cliente da Fase 8.
 
 Convenções dos comandos:
 ```bash
-P=/opt/projetos/bemaqui-empresas            # produção (novo, ADR 0034)
-HM=/opt/projetos/bemaqui-empresas-homolog   # homologação (hoje com o konebras real)
+P=/opt/projetos/bemaqui-empresas            # ambiente novo da fase 2 (ADR 0034 §2); NÃO está em uso
+HM=/opt/projetos/bemaqui-empresas-homolog   # PRODUÇÃO desde 02/11/2026 (app.konebras.com.br)
 T=$(date -u +%Y%m%dT%H%M%SZ)                # carimbo de cada passo
 # nginx: SEMPRE "docker exec stack-nginx nginx -t" antes de "docker exec stack-nginx nginx -s reload".
 ```
@@ -42,18 +49,18 @@ Cada linha precisa de evidência (link do PR, registro, print ou relatório), da
 | 1f | **Informativo:** D6 (2FA de novo por ação e estorno com `finance.approve`, P-19 e P-20) **fora do Go** (decisão de 02/11); volta à revisão depois do go-live, como os itens adiados de 20/10. Registrar aqui o que já existe (ex.: 2FA de novo ao salvar credenciais do Inter e do A1, ao pagar e estornar a OP, BNK-01a) | Lista do que já está no ar | | PO | Informativo |
 | 1g | **Estoque:** contagem física feita e saldo inicial lançado na janela de implantação (EST-01, D7 da Fase 3), com o relatório de diferenças aceito | Relatório de diferenças assinado | | Almoxarifado + PO | Pendente |
 | 1h | **Pessoas:** usuários do chão de fábrica com e-mail da empresa (P-24); todo usuário real com convite aceito e 2FA quando exigido (ADR 0010); **folha do mês anterior lançada pela RH-02c** no BemAqui. A virada da folha calculada (FLH-06) é operação e não segura o go-live | Lista de usuários (sem e-mail no runbook, só a contagem); folha do mês | | RH + PO | Pendente |
-| 1i | **Backup e volta:** backup diário do **ambiente novo** (B2 + `age`, §3.6) ligado na GOL-01a e verificado nos **últimos 7 dias**; backup da homologação (dado real) verificado nos últimos 7 dias; teste de restauração do `konebras` e **rollback ensaiados e cronometrados** numa cópia (§7) | Listagem dos buckets com data e tamanho; registro do §7; linha em [restauracao.md](restauracao.md) | | Ops | Pendente |
+| 1i | **Backup e volta:** backup diário do **ambiente novo** (B2 + `age`, §3.6) ligado na GOL-01a e verificado nos **últimos 7 dias**; backup da homologação (dado real) verificado nos últimos 7 dias; teste de restauração do `konebras` e **rollback ensaiados e cronometrados** numa cópia (§7) | Listagem dos buckets com data e tamanho; registro do §7; linha em [restauracao.md](restauracao.md) | 02/11/2026 | PO | **Substituído pelo PO (02/11):** o backup B2 de 7 dias vai para a fase 2; vale a política de hoje (dump antes de cada deploy). O ensaio numa cópia foi trocado pela **virada no próprio lugar, com os dumps de antes e o rollback guardado** (§12) |
 | 1j | **Operação:** monitor externo da produção (`https://app.konebras.com.br/health/ready`, [monitoramento.md](monitoramento.md)) criado e pausado até a virada; SPF/DKIM/DMARC do domínio de envio; inventário de segredos completo (§4); scripts de acessos, do Dolibarr e de conferência ensaiados (§7) | Print do monitor; resultado do teste de DNS de e-mail; §4 preenchido | | Ops | Pendente |
-| 1k | **Métrica:** linha de base do PRD §1.2 medida, inclusive o desvio da data prevista ≤ 15% nos projetos em andamento (§11) | Tabela do §11 preenchida | | PO | Pendente |
-| 1l | **Data:** virada no início de um mês, fora do horário comercial, janela aprovada pela Konebras: **[data da virada, a definir pelo PO]** | Aceite da Konebras (e-mail ou mensagem) | | PO | Pendente |
-| 1m | **Ambiente de produção novo** pronto (§3): compose e vhost aprovados (`check-compose.mjs`, `nginx -t` local), catálogo novo, key ring e certificado novos, segredos novos | Saída dos checks; §4 com datas | | Ops | Pendente |
-| 1n | **Treinamento** por grupo feito no `demo`, com a lista de presença (§9); **comunicados** aprovados pelo PO 5 dias úteis antes (§10) | §9 e §10 preenchidos | | PO | Pendente |
+| 1k | **Métrica:** linha de base do PRD §1.2 medida, inclusive o desvio da data prevista ≤ 15% nos projetos em andamento (§11) | Tabela do §11 preenchida | 02/11/2026 | PO | **Depois da virada** (decisão de 02/11): medir na primeira semana |
+| 1l | **Data:** virada no início de um mês, fora do horário comercial, janela aprovada pela Konebras: **[data da virada, a definir pelo PO]** | Aceite da Konebras (e-mail ou mensagem) | 02/11/2026 | PO | **Dispensado pelo PO:** virada em 02/11/2026, segunda-feira, às 17:16 de São Paulo (horário comercial), sem a janela combinada antes |
+| 1m | **Ambiente de produção novo** pronto (§3): compose e vhost aprovados (`check-compose.mjs`, `nginx -t` local), catálogo novo, key ring e certificado novos, segredos novos | Saída dos checks; §4 com datas | 02/11/2026 | PO | **Não se aplica:** a homologação virou a produção; o ambiente novo vai para a fase 2 |
+| 1n | **Treinamento** por grupo feito no `demo`, com a lista de presença (§9); **comunicados** aprovados pelo PO 5 dias úteis antes (§10) | §9 e §10 preenchidos | 02/11/2026 | PO | **Depois da virada** (decisão de 02/11): treinamento e comunicados com o sistema no ar (o `demo` não existe na stack de produção) |
 
 **Go/No-go do PO**
 
 | Decisão | Data e hora | Data da virada confirmada | Ressalvas | Assinatura |
 |---|---|---|---|---|
-| _(Go / No-go)_ | | [data da virada, a definir pelo PO] | | John (PO) |
+| **Go**, pela forma do item 7 do topo (a homologação virou a produção) | 02/11/2026 | 02/11/2026 | Critérios 1i, 1k, 1l, 1m e 1n dispensados ou substituídos pelo PO (acima); os outros ficam como estão, sem evidência registrada aqui | John (PO) |
 
 ---
 
@@ -107,6 +114,8 @@ docker exec -i bqe-prod-postgres psql -U postgres -d catalog -v ON_ERROR_STOP=1 
 ---
 
 ## 3. Ambiente de produção novo
+
+> **Fase 2 (02/11/2026):** esta seção, o §4 (inventário do ambiente novo), o §5.4, a recifração do §5.5, o §5.7 e o §7 **não foram usados** na virada: a homologação virou a produção (item 7 do topo). Ficam como plano do ambiente novo, depois do go-live, junto com o B2. O que foi feito de fato está no §12.
 
 ADR 0034 §2: a produção nasce **nova**. Só o dado do banco do `konebras` passa, recifrado. Nada da homologação é reaproveitado: nem key ring, nem certificado, nem senha, nem sessão.
 
@@ -249,6 +258,8 @@ Conferências do inventário (CA 5): `find $P/secrets -type f ! -perm 0400` vazi
 
 ## 5. Passo a passo (D−5 a D+1)
 
+> **02/11/2026:** este passo a passo era o da virada pelo ambiente novo. A virada real seguiu um roteiro mais curto, na própria stack da homologação (§12): dumps, carga final em simulação, API parada, JWT trocado, acessos, `tenant_domains`, vhosts e API recriada.
+
 **Tempo total estimado da noite da virada (H até o smoke): cerca de 3 h**, a confirmar no ensaio (§7). Cada passo executado é registrado no §12 (hora, quem, resultado).
 
 ### 5.1 D−5 úteis e D−1
@@ -370,6 +381,8 @@ umask 077; openssl rand -hex 24 | tr -d '\n' > $P/golive/tenant-pw
 
 ## 6. Rollback
 
+> **Depois da virada de 02/11/2026:** a volta é pelos **dumps de antes da virada** (`catalog` e `tenant_konebras`, §12) e pelo vhost antigo do Dolibarr (`default.conf`), guardado fora do `conf.d`. Como o **Dolibarr foi desligado e removido** da VPS no mesmo dia, voltar para ele exige antes restaurar o backup final (`/opt/backups/dolibarr-final-20261102T202934Z`, restauração já testada) e os volumes guardados (`stack_dolidb`, `stack_dolidocs`); os passos R1 a R7 abaixo supõem o Dolibarr ainda no ar e servem só de roteiro.
+
 **Prazo para decidir:** até o **fim do primeiro dia útil** depois da virada (18:00). **Quem decide:** o PO. **Tempo alvo:** menos de 30 min (medido no ensaio, §7). Depois do ponto sem retorno, não há rollback automático.
 
 | Passo | Comando / ação | Resp. | Tempo |
@@ -437,6 +450,8 @@ Falhou alguma coisa: corrigir o runbook (ou abrir story) e ensaiar de novo antes
 ---
 
 ## 8. Dolibarr depois da virada
+
+> **02/11/2026, cerca de 20:30 UTC:** a pedido do PO, o Dolibarr e o Konebras UI foram **desligados e removidos** da VPS logo depois da virada, no lugar do "só leitura em `adm.`" (GOL-01b CA 9). O desligamento da tabela abaixo (GOL-01b CA 10) foi antecipado, com backup final e teste de restauração; **falta a cópia de 5 anos fora da VPS**. Registro no §12. As linhas "Só leitura", "`DOLAPIKEY`", "`bqe_migracao_ro`" e "Consulta do histórico" perderam o objeto: o Dolibarr não existe mais na VPS (o histórico fica no backup final).
 
 | Etapa | O que | Quando | Como | Verificação |
 |---|---|---|---|---|
@@ -536,7 +551,7 @@ Medida antes do Go (critério 1k) e repetida 3 meses depois da virada.
 | Projetos com orçado × realizado visível em tempo real | 100% | | Projetos em andamento com orçamento do projeto ÷ projetos em andamento | | PO |
 | Pagamentos passando por OP aprovada | 100% | | Pagamentos do mês com OP aprovada ÷ pagamentos do mês | | Financeiro |
 | Desvio da data de entrega prevista | ≤ 15% (projetos iniciados depois do go-live) | | Média de \|entrega real − prevista\| ÷ prazo previsto, nos projetos em andamento | | PO |
-| Dolibarr desligado | Sim | Não | Data do desligamento (§8) | | PO |
+| Dolibarr desligado | Sim | Não | Data do desligamento (§8): **02/11/2026** (cópia de 5 anos fora da VPS pendente) | 02/11/2026 | PO |
 | Fechamento financeiro mensal | < 1 dia de trabalho | | Horas do último fechamento | | Financeiro |
 
 Data da primeira medição de 3 meses: **[data da virada + 3 meses]**.
@@ -545,9 +560,31 @@ Data da primeira medição de 3 meses: **[data da virada + 3 meses]**.
 
 ## 12. Execução (registro da virada, GOL-01b)
 
-| Data e hora | Passo | Responsável | Resultado / verificação | Desvio |
+Virada de **02/11/2026**, pela forma do item 7 do topo (a homologação virou a produção). Horários em **UTC**; os passos 1 a 8 couberam na janela das **20:16 às 20:20**. "Ops" = quem operou a VPS pelo SSH.
+
+| Data e hora (UTC) | Passo | Responsável | Resultado / verificação | Desvio |
 |---|---|---|---|---|
-| | | | | |
+| 02/11, mesmo dia | 0. Decisão | PO | A homologação vira a produção: sem ambiente novo, sem promoção, sem recifração, sem cópia de arquivos; ambiente novo (PRs #175/#176) e B2 para a fase 2; backup pela política de hoje | Substitui o §3, o §5.4, a recifração do §5.5, o §5.7 e o §7 (ensaio numa cópia) |
+| 02/11, mesmo dia | 0a. nginx da plataforma | Ops | `plataforma-homolog.bemaquiapp.com.br` com a `location /webhooks/` fora da allowlist: antes os webhooks **não chegavam à API** (o `POST` caía no front, [deploy.md](deploy.md)); corrigido no mesmo dia com o vhost atual (passo 8) | Correção fora do roteiro |
+| 02/11, 20:16–20:20 | 1. Dumps antes da virada | Ops | `pg_dump -Fc` do `catalog` e do `tenant_konebras` em `$HM/predeploy-dumps/` | — |
+| 02/11, 20:16–20:20 | 2. Carga final do Dolibarr (MIG-01b/c) em **simulação** | Ops + PO | **Nada novo nem alterado** desde a última carga; carga real desnecessária. Erros no dado do Dolibarr, **para o PO cadastrar à mão**: 3 contas bancárias sem código do banco (BB-CC, CAIXA, INTER; o BemAqui tem 1 conta e o PO mantém assim) e 2 terceiros com CNPJ inválido no Dolibarr (ids 10 e 14) | — |
+| 02/11, 20:16–20:20 | 3. API parada | Ops | `bqe-homolog-api` parada | — |
+| 02/11, 20:16–20:20 | 4. **Chave de assinatura do JWT trocada** | Ops | `secrets/auth-signing-key` novo; a antiga guardada **fora** de `secrets/` (para o rollback) | Único segredo trocado; os demais e o key ring seguem os da homologação (ADR 0034, adendo de 02/11 à noite) |
+| 02/11, 20:16–20:20 | 5. `scripts/golive/acessos-virada.sql` (`tenant_konebras`) | Ops | **2** famílias de refresh / **12** refresh tokens revogados; security stamp de **2** usuários; **1** convite pendente expirado; **1** aparelho do chão de fábrica revogado; **0** usuários de teste | — |
+| 02/11, 20:16–20:20 | 6. `scripts/golive/acessos-virada-catalogo.sql` (`catalog`) | Ops | Aplicado | — |
+| 02/11, 20:16–20:20 | 7. `catalog.tenant_domains` | Ops | Só `app.konebras.com.br` (primário); `homolog.konebras.com.br` removido | — |
+| 02/11, 20:16–20:20 | 8. nginx | Ops | `00-bemaqui-empresas-common.conf` + `bemaqui-empresas-homolog.conf` (cópia no repositório: `deploy/nginx/bemaqui-empresas-homolog.conf`): server 443 de `app.konebras.com.br` com a API e a web da homologação e o certificado do `app.`; `homolog.konebras.com.br` com **301** para o `app.`; `plataforma-homolog.bemaquiapp.com.br` sem mudança. `default.conf` (vhost antigo do Dolibarr em `app.`) **retirado do `conf.d` e guardado** para o rollback | Sem `adm.konebras.com.br` (Dolibarr desligado, passo 11) |
+| 02/11, 20:20 | 9. API recriada | Ops | API de volta, já com a chave nova do JWT | — |
+| 02/11, depois das 20:20 | 10. Login | PO | **Login com sucesso em `https://app.konebras.com.br`** | — |
+| 02/11, depois das 20:20 | 10a. Marcas | Ops | `fiscal_environment_allowed = 'None'` e `bank_production_allowed = false` mantidas até o §2 (contadora e Inter). NF-e fora do sistema e boletos como antes até lá | — |
+| 02/11, ~20:30 | 11. **Dolibarr e Konebras UI desligados e removidos** (pedido do PO) | Ops | **Backup final** (MariaDB com todos os bancos, documentos e configuração) em `/opt/backups/dolibarr-final-20261102T202934Z`, com **teste de restauração** num MariaDB descartável: **118 terceiros, 34 produtos, 26 faturas, 16 propostas**, iguais ao sistema no ar. Dados do Konebras UI arquivados em `/opt/backups/konebras-ui-final-*`. Vhosts `erp.` e `adm.` removidos; containers e imagens removidos; cron do Konebras UI removido; pastas `/opt/projetos/konebras` e `konebras-ui` apagadas. **Volumes `stack_dolidb`, `stack_dolidocs` e `konebras-ui_konebras_ui_db` mantidos** até o PO confirmar uma cópia fora da VPS (retenção de 5 anos) | Substitui o "Dolibarr só leitura em `adm.`" (GOL-01b CA 9) e antecipa o desligamento (CA 10), **menos a cópia de 5 anos fora da VPS** |
+
+**Pendências da virada (GOL-01b, em andamento):**
+- **PO:** cópia do backup final do Dolibarr (e dos volumes mantidos) **fora da VPS**, para os 5 anos; só depois os volumes podem ser apagados.
+- **PO:** tirar os registros DNS de `erp.konebras.com.br` e `adm.konebras.com.br`.
+- **PO:** cadastrar à mão o que a carga acusou (códigos de banco das contas, se quiser, e os 2 terceiros com CNPJ inválido, ids 10 e 14 no Dolibarr).
+- Primeira semana (tabela abaixo), checklist do §2 (contadora e Inter) antes da primeira NF-e ou boleto pelo sistema, treinamento, comunicados e linha de base das métricas (§11).
+- `cliente.konebras.com.br` reservado para o portal do cliente (Fase 8).
 
 Acompanhamento da primeira semana (GOL-01b CA 7): saldo sistema × banco por conta, boletos emitidos e baixados, pagamentos a conferir, notas autorizadas e rejeitadas, webhooks com falha ou parados, jobs com falha, dead-letters, chamados.
 
