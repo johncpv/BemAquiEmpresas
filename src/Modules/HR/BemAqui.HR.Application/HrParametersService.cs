@@ -271,6 +271,8 @@ public sealed partial class HrParametersService(
             HrParameterKind.Months, 12m, 1m, 12m, true),
         new(VacationTaxationKey, "Tributação das férias", "INSS sobre férias + 1/3 na competência do gozo (rateado quando atravessa o mês, junto com o salário), IRRF em separado no pagamento e o abono pecuniário e o seu 1/3 sem INSS, FGTS nem IRRF (pelas marcas das rubricas).",
             HrParameterKind.Choice, 1m, 1m, 2m, true, Options: [new(1m, "INSS rateado nas competências do gozo"), new(2m, "INSS inteiro na competência do início")]),
+        // FLH-05: rescisão (matriz por tipo, aviso proporcional, prazo e banco de horas), em HrParametersService.Termination.
+        .. TerminationDefinitions(),
 
         // FLH-04: regras do 13º calculado, pré-configuradas pela legislação (PO 21/10/2026), "A confirmar com a contadora".
         new(ThirteenthRules, "Avos da 1ª parcela do 13º", "Avos da 1ª parcela (o adiantamento sem INSS e IRRF, com FGTS): os do ano projetados (o usual: os meses até o da parcela pelo ponto e pelos afastamentos, os seguintes como trabalhados; quem está no ano inteiro recebe a metade da remuneração), ou só os avos até o mês da parcela.",

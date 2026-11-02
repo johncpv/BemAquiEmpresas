@@ -71,6 +71,12 @@ public sealed partial class PayrollCalculationService(
             return await vacations.RecalculateRunAsync(run.Id, cancellationToken);
         }
 
+        // FLH-05: a folha de rescisão calculada é refeita pela rescisão ligada a ela.
+        if (run.Type == PayrollRunType.Termination && run.Mode == PayrollRunMode.Calculated && run.Status == PayrollRunStatus.Draft)
+        {
+            return await RecalculateTerminationRunAsync(run.Id, cancellationToken);
+        }
+
         if (Precondition(run) is { } invalid)
         {
             return invalid;
@@ -289,7 +295,7 @@ public sealed partial class PayrollCalculationService(
 
         if (run.Type != PayrollRunType.Monthly)
         {
-            return VacationNotRectified();
+            return NotRectified(run.Type);
         }
 
         var context = await ContextAsync(run, cancellationToken);
@@ -334,7 +340,7 @@ public sealed partial class PayrollCalculationService(
 
         if (original.Type != PayrollRunType.Monthly)
         {
-            return VacationNotRectified();
+            return NotRectified(original.Type);
         }
 
         if (original.Status == PayrollRunStatus.Draft)
@@ -424,9 +430,15 @@ public sealed partial class PayrollCalculationService(
         {
             var step = await CompareStepAsync(run, cancellationToken);
             // FLH-03 CA 8: as férias só viram oficiais depois da virada e de um caso de férias conferido (FLH-06).
-            var vacation = run.Type == PayrollRunType.Vacation;
-            return Error.Conflict(vacation ? VacationPolicy.SimulationCode : PayrollCalculationRules.SimulationCode,
-                vacation ? VacationPolicy.SimulationMessage : ThirteenthCalculator.IsThirteenth(run.Type) ? ThirteenthCalculator.SimulationMessage : PayrollCalculationRules.SimulationMessage) with
+            // FLH-05 CA 7: a rescisão também, com um caso de rescisão conferido.
+            var (code, message) = run.Type switch
+            {
+                PayrollRunType.Vacation => (VacationPolicy.SimulationCode, VacationPolicy.SimulationMessage),
+                PayrollRunType.Termination => (TerminationPolicy.SimulationCode, TerminationPolicy.SimulationMessage),
+                _ when ThirteenthCalculator.IsThirteenth(run.Type) => (PayrollCalculationRules.SimulationCode, ThirteenthCalculator.SimulationMessage),
+                _ => (PayrollCalculationRules.SimulationCode, PayrollCalculationRules.SimulationMessage),
+            };
+            return Error.Conflict(code, message) with
             {
                 Data = new Dictionary<string, object?> { ["nextStep"] = step.Label, ["link"] = step.Link },
             };
@@ -492,7 +504,8 @@ public sealed partial class PayrollCalculationService(
             return Error.Conflict(PayrollRules.ClosedCode, $"A folha de {PayrollRules.PeriodLabel(run.Period)} está fechada: nada é recalculado. Use \"Ver diferença\" e \"Gerar retificação\".");
         }
 
-        return run.Type != PayrollRunType.Monthly && !ThirteenthCalculator.IsThirteenth(run.Type)
+        // FLH-05: a rescisão calculada aceita avulsos (adiantamentos, descontos), refeita pela rescisão.
+        return run.Type != PayrollRunType.Monthly && run.Type != PayrollRunType.Termination && !ThirteenthCalculator.IsThirteenth(run.Type)
             ? Error.Validation(PayrollCalculationRules.NotSupportedCode, $"O cálculo da folha {PayrollRules.TypeLabel(run.Type)} chega nas próximas etapas. Use a folha lançada.")
             : null;
     }
@@ -549,7 +562,8 @@ public sealed partial class PayrollCalculationService(
     private async Task AddEligibleAsync(PayrollRun run, CancellationToken ct)
     {
         var end = PayrollRules.PeriodEnd(run.Period);
-        var have = await db.Payslips.Where(p => p.PayrollRunId == run.Id).Select(p => p.EmployeeId).ToListAsync(ct);
+        // FLH-05 CA 9: quem tem a rescisão fechada no mês não volta para a Mensal calculada.
+        var have = (await db.Payslips.Where(p => p.PayrollRunId == run.Id).Select(p => p.EmployeeId).ToListAsync(ct)).Concat(await SettledInPeriodAsync(run.Period, ct)).ToList();
         var missing = await db.Employees.AsNoTracking().Where(e => e.AdmissionDate <= end && (e.TerminationDate == null || e.TerminationDate >= run.Period) && !have.Contains(e.Id))
             .Select(e => e.Id).ToListAsync(ct);
         var now = clock.GetUtcNow();
@@ -682,6 +696,12 @@ public sealed partial class PayrollCalculationService(
     /// <summary>Recalcula um holerite (depois do avulso), refaz as guias calculadas e devolve o holerite.</summary>
     private async Task<Result<PayslipDetail>> RecalculateOneAsync(PayrollRun run, Guid payslipId, CancellationToken ct)
     {
+        if (run.Type == PayrollRunType.Termination)
+        {
+            var redone = await RecalculateTerminationRunAsync(run.Id, ct);
+            return redone.IsFailure ? redone.Error! : await runs.PayslipAsync(run.Id, payslipId, ct);
+        }
+
         var context = await ContextAsync(run, ct);
         if (context.IsFailure)
         {
@@ -1018,9 +1038,13 @@ public sealed partial class PayrollCalculationService(
 
     private static Error RunNotFound() => Error.NotFound("payroll_run_not_found", "Folha não encontrada.");
 
-    /// <summary>FLH-03: a folha de férias fechada se corrige reabrindo (sem pagamento), recalculando pela programação e fechando de novo.</summary>
-    private static Error VacationNotRectified() =>
-        Error.Validation(PayrollCalculationRules.NotSupportedCode, "A folha de férias não tem retificação: reabra a folha de férias, recalcule e feche de novo.");
+    /// <summary>
+    /// FLH-03 e FLH-05: a folha de férias e a de rescisão fechadas se corrigem reabrindo (sem pagamento), recalculando pela programação ou pela
+    /// rescisão e fechando de novo.
+    /// </summary>
+    private static Error NotRectified(PayrollRunType type) => Error.Validation(PayrollCalculationRules.NotSupportedCode, type == PayrollRunType.Termination
+        ? "A folha de rescisão não tem retificação: reabra a folha de rescisão, recalcule e feche de novo."
+        : "A folha de férias não tem retificação: reabra a folha de férias, recalcule e feche de novo.");
 
     private static Error Forbidden() => Error.Forbidden(Error.Codes.Forbidden, "Você não tem acesso aos valores da folha. Fale com o administrador.");
 }

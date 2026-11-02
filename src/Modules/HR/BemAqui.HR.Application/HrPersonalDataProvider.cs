@@ -20,7 +20,7 @@ namespace BemAqui.HR.Application;
 [PersonalDataCovers(typeof(Employee), typeof(EmployeeDependent), typeof(EmployeeHistoryEntry), typeof(TimeEntry), typeof(TimeAdjustment), typeof(Timesheet), typeof(TimesheetDayReview),
     typeof(Payslip), typeof(PayslipLine), typeof(PayrollForecast), typeof(PayrollRunCharge), typeof(PayrollRun), typeof(JobPosition), typeof(PayrollCalculationLog),
     typeof(PayrollParallelRun), typeof(PayrollParallelDifference),
-    typeof(VacationPeriod), typeof(VacationSchedule))]
+    typeof(VacationPeriod), typeof(VacationSchedule), typeof(EmployeeTermination))]
 public sealed partial class HrPersonalDataProvider(IHrDb db, AttachmentService attachments, TimeProvider clock) : IPersonalDataProvider
 {
     private const string Sensitive = "hr." + PositionService.SensitiveAction;
@@ -109,6 +109,7 @@ public sealed partial class HrPersonalDataProvider(IHrDb db, AttachmentService a
         blocks.Add(await DependentsAsync(id, cancellationToken));
         blocks.AddRange(await TimeClockAsync(id, sensitive, health, cancellationToken));
         blocks.AddRange(await VacationsAsync(id, cancellationToken));
+        blocks.Add(await TerminationsAsync(id, sensitive, cancellationToken));
         if (sensitive)
         {
             blocks.Add(await PayslipsAsync(id, cancellationToken));
@@ -230,6 +231,19 @@ public sealed partial class HrPersonalDataProvider(IHrDb db, AttachmentService a
         ];
     }
 
+    /// <summary>
+    /// Rescisão (FLH-05): tipo, aviso, datas e situação, como a aba "Rescisão" mostra a quem tem <c>hr.view</c>; o saldo do FGTS do extrato só
+    /// com <c>hr.view_sensitive</c>; o motivo do estorno do desligamento. Os valores ficam no holerite de rescisão.
+    /// </summary>
+    private async Task<PersonalDataBlock> TerminationsAsync(Guid id, bool sensitive, CancellationToken ct)
+    {
+        var list = await db.EmployeeTerminations.AsNoTracking().Where(t => t.EmployeeId == id).OrderBy(t => t.CreatedAt).ToListAsync(ct);
+        return new PersonalDataBlock("Rescisões", "hr.terminations", list.Select(t => PersonalDataRecord.Of(t.CreatedAt,
+            ("Tipo", TerminationPolicy.KindLabel(t.Kind)), ("Aviso prévio", $"{TerminationPolicy.NoticeLabel(t.NoticeKind)} ({t.NoticeDays} dias)"), ("Desligamento", PersonalDataMask.Date(t.TerminationDate)),
+            ("Fim previsto da experiência", t.ContractEndDate is { } end ? PersonalDataMask.Date(end) : null), ("Saldo do FGTS do extrato", sensitive && t.FgtsBalance is { } b ? PersonalDataMask.Money(b) : null),
+            ("Data do extrato do FGTS", t.FgtsStatementDate is { } at ? PersonalDataMask.Date(at) : null), ("Situação", TerminationPolicy.StatusLabel(t.Status)), ("Motivo do estorno", t.CancelReason))).ToList());
+    }
+
     private async Task<PersonalDataBlock> PayslipsAsync(Guid id, CancellationToken ct)
     {
         var slips = await (from p in db.Payslips.AsNoTracking()
@@ -332,6 +346,9 @@ public sealed partial class HrPersonalDataProvider(IHrDb db, AttachmentService a
         // FLH-03: o motivo do reinício do período (fala do afastamento), o motivo do cancelamento e a divisão do INSS das férias.
         var vacationPeriods = await db.VacationPeriods.Where(p => p.EmployeeId == id && p.RestartedReason != null).ToListAsync(ct);
         var vacationSchedules = await db.VacationSchedules.Where(s => s.EmployeeId == id && (s.CancelReason != null || s.CalculatedSplit != null)).ToListAsync(ct);
+        // FLH-05: o motivo do estorno do desligamento; o saldo do FGTS da rescisão fica (base da multa recolhida, documento com movimento).
+        var terminationReasons = await db.EmployeeTerminations.Where(t => t.EmployeeId == id && t.CancelReason != null).ToListAsync(ct);
+        var terminations = await db.EmployeeTerminations.CountAsync(t => t.EmployeeId == id, ct);
         var files = await attachments.CountAsync(EmployeeComplementService.DocumentOwner, [id], ct)
             + await attachments.CountAsync(TimeAdjustmentService.DocumentOwner, adjustmentIds, ct)
             + await attachments.CountAsync(PayslipDocumentRules.OwnerType, payslips, ct)
@@ -460,6 +477,11 @@ public sealed partial class HrPersonalDataProvider(IHrDb db, AttachmentService a
                     s.CalculatedSplit = null;
                 }
 
+                foreach (var t in terminationReasons)
+                {
+                    t.CancelReason = marker;
+                }
+
                 await attachments.RemoveContentAsync(EmployeeComplementService.DocumentOwner, [id], marker, ct);
                 await attachments.RemoveContentAsync(TimeAdjustmentService.DocumentOwner, adjustmentIds, marker, ct);
                 await attachments.RemoveContentAsync(PayslipDocumentRules.OwnerType, payslips, marker, ct);
@@ -487,7 +509,9 @@ public sealed partial class HrPersonalDataProvider(IHrDb db, AttachmentService a
             .Fields(labor, "Retrato das entradas, memória de cálculo e motivos dos avulsos da folha calculada", "hr.payslips, hr.payslip_lines", calculated.Count + calculatedLines.Count)
             .Fields(labor, "Justificativas e casos de correção da conferência paralela da folha", "hr.parallel_differences", parallel.Count)
             .Fields(labor, "Motivos do reinício e do cancelamento das férias e a divisão do INSS das férias", "hr.vacation_periods, hr.vacation_schedules", vacationPeriods.Count + vacationSchedules.Count)
+            .Fields(labor, "Motivo do estorno do desligamento", "hr.terminations", terminationReasons.Count)
             .Fields(labor, "Documentos, atestados, holerites e espelhos em PDF (o arquivo é apagado)", "shared.attachments", files)
+            .Keep("Rescisões: mantidas, com o saldo do FGTS da multa", "hr.terminations", terminations)
             .Keep("Folhas e holerites: mantidos, com os valores", "hr.payslips", payslips.Count)
             .Keep("Conferência paralela da folha: mantida, com os valores", "hr.parallel_differences", await db.PayrollParallelDifferences.CountAsync(d => d.EmployeeId == id, ct))
             .Keep("Espelhos de ponto: mantidos, com os totais do fechamento", "hr.timesheets", timesheets.Count)

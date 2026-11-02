@@ -33,7 +33,8 @@ public sealed record PayrollClosePreview(
     uint Version,
     IReadOnlyList<PayrollChangeNotice> Changes,
     DateOnly? LegalPaymentDeadline = null,
-    string? LatePaymentWarning = null);
+    string? LatePaymentWarning = null,
+    decimal? FgtsFine = null);
 
 /// <summary>
 /// Fechar (CA 2): a data de pagamento (vazia usa a sugerida), o código do 2FA de novo e a versão da folha. Com mudança de tabela ou de

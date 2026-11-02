@@ -92,9 +92,13 @@ public sealed partial class PayrollService(
         if (mode == PayrollRunMode.Calculated && type != PayrollRunType.Monthly && !ThirteenthCalculator.IsThirteenth(type))
         {
             // FLH-03: a folha de férias calculada nasce da programação, uma por funcionário ("Calcular férias").
-            return Error.Validation(PayrollCalculationRules.NotSupportedCode, type == PayrollRunType.Vacation
-                ? "A folha de férias calculada nasce da programação: em RH → Férias, programe e clique em \"Calcular férias\"."
-                : $"O cálculo da folha {PayrollRules.TypeLabel(type)} chega nas próximas etapas. Use a folha lançada.");
+            return Error.Validation(PayrollCalculationRules.NotSupportedCode, type switch
+            {
+                PayrollRunType.Vacation => "A folha de férias calculada nasce da programação: em RH → Férias, programe e clique em \"Calcular férias\".",
+                // FLH-05: a de rescisão nasce da rescisão do funcionário, uma por desligamento.
+                PayrollRunType.Termination => "A folha de rescisão calculada nasce do desligamento: no funcionário, aba Rescisão, clique em \"Calcular rescisão\".",
+                _ => $"O cálculo da folha {PayrollRules.TypeLabel(type)} chega nas próximas etapas. Use a folha lançada.",
+            });
         }
 
         // FLH-04 CA 8: 13º calculado na competência da data limite, um por tipo e ano; a 2ª sem a 1ª fechada pede a confirmação.
@@ -127,6 +131,15 @@ public sealed partial class PayrollService(
         }
 
         var eligible = await EligibleQuery(period).Select(e => new { e.Id, e.BaseSalary }).ToListAsync(cancellationToken);
+        if (type == PayrollRunType.Monthly && mode == PayrollRunMode.Calculated)
+        {
+            // FLH-05 CA 9: quem tem a rescisão fechada no mês recebeu o saldo de salário na rescisão.
+            var end = PayrollRules.PeriodEnd(period);
+            var settled = await db.EmployeeTerminations.AsNoTracking().Where(t => t.Status == TerminationStatus.Closed && t.TerminationDate >= period && t.TerminationDate <= end)
+                .Select(t => t.EmployeeId).ToListAsync(cancellationToken);
+            eligible = eligible.Where(e => !settled.Contains(e.Id)).ToList();
+        }
+
         if (PayrollRules.ChoosesEmployees(type))
         {
             var chosen = (input.EmployeeIds ?? []).Distinct().ToHashSet();

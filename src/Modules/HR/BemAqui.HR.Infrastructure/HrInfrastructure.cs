@@ -119,6 +119,10 @@ public static class HrInfrastructure
         services.TryAddScoped<VacationService>();
         services.AddAuditableEntity<VacationPeriod>("hr");
         services.AddAuditableEntity<VacationSchedule>("hr");
+        // Rescisão (FLH-05): simulação, cálculo, termo de conferência e estorno; o histórico com hr.view_sensitive (o saldo do FGTS e o motivo
+        // do estorno saem mascarados, [PersonalData]).
+        services.TryAddScoped<TerminationService>();
+        services.AddAuditableEntity<EmployeeTermination>("hr", PositionService.SensitiveAction);
         // Pacote para a contadora (RH-03): um layout (o padrão v1) e as seções dele; a RH-01c registra a do ponto.
         services.TryAddScoped<AccountantExportService>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExport, StandardAccountantExport>());

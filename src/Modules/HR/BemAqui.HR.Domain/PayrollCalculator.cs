@@ -42,6 +42,17 @@ public enum PayrollCalculation
     VacationSale,
     VacationSaleThird,
 
+    // FLH-05: rescisão (TerminationCalculator): aviso indenizado e o desconto do não cumprido, férias vencidas e proporcionais e o 1/3, as
+    // indenizações do contrato de experiência (arts. 479 e 480) e a multa do FGTS (informativa, guia da empresa).
+    TerminationNotice,
+    TerminationNoticeDeduction,
+    TerminationVacation,
+    TerminationVacationProrated,
+    TerminationVacationThird,
+    TerminationIndemnity,
+    TerminationEarlyEndDeduction,
+    FgtsFine,
+
     // FLH-04 (13º salário, <see cref="ThirteenthCalculator"/>): a 1ª parcela (também a paga com as férias, FLH-03), o 13º da 2ª parcela,
     // as médias das variáveis e o desconto do adiantamento já pago. O INSS, o IRRF e o FGTS do 13º usam as rubricas de sempre.
     ThirteenthAdvance,
@@ -835,6 +846,14 @@ public static class PayrollCalculator
         PayrollCalculation.VacationThird => "1/3 de férias",
         PayrollCalculation.VacationSale => "Abono pecuniário",
         PayrollCalculation.VacationSaleThird => "1/3 do abono pecuniário",
+        PayrollCalculation.TerminationNotice => "Aviso prévio indenizado",
+        PayrollCalculation.TerminationNoticeDeduction => "Aviso prévio não cumprido (desconto)",
+        PayrollCalculation.TerminationVacation => "Férias vencidas indenizadas",
+        PayrollCalculation.TerminationVacationProrated => "Férias proporcionais",
+        PayrollCalculation.TerminationVacationThird => "1/3 de férias na rescisão",
+        PayrollCalculation.TerminationIndemnity => "Indenização do contrato de experiência (art. 479)",
+        PayrollCalculation.TerminationEarlyEndDeduction => "Desconto do contrato de experiência (art. 480)",
+        PayrollCalculation.FgtsFine => "Multa do FGTS",
         PayrollCalculation.ThirteenthAdvance => "13º salário, 1ª parcela",
         PayrollCalculation.ThirteenthFinal => "13º salário",
         PayrollCalculation.ThirteenthAverages => "Médias do 13º",

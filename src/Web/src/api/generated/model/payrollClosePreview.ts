@@ -30,4 +30,6 @@ export interface PayrollClosePreview {
   legalPaymentDeadline?: string | null;
   /** @nullable */
   latePaymentWarning?: string | null;
+  /** @nullable */
+  fgtsFine?: number | null;
 }

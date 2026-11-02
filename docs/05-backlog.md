@@ -621,7 +621,7 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-7--folha-calculad
 - Requisitos: R-RH-6, R-RH-5, R-FIN-10, R-SEC-5.
 - CA: 1ª e 2ª parcelas com avos e médias pela regra da contadora, adiantamento das férias abatido, previsão no fluxo de caixa.
 
-**FLH-05 [ ] Folha calculada: rescisão (G)** — 7.2, ordem 6 — `Ready (pré-condição externa)` — [story](stories/FLH-05-rescisao.md)
+**FLH-05 [x] Folha calculada: rescisão (G)** — 7.2, ordem 6 — `Done (pré-condição externa: contadora, jurídico e conferência paralela)` — [story](stories/FLH-05-rescisao.md)
 - Requisitos: R-RH-6, R-RH-3, R-RH-5, R-FIN-10, R-PRP-2, R-PRP-7, R-SEC-5.
 - CA: simulação com custo total sem gravar; verbas pela matriz parametrizada por tipo de desligamento; multa do FGTS como encargo; termo de conferência; prazo de pagamento com aviso.
 

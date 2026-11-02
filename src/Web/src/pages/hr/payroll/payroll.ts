@@ -33,6 +33,10 @@ export const CALCULATION_LABELS: Record<string, string> = {
   // FLH-03: folha de férias.
   VacationPay: 'Férias', VacationAverages: 'Médias de férias', VacationThird: '1/3 de férias', VacationSale: 'Abono pecuniário', VacationSaleThird: '1/3 do abono pecuniário',
   ThirteenthAdvance: '13º salário, 1ª parcela', ThirteenthFinal: '13º salário', ThirteenthAverages: 'Médias do 13º', ThirteenthAdvanceDeduction: 'Adiantamento do 13º (desconto)',
+  // FLH-05: rescisão.
+  TerminationNotice: 'Aviso prévio indenizado', TerminationNoticeDeduction: 'Aviso prévio não cumprido (desconto)', TerminationVacation: 'Férias vencidas indenizadas',
+  TerminationVacationProrated: 'Férias proporcionais', TerminationVacationThird: '1/3 de férias na rescisão', TerminationIndemnity: 'Indenização do contrato de experiência (art. 479)',
+  TerminationEarlyEndDeduction: 'Desconto do contrato de experiência (art. 480)', FgtsFine: 'Multa do FGTS',
 }
 
 /** 13º (FLH-04): as duas parcelas são calculadas como a Mensal. */

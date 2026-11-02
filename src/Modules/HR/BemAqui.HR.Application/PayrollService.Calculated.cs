@@ -41,6 +41,11 @@ public sealed partial class PayrollService
             return VacationInfo(run, payslip, tables);
         }
 
+        if (run.Type == PayrollRunType.Termination)
+        {
+            return TerminationInfo(run, payslip, tables);
+        }
+
         var snapshot = PayrollCalculator.ReadSnapshot(payslip.InputsSnapshot);
         var inputs = new List<PayrollCalcInputView>();
         var parameterViews = new List<PayrollCalcInputView>();

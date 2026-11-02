@@ -113,6 +113,11 @@ public class PersonalDataTests
             "CreatedAt", "UpdatedAt", "Balance"],
         ["VacationSchedule"] = ["Id", "EmployeeId", "PeriodId", "StartsOn", "Days", "SoldDays", "Advance13th", "PaymentDueOn", "Status", "PayrollRunId", "CreatedAt", "CreatedBy",
             "CancelledAt", "CancelledBy", "Version", "EndsOn"],
+
+        // FLH-05: tipo, aviso, datas e situação da rescisão são dado do contrato (o desligamento já está no cadastro); o saldo do FGTS do
+        // extrato e o motivo do estorno são [PersonalData].
+        ["EmployeeTermination"] = ["Id", "EmployeeId", "Kind", "NoticeKind", "NoticeDays", "TerminationDate", "ContractEndDate", "FgtsStatementDate", "PayrollRunId", "Status", "CreatedAt",
+            "CreatedBy", "CalculatedAt", "ClosedAt", "CancelledAt", "CancelledBy", "Version"],
     };
 
     /// <summary>

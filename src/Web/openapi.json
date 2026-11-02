@@ -5677,6 +5677,35 @@
             }
           }
         }
+      },
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployeeTermination",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminationView"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/hr/employees/{id}/leaves": {
@@ -7143,6 +7172,88 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/VacationScheduleResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/termination/simulate": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "SimulateTermination",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TerminationRequestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminationResultView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/termination/calculate": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CalculateTermination",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TerminationRequestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminationCalculationResult"
                 }
               }
             }
@@ -10366,6 +10477,71 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/terminations/{id}/term": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadTerminationTerm",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/terminations/{id}/cancel": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CancelTermination",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TerminationCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminationView"
+                }
+              }
+            }
           }
         }
       }
@@ -74500,6 +74676,14 @@
           "VacationThird",
           "VacationSale",
           "VacationSaleThird",
+          "TerminationNotice",
+          "TerminationNoticeDeduction",
+          "TerminationVacation",
+          "TerminationVacationProrated",
+          "TerminationVacationThird",
+          "TerminationIndemnity",
+          "TerminationEarlyEndDeduction",
+          "FgtsFine",
           "ThirteenthAdvance",
           "ThirteenthFinal",
           "ThirteenthAverages",
@@ -75205,6 +75389,13 @@
               "null",
               "string"
             ]
+          },
+          "fgtsFine": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -98395,6 +98586,60 @@
           }
         }
       },
+      "TerminationCalculationResult": {
+        "required": [
+          "termination",
+          "run",
+          "payslipId",
+          "result",
+          "message",
+          "nextSteps"
+        ],
+        "type": "object",
+        "properties": {
+          "termination": {
+            "$ref": "#/components/schemas/TerminationItem"
+          },
+          "run": {
+            "$ref": "#/components/schemas/PayrollRunSummary"
+          },
+          "payslipId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "result": {
+            "$ref": "#/components/schemas/TerminationResultView"
+          },
+          "message": {
+            "type": "string"
+          },
+          "nextSteps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollNextStep"
+            }
+          }
+        }
+      },
+      "TerminationCancelInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
       "TerminationInput": {
         "required": [
           "terminationDate"
@@ -98407,6 +98652,453 @@
           }
         },
         "additionalProperties": false
+      },
+      "TerminationItem": {
+        "required": [
+          "id",
+          "kind",
+          "kindLabel",
+          "noticeKind",
+          "noticeLabel",
+          "noticeDays",
+          "terminationDate",
+          "contractEndDate",
+          "fgtsBalance",
+          "fgtsStatementDate",
+          "status",
+          "statusLabel",
+          "payrollRunId",
+          "payslipId",
+          "isSimulation",
+          "runClosed",
+          "paymentDeadline",
+          "calculatedAt",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/TerminationKind"
+          },
+          "kindLabel": {
+            "type": "string"
+          },
+          "noticeKind": {
+            "$ref": "#/components/schemas/TerminationNoticeKind"
+          },
+          "noticeLabel": {
+            "type": "string"
+          },
+          "noticeDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "terminationDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "contractEndDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "fgtsBalance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "fgtsStatementDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TerminationStatus"
+          },
+          "statusLabel": {
+            "type": "string"
+          },
+          "payrollRunId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "payslipId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "isSimulation": {
+            "type": "boolean"
+          },
+          "runClosed": {
+            "type": "boolean"
+          },
+          "paymentDeadline": {
+            "type": "string",
+            "format": "date"
+          },
+          "calculatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "TerminationKind": {
+        "enum": [
+          "WithoutCause",
+          "WithCause",
+          "Resignation",
+          "MutualAgreement",
+          "ContractEnd",
+          "EarlyEndByEmployer",
+          "EarlyEndByEmployee"
+        ]
+      },
+      "TerminationKindOption": {
+        "required": [
+          "kind",
+          "label",
+          "defaultNotice",
+          "needsContractEnd",
+          "fgtsFinePct"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/TerminationKind"
+          },
+          "label": {
+            "type": "string"
+          },
+          "defaultNotice": {
+            "$ref": "#/components/schemas/TerminationNoticeKind"
+          },
+          "needsContractEnd": {
+            "type": "boolean"
+          },
+          "fgtsFinePct": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "TerminationLineView": {
+        "required": [
+          "code",
+          "name",
+          "type",
+          "reference",
+          "amount",
+          "memory"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PayrollItemKind"
+          },
+          "reference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "memory": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "TerminationNoticeKind": {
+        "enum": [
+          "Worked",
+          "Indemnified",
+          "Waived"
+        ]
+      },
+      "TerminationRequestInput": {
+        "required": [
+          "kind",
+          "noticeKind",
+          "terminationDate",
+          "contractEndDate",
+          "fgtsBalance",
+          "fgtsStatementDate"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TerminationKind"
+              }
+            ]
+          },
+          "noticeKind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TerminationNoticeKind"
+              }
+            ]
+          },
+          "terminationDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "contractEndDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "fgtsBalance": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "fgtsStatementDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "TerminationResultView": {
+        "required": [
+          "kind",
+          "kindLabel",
+          "noticeKind",
+          "terminationDate",
+          "noticeDays",
+          "paidNoticeDays",
+          "projectedEnd",
+          "lines",
+          "gross",
+          "deductions",
+          "net",
+          "fgtsMonth",
+          "fgtsTermination",
+          "finePct",
+          "fine",
+          "fineMemory",
+          "employerCharges",
+          "totalCost",
+          "paymentDeadline",
+          "warnings",
+          "calculatorVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/TerminationKind"
+          },
+          "kindLabel": {
+            "type": "string"
+          },
+          "noticeKind": {
+            "$ref": "#/components/schemas/TerminationNoticeKind"
+          },
+          "terminationDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "noticeDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "paidNoticeDays": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectedEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminationLineView"
+            }
+          },
+          "gross": {
+            "type": "number",
+            "format": "double"
+          },
+          "deductions": {
+            "type": "number",
+            "format": "double"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "fgtsMonth": {
+            "type": "number",
+            "format": "double"
+          },
+          "fgtsTermination": {
+            "type": "number",
+            "format": "double"
+          },
+          "finePct": {
+            "type": "number",
+            "format": "double"
+          },
+          "fine": {
+            "type": "number",
+            "format": "double"
+          },
+          "fineMemory": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "employerCharges": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentDeadline": {
+            "type": "string",
+            "format": "date"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "calculatorVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "TerminationStatus": {
+        "enum": [
+          "Draft",
+          "Calculated",
+          "Closed",
+          "Cancelled"
+        ]
+      },
+      "TerminationView": {
+        "required": [
+          "employeeId",
+          "employeeName",
+          "terminated",
+          "terminationDate",
+          "termination",
+          "kinds",
+          "suggestedDate",
+          "noticeDays",
+          "paymentDays",
+          "nextSteps"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "terminated": {
+            "type": "boolean"
+          },
+          "terminationDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "termination": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TerminationItem"
+              }
+            ]
+          },
+          "kinds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminationKindOption"
+            }
+          },
+          "suggestedDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "noticeDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "paymentDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextSteps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollNextStep"
+            }
+          }
+        }
       },
       "ThirteenthPreview": {
         "required": [

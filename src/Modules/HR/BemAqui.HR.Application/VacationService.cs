@@ -294,6 +294,8 @@ public sealed partial class VacationService(
         var existing = (await db.VacationPeriods.Where(p => ids.Contains(p.EmployeeId)).ToListAsync(ct)).ToLookup(p => p.EmployeeId);
         var schedules = (await db.VacationSchedules.AsNoTracking().Where(s => ids.Contains(s.EmployeeId) && s.Status != VacationScheduleStatus.Cancelled)
             .Select(s => new { s.PeriodId, s.Days, s.SoldDays }).ToListAsync(ct)).ToLookup(s => s.PeriodId);
+        // FLH-05 CA 9: com a rescisão fechada, as férias vencidas e proporcionais foram pagas: os períodos ficam encerrados.
+        var settled = (await db.EmployeeTerminations.AsNoTracking().Where(t => ids.Contains(t.EmployeeId) && t.Status == TerminationStatus.Closed).Select(t => t.EmployeeId).ToListAsync(ct)).ToHashSet();
         var now = clock.GetUtcNow();
         foreach (var e in employees)
         {
@@ -313,7 +315,8 @@ public sealed partial class VacationService(
 
                 var taken = schedules[row.Id].Sum(s => s.Days);
                 var sold = schedules[row.Id].Sum(s => s.SoldDays);
-                var status = VacationPolicy.StatusOf(plan.End, plan.ConcessionEnd, plan.RestartReason is not null, plan.EntitledDays - taken - sold, today, e.TerminationDate);
+                var status = settled.Contains(e.Id) ? VacationPeriodStatus.Closed
+                    : VacationPolicy.StatusOf(plan.End, plan.ConcessionEnd, plan.RestartReason is not null, plan.EntitledDays - taken - sold, today, e.TerminationDate);
                 var before = (row.StartsOn, row.EndsOn, row.Absences, row.EntitledDays, row.TakenDays, row.SoldDays, row.ConcessionEndsOn, row.Status, row.RestartedReason, row.RestartedOn);
                 var after = (plan.Start, plan.End, plan.Absences, plan.EntitledDays, taken, sold, plan.ConcessionEnd, status, plan.RestartReason, plan.RestartedOn);
                 if (before != after)
