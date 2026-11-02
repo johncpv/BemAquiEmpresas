@@ -5,7 +5,6 @@ import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
 import { DateInput } from '@/components/form/inputs'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from '../InventoryTabs'
 import { movementColumns } from './movement-columns'
 import { formatUnitCost, MOVEMENT_TYPE_OPTIONS } from './stock'
 
@@ -26,7 +25,6 @@ export function MovementsPage() {
       <PageHeading title="Estoque: Movimentos">
         <p className="mt-2 text-muted-foreground">Toda entrada, saída e transferência, na ordem em que foi lançada. Movimento não é apagado: é estornado.</p>
       </PageHeading>
-      <InventoryTabs />
       <div role="group" aria-label="Período" className="mb-3 flex flex-wrap items-end gap-3 text-sm">
         <label className="space-y-1 font-medium">De<DateInput value={de ?? ''} onChange={(v) => setPeriod('de', v)} /></label>
         <label className="space-y-1 font-medium">Até<DateInput value={ate ?? ''} onChange={(v) => setPeriod('ate', v)} /></label>

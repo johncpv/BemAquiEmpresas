@@ -12,7 +12,6 @@ import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { AccountPanel } from './AccountPanel'
 import { ACCOUNT_TYPES, ANALYTIC_DICA, DRE_GROUPS, TO_CLASSIFY_DICA, toTree } from './chart'
-import { FinanceTabs } from './FinanceTabs'
 
 /** Financeiro → Plano de contas (CAD-05a CA 4 a 14): árvore com busca e o filtro "Inativas" na URL; edição no painel lateral. */
 export function ChartOfAccountsPage() {
@@ -33,7 +32,6 @@ export function ChartOfAccountsPage() {
           {newRoot}
         </div>
       </PageHeading>
-      <FinanceTabs />
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
         <span className="inline-flex items-center gap-1 text-muted-foreground">Analítica e sintética <Dica nome="Analítica e sintética" texto={ANALYTIC_DICA} /></span>
         <label className="flex items-center gap-2">

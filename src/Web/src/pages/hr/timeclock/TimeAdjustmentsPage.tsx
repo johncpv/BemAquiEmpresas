@@ -8,7 +8,6 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { HrTabs } from '../HrTabs'
 import { AdjustmentPanel, AdjustmentStatus } from './AdjustmentPanel'
 import { InternalControlBanner } from './TimeClockPanel'
 import { isStatus, selectable, shortDay, STATUS_FILTERS } from './time-adjustments'
@@ -70,7 +69,6 @@ export function TimeAdjustmentsPage() {
       <PageHeading title="RH: Ponto">
         <p className="mt-1 text-muted-foreground">Ajustes pedidos pelos funcionários e lançados pelo RH: nada muda no ponto antes da aprovação.</p>
       </PageHeading>
-      <HrTabs />
       <div className="max-w-4xl space-y-4">
         <TimeClockTabs />
         <InternalControlBanner />

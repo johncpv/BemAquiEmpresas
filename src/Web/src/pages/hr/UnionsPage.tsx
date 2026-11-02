@@ -15,7 +15,6 @@ import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { MONTHS } from './hr'
-import { HrTabs } from './HrTabs'
 
 /** RH → Sindicatos (CAD-04a CA 17): nome, CNPJ e mês da data-base. */
 export function UnionsPage() {
@@ -31,7 +30,6 @@ export function UnionsPage() {
           {newButton}
         </div>
       </PageHeading>
-      <HrTabs />
       {query.isPending ? <Skeleton className="h-48" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : query.data.length === 0 ? (
         <EmptyState title="Cadastre o sindicato da categoria." description="Ele é escolhido no cadastro do funcionário." action={newButton} />
       ) : (

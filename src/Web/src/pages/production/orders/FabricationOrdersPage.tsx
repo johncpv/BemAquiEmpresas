@@ -15,7 +15,6 @@ import { Dica } from '@/help/Dica'
 import { formatDate } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { ProductionTabs } from '../ProductionTabs'
 import { delayLabel, FABRICATION_DICAS, FABRICATION_SITUATIONS, FABRICATION_STATUS, quantity } from './fabrication'
 
 const button = 'rounded-md border border-border px-3 py-2 text-sm font-semibold'
@@ -38,7 +37,6 @@ export function FabricationOrdersPage() {
           <button type="button" aria-pressed={pending} onClick={toggle} className={pending ? primary : button}>Itens de projeto sem OS</button>
         </div>
       </PageHeading>
-      <ProductionTabs />
       {pending ? <PendingItems /> : <OrdersTable />}
     </>
   )

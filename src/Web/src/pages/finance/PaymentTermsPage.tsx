@@ -7,7 +7,6 @@ import { useTableFilters, useTableSearch } from '@/components/data-table/table-s
 import { StatusChip } from '@/components/ui/status-chip'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
-import { FinanceTabs } from './FinanceTabs'
 import { describeDays } from './terms'
 
 /** Financeiro → Condições de pagamento (CAD-05b CA 11 a 17): as do seed já vêm prontas; inativas só no filtro. */
@@ -32,7 +31,6 @@ export function PaymentTermsPage() {
           </Can>
         </div>
       </PageHeading>
-      <FinanceTabs />
       <DataTable label="Condições de pagamento" columns={columns} query={query} getRowId={(t) => t.id} rowHref={(t) => `/app/financeiro/condicoes-de-pagamento/${t.id}`} inactiveFilter searchable={false}
         empty={{
           title: 'Cadastre a primeira condição de pagamento.',

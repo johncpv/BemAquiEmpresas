@@ -15,7 +15,6 @@ import { formatDateTime } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from '../InventoryTabs'
 import { AdjustmentDialog } from './AdjustmentDialog'
 import { ADJUSTMENT_DICAS, ADJUSTMENT_MODE, ADJUSTMENT_STATUS, itemsLabel } from './adjustments'
 
@@ -76,7 +75,6 @@ export function AdjustmentsPage() {
           <Can perm="inventory.adjust">{launch(true)}</Can>
         </div>
       </PageHeading>
-      <InventoryTabs />
       {steps.length ? <div className="mb-3"><NextSteps steps={steps} onDismiss={() => setSteps([])} /></div> : null}
       <p className="mb-2 text-sm text-muted-foreground">Mostrando: {SHOW_LABELS[show] ?? SHOW_LABELS.todos}</p>
       <DataTable label="Ajustes de estoque" columns={columns} query={query} searchable={false} getRowId={(a) => a.id}

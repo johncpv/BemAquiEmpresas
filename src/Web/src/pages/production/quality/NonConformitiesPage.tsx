@@ -4,7 +4,6 @@ import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { PageHeading } from '@/shell/PageHeading'
-import { ProductionTabs } from '../ProductionTabs'
 import { ageLabel, NC_SITUATIONS, NC_STATUS, QUALITY_DICAS } from './quality'
 
 const action = 'inline-flex min-h-9 items-center rounded-md border border-border px-3 text-sm font-semibold text-primary'
@@ -70,7 +69,6 @@ export function NonConformitiesPage() {
   return (
     <>
       <PageHeading title="Produção: Não conformidades" />
-      <ProductionTabs />
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div role="group" aria-label="De quem" className="flex flex-wrap gap-2">
           <button type="button" className={pill} aria-pressed={!all} onClick={() => go({ filtro: undefined })}>Aguardando você{query.data ? ` (${query.data.mineOpen})` : ''}</button>

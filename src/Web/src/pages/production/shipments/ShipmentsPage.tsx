@@ -8,7 +8,6 @@ import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { ProductionTabs } from '../ProductionTabs'
 import { quantity, SHIPMENT_DICAS, SHIPMENT_SITUATIONS, SHIPMENT_STATUS, SHIPMENT_TEXTS } from './shipments'
 
 const action = 'inline-flex min-h-9 items-center rounded-md border border-border px-3 text-sm font-semibold text-primary'
@@ -94,7 +93,6 @@ export function ShipmentsPage() {
   return (
     <>
       <PageHeading title="Produção: Expedição" />
-      <ProductionTabs />
       <section aria-labelledby="prontos" className="mb-6">
         <h2 id="prontos" className="mb-2 text-base font-semibold">Prontos para expedir</h2>
         {readyBody}

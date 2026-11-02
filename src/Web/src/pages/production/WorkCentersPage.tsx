@@ -10,7 +10,6 @@ import { NextSteps } from '@/components/ui/next-steps'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
-import { ProductionTabs } from './ProductionTabs'
 import { WorkCenterPanel } from './WorkCenterPanel'
 import { formatHours, shiftsSummary } from './shifts'
 
@@ -44,7 +43,6 @@ export function WorkCentersPage() {
           </Can>
         </div>
       </PageHeading>
-      <ProductionTabs />
       {steps ? <div className="mb-3"><NextSteps steps={[{ label: 'Cadastrar o calendário', onSelect: () => void navigate({ to: '/app/producao/calendario' }) }]} onDismiss={() => setSteps(false)} /></div> : null}
       <DataTable label="Centros de trabalho" columns={columns} query={query} getRowId={(c) => c.id} inactiveFilter searchPlaceholder="Buscar pelo nome ou linha"
         empty={{

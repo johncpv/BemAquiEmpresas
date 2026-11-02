@@ -14,7 +14,6 @@ import { Dica } from '@/help/Dica'
 import { formatInstantDate } from '@/lib/format'
 import { useNavigation } from '@/navigation/navigation-context'
 import { PageHeading } from '@/shell/PageHeading'
-import { SettingsTabs } from '../SettingsTabs'
 import { ANONYMIZATION_DICAS } from './anonymization'
 import { OwnerOnlyNotice } from './PrivacyRequestsPage'
 import { RETENTION_SUBJECTS, ruleText } from './retention'
@@ -35,7 +34,6 @@ export function RetentionPage() {
     return (
       <>
         <PageHeading title="Retenção dos dados pessoais" />
-        <SettingsTabs />
         <OwnerOnlyNotice />
       </>
     )
@@ -46,7 +44,6 @@ export function RetentionPage() {
   return (
     <>
       <PageHeading title="Retenção dos dados pessoais" />
-      <SettingsTabs />
       {back}
       <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
         Por quanto tempo cada dado pessoal fica guardado antes de poder ser anonimizado a pedido do titular. Os valores vêm pré-configurados;

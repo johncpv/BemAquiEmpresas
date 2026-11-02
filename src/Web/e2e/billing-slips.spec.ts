@@ -118,7 +118,7 @@ test.describe('Boleto com Pix (BNK-01b)', () => {
     await mockApi(page, api)
     await page.goto('/app/configuracoes/cobranca')
     await expect(page.getByRole('heading', { level: 1, name: 'Cobrança' })).toBeVisible()
-    await expect(page.getByRole('navigation', { name: 'Configurações', exact: true }).getByRole('link', { name: 'Cobrança' })).toHaveAttribute('aria-current', 'page')
+    await expect(page.getByRole('navigation', { name: 'Telas de Configurações' }).getByRole('link', { name: 'Cobrança' })).toHaveAttribute('aria-current', 'page')
     await expect(page.getByText('3 valores a confirmar')).toBeVisible()
     await expect(page.getByText('A confirmar com a contadora')).toHaveCount(3)
     await page.getByRole('button', { name: 'Marcar como conferido: Multa', exact: true }).click()

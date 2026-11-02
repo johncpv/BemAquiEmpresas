@@ -19,7 +19,6 @@ import { UrlTabs } from '@/components/ui/url-tabs'
 import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from '../InventoryTabs'
 import { ADJUSTMENT_DICAS, ADJUSTMENT_MODE, itemsLabel } from './adjustments'
 import { AdjustmentStatusChip } from './AdjustmentsPage'
 import { formatQuantity, formatUnitCost } from './stock'
@@ -165,7 +164,6 @@ export function AdjustmentPage() {
           </div>
         </div>
       </PageHeading>
-      <InventoryTabs />
       {pending && a.decideBlockedReason ? <p role="note" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">{a.decideBlockedReason}</p> : null}
       {a.status === 'Approved' && a.decidedAt && !a.reversedAt ? (
         <p role="note" className="mb-3 rounded-md border border-info-soft bg-info-soft px-3 py-2 text-sm text-info-ink">

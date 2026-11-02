@@ -14,7 +14,6 @@ import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from '../InventoryTabs'
 import { CAPACITY_DICAS, parseQuantity, productOptions, purchasePrefill, referenceLabel, referenceOption, shortageSummary, unitsText } from './capacity'
 import { formatQuantity } from './stock'
 
@@ -62,7 +61,6 @@ export function CapacityPage() {
       <PageHeading title="Estoque: Capacidade de produzir">
         <p className="mt-2 text-muted-foreground">Quantos iguais a um já feito dá para produzir com o estoque de hoje, e o que falta comprar para chegar à quantidade.</p>
       </PageHeading>
-      <InventoryTabs />
       <section aria-label="BOM de referência e quantidade" className="mb-5 grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_10rem]">
         <div className="min-w-0 space-y-1">
           <span className="text-sm font-medium">Produto</span>

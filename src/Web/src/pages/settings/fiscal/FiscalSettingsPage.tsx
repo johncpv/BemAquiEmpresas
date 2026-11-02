@@ -23,7 +23,6 @@ import { Dica } from '@/help/Dica'
 import { useNavigation } from '@/navigation/navigation-context'
 import { ModuleNotReleased } from '@/pages/ModulePage'
 import { PageHeading } from '@/shell/PageHeading'
-import { SettingsTabs } from '../SettingsTabs'
 import { FiscalNav } from './FiscalNav'
 import { confirmedText, CRT_LABEL, crtOf, COST_TAX_OPTIONS, DICAS, INPUT_TAX_CREDIT_OPTIONS, fieldAnchor, FIRST_CONFIGURATION, formatCnae, parseCnaes, PRODUCTION_TEXT, SECTION_FIELDS, turnsOnProduction, type FieldConfig } from './fiscal-settings'
 
@@ -49,7 +48,6 @@ export function FiscalSettingsPage() {
       <PageHeading title="Fiscal">
         <p className="mt-2 text-muted-foreground">Regime, série, operações, alíquotas e NFS-e das notas da empresa. Os valores já vêm preenchidos; confira cada um com a contadora.</p>
       </PageHeading>
-      <SettingsTabs />
       <FiscalNav />
       {query.isPending ? (
         <div className="space-y-3"><Skeleton className="h-10" /><Skeleton className="h-64" /></div>

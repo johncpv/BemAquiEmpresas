@@ -10,7 +10,6 @@ import { Money } from '@/components/ui/money'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
-import { HrTabs } from './HrTabs'
 import { PositionPanel } from './PositionPanel'
 
 const cbo = (c: string | null) => (c ? `${c.slice(0, 4)}-${c.slice(4)}` : '—')
@@ -59,7 +58,6 @@ export function PositionsPage() {
           <Can perm="hr.create"><button type="button" onClick={open} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo cargo</button></Can>
         </div>
       </PageHeading>
-      <HrTabs />
       <DataTable label="Cargos" columns={columns} query={query} getRowId={(p) => p.id} inactiveFilter searchPlaceholder="Buscar pelo nome"
         empty={{
           title: 'Cadastre os cargos da empresa para calcular o custo da hora trabalhada.',

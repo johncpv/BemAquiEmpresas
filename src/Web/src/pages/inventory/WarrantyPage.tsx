@@ -12,7 +12,6 @@ import { notifySuccess } from '@/components/ui/messages'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { DICAS, TYPE_LABELS } from './item-labels'
-import { InventoryTabs } from './InventoryTabs'
 
 const months = (m: number | null) => (m === null ? 'Sem garantia' : m === 1 ? '1 mês' : `${m} meses`)
 
@@ -26,7 +25,6 @@ export function WarrantyPage() {
       <PageHeading title="Estoque: Garantia padrão">
         <p className="mt-2 text-muted-foreground">Os meses de garantia que cada tipo de item novo já traz. Dá para trocar no item.</p>
       </PageHeading>
-      <InventoryTabs />
       {query.isPending ? <Skeleton className="h-64" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : (
         <div className="overflow-x-auto rounded-md border border-border">
           <table className="w-full text-sm">

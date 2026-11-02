@@ -14,7 +14,6 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { AssetsTabs } from './AssetsTabs'
 
 const primary = 'min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground'
 const secondary = 'min-h-11 rounded-md border border-border px-3 py-2 text-sm font-semibold'
@@ -34,7 +33,6 @@ export function AssetSitesPage() {
           {newButton}
         </div>
       </PageHeading>
-      <AssetsTabs />
       {query.isPending ? <Skeleton className="h-48" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : query.data.length === 0 ? (
         <EmptyState title="Cadastre os setores da empresa." description="O local é escolhido no cadastro de cada bem." action={newButton} />
       ) : (

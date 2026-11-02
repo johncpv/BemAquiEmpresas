@@ -15,7 +15,6 @@ import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from '../InventoryTabs'
 import { COUNT_STATUS, INVENTORY_DICAS } from './inventory-counts'
 
 const STATUS_OPTIONS = (Object.keys(COUNT_STATUS) as InventoryCountStatus[]).map((value) => ({ value, label: COUNT_STATUS[value].label }))
@@ -112,7 +111,6 @@ export function InventoryCountsPage() {
           <Can perm="inventory.adjust">{start(true)}</Can>
         </div>
       </PageHeading>
-      <InventoryTabs />
       <DataTable label="Inventários" columns={columns} query={query} searchable={false} getRowId={(c) => c.id}
         filters={[{ key: 'situacao', label: 'Situação', options: STATUS_OPTIONS }]}
         rowClassName={(c) => (c.status === 'Counting' ? 'border-l-4 border-l-warn' : undefined)}

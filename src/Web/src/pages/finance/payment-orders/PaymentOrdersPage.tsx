@@ -9,7 +9,6 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
 import { formatDate } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { FinanceTabs } from '../FinanceTabs'
 import { ORDER_SITUATIONS, ORDER_STATUS } from './payment-orders'
 
 /** Financeiro → Ordens de pagamento (FIN-03a CA 23): nenhum pagamento sai sem ordem aprovada. */
@@ -35,7 +34,6 @@ export function PaymentOrdersPage() {
           {goPayables}
         </div>
       </PageHeading>
-      <FinanceTabs />
       <DataTable
         label="Ordens de pagamento"
         columns={columns}

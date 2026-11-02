@@ -11,7 +11,6 @@ import { Tag } from '@/components/ui/tag'
 import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from '../InventoryTabs'
 import { pickingSummary, REQUISITION_DICAS, REQUISITION_KIND, REQUISITION_STATUS } from './requisitions'
 import { formatQuantity } from './stock'
 
@@ -69,7 +68,6 @@ export function RequisitionsPage() {
       <PageHeading title="Estoque: Requisições">
         <p className="mt-2 inline-flex items-center text-muted-foreground">Material baixado para as OS, pedidos dos operadores e devoluções.<Dica nome="Consumo acima da BOM" texto={REQUISITION_DICAS.consumoAcima} /></p>
       </PageHeading>
-      <InventoryTabs />
       <ToPick />
       <p className="mb-2 text-sm text-muted-foreground">Mostrando: {SHOW_LABELS[show] ?? SHOW_LABELS.todos}</p>
       <DataTable label="Requisições de material" columns={columns} query={query} searchable={false} getRowId={(r) => r.id}

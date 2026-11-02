@@ -19,7 +19,6 @@ import { Dica } from '@/help/Dica'
 import { formatDate } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { HrTabs } from '../HrTabs'
 import { periodLabel } from '../payroll/payroll'
 import { InternalControlBanner } from './TimeClockPanel'
 import { TimeClockTabs } from './TimeClockTabs'
@@ -147,7 +146,6 @@ export function TimesheetOverviewPage() {
       <PageHeading title="RH: Ponto">
         <p className="mt-1 text-muted-foreground">O espelho de cada funcionário no período, para conferir, fechar e mandar à contadora e à folha.</p>
       </PageHeading>
-      <HrTabs />
       <div className="max-w-5xl space-y-4">
         <TimeClockTabs />
         <InternalControlBanner />

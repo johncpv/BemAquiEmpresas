@@ -9,7 +9,6 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { formatNcm, TYPE_LABELS, TYPE_OPTIONS } from './item-labels'
-import { InventoryTabs } from './InventoryTabs'
 
 const quantity = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 })
 
@@ -51,7 +50,6 @@ export function ItemsPage() {
           </Can>
         </div>
       </PageHeading>
-      <InventoryTabs />
       <DataTable
         label="Itens"
         columns={columns}

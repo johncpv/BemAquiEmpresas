@@ -9,7 +9,6 @@ import { ImportedTag } from '@/components/ui/imported-tag'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from './InventoryTabs'
 import { LocationPanel } from './LocationPanel'
 
 /** Estoque → Locais (CAD-03 CA 2 a 7): código, nome, padrão e situação; edição no painel lateral. */
@@ -43,7 +42,6 @@ export function LocationsPage() {
           </Can>
         </div>
       </PageHeading>
-      <InventoryTabs />
       <DataTable label="Locais de estoque" columns={columns} query={query} getRowId={(l) => l.id} inactiveFilter searchPlaceholder="Buscar pelo código ou nome"
         empty={{
           title: 'Cadastre os locais onde o material fica guardado.',

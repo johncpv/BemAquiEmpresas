@@ -15,7 +15,6 @@ import { Tag } from '@/components/ui/tag'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { BankAccountPanel } from './BankAccountPanel'
-import { FinanceTabs } from './FinanceTabs'
 
 /**
  * Financeiro → Contas e caixas (CAD-05b CA 1 a 10): lista com saldo inicial (ou a Tag "Saldo inicial não informado") e a
@@ -77,7 +76,6 @@ export function BankAccountsPage() {
           </Can>
         </div>
       </PageHeading>
-      <FinanceTabs />
       <div className="mb-3 space-y-2">
         {steps ? <NextSteps steps={[{ label: 'Cadastrar condições de pagamento', onSelect: () => void navigate({ to: '/app/financeiro/condicoes-de-pagamento' }) }]} onDismiss={() => setSteps(false)} /> : null}
         {missing && balanceHint ? (

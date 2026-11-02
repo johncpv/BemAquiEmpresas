@@ -137,7 +137,7 @@ test.describe('RH-03: exportação para a contadora', () => {
     await mockApi(page, { ...api, 'GET /api/v1/me/permissions': (r: Route) => json(r, { permissions: [], isOwner: false, version: '31', modules: viewer }), 'GET /api/v1/hr/employees': (r: Route) => json(r, { items: [], page: 1, pageSize: 20, total: 0 }) })
     await page.goto('/app/rh/exportar-contadora')
     await expect(page.getByText('Dados protegidos')).toBeVisible()
-    await expect(page.getByRole('navigation', { name: 'RH' }).getByRole('link', { name: 'Exportar para a contadora' })).toHaveCount(0)
+    await expect(page.getByRole('navigation', { name: 'Telas de RH' }).getByRole('link', { name: 'Exportar para a contadora' })).toHaveCount(0)
     expect(state.requested).toEqual([])
   })
 

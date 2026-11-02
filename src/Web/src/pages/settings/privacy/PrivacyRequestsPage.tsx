@@ -13,7 +13,6 @@ import { Dica } from '@/help/Dica'
 import { formatDate } from '@/lib/format'
 import { useNavigation } from '@/navigation/navigation-context'
 import { PageHeading } from '@/shell/PageHeading'
-import { SettingsTabs } from '../SettingsTabs'
 import { dueChipOf, kindLabel, KINDS, statusOf, subjectTypeLabel } from './privacy'
 import { RegisterPrivacyRequestPanel } from './RegisterPrivacyRequestPanel'
 
@@ -43,7 +42,6 @@ export function PrivacyRequestsPage() {
     return (
       <>
         <PageHeading title="Privacidade (LGPD)" />
-        <SettingsTabs />
         <OwnerOnlyNotice />
       </>
     )
@@ -63,7 +61,6 @@ export function PrivacyRequestsPage() {
           <span className="ml-1 inline-flex align-middle"><Dica nome="Controlador" texto="A empresa é a controladora dos dados pessoais e responde ao titular; o BemAqui é o operador. Por isso só o Proprietário atende os pedidos." /></span>
         </p>
       </PageHeading>
-      <SettingsTabs />
       <div className="space-y-4">
         <div className="flex flex-wrap items-end gap-3">
           <label className="text-sm font-medium">

@@ -9,7 +9,6 @@ import { Tag } from '@/components/ui/tag'
 import { Dica } from '@/help/Dica'
 import { formatDate } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from '../InventoryTabs'
 import { RESERVATION_DICAS, shortageLabel } from './reservations'
 import { formatQuantity } from './stock'
 
@@ -63,7 +62,6 @@ export function ShortagesPage() {
       <PageHeading title="Estoque: Faltas">
         <p className="mt-2 text-muted-foreground">O que as OS abertas precisam e o estoque ainda não tem livre. Cada falta vira solicitação de compra.</p>
       </PageHeading>
-      <InventoryTabs />
       <DataTable label="Faltas de material" columns={columns} query={query} getRowId={(r) => r.itemId} searchPlaceholder="Buscar pelo código ou nome do item"
         filters={[{ key: 'projeto', label: 'Projeto', options: (projects.data ?? []).map((p) => ({ value: p.id, label: `${p.number} — ${p.name}` })) }]}
         rowClassName={() => 'border-l-4 border-l-crit'}

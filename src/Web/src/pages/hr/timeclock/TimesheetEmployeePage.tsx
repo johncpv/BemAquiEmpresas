@@ -15,7 +15,6 @@ import { Dica } from '@/help/Dica'
 import { formatDate } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { HrTabs } from '../HrTabs'
 import { periodLabel } from '../payroll/payroll'
 import { InternalControlBanner } from './TimeClockPanel'
 import { todayInSaoPaulo } from './time-clock'
@@ -110,7 +109,6 @@ export function TimesheetEmployeePage() {
       <PageHeading title="RH: Espelho de ponto">
         <p className="mt-1 text-muted-foreground">Os dias do funcionário no período, com o esperado pela jornada, o trabalhado, as extras, as faltas e o banco de horas.</p>
       </PageHeading>
-      <HrTabs />
       <div className="max-w-5xl space-y-4">
         <InternalControlBanner />
         <div className="flex flex-wrap items-center gap-2">

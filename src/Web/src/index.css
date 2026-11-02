@@ -60,6 +60,38 @@
   font-stretch: 125%;
 }
 
+/* Faixas horizontais de abas e chips: rolam (trackpad, toque, roda do mouse) sem a barra de rolagem nativa. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/*
+ * Esmaece a borda da faixa quando há mais conteúdo daquele lado (data-fade-start/end, useScrollStrip).
+ * A máscara só usa a opacidade: a cor do gradiente é um token qualquer, nunca cor literal.
+ */
+@utility fade-x {
+  --fade-start: 0px;
+  --fade-end: 0px;
+
+  &[data-fade-start] {
+    --fade-start: 1.75rem;
+  }
+
+  &[data-fade-end] {
+    --fade-end: 1.75rem;
+  }
+
+  &[data-fade-start],
+  &[data-fade-end] {
+    mask-image: linear-gradient(to right, transparent, var(--foreground) var(--fade-start), var(--foreground) calc(100% - var(--fade-end)), transparent);
+  }
+}
+
 @layer base {
   /* Foco e rolagem nunca escondidos sob a topbar fixa e o dock (WCAG 2.4.11). */
   html {

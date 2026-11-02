@@ -10,7 +10,6 @@ import { TreeTable } from '@/components/ui/tree-table'
 import { Dica } from '@/help/Dica'
 import { formatDate } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from '../InventoryTabs'
 import { TRACE_SERIAL_STATUS, TRACE_TEXT, type TraceNode, expiryChip, lotTree, reconciliationText, serialTree, todaySaoPaulo } from './traceability'
 
 type TraceSearch = { q?: string; item?: string; serie?: string; lote?: string }
@@ -203,7 +202,6 @@ export function TraceabilityPage() {
       <PageHeading title="Estoque: Rastreabilidade">
         <p className="mt-2 text-muted-foreground">De qual lote e fornecedor veio cada equipamento, e em quais equipamentos e clientes cada lote foi parar.</p>
       </PageHeading>
-      <InventoryTabs />
       <form role="search" onSubmit={submit} className="mb-4 flex flex-wrap items-end gap-2">
         <label className="grow text-sm font-semibold" htmlFor="trace-term">
           Série ou lote

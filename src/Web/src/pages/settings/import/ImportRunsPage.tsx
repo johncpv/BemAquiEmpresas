@@ -8,7 +8,6 @@ import { Tag } from '@/components/ui/tag'
 import { useHelp } from '@/help/help-context'
 import { formatDateTime } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { SettingsTabs } from '../SettingsTabs'
 import { entityLabel, MODE_LABELS, STATUS } from './labels'
 
 /**
@@ -40,7 +39,6 @@ export function ImportRunsPage() {
       <PageHeading title="Configurações: Importação do Dolibarr">
         <p className="mt-2 text-muted-foreground">Execuções da importação dos cadastros do Dolibarr, com o que entrou, o que ficou de fora e por quê.</p>
       </PageHeading>
-      <SettingsTabs />
       <DataTable
         label="Execuções da importação"
         columns={columns}

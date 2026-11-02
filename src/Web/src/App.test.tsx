@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createMemoryHistory } from '@tanstack/react-router'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setAccessToken } from './api/session'
 import { SAMPLE_MODULES } from './navigation/sample'
@@ -47,6 +47,19 @@ describe('shell do backoffice (FND-09b)', () => {
     const tabs = screen.getByRole('navigation', { name: 'Telas de Usuários e acessos' })
     expect(tabs.querySelector('[aria-current="page"]')?.textContent).toBe('Grupos')
     expect(screen.getByRole('navigation', { name: 'Trilha' }).textContent).toContain('Usuários e acessos')
+  })
+
+  it('abas agrupadas na barra do topo, sem barra de rolagem nativa; módulo sem grupos não ganha rótulo', async () => {
+    const router = renderAt('/app/estoque/itens')
+    const tabs = await screen.findByRole('navigation', { name: 'Telas de Estoque' })
+    expect(tabs.classList.contains('scrollbar-none')).toBe(true)
+    const groups = within(tabs).getAllByRole('group')
+    expect(groups.map((g) => g.getAttribute('aria-label'))).toEqual(['Operação', 'Cadastros'])
+    expect(within(groups[0]).getByRole('link', { name: 'Saldos' })).toBeDefined()
+    expect(within(groups[1]).getByRole('link', { name: 'Itens' }).getAttribute('aria-current')).toBe('page')
+    await act(() => router.navigate({ to: '/app/acessos/grupos' }))
+    const access = await screen.findByRole('navigation', { name: 'Telas de Usuários e acessos' })
+    expect(within(access).queryAllByRole('group')).toEqual([])
   })
 
   it('título da página e foco no h1 na troca de rota (CA 11)', async () => {

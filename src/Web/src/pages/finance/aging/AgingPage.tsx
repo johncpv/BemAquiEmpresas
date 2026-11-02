@@ -9,7 +9,6 @@ import { Dica } from '@/help/Dica'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { PageHeading } from '@/shell/PageHeading'
 import { AgingProjectsTab } from './AgingProjectsTab'
-import { FinanceTabs } from '../FinanceTabs'
 
 const DICAS = {
   aging: 'Os títulos vencidos separados pelo tempo de atraso. Quanto mais à direita, mais difícil de receber.',
@@ -64,7 +63,6 @@ export function AgingPage() {
       <PageHeading title="Financeiro: Inadimplência">
         <p className="mt-2 flex flex-wrap items-center text-muted-foreground">Quem está devendo e há quanto tempo, para cobrar primeiro quem pesa mais.<Dica nome="Aging" texto={DICAS.aging} /></p>
       </PageHeading>
-      <FinanceTabs />
       <div className="space-y-4">
         {summary}
         <UrlTabs label="Visões da inadimplência" fallback="clientes" tabs={[{ id: 'clientes', label: 'Por cliente', content: (

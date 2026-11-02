@@ -12,7 +12,6 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { HrTabs } from '../HrTabs'
 import { currentPeriod } from './payroll'
 import { TaxTableEditor } from './TaxTableEditor'
 import { formatDay, statusChip, TAX_DICAS, TAX_KINDS, type TaxKind } from './tax-tables'
@@ -46,7 +45,6 @@ export function PayrollTaxTablesPage() {
           {newButton}
         </div>
       </PageHeading>
-      <HrTabs />
       {query.isPending ? <Skeleton className="h-64" /> : query.isError ? (
         <ErrorState title="Não foi possível carregar as tabelas da folha." message="Verifique a conexão e tente de novo. Se continuar, fale com o administrador." onRetry={() => query.refetch()} />
       ) : !view ? null : total === 0 ? (

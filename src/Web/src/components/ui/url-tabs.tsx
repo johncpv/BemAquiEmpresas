@@ -1,5 +1,6 @@
 import { type KeyboardEvent, type ReactNode, useRef, useState } from 'react'
 import { useHelpTab } from '@/help/help-context'
+import { useScrollStrip } from '@/hooks/useScrollStrip'
 import { useUrlTab } from './url-tab'
 
 export interface UrlTab {
@@ -27,6 +28,8 @@ export function UrlTabs({ tabs, fallback, label, help = true }: { tabs: UrlTab[]
   const active = tabs.find((t) => t.id === current && !t.disabled) ? current : first
   useHelpTab(help ? active : null)
   const refs = useRef<(HTMLButtonElement | null)[]>([])
+  // Faixa sem barra de rolagem nativa; rola com trackpad, toque ou roda do mouse e esmaece a borda com mais abas.
+  const strip = useScrollStrip<HTMLDivElement>()
   const [visited, setVisited] = useState<Set<string>>(() => new Set([active]))
   if (!visited.has(active)) setVisited(new Set([...visited, active]))
   const enabled = tabs.filter((t) => !t.disabled)
@@ -43,7 +46,7 @@ export function UrlTabs({ tabs, fallback, label, help = true }: { tabs: UrlTab[]
 
   return (
     <div>
-      <div role="tablist" aria-label={label} onKeyDown={move} className="flex gap-1 overflow-x-auto border-b border-border">
+      <div ref={strip} role="tablist" aria-label={label} onKeyDown={move} className="scrollbar-none fade-x flex gap-1 overflow-x-auto border-b border-border">
         {tabs.map((t, i) => (
           <button
             key={t.id}

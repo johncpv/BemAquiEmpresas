@@ -12,7 +12,6 @@ import { cnpjMask } from '@/lib/masks'
 import { STATES } from '@/pages/parties/labels'
 import { emptyOnly, useCepLookup } from '@/pages/parties/lookups'
 import { PageHeading } from '@/shell/PageHeading'
-import { SettingsTabs } from '../SettingsTabs'
 import { useCanSettings } from '../use-can-settings'
 import { CompanyLogo } from './CompanyLogo'
 import { companySchema, toInput, toValues } from './company-form'
@@ -24,7 +23,6 @@ export function CompanyPage() {
   return (
     <>
       <PageHeading title="Configurações: Empresa" />
-      <SettingsTabs />
       {query.isPending ? <Skeleton className="h-96 max-w-3xl" /> : query.isError || !query.data ? <ErrorState onRetry={() => query.refetch()} /> : (
         <CompanyForm key={query.data.id ?? 'novo'} profile={query.data} canEdit={canEdit} />
       )}

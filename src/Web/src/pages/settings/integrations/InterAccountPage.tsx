@@ -17,7 +17,6 @@ import { formatDateTime, formatInstantDate } from '@/lib/format'
 import { useNavigation } from '@/navigation/navigation-context'
 import { ModuleNotReleased } from '@/pages/ModulePage'
 import { PageHeading } from '@/shell/PageHeading'
-import { SettingsTabs } from '../SettingsTabs'
 import { useCanSettings } from '../use-can-settings'
 import { InterCredentialsForm } from './InterCredentialsForm'
 import { IntegrationsNav } from './IntegrationsNav'
@@ -150,7 +149,6 @@ export function InterAccountPage() {
       <PageHeading title={detail ? `Banco Inter · ${detail.accountName}` : 'Banco Inter'}>
         <Link to="/app/configuracoes/integracoes/inter" className="mt-2 inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-primary"><ArrowLeft aria-hidden="true" className="size-4" />Contas do Inter</Link>
       </PageHeading>
-      <SettingsTabs />
       <IntegrationsNav />
     </>
   )

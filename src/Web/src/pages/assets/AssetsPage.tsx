@@ -15,7 +15,6 @@ import { LabelBatchReady, PrintLabelsDialog } from './AssetLabelActions'
 import { AssetPhoto } from './AssetPhoto'
 import { ASSET_DICAS, isAssetStatus, isAssetType, STATUS_LABELS, STATUS_OPTIONS, STATUS_TONES, TERMINATED_REASON, TYPE_LABELS, TYPE_OPTIONS } from './assets'
 import { TransferAssetsDialog } from './AssetTransferDialog'
-import { AssetsTabs } from './AssetsTabs'
 
 /**
  * Patrimônio → Bens (PAT-01a CA 9): busca por etiqueta, nome e série; filtros por tipo, local, centro, responsável e situação na URL.
@@ -74,7 +73,6 @@ export function AssetsPage() {
           </div>
         </div>
       </PageHeading>
-      <AssetsTabs />
       {typeof lote === 'string' && lote ? <LabelBatchReady attachmentId={lote} /> : null}
       <DataTable
         label="Bens"

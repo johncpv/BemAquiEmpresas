@@ -12,7 +12,6 @@ import { WEEKDAYS } from './calendar'
 import { ExceptionPanel } from './ExceptionPanel'
 import { ExceptionsTable } from './ExceptionsTable'
 import { HolidaysPanel } from './HolidaysPanel'
-import { ProductionTabs } from './ProductionTabs'
 
 const thisYear = () => Number(new Intl.DateTimeFormat('en', { year: 'numeric', timeZone: 'America/Sao_Paulo' }).format(new Date()))
 
@@ -24,7 +23,6 @@ export function CalendarPage() {
       <PageHeading title="Produção: Calendário">
         <p className="mt-2 text-muted-foreground">Dias úteis, feriados e paradas que o planejamento usa para calcular os prazos.</p>
       </PageHeading>
-      <ProductionTabs />
       {query.isPending ? <Skeleton className="h-96" /> : query.isError || !query.data ? <ErrorState onRetry={() => query.refetch()} /> : <CalendarBody calendar={query.data} />}
     </>
   )

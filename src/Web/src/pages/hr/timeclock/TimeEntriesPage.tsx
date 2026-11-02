@@ -4,7 +4,6 @@ import { ApiError } from '@/api/http'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { HrTabs } from '../HrTabs'
 import { InternalControlBanner } from './TimeClockPanel'
 import { defaultRange, todayInSaoPaulo } from './time-clock'
 import { TimeClockTabs } from './TimeClockTabs'
@@ -63,7 +62,6 @@ export function TimeEntriesPage() {
       <PageHeading title="RH: Ponto">
         <p className="mt-1 text-muted-foreground">Marcações de cada funcionário por dia, para o espelho, o banco de horas e a folha.</p>
       </PageHeading>
-      <HrTabs />
       <div className="max-w-4xl space-y-4">
         <TimeClockTabs />
         <InternalControlBanner />

@@ -13,7 +13,6 @@ import { ToConfirmChip } from '@/components/ui/to-confirm-chip'
 import { useNavigation } from '@/navigation/navigation-context'
 import { ModuleNotReleased } from '@/pages/ModulePage'
 import { PageHeading } from '@/shell/PageHeading'
-import { SettingsTabs } from '../SettingsTabs'
 import { CollectionRuleSection } from './CollectionRuleSection'
 import { BILLING_DICAS, FINE_KEY, INTEREST_KEY, OVERDUE_KEY, OVERDUE_OPTIONS, pendingText } from './billing-settings'
 
@@ -35,7 +34,6 @@ export function BillingSettingsPage() {
       <PageHeading title="Cobrança">
         <p className="mt-2 text-muted-foreground">Multa, juros, desconto, envio do boleto com Pix e a régua de cobrança por e-mail. Os valores já vêm preenchidos; confira com a contadora.</p>
       </PageHeading>
-      <SettingsTabs />
       {query.isPending ? (
         <div className="space-y-3"><Skeleton className="h-10" /><Skeleton className="h-64" /></div>
       ) : query.isError || !query.data ? (

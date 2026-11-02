@@ -9,7 +9,6 @@ import { StageIndicator } from '@/components/ui/stage-indicator'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { formatDate, formatDateTime } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { FinanceTabs } from '../FinanceTabs'
 import { BalancesStep } from './BalancesStep'
 import { CutoverStep } from './CutoverStep'
 import { OpeningLinesStep } from './OpeningLinesStep'
@@ -55,7 +54,6 @@ export function OpeningPage() {
           <StageIndicator stages={OPENING_STEPS.map((s) => s.label)} current={step} />
         </div>
       </PageHeading>
-      <FinanceTabs />
       {status.completedAt ? (
         <p role="status" className="mb-4 rounded-md border border-ok-soft bg-ok-soft px-3 py-2 text-sm text-ok-ink">
           Implantação concluída em {formatDateTime(status.completedAt)}, com data de corte em {formatDate(status.cutoverDate ?? '')}. A tela fica só para consulta.

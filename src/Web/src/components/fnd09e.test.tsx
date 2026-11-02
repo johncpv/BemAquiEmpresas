@@ -1,9 +1,16 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { createMemoryHistory } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
-import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, renderHook, screen, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { App } from '@/App'
 import { ApiError } from '@/api/http'
+import { setAccessToken } from '@/api/session'
+import { SAMPLE_MODULES } from '@/navigation/sample'
+import { createAppRouter } from '@/router'
 import { renderWithRouter } from '@/test-utils'
+import { ThemeProvider } from '@/theme/ThemeProvider'
 import { DataTable, type TableQuery } from './data-table/DataTable'
 import { applyServerErrors, toFormPath, useZodForm } from './form/form-utils'
 import { RowsEditor } from './form/rows-editor'
@@ -156,14 +163,30 @@ describe('Chart (CA 11)', () => {
 })
 
 describe('menu do Financeiro em dois grupos (CA 12)', () => {
-  it('operação primeiro, configuração depois, cada item no seu grupo', async () => {
-    const { FinanceTabs } = await import('@/pages/finance/FinanceTabs')
-    renderWithRouter(() => <FinanceTabs />)
-    const cash = await screen.findByRole('group', { name: 'Caixa e pagamentos' })
-    const setup = screen.getByRole('group', { name: 'Configuração financeira' })
-    expect(cash.textContent).toContain('Contas e caixas')
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    setAccessToken(null)
+  })
+
+  it('na barra do topo: operação primeiro, configuração depois, cada item no seu grupo, sem repetir na página', async () => {
+    setAccessToken('token-de-teste')
+    const body = (url: string) => (url.startsWith('/api/v1/me/permissions') ? { permissions: [], isOwner: true, version: '1', modules: SAMPLE_MODULES } : url.startsWith('/api/v1/ajuda') ? [] : {})
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify(body(url)), { status: 200, headers: { 'Content-Type': 'application/json' } })))
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <ThemeProvider>
+          <App appRouter={createAppRouter(createMemoryHistory({ initialEntries: ['/app/financeiro/contas'] }))} />
+        </ThemeProvider>
+      </QueryClientProvider>,
+    )
+    const topbar = await screen.findByRole('navigation', { name: 'Telas de Caixa e pagamentos' })
+    const cash = within(topbar).getByRole('group', { name: 'Caixa e pagamentos' })
+    const setup = within(topbar).getByRole('group', { name: 'Configuração financeira' })
+    expect(within(cash).getByRole('link', { name: 'Contas e caixas' }).getAttribute('aria-current')).toBe('page')
     expect(setup.textContent).toContain('Plano de contas')
     expect(setup.textContent).toContain('Condições de pagamento')
     expect(cash.compareDocumentPosition(setup) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // Navegação única: a página não repete as abas do módulo.
+    expect(within(screen.getByRole('main')).queryByRole('link', { name: 'Plano de contas' })).toBeNull()
   })
 })

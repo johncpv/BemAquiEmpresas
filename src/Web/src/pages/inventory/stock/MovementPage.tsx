@@ -14,7 +14,6 @@ import { Tag } from '@/components/ui/tag'
 import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { InventoryTabs } from '../InventoryTabs'
 import { DICAS, formatQuantity, formatUnitCost, MOVEMENT_TYPE } from './stock'
 
 /**
@@ -65,7 +64,6 @@ export function MovementPage() {
           ) : null}
         </div>
       </PageHeading>
-      <InventoryTabs />
       {!canReverse && detail.reverseMessage ? (
         <p role="note" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">
           {detail.reverseMessage}

@@ -14,7 +14,6 @@ import { formatDateTime } from '@/lib/format'
 import { useNavigation } from '@/navigation/navigation-context'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { HrTabs } from '../HrTabs'
 import { periodLabel, typeLabel } from '../payroll/payroll'
 import { MappingsSection } from './MappingsSection'
 import { ParallelDetail } from './ParallelDetail'
@@ -50,7 +49,6 @@ export function PayrollParallelPage() {
       <PageHeading title="RH: Conferência da folha">
         <p className="mt-2 text-muted-foreground">A folha calculada pelo sistema lado a lado com a da contadora, competência por competência, até a virada.</p>
       </PageHeading>
-      <HrTabs />
       {query.isPending ? <Skeleton className="h-64" /> : query.isError ? (
         <ErrorState title="Não foi possível carregar a conferência da folha." message={query.error instanceof ApiError ? query.error.message : undefined} onRetry={() => query.refetch()} />
       ) : !view ? null : (

@@ -16,7 +16,6 @@ import { formatDateTime, formatInstantDate } from '@/lib/format'
 import { useNavigation } from '@/navigation/navigation-context'
 import { ModuleNotReleased } from '@/pages/ModulePage'
 import { PageHeading } from '@/shell/PageHeading'
-import { SettingsTabs } from '../SettingsTabs'
 import { FiscalNav } from './FiscalNav'
 import { certificateStatus, DICAS } from './fiscal-settings'
 
@@ -45,7 +44,6 @@ export function FiscalCertificatePage() {
           <Dica nome="Certificado A1" texto={DICAS.a1} />
         </p>
       </PageHeading>
-      <SettingsTabs />
       <FiscalNav />
       {query.isPending ? <Skeleton className="h-64 max-w-3xl" /> : query.isError || !query.data ? (
         <ErrorState className="max-w-3xl" message={query.error instanceof ApiError ? query.error.message : undefined} onRetry={() => void query.refetch()} />

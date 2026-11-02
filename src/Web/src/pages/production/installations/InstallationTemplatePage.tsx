@@ -9,7 +9,6 @@ import { notifySuccess } from '@/components/ui/messages'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { ProductionTabs } from '../ProductionTabs'
 
 const toText = (lines: readonly string[]) => lines.join('\n')
 const toLines = (text: string) => text.split('\n').map((l) => l.trim()).filter(Boolean)
@@ -22,7 +21,6 @@ export function InstallationTemplatePage() {
       <PageHeading title="Produção: Modelo da OS de instalação">
         <p className="mt-2 text-muted-foreground">Toda OS de instalação nova copia estas etapas e este checklist. Mudar aqui não altera as OS já criadas.</p>
       </PageHeading>
-      <ProductionTabs />
       {query.isPending ? <Skeleton className="h-64" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : <TemplateForm key={JSON.stringify(query.data)} template={query.data} />}
     </>
   )

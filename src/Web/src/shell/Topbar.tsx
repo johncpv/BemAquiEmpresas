@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { CircleHelp, Search } from 'lucide-react'
 import { MOBILE, useMediaQuery } from '@/hooks/useMediaQuery'
+import { useScrollStrip } from '@/hooks/useScrollStrip'
 import type { NavArea, NavModule, Tab } from '@/navigation/modules'
 import { useNavigation } from '@/navigation/navigation-context'
 import { ThemeToggle } from '@/theme/ThemeToggle'
@@ -18,7 +19,8 @@ interface TopbarProps {
 
 /**
  * Topbar (FND-09b CA 6 a 8): marca do tenant, trilha, busca com Ctrl K, Ajuda (slot da FND-14), sino, tema e usuário.
- * A 400px a busca vira ícone e o tema vai para o menu do usuário. Sub-telas viram abas com rota própria.
+ * A 400px a busca vira ícone e o tema vai para o menu do usuário. Sub-telas viram abas com rota própria, só aqui:
+ * a página não repete as abas do módulo.
  */
 export function Topbar({ area, module, tab, onSearch, onHelp }: TopbarProps) {
   const { tenantName, tenantLogo } = useNavigation()
@@ -60,21 +62,56 @@ export function Topbar({ area, module, tab, onSearch, onHelp }: TopbarProps) {
         </div>
       </div>
 
-      {module && module.tabs.length > 0 ? (
-        <nav aria-label={`Telas de ${module.name}`} className="flex gap-1 overflow-x-auto px-4 sm:px-6">
-          {module.tabs.map((t) => (
-            <Link
-              key={t.slug}
-              to="/app/$module/$tab"
-              params={{ module: module.slug, tab: t.slug }}
-              aria-current={t.slug === tab?.slug ? 'page' : undefined}
-              className="border-b-2 border-transparent px-3 pb-2 pt-1 text-sm font-medium text-muted-foreground aria-[current=page]:border-signal aria-[current=page]:text-foreground"
-            >
-              {t.label}
-            </Link>
-          ))}
-        </nav>
-      ) : null}
+      {module && module.tabs.length > 0 ? <ModuleTabs module={module} current={tab?.slug} /> : null}
     </header>
+  )
+}
+
+/** Abas seguidas do mesmo grupo viram um bloco; aba sem grupo fica num bloco sem rótulo. */
+function groupTabs(tabs: readonly Tab[]) {
+  const groups: { label?: string; tabs: Tab[] }[] = []
+  for (const t of tabs) {
+    const last = groups.at(-1)
+    if (last && last.label === t.group) last.tabs.push(t)
+    else groups.push({ label: t.group, tabs: [t] })
+  }
+  return groups
+}
+
+/**
+ * A única navegação das sub-telas do módulo (cada aba é uma rota própria, FND-09b CA 8). Quando o módulo agrupa as
+ * abas (FND-09e CA 12, D12: "Caixa e pagamentos" e "Configuração financeira"; Estoque: "Operação" e "Cadastros"),
+ * cada grupo ganha um rótulo discreto e um separador. A faixa rola na horizontal sem barra nativa, com a borda
+ * esmaecida quando há mais abas daquele lado.
+ */
+function ModuleTabs({ module, current }: { module: NavModule; current?: string }) {
+  const strip = useScrollStrip<HTMLElement>()
+  return (
+    <nav ref={strip} aria-label={`Telas de ${module.name}`} className="scrollbar-none fade-x flex items-end overflow-x-auto px-4 sm:px-6">
+      {groupTabs(module.tabs).map((g, i) => {
+        const links = g.tabs.map((t) => (
+          <Link
+            key={t.slug}
+            to="/app/$module/$tab"
+            params={{ module: module.slug, tab: t.slug }}
+            aria-current={t.slug === current ? 'page' : undefined}
+            className="shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 pb-2 pt-1 text-sm font-medium text-muted-foreground hover:text-foreground aria-[current=page]:border-signal aria-[current=page]:text-foreground"
+          >
+            {t.label}
+          </Link>
+        ))
+        return (
+          <div key={`${i}-${g.label ?? ''}`} role={g.label ? 'group' : undefined} aria-label={g.label} className="flex shrink-0 items-end">
+            {i > 0 ? <span aria-hidden="true" className="mx-2 mb-2.5 h-4 w-px shrink-0 bg-border" /> : null}
+            {g.label ? (
+              <span aria-hidden="true" className="shrink-0 whitespace-nowrap pb-2.5 pl-1 pr-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {g.label}
+              </span>
+            ) : null}
+            {links}
+          </div>
+        )
+      })}
+    </nav>
   )
 }

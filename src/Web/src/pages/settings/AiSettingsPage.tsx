@@ -11,7 +11,6 @@ import { formatDateTime } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { AiSettingsForm } from './AiSettingsForm'
-import { SettingsTabs } from './SettingsTabs'
 
 /**
  * Configurações → Inteligência artificial (FND-15 CA 9 a 13, R-AJD-8): provedor, modelo e chave write-only. Sem
@@ -30,7 +29,6 @@ export function AiSettingsPage() {
       <PageHeading title="Configurações: Inteligência artificial">
         <p className="mt-2 text-muted-foreground">O Pergunte ao BemAqui usa este provedor para responder com base só nos textos de ajuda. Nenhum dado da empresa é enviado.</p>
       </PageHeading>
-      <SettingsTabs />
       {saved && !editing ? <div className="mb-4 max-w-xl"><NextSteps onDismiss={() => setSaved(false)} steps={[{ label: 'Perguntar ao BemAqui', onSelect: () => help.setOpen(true) }]} /></div> : null}
       {settings.isPending ? <Skeleton className="h-48 max-w-xl" /> : settings.isError ? <ErrorState onRetry={() => settings.refetch()} /> : editing ? (
         <AiSettingsForm settings={settings.data} onDone={async () => { await refresh(); setEditing(false); setSaved(true) }} onCancel={() => setEditing(false)} />

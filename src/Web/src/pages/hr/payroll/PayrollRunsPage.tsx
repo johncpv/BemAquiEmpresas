@@ -15,7 +15,6 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { HrTabs } from '../HrTabs'
 import { choosesEmployees, currentPeriod, isThirteenth, PAYROLL_DICAS, periodLabel, RUN_TYPES, STATUS_LABELS, STATUS_TONES, thirteenthPeriod, typeLabel } from './payroll'
 import { ThirteenthPreviewPanel } from './ThirteenthPreview'
 
@@ -54,7 +53,6 @@ export function PayrollRunsPage() {
           </span>
         </div>
       </PageHeading>
-      <HrTabs />
       {query.isPending ? <Skeleton className="h-48" /> : query.isError ? <ErrorState title="Não foi possível carregar as folhas." onRetry={() => query.refetch()} /> : query.data.length === 0 ? (
         <EmptyState title="Nenhuma folha ainda." description="Crie a folha do mês para lançar os valores da contadora." action={newButton} />
       ) : (
