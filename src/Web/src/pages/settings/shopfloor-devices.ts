@@ -14,6 +14,7 @@ const REASON: Record<string, string> = {
   unused: 'sem uso por 30 dias',
   expired: '180 dias vencidos',
   secret_reused: 'segredo antigo reapresentado',
+  go_live: 'virada para produção (registre de novo)',
 }
 
 export function revokedText(row: Pick<ShopfloorDeviceRow, 'revokedReason' | 'revokedByName'>) {

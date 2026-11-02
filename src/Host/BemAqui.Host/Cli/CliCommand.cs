@@ -14,7 +14,7 @@ namespace BemAqui.Host.Cli;
 
 /// <summary>
 /// Modo CLI da imagem (ADR 0006): <c>migrate</c> (catálogo e todos os tenants, antes da subida da API) e
-/// <c>tenant provision</c> (FND-03a), <c>platform-admin create</c> (FND-13) e <c>alert raise</c> (FND-10, falha do backup), <c>tenant invite-owner</c> (link do convite do proprietário sem e-mail) e <c>tenant import-dolibarr</c> (MIG-01a). Saída em PT-BR; código de saída 0 = sucesso.
+/// <c>tenant provision</c> (FND-03a), <c>platform-admin create</c> (FND-13) e <c>alert raise</c> (FND-10, falha do backup), <c>tenant invite-owner</c> (link do convite do proprietário sem e-mail) e <c>tenant import-dolibarr</c> (MIG-01a); na virada (GOL-01a) <c>tenant promote</c>, <c>reencrypt-secrets</c> e <c>tenant copy-files</c>. Saída em PT-BR; código de saída 0 = sucesso.
 /// </summary>
 public static class CliCommand
 {
@@ -38,7 +38,8 @@ public static class CliCommand
         new BemAqui.Migrations.Endpoints.MigrationModule(),
     ];
 
-    public static bool IsCli(string[] args) => args is ["migrate", ..] or ["tenant", "provision", ..] or ["tenant", "invite-owner", ..] or ["tenant", "import-dolibarr", ..] or ["platform-admin", "create", ..] or ["alert", "raise", ..];
+    public static bool IsCli(string[] args) => args is ["migrate", ..] or ["tenant", "provision", ..] or ["tenant", "invite-owner", ..] or ["tenant", "import-dolibarr", ..] or ["platform-admin", "create", ..] or ["alert", "raise", ..] or ["reencrypt-secrets", ..]
+        or ["tenant", "promote", ..] or ["tenant", "copy-files", ..];
 
     public static async Task<int> RunAsync(string[] args, Action<IConfigurationBuilder>? configure = null, TextWriter? output = null)
     {
@@ -82,7 +83,10 @@ public static class CliCommand
             return args[0] switch
             {
                 "migrate" => await MigrateAsync(scope.ServiceProvider, output),
+                "reencrypt-secrets" => await Reencryption.ReencryptSecretsCommand.RunAsync(scope.ServiceProvider, new CliArguments(args.Skip(1).ToList()), output),
                 "tenant" when args[1] == "import-dolibarr" => await DolibarrImportCommand.RunAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
+                "tenant" when args[1] == "promote" => await GoLive.TenantPromoteCommand.RunAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
+                "tenant" when args[1] == "copy-files" => await GoLive.TenantFilesCopyCommand.RunAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
                 "tenant" when args[1] == "invite-owner" => await InviteOwnerAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
                 "alert" => await RaiseAlertAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
                 "platform-admin" => await CreatePlatformAdminAsync(scope.ServiceProvider, new CliArguments(args.Skip(2).ToList()), output),
