@@ -1,9 +1,37 @@
 # Runbook: deploy da homologação (FND-10, ADR 0015)
 
+## Produção = stack bemaqui-empresas-homolog desde 02/11/2026
+
+Na virada de 02/11/2026 a homologação **virou a produção** (decisão do PO; ADR 0034, adendo de 02/11/2026 à noite; ADR 0020; registro em [go-live.md](go-live.md) §12). A stack `/opt/projetos/bemaqui-empresas-homolog/` (containers `bqe-homolog-*`) serve o tenant `konebras` em **`https://app.konebras.com.br`**; `homolog.konebras.com.br` só redireciona (301) para ele; `plataforma-homolog.bemaquiapp.com.br` continua com o super admin, o Hangfire e os `/webhooks/`. O Dolibarr foi desligado. O ambiente `deploy/prod/` (seção "Produção" abaixo) é da **fase 2** e não está em uso.
+
+Regras de cada deploy, a partir de agora:
+- **Todo deploy é de produção.** Não existe `demo` nem tenant de teste nesta stack (o catálogo só tem o `konebras`): nada de teste manual, E2E ou dado de exemplo em `app.`. Teste só local ou numa cópia descartável.
+- **Só da `origin/main`, depois do merge de um PR com o CI verde.** Nada de deploy de branch, de commit local ou com o CI vermelho.
+- **Dump antes:** `catalog` e `tenant_konebras` em `predeploy-dumps/` (0600), conferidos com `pg_restore -l`, antes de trocar a imagem. É o backup até o B2 da fase 2.
+- **Migration** só expand/contract (ADR 0006): o rollback do deploy volta a imagem, e o banco só volta pelo dump, com o PO ([restauracao.md](restauracao.md)).
+- Marcas `fiscal_environment_allowed = 'None'` e `bank_production_allowed = false` até o checklist "Antes da primeira operação fiscal e bancária" ([go-live.md](go-live.md) §2): nenhum deploy as liga.
+
+Como publicar (o pipeline `deploy-homolog.yml` continua desligado; o deploy é pelo script local):
+```bash
+BQE_SSH_KEY=~/.ssh/<chave da VPS> sh scripts/deploy-homolog.sh
+```
+O script (`scripts/deploy-homolog.sh`, sem nenhum segredo; a chave SSH vem da variável):
+1. põe uma worktree só de deploy (`BQE_WORKTREE`, padrão `../bq-deploy`) no commit da `origin/main` e pede confirmação (`BQE_YES=1` pula);
+2. monta as imagens `api`, `web` e `backup` com a tag do SHA e envia à VPS por `docker save | gzip | ssh docker load` (sem GHCR);
+3. na VPS, faz o `pg_dump -Fc` do `catalog` e do `tenant_konebras` em `predeploy-dumps/` (0600) e confere cada um com `pg_restore -l`; falhou, nada muda;
+4. instala o `docker-compose.yml` e o `deploy.sh` do commit, guardando os anteriores como `.bak-<carimbo>`, e confere com `docker compose config -q`; inválido, volta e para;
+5. troca o `IMAGE_TAG` do `.env` e roda o `migrator`; falhou, volta a tag e o compose (a versão anterior continua no ar);
+6. `docker compose up -d --no-deps --wait --wait-timeout 180` de `fiscal-pdf-reader`, `bqe-homolog-api` e `bqe-homolog-web`; sem saúde, volta a tag e o compose e sobe a anterior;
+7. fumaça de fora: `scripts/smoke.sh app.konebras.com.br`, com o 301 de `homolog.konebras.com.br` (`SMOKE_PLATFORM_HOST=plataforma-homolog.bemaquiapp.com.br` só de um IP fora da allowlist).
+
+Os dumps ficam em `predeploy-dumps/` na VPS (dado real em claro, 0700/0600): não copie para fora da VPS e apague os antigos quando houver muitos, mantendo os mais recentes.
+
+---
+
 Para quem opera a VPS. Este runbook prepara a homologação **uma vez**; depois disso, a publicação pelo Actions liga com a variável `HOMOLOG_DEPLOY`. Desde a economia de minutos do Actions (21/10/2026), o CI roda só no PR pronto para revisão e não no push da `main`; com a variável ligada, dispare "Deploy homologação" à mão (workflow_dispatch). Enquanto ela estiver desligada, o deploy de homologação é feito pelo script local, que monta as imagens do commit da `main`, envia à VPS, roda o migrator e a fumaça.
 
 Regras que valem em toda a operação:
-- **VPS compartilhada:** não mexa nos containers, volumes e vhosts dos outros projetos (`bemaqui-atende`, `konebras`, `nshome`…). `app.konebras.com.br` continua com o Dolibarr até a GOL-01.
+- **VPS compartilhada:** não mexa nos containers, volumes e vhosts dos outros projetos (`bemaqui-atende`, `nshome`…). Desde 02/11/2026, `app.konebras.com.br` é desta stack (seção do topo) e o Dolibarr e o Konebras UI foram removidos da VPS.
 - **nginx:** `docker exec stack-nginx nginx -t` **antes** de todo `nginx -s reload`. Se o teste falhar, desfaça a cópia e não recarregue.
 - **Nomes únicos:** na `stack_stack`, `postgres`, `redis`, `api` e `web` já são apelidos de outros projetos. Por isso a API e a web se chamam `bqe-homolog-api` e `bqe-homolog-web`, e o banco e o ClamAV são acessados pelo nome do container (`bqe-homolog-postgres`, `bqe-homolog-clamav`). Nunca use host genérico numa connection string.
 - **Segredos:** nunca entram no repositório, em chat, em ticket ou em variável de ambiente. Cada um é um arquivo em `secrets/`, com chmod 0400.
@@ -71,7 +99,7 @@ docker compose run --rm migrator platform-admin create --email <e-mail do super 
 4. Troque o arquivo pelo `deploy/nginx/bemaqui-empresas-homolog.conf`.
 5. Crie `/opt/infra/nginx/conf.d/bemaqui-empresas-homolog.allow` a partir do `.allow.example`, com os IPs liberados.
 6. Rode `nginx -t` e depois o reload.
-7. Confira com `sh scripts/smoke.sh homolog.konebras.com.br app.konebras.com.br`.
+7. Confira com `SMOKE_REDIRECT_HOST=homolog.konebras.com.br sh scripts/smoke.sh app.konebras.com.br` (desde 02/11/2026; antes da virada era `homolog.` com o Dolibarr em `app.`).
 
 ### Backup no cron do root
 ```
@@ -90,7 +118,8 @@ Rode uma vez à mão (`./backup-cron.sh daily`) e liste o bucket. Depois, **tent
 ## Cada deploy (manual)
 - **Imagens:** o `deploy-homolog.yml` roda à mão (workflow_dispatch) na `main`, depois do CI verde do PR. Ele publica as imagens com a tag do SHA e chama `deploy.sh`.
 - **Ordem no `deploy.sh`:** compose do commit, depois `pull`, depois `migrator`, depois `api` e `web` esperando `healthy`.
-- **Fumaça:** `scripts/smoke.sh` confere `/health/ready`, o front, o tenant, a rota `/hubs` e o Dolibarr em `app.konebras.com.br`.
+- **Fumaça:** `scripts/smoke.sh` confere `/health/ready`, o front, o HSTS, o tenant e a rota `/hubs` em `app.konebras.com.br` (padrão), e, se pedido, o 301 do host antigo e a plataforma. Não confere mais o Dolibarr (desligado em 02/11/2026).
+- **Antes de ligar o `deploy-homolog.yml`:** o `deploy.yml` monta a web da `homolog` com `VITE_GALERIA=true` (galeria de moldes); agora que esta stack é a produção, isso tem de ser revisto antes (o `scripts/deploy-homolog.sh` monta sem a galeria).
 - **Migrator falhou:** o deploy termina com erro, a versão anterior fica no ar e o alerta `migration_failed` é enviado.
 - **API nova sem saúde:** o `deploy.sh` volta para a tag anterior.
 
@@ -101,7 +130,9 @@ sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=<sha anterior>/' .env && docker compose up -d 
 ```
 As migrations seguem o padrão expand/contract, então a versão anterior aceita o schema mais novo.
 
-# Produção (GOL-01a, ADR 0034)
+# Produção (GOL-01a, ADR 0034) — fase 2, NÃO está em uso
+
+> Desde 02/11/2026 a produção é a stack da homologação (seção do topo). Esta seção vale para o ambiente novo da **fase 2**, depois do go-live, junto com o B2. O `adm-dolibarr.conf` não será mais usado (Dolibarr desligado).
 
 Ambiente **novo**, em `/opt/projetos/bemaqui-empresas/`, projeto `bqe-prod`: nada é copiado da homologação (nem secret, nem key ring, nem volume). O único dado que passa é o banco do `konebras`, restaurado e recifrado pelo runbook da virada (`go-live.md`). Arquivos no repositório:
 
@@ -153,7 +184,7 @@ cd $D && docker compose --profile backup config -q
 3. **Na virada (GOL-01b), num reload só:** mova o vhost atual do Dolibarr (`app.konebras.com.br`) para fora do `conf.d` (é o arquivo do rollback), troque o bootstrap pelo `deploy/prod/nginx/bemaqui-empresas.conf` e instale `adm-dolibarr.conf` (com o upstream do Dolibarr copiado do vhost antigo no lugar de `CONFIRMAR-container-do-dolibarr`), `bemaqui-empresas.allow`, `adm-dolibarr.allow` e `adm-dolibarr.htpasswd` (`htpasswd -B -c adm-dolibarr.htpasswd <usuário>`, chmod 0640). `nginx -t` e reload; se o teste falhar, desfaça a cópia e não recarregue.
 4. Confira: `SMOKE_PLATFORM_HOST=plataforma.bemaquiapp.com.br SMOKE_ADM_HOST=adm.konebras.com.br sh scripts/smoke.sh app.konebras.com.br`.
 
-Ensaio local dos vhosts: `sh scripts/check-nginx.sh` (também no CI) faz o `nginx -t` antes e depois da virada, com homologação, produção e Dolibarr juntos.
+Ensaio local dos vhosts: `sh scripts/check-nginx.sh` (também no CI) faz o `nginx -t` da produção atual (comum + `bemaqui-empresas-homolog.conf`), do ambiente novo da fase 2 (comum + `deploy/prod/nginx/bemaqui-empresas.conf`) e do bootstrap da homologação.
 
 ## Primeira subida (ensaio e virada)
 ```bash

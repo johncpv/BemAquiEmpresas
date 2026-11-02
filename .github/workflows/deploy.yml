@@ -72,7 +72,7 @@ jobs:
           printf '%s\n' "$KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
           tar -cz deploy | ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "root@$SSH_HOST" "deploy $SHA"
-      - name: Fumaça (health, rotas da API e Dolibarr intacto)
+      - name: Fumaça (health e rotas da API; o Dolibarr foi desligado em 02/11/2026)
         env:
           TENANT_HOST: ${{ inputs.tenant_host }}
           DOLIBARR_HOST: ${{ inputs.dolibarr_host }}
