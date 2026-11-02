@@ -48,25 +48,23 @@ export function EmployeeGeneral({ employee, canEdit, onSaved, linking, onLinking
             </Field>
           </FormSection>
           <FormSection title="Contrato" description={`Cargo: ${employee.positionName}${employee.workCenterName ? ` · Centro: ${employee.workCenterName}` : ''}. Para mudar o cargo, use "Trocar cargo".`}>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Admissão" required error={field('admissionDate')}>{(p) => <DateInput {...p} value={draft.admissionDate} onChange={(admissionDate) => set({ admissionDate })} />}</Field>
-              <Field label="Jornada" error={field('workScheduleId')}>
-                {(p) => (
-                  <select {...p} value={draft.workScheduleId} onChange={(e) => set({ workScheduleId: e.target.value })} className={inputClass}>
-                    <option value="">Sem jornada</option>
-                    {(schedules.data ?? []).filter((s) => s.isActive || s.id === draft.workScheduleId).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-                )}
-              </Field>
-              <Field label="Sindicato" error={field('unionId')}>
-                {(p) => (
-                  <select {...p} value={draft.unionId} onChange={(e) => set({ unionId: e.target.value })} className={inputClass}>
-                    <option value="">Sem sindicato</option>
-                    {(unions.data ?? []).filter((u) => u.isActive || u.id === draft.unionId).map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-                  </select>
-                )}
-              </Field>
-            </div>
+            <Field label="Admissão" required error={field('admissionDate')}>{(p) => <DateInput {...p} value={draft.admissionDate} onChange={(admissionDate) => set({ admissionDate })} />}</Field>
+            <Field label="Jornada" error={field('workScheduleId')}>
+              {(p) => (
+                <select {...p} value={draft.workScheduleId} onChange={(e) => set({ workScheduleId: e.target.value })} className={inputClass}>
+                  <option value="">Sem jornada</option>
+                  {(schedules.data ?? []).filter((s) => s.isActive || s.id === draft.workScheduleId).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              )}
+            </Field>
+            <Field label="Sindicato" error={field('unionId')}>
+              {(p) => (
+                <select {...p} value={draft.unionId} onChange={(e) => set({ unionId: e.target.value })} className={inputClass}>
+                  <option value="">Sem sindicato</option>
+                  {(unions.data ?? []).filter((u) => u.isActive || u.id === draft.unionId).map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                </select>
+              )}
+            </Field>
           </FormSection>
           {canEdit ? <div className="flex justify-end"><button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar dados gerais</button></div> : null}
         </fieldset>

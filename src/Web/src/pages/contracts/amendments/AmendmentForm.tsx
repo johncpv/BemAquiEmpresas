@@ -64,10 +64,8 @@ export function AmendmentForm({ contractId, amendment }: { contractId: string; a
       <FormSection title="O que muda">
         <Field label="Descrição" required error={field('description')}>{(p) => <textarea {...p} rows={2} maxLength={500} value={description} onChange={(e) => setDescription(e.target.value)} className={inputClass} />}</Field>
         <ToggleGroup label="Tipo" value={kind} onChange={setKind} options={[{ value: 'more', label: 'Acréscimo' }, { value: 'less', label: 'Redução' }, { value: 'days', label: 'Só prazo' }]} />
-        <div className="grid gap-3 sm:grid-cols-2">
-          {kind !== 'days' ? <Field label={kind === 'more' ? 'Valor do acréscimo' : 'Valor da redução'} required error={field('valueDelta')}>{(p) => <MoneyInput {...p} value={amount} onChange={setAmount} />}</Field> : null}
-          <Field label="Variação de prazo (dias)" error={field('daysDelta')}>{(p) => <input {...p} inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/[^\d-]/g, ''))} className={inputClass} />}</Field>
-        </div>
+        {kind !== 'days' ? <Field label={kind === 'more' ? 'Valor do acréscimo' : 'Valor da redução'} required error={field('valueDelta')}>{(p) => <MoneyInput {...p} value={amount} onChange={setAmount} />}</Field> : null}
+        <Field label="Variação de prazo (dias)" error={field('daysDelta')}>{(p) => <input {...p} inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/[^\d-]/g, ''))} className={inputClass} />}</Field>
       </FormSection>
       {kind === 'more' ? <FormSection title="Marcos do acréscimo" description="Os marcos precisam somar 100% do acréscimo."><AmendmentMilestones value={value} rows={rows} onChange={setRows} /></FormSection> : null}
       {kind === 'less' ? (

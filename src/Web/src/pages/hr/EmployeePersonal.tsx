@@ -68,34 +68,28 @@ function PersonalForm({ employee, data, canEdit }: { employee: EmployeeDetail; d
       <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
       <fieldset disabled={!canEdit} className="space-y-4">
         <FormSection title="Documentos" description="Dado pessoal protegido pela LGPD. Cada leitura desta aba fica registrada.">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="CPF" required error={field('cpf')}>{(p) => <CpfInput {...p} value={draft.cpf} onChange={(cpf) => set({ cpf })} />}</Field>
-            <Field label="Data de nascimento" required error={field('birthDate')}>{(p) => <DateInput {...p} value={draft.birthDate} onChange={(birthDate) => set({ birthDate })} />}</Field>
-            {text('rg', 'RG', { max: 20 })}
-            {text('pis', 'PIS', { max: 14, dica: EMPLOYEE_DICAS.pis, className: ' tabular-nums' })}
-            {text('ctpsNumber', 'CTPS: número', { max: 20, dica: EMPLOYEE_DICAS.ctps, className: ' tabular-nums' })}
-            {text('ctpsSeries', 'CTPS: série', { max: 10, className: ' tabular-nums' })}
-            {text('voterId', 'Título de eleitor', { max: 20, className: ' tabular-nums' })}
-          </div>
+          <Field label="CPF" required error={field('cpf')}>{(p) => <CpfInput {...p} value={draft.cpf} onChange={(cpf) => set({ cpf })} />}</Field>
+          <Field label="Data de nascimento" required error={field('birthDate')}>{(p) => <DateInput {...p} value={draft.birthDate} onChange={(birthDate) => set({ birthDate })} />}</Field>
+          {text('rg', 'RG', { max: 20 })}
+          {text('pis', 'PIS', { max: 14, dica: EMPLOYEE_DICAS.pis, className: ' tabular-nums' })}
+          {text('ctpsNumber', 'CTPS: número', { max: 20, dica: EMPLOYEE_DICAS.ctps, className: ' tabular-nums' })}
+          {text('ctpsSeries', 'CTPS: série', { max: 10, className: ' tabular-nums' })}
+          {text('voterId', 'Título de eleitor', { max: 20, className: ' tabular-nums' })}
         </FormSection>
         <FormSection title="Endereço">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="CEP" error={field('zipCode')} hint={cep.message} hintLive>
-              {(p) => <CepInput {...p} value={draft.zipCode} onChange={(zipCode) => { set({ zipCode }); void cep.onCep(zipCode) }} />}
-            </Field>
-            {text('street', 'Logradouro', { max: 150 })}
-            {text('number', 'Número', { max: 20 })}
-            {text('complement', 'Complemento', { max: 100 })}
-            {text('district', 'Bairro', { max: 100 })}
-            {text('city', 'Cidade', { max: 100 })}
-            {text('state', 'UF', { max: 2, className: ' uppercase' })}
-          </div>
+          <Field label="CEP" error={field('zipCode')} hint={cep.message} hintLive>
+            {(p) => <CepInput {...p} value={draft.zipCode} onChange={(zipCode) => { set({ zipCode }); void cep.onCep(zipCode) }} />}
+          </Field>
+          {text('street', 'Logradouro', { max: 150 })}
+          {text('number', 'Número', { max: 20 })}
+          {text('complement', 'Complemento', { max: 100 })}
+          {text('district', 'Bairro', { max: 100 })}
+          {text('city', 'Cidade', { max: 100 })}
+          {text('state', 'UF', { max: 2, className: ' uppercase' })}
         </FormSection>
         <FormSection title="Contato pessoal">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Telefone" error={field('phone')}>{(p) => <PhoneInput {...p} value={draft.phone} onChange={(phone) => set({ phone })} />}</Field>
-            {text('email', 'E-mail pessoal', { max: 150 })}
-          </div>
+          <Field label="Telefone" error={field('phone')}>{(p) => <PhoneInput {...p} value={draft.phone} onChange={(phone) => set({ phone })} />}</Field>
+          {text('email', 'E-mail pessoal', { max: 150 })}
         </FormSection>
         {canEdit ? <div className="flex justify-end"><button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar dados pessoais</button></div> : null}
       </fieldset>

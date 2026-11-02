@@ -129,37 +129,33 @@ function ReceivableForm({ accounts, centers, terms }: FormProps) {
           <Field label="Descrição" required error={errors.description} hint="Aparece no título e nas parcelas.">
             {(p) => <input {...p} value={draft.description} maxLength={200} onChange={(e) => set({ description: e.target.value })} className={inputClass} />}
           </Field>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Conta de receita" required error={errors.accountId}>
-              {(p) => (
-                <select {...p} value={draft.accountId} onChange={(e) => set({ accountId: e.target.value })} className={inputClass}>
-                  <option value="">Escolha</option>
-                  {accounts.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
-                </select>
-              )}
-            </Field>
-            <Field label="Centro de custo" error={errors.costCenterId}>
-              {(p) => (
-                <select {...p} value={draft.costCenterId} onChange={(e) => set({ costCenterId: e.target.value })} className={inputClass}>
-                  <option value="">Sem centro de custo</option>
-                  {centers.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
-                </select>
-              )}
-            </Field>
-          </div>
+          <Field label="Conta de receita" required error={errors.accountId}>
+            {(p) => (
+              <select {...p} value={draft.accountId} onChange={(e) => set({ accountId: e.target.value })} className={inputClass}>
+                <option value="">Escolha</option>
+                {accounts.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
+              </select>
+            )}
+          </Field>
+          <Field label="Centro de custo" error={errors.costCenterId}>
+            {(p) => (
+              <select {...p} value={draft.costCenterId} onChange={(e) => set({ costCenterId: e.target.value })} className={inputClass}>
+                <option value="">Sem centro de custo</option>
+                {centers.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+              </select>
+            )}
+          </Field>
           <ProjectCostFields value={draft.projectCost} onChange={(projectCost) => set({ projectCost })} withCostType={false} errors={errors} />
         </FormSection>
         <FormSection title="Valor e vencimento">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Valor" required error={errors.amount}>{(p) => <MoneyInput {...p} value={draft.amount} onChange={(v) => set({ amount: v })} />}</Field>
-            <Field label="Emissão" required error={errors.issueDate}>{(p) => <DateInput {...p} value={draft.issueDate} onChange={(issueDate) => set({ issueDate })} />}</Field>
-          </div>
+          <Field label="Valor" required error={errors.amount}>{(p) => <MoneyInput {...p} value={draft.amount} onChange={(v) => set({ amount: v })} />}</Field>
+          <Field label="Emissão" required error={errors.issueDate}>{(p) => <DateInput {...p} value={draft.issueDate} onChange={(issueDate) => set({ issueDate })} />}</Field>
           <div className="space-y-1">
             <span className="block text-sm font-medium">Forma</span>
             <ToggleGroup label="Forma" value={draft.mode} onChange={(mode) => set({ mode })} options={[{ value: 'single', label: 'Título único' }, { value: 'split', label: 'Parcelar pela condição' }]} />
           </div>
           {split ? (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <>
               <Field label="Condição de pagamento" required error={errors.paymentTermId} hint={draft.customer?.termId && draft.termId === draft.customer.termId ? 'A condição padrão do cliente.' : undefined}>
                 {(p) => (
                   <select {...p} value={draft.termId} onChange={(e) => set({ termId: e.target.value })} className={inputClass}>
@@ -169,7 +165,7 @@ function ReceivableForm({ accounts, centers, terms }: FormProps) {
                 )}
               </Field>
               <Field label="Data base" required error={errors.baseDate} hint="Os vencimentos contam a partir dela.">{(p) => <DateInput {...p} value={draft.baseDate} onChange={(baseDate) => set({ baseDate })} />}</Field>
-            </div>
+            </>
           ) : (
             <Field label="Vencimento" required error={errors.dueDate}>{(p) => <DateInput {...p} value={draft.dueDate} onChange={(dueDate) => set({ dueDate })} />}</Field>
           )}

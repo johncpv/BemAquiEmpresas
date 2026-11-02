@@ -20,7 +20,7 @@ export function ProjectCostFields({ value, onChange, suggested, errors, withCost
   disabled?: boolean
 }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
       <Field label="Projeto" error={errors.projectId} hint="Opcional. Projetos abertos.">
         {(p) => <Combobox {...p} queryKey={['finance-projects']} search={searchProjects} value={value.project?.id ?? null} selected={value.project} disabled={disabled} placeholder="Busque pelo número ou nome"
           onChange={(project) => onChange({ project, costType: project ? value.costType || suggested || '' : '' })} />}

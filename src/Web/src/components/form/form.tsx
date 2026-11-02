@@ -55,7 +55,11 @@ export function FormError({ message }: { message?: string }) {
   )
 }
 
-/** Grupo de campos com legenda (molde "cadastro em seções", FND-09d CA 2). */
+/**
+ * Grupo de campos com legenda (molde "cadastro em seções", FND-09d CA 2). Os campos entram direto na grade de 2 colunas
+ * da seção (metade da coluna cada). Bloco com grade própria ocupa a linha inteira (sm:col-span-2): nunca grade de 2
+ * colunas dentro de uma célula, que deixa o campo com 1/4 da largura.
+ */
 export function FormSection({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
   return (
     <fieldset className="rounded-md border border-border bg-card p-4">

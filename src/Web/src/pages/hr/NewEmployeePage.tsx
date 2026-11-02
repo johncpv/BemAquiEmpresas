@@ -92,34 +92,30 @@ function NewEmployeeForm({ initialPositionId, positions, schedules }: FormProps)
           <Field label="Nome" required error={errors.name}>
             {(p) => <input {...p} value={draft.name} maxLength={150} autoComplete="off" onChange={(e) => set({ name: e.target.value })} className={inputClass} />}
           </Field>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="CPF" required error={errors.cpf}>{(p) => <CpfInput {...p} value={draft.cpf} onChange={(cpf) => set({ cpf })} />}</Field>
-            <Field label="Data de nascimento" required error={errors.birthDate}>{(p) => <DateInput {...p} value={draft.birthDate} onChange={(birthDate) => set({ birthDate })} />}</Field>
-          </div>
+          <Field label="CPF" required error={errors.cpf}>{(p) => <CpfInput {...p} value={draft.cpf} onChange={(cpf) => set({ cpf })} />}</Field>
+          <Field label="Data de nascimento" required error={errors.birthDate}>{(p) => <DateInput {...p} value={draft.birthDate} onChange={(birthDate) => set({ birthDate })} />}</Field>
         </FormSection>
         <FormSection title="Contrato">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Admissão" required error={errors.admissionDate}>{(p) => <DateInput {...p} value={draft.admissionDate} onChange={(admissionDate) => set({ admissionDate })} />}</Field>
-            <Field label="Cargo" required error={errors.positionId} hint="Sugere a jornada e o salário de referência.">
-              {(p) => (
-                <select {...p} value={draft.positionId} onChange={(e) => void choosePosition(e.target.value)} className={inputClass}>
-                  <option value="">Escolha</option>
-                  {positions.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
-                </select>
-              )}
-            </Field>
-            <Field label="Jornada" hint={draft.touched.schedule ? undefined : 'A do cargo, enquanto você não trocar.'}>
-              {(p) => (
-                <select {...p} value={draft.workScheduleId} onChange={(e) => set({ workScheduleId: e.target.value, touched: { ...draft.touched, schedule: true } })} className={inputClass}>
-                  <option value="">Sem jornada</option>
-                  {schedules.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-              )}
-            </Field>
-            <Field label="Salário base" required error={errors.baseSalary} warning={outsideRange(draft.baseSalary, range)} hint={draft.touched.salary ? undefined : 'O de referência do cargo, enquanto você não trocar.'}>
-              {(p) => <MoneyInput {...p} value={draft.baseSalary} onChange={(baseSalary) => set({ baseSalary, touched: { ...draft.touched, salary: true } })} />}
-            </Field>
-          </div>
+          <Field label="Admissão" required error={errors.admissionDate}>{(p) => <DateInput {...p} value={draft.admissionDate} onChange={(admissionDate) => set({ admissionDate })} />}</Field>
+          <Field label="Cargo" required error={errors.positionId} hint="Sugere a jornada e o salário de referência.">
+            {(p) => (
+              <select {...p} value={draft.positionId} onChange={(e) => void choosePosition(e.target.value)} className={inputClass}>
+                <option value="">Escolha</option>
+                {positions.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+              </select>
+            )}
+          </Field>
+          <Field label="Jornada" hint={draft.touched.schedule ? undefined : 'A do cargo, enquanto você não trocar.'}>
+            {(p) => (
+              <select {...p} value={draft.workScheduleId} onChange={(e) => set({ workScheduleId: e.target.value, touched: { ...draft.touched, schedule: true } })} className={inputClass}>
+                <option value="">Sem jornada</option>
+                {schedules.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            )}
+          </Field>
+          <Field label="Salário base" required error={errors.baseSalary} warning={outsideRange(draft.baseSalary, range)} hint={draft.touched.salary ? undefined : 'O de referência do cargo, enquanto você não trocar.'}>
+            {(p) => <MoneyInput {...p} value={draft.baseSalary} onChange={(baseSalary) => set({ baseSalary, touched: { ...draft.touched, salary: true } })} />}
+          </Field>
         </FormSection>
         <div className="flex justify-end gap-2">
           <Link to="/app/rh/funcionarios" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</Link>

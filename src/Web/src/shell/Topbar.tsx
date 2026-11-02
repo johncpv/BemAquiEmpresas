@@ -82,10 +82,11 @@ function groupTabs(tabs: readonly Tab[]) {
  * A única navegação das sub-telas do módulo (cada aba é uma rota própria, FND-09b CA 8). Quando o módulo agrupa as
  * abas (FND-09e CA 12, D12: "Caixa e pagamentos" e "Configuração financeira"; Estoque: "Operação" e "Cadastros"),
  * cada grupo ganha um rótulo discreto e um separador. A faixa rola na horizontal sem barra nativa, com a borda
- * esmaecida quando há mais abas daquele lado.
+ * esmaecida quando há mais abas daquele lado, e começa com a aba ativa à vista.
  */
 function ModuleTabs({ module, current }: { module: NavModule; current?: string }) {
-  const strip = useScrollStrip<HTMLElement>()
+  // A aba ativa sempre à vista ao carregar e a cada troca de tela (a faixa rola sem barra nativa).
+  const strip = useScrollStrip<HTMLElement>(current)
   return (
     <nav ref={strip} aria-label={`Telas de ${module.name}`} className="scrollbar-none fade-x flex items-end overflow-x-auto px-4 sm:px-6">
       {groupTabs(module.tabs).map((g, i) => {
