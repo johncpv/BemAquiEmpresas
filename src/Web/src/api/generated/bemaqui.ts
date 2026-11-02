@@ -1014,7 +1014,12 @@ import type {
   TenantDetail,
   TenantParametersDto,
   TenantPublicContext,
+  TerminationCalculationResult,
+  TerminationCancelInput,
   TerminationInput,
+  TerminationRequestInput,
+  TerminationResultView,
+  TerminationView,
   ThirteenthPreview,
   TimeAdjustmentBatchInput,
   TimeAdjustmentBatchResult,
@@ -16642,6 +16647,101 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getTerminateEmployeeMutationOptions(options), queryClient);
     }
 
+export const getGetEmployeeTerminationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/termination`
+}
+
+export const getEmployeeTermination = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<TerminationView> => {
+
+  return apiFetch<TerminationView>(getGetEmployeeTerminationUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmployeeTerminationQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/termination`
+    ] as const;
+    }
+
+
+export const getGetEmployeeTerminationQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeTerminationQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeTermination>>> = ({ signal }) => getEmployeeTermination(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEmployeeTerminationQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeTermination>>>
+export type GetEmployeeTerminationQueryError = unknown
+
+
+export function useGetEmployeeTermination<TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeTermination>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeTermination>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeTermination<TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeTermination>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeTermination>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeTermination<TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEmployeeTermination<TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEmployeeTerminationQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getRegisterEmployeeLeaveUrl = (id: string,) => {
 
 
@@ -20085,6 +20185,172 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getScheduleVacationMutationOptions(options), queryClient);
+    }
+
+export const getSimulateTerminationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/termination/simulate`
+}
+
+export const simulateTermination = async (id: string,
+    terminationRequestInput: TerminationRequestInput, options?: Parameters<typeof apiFetch>[1]): Promise<TerminationResultView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TerminationResultView>(getSimulateTerminationUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(terminationRequestInput)
+  }
+);}
+
+
+
+
+
+export const getSimulateTerminationMutationKey = () => ['simulateTermination'] as const;
+
+export const getSimulateTerminationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof simulateTermination>>, TError,SimulateTerminationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof simulateTermination>>, TError,SimulateTerminationMutationVariables, TContext> => {
+
+const mutationKey = getSimulateTerminationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof simulateTermination>>, SimulateTerminationMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  simulateTermination(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SimulateTerminationMutationResult = NonNullable<Awaited<ReturnType<typeof simulateTermination>>>
+    export type SimulateTerminationMutationBody = TerminationRequestInput
+    export type SimulateTerminationMutationError = unknown
+    export type SimulateTerminationMutationVariables = {id: string;data: TerminationRequestInput}
+
+    export const useSimulateTermination = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof simulateTermination>>, TError,SimulateTerminationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof simulateTermination>>,
+        TError,
+        SimulateTerminationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSimulateTerminationMutationOptions(options), queryClient);
+    }
+
+export const getCalculateTerminationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/termination/calculate`
+}
+
+export const calculateTermination = async (id: string,
+    terminationRequestInput: TerminationRequestInput, options?: Parameters<typeof apiFetch>[1]): Promise<TerminationCalculationResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TerminationCalculationResult>(getCalculateTerminationUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(terminationRequestInput)
+  }
+);}
+
+
+
+
+
+export const getCalculateTerminationMutationKey = () => ['calculateTermination'] as const;
+
+export const getCalculateTerminationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calculateTermination>>, TError,CalculateTerminationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof calculateTermination>>, TError,CalculateTerminationMutationVariables, TContext> => {
+
+const mutationKey = getCalculateTerminationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calculateTermination>>, CalculateTerminationMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  calculateTermination(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalculateTerminationMutationResult = NonNullable<Awaited<ReturnType<typeof calculateTermination>>>
+    export type CalculateTerminationMutationBody = TerminationRequestInput
+    export type CalculateTerminationMutationError = unknown
+    export type CalculateTerminationMutationVariables = {id: string;data: TerminationRequestInput}
+
+    export const useCalculateTermination = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calculateTermination>>, TError,CalculateTerminationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calculateTermination>>,
+        TError,
+        CalculateTerminationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalculateTerminationMutationOptions(options), queryClient);
     }
 
 export const getListPayrollItemsUrl = () => {
@@ -28442,6 +28708,184 @@ export function useDownloadVacationNotice<TData = Awaited<ReturnType<typeof down
 
 
 
+
+export const getDownloadTerminationTermUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/terminations/${id}/term`
+}
+
+export const downloadTerminationTerm = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadTerminationTermUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadTerminationTermQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/terminations/${id}/term`
+    ] as const;
+    }
+
+
+export const getDownloadTerminationTermQueryOptions = <TData = Awaited<ReturnType<typeof downloadTerminationTerm>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTerminationTerm>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadTerminationTermQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadTerminationTerm>>> = ({ signal }) => downloadTerminationTerm(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadTerminationTerm>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadTerminationTermQueryResult = NonNullable<Awaited<ReturnType<typeof downloadTerminationTerm>>>
+export type DownloadTerminationTermQueryError = unknown
+
+
+export function useDownloadTerminationTerm<TData = Awaited<ReturnType<typeof downloadTerminationTerm>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTerminationTerm>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadTerminationTerm>>,
+          TError,
+          Awaited<ReturnType<typeof downloadTerminationTerm>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadTerminationTerm<TData = Awaited<ReturnType<typeof downloadTerminationTerm>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTerminationTerm>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadTerminationTerm>>,
+          TError,
+          Awaited<ReturnType<typeof downloadTerminationTerm>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadTerminationTerm<TData = Awaited<ReturnType<typeof downloadTerminationTerm>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTerminationTerm>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadTerminationTerm<TData = Awaited<ReturnType<typeof downloadTerminationTerm>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadTerminationTerm>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadTerminationTermQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCancelTerminationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/terminations/${id}/cancel`
+}
+
+export const cancelTermination = async (id: string,
+    terminationCancelInput: TerminationCancelInput, options?: Parameters<typeof apiFetch>[1]): Promise<TerminationView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TerminationView>(getCancelTerminationUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(terminationCancelInput)
+  }
+);}
+
+
+
+
+
+export const getCancelTerminationMutationKey = () => ['cancelTermination'] as const;
+
+export const getCancelTerminationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelTermination>>, TError,CancelTerminationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelTermination>>, TError,CancelTerminationMutationVariables, TContext> => {
+
+const mutationKey = getCancelTerminationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelTermination>>, CancelTerminationMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelTermination(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelTerminationMutationResult = NonNullable<Awaited<ReturnType<typeof cancelTermination>>>
+    export type CancelTerminationMutationBody = TerminationCancelInput
+    export type CancelTerminationMutationError = unknown
+    export type CancelTerminationMutationVariables = {id: string;data: TerminationCancelInput}
+
+    export const useCancelTermination = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelTermination>>, TError,CancelTerminationMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelTermination>>,
+        TError,
+        CancelTerminationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCancelTerminationMutationOptions(options), queryClient);
+    }
 
 export const getGetMyEmployeeLinkUrl = () => {
 
