@@ -19,6 +19,6 @@ Ver o produto acabado que está pronto para sair da fábrica, montar o romaneio 
 ## Perguntas frequentes
 **Por que o projeto não aparece em Prontos para expedir?** Nenhuma OS do projeto foi concluída com o produto no estoque, ou tudo já está expedido. Veja as OS prontas para concluir.
 
-**Expedir baixa o estoque?** Sim. A confirmação do romaneio tira o produto acabado do estoque na hora e as séries passam a **Expedido**. A nota fiscal de saída, na Fase 5, só vai referenciar o romaneio e não baixa de novo.
+**Expedir baixa o estoque?** Sim. A confirmação do romaneio tira o produto acabado do estoque na hora e as séries passam a **Expedido**. A NF-e de saída nasce do romaneio expedido (em Fiscal → saída, **A emitir**), só referencia o romaneio e não baixa de novo.
 
 **A expedição entra no custo do projeto?** Não. O custo do equipamento já entrou pelo material baixado e pelas horas apontadas.

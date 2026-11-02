@@ -19,4 +19,4 @@ Ver o resultado de um projeto mês a mês: a receita, os custos diretos por natu
 ## Perguntas frequentes
 **Por que não fecha com o DRE mensal?** O projeto soma pelo consumo; o DRE, pela data do documento. A compra para o estoque entra no DRE no mês da compra; no projeto, quando o material é baixado para a OS.
 
-**O que é "Provisório"?** Até a emissão de notas no sistema, a receita é a data de emissão dos títulos a receber.
+**O que é "Provisório"?** A receita é pela data da nota fiscal. Nos meses anteriores às notas emitidas pelo sistema, ela foi contada pela data de emissão dos títulos a receber, e esses meses levam o chip.

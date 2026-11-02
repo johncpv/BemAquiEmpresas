@@ -29,4 +29,4 @@ Ter a folha do mês no sistema: os proventos e descontos que a contadora calculo
 
 **O 13º calculado já é oficial?** Não. Até a virada e o primeiro 13º conferido com a contadora, é simulação: "Fechar" avisa "13º calculado em conferência: feche a folha de 13º lançada."
 
-**E as horas extras, faltas e atrasos?** Entram na referência das rubricas (ex.: "10:00 h"), lançadas à mão ou pelo arquivo. Quando o ponto existir no sistema, o espelho fechado aparece ao lado com "Usar horas do espelho".
+**E as horas extras, faltas e atrasos?** Entram na referência das rubricas (ex.: "10:00 h"), lançadas à mão ou pelo arquivo. Com o período de ponto fechado em RH → Ponto → Espelho, o espelho aparece ao lado com "Usar horas do espelho". Na folha calculada, as horas extras, o adicional noturno e o DSR vêm do ponto fechado.

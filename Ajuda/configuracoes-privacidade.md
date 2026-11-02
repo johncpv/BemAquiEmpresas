@@ -24,4 +24,4 @@ Registrar e acompanhar cada pedido que uma pessoa (o **titular**) faz sobre os d
 
 **Posso apagar um pedido registrado errado?** Não. Nenhum pedido é apagado: recuse com o motivo (ex.: "registrado em duplicidade") e registre de novo.
 
-**Onde faço a anonimização?** Na tela do pedido. A anonimização entra numa próxima versão; por enquanto registre o pedido e responda ao titular.
+**Onde faço a anonimização?** Na tela do pedido de Anonimização ou de Eliminação, com a identidade conferida: **Prever anonimização** mostra o que cada módulo vai fazer, e **Anonimizar** pede o nome do titular e o código do aplicativo autenticador. Os documentos com movimento são preservados.
