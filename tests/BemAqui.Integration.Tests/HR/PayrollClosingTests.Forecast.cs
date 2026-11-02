@@ -87,8 +87,8 @@ public partial class PayrollClosingTests
         var thirteenth = await RunAsync(owner.Client, "2040-11", "Thirteenth1");
         await FillAsync(owner.Client, thirteenth, 2_000m);
         (await CloseAsync(owner, thirteenth, null)).StatusCode.Should().Be(HttpStatusCode.OK);
-        (await ForecastOfAsync(e.Id)).Should().NotContain(f => f.Kind == PayrollForecastKind.Thirteenth1);
-        (await ForecastOfAsync(e.Id)).Should().ContainSingle(f => f.Kind == PayrollForecastKind.Thirteenth2);
+        (await ForecastOfAsync(e.Id)).Should().NotContain(f => f.Kind == PayrollForecastKind.Thirteenth1 && f.Period.Year == 2040, "a 1ª parcela de 2040 fechou (a de 2041 já aparece: a janela chegou a janeiro)");
+        (await ForecastOfAsync(e.Id)).Should().ContainSingle(f => f.Kind == PayrollForecastKind.Thirteenth2 && f.Period.Year == 2040);
 
         // "Recalcular previsão" (hr.edit) não duplica; sem hr.edit, 403.
         var recalc = await owner.Client.PostAsync($"{Runs}/forecast/recalculate", null);

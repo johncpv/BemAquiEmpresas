@@ -14,4 +14,6 @@ export interface PayrollRunCreateInput {
   /** @nullable */
   employeeIds: string[] | null;
   mode?: null | PayrollRunMode;
+  /** @nullable */
+  confirmWithoutAdvance?: boolean | null;
 }

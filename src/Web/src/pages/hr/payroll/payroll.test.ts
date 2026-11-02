@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CALCULATION_LABELS, choosesEmployees, currentPeriod, formatPct, hoursLabel, isManualCalculation, MODE_LABELS, parseHours, periodLabel, totals, typeLabel } from './payroll'
+import { avosLabel, CALCULATION_LABELS, choosesEmployees, currentPeriod, formatPct, hoursLabel, isManualCalculation, isThirteenth, MODE_LABELS, parseHours, periodLabel, thirteenthPeriod, totals, typeLabel } from './payroll'
 
 describe('folha lançada (RH-02a)', () => {
   it('totais com a mesma regra do servidor: a informativa fica fora do líquido (CA 6)', () => {
@@ -51,5 +51,22 @@ describe('banco de horas na folha (FLH-02b)', () => {
     expect(parseHours('2:15')).toBe(135)
     expect(parseHours('0')).toBeNull()
     expect(parseHours('abc')).toBeNull()
+  })
+})
+
+describe('13º calculado (FLH-04)', () => {
+  it('reconhece as parcelas e propõe a competência da data limite', () => {
+    expect(isThirteenth('Thirteenth1')).toBe(true)
+    expect(isThirteenth('Thirteenth2')).toBe(true)
+    expect(isThirteenth('Monthly')).toBe(false)
+    expect(thirteenthPeriod('Thirteenth1', 2026)).toBe('2026-11')
+    expect(thirteenthPeriod('Thirteenth2', 2026)).toBe('2026-12')
+    expect(avosLabel(7)).toBe('7/12')
+  })
+
+  it('tem o rótulo das regras do 13º', () => {
+    expect(CALCULATION_LABELS.ThirteenthAdvance).toBe('13º salário, 1ª parcela')
+    expect(CALCULATION_LABELS.ThirteenthAdvanceDeduction).toBe('Adiantamento do 13º (desconto)')
+    expect(isManualCalculation('ThirteenthFinal')).toBe(false)
   })
 })

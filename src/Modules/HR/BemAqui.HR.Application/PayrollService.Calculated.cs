@@ -30,6 +30,11 @@ public sealed partial class PayrollService
             return null;
         }
 
+        if (ThirteenthCalculator.IsThirteenth(run.Type))
+        {
+            return await ThirteenthCalculationInfoAsync(run, payslip, ct);
+        }
+
         var snapshot = PayrollCalculator.ReadSnapshot(payslip.InputsSnapshot);
         var tables = await TableRefsAsync(payslip.TaxTableIds, ct);
         var inputs = new List<PayrollCalcInputView>();

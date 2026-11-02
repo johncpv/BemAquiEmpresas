@@ -8449,6 +8449,43 @@
         }
       }
     },
+    "/api/v1/hr/payroll-runs/thirteenth-preview/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetThirteenthPreviewSensitive",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PayrollRunType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThirteenthPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/payroll-runs/suggested-period": {
       "get": {
         "tags": [
@@ -74084,7 +74121,11 @@
           "Dsr",
           "DsrLoss",
           "HourBankPayout",
-          "HourBankDiscount"
+          "HourBankDiscount",
+          "ThirteenthAdvance",
+          "ThirteenthFinal",
+          "ThirteenthAverages",
+          "ThirteenthAdvanceDeduction"
         ],
         "default": "None"
       },
@@ -76609,6 +76650,12 @@
               {
                 "$ref": "#/components/schemas/PayrollRunMode"
               }
+            ]
+          },
+          "confirmWithoutAdvance": {
+            "type": [
+              "null",
+              "boolean"
             ]
           }
         }
@@ -97969,6 +98016,133 @@
           }
         },
         "additionalProperties": false
+      },
+      "ThirteenthPreview": {
+        "required": [
+          "year",
+          "type",
+          "period",
+          "dueDate",
+          "firstClosed",
+          "exists",
+          "monthMinDays",
+          "employees"
+        ],
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PayrollRunType"
+          },
+          "period": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "firstClosed": {
+            "type": "boolean"
+          },
+          "exists": {
+            "type": "boolean"
+          },
+          "monthMinDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "employees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ThirteenthPreviewEmployee"
+            }
+          }
+        }
+      },
+      "ThirteenthPreviewEmployee": {
+        "required": [
+          "employeeId",
+          "name",
+          "registration",
+          "avos",
+          "months"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "avos": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ThirteenthPreviewMonth"
+            }
+          }
+        }
+      },
+      "ThirteenthPreviewMonth": {
+        "required": [
+          "month",
+          "label",
+          "employedDays",
+          "absenceDays",
+          "leaveDays",
+          "workedDays",
+          "counts",
+          "projected"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "label": {
+            "type": "string"
+          },
+          "employedDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "absenceDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "leaveDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "workedDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "counts": {
+            "type": "boolean"
+          },
+          "projected": {
+            "type": "boolean"
+          }
+        }
       },
       "TimeAdjustmentBatchInput": {
         "required": [

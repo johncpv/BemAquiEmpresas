@@ -89,9 +89,21 @@ public sealed partial class PayrollService(
         }
 
         var mode = input.Mode is { } m && Enum.IsDefined(m) ? m : PayrollRunMode.Entered;
-        if (mode == PayrollRunMode.Calculated && type != PayrollRunType.Monthly)
+        if (mode == PayrollRunMode.Calculated && type != PayrollRunType.Monthly && !ThirteenthCalculator.IsThirteenth(type))
         {
             return Error.Validation(PayrollCalculationRules.NotSupportedCode, $"O cálculo da folha {PayrollRules.TypeLabel(type)} chega nas próximas etapas. Use a folha lançada.");
+        }
+
+        // FLH-04 CA 8: 13º calculado na competência da data limite, um por tipo e ano; a 2ª sem a 1ª fechada pede a confirmação.
+        if (mode == PayrollRunMode.Calculated && ThirteenthCalculator.IsThirteenth(type))
+        {
+            var checkedPeriod = await ThirteenthCreateCheckAsync(type, period, input.ConfirmWithoutAdvance == true, cancellationToken);
+            if (checkedPeriod.IsFailure)
+            {
+                return checkedPeriod.Error!;
+            }
+
+            period = checkedPeriod.Value;
         }
 
         if (await db.PayrollRuns.AnyAsync(r => r.Period == period && r.Type == type && r.Mode == mode && r.RectifiesRunId == null, cancellationToken))
@@ -113,7 +125,7 @@ public sealed partial class PayrollService(
 
         if (eligible.Count == 0)
         {
-            return PayrollRules.Field("period", $"Nenhum funcionário ativo em {PayrollRules.PeriodLabel(period)}. Confira as admissões no cadastro.");
+            return PayrollRules.Field("period", ThirteenthCalculator.IsThirteenth(type) ? ThirteenthCalculator.EmptyMessage : $"Nenhum funcionário ativo em {PayrollRules.PeriodLabel(period)}. Confira as admissões no cadastro.");
         }
 
         var now = clock.GetUtcNow();

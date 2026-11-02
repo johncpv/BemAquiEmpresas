@@ -75,7 +75,7 @@ public class AgendaRulesTests
             "projects.amendments_pending", "quotes.expiring",
             "production.quality_pending", "production.orders_late", "production.non_conformities_mine",
             "purchasing.orders_awaiting", "purchasing.shortages_without_request",
-            "hr.positions_without_cost", "hr.time_adjustments_pending",
+            "hr.positions_without_cost", "hr.time_adjustments_pending", "hr.thirteenth_due",
             "fiscal.certificate_expiring", "fiscal.invoices_to_issue", "fiscal.nfse_to_issue", "fiscal.cancellation_requests", "fiscal.numbers_to_invalidate",
             "assets.maintenance_overdue", "assets.machines_stopped",
         ]);
