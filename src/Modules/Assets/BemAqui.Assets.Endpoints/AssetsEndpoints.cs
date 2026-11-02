@@ -62,6 +62,11 @@ internal static partial class AssetsEndpoints
             .RequirePermission("assets.view").WithName("GetAssetParameters").Produces<AssetParametersView>();
         parameters.MapPut(string.Empty, async (AssetParametersInput input, AssetParametersService service, CancellationToken ct) => (await service.UpdateAsync(input, ct)).ToHttpResult())
             .RequirePermission("assets.view").WithName("UpdateAssetParameters").Produces<AssetParametersView>();
+        // PAT-03b CA 5: contas e centros da manutenção, "A confirmar com a contadora" (gravar e conferir com settings.edit, conferido no serviço).
+        parameters.MapPut("/maintenance", async (AssetMaintenanceParametersInput input, AssetParametersService service, CancellationToken ct) => (await service.UpdateMaintenanceAsync(input, ct)).ToHttpResult())
+            .RequirePermission("assets.view").WithName("UpdateAssetMaintenanceParameters").Produces<AssetParametersView>();
+        parameters.MapPost("/confirm", async (AssetParameterConfirmInput input, AssetParametersService service, CancellationToken ct) => (await service.ConfirmAsync(input, ct)).ToHttpResult())
+            .RequirePermission("assets.view").WithName("ConfirmAssetParameter").Produces<AssetParametersView>();
     }
 
     /// <summary>

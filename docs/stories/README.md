@@ -804,7 +804,7 @@ Ver as [decisões do PO](#decisões-do-po-21102026-john-1) na Fase 4. A fase **c
 | 12 (6.4) | PAT-01b | Patrimônio: etiquetas com QR code em lote e leitura pelo app | M | Done (teste manual com a impressora pendente, P-13) | R-PAT-2, R-PRP-6, R-COM-3, R-SEC-5 | PAT-01a, COM-03, ADR 0022, PRD-03a | [PAT-01b](PAT-01b-etiqueta-qr-leitura.md) |
 | 13 (6.4) | PAT-02 | Patrimônio: movimentação de bens e baixa | P | Done | R-PAT-3, R-PRP-1, R-PRP-2, R-PRP-6, R-SEC-5 | PAT-01a, PAT-01b, FIN-01 | [PAT-02](PAT-02-movimentacao-bens.md) |
 | 14 (6.4) | PAT-03a | Patrimônio: planos de manutenção preventiva e OS de manutenção | M | Done | R-PAT-4, R-COM-2, R-COM-3, R-COM-4, R-PRP-2, R-PRP-5 | PAT-01a, PAT-01b, PAT-02, DSH-04, FND-07, FND-09e | [PAT-03a](PAT-03a-planos-os-manutencao.md) |
-| 15 (6.4) | PAT-03b | Patrimônio: custo da manutenção, CP do prestador e redução da capacidade | M | Ready (pré-condição externa) | R-PAT-4, R-PAT-5, R-FIN-4, R-FIN-10, R-PRD-9, R-PRP-7 | PAT-03a, FIN-02, FIN-03a, FIN-05, CAD-03, CAD-04a, PLN-01a | [PAT-03b](PAT-03b-custo-cp-capacidade.md) |
+| 15 (6.4) | PAT-03b | Patrimônio: custo da manutenção, CP do prestador e redução da capacidade | M | Done | R-PAT-4, R-PAT-5, R-FIN-4, R-FIN-10, R-PRD-9, R-PRP-7 | PAT-03a, FIN-02, FIN-03a, FIN-05, CAD-03, CAD-04a, PLN-01a | [PAT-03b](PAT-03b-custo-cp-capacidade.md) |
 
 Total da Fase 6: 15 stories (P: 1 · M: 11 · G: 3), todas `Ready`; 11 com pré-condição externa explícita, que não bloqueia (inclui a CAD-04c2, vinda da Fase 3).
 

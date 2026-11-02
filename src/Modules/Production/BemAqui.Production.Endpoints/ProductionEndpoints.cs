@@ -54,6 +54,9 @@ internal static partial class ProductionEndpoints
             .RequirePermission("production.view").WithName("GetSuggestedShifts").Produces<IReadOnlyList<Shift>>();
         centers.MapGet("/{id:guid}", async (Guid id, WorkCenterService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())
             .RequirePermission("production.view").WithName("GetWorkCenter").Produces<WorkCenterDetail>();
+        // PAT-03b CA 10: "Paradas por manutenção" do centro no período (só datas, horas e a OS; sem custo).
+        centers.MapGet("/{id:guid}/downtimes", async (Guid id, DateOnly? from, DateOnly? to, DowntimeService service, CancellationToken ct) => (await service.ForCenterAsync(id, from, to, ct)).ToHttpResult())
+            .RequirePermission("production.view").WithName("ListWorkCenterDowntimes").Produces<IReadOnlyList<WorkCenterDowntimeView>>();
         centers.MapPost(string.Empty, async (WorkCenterInput input, WorkCenterService service, CancellationToken ct) =>
                 (await service.CreateAsync(input, ct)).ToHttpResult(saved => Results.Created("/api/v1/production/work-centers/" + saved.Id, saved)))
             .RequirePermission("production.create").WithName("CreateWorkCenter").Produces<WorkCenterDetail>(StatusCodes.Status201Created);

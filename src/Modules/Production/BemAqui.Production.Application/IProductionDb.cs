@@ -14,6 +14,9 @@ public interface IProductionDb
 
     DbSet<CalendarExceptionDay> CalendarExceptions { get; }
 
+    /// <summary>Paradas do centro (PAT-03b, ADR 0038 §4): escritas só pelo consumidor da manutenção; o <c>IWorkCenterCapacity</c> desconta.</summary>
+    DbSet<Downtime> Downtimes { get; }
+
     DbSet<ProductionOrder> ProductionOrders { get; }
 
     DbSet<ProductionOrderStep> ProductionOrderSteps { get; }
