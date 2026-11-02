@@ -1,0 +1,247 @@
+# Produção do BemAqui Empresas na VPS compartilhada (GOL-01a CA 3, ADR 0034, 0015 e 0004). Ambiente NOVO: nada é herdado da homologação.
+# Diretório: /opt/projetos/bemaqui-empresas. Segredos em ./secrets (um arquivo por segredo, chmod 0400, dono = uid do container que lê).
+# Diferenças em relação à homologação (deploy/homolog/docker-compose.yml):
+#   - TODOS os containers (inclusive postgres e clamav) rodam não-root, read_only, cap_drop ALL, no-new-privileges e com limites de CPU,
+#     memória e processos; o check-compose.mjs cobra isso de todo serviço quando o projeto é "bqe-prod";
+#   - sem o serviço importer e sem o secret dolibarr-api: a carga final do Dolibarr roda na homologação, antes da promoção (ADR 0017
+#     adendo 2, ADR 0034 §2); a DOLAPIKEY nunca chega à produção;
+#   - variáveis obrigatórias com ${VAR:?}: o compose não sobe com .env incompleto;
+#   - volumes, containers e secrets próprios (bqe-prod-*); o key ring do Data Protection fica no catálogo deste Postgres
+#     (security.data_protection_keys, volume bqe-prod-pgdata) e é cifrado pelo dp-cert.pfx DESTE diretório, gerado novo (ADR 0034 §2).
+# Nomes únicos na stack_stack (ADR 0015): api e web se chamam bqe-prod-*, e a API acha o banco e o ClamAV pelo nome do container.
+name: bqe-prod
+
+x-app: &app
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "10" }
+
+x-api-env: &api-env
+  ASPNETCORE_ENVIRONMENT: Production
+  DataProtection__CertificatePath: /run/secrets/dp-cert.pfx
+  DataProtection__CertificatePasswordFile: /run/secrets/dp-cert-password
+  # true só na primeira subida do ambiente novo (cria o key ring); depois volta a false (segredos-e-chaves.md).
+  DataProtection__AllowKeyRingCreation: ${ALLOW_KEY_RING_CREATION:-false}
+  Platform__Host: ${PLATFORM_HOST:?defina PLATFORM_HOST no .env}
+  Alerts__PlatformBaseUrl: https://${PLATFORM_HOST}
+  Alerts__Recipients__0: ${ALERT_RECIPIENT:?defina ALERT_RECIPIENT no .env}
+  # Só o container stack-nginx é proxy confiável (D19): o nome é resolvido na subida, não a sub-rede inteira da stack_stack.
+  ReverseProxy__KnownProxyHosts__0: stack-nginx
+  ReverseProxy__RequireTrustedProxy: "true"
+  Email__SmtpHost: ${SMTP_HOST:?defina SMTP_HOST no .env}
+  Email__SmtpUsername: ${SMTP_USERNAME:?defina SMTP_USERNAME no .env}
+  Storage__Root: /data/files
+  ClamAV__Host: bqe-prod-clamav
+  # Worker de leitura do PDF da DANFE (FIS-05): só pelo socket Unix do volume pdf-socket.
+  Fiscal__PdfReader__SocketPath: /run/pdf-reader/reader.sock
+  # Endereço dos webhooks mostrado para o cadastro no provedor: o host da plataforma, pelo stack-nginx (ADR 0031 §1).
+  Webhooks__PublicBaseUrl: https://${PLATFORM_HOST}
+  # EmissorFiscal (ADR 0027, adendo de 27/10/2026): a API pública https://api.fiscal.bemaquiapp.com.br (padrão do appsettings), com saída
+  # pela stack_stack; o aviso do Emissor chega em https://${PLATFORM_HOST}/webhooks/emissor-fiscal/{tenantKey}. Sem rede privada.
+  # A chave do Emissor (sem "admin") e as credenciais do Inter entram pela tela, cifradas no banco do tenant: não são secrets do compose.
+
+x-api-secrets: &api-secrets
+  - { source: catalog-connection, target: ConnectionStrings__Catalog }
+  - { source: provisioner-connection, target: ConnectionStrings__Provisioner }
+  - { source: auth-signing-key, target: Auth__SigningKey }
+  - { source: smtp-password, target: Email__SmtpPassword }
+  - { source: dp-cert, target: dp-cert.pfx }
+  - { source: dp-cert-password, target: dp-cert-password }
+
+services:
+  # Postgres não-root (uid 70 da imagem alpine) e read_only: só o volume de dados e os tmpfs do socket e do /tmp são graváveis.
+  # Sem "ports:" e só na rede internal (internal: true). Ensaio local em 02/11/2026: initdb, init-roles.sh e pg_dump funcionam assim.
+  postgres:
+    <<: *app
+    image: postgres:17-alpine
+    container_name: bqe-prod-postgres
+    user: "70:70"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg-superuser-password
+    secrets: [pg-superuser-password, pg-catalog-password, pg-provisioner-password]
+    tmpfs: ["/var/run/postgresql:size=1m,uid=70,gid=70,mode=0775", "/tmp:size=64m,uid=70,gid=70"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init-roles.sh:/docker-entrypoint-initdb.d/10-init-roles.sh:ro
+    networks: [internal]
+    shm_size: 256m
+    deploy:
+      resources:
+        limits: { cpus: "1.5", memory: 2g, pids: 256 }
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d catalog"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ClamAV não-root (uid 100 "clamav" da imagem) e read_only: assinaturas no volume clamdb, o resto em tmpfs. Ensaio local em 02/11/2026:
+  # freshclam e clamd sobem assim, sem erro e sem capability. Sai para a internet (assinaturas) pela rede egress.
+  clamav:
+    <<: *app
+    image: clamav/clamav:1.4
+    container_name: bqe-prod-clamav
+    user: "100:101"
+    tmpfs: ["/run:size=8m,uid=100,gid=101", "/tmp:size=128m,uid=100,gid=101", "/var/log/clamav:size=16m,uid=100,gid=101"]
+    volumes:
+      - clamdb:/var/lib/clamav
+    networks: [internal, egress]
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 2g, pids: 128 }
+
+  migrator:
+    <<: *app
+    image: ${REGISTRY:?defina REGISTRY no .env}/bemaqui-empresas-api:${IMAGE_TAG:?defina IMAGE_TAG no .env}
+    container_name: bqe-prod-migrator
+    restart: "no"
+    user: "1654:1654"
+    command: ["migrate"]
+    environment: *api-env
+    secrets: *api-secrets
+    tmpfs: ["/tmp:size=64m"]
+    networks: [internal]
+    healthcheck: { disable: true }
+    depends_on:
+      postgres: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 512m, pids: 128 }
+
+  bqe-prod-api:
+    <<: *app
+    image: ${REGISTRY}/bemaqui-empresas-api:${IMAGE_TAG}
+    container_name: bqe-prod-api
+    user: "1654:1654"
+    environment: *api-env
+    secrets: *api-secrets
+    tmpfs: ["/tmp:size=128m"]
+    volumes:
+      - files:/data/files
+      - pdf-socket:/run/pdf-reader
+    networks: [internal, stack]
+    depends_on:
+      migrator: { condition: service_completed_successfully }
+      clamav: { condition: service_started }
+      fiscal-pdf-reader: { condition: service_started }
+    deploy:
+      resources:
+        limits: { cpus: "2.0", memory: 2g, pids: 512 }
+
+  # Leitura do PDF da DANFE (FIS-05 CA 2, ADR 0043): igual à homologação. Sem rede, só leitura (tmpfs só para o runtime), não-root, sem
+  # capabilities, 256 MB e morto no tempo limite. A API fala com ele pelo socket Unix do volume pdf-socket, montado só nos dois.
+  fiscal-pdf-reader:
+    <<: *app
+    image: ${REGISTRY}/bemaqui-empresas-api:${IMAGE_TAG}
+    container_name: bqe-prod-fiscal-pdf-reader
+    entrypoint: ["dotnet", "/app/pdf-reader/BemAqui.PdfReader.dll"]
+    user: "1655:1654"
+    network_mode: none
+    environment:
+      PDF_READER_SOCKET: /run/pdf-reader/reader.sock
+      PDF_READER_TIMEOUT_SECONDS: "30"
+      DOTNET_GCHeapHardLimit: "0x9600000"
+      DOTNET_gcServer: "0"
+      DOTNET_EnableDiagnostics: "0"
+    tmpfs: ["/tmp:size=16m,noexec,nosuid,nodev"]
+    volumes:
+      - pdf-socket:/run/pdf-reader
+    healthcheck:
+      test: ["CMD-SHELL", "test -S /run/pdf-reader/reader.sock"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256m, pids: 64 }
+
+  bqe-prod-web:
+    <<: *app
+    image: ${REGISTRY}/bemaqui-empresas-web:${IMAGE_TAG}
+    container_name: bqe-prod-web
+    user: "101:101"
+    tmpfs: ["/tmp:size=16m", "/var/cache/nginx:size=32m"]
+    networks: [stack]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 128m, pids: 64 }
+
+  # Não sobe com "up": o cron chama backup-cron.sh, que roda "docker compose --profile backup run --rm backup daily" (e "keyring" aos
+  # domingos). pg_dump | age | rclone rcat: nada em claro no disco. Buckets B2 próprios da produção, chaves sem deleteFiles.
+  backup:
+    <<: *app
+    image: ${REGISTRY}/bemaqui-empresas-backup:${IMAGE_TAG}
+    container_name: bqe-prod-backup
+    restart: "no"
+    user: "10001:10001"
+    profiles: [backup]
+    environment:
+      BACKUP_ENV: prod
+      PGHOST: bqe-prod-postgres
+      PGUSER: postgres
+      S3_PROVIDER: ${S3_PROVIDER:-Other}
+      # O volume de arquivos (anexos, XML das notas, holerites, PDFs) também vai para o B2, cifrado, com a mesma retenção (GOL-01a).
+      FILES_DIR: /data/files
+    volumes:
+      - files:/data/files:ro
+    secrets:
+      - backup-pg-password
+      - backup-age-recipients
+      - dumps-s3-endpoint
+      - dumps-s3-bucket
+      - dumps-s3-access-key
+      - dumps-s3-secret-key
+      - keyring-s3-endpoint
+      - keyring-s3-bucket
+      - keyring-s3-access-key
+      - keyring-s3-secret-key
+    tmpfs: ["/tmp:size=64m"]
+    networks: [internal, egress]
+    depends_on:
+      postgres: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 512m, pids: 64 }
+
+networks:
+  # Sem saída para a internet: só os containers do projeto se enxergam.
+  internal:
+    internal: true
+  # Saída para a internet de quem precisa (assinaturas do ClamAV, bucket do backup); sem nada exposto.
+  egress: {}
+  # Rede do stack-nginx: só web e api (a mesma da homologação, onde os nomes bqe-prod-* não colidem com ninguém).
+  stack:
+    external: true
+    name: stack_stack
+
+volumes:
+  pgdata: { name: bqe-prod-pgdata }
+  files: { name: bqe-prod-files }
+  clamdb: { name: bqe-prod-clamdb }
+  # Só o socket do fiscal-pdf-reader (FIS-05): nada de arquivo do usuário passa por aqui.
+  pdf-socket: { name: bqe-prod-pdf-socket }
+
+secrets:
+  catalog-connection: { file: ./secrets/catalog-connection }
+  provisioner-connection: { file: ./secrets/provisioner-connection }
+  auth-signing-key: { file: ./secrets/auth-signing-key }
+  smtp-password: { file: ./secrets/smtp-password }
+  dp-cert: { file: ./secrets/dp-cert.pfx }
+  dp-cert-password: { file: ./secrets/dp-cert-password }
+  pg-superuser-password: { file: ./secrets/pg-superuser-password }
+  pg-catalog-password: { file: ./secrets/pg-catalog-password }
+  pg-provisioner-password: { file: ./secrets/pg-provisioner-password }
+  backup-pg-password: { file: ./secrets/backup-pg-password }
+  backup-age-recipients: { file: ./secrets/backup-age-recipients }
+  dumps-s3-endpoint: { file: ./secrets/dumps-s3-endpoint }
+  dumps-s3-bucket: { file: ./secrets/dumps-s3-bucket }
+  dumps-s3-access-key: { file: ./secrets/dumps-s3-access-key }
+  dumps-s3-secret-key: { file: ./secrets/dumps-s3-secret-key }
+  keyring-s3-endpoint: { file: ./secrets/keyring-s3-endpoint }
+  keyring-s3-bucket: { file: ./secrets/keyring-s3-bucket }
+  keyring-s3-access-key: { file: ./secrets/keyring-s3-access-key }
+  keyring-s3-secret-key: { file: ./secrets/keyring-s3-secret-key }

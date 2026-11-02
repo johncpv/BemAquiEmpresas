@@ -1,0 +1,4 @@
+# IPs liberados para o painel da plataforma de PRODUÇÃO (super admin e Hangfire), um por linha: "<ip ou cidr> 1;".
+# Copie para /opt/infra/nginx/conf.d/bemaqui-empresas.allow (sem .conf, para não ser incluído sozinho). Lista própria da produção:
+# não reaproveite a da homologação sem conferir cada IP. /webhooks/ não depende desta lista.
+203.0.113.10 1;

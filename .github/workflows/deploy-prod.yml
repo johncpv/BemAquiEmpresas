@@ -1,5 +1,10 @@
-# Produção por tag (v*). PREPARADO E DESLIGADO até a GOL-01 (ADR 0005 D1): app.konebras.com.br continua com o Dolibarr
-# até o go-live. Para ligar: variável PROD_DEPLOY=true, environment "production" com aprovação e os secrets PROD_*.
+# Produção por tag (v*), GOL-01a CA 3 e 5 (ADR 0034, 0015 e 0005 D1). PREPARADO E DESLIGADO até a virada (GOL-01b): liga com a variável
+# PROD_DEPLOY=true. Autocontido (não usa o deploy.yml reutilizável): assim os secrets são os do environment "production" e nunca os da
+# homologação, e a aprovação do environment segura o job que tem a chave SSH.
+# Preparação no GitHub (docs/operacao/deploy.md, seção "Produção"):
+#   - environment "production" com "Required reviewers" (o PO), "Prevent self-review", e "Deployment branches and tags" só em tags v*;
+#   - secrets DO ENVIRONMENT (não do repositório): PROD_SSH_KEY (chave só de deploy, comando restrito na VPS) e PROD_KNOWN_HOSTS;
+#   - variáveis do repositório: PROD_DEPLOY=true e PROD_SSH_HOST.
 name: Deploy produção
 
 on:
@@ -8,17 +13,92 @@ on:
 
 permissions:
   contents: read
-  packages: write
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
 
 jobs:
-  production:
-    if: vars.PROD_DEPLOY == 'true' && github.repository == 'johncpv/BemAquiEmpresas'
-    uses: ./.github/workflows/deploy.yml
-    with:
-      environment: production
-      ref: ${{ github.sha }}
-      tenant_host: app.konebras.com.br
-      ssh_host: ${{ vars.PROD_SSH_HOST }}
-    secrets:
-      DEPLOY_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
-      DEPLOY_KNOWN_HOSTS: ${{ secrets.PROD_KNOWN_HOSTS }}
+  images:
+    name: Imagens de produção (por SHA)
+    if: vars.PROD_DEPLOY == 'true' && github.repository == 'johncpv/BemAquiEmpresas' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: A tag aponta para um commit da main
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          git fetch -q origin main
+          git merge-base --is-ancestor "$SHA" origin/main || { echo "A tag não está na main: produção só recebe commit revisado." >&2; exit 1; }
+      - name: Compose de produção endurecido
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          REGISTRY: ghcr.io/ci/prod
+          PLATFORM_HOST: plataforma.example.com
+          ALERT_RECIPIENT: ci@example.com
+          SMTP_HOST: smtp.example.com
+          SMTP_USERNAME: ci
+        run: |
+          docker compose -f deploy/prod/docker-compose.yml --env-file deploy/prod/.env.example --profile backup config --format json > compose-prod.json
+          node scripts/check-compose.mjs compose-prod.json
+      - name: Build e push (api, web, backup) com a tag do SHA, no registry só da produção
+        # ghcr.io/<dono>/prod/...: a tag <sha> nunca colide com a imagem de homologação do mesmo commit (que pode ter a galeria ligada).
+        # Tag já publicada não é refeita: a imagem de produção de um SHA é imutável.
+        env:
+          REGISTRY: ghcr.io/${{ github.repository_owner }}/prod
+          SHA: ${{ github.sha }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          echo "$TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+          for image in api web backup; do
+            name="$REGISTRY/bemaqui-empresas-$image"
+            if docker manifest inspect "$name:$SHA" >/dev/null 2>&1; then
+              echo "$name:$SHA já existe; mantida."
+              continue
+            fi
+            docker build -f "deploy/$image.Dockerfile" -t "$name:$SHA" --build-arg VITE_GALERIA=false \
+              --label org.opencontainers.image.source="https://github.com/${{ github.repository }}" \
+              --label org.opencontainers.image.revision="$SHA" .
+            docker push "$name:$SHA"
+          done
+
+  deploy:
+    name: Deploy em produção (com aprovação)
+    runs-on: ubuntu-latest
+    needs: images
+    # A proteção (aprovação do PO) é do environment; sem aprovação, este job não começa e a chave SSH não é lida.
+    environment:
+      name: production
+      url: https://app.konebras.com.br
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+      - name: Deploy por SSH (deploy/prod/deploy.sh na VPS; compose do commit no stdin)
+        # Na VPS, o deploy.sh confere o compose, baixa as imagens do SHA, faz o pg_dump do catálogo e de cada tenant (pg_restore -l),
+        # roda o migrator, sobe com --wait e volta para a tag anterior se algo falhar, e faz a fumaça local.
+        env:
+          KEY: ${{ secrets.PROD_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.PROD_KNOWN_HOSTS }}
+          SSH_HOST: ${{ vars.PROD_SSH_HOST }}
+          SHA: ${{ github.sha }}
+        run: |
+          [ -n "$KEY" ] && [ -n "$KNOWN_HOSTS" ] && [ -n "$SSH_HOST" ] || { echo "Faltam PROD_SSH_KEY/PROD_KNOWN_HOSTS (environment production) ou PROD_SSH_HOST." >&2; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          tar -cz deploy | ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "root@$SSH_HOST" "deploy $SHA"
+          rm -f ~/.ssh/deploy
+      - name: Fumaça de fora (tenant, /hubs, webhooks fora da allowlist, painel fechado, Dolibarr em adm.)
+        env:
+          SMOKE_PLATFORM_HOST: plataforma.bemaquiapp.com.br
+          SMOKE_ADM_HOST: adm.konebras.com.br
+        run: sh scripts/smoke.sh app.konebras.com.br

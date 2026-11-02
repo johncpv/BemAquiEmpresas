@@ -105,3 +105,52 @@ O Host registra um aviso (Warning) em duas situações:
   handler mTLS e o token em cache são descartados. Revogue o antigo no Inter só depois do teste com o novo. Detalhes em
   [banco-inter.md](banco-inter.md).
 - **Vazamento:** desligue a integração na tela (os segredos são sobrescritos), revogue a integração no Inter e gere outra.
+
+# Produção (GOL-01a CA 5, ADR 0034 §2 e §5)
+
+Regra: **todo segredo de produção é novo**. Nenhum valor, chave, certificado, key ring ou token sai da homologação. Os valores ficam só nos arquivos de `secrets/` (0400) e no cofre de senhas do PO; nunca neste repositório, em chat, ticket, e-mail ou variável de ambiente. Gere na estação do PO, num diretório em memória, e apague no fim:
+```bash
+d=$(mktemp -d -p /dev/shm) && cd "$d" && umask 077
+# ... gere os arquivos abaixo, copie para o cofre e para a VPS (scp para /opt/projetos/bemaqui-empresas/secrets/) ...
+cd / && rm -rf "$d"
+```
+Na VPS, depois de copiar: `cd /opt/projetos/bemaqui-empresas/secrets && chown <dono> <arquivo> && chmod 0400 <arquivo>`, e a conferência `find . -type f ! -perm 0400` (não pode listar nada). O diretório é `root:root 0700`.
+
+## Inventário (sem valores)
+
+| Segredo | Arquivo / local | Dono (uid) | Quem gera | Como gerar | Rotação |
+|---|---|---|---|---|---|
+| Senha do superuser `postgres` | `secrets/pg-superuser-password` e `secrets/backup-pg-password` (mesmo valor) | 70 / 10001 | PO | `openssl rand -hex 32 \| tr -d '\n'` | Anual ou suspeita: `ALTER ROLE postgres PASSWORD …` e troca dos dois arquivos |
+| Senha do role `bemaqui_catalog` | `secrets/pg-catalog-password` (lida só na criação do volume) e dentro de `catalog-connection` | 70 / 1654 | PO | `openssl rand -hex 32 \| tr -d '\n'` | Anual: `ALTER ROLE bemaqui_catalog PASSWORD …`, depois `catalog-connection` e reinício da API |
+| Senha do role `bemaqui_provisioner` | `secrets/pg-provisioner-password` e dentro de `provisioner-connection` | 70 / 1654 | PO | `openssl rand -hex 32 \| tr -d '\n'` | Anual, como a do catálogo |
+| Conexão do catálogo | `secrets/catalog-connection` | 1654 | PO | `printf 'Host=bqe-prod-postgres;Database=catalog;Username=bemaqui_catalog;Password=%s' "$(cat pg-catalog-password)" > catalog-connection` | Junto com a senha do role |
+| Conexão do provisionador | `secrets/provisioner-connection` | 1654 | PO | `printf 'Host=bqe-prod-postgres;Database=postgres;Username=bemaqui_provisioner;Password=%s' "$(cat pg-provisioner-password)" > provisioner-connection` | Junto com a senha do role |
+| Usuário e senha do banco do tenant `konebras` | Banco de catálogo, cifrado com o key ring (`connection`) | — | Runbook da virada | **Novos na promoção** (`ALTER ROLE tenant_konebras PASSWORD …` com `openssl rand -hex 32`) e a conexão cifrada de novo com o key ring de produção (ADR 0034 §2) | Anual |
+| Assinatura do JWT | `secrets/auth-signing-key` | 1654 | PO | `openssl rand -base64 48 \| tr -d '\n'` | Anual ou suspeita (troca derruba todas as sessões: fazer fora do horário) |
+| Senha do SMTP | `secrets/smtp-password` | 1654 | PO, no provedor de e-mail (credencial nova só da produção) | Painel do provedor (SES: usuário SMTP IAM novo) | Anual |
+| Certificado do key ring (`.pfx`, RSA 3072) | `secrets/dp-cert.pfx` + cofre | 1654 | PO | Comandos de "Primeiro provisionamento" acima, com `-subj "/CN=BemAqui Empresas DataProtection (prod)"` | Não trocar até existir a lista de certificados antigos (validade 10 anos, aviso 180 dias antes) |
+| Senha do `.pfx` | `secrets/dp-cert-password` + cofre | 1654 | PO | `openssl rand -base64 32 \| tr -d '\n'` (a mesma digitada no `openssl pkcs12 -export`) | Junto com o certificado |
+| Key ring do Data Protection | Catálogo de produção (`security.data_protection_keys`), criado com `ALLOW_KEY_RING_CREATION=true` uma vez | — | Primeira subida | Automático; **nunca** copiado da homologação | Automática a cada 90 dias; não revogar |
+| Chave da API do EmissorFiscal (produção) | Banco do tenant, cifrada (`fiscal-api-key`); entra pela tela Configurações → Integrações → Emissor fiscal | — | PO, no painel do Emissor | Chave nova do tenant de produção do Emissor, **sem** `admin`, só `nfe:emitir`, `nfe:eventos` e `consultar` (ADR 0027) | Anual ou suspeita |
+| Segredo do webhook do Emissor | Banco do tenant (`webhook-secret`), colado em "Trocar o segredo" | — | Emissor (mostra ao cadastrar o webhook de produção) | Cadastro novo em `https://plataforma.bemaquiapp.com.br/webhooks/emissor-fiscal/{tenantKey}` | Anual (sobreposição de 24 h) |
+| Credenciais do Inter (client id/secret) e certificado mTLS | Banco do tenant, por conta (`inter-credentials`, `inter-certificate`); entram pela tela | — | PO, no Internet Banking do Inter | Integração nova de produção só com cobrança, extrato e webhook (ADR 0032) | Certificado anual (aviso 30/15/7/1 dias) |
+| Token do webhook do Inter | Só o hash no banco; a URL aparece uma vez | — | BemAqui ("Ativar aviso de pagamento") | Automático (256 bits) | Na troca de endereço |
+| Chave pública do backup (`age1…`) | `secrets/backup-age-recipients` | 10001 | PO | `age-keygen -o bqe-prod-backup.key` e `age-keygen -y bqe-prod-backup.key > backup-age-recipients`; a privada **só no cofre**, nunca na VPS | Anual: nova chave; guarde a antiga enquanto houver backup cifrado com ela (30 dias) |
+| B2: bucket dos dumps | `secrets/dumps-s3-{endpoint,bucket,access-key,secret-key}` | 10001 | PO, no B2 | Bucket `bqe-prod-dumps` + chave de aplicação só dele, sem `deleteFiles` (`b2 key create --bucket bqe-prod-dumps bqe-prod-dumps listBuckets,listFiles,readFiles,writeFiles`) | Anual |
+| B2: bucket do key ring | `secrets/keyring-s3-{endpoint,bucket,access-key,secret-key}` | 10001 | PO, no B2 | Bucket `bqe-prod-keyring` + **outra** chave, sem `deleteFiles` | Anual |
+| Chave SSH de deploy | Privada: secret `PROD_SSH_KEY` do environment `production`; pública em `/root/.ssh/authorized_keys` com `command=…/deploy.sh,restrict` | — | PO | `ssh-keygen -t ed25519 -f bqe-prod-deploy -N '' -C bqe-prod-deploy` | Anual ou saída de alguém com acesso |
+| `known_hosts` da VPS | Secret `PROD_KNOWN_HOSTS` do environment `production` | — | PO | `ssh-keyscan -t ed25519 2.25.82.127` (conferir a impressão digital no painel da Hostinger) | Se a VPS mudar |
+| Token do GHCR (pull na VPS) | `/opt/projetos/bemaqui-empresas/.docker/config.json` (0600) | root | PO | PAT clássico só com `read:packages`, nome "bqe-prod-vps", login com `DOCKER_CONFIG=…/.docker docker login ghcr.io` | Anual (data de expiração no próprio PAT) |
+| Push das imagens | `GITHUB_TOKEN` do workflow (efêmero) | — | GitHub | Automático, `packages: write` só no job de imagens | — |
+| Aprovação do deploy | Environment `production`: Required reviewers = PO, Prevent self-review, só tags `v*` | — | PO | Settings → Environments | Revisar a cada go-live/saída de alguém |
+| Allowlist do painel da plataforma | `/opt/infra/nginx/conf.d/bemaqui-empresas.allow` | root | PO | IPs fixos conferidos (não é segredo, mas não vai ao repositório) | Quando o IP mudar |
+| Senha básica do Dolibarr em `adm.` | `/opt/infra/nginx/conf.d/adm-dolibarr.htpasswd` (0640) + cofre | root | PO | `htpasswd -B -c adm-dolibarr.htpasswd <usuário>` (bcrypt) | Até o desligamento do Dolibarr |
+| `DOLAPIKEY` do Dolibarr | Não existe na produção (regenerada e os usuários desativados na virada; secret da importação apagado, ADR 0017 adendo 2) | — | — | — | — |
+
+Também ficam fora dos arquivos: WhatsApp (credenciais do BSP, pela tela, `whatsapp-credentials`) e chave de IA (pela tela, `ai-key`), ambos cifrados no banco do tenant e recadastrados na produção.
+
+## Conferência antes do "Go" (CA 5)
+- `find /opt/projetos/bemaqui-empresas/secrets -type f ! -perm 0400` vazio e `stat -c '%u %n' secrets/*` com o dono da tabela.
+- Nenhum arquivo igual ao da homologação: `cd /opt/projetos && for f in bemaqui-empresas/secrets/*; do cmp -s "$f" "bemaqui-empresas-homolog/secrets/$(basename "$f")" && echo "REAPROVEITADO: $f"; done` não pode imprimir nada.
+- Impressão digital do `dp-cert.pfx` diferente da homologação (`openssl pkcs12 -in dp-cert.pfx -nokeys | openssl x509 -noout -fingerprint -sha256`, com a senha).
+- Data de geração de cada item registrada no cofre do PO; o inventário acima fica sem valor.

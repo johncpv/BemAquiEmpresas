@@ -1,5 +1,6 @@
 # Publicação reutilizável (FND-10): imagens no GHCR e deploy por SSH com chave de comando restrito.
-# Chamado por deploy-homolog.yml (main) e deploy-prod.yml (tag, desligado até a GOL-01).
+# Chamado por deploy-homolog.yml (main). A produção tem fluxo próprio (deploy-prod.yml, GOL-01a): environment com aprovação, secrets do
+# environment "production" e registry só da produção; não use este arquivo para ela.
 name: Deploy (reutilizável)
 
 on:

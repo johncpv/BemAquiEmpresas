@@ -169,7 +169,8 @@ public class KioskRulesTests
     [Fact]
     public void Log_do_nginx_nao_grava_query_corpo_cookie_nem_Authorization()
     {
-        var conf = KioskRules.Read("deploy", "nginx", "bemaqui-empresas-homolog.conf");
+        // O formato e os maps ficam no arquivo comum (o stack-nginx é um só para homologação, produção e Dolibarr, GOL-01a).
+        var conf = KioskRules.Read("deploy", "nginx", "00-bemaqui-empresas-common.conf");
         var format = Regex.Match(conf, """log_format bqe_masked[^;]*;""").Value;
 
         format.Should().NotBeEmpty().And.Contain("$bqe_uri");
@@ -181,7 +182,12 @@ public class KioskRulesTests
             format.Should().NotContain(leak, "o token da TV fica no fragmento e no corpo; o cookie nunca vai para o log (CA 8)");
         }
 
-        Regex.Matches(conf, """access_log\s+[^;]*;""").Select(m => m.Value).Should().OnlyContain(l => l.Contains("bqe_masked", StringComparison.Ordinal) || l.Contains(" off", StringComparison.Ordinal));
+        foreach (var vhost in new[] { KioskRules.Read("deploy", "nginx", "bemaqui-empresas-homolog.conf"), KioskRules.Read("deploy", "prod", "nginx", "bemaqui-empresas.conf"), KioskRules.Read("deploy", "prod", "nginx", "adm-dolibarr.conf") })
+        {
+            var accessLogs = Regex.Matches(vhost, """access_log\s+[^;]*;""").Select(m => m.Value).ToList();
+            accessLogs.Should().NotBeEmpty().And.OnlyContain(l => l.Contains("bqe_masked", StringComparison.Ordinal) || l.Contains(" off", StringComparison.Ordinal));
+            Regex.IsMatch(vhost, """^\s*log_format\s""", RegexOptions.Multiline).Should().BeFalse("o formato fica só no arquivo comum: repetido, o nginx -t do stack-nginx reprova");
+        }
     }
 
     [Fact]

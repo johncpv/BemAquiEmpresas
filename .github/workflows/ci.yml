@@ -150,11 +150,23 @@ jobs:
         run: |
           docker compose -f deploy/homolog/docker-compose.yml --env-file deploy/homolog/.env.example --profile backup --profile import config --format json > compose.json
           node scripts/check-compose.mjs compose.json
-      - name: nginx -t do vhost (FND-10 CA 4)
+      - name: Compose de produção (GOL-01a CA 3; endurecimento em todo serviço)
+        # O .env.example da produção só tem nomes: os valores de mentira vêm daqui (o IMAGE_TAG precisa ter a forma de um SHA).
+        env:
+          IMAGE_TAG: "0000000000000000000000000000000000000000"
+          REGISTRY: ghcr.io/ci/prod
+          PLATFORM_HOST: plataforma.example.com
+          ALERT_RECIPIENT: ci@example.com
+          SMTP_HOST: smtp.example.com
+          SMTP_USERNAME: ci
+        run: |
+          docker compose -f deploy/prod/docker-compose.yml --env-file deploy/prod/.env.example --profile backup config --format json > compose-prod.json
+          node scripts/check-compose.mjs compose-prod.json
+      - name: nginx -t dos vhosts (FND-10 CA 4; GOL-01a CA 3, com homologação, produção e Dolibarr juntos)
         run: sh scripts/check-nginx.sh
       - name: Scripts de shell
         run: |
-          for f in deploy/homolog/deploy.sh deploy/homolog/backup-cron.sh deploy/backup/backup.sh deploy/postgres/init-roles.sh scripts/smoke.sh scripts/dolibarr-snapshot.sh scripts/dolibarr/restore-snapshot.sh; do sh -n "$f"; done
+          for f in deploy/homolog/deploy.sh deploy/homolog/backup-cron.sh deploy/prod/deploy.sh deploy/prod/backup-cron.sh deploy/backup/backup.sh deploy/postgres/init-roles.sh scripts/smoke.sh scripts/check-nginx.sh scripts/dolibarr-snapshot.sh scripts/dolibarr/restore-snapshot.sh; do sh -n "$f"; done
       - name: Imagens (api, web, backup)
         run: |
           for image in api web backup; do docker build -q -f "deploy/$image.Dockerfile" -t "bqe-ci-$image" .; done

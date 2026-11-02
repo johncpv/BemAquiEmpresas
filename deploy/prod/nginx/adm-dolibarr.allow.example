@@ -1,0 +1,4 @@
+# IPs que entram no Dolibarr (adm.konebras.com.br) sem a senha básica, um por linha: "allow <ip ou cidr>;".
+# Copie para /opt/infra/nginx/conf.d/adm-dolibarr.allow (sem .conf, para não ser incluído sozinho). Pode ficar só com comentários:
+# aí todo acesso pede a senha básica (adm-dolibarr.htpasswd).
+allow 203.0.113.10;
