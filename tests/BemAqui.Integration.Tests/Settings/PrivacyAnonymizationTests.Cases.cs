@@ -579,7 +579,8 @@ public partial class PrivacyAnonymizationTests
 
         var request = await RequestAsync(owner.Client, "Contact", contactId);
         var id = request.GetProperty("id").GetGuid();
-        (await AnonymizeAsync(owner, request, contactName, owner.Codes!.Next())).StatusCode.Should().Be(HttpStatusCode.Accepted);
+        var first = await AnonymizeAsync(owner, request, contactName, owner.Codes!.Next());
+        first.StatusCode.Should().Be(HttpStatusCode.Accepted, await first.Content.ReadAsStringAsync());
         var partial = await RunJobAsync(owner, id, flaky);
         partial.GetProperty("anonymizationStatus").GetString().Should().Be("Partial", "CA 5");
         var steps = partial.GetProperty("anonymizationSteps").EnumerateArray().ToDictionary(s => s.GetProperty("module").GetString()!, s => s.GetProperty("status").GetString());

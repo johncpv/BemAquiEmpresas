@@ -15,7 +15,7 @@ namespace BemAqui.HR.Application;
 /// pediu nem os das próprias marcações (salvo o Proprietário único). Os apontamentos vêm do contrato <see cref="ILaborCostGaps"/> da
 /// Produção; nenhuma linha leva justificativa nem motivo de ausência.
 /// </summary>
-public sealed class HrAgendaSource(IHrDb db, ILaborCostGaps gaps, IUserEmployeeLink links, IUserDirectory users, HrParametersService parameters) : IAgendaSource
+public sealed class HrAgendaSource(IHrDb db, ILaborCostGaps gaps, IUserEmployeeLink links, IUserDirectory users, HrParametersService parameters, TimeProvider clock) : IAgendaSource
 {
     public const string PositionsWithoutCost = "hr.positions_without_cost";
     public const string TimeAdjustmentsPending = "hr.time_adjustments_pending";
@@ -24,10 +24,14 @@ public sealed class HrAgendaSource(IHrDb db, ILaborCostGaps gaps, IUserEmployeeL
     /// <summary>Quantos dias antes da data limite a pauta lembra a parcela do 13º (FLH-04, Propositivo: "em novembro").</summary>
     public const int ThirteenthReminderDays = 30;
 
+    /// <summary>Férias a vencer em até 60 dias e vencidas (FLH-03 CA 3), para quem tem <c>hr.edit</c>.</summary>
+    public const string VacationsDue = "hr.vacations_due";
+
     private static readonly AgendaCategory[] Declared =
     [
         new(PositionsWithoutCost, "hr", "hr.edit", AgendaTier.Overdue, "os cargos sem custo-hora"),
         new(TimeAdjustmentsPending, "hr", TimeAdjustmentRules.ApprovePermission, AgendaTier.Unblocks, "os ajustes de ponto aguardando você"),
+        new(VacationsDue, "hr", "hr.edit", AgendaTier.DueSoon, "as férias a vencer"),
         new(ThirteenthDue, "hr", "hr.create", AgendaTier.DueSoon, "as parcelas do 13º"),
     ];
 
@@ -49,12 +53,41 @@ public sealed class HrAgendaSource(IHrDb db, ILaborCostGaps gaps, IUserEmployeeL
             items.Add(positions);
         }
 
+        if (request.Wants(VacationsDue) && await VacationsAsync(cancellationToken) is { } vacations)
+        {
+            items.Add(vacations);
+        }
+
         if (request.Wants(ThirteenthDue) && await ThirteenthAsync(request.Today, cancellationToken) is { } thirteenth)
         {
             items.Add(thirteenth);
         }
 
         return items;
+    }
+
+    /// <summary>"Férias a vencer" (FLH-03 CA 3): períodos a gozar com o concessivo a até 60 dias do fim, e os vencidos, com saldo (sem valor).</summary>
+    private async Task<AgendaItem?> VacationsAsync(CancellationToken ct)
+    {
+        var limit = BusinessTime.Today(clock).AddDays(VacationPolicy.DueAlertDays);
+        var rows = await (from p in db.VacationPeriods.AsNoTracking()
+                          join e in db.Employees.AsNoTracking() on p.EmployeeId equals e.Id
+                          where p.Status == VacationPeriodStatus.Expired || (p.Status == VacationPeriodStatus.Available && p.ConcessionEndsOn <= limit)
+                          orderby p.ConcessionEndsOn
+                          select new { p.EmployeeId, p.ConcessionEndsOn, p.EntitledDays, p.TakenDays, p.SoldDays, p.Status, e.Name }).Take(500).ToListAsync(ct);
+        var due = rows.Where(r => r.EntitledDays - r.TakenDays - r.SoldDays > 0).ToList();
+        if (due.Count == 0)
+        {
+            return null;
+        }
+
+        return new AgendaItem(
+            VacationsDue,
+            AgendaText.Count(due.Count, "período de férias vence em breve", "períodos de férias vencem em breve"),
+            "Férias dadas depois do período concessivo são pagas em dobro.",
+            "/app/rh/ferias", due[0].ConcessionEndsOn, null, AgendaTier.DueSoon, due.Count, "Programar férias",
+            [.. due.Take(AgendaLimits.EntriesPerCategory).Select(r => new AgendaEntry(
+                r.Name, (r.Status == VacationPeriodStatus.Expired ? "Vencidas em " : "Vencem em ") + VacationPolicy.Date(r.ConcessionEndsOn), VacationService.EmployeeLink(r.EmployeeId), r.ConcessionEndsOn, null))]);
     }
 
     /// <summary>

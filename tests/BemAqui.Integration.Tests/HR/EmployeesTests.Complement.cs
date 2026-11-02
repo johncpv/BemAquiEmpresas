@@ -44,6 +44,14 @@ public partial class EmployeesTests
 
         public string Next()
         {
+            // O servidor aceita o passo anterior, o atual e o próximo; o código sai do passo anterior (sobram dois à frente). Nos últimos 10 s
+            // do passo, ele venceria no meio da requisição quando o relógio vira (2FA "inválido" intermitente): espera o passo virar antes.
+            var wait = Totp.StepSeconds - (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() % (Totp.StepSeconds * 1000L)) / 1000.0;
+            if (wait < 10)
+            {
+                Thread.Sleep(TimeSpan.FromSeconds(wait + 0.2));
+            }
+
             var step = Math.Max(_last + 1, Totp.StepAt(DateTimeOffset.UtcNow) - 1);
             _last = step;
             return Totp.Code(secret, step);

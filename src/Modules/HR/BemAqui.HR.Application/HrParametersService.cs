@@ -59,6 +59,8 @@ public enum HrParameterKind
 
     /// <summary>Hora do dia, de 0 a 23 (início e fim do horário noturno, FLH-02b).</summary>
     HourOfDay,
+    /// <summary>Quantidade (faltas da faixa das férias, partes do fracionamento, FLH-03).</summary>
+    Count,
 }
 
 /// <summary>Parâmetros do espelho de ponto (RH-01c CA 1), lidos de uma vez; fora dos limites, o padrão.</summary>
@@ -245,6 +247,30 @@ public sealed partial class HrParametersService(
             HrParameterKind.Choice, 1m, 1m, 2m, true, Options: [new(1m, "Dias úteis = dias do mês − domingos − feriados (o sábado é útil)"), new(2m, "Dias úteis pelo calendário padrão da empresa")]),
         new(DsrLossOnAbsence, "Perda do DSR por falta", "Ligado (o usual, Lei 605/1949, art. 6º): a falta injustificada (sem abono aprovado) desconta o repouso da semana, um dia de salário por semana.",
             HrParameterKind.Toggle, 1m, 0m, 1m, true),
+        // FLH-03: férias, pré-configuradas pela CLT (PO 21/10/2026, revisão pré-Fases 4 a 8, pontos 16 a 19), "A confirmar com a contadora".
+        new(VacationAbsenceKey(30), "Férias de 30 dias: faltas até", "Faltas injustificadas no período aquisitivo que ainda dão 30 dias de férias (CLT art. 130: até 5).",
+            HrParameterKind.Count, 5m, 0m, 366m, true),
+        new(VacationAbsenceKey(24), "Férias de 24 dias: faltas até", "Acima da faixa anterior e até este número de faltas, 24 dias de férias (CLT: de 6 a 14).",
+            HrParameterKind.Count, 14m, 0m, 366m, true),
+        new(VacationAbsenceKey(18), "Férias de 18 dias: faltas até", "Acima da faixa anterior e até este número de faltas, 18 dias de férias (CLT: de 15 a 23).",
+            HrParameterKind.Count, 23m, 0m, 366m, true),
+        new(VacationAbsenceKey(12), "Férias de 12 dias: faltas até", "Acima da faixa anterior e até este número de faltas, 12 dias de férias (CLT: de 24 a 32). Acima, o período não dá férias.",
+            HrParameterKind.Count, 32m, 0m, 366m, true),
+        new(VacationInssLeaveDays, "Afastamento pela previdência que reinicia o período", "Dias de afastamento pela previdência (doença ou acidente, depois dos dias pagos pela empresa), contínuos ou não, acima dos quais o período aquisitivo se encerra e um novo começa no retorno (CLT art. 133: 6 meses).",
+            HrParameterKind.Days, 180m, 1m, 366m, true),
+        new(VacationPaidLeaveDays, "Licença remunerada que reinicia o período", "Dias de licença remunerada (afastamento por falta justificada) acima dos quais o período aquisitivo se encerra e um novo começa no retorno (CLT art. 133: 30 dias).",
+            HrParameterKind.Days, 30m, 1m, 366m, true),
+        new(VacationSplitParts, "Fracionamento: períodos", "Em quantos períodos as férias de um período aquisitivo podem ser divididas (CLT art. 134 §1: até 3).",
+            HrParameterKind.Count, 3m, 1m, 3m, true),
+        new(VacationSplitFirstDays, "Fracionamento: o maior período", "Dias mínimos de um dos períodos (CLT: 14 dias).", HrParameterKind.Days, 14m, 1m, 30m, true),
+        new(VacationSplitOtherDays, "Fracionamento: os demais períodos", "Dias mínimos de cada um dos outros períodos (CLT: 5 dias).", HrParameterKind.Days, 5m, 1m, 30m, true),
+        new(VacationNoticeDays, "Aviso de férias", "Dias de antecedência do aviso de férias ao funcionário (CLT art. 135: 30 dias).", HrParameterKind.Days, 30m, 0m, 90m, true),
+        new(VacationPaymentDaysBefore, "Pagamento das férias", "Dias antes do início do gozo em que a folha de férias vence (CLT art. 145: 2 dias). Se cair em dia não útil, antecipa.",
+            HrParameterKind.Days, 2m, 0m, 30m, true),
+        new(VacationAverages, "Média das variáveis nas férias", "Meses do período aquisitivo cuja média dos proventos variáveis (horas extras, prêmios) entra na remuneração das férias.",
+            HrParameterKind.Months, 12m, 1m, 12m, true),
+        new(VacationTaxationKey, "Tributação das férias", "INSS sobre férias + 1/3 na competência do gozo (rateado quando atravessa o mês, junto com o salário), IRRF em separado no pagamento e o abono pecuniário e o seu 1/3 sem INSS, FGTS nem IRRF (pelas marcas das rubricas).",
+            HrParameterKind.Choice, 1m, 1m, 2m, true, Options: [new(1m, "INSS rateado nas competências do gozo"), new(2m, "INSS inteiro na competência do início")]),
 
         // FLH-04: regras do 13º calculado, pré-configuradas pela legislação (PO 21/10/2026), "A confirmar com a contadora".
         new(ThirteenthRules, "Avos da 1ª parcela do 13º", "Avos da 1ª parcela (o adiantamento sem INSS e IRRF, com FGTS): os do ano projetados (o usual: os meses até o da parcela pelo ponto e pelos afastamentos, os seguintes como trabalhados; quem está no ano inteiro recebe a metade da remuneração), ou só os avos até o mês da parcela.",
@@ -258,6 +284,47 @@ public sealed partial class HrParametersService(
         new(Forecast13th, "13º no fluxo de caixa", "Desde janeiro, as duas parcelas do 13º aparecem no fluxo de caixa como estimativa (salário atual × avos do ano), nos meses das datas limite, até a folha do 13º fechar.",
             HrParameterKind.Toggle, 1m, 0m, 1m, false),
     ];
+
+    // FLH-03: férias ("A confirmar com a contadora").
+    public static string VacationAbsenceKey(int days) => "hr.vacation_absence_brackets." + days.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    public const string VacationInssLeaveDays = "hr.vacation_leave_rules.inss_days";
+    public const string VacationPaidLeaveDays = "hr.vacation_leave_rules.paid_leave_days";
+    public const string VacationSplitParts = "hr.vacation_split.max_parts";
+    public const string VacationSplitFirstDays = "hr.vacation_split.first_min_days";
+    public const string VacationSplitOtherDays = "hr.vacation_split.other_min_days";
+    public const string VacationNoticeDays = "hr.vacation_notice_days";
+    public const string VacationPaymentDaysBefore = "hr.vacation_payment_days_before";
+    public const string VacationAverages = "hr.vacation_averages";
+    public const string VacationTaxationKey = "hr.vacation_taxation";
+
+    private static readonly int[] VacationBracketDays = [30, 24, 18, 12];
+
+    /// <summary>As chaves que as férias leem (a folha de férias guarda os ids delas).</summary>
+    public static readonly string[] VacationKeys =
+    [
+        .. VacationBracketDays.Select(VacationAbsenceKey), VacationInssLeaveDays, VacationPaidLeaveDays, VacationSplitParts, VacationSplitFirstDays, VacationSplitOtherDays, VacationNoticeDays,
+        VacationPaymentDaysBefore, VacationAverages, VacationTaxationKey,
+    ];
+
+    /// <summary>Parâmetros de férias (FLH-03) com os ids gravados; fora dos limites ou sem gravar, o pré-configurado pela CLT.</summary>
+    public async Task<(VacationParameters Parameters, List<Guid> Ids)> VacationParametersAsync(CancellationToken cancellationToken = default)
+    {
+        var keys = VacationKeys.Append(SickLeaveCompanyDays).ToList();
+        var stored = await db.HrParameters.AsNoTracking().Where(p => keys.Contains(p.Key)).ToListAsync(cancellationToken);
+        int Number(string key)
+        {
+            var d = Definitions.First(x => x.Key == key);
+            return stored.FirstOrDefault(p => p.Key == key)?.Value is { } v && v >= d.Min && v <= d.Max && decimal.Truncate(v) == v ? (int)v : (int)d.Default!.Value;
+        }
+
+        var parameters = new VacationParameters(
+            VacationBracketDays.Select(days => new VacationAbsenceBracket(Number(VacationAbsenceKey(days)), days)).ToList(),
+            Number(VacationInssLeaveDays), Number(VacationPaidLeaveDays), Number(SickLeaveCompanyDays), Number(VacationSplitParts), Number(VacationSplitFirstDays), Number(VacationSplitOtherDays),
+            Number(VacationNoticeDays), Number(VacationPaymentDaysBefore), Number(VacationAverages), Number(VacationTaxationKey) == 2 ? VacationTaxation.StartMonth : VacationTaxation.SplitByMonth);
+        return (parameters, stored.Where(p => VacationKeys.Contains(p.Key)).OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => p.Id).ToList());
+    }
+
 
     // FLH-02b: horas extras, adicional noturno e DSR ("A confirmar com a contadora").
     public const string OvertimeWorkdayPct = "hr.overtime_rates.weekday";
@@ -556,6 +623,7 @@ public sealed partial class HrParametersService(
                     HrParameterKind.Choice => "Escolha uma das opções.",
                     HrParameterKind.Hours => $"Informe de {definition.Min:0} a {definition.Max:0} horas (0 usa as horas mensais do cargo).",
                     HrParameterKind.Years => $"Informe de {definition.Min:0} a {definition.Max:0} anos.",
+                    HrParameterKind.Count => $"Informe um número inteiro de {definition.Min:0} a {definition.Max:0}.",
                     HrParameterKind.BusinessDay => $"Informe um dia útil de {definition.Min:0} a {definition.Max:0}.",
                     HrParameterKind.MonthDay => "Informe uma data válida no formato dia/mês (ex.: 30/11).",
                     HrParameterKind.Months => $"Informe de {definition.Min:0} a {definition.Max:0} meses.",

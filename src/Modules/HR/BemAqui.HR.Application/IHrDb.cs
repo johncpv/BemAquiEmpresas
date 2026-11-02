@@ -65,6 +65,11 @@ public interface IHrDb
 
     DbSet<PayrollModeChange> PayrollModeChanges { get; }
 
+    // Férias (FLH-03): períodos aquisitivos e programações.
+    DbSet<VacationPeriod> VacationPeriods { get; }
+
+    DbSet<VacationSchedule> VacationSchedules { get; }
+
     /// <summary>Transação do fechamento: a folha, os títulos do Finance (mesmo contexto) e a numeração gravam juntos ou nada grava.</summary>
     Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
 

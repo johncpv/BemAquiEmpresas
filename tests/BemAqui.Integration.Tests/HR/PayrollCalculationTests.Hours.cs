@@ -96,7 +96,7 @@ public partial class PayrollCalculationTests
         lines.Single(l => l.GetProperty("code").GetString() == "DSR").GetProperty("memory").EnumerateArray().Select(m => m.GetString())
             .Should().Contain("Dias do mês: 23 úteis e 7 de descanso (dias úteis = dias do mês − domingos − feriados, parâmetro hr.dsr_formula).");
         var info = slip.GetProperty("calculation");
-        info.GetProperty("calculatorVersion").GetString().Should().Be("1.1.0");
+        info.GetProperty("calculatorVersion").GetString().Should().Be(PayrollCalculator.Version, "a FLH-03 subiu o motor para 1.2.0 (férias na mensal)");
         info.GetProperty("timesheetLink").GetString().Should().Be($"/app/rh/ponto/espelho/{employee}?mes=2026-11");
         info.GetProperty("inputs").EnumerateArray().Should().Contain(i => i.GetProperty("label").GetString() == "Horas extras em dia útil" && i.GetProperty("value").GetString() == "2:00 h");
         var stored = await DbAsync(a, db => db.Payslips.AsNoTracking().SingleAsync(p => p.PayrollRunId == run && p.EmployeeId == employee));

@@ -91,7 +91,22 @@ public sealed partial class PayrollService(
         var mode = input.Mode is { } m && Enum.IsDefined(m) ? m : PayrollRunMode.Entered;
         if (mode == PayrollRunMode.Calculated && type != PayrollRunType.Monthly && !ThirteenthCalculator.IsThirteenth(type))
         {
-            return Error.Validation(PayrollCalculationRules.NotSupportedCode, $"O cálculo da folha {PayrollRules.TypeLabel(type)} chega nas próximas etapas. Use a folha lançada.");
+            // FLH-03: a folha de férias calculada nasce da programação, uma por funcionário ("Calcular férias").
+            return Error.Validation(PayrollCalculationRules.NotSupportedCode, type == PayrollRunType.Vacation
+                ? "A folha de férias calculada nasce da programação: em RH → Férias, programe e clique em \"Calcular férias\"."
+                : $"O cálculo da folha {PayrollRules.TypeLabel(type)} chega nas próximas etapas. Use a folha lançada.");
+        }
+
+        // FLH-04 CA 8: 13º calculado na competência da data limite, um por tipo e ano; a 2ª sem a 1ª fechada pede a confirmação.
+        if (mode == PayrollRunMode.Calculated && ThirteenthCalculator.IsThirteenth(type))
+        {
+            var checkedPeriod = await ThirteenthCreateCheckAsync(type, period, input.ConfirmWithoutAdvance == true, cancellationToken);
+            if (checkedPeriod.IsFailure)
+            {
+                return checkedPeriod.Error!;
+            }
+
+            period = checkedPeriod.Value;
         }
 
         // FLH-04 CA 8: 13º calculado na competência da data limite, um por tipo e ano; a 2ª sem a 1ª fechada pede a confirmação.

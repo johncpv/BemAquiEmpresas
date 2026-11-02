@@ -5,7 +5,7 @@
 | ID | FLH-03 |
 | Título | Períodos aquisitivos por funcionário com saldo de dias (descontadas as faltas pela regra pré-configurada da CLT), programação das férias com aviso, fracionamento e abono pecuniário, cálculo da folha de férias (remuneração, 1/3, médias de variáveis, INSS e IRRF próprios), recibo e aviso em PDF, título a pagar com o vencimento antes do início, dias de férias no espelho e no "Meu ponto"; só simulação até a virada e o primeiro caso de férias conferido (FLH-06) |
 | Tamanho | G |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: contadora e conferência paralela) |
 | Requisitos | R-RH-6 ("férias") · R-RH-4 (dias de férias no ponto) · R-RH-5 (recibo e CP) · R-FIN-10 · R-PRP-5 · R-SEC-5 |
 | Dependências | FLH-02a e FLH-02b (motor e médias), FLH-01 (tabelas), RH-01c (espelho), RH-02b/02c (PDF, fechamento e títulos, ADR 0036), CAD-04b (admissão), CAD-04c1 (afastamentos) |
 | Bloqueia | FLH-04 (adiantamento do 13º nas férias), FLH-05 (férias vencidas e proporcionais na rescisão) |

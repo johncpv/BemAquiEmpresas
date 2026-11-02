@@ -29,6 +29,9 @@ public enum TimesheetDayStatus
     Inconsistent,
     NotEmployed,
     Upcoming,
+
+    /// <summary>Férias programadas (FLH-03 CA 5): sem jornada esperada, também nos dias que ainda não chegaram.</summary>
+    Vacation,
 }
 
 /// <summary>Rubrica ligada a um total do espelho (RH-01c CA 16, "Origem no ponto"): extras, faltas ou atrasos.</summary>
@@ -168,7 +171,11 @@ public sealed record TimesheetInput(
     IReadOnlyList<TimesheetLeaveInput> Leaves,
     IReadOnlySet<DateOnly> Reviewed,
     TimesheetSettings Settings,
-    int PreviousBankBalanceMinutes);
+    int PreviousBankBalanceMinutes)
+{
+    /// <summary>Férias programadas (FLH-03 CA 5): início e fim, inclusive; os dias saem como "Férias".</summary>
+    public IReadOnlyList<(DateOnly Start, DateOnly End)> Vacations { get; init; } = [];
+}
 
 /// <summary>Um dia do espelho: os minutos, a situação, os motivos da inconsistência e o que veio da jornada e do calendário.</summary>
 public sealed record TimesheetDayResult(
@@ -264,6 +271,11 @@ public static class TimesheetCalculator
         if (day < input.Admission || (input.Termination is { } end && day > end))
         {
             return Empty(TimesheetDayStatus.NotEmployed);
+        }
+
+        if (input.Vacations.Any(v => v.Start <= day && day <= v.End))
+        {
+            return Empty(TimesheetDayStatus.Vacation);
         }
 
         var scheduled = schedule is { } sc ? (int)(sc.End - sc.Start).TotalMinutes - sc.Break : 0;
@@ -524,6 +536,7 @@ public static class TimesheetRules
         TimesheetDayStatus.Justified => "Abonado",
         TimesheetDayStatus.Compensated => "Compensado do banco",
         TimesheetDayStatus.OnLeave => "Afastado",
+        TimesheetDayStatus.Vacation => "Férias",
         TimesheetDayStatus.Holiday => "Feriado",
         TimesheetDayStatus.DayOff => "Folga",
         TimesheetDayStatus.Inconsistent => "Inconsistente",

@@ -27,4 +27,5 @@ export const HrParameterKind = {
   Hours: 'Hours',
   Years: 'Years',
   HourOfDay: 'HourOfDay',
+  Count: 'Count',
 } as const;

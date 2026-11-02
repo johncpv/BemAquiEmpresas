@@ -35,6 +35,12 @@ public enum PayrollCalculation
     DsrLoss,
     HourBankPayout,
     HourBankDiscount,
+    // FLH-03: folha de férias (VacationCalculator).
+    VacationPay,
+    VacationAverages,
+    VacationThird,
+    VacationSale,
+    VacationSaleThird,
 
     // FLH-04 (13º salário, <see cref="ThirteenthCalculator"/>): a 1ª parcela (também a paga com as férias, FLH-03), o 13º da 2ª parcela,
     // as médias das variáveis e o desconto do adiantamento já pago. O INSS, o IRRF e o FGTS do 13º usam as rubricas de sempre.
@@ -132,7 +138,14 @@ public sealed record PayrollCalcSnapshot(
     PayrollCalcParameters Parameters,
     IReadOnlyList<PayrollCalcHourDay>? HourDays = null,
     PayrollCalcMonthCalendar? Calendar = null,
-    PayrollCalcHourBank? HourBank = null);
+    PayrollCalcHourBank? HourBank = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<PayrollCalcVacation>? Vacations = null);
+
+/// <summary>
+/// Férias no mês (FLH-03 CA 10): os dias de gozo dentro da competência (saem do salário), a base do INSS e o INSS já retidos no recibo de
+/// férias e a base do FGTS da parte do mês (<c>hr.vacation_taxation</c>). Sem cálculo de férias ainda, só os dias (<c>Calculated</c> falso).
+/// </summary>
+public sealed record PayrollCalcVacation(DateOnly Start, DateOnly End, int Days, decimal InssBase, decimal InssWithheld, decimal FgtsBase, bool Calculated);
 
 /// <summary>Versão de tabela legal usada (FLH-01): id, tipo, vigência, situação, arredondamento e o conteúdo.</summary>
 public sealed record PayrollCalcTable(Guid Id, PayrollTaxTableKind Kind, DateOnly ValidFrom, PayrollTaxTableStatus Status, PayrollRounding Rounding, PayrollTaxContent Content);
@@ -170,7 +183,7 @@ public sealed record PayrollCalcResult(
 public static class PayrollCalculator
 {
     /// <summary>Versão semântica do motor (ADR 0039 §2): muda a cada mudança de regra; o holerite calculado guarda a que usou.</summary>
-    public const string Version = "1.1.0";
+    public const string Version = "1.2.0";
 
     private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
 
@@ -280,7 +293,10 @@ public static class PayrollCalculator
 
         var inssDays = Math.Min(sickDays + accidentDays, employedDays);
         accidentDays = Math.Min(accidentDays, inssDays);
-        var paidDays = employedDays - inssDays;
+        // FLH-03 CA 10: os dias de férias do mês foram pagos no recibo de férias e não entram como salário de novo.
+        var vacations = e.Vacations ?? [];
+        var vacationDays = Math.Min(vacations.Sum(v => v.Days), employedDays - inssDays);
+        var paidDays = employedDays - inssDays - vacationDays;
         var salary = e.BaseSalary;
         var lines = new List<PayrollCalcLine>();
         PayrollCalcItem? ItemOf(PayrollCalculation calc) => input.Items.FirstOrDefault(i => i.Calculation == calc);
@@ -314,6 +330,16 @@ public static class PayrollCalculator
         if (inssDays > 0)
         {
             salaryMemory.Add($"Menos {inssDays} {(inssDays == 1 ? "dia" : "dias")} de afastamento pagos pela previdência.");
+        }
+
+        if (vacationDays > 0)
+        {
+            salaryMemory.Add($"Menos {vacationDays} {(vacationDays == 1 ? "dia" : "dias")} de férias, pagos no recibo de férias.");
+        }
+
+        if (vacations.Any(v => !v.Calculated))
+        {
+            issues.Add(new PayrollCalcIssue("vacation_not_calculated", "férias no mês sem cálculo: os dias saíram do salário; calcule as férias para o INSS do mês bater.", false));
         }
 
         salaryMemory.Add($"{Brl(salary)} × {paidDays}/{divisor} = {Brl(salaryAmount)}.");
@@ -496,12 +522,25 @@ public static class PayrollCalculator
             }
         }
 
+        // FLH-03 CA 10 (hr.vacation_taxation): a parte das férias do mês entra na base do INSS e do FGTS junto com o salário; o INSS já
+        // retido no recibo de férias é compensado. O IRRF das férias foi em separado no pagamento: fica fora do IRRF do mês.
+        var vacationInssBase = vacations.Sum(v => v.InssBase);
+        var vacationWithheld = vacations.Sum(v => v.InssWithheld);
+        inssBase += vacationInssBase;
+        fgtsBase += vacations.Sum(v => v.FgtsBase);
+
         // CA 8: INSS progressivo, limitado ao teto, arredondado pela regra da tabela.
         var inssTable = tables[PayrollTaxTableKind.Inss];
         var inssResult = PayrollTaxRules.Inss(inssTable.Content.Inss!, inssTable.Rounding, inssBase);
-        var inss = inssResult.Amount;
-        Add(PayrollCalculation.Inss, inss, inssBase > 0m ? Pct(decimal.Round(inss / inssBase * 100m, 2, MidpointRounding.AwayFromZero)) : null,
-            [$"Base do INSS: {Brl(inssBase)} (linhas marcadas \"Base do INSS\").", .. inssResult.Memory, $"Tabela INSS de {PayrollTaxRules.MonthLabel(inssTable.ValidFrom)} ({StatusLabel(inssTable.Status)})."]);
+        var inss = Math.Max(inssResult.Amount - vacationWithheld, 0m);
+        List<string> inssMemory = [$"Base do INSS: {Brl(inssBase)} (linhas marcadas \"Base do INSS\"" + (vacationInssBase > 0m ? $", com {Brl(vacationInssBase)} das férias do mês" : string.Empty) + ").", .. inssResult.Memory];
+        if (vacationWithheld > 0m)
+        {
+            inssMemory.Add($"Menos {Brl(vacationWithheld)} já descontados no recibo de férias: {Brl(inssResult.Amount)} − {Brl(vacationWithheld)} = {Brl(inss)} (parâmetro hr.vacation_taxation).");
+        }
+
+        inssMemory.Add($"Tabela INSS de {PayrollTaxRules.MonthLabel(inssTable.ValidFrom)} ({StatusLabel(inssTable.Status)}).");
+        Add(PayrollCalculation.Inss, inss, inssBase > 0m ? Pct(decimal.Round(inssResult.Amount / inssBase * 100m, 2, MidpointRounding.AwayFromZero)) : null, inssMemory);
 
         // CA 9: IRRF com a melhor dedução (legal × simplificado), faixa, parcela a deduzir e a redução adicional; nunca negativo.
         var irrfTable = tables[PayrollTaxTableKind.Irrf];
@@ -791,6 +830,11 @@ public static class PayrollCalculator
         PayrollCalculation.DsrLoss => "Perda do DSR",
         PayrollCalculation.HourBankPayout => "Banco de horas pago",
         PayrollCalculation.HourBankDiscount => "Banco de horas descontado",
+        PayrollCalculation.VacationPay => "Férias",
+        PayrollCalculation.VacationAverages => "Médias de férias",
+        PayrollCalculation.VacationThird => "1/3 de férias",
+        PayrollCalculation.VacationSale => "Abono pecuniário",
+        PayrollCalculation.VacationSaleThird => "1/3 do abono pecuniário",
         PayrollCalculation.ThirteenthAdvance => "13º salário, 1ª parcela",
         PayrollCalculation.ThirteenthFinal => "13º salário",
         PayrollCalculation.ThirteenthAverages => "Médias do 13º",

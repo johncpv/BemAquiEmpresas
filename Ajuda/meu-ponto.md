@@ -33,6 +33,10 @@ Registrar a sua entrada, a saída e a volta do intervalo e a saída do dia com u
 - Com o período fechado, toque em **Li e confirmo** depois de conferir. Fica registrado quando você confirmou e o resumo dos totais. É uma ciência: não bloqueia nada e não é assinatura legal. Se o RH reabrir o período, a confirmação fica sem efeito e você confirma de novo depois do novo fechamento.
 - **Baixar espelho em PDF** baixa o espelho fechado, com o campo para a sua assinatura. Você só vê o seu espelho, nunca o de outra pessoa.
 
+## Minhas férias
+- **Ver férias e saldo** mostra os seus períodos aquisitivos com o saldo de dias e o chip (**Em aquisição**, **A gozar**, **Vence em {data}** ou **Vencido**) e as férias que o RH programou, com as datas, os dias e os dias vendidos (abono). Nenhum valor aparece aqui: o recibo vem do RH.
+- Os dias de férias também aparecem como **Férias** no seu espelho.
+
 ## Localização
 - A empresa pode ligar a localização do ponto em Configurações. Desligada, nada é pedido.
 - Ligada, antes do primeiro pedido aparece o aviso: "Para que serve a localização: registrar onde a marcação foi feita, como indício. Só o RH com permissão vê. Você pode negar." Toque em **Entendi e continuar** e o navegador pede a permissão. A sua ciência fica registrada; se o texto mudar, o aviso volta.

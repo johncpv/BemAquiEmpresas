@@ -106,6 +106,13 @@ public class PersonalDataTests
         ["PayrollParallelDifference"] = ["Id", "ParallelRunId", "EmployeeId", "PayrollItemCode", "ItemName", "Kind", "Classification", "ClassifiedBy", "ClassifiedAt"],
         ["PayrollItemMapping"] = ["Id", "EnteredCode", "CalculatedCode", "CreatedAt", "UpdatedAt"],
         ["PayrollModeChange"] = ["Id", "RunType", "Mode", "FromPeriod", "ChangedAt", "ChangedBy", "Reason", "ParallelRunIds", "AccountantName", "AccountantCrc"],
+
+        // FLH-03: datas, dias e situação das férias são dado de jornada (saem com hr.view, sem valor); o motivo do reinício (fala do
+        // afastamento), a divisão do INSS e o motivo do cancelamento são [PersonalData].
+        ["VacationPeriod"] = ["Id", "EmployeeId", "Sequence", "StartsOn", "EndsOn", "Absences", "EntitledDays", "TakenDays", "SoldDays", "ConcessionEndsOn", "Status", "RestartedOn",
+            "CreatedAt", "UpdatedAt", "Balance"],
+        ["VacationSchedule"] = ["Id", "EmployeeId", "PeriodId", "StartsOn", "Days", "SoldDays", "Advance13th", "PaymentDueOn", "Status", "PayrollRunId", "CreatedAt", "CreatedBy",
+            "CancelledAt", "CancelledBy", "Version", "EndsOn"],
     };
 
     /// <summary>

@@ -252,6 +252,10 @@ public sealed partial class TimesheetService(
             .Select(h => new { h.EmployeeId, h.EffectiveDate, h.LeaveEndDate, h.LeaveType }).ToListAsync(ct)).ToLookup(h => h.EmployeeId);
         var reviews = (await db.TimesheetDayReviews.AsNoTracking().Where(r => ids.Contains(r.EmployeeId) && r.Day >= start && r.Day <= end)
             .Select(r => new { r.EmployeeId, r.Day }).ToListAsync(ct)).ToLookup(r => r.EmployeeId);
+        // FLH-03 CA 5: as férias programadas (não canceladas) aparecem como "Férias" nos dias.
+        var vacations = (await db.VacationSchedules.AsNoTracking()
+            .Where(s => ids.Contains(s.EmployeeId) && s.Status != VacationScheduleStatus.Cancelled && s.StartsOn <= end && s.StartsOn >= start.AddDays(-400)).ToListAsync(ct))
+            .Where(s => s.EndsOn >= start).ToLookup(s => s.EmployeeId);
         var previous = await PreviousBalancesAsync(ids, info.Period, ct);
         var today = BusinessTime.Today(clock);
         var p = info.Parameters;
@@ -263,7 +267,10 @@ public sealed partial class TimesheetService(
                 absences[person.Id].Select(a => new TimesheetAbsenceInput(a.Day, a.AbsenceMinutes, a.AbsenceReason!.Value)).ToList(),
                 leaves[person.Id].Select(l => new TimesheetLeaveInput(l.EffectiveDate, l.LeaveEndDate ?? l.EffectiveDate, l.LeaveType)).ToList(),
                 reviews[person.Id].Select(r => r.Day).ToHashSet(),
-                new TimesheetSettings(p.TolerancePerEntryMinutes, p.TolerancePerDayMinutes, p.HourBankEnabled, person.Agreement), previous.GetValueOrDefault(person.Id));
+                new TimesheetSettings(p.TolerancePerEntryMinutes, p.TolerancePerDayMinutes, p.HourBankEnabled, person.Agreement), previous.GetValueOrDefault(person.Id))
+            {
+                Vacations = vacations[person.Id].Select(v => (v.StartsOn, v.EndsOn)).ToList(),
+            };
             result[person.Id] = TimesheetCalculator.Calculate(input);
         }
 

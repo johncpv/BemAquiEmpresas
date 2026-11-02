@@ -12,7 +12,9 @@ public sealed record PayrollClosePerson(Guid EmployeeId, string Name, string? Re
 /// <summary>
 /// Prévia do fechamento (CA 1), só pela rota <c>/sensitive</c>: as pendências, a data de pagamento sugerida pelo tipo (editável), os avisos
 /// e o impacto ("Gera {n} títulos a pagar de salários, total {valor}, e {m} títulos de guias, total {valor}"). <c>Changes</c>: as mudanças de
-/// tabela legal e de parâmetro desde o último fechamento (FLH-01 CA 12), com ciência obrigatória.
+/// tabela legal e de parâmetro desde o último fechamento (FLH-01 CA 12), com ciência obrigatória. Na folha de férias calculada (FLH-03 CA 9),
+/// <c>LegalPaymentDeadline</c> é o vencimento legal (2 dias antes do início) e <c>LatePaymentWarning</c> o aviso, que não bloqueia, para a data
+/// de pagamento depois dele.
 /// </summary>
 public sealed record PayrollClosePreview(
     Guid RunId,
@@ -29,7 +31,9 @@ public sealed record PayrollClosePreview(
     int ChargeCount,
     decimal ChargeTotal,
     uint Version,
-    IReadOnlyList<PayrollChangeNotice> Changes);
+    IReadOnlyList<PayrollChangeNotice> Changes,
+    DateOnly? LegalPaymentDeadline = null,
+    string? LatePaymentWarning = null);
 
 /// <summary>
 /// Fechar (CA 2): a data de pagamento (vazia usa a sugerida), o código do 2FA de novo e a versão da folha. Com mudança de tabela ou de

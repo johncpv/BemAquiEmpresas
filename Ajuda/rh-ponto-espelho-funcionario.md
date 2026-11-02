@@ -14,7 +14,7 @@ Conferir o espelho de um funcionário no período, dia a dia: o esperado pela jo
 ## Como usar
 - Troque o mês em **Mês anterior** e **Mês seguinte**; **Voltar ao espelho geral** volta à lista do período.
 - O topo mostra a jornada, o **período de apuração** e os totais: esperado, trabalhado, extras, faltas (em horas e dias), atrasos e abonado. Com acordo de banco, aparece também "Banco de horas: +3 h 20 min no período, +5 h 10 min acumulado".
-- Cada dia mostra as marcações (hora local), o esperado, o trabalhado (a soma dos pares entrada e saída, menos os intervalos marcados), a extra, a falta, o atraso, o abono e a situação: **Normal**, **Extra**, **Atraso**, **Falta**, **Abonado**, **Compensado do banco**, **Afastado**, **Feriado**, **Folga**, **Inconsistente** ou **Ainda não chegou**.
+- Cada dia mostra as marcações (hora local), o esperado, o trabalhado (a soma dos pares entrada e saída, menos os intervalos marcados), a extra, a falta, o atraso, o abono e a situação: **Normal**, **Extra**, **Atraso**, **Falta**, **Abonado**, **Compensado do banco**, **Afastado**, **Férias** (as férias programadas, também nos dias que ainda não chegaram), **Feriado**, **Folga**, **Inconsistente** ou **Ainda não chegou**.
 - No celular, os dias aparecem em cartões, com o trabalhado e a situação sempre à vista.
 
 ## Dia inconsistente

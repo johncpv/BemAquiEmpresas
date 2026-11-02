@@ -35,8 +35,13 @@ public sealed partial class PayrollService
             return await ThirteenthCalculationInfoAsync(run, payslip, ct);
         }
 
-        var snapshot = PayrollCalculator.ReadSnapshot(payslip.InputsSnapshot);
         var tables = await TableRefsAsync(payslip.TaxTableIds, ct);
+        if (run.Type == PayrollRunType.Vacation)
+        {
+            return VacationInfo(run, payslip, tables);
+        }
+
+        var snapshot = PayrollCalculator.ReadSnapshot(payslip.InputsSnapshot);
         var inputs = new List<PayrollCalcInputView>();
         var parameterViews = new List<PayrollCalcInputView>();
         if (snapshot is not null)
@@ -90,6 +95,10 @@ public sealed partial class PayrollService
             }
 
             inputs.Add(new("Lançamentos avulsos", snapshot.Manual.Count.ToString(pt)));
+            if (snapshot.Vacations is { Count: > 0 } vacations)
+            {
+                inputs.Add(new("Dias de férias no mês", vacations.Sum(v => v.Days).ToString(pt)));
+            }
             var prm = snapshot.Parameters;
             var h = prm.HourRules;
             parameterViews.Add(new("Salário proporcional", prm.Proration == SalaryProration.CommercialMonth ? "Mês comercial de 30 dias" : "Dias do mês"));
@@ -112,6 +121,38 @@ public sealed partial class PayrollService
         return new PayslipCalculationInfo(payslip.CalculatorVersion, payslip.CalculatedAt, run.IsSimulation, tables, parameterViews, inputs,
             PayrollCalculator.ReadIssues(payslip.CalculationIssues).Select(i => Capitalize(i.Message)).ToList(), payslip.EmployerCharges, PayrollCalculator.ReadMemory(payslip.EmployerChargesMemory),
             $"/app/rh/ponto/espelho/{payslip.EmployeeId}?mes={run.Period.ToString("yyyy-MM", CultureInfo.InvariantCulture)}");
+    }
+
+    /// <summary>O cálculo do holerite de férias (FLH-03 CA 6): o retrato da programação, as variáveis e os parâmetros de férias.</summary>
+    private static PayslipCalculationInfo VacationInfo(PayrollRun run, Payslip payslip, IReadOnlyList<PayrollCalcTableRef> tables)
+    {
+        var snapshot = VacationCalculator.ReadSnapshot(payslip.InputsSnapshot);
+        var inputs = new List<PayrollCalcInputView>();
+        var parameterViews = new List<PayrollCalcInputView>();
+        if (snapshot is not null)
+        {
+            var pt = CultureInfo.GetCultureInfo("pt-BR");
+            inputs.Add(new("Salário base", PayrollCalculator.Brl(snapshot.BaseSalary)));
+            inputs.Add(new("Insalubridade", snapshot.InsalubrityPct is { } i and > 0 ? $"{i}%" : "Não"));
+            inputs.Add(new("Periculosidade", snapshot.HazardPay ? "Sim" : "Não"));
+            inputs.Add(new("Dependentes de IR", snapshot.IrDependents.ToString(pt)));
+            inputs.Add(new("Período aquisitivo", $"{VacationPolicy.Date(snapshot.PeriodStart)} a {VacationPolicy.Date(snapshot.PeriodEnd)}"));
+            inputs.Add(new("Fim do período concessivo", VacationPolicy.Date(snapshot.ConcessionEnd)));
+            inputs.Add(new("Gozo", $"{VacationPolicy.Date(snapshot.Start)} a {VacationPolicy.Date(snapshot.Start.AddDays(snapshot.Days - 1))} ({snapshot.Days} dias)"));
+            inputs.Add(new("Abono pecuniário", snapshot.SoldDays > 0 ? $"{snapshot.SoldDays} dias" : "Não"));
+            inputs.Add(new("Adiantamento do 13º", snapshot.Advance13th ? "Pedido" : "Não"));
+            inputs.Add(new("Pagamento até", VacationPolicy.Date(snapshot.PaymentDate)));
+            inputs.Add(new("Meses com variáveis", snapshot.Variables.Count.ToString(pt)));
+            var v = snapshot.Vacation;
+            parameterViews.Add(new("Média das variáveis", $"{v.AverageMonths} meses"));
+            parameterViews.Add(new("Tributação das férias", v.Taxation == VacationTaxation.SplitByMonth ? "INSS rateado nas competências do gozo" : "INSS inteiro na competência do início"));
+            parameterViews.Add(new("Pagamento das férias", $"{v.PaymentDaysBefore} dias antes do início"));
+            parameterViews.Add(new("Insalubridade e periculosidade acumulam", snapshot.Parameters.AllowancesAccumulate ? "Ligado" : "Desligado"));
+            parameterViews.Add(new("Rendimento da redução do IRRF", snapshot.Parameters.ReductionIncome == IrrfReductionIncome.GrossTaxable ? "Rendimento tributável bruto" : "Base de cálculo"));
+        }
+
+        return new PayslipCalculationInfo(payslip.CalculatorVersion, payslip.CalculatedAt, run.IsSimulation, tables, parameterViews, inputs,
+            PayrollCalculator.ReadIssues(payslip.CalculationIssues).Select(i => Capitalize(i.Message)).ToList(), payslip.EmployerCharges, PayrollCalculator.ReadMemory(payslip.EmployerChargesMemory));
     }
 
     internal static string Capitalize(string text) => text.Length == 0 ? text : char.ToUpper(text[0], CultureInfo.GetCultureInfo("pt-BR")) + text[1..];

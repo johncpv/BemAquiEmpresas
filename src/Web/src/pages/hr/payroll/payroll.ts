@@ -30,6 +30,8 @@ export const CALCULATION_LABELS: Record<string, string> = {
   Inss: 'INSS', Irrf: 'IRRF', Fgts: 'FGTS',
   OvertimeWorkday: 'Horas extras em dia útil', OvertimeRestDay: 'Horas extras em domingo ou folga', OvertimeHoliday: 'Horas extras em feriado', NightShift: 'Adicional noturno',
   Dsr: 'DSR sobre variáveis', DsrLoss: 'Perda do DSR', HourBankPayout: 'Banco de horas pago', HourBankDiscount: 'Banco de horas descontado',
+  // FLH-03: folha de férias.
+  VacationPay: 'Férias', VacationAverages: 'Médias de férias', VacationThird: '1/3 de férias', VacationSale: 'Abono pecuniário', VacationSaleThird: '1/3 do abono pecuniário',
   ThirteenthAdvance: '13º salário, 1ª parcela', ThirteenthFinal: '13º salário', ThirteenthAverages: 'Médias do 13º', ThirteenthAdvanceDeduction: 'Adiantamento do 13º (desconto)',
 }
 

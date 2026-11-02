@@ -114,6 +114,11 @@ public static class HrInfrastructure
         services.TryAddScoped<PayrollCalculationService>();
         services.AddAuditableEntity<PayrollTaxTable>("hr");
         services.AddAuditableEntity<PayrollTaxTableDataset>("hr");
+        // Férias (FLH-03): períodos, programação, aviso e folha de férias calculada. O histórico abre com hr.view (sem valor; o motivo do
+        // cancelamento, a divisão do INSS e o motivo do reinício saem mascarados, [PersonalData]).
+        services.TryAddScoped<VacationService>();
+        services.AddAuditableEntity<VacationPeriod>("hr");
+        services.AddAuditableEntity<VacationSchedule>("hr");
         // Pacote para a contadora (RH-03): um layout (o padrão v1) e as seções dele; a RH-01c registra a do ponto.
         services.TryAddScoped<AccountantExportService>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountantExport, StandardAccountantExport>());
