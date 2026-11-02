@@ -54,7 +54,7 @@ public class PayrollClosingRulesTests
             [new ForecastEmployee(ana, 2_500m, 3_000m, null), new ForecastEmployee(bia, 1_800m, 2_001m, new DateOnly(2026, 10, 31))],
             [new ForecastCharge(PayrollChargeKind.Fgts, 600m), new ForecastCharge(PayrollChargeKind.Union, 0m)],
             [new ForecastVacation(ana, new DateOnly(2026, 12, 1), 4_100m, vacationRun), new ForecastVacation(ana, new DateOnly(2027, 2, 1), 4_100m, vacationRun)],
-            []);
+            [], new ThirteenthForecast([new(ana, 3_000m, new DateOnly(2020, 1, 2), null), new(bia, 2_001m, new DateOnly(2020, 1, 2), new DateOnly(2026, 10, 31))], 11, 12, 15));
         var lines = PayrollForecastRules.Plan(input);
 
         lines.Where(l => l.Kind == PayrollForecastKind.Salary && l.EmployeeId == ana).Select(l => l.Period).Should().Equal(new DateOnly(2026, 10, 1), new DateOnly(2026, 11, 1), new DateOnly(2026, 12, 1));

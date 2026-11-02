@@ -30,7 +30,17 @@ export const CALCULATION_LABELS: Record<string, string> = {
   Inss: 'INSS', Irrf: 'IRRF', Fgts: 'FGTS',
   OvertimeWorkday: 'Horas extras em dia útil', OvertimeRestDay: 'Horas extras em domingo ou folga', OvertimeHoliday: 'Horas extras em feriado', NightShift: 'Adicional noturno',
   Dsr: 'DSR sobre variáveis', DsrLoss: 'Perda do DSR', HourBankPayout: 'Banco de horas pago', HourBankDiscount: 'Banco de horas descontado',
+  ThirteenthAdvance: '13º salário, 1ª parcela', ThirteenthFinal: '13º salário', ThirteenthAverages: 'Médias do 13º', ThirteenthAdvanceDeduction: 'Adiantamento do 13º (desconto)',
 }
+
+/** 13º (FLH-04): as duas parcelas são calculadas como a Mensal. */
+export const isThirteenth = (type: string) => type === 'Thirteenth1' || type === 'Thirteenth2'
+
+/** Competência proposta da folha de 13º: o mês da data limite (novembro na 1ª, dezembro na 2ª) do ano. */
+export const thirteenthPeriod = (type: string, year: number) => `${year}-${type === 'Thirteenth2' ? '12' : '11'}`
+
+/** Avos em texto: "6/12". */
+export const avosLabel = (avos: number) => `${avos}/12`
 
 /** Rubrica que entra como avulso na folha calculada: sem regra (ou o vale-transporte fornecido). */
 export const isManualCalculation = (calculation: string | null | undefined) => !calculation || calculation === 'None' || calculation === 'TransportVoucherSupplied'
@@ -99,6 +109,7 @@ export const PAYROLL_DICAS = {
   dsr: 'DSR sobre variáveis: o descanso semanal remunerado sobre as horas extras, o adicional noturno e o banco pago. Variáveis ÷ dias úteis do mês × (domingos + feriados), com os feriados do calendário padrão.',
   perdaDsr: 'Perda do DSR: sem a semana inteira trabalhada, a falta injustificada (sem abono aprovado) tira o repouso daquela semana, um dia de salário (Lei 605/1949, art. 6º).',
   bancoHoras: 'Banco de horas: as extras de quem tem acordo vão para o saldo, que não vence sozinho. Só sai por decisão do RH na folha: "Pagar" (como hora extra de dia útil) ou "Descontar" (o saldo negativo, pelo valor da hora), sempre com o motivo.',
+  avos: 'Avos: cada mês com 15 dias ou mais trabalhados no ano conta 1/12 do 13º. Faltas injustificadas e dias pagos pela previdência saem dos dias trabalhados.',
   avulso: 'Lançamento avulso: rubrica sem regra (prêmio, adiantamento, pensão, consignado, vale-transporte fornecido). Entra nas bases pelas marcas da rubrica e fica a cada recálculo. O motivo é obrigatório.',
 }
 

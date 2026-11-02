@@ -330,6 +330,7 @@ import type {
   GetSupervisorIndicatorsParams,
   GetSupervisorQualityParams,
   GetSupervisorShortagesParams,
+  GetThirteenthPreviewSensitiveParams,
   GetTimesheetOverviewParams,
   GoodsReceiptDefaults,
   GoodsReceiptDetail,
@@ -997,6 +998,7 @@ import type {
   TenantParametersDto,
   TenantPublicContext,
   TerminationInput,
+  ThirteenthPreview,
   TimeAdjustmentBatchInput,
   TimeAdjustmentBatchResult,
   TimeAdjustmentDayInput,
@@ -23424,6 +23426,108 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getRecalculatePayrollForecastMutationOptions(options), queryClient);
     }
+
+export const getGetThirteenthPreviewSensitiveUrl = (params?: GetThirteenthPreviewSensitiveParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/hr/payroll-runs/thirteenth-preview/sensitive?${stringifiedParams}` : `/api/v1/hr/payroll-runs/thirteenth-preview/sensitive`
+}
+
+export const getThirteenthPreviewSensitive = async (params?: GetThirteenthPreviewSensitiveParams, options?: Parameters<typeof apiFetch>[1]): Promise<ThirteenthPreview> => {
+
+  return apiFetch<ThirteenthPreview>(getGetThirteenthPreviewSensitiveUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetThirteenthPreviewSensitiveQueryKey = (params?: GetThirteenthPreviewSensitiveParams,) => {
+    return [
+    `/api/v1/hr/payroll-runs/thirteenth-preview/sensitive`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetThirteenthPreviewSensitiveQueryOptions = <TData = Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>, TError = unknown>(params?: GetThirteenthPreviewSensitiveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetThirteenthPreviewSensitiveQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>> = ({ signal }) => getThirteenthPreviewSensitive(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetThirteenthPreviewSensitiveQueryResult = NonNullable<Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>>
+export type GetThirteenthPreviewSensitiveQueryError = unknown
+
+
+export function useGetThirteenthPreviewSensitive<TData = Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>, TError = unknown>(
+ params: undefined |  GetThirteenthPreviewSensitiveParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>,
+          TError,
+          Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetThirteenthPreviewSensitive<TData = Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>, TError = unknown>(
+ params?: GetThirteenthPreviewSensitiveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>,
+          TError,
+          Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetThirteenthPreviewSensitive<TData = Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>, TError = unknown>(
+ params?: GetThirteenthPreviewSensitiveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetThirteenthPreviewSensitive<TData = Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>, TError = unknown>(
+ params?: GetThirteenthPreviewSensitiveParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getThirteenthPreviewSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetThirteenthPreviewSensitiveQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetPayrollSuggestedPeriodUrl = () => {
 

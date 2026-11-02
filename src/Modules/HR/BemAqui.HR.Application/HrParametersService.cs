@@ -245,6 +245,18 @@ public sealed partial class HrParametersService(
             HrParameterKind.Choice, 1m, 1m, 2m, true, Options: [new(1m, "Dias úteis = dias do mês − domingos − feriados (o sábado é útil)"), new(2m, "Dias úteis pelo calendário padrão da empresa")]),
         new(DsrLossOnAbsence, "Perda do DSR por falta", "Ligado (o usual, Lei 605/1949, art. 6º): a falta injustificada (sem abono aprovado) desconta o repouso da semana, um dia de salário por semana.",
             HrParameterKind.Toggle, 1m, 0m, 1m, true),
+
+        // FLH-04: regras do 13º calculado, pré-configuradas pela legislação (PO 21/10/2026), "A confirmar com a contadora".
+        new(ThirteenthRules, "Avos da 1ª parcela do 13º", "Avos da 1ª parcela (o adiantamento sem INSS e IRRF, com FGTS): os do ano projetados (o usual: os meses até o da parcela pelo ponto e pelos afastamentos, os seguintes como trabalhados; quem está no ano inteiro recebe a metade da remuneração), ou só os avos até o mês da parcela.",
+            HrParameterKind.Choice, 1m, 1m, 2m, true, Options: [new(1m, "Avos do ano projetados (metade da remuneração no ano inteiro)"), new(2m, "Só os avos até o mês da parcela")]),
+        new(ThirteenthMonthMinDays, "Dias para contar o avo do 13º", "O mês conta como um avo do 13º quando o funcionário trabalhou este número de dias ou mais no mês (Lei 4.090/1962: 15 dias), já descontadas as faltas injustificadas e os afastamentos pela previdência.",
+            HrParameterKind.Days, 15m, 1m, 31m, true),
+        new(ThirteenthLeaveRules, "Afastamento nos avos do 13º", "Que dias pagos pela previdência (depois dos dias pagos pela empresa) saem dos dias trabalhados do mês nos avos do 13º.",
+            HrParameterKind.Choice, 1m, 1m, 2m, true, Options: [new(1m, "Doença e acidente de trabalho"), new(2m, "Só doença (o acidente de trabalho conta)")]),
+        new(ThirteenthAverages, "Médias no 13º", "Como as variáveis do ano (horas extras, adicional noturno e DSR das folhas Mensais fechadas) entram no 13º.",
+            HrParameterKind.Choice, 1m, 1m, 2m, true, Options: [new(1m, "Média dos meses com avos, proporcional aos avos"), new(2m, "Sem médias")]),
+        new(Forecast13th, "13º no fluxo de caixa", "Desde janeiro, as duas parcelas do 13º aparecem no fluxo de caixa como estimativa (salário atual × avos do ano), nos meses das datas limite, até a folha do 13º fechar.",
+            HrParameterKind.Toggle, 1m, 0m, 1m, false),
     ];
 
     // FLH-02b: horas extras, adicional noturno e DSR ("A confirmar com a contadora").
@@ -264,6 +276,39 @@ public sealed partial class HrParametersService(
     public static readonly string[] OvertimeRateKeys = [OvertimeWorkdayPct, OvertimeRestDayPct, OvertimeHolidayPct];
 
     private static readonly string[] HourKeys = [.. OvertimeRateKeys, OvertimeIncludesAllowances, NightShiftEnabled, NightShiftPct, NightShiftStart, NightShiftEnd, NightShiftReducedHour, DsrFormula, DsrLossOnAbsence];
+
+    // FLH-04: 13º salário calculado.
+    public const string ThirteenthRules = "hr.thirteenth_rules";
+    public const string ThirteenthMonthMinDays = "hr.thirteenth_month_min_days";
+    public const string ThirteenthLeaveRules = "hr.thirteenth_leave_rules";
+    public const string ThirteenthAverages = "hr.thirteenth_averages";
+    public const string Forecast13th = "hr.forecast_13th";
+
+    /// <summary>As chaves que o motor do 13º lê (com as da folha calculada).</summary>
+    public static readonly string[] ThirteenthKeys = [ThirteenthRules, ThirteenthMonthMinDays, ThirteenthLeaveRules, ThirteenthAverages];
+
+    /// <summary>Parâmetros do 13º (FLH-04), com os ids gravados; fora dos limites ou sem gravar, o pré-configurado.</summary>
+    public async Task<(ThirteenthParameters Parameters, List<Guid> Ids)> ThirteenthParametersAsync(CancellationToken cancellationToken = default)
+    {
+        var stored = await db.HrParameters.AsNoTracking().Where(p => ThirteenthKeys.Contains(p.Key)).ToListAsync(cancellationToken);
+        decimal Number(string key)
+        {
+            var d = Definitions.First(x => x.Key == key);
+            return stored.FirstOrDefault(p => p.Key == key)?.Value is { } v && v >= d.Min && v <= d.Max && decimal.Truncate(v) == v ? v : d.Default!.Value;
+        }
+
+        var parameters = new ThirteenthParameters(
+            Number(ThirteenthRules) == 2m ? ThirteenthFirstAvos.UpToMonth : ThirteenthFirstAvos.ProjectedYear,
+            (int)Number(ThirteenthMonthMinDays),
+            Number(ThirteenthLeaveRules) == 2m ? ThirteenthLeaveRule.SicknessOnly : ThirteenthLeaveRule.InssLeaves,
+            Number(ThirteenthAverages) == 2m ? ThirteenthAveragesRule.None : ThirteenthAveragesRule.MonthsWithAvos,
+            true);
+        return (parameters, stored.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => p.Id).ToList());
+    }
+
+    /// <summary>O 13º entra na folha prevista desde janeiro (CA 7, pré-configurado ligado).</summary>
+    public async Task<bool> Forecast13thAsync(CancellationToken cancellationToken = default) =>
+        await NumberAsync(Forecast13th, cancellationToken) is not { } v || v != 0m;
 
     // FLH-02a: folha calculada ("A confirmar com a contadora").
     public const string SalaryProration = "hr.salary_proration";

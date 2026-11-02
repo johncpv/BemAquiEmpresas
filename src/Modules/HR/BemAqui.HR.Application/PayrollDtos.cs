@@ -32,8 +32,11 @@ public sealed record PayrollRunSummary(
 /// <summary>Totais da folha (só com <c>hr.view_sensitive</c>, rota <c>/sensitive</c>): o líquido total na lista.</summary>
 public sealed record PayrollRunTotals(Guid RunId, decimal Gross, decimal Deductions, decimal Net);
 
-/// <summary>Nova folha (CA 4): competência "2026-10", tipo, em Férias e Rescisão os funcionários escolhidos e o modo (FLH-02a: "Calculada", só Mensal).</summary>
-public sealed record PayrollRunCreateInput(string? Period, PayrollRunType? Type, IReadOnlyList<Guid>? EmployeeIds, PayrollRunMode? Mode = null);
+/// <summary>
+/// Nova folha (CA 4): competência "2026-10", tipo, em Férias e Rescisão os funcionários escolhidos e o modo (FLH-02a: "Calculada", na
+/// Mensal; FLH-04: também no 13º). Na 2ª parcela calculada sem a 1ª fechada, <c>ConfirmWithoutAdvance</c> confirma o cálculo sem adiantamento.
+/// </summary>
+public sealed record PayrollRunCreateInput(string? Period, PayrollRunType? Type, IReadOnlyList<Guid>? EmployeeIds, PayrollRunMode? Mode = null, bool? ConfirmWithoutAdvance = null);
 
 /// <summary>Funcionário da competência, para escolher em Férias e Rescisão (sem dado sensível).</summary>
 public sealed record PayrollEligibleEmployee(Guid Id, string Name, string? Registration, DateOnly AdmissionDate, DateOnly? TerminationDate);

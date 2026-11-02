@@ -5,7 +5,7 @@
 | ID | FLH-04 |
 | Título | 13º salário calculado em duas parcelas (adiantamento sem INSS e IRRF e parcela final com INSS e IRRF próprios), avos por mês trabalhado pela regra pré-configurada, médias de variáveis, adiantamento pago nas férias abatido, previsão das duas parcelas no fluxo de caixa desde janeiro; só simulação até a virada e o primeiro caso de 13º conferido (FLH-06) |
 | Tamanho | M |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: contadora e conferência paralela) |
 | Requisitos | R-RH-6 ("13º") · R-RH-5 · R-FIN-10 · R-SEC-5 |
 | Dependências | FLH-02a/02b (motor e variáveis), FLH-01 (tabelas), FLH-03 (adiantamento nas férias), RH-02b/02c (holerite, fechamento, títulos e previsão `PayrollForecast`, ADR 0036) |
 | Bloqueia | FLH-05 (13º proporcional na rescisão) |
@@ -68,12 +68,12 @@ Decisões da revisão aplicadas: D1 (Fase 7 antes do go-live); D6 (2FA no fecham
 **Pré-condição externa:** conferência dos parâmetros do 13º pela contadora (valores pré-configurados "A confirmar com a contadora"; não bloqueia o `Ready`).
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos; testes de unidade (dataset sintético) e integração passando.
-- [ ] Migration criada (não destrutiva); parâmetros com seed e chip; ajuda atualizada; auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog.
+- [x] Critérios de aceite atendidos; testes de unidade (dataset sintético) e integração passando.
+- [x] Sem migration (nenhuma coluna nova: enum em texto e o retrato no `inputs_snapshot`); parâmetros com seed e chip; ajuda atualizada; auditoria ligada (entidades já auditadas).
+- [x] OpenAPI e cliente Orval regenerados; story marcada no backlog.
 
 ## Tarefas técnicas sugeridas
-- [ ] Regras do motor; prévia dos avos; previsão do 13º no caminho da RH-02c.
+- [x] Regras do motor; prévia dos avos; previsão do 13º no caminho da RH-02c.
 
 ## Quality gates
 - Agentes previstos: @dev, @qa, revisão da contadora (externa, nos parâmetros).
@@ -107,3 +107,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.2 | Validação do PO (checklist) e correções | Pax (PO) |
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D1, D6, D14, tabela 3.4 pontos 20, 21 e 27 e "Determinismo", §4.4 padrões 7 e 8); nova ordem (Marco 7.2, ordem 5, antes do go-live); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
+| 01/11/2026 | 1.0 | Implementada: `ThirteenthCalculator` (avos, 1ª e 2ª parcelas, médias das horas da FLH-02b, adiantamento das férias pela regra `ThirteenthAdvance`), folha de 13º calculada no caminho da Mensal, prévia dos avos, simulação até a virada e o primeiro 13º conferido, estimativa no caixa desde janeiro, lembrete na Minha pauta (`hr.thirteenth_due`). **Pendências:** conferência da contadora dos parâmetros do 13º; o adiantamento nas férias depende da FLH-03 gravar a linha com a regra `ThirteenthAdvance`; a retificação do 13º fechado fica para a FLH-06 | @dev |
