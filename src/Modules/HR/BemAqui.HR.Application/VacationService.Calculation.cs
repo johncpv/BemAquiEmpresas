@@ -236,7 +236,7 @@ public sealed partial class VacationService
     /// Variáveis dos últimos meses do período aquisitivo (<c>hr.vacation_averages</c>): os proventos das folhas mensais fechadas com regra de
     /// variável (<see cref="VariableCalculations"/>) ou avulsos com base do INSS; no mês com folha calculada fechada, só ela (senão a lançada).
     /// </summary>
-    private async Task<List<VacationCalcVariable>> VariablesAsync(Guid employeeId, DateOnly periodEnd, int months, CancellationToken ct)
+    internal async Task<List<VacationCalcVariable>> VariablesAsync(Guid employeeId, DateOnly periodEnd, int months, CancellationToken ct)
     {
         var last = new DateOnly(periodEnd.Year, periodEnd.Month, 1);
         var first = last.AddMonths(-(Math.Max(months, 1) - 1));

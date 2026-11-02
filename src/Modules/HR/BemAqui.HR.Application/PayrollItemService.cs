@@ -79,6 +79,16 @@ public sealed class PayrollItemService(IHrDb db, ICurrentUser currentUser, IUser
         new("dsr_perda", "DSRFALTA", "Perda do DSR", PayrollItemKind.Deduction, true, true, true, Calc: PayrollCalculation.DsrLoss),
         new("banco_horas_pago", "BHPAGO", "Banco de horas pago", PayrollItemKind.Earning, true, true, true, Calc: PayrollCalculation.HourBankPayout),
         new("banco_horas_desconto", "BHDESC", "Banco de horas descontado", PayrollItemKind.Deduction, true, true, true, Calc: PayrollCalculation.HourBankDiscount),
+        // FLH-05: verbas da rescisão. Aviso indenizado só com FGTS (Súmula 305 do TST); férias indenizadas e o 1/3 e as indenizações da
+        // experiência sem INSS, FGTS nem IRRF; o desconto do aviso não cumprido fora das bases; a multa do FGTS informativa (guia da empresa).
+        new("aviso_previo_indenizado", "AVISOIND", "Aviso prévio indenizado", PayrollItemKind.Earning, false, true, false, Calc: PayrollCalculation.TerminationNotice),
+        new("aviso_previo_desconto", "AVISODESC", "Aviso prévio não cumprido", PayrollItemKind.Deduction, false, false, false, Calc: PayrollCalculation.TerminationNoticeDeduction),
+        new("ferias_vencidas", "FERVENC", "Férias vencidas indenizadas", PayrollItemKind.Earning, false, false, false, Calc: PayrollCalculation.TerminationVacation),
+        new("ferias_proporcionais", "FERPROP", "Férias proporcionais", PayrollItemKind.Earning, false, false, false, Calc: PayrollCalculation.TerminationVacationProrated),
+        new("terco_ferias_rescisao", "FERRESC13", "1/3 de férias na rescisão", PayrollItemKind.Earning, false, false, false, Calc: PayrollCalculation.TerminationVacationThird),
+        new("indenizacao_479", "IND479", "Indenização art. 479 (experiência)", PayrollItemKind.Earning, false, false, false, Calc: PayrollCalculation.TerminationIndemnity),
+        new("desconto_480", "DESC480", "Desconto art. 480 (experiência)", PayrollItemKind.Deduction, false, false, false, Calc: PayrollCalculation.TerminationEarlyEndDeduction),
+        new("multa_fgts", "MULTAFGTS", "Multa do FGTS", PayrollItemKind.Information, false, false, false, Calc: PayrollCalculation.FgtsFine),
     ];
 
     /// <summary>As regras que a FLH-02b trouxe (recebem a rubrica do seed uma vez nos tenants que já tinham a folha calculada).</summary>

@@ -30,6 +30,7 @@ public sealed class PayrollClosingService(
     PayrollChangeNotices changeNotices,
     PayrollCalculationService calculation,
     VacationService vacations,
+    TerminationService terminations,
     IEventPublisher events,
     INotificationService notifications,
     IUserDirectory users,
@@ -147,8 +148,10 @@ public sealed class PayrollClosingService(
         var chargeTarget = cost.Value[PayrollClosingRules.ChargeGroup(snapshot.Slips.Select(s => (s.Group, s.FgtsBase)))];
         foreach (var charge in snapshot.Charges)
         {
+            // FLH-05: a rescisão tem duas guias de FGTS (o rescisório e a multa): o título leva a descrição da guia.
+            var description = run.Type == PayrollRunType.Termination ? "Guia " + charge.Description : PayrollClosingRules.ChargeDescription(charge.Kind, run.Period);
             var plan = OpenPayables.For(Payee.Party(charge.PayeePartyId!.Value), chargeTarget.AccountId, chargeTarget.CostCenterId,
-                [new OpenInstallment(1, charge.Amount, charge.DueDate, PayrollClosingRules.ChargeDescription(charge.Kind, run.Period))]);
+                [new OpenInstallment(1, charge.Amount, charge.DueDate, description)]);
             var made = await payables.CreateOpenInstallmentsAsync(DocumentOrigin.Payroll, charge.Id, plan, cancellationToken);
             if (made.IsFailure)
             {
@@ -170,6 +173,12 @@ public sealed class PayrollClosingService(
         {
             // FLH-03 CA 9: a programação ligada à folha de férias fica paga.
             await vacations.MarkPaidAsync(run.Id, true, cancellationToken);
+        }
+
+        // FLH-05 CA 9: a rescisão fica fechada e o funcionário sai da Mensal calculada da competência.
+        if (run.Type == PayrollRunType.Termination)
+        {
+            await terminations.MarkClosedAsync(run, true, cancellationToken);
         }
 
         // FLH-02b CA 2: a decisão "Pagar" ou "Descontar" do banco de horas baixa o saldo do espelho da competência.
@@ -271,6 +280,12 @@ public sealed class PayrollClosingService(
         {
             await vacations.MarkPaidAsync(run.Id, false, cancellationToken);
         }
+
+        if (run.Type == PayrollRunType.Termination)
+        {
+            await terminations.MarkClosedAsync(run, false, cancellationToken);
+        }
+
         var refreshed = await forecast.RefreshAsync(cancellationToken);
         if (refreshed.IsFailure)
         {
@@ -458,11 +473,20 @@ public sealed class PayrollClosingService(
             .Select(x => new PayrollClosePerson(x.EmployeeId, x.Name, x.Registration, s.Accounts[x.EmployeeId].QuarantineUntil)).ToList();
         var paid = s.Slips.Where(x => x.Net > 0m).ToList();
         // FLH-03 CA 9: a folha de férias calculada vence até 2 dias antes do início; fechar depois avisa, sem bloquear.
-        var deadline = run.Type == PayrollRunType.Vacation ? await vacations.PaymentDeadlineAsync(run.Id, ct) : null;
+        // FLH-05 CA 8: a rescisão vence em 10 dias corridos do desligamento (hr.termination_payment_days); depois, há multa, sem bloquear.
+        var deadline = run.Type switch
+        {
+            PayrollRunType.Vacation => await vacations.PaymentDeadlineAsync(run.Id, ct),
+            PayrollRunType.Termination => await terminations.PaymentDeadlineAsync(run.Id, ct),
+            _ => null,
+        };
         var today = BemAqui.BuildingBlocks.Time.BusinessTime.Today(clock);
-        var late = deadline is { } d && (today > d || (suggested is { } sd && sd > d)) ? VacationPolicy.LatePaymentMessage : null;
+        var late = deadline is { } d && (today > d || (suggested is { } sd && sd > d))
+            ? run.Type == PayrollRunType.Termination ? TerminationPolicy.LatePaymentMessage : VacationPolicy.LatePaymentMessage
+            : null;
+        var fine = run.Type == PayrollRunType.Termination ? await terminations.FineAsync(run.Id, ct) : null;
         return new PayrollClosePreview(run.Id, run.Period, run.Type, blockers, suggested, rule is PaymentDateRule.Informed, await targets.DueConfirmedAsync(run.Type, ct),
-            newcomers, changed, paid.Count, paid.Sum(x => x.Net), s.Charges.Count, s.Charges.Sum(c => c.Amount), run.Version, await changeNotices.SinceLastClosingAsync(ct), deadline, late);
+            newcomers, changed, paid.Count, paid.Sum(x => x.Net), s.Charges.Count, s.Charges.Sum(c => c.Amount), run.Version, await changeNotices.SinceLastClosingAsync(ct), deadline, late, fine);
     }
 
     /// <summary>Ids de origem dos títulos da folha: os holerites e as guias.</summary>

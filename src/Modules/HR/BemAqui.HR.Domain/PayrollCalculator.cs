@@ -41,6 +41,17 @@ public enum PayrollCalculation
     VacationThird,
     VacationSale,
     VacationSaleThird,
+
+    // FLH-05: rescisão (TerminationCalculator): aviso indenizado e o desconto do não cumprido, férias vencidas e proporcionais e o 1/3, as
+    // indenizações do contrato de experiência (arts. 479 e 480) e a multa do FGTS (informativa, guia da empresa).
+    TerminationNotice,
+    TerminationNoticeDeduction,
+    TerminationVacation,
+    TerminationVacationProrated,
+    TerminationVacationThird,
+    TerminationIndemnity,
+    TerminationEarlyEndDeduction,
+    FgtsFine,
 }
 
 /// <summary>Proporcionalidade do salário no mês de admissão ou desligamento (<c>hr.salary_proration</c>, CA 2).</summary>
@@ -828,6 +839,14 @@ public static class PayrollCalculator
         PayrollCalculation.VacationThird => "1/3 de férias",
         PayrollCalculation.VacationSale => "Abono pecuniário",
         PayrollCalculation.VacationSaleThird => "1/3 do abono pecuniário",
+        PayrollCalculation.TerminationNotice => "Aviso prévio indenizado",
+        PayrollCalculation.TerminationNoticeDeduction => "Aviso prévio não cumprido (desconto)",
+        PayrollCalculation.TerminationVacation => "Férias vencidas indenizadas",
+        PayrollCalculation.TerminationVacationProrated => "Férias proporcionais",
+        PayrollCalculation.TerminationVacationThird => "1/3 de férias na rescisão",
+        PayrollCalculation.TerminationIndemnity => "Indenização do contrato de experiência (art. 479)",
+        PayrollCalculation.TerminationEarlyEndDeduction => "Desconto do contrato de experiência (art. 480)",
+        PayrollCalculation.FgtsFine => "Multa do FGTS",
         _ => "Sem regra (avulso)",
     };
 

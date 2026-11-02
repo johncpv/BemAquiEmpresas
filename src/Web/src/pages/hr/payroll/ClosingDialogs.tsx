@@ -69,7 +69,15 @@ export function CloseRunDialog({ run, onClosed }: { run: PayrollRunSummary; onCl
           {/* FLH-03 CA 9: a folha de férias vence até 2 dias antes do início; depois do prazo, avisa sem bloquear. */}
           {p.legalPaymentDeadline && (p.latePaymentWarning || (paymentDate && paymentDate > p.legalPaymentDeadline)) ? (
             <p role="status" className="rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">
-              Pagamento depois do prazo legal: confirme com a contadora. Prazo das férias: {formatDate(p.legalPaymentDeadline)}.
+              {p.type === 'Termination'
+                ? `Pagamento depois do prazo legal: há multa. Confirme com a contadora. Prazo da rescisão: ${formatDate(p.legalPaymentDeadline)}.`
+                : `Pagamento depois do prazo legal: confirme com a contadora. Prazo das férias: ${formatDate(p.legalPaymentDeadline)}.`}
+            </p>
+          ) : null}
+          {/* FLH-05 CA 8: a rescisão mostra a multa do FGTS (guia da empresa) e o prazo legal de 10 dias. */}
+          {p.type === 'Termination' && p.legalPaymentDeadline ? (
+            <p className="text-sm tabular-nums">
+              Prazo da rescisão: {formatDate(p.legalPaymentDeadline)}{p.fgtsFine != null ? <> · multa do FGTS <Money value={p.fgtsFine} /> (nas guias, vence no prazo)</> : null}.
             </p>
           ) : null}
           {p.newcomers.length > 0 ? (

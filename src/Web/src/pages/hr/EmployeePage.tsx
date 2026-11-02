@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { deactivateUser, deleteEmployee, getGetEmployeeQueryKey, getGetEmployeeTimelineQueryKey, getGetEmployeeUserQueryKey, getListEmployeeLeavesSensitiveQueryKey, useGetEmployee, useGetEmployeeBankStatus, useGetEmployeeUser } from '@/api/generated/bemaqui'
+import { deactivateUser, deleteEmployee, getGetEmployeeQueryKey, getGetEmployeeTerminationQueryKey, getGetEmployeeTimelineQueryKey, getGetEmployeeUserQueryKey, getListEmployeeLeavesSensitiveQueryKey, useGetEmployee, useGetEmployeeBankStatus, useGetEmployeeUser } from '@/api/generated/bemaqui'
 import type { EmployeeDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { RecordHistory } from '@/components/history/RecordHistory'
@@ -29,6 +29,7 @@ import { EmployeePersonal } from './EmployeePersonal'
 import { EmployeeProtected } from './EmployeeProtected'
 import { EmployeeTimeline } from './EmployeeTimeline'
 import { EmployeeTimeEntries } from './timeclock/EmployeeTimeEntries'
+import { EmployeeTermination } from './termination/EmployeeTermination'
 import { EmployeeVacations } from './vacations/EmployeeVacations'
 
 const button = 'rounded-md border border-border px-3 py-2 text-sm font-semibold'
@@ -74,10 +75,14 @@ export function EmployeePage() {
     ...(canEdit && canSensitive ? [{ label: 'Completar dados pessoais', onSelect: () => setTab('pessoais') }] : []),
     ...(canEdit && canUsers && !user ? [{ label: 'Vincular usuário', onSelect: () => { setTab('geral'); setLinking(true) } }] : []),
   ]
-  const terminatedSteps = canUsers && user ? [{
-    label: `Desativar o usuário ${user.name}`,
-    onSelect: async () => { await deactivateUser(user.userId); notifySuccess('Usuário desativado'); setSteps(null); void client.invalidateQueries({ queryKey: getGetEmployeeUserQueryKey(id) }) },
-  }] : []
+  // FLH-05: depois do desligamento, o próximo passo é calcular a rescisão.
+  const terminatedSteps = [
+    ...(canSensitive ? [{ label: 'Calcular rescisão', onSelect: () => { setTab('rescisao'); setSteps(null); void client.invalidateQueries({ queryKey: getGetEmployeeTerminationQueryKey(id) }) } }] : []),
+    ...(canUsers && user ? [{
+      label: `Desativar o usuário ${user.name}`,
+      onSelect: async () => { await deactivateUser(user.userId); notifySuccess('Usuário desativado'); setSteps(null); void client.invalidateQueries({ queryKey: getGetEmployeeUserQueryKey(id) }) },
+    }] : []),
+  ]
   const leaveSteps = [{ label: 'Ver na linha do tempo', onSelect: () => { setTab('linha-do-tempo'); setSteps(null) } }]
   // CAD-04c2: depois do primeiro dependente, o próximo passo é a conta para pagamento.
   const dependentSteps = [{ label: 'Registrar conta para pagamento', onSelect: () => { setTab('pagamento'); setSteps(null) } }]
@@ -129,6 +134,7 @@ export function EmployeePage() {
         { id: 'documentos', label: 'Documentos', content: <EmployeeDocuments employee={employee} canEdit={canEdit} /> },
         { id: 'ponto', label: 'Ponto', content: <EmployeeTimeEntries employee={employee} /> },
         { id: 'ferias', label: 'Férias', content: <EmployeeVacations employee={employee} canEdit={canEdit && active} /> },
+        { id: 'rescisao', label: 'Rescisão', content: <EmployeeTermination employee={employee} canEdit={canEdit} /> },
         { id: 'historico', label: 'Histórico de alterações', content: canSensitive ? <RecordHistory entity="Employee" id={employee.id} /> : <EmployeeProtected /> },
       ]} />
     </>

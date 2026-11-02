@@ -5,7 +5,7 @@
 | ID | FLH-05 |
 | Título | Cálculo da rescisão a partir do desligamento (CAD-04b): tipo de desligamento pela matriz pré-configurada da CLT, aviso prévio (trabalhado, indenizado, dispensado) com os dias proporcionais, saldo de salário, férias vencidas e proporcionais com 1/3, 13º proporcional, saldo do banco de horas, descontos, INSS e IRRF, FGTS do mês e da rescisão e multa do FGTS sobre o saldo digitado; simulação do custo antes de decidir; termo só para conferência; título a pagar no prazo legal; só simulação até a virada e o primeiro caso de rescisão conferido (FLH-06) |
 | Tamanho | G |
-| Status | Ready (pré-condição externa) |
+| Status | Done (pré-condição externa: contadora, jurídico e conferência paralela) |
 | Requisitos | R-RH-6 ("rescisão") · R-RH-3 (desligamento) · R-RH-5 · R-FIN-10 · R-PRP-2 · R-PRP-7 · R-SEC-5 |
 | Dependências | FLH-02a/02b, FLH-03 (férias), FLH-04 (13º), FLH-01, CAD-04b (desligamento e `EmployeeTerminated`), RH-01c (ponto até o desligamento e banco de horas), RH-02b/02c (holerite, fechamento e títulos, ADR 0036) |
 | Bloqueia | FLH-06 (cenário de rescisão na conferência) |

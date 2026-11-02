@@ -8243,6 +8243,114 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("employee_history", "hr");
                 });
 
+            modelBuilder.Entity("BemAqui.HR.Domain.EmployeeTermination", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("CalculatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("calculated_at");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid?>("CancelledBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancelled_by");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<DateOnly?>("ContractEndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("contract_end_date");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<decimal?>("FgtsBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("fgts_balance");
+
+                    b.Property<DateOnly?>("FgtsStatementDate")
+                        .HasColumnType("date")
+                        .HasColumnName("fgts_statement_date");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("kind");
+
+                    b.Property<int>("NoticeDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("notice_days");
+
+                    b.Property<string>("NoticeKind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("notice_kind");
+
+                    b.Property<Guid?>("PayrollRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payroll_run_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateOnly>("TerminationDate")
+                        .HasColumnType("date")
+                        .HasColumnName("termination_date");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_terminations");
+
+                    b.HasIndex("EmployeeId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_terminations_employee_active")
+                        .HasFilter("status <> 'Cancelled'");
+
+                    b.HasIndex("PayrollRunId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_terminations_run")
+                        .HasFilter("payroll_run_id IS NOT NULL");
+
+                    b.HasIndex("Status", "TerminationDate")
+                        .HasDatabaseName("ix_terminations_status_date");
+
+                    b.ToTable("terminations", "hr");
+                });
+
             modelBuilder.Entity("BemAqui.HR.Domain.HrParameter", b =>
                 {
                     b.Property<Guid>("Id")
@@ -9082,7 +9190,7 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasIndex("Period", "Type", "Mode")
                         .IsUnique()
                         .HasDatabaseName("ix_payroll_runs_period_type")
-                        .HasFilter("rectifies_run_id IS NULL AND NOT (type = 'Vacation' AND mode = 'Calculated')");
+                        .HasFilter("rectifies_run_id IS NULL AND NOT (type IN ('Vacation', 'Termination') AND mode = 'Calculated')");
 
                     b.ToTable("payroll_runs", "hr");
                 });
@@ -17664,6 +17772,22 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_employee_history_employees_employee_id");
+                });
+
+            modelBuilder.Entity("BemAqui.HR.Domain.EmployeeTermination", b =>
+                {
+                    b.HasOne("BemAqui.HR.Domain.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_terminations_employees_employee_id");
+
+                    b.HasOne("BemAqui.HR.Domain.PayrollRun", null)
+                        .WithMany()
+                        .HasForeignKey("PayrollRunId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_terminations_payroll_runs_payroll_run_id");
                 });
 
             modelBuilder.Entity("BemAqui.HR.Domain.JobPosition", b =>

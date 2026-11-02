@@ -70,6 +70,9 @@ public interface IHrDb
 
     DbSet<VacationSchedule> VacationSchedules { get; }
 
+    // Rescisão (FLH-05).
+    DbSet<EmployeeTermination> EmployeeTerminations { get; }
+
     /// <summary>Transação do fechamento: a folha, os títulos do Finance (mesmo contexto) e a numeração gravam juntos ou nada grava.</summary>
     Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
 
