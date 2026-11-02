@@ -1,6 +1,6 @@
 # ADR 0020: Homologação promovida a produção
 
-- Status: Aceito (20/10/2026). Decisão D1 do PO (John) na revisão pré-Fase 2, alternativa (b).
+- Status: Aceito (20/10/2026). Decisão D1 do PO (John) na revisão pré-Fase 2, alternativa (b). **Em 02/11/2026 voltou a valer na forma original** ("o ambiente de homologação vira o de produção"): a stack da homologação é a produção desde a virada de 02/11/2026 (ADR 0034, adendo de 02/11/2026 à noite; `docs/operacao/go-live.md` §12).
 - Contexto: a homologação (`homolog.konebras.com.br`, ADR 0015) é separada da produção, que só liga na GOL-01 (Fase 5). Sem decisão, o PO lançaria títulos, saldos e contratos três vezes: no Dolibarr, na homologação e de novo na produção. A revisão recomendou duas saídas: (a) ligar a produção ao fim do Marco 2.1 só com Cadastros e Financeiro; (b) usar a homologação com os dados reais e promover o banco do tenant para produção na GOL-01. O PO escolheu a (b).
 - Complementa as ADRs 0004, 0005 (D1), 0015 e 0018.
 
@@ -42,3 +42,9 @@
 ### Riscos
 - O ambiente de homologação recebe deploys frequentes com dado real: o risco é aceito com o teste da migration na cópia, o rollback automático do deploy (ADR 0015) e o backup diário.
 - Um erro de teste no tenant real é mitigado pela regra "testes nunca escrevem no tenant `konebras`".
+
+## Adendo de 02/11/2026: a homologação virou a produção
+- Decisão do PO: a GOL-01 foi feita **pelo ambiente** ("o ambiente de homologação vira o de produção"), sem o ambiente novo da ADR 0034 §2, que passa para a fase 2 com o B2.
+- `app.konebras.com.br` serve o BemAqui pela stack `bemaqui-empresas-homolog` desde 02/11/2026 (20:20 UTC); `homolog.konebras.com.br` só redireciona para ele; o Dolibarr foi desligado (ADR 0034, adendo de 02/11/2026 à noite).
+- Os "segredos de produção trocados no momento da promoção" desta ADR foram cumpridos só para a **assinatura do JWT**; o key ring acompanhou o banco, como esta ADR previa.
+- **"Testes nunca escrevem no tenant `konebras`" continua**, mas o `demo` não existe nesta stack (o catálogo só tem o `konebras`): teste manual e E2E só no ambiente local ou numa cópia descartável. O smoke do deploy continua só de leitura (`scripts/smoke.sh`).

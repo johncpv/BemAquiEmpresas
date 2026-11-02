@@ -61,3 +61,21 @@
 - **Backup:** o backup diário B2 + `age` do ambiente novo liga já na GOL-01a, para o critério de 7 dias de backup verificado estar cumprido antes da data.
 - **Data da virada:** em aberto; recomendada 01/12/2026 (início do mês), alternativa 15–16/11/2026 (exige dispensar o início do mês).
 - **Inventário de segredos (§5):** fica em `docs/operacao/go-live.md` §4, sem valor; `segredos-e-chaves.md` continua com o procedimento.
+
+## Adendo de 02/11/2026 (decisão do PO, à noite): a homologação virou a produção
+- **Decisão:** a **homologação passou a ser a produção**, como na forma original da ADR 0020. A virada foi feita no mesmo dia (02/11/2026, das 20:16 às 20:20 UTC), registrada em `docs/operacao/go-live.md` §12.
+  - **Não houve** ambiente novo, promoção do banco, recifração dos segredos nem cópia de arquivos: o banco do `konebras`, o catálogo, o key ring e o certificado do Data Protection continuam os da stack `bemaqui-empresas-homolog` (`/opt/projetos/bemaqui-empresas-homolog/`, containers `bqe-homolog-*`).
+  - **Suspende a §2** (ambiente de produção novo) até a fase 2. A §3 (sessões e credenciais) **foi aplicada na stack atual**: `scripts/golive/acessos-virada.sql` e `acessos-virada-catalogo.sql`, com a **chave de assinatura do JWT trocada**. Os webhooks e o Inter de produção da §3 seguem com o checklist do `go-live.md` §2.
+  - O ambiente novo (`deploy/prod/`, PRs #175 e #176: compose `bqe-prod-*`, `deploy-prod.yml`, recifração) passa para a **fase 2, depois do go-live**, junto com o backup B2 + `age`. Os arquivos ficam no repositório, sem uso.
+  - **Backup:** vale a política de hoje: dump do `catalog` e do `tenant_konebras` antes de cada deploy (`scripts/deploy-homolog.sh`, conferido com `pg_restore -l`). O critério "7 dias de backup B2 verificado" do adendo anterior foi substituído por essa política.
+  - **§4 (Dolibarr):** no lugar do "só leitura em `adm.`", o PO pediu o **desligamento** no mesmo dia, com backup final e teste de restauração (o desligamento da §4 foi antecipado; falta a cópia de 5 anos fora da VPS). Detalhe em `go-live.md` §8 e §12.
+- **O que fica como estava:**
+  - hosts: `app.konebras.com.br` (tenant, primário e único em `catalog.tenant_domains`), `homolog.konebras.com.br` só com 301 para o `app.`, `plataforma-homolog.bemaquiapp.com.br` (super admin, Hangfire, `/webhooks/`) sem mudança de nome;
+  - marcas `fiscal_environment_allowed = 'None'` e `bank_production_allowed = false` até o checklist "Antes da primeira operação fiscal e bancária" (`go-live.md` §2, contadora e Inter); até lá, NF-e fora do sistema e boletos como antes;
+  - `cliente.konebras.com.br` fica reservado para o portal do cliente da Fase 8.
+- **Riscos aceitos pelo PO:**
+  - **Não existe `demo` nem tenant de teste nesta stack:** o catálogo só tem o `konebras`. A regra da ADR 0020 "testes nunca escrevem no tenant `konebras`" continua: teste manual, E2E e treinamento só no ambiente local (ou numa cópia descartável), nunca em `app.`. O pipeline não pode rodar E2E contra esta stack.
+  - **Todo deploy é de produção:** só da `main`, depois do PR com o CI verde, com o dump antes (`docs/operacao/deploy.md`, seção do topo). Não há mais um ambiente de ensaio entre o PR e a produção; migration continua expand/contract (ADR 0006) e o rollback do deploy volta só a imagem (o banco volta pelo dump, com o PO).
+  - **Chaves herdadas da homologação:** o key ring, o certificado do Data Protection e os demais segredos da stack são os que a homologação já usava; só a **assinatura do JWT foi trocada** na virada (a antiga guardada fora de `secrets/`). O key ring novo e a troca dos outros segredos ficam para a fase 2, com o ambiente novo; até lá, `docs/operacao/segredos-e-chaves.md` vale como está.
+  - **Backup só por dump antes do deploy, na própria VPS**, até o B2 da fase 2: perder a VPS perde os dumps.
+- **Alternativa considerada:** manter a virada pelo ambiente novo (§2), depois do ensaio numa cópia; não escolhida pelo PO em 02/11/2026. A volta ficou garantida pelos dumps de antes da virada e pelo vhost antigo guardado (`go-live.md` §12).

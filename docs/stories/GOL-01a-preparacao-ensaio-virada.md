@@ -5,7 +5,7 @@
 | ID | GOL-01a |
 | Título | Tudo o que precisa estar pronto e ensaiado antes do dia da virada: critérios de entrada do go-live (Fases 0 a 7 concluídas, EmissorFiscal publicado, contagem física, folha pela RH-02c, backup B2 do ambiente novo), checklist **"Antes da primeira operação fiscal e bancária"** (contadora, Configurações → Fiscal, NFS-e de Caçapava, Inter de produção e as marcas de produção, feitos com o sistema já no ar), ambiente de produção **novo** (ADR 0034: catálogo só com o `konebras`, key ring e certificado do Data Protection novos), inventário de segredos, runbook de virada e de rollback, scripts de revogação de sessões e de fechamento do Dolibarr, ensaio completo e rollback numa cópia restaurada (obrigatórios), treinamento, comunicação aos usuários e aos clientes, e o "Go/No-go" do PO |
 | Tamanho | G (re-estimada de M: o ambiente de produção passou a ser novo, com key ring novo e recifração dos segredos; entram os scripts de revogação de sessões e do Dolibarr, o inventário de segredos completo e a lista de entrada da D7 inteira) |
-| Status | Ready (pré-condição externa) |
+| Status | Done (02/11/2026, com os desvios aprovados pelo PO listados em "Desvios na entrega") |
 | Requisitos | PRD §7 ("go-live e desligamento do Dolibarr") · PRD §1.2 (métricas) · PRD §6 Disponibilidade, Backup, Segurança · R-PLT-2 · R-TER-5 · R-SEC-3 · R-SEC-5 |
 | Dependências | **Fases 0 a 7 concluídas** (todas as stories `Done`; a Fase 8, POR-* e WPP-01, não segura o Go, decisão do PO de 02/11/2026); PR de reforço da D19; FND-10b (homologação, backup, monitor); MIG-01a/b/c (cargas reexecutáveis); ADR 0034 aceita (adendo de 02/11/2026); EmissorFiscal publicado (02/11/2026, imagem `be1253e`). A trilha da contadora e o Inter de produção **não** são dependência do Go: vão para o checklist do CA 14 |
 | Bloqueia | GOL-01b |
@@ -154,6 +154,18 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 - **Conferência do fechamento (21/10/2026, amostragem do PO):** virada da folha calculada (FLH-06) como operação, fora dos critérios de entrada; WhatsApp ligado na GOL-01b; checklist refeita, sem mudança de resultado.
 - **Prontidão:** 10/10. **Veredito:** GO. Status `Ready (pré-condição externa)`.
 
+## Desvios na entrega (decisão do PO de 02/11/2026)
+A story foi fechada em 02/11/2026, com o "Go" do PO e a virada no mesmo dia (GOL-01b). Entregue: runbook `docs/operacao/go-live.md` (CA 2), checklist "Antes da primeira operação fiscal e bancária" escrito (CA 14, execução na GOL-01b), compose, vhosts e pipeline do ambiente novo (PR #175), recifração e scripts de acessos, do Dolibarr e de conferência (PR #176). Desvios aprovados pelo PO:
+1. **A homologação virou a produção** (ADR 0034, adendo de 02/11/2026 à noite; volta à ADR 0020 original): sem ambiente novo, sem promoção, sem recifração e sem cópia de arquivos. Os **CA 3, 4 e 6** (ambiente novo, recifração, `demo` na homologação) e a parte do ambiente novo do **CA 5** passam para a **fase 2**, depois do go-live, junto com o B2. O `deploy/prod/` fica no repositório, sem uso.
+2. **CA 5 (segredos):** na virada, só a **assinatura do JWT** foi trocada (a antiga guardada fora de `secrets/`); o key ring, o certificado do Data Protection e os demais segredos são os da homologação (risco aceito, ADR 0034 adendo).
+3. **CA 1 i (backup e volta):** os 7 dias de backup B2 foram **substituídos** pela política de hoje (dump do `catalog` e do `tenant_konebras` antes de cada deploy, `scripts/deploy-homolog.sh`).
+4. **CA 7 a 9 (ensaio e rollback numa cópia):** **substituídos** pela virada no próprio lugar, com os dumps de antes da virada e o vhost antigo do Dolibarr guardado (`go-live.md` §6 e §12). Sem ensaio cronometrado.
+5. **CA 10 (script de acessos):** não ensaiado numa cópia; rodado direto na virada, com as contagens no `go-live.md` §12 (a conferência de refresh e JWT antigos com 401 não foi registrada).
+6. **CA 11 (script do Dolibarr):** não usado: o Dolibarr foi **desligado e removido** da VPS no mesmo dia, com backup final e teste de restauração (GOL-01b).
+7. **CA 1 l (data):** dispensado; virada em 02/11/2026 (segunda-feira, 17:16 de São Paulo, dentro do horário comercial), decidida pelo PO no mesmo dia, sem a janela combinada antes.
+8. **CA 1 k, CA 12 e CA 13 (métricas, treinamento e comunicados):** ficam para **depois da virada**, na GOL-01b. O `demo` não existe na stack de produção: o treinamento não pode usá-la.
+9. **CA 1 a a 1 h e 1 j:** sem evidência registrada nesta story nem no `go-live.md` §1; a virada foi feita por decisão do PO.
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
@@ -162,3 +174,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D1 nova, D2, D3, D6, D7, D14, D19, tabela 3.2 pontos 74–78); ambiente novo (ADR 0034); re-estimada para G; nova ordem (Marco final "Go-live", ordem 1); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
 | 02/11/2026 | 0.5 | Decisões do PO de 02/11/2026: contadora e Inter fora do Go, num checklist novo "Antes da primeira operação fiscal e bancária" (CA 14, com as marcas de produção, o teste de conexão do Inter, a NFS-e de Caçapava e a primeira NF-e e o primeiro boleto com o PO); Fase 8 fora do Go (CA 1 a: Fases 0 a 7); D6 fora do Go (CA 1 f informativo); backup B2 ligado no ambiente novo nesta story (CA 1 i, CA 3); data da virada em aberto (CA 1 l, 13); EmissorFiscal publicado (`be1253e`) e sem rede `bqe-fiscal` (CA 1 b, CA 3); runbook `docs/operacao/go-live.md` escrito (CA 2) | River (SM) |
+| 02/11/2026 | 1.0 | `Done`. Decisão do PO à noite: a homologação virou a produção (ADR 0034, adendo; ADR 0020); ambiente novo, recifração e B2 para a fase 2; ensaio numa cópia trocado pela virada no lugar com dumps e rollback guardado; data, métricas, treinamento e comunicados dispensados ou para depois. Desvios em "Desvios na entrega"; execução em `go-live.md` §12 | @dev |

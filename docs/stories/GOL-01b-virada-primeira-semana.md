@@ -5,7 +5,7 @@
 | ID | GOL-01b |
 | Título | Execução da virada pelo runbook ensaiado (`docs/operacao/go-live.md`): D−1, aviso por e-mail aos clientes, congelamento do Dolibarr, carga final só dos cadastros alterados, promoção do banco do tenant `konebras` para o ambiente de produção novo (ADR 0034), recifração e segredos novos, revogação de todas as sessões e do security stamp, `app.konebras.com.br` apontando para o BemAqui e o Dolibarr em `adm.konebras.com.br` só leitura com allowlist e `DOLAPIKEY` regenerada, `DROP USER` e remoção dos segredos da migração, smoke; depois, com o sistema no ar, o checklist **"Antes da primeira operação fiscal e bancária"** (SEFAZ e Inter em produção, GOL-01a CA 14); acompanhamento diário da primeira semana, fechamento do go-live, limpeza da homologação e a data de desligamento do Dolibarr |
 | Tamanho | M (quebra da GOL-01) |
-| Status | Ready (pré-condição externa) |
+| Status | InProgress (virada feita em 02/11/2026; faltam a primeira semana, o checklist "Antes da primeira operação fiscal e bancária", a cópia do Dolibarr fora da VPS e o DNS) |
 | Requisitos | PRD §7 ("go-live e desligamento do Dolibarr") · PRD §1.2 (métricas de sucesso) · R-PLT-2 · R-TER-5 · R-FIS-2 · R-FIN-7 · R-SEC-3 · PRD §6 Disponibilidade, Backup, Observabilidade |
 | Dependências | GOL-01a ("Go" do PO registrado, com os scripts ensaiados) |
 | Bloqueia | — (última story do planejamento atual) |
@@ -125,6 +125,26 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 - **Pré-condições para `Ready`:** nenhuma de decisão de story. Pré-condição externa explícita: janela da virada e presença da Konebras na primeira semana, sem bloquear.
 - **Prontidão:** 10/10. **Veredito:** GO. Status `Ready (pré-condição externa)`.
 
+## Execução (02/11/2026)
+A virada foi feita em **02/11/2026, das 20:16 às 20:20 UTC**, pela decisão do PO do mesmo dia: **a homologação virou a produção** (ADR 0034, adendo de 02/11/2026 à noite; ADR 0020). Registro completo em `docs/operacao/go-live.md` §12.
+
+| Item | Situação | Como ficou |
+|---|---|---|
+| Checklist 1 (D−1) e CA 2 (e-mail aos clientes) | Para depois | Sem D−1; comunicados depois da virada |
+| Checklist 2 e 3 (corte e carga final) | Feito | Carga MIG-01b/c em simulação: nada novo nem alterado. Para o PO cadastrar à mão: 3 contas bancárias sem código do banco (BB-CC, CAIXA, INTER; o BemAqui tem 1 conta e o PO mantém assim) e 2 terceiros com CNPJ inválido no Dolibarr (ids 10 e 14) |
+| Checklist 4, CA 3 e CA 9 (Dolibarr) | Trocado | No lugar do "só leitura em `adm.`": Dolibarr e Konebras UI **desligados e removidos** da VPS (~20:30 UTC), com backup final em `/opt/backups/dolibarr-final-20261102T202934Z` e restauração testada (118 terceiros, 34 produtos, 26 faturas, 16 propostas, iguais ao sistema no ar); vhosts `erp.` e `adm.`, containers, imagens, cron e pastas removidos; volumes `stack_dolidb`, `stack_dolidocs` e `konebras-ui_konebras_ui_db` mantidos |
+| Checklist 5 e CA 5 (promoção, segredos) | Trocado | Sem promoção nem recifração: a stack da homologação é a produção. Só a assinatura do JWT foi trocada; key ring e demais segredos herdados (fase 2) |
+| Checklist 6 e CA 4 (acessos) | Feito | `acessos-virada.sql`: 2 famílias / 12 refresh tokens revogados, security stamp de 2 usuários, 1 convite expirado, 1 aparelho revogado, 0 usuários de teste; `acessos-virada-catalogo.sql` aplicado; login do PO em `app.konebras.com.br` com sucesso. A conferência de refresh e JWT antigos com 401 não foi registrada |
+| Checklist 7 (domínio) | Feito | `tenant_domains` só com `app.konebras.com.br` (primário); `homolog.konebras.com.br` com 301 para o `app.`; `plataforma-homolog.bemaquiapp.com.br` sem mudança, com `/webhooks/` fora da allowlist (corrigido no mesmo dia); `default.conf` do Dolibarr guardado fora do `conf.d` |
+| Checklist 8 (pipeline e integrações) | Em aberto | `deploy-prod.yml` não se aplica (fase 2); o deploy é o `scripts/deploy-homolog.sh`. Marcas `fiscal_environment_allowed = 'None'` e `bank_production_allowed = false` até o checklist "Antes da primeira operação fiscal e bancária"; até lá, NF-e fora do sistema e boletos como antes |
+| Checklist 9 e CA 6 (smoke, primeira nota e boleto) | Parcial | Smoke e login ok; primeira NF-e e primeiro boleto pelo sistema só depois do checklist do §2 |
+| Checklist 10 (rollback) | Disponível | Pelos dumps de antes da virada e pelo `default.conf` guardado; voltar ao Dolibarr exige restaurar o backup final |
+| Checklist 11, CA 7, 8 e 12 (primeira semana e fechamento) | Em andamento | Acompanhamento diário no `go-live.md` §12 |
+| CA 10 (desligamento do Dolibarr) | Antecipado, falta 1 item | **Cópia de 5 anos fora da VPS** pendente (PO); só depois os volumes mantidos podem sair. O PO tira os DNS de `erp.` e `adm.` |
+| CA 11 (limpeza da homologação) | Não se aplica | A homologação é a produção; key ring novo e ambiente de teste ficam para a fase 2 |
+
+**Falta para `Done`:** a primeira semana (CA 7, 8) e o fechamento (CA 12); o checklist "Antes da primeira operação fiscal e bancária" com a primeira NF-e e o primeiro boleto (CA 6); a cópia do Dolibarr fora da VPS (CA 10) e a retirada dos DNS de `erp.` e `adm.`; comunicados aos usuários e aos clientes (CA 2). `cliente.konebras.com.br` fica reservado para o portal do cliente (Fase 8).
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
@@ -133,3 +153,4 @@ Checklist do @po (Pax), 21/10/2026 (revalidação depois das decisões do PO e d
 | 21/10/2026 | 0.3 | Decisões do PO e correções da revisão pré-Fases 4 a 8 (D1 nova, D7, tabela 3.2 pontos 79–81; ADR 0034); CA de sessões corrigido; nova ordem (Marco final "Go-live", ordem 2, última); CAs renumerados | River (SM) |
 | 21/10/2026 | 0.4 | Revalidação do PO: 10/10, `Ready` | Pax (PO) |
 | 02/11/2026 | 0.5 | Decisões do PO de 02/11/2026: o teste do Inter sai do D−1 e não adia a virada (CA 1); SEFAZ e Inter em produção pelo checklist "Antes da primeira operação fiscal e bancária" da GOL-01a (CA 14), depois da virada (checklist itens 8 e 9, CA 6); WhatsApp fora com a Fase 8 (CA 6); marca fiscal pelo nome real `fiscal_environment_allowed`; data da virada em aberto | River (SM) |
+| 02/11/2026 | 0.6 | `InProgress`. Virada executada em 02/11/2026 (20:16–20:20 UTC) com a homologação virando a produção (ADR 0034, adendo; ADR 0020): dumps, carga final em simulação, JWT trocado, acessos, `tenant_domains`, vhosts e login do PO. Dolibarr e Konebras UI desligados e removidos (~20:30 UTC) com backup final e restauração testada, no lugar do "só leitura em `adm.`" (CA 9 trocado, CA 10 antecipado menos a cópia de 5 anos fora da VPS). Ver "Execução" | @dev |

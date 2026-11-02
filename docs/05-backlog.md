@@ -665,11 +665,13 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-8--cliente-e-comu
 
 **Ordem de execução:** GOL-01a → GOL-01b.
 
-**GOL-01a [ ] Go-live Konebras: critérios de entrada, ambiente de produção novo, runbook e ensaio completo da virada (G)** — Go-live, ordem 1 — re-estimada de M — `Ready (pré-condição externa)` — [story](stories/GOL-01a-preparacao-ensaio-virada.md)
+**Virada feita em 02/11/2026** (decisão do PO do mesmo dia): a homologação virou a produção, `app.konebras.com.br` serve o BemAqui e o Dolibarr foi desligado com backup testado. O ambiente de produção novo e o B2 passam para a fase 2. Registro em [go-live.md](operacao/go-live.md) §12; ADR 0034, adendo de 02/11/2026 à noite.
+
+**GOL-01a [x] Go-live Konebras: critérios de entrada, ambiente de produção novo, runbook e ensaio completo da virada (G)** — Go-live, ordem 1 — re-estimada de M — `Done` (02/11/2026, com desvios: a homologação virou a produção; ambiente novo, recifração e B2 para a fase 2; ensaio numa cópia trocado pela virada no lugar com dumps e rollback guardado; data, métricas, treinamento e comunicados dispensados ou para depois) — [story](stories/GOL-01a-preparacao-ensaio-virada.md)
 - Requisitos: PRD §7, §1.2, §6.
 - CA: critérios de entrada com evidência e "Go" do PO: Fases 0 a 7 concluídas, EmissorFiscal publicado com as lacunas conferidas, A1 válido, contagem física, folha pela RH-02c, backup B2 do ambiente novo verificado há 7 dias; D6 informativa (fora do Go); checklist "Antes da primeira operação fiscal e bancária" (P-01, P-02, P-03, Configurações → Fiscal, NFS-e de Caçapava, Inter de produção e teste de conexão, marcas de produção, primeira NF-e e primeiro boleto com o PO); ambiente de produção novo (ADR 0034); restauração e rollback ensaiados numa cópia, obrigatórios; inventário de segredos; linha de base da métrica; a virada da folha calculada (FLH-06) não segura o go-live.
 
-**GOL-01b [ ] Go-live Konebras: a virada, o corte do Dolibarr e a primeira semana (M)** — Go-live, ordem 2 — `Ready (pré-condição externa)` — [story](stories/GOL-01b-virada-primeira-semana.md)
+**GOL-01b [ ] Go-live Konebras: a virada, o corte do Dolibarr e a primeira semana (M)** — Go-live, ordem 2 — `InProgress` (virada feita em 02/11/2026; Dolibarr desligado com backup testado; faltam a primeira semana, o checklist "Antes da primeira operação fiscal e bancária", a cópia do Dolibarr fora da VPS e o DNS de `erp.`/`adm.`) — [story](stories/GOL-01b-virada-primeira-semana.md)
 - Requisitos: PRD §7, §1.2, R-PLT-2, R-TER-5.
 - CA: carga final; `DROP USER` e `DOLAPIKEY` regenerada; Dolibarr em `adm.` só leitura com allowlist; todas as famílias de refresh revogadas e security stamp de todos subido; fiscal e Inter em produção pelo checklist "Antes da primeira operação fiscal e bancária", depois da virada (o teste do Inter não adia mais a virada; WhatsApp fora com a Fase 8); primeira nota e primeiro boleto reais com o PO; aviso por e-mail aos clientes; primeira semana acompanhada; Dolibarr desligado depois do primeiro fechamento ou em até 3 meses, backup por 5 anos.
 

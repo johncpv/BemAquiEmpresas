@@ -166,7 +166,7 @@ jobs:
         run: sh scripts/check-nginx.sh
       - name: Scripts de shell
         run: |
-          for f in deploy/homolog/deploy.sh deploy/homolog/backup-cron.sh deploy/prod/deploy.sh deploy/prod/backup-cron.sh deploy/backup/backup.sh deploy/postgres/init-roles.sh scripts/smoke.sh scripts/check-nginx.sh scripts/dolibarr-snapshot.sh scripts/dolibarr/restore-snapshot.sh; do sh -n "$f"; done
+          for f in deploy/homolog/deploy.sh deploy/homolog/backup-cron.sh deploy/prod/deploy.sh deploy/prod/backup-cron.sh deploy/backup/backup.sh deploy/postgres/init-roles.sh scripts/smoke.sh scripts/deploy-homolog.sh scripts/check-nginx.sh scripts/dolibarr-snapshot.sh scripts/dolibarr/restore-snapshot.sh; do sh -n "$f"; done
       - name: Imagens (api, web, backup)
         run: |
           for image in api web backup; do docker build -q -f "deploy/$image.Dockerfile" -t "bqe-ci-$image" .; done
