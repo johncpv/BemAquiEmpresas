@@ -1,6 +1,7 @@
 #!/bin/sh
 # Backup cifrado dos bancos (FND-10, ADR 0015). Uso: backup.sh daily | keyring
-#   daily   -> um pg_dump por banco (catálogo e cada tenant) + papéis (globals), para o bucket dos dumps
+#   daily   -> um pg_dump por banco (catálogo e cada tenant) + papéis (globals) e, com FILES_DIR, o tar do volume de arquivos, para o
+#              bucket dos dumps
 #   keyring -> só security.data_protection_keys, para a trilha separada (outro bucket e outra credencial)
 # O dump nunca toca o disco em claro: pg_dump | age | rclone rcat. A credencial do bucket não tem permissão de apagar;
 # a retenção de 30 dias é regra de ciclo de vida do bucket. Saída diferente de 0 = falha (o cron dispara o alerta).
@@ -50,6 +51,16 @@ case "$MODE" in
     for db in $dbs; do
       dump "$db"
     done
+    # Arquivos (anexos, XML das notas, holerites, PDFs), GOL-01a: o volume da API montado só leitura em FILES_DIR. Um tar inteiro por dia,
+    # no mesmo bucket e com a mesma retenção dos dumps; sem FILES_DIR (homologação antiga), fica de fora.
+    if [ -n "${FILES_DIR:-}" ]; then
+      if [ -d "$FILES_DIR" ] && tar -C "$FILES_DIR" -cf - . | age -R "$RECIPIENTS" | send "files-$STAMP.tar.age"; then
+        echo "OK     files"
+      else
+        echo "FALHOU files" >&2
+        failed="$failed files"
+      fi
+    fi
     ;;
   keyring)
     remote keyring

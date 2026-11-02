@@ -16,16 +16,26 @@ const stackNetwork = Object.entries(compose.networks ?? {}).find(([, n]) => n.na
 // api e web têm nome próprio do ambiente (bqe-<ambiente>-api|web): o nome do serviço vira apelido na stack_stack,
 // onde "api", "web", "postgres" e "redis" já são de outros projetos (ADR 0015).
 const isEdge = (name) => /^bqe-[a-z0-9]+-(api|web)$/.test(name)
-const hardened = ['migrator', 'backup', 'importer', ...Object.keys(services).filter(isEdge)]
+// Produção (GOL-01a CA 3, ADR 0034): projeto "bqe-prod". Lá TODO serviço segue o endurecimento (inclusive postgres e clamav), não há
+// importer nem o secret da API do Dolibarr (ADR 0017 adendo 2), e o postgres fica só em rede interna.
+const project = String(compose.name ?? '')
+const isProd = project === 'bqe-prod'
+// O importer só existe na homologação (carga do Dolibarr, exigida lá); na produção ele é proibido.
+const required = ['migrator', 'backup', ...Object.keys(services).filter(isEdge)]
+const hardened = isProd
+  ? Object.keys(services).filter((name) => name !== 'fiscal-pdf-reader')
+  : [...required, ...(services.importer ? ['importer'] : [])]
 const generic = new Set(['postgres', 'clamav', 'redis', 'api', 'web', 'db', 'database'])
 const problems = []
 
+for (const name of required) {
+  if (!services[name]) problems.push(`${name}: serviço ausente (use --profile backup no "config")`)
+}
+if (!isProd && !services.importer) problems.push('importer: serviço ausente (use --profile import no "config")')
+
 for (const name of hardened) {
   const s = services[name]
-  if (!s) {
-    problems.push(`${name}: serviço ausente (use --profile backup --profile import no "config")`)
-    continue
-  }
+  if (!s) continue
   const user = String(s.user ?? '')
   if (!user || /^(0|root)(:|$)/.test(user)) problems.push(`${name}: precisa de "user:" não-root (está "${user || 'vazio'}")`)
   if (s.read_only !== true) problems.push(`${name}: precisa de read_only: true`)
@@ -41,6 +51,45 @@ const postgres = services.postgres
 if (!postgres) problems.push('postgres: serviço ausente')
 else {
   if (postgres.network_mode) problems.push('postgres: não pode usar network_mode')
+  if (isProd) {
+    const outside = Object.keys(postgres.networks ?? {}).filter((n) => compose.networks?.[n]?.internal !== true)
+    if (outside.length > 0) problems.push(`postgres: na produção só fica em rede internal: true (está também em ${outside.join(', ')})`)
+  }
+}
+
+// Segredo nunca em variável de ambiente (aparece no docker inspect): só em arquivo de ./secrets montado como secret (ADR 0015).
+const secretKey = /(password|passwd|secret|signingkey|apikey|api_key|accesskey|access_key|token|connectionstrings__)/i
+for (const [name, s] of Object.entries(services)) {
+  for (const [key, value] of Object.entries(s.environment ?? {})) {
+    if (secretKey.test(key) && !/(_FILE|File|Path)$/.test(key) && String(value ?? '') !== '') problems.push(`${name}: ${key} parece segredo em variável de ambiente; use um arquivo em secrets/`)
+  }
+}
+for (const [name, secret] of Object.entries(compose.secrets ?? {})) {
+  if (!secret.file || !/[\\/]secrets[\\/][^\\/]+$/.test(String(secret.file))) problems.push(`secret ${name}: precisa ser um arquivo do diretório secrets/ (está "${secret.file ?? secret.environment ?? 'sem arquivo'}")`)
+}
+
+// Nada compartilhado entre ambientes (ADR 0034 §2): volumes e containers com o prefixo do projeto (bqe-homolog-*, bqe-prod-*).
+if (/^bqe-[a-z0-9]+$/.test(project)) {
+  for (const [key, volume] of Object.entries(compose.volumes ?? {})) {
+    if (volume.external || !String(volume.name ?? '').startsWith(`${project}-`)) problems.push(`volume ${key}: o nome precisa começar com "${project}-" (está "${volume.name ?? key}")`)
+  }
+  for (const [name, s] of Object.entries(services)) {
+    if (!String(s.container_name ?? '').startsWith(`${project}-`)) problems.push(`${name}: container_name precisa começar com "${project}-"`)
+  }
+} else problems.push(`projeto "${project}": o nome precisa ser bqe-<ambiente>`)
+
+if (isProd) {
+  if (services.importer) problems.push('importer: não existe na produção (a carga do Dolibarr roda na homologação, ADR 0017 adendo 2 e ADR 0034)')
+  // O backup leva também o volume de arquivos da API (só leitura): sem ele, anexos, XML e holerites não voltam numa restauração.
+  const apiFiles = Object.entries(services).find(([name]) => /^bqe-[a-z0-9]+-api$/.test(name))?.[1]?.volumes?.find((v) => v.target === '/data/files')?.source
+  const backupFiles = (services.backup?.volumes ?? []).find((v) => v.source === apiFiles)
+  if (!apiFiles || !backupFiles || backupFiles.read_only !== true || !services.backup?.environment?.FILES_DIR) problems.push('backup: na produção precisa montar o volume de arquivos da API só leitura e ter FILES_DIR (anexos, XML e holerites entram no backup)')
+  if (compose.secrets?.['dolibarr-api']) problems.push('secret dolibarr-api: a DOLAPIKEY nunca vai para a produção (ADR 0017 adendo 2)')
+  for (const [name, s] of Object.entries(services)) {
+    if (String(s.environment?.DataProtection__AllowKeyRingCreation ?? 'false') === 'true') problems.push(`${name}: DataProtection__AllowKeyRingCreation fixo em true; use a variável ALLOW_KEY_RING_CREATION só na primeira subida`)
+    if (!(s.deploy?.resources?.limits?.pids > 0)) problems.push(`${name}: na produção precisa de limite de processos (pids)`)
+    if (/\/bemaqui-empresas-[a-z]+:/.test(String(s.image ?? '')) && !/:[0-9a-f]{40}$/.test(String(s.image))) problems.push(`${name}: na produção a imagem é sempre pelo SHA do commit (está "${s.image}")`)
+  }
 }
 
 for (const [name, s] of Object.entries(services)) {
