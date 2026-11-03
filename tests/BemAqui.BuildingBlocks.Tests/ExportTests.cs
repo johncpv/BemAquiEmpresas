@@ -119,6 +119,18 @@ public class ExportTests
         spec.Sensitivities.Should().HaveCount(2);
     }
 
+    /// <summary>EXP-04 CA 16: coluna <c>Omit</c> sem a ação sai do arquivo (cabeçalho e valores), não vem vazia nem mascarada.</summary>
+    [Fact]
+    public void Coluna_omitida_sem_a_acao_sai_do_arquivo()
+    {
+        var cost = ExportSensitivity.Omitted("quotes.view_cost");
+        var spec = new ExportSpec<Row>("Quote", "orcamentos", "Orçamentos").Text("Nome", r => r.Name).Money("Custo", r => r.Salary, cost).Percent("Margem", r => r.Rate, cost);
+        spec.OutputColumns(ExportFormat.Xlsx, _ => false).Select(c => c.Header).Should().Equal("Nome");
+        spec.Rows(ExportFormat.Pdf, Rows, _ => false)[0].Should().Equal("Ana");
+        spec.OutputColumns(ExportFormat.Xlsx, _ => true).Select(c => c.Header).Should().Equal("Nome", "Custo", "Margem");
+        spec.Rows(ExportFormat.Xlsx, Rows, _ => true)[0][1].Should().Be(4_321.5m);
+    }
+
     [Fact]
     public async Task PDF_leva_so_as_colunas_marcadas_e_paisagem_com_mais_de_seis()
     {
