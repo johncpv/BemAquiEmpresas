@@ -1,20 +1,21 @@
 import { useState } from 'react'
-import { useCompareBoms, useGetOrderBomHistory } from '@/api/generated/bemaqui'
+import { getDownloadBomPdfUrl, useCompareBoms, useGetOrderBomHistory } from '@/api/generated/bemaqui'
 import type { BomRevisionSummary } from '@/api/generated/model'
 import { describeChanges } from '@/components/history/describe-changes'
 import { inputClass } from '@/components/form/form-utils'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
-import { BOM_DICAS, BOM_STATUS, qty } from './boms'
+import { BOM_DICAS, BOM_STATUS, bomPdfName, qty } from './boms'
 
 const CHANGE: Record<string, { label: string; tone: 'ok' | 'crit' | 'warn' | 'neutral' }> = {
   Added: { label: 'Incluído', tone: 'ok' }, Removed: { label: 'Removido', tone: 'crit' }, Changed: { label: 'Alterado', tone: 'warn' }, Unchanged: { label: 'Igual', tone: 'neutral' },
 }
 
 /** "Revisões" (CA 15): cada revisão com a situação, quem liberou e quando, e a comparação lado a lado de duas delas. */
-export function BomRevisions({ revisions }: { revisions: BomRevisionSummary[] }) {
+export function BomRevisions({ revisions, orderNumber }: { revisions: BomRevisionSummary[]; orderNumber: string }) {
   const [from, setFrom] = useState(revisions[1]?.id ?? '')
   const [to, setTo] = useState(revisions[0]?.id ?? '')
   const comparing = !!from && !!to && from !== to
@@ -33,6 +34,8 @@ export function BomRevisions({ revisions }: { revisions: BomRevisionSummary[] })
             </span>
             <span className="tabular-nums text-muted-foreground">{r.lineCount} {r.lineCount === 1 ? 'item' : 'itens'}</span>
             <span className="text-muted-foreground">{r.releasedAt ? `Liberada em ${formatDateTime(r.releasedAt)}${r.releasedByName ? ` por ${r.releasedByName}` : ''}` : `Criada em ${formatDateTime(r.createdAt)}`}</span>
+            {/* EXP-05 CA 3: o PDF de cada revisão (a substituída sai com a faixa da revisão que a substituiu). */}
+            <span className="ml-auto"><DocumentActions url={getDownloadBomPdfUrl(r.id)} fileName={bomPdfName(orderNumber, r.revision)} print={false} /></span>
           </li>
         ))}
       </ul>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ageLabel, canApprove, decisionNext, defaultReturn, draftDescription, missingQuality, missingText, NC_STATUS, nonConforming, resultLabel } from './quality'
+import { ageLabel, canApprove, decisionNext, defaultReturn, draftDescription, inspectionPdfName, missingQuality, missingText, NC_STATUS, nonConforming, resultLabel } from './quality'
 
 const item = (text: string, result: 'Done' | 'NotApplicable' | 'NonConforming' | null) => ({ id: text, text, result, markedAt: null, markedByName: null })
 
@@ -46,5 +46,10 @@ describe('qualidade (PRD-05)', () => {
     expect(ageLabel(0)).toBe('Hoje')
     expect(ageLabel(1)).toBe('1 dia')
     expect(ageLabel(12)).toBe('12 dias')
+  })
+})
+describe('PDF da inspeção (EXP-05 CA 9)', () => {
+  it('nome do arquivo pela OS, letra da etapa e tentativa', () => {
+    expect(inspectionPdfName('OS-2026-0007', 'Q', 2)).toBe('OS-2026-0007-qualidade-Q-t2.pdf')
   })
 })

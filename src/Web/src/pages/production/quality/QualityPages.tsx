@@ -1,6 +1,7 @@
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
-import { useGetQualityQueue } from '@/api/generated/bemaqui'
+import { getDownloadQualityInspectionPdfUrl, useGetQualityQueue, useGetQualityStep } from '@/api/generated/bemaqui'
 import { ApiError } from '@/api/http'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
@@ -9,7 +10,7 @@ import { useProductionLive } from '@/pages/production/kanban/useBoardLive'
 import { FormLayout } from '@/components/layout/form-layout'
 import { PageHeading } from '@/shell/PageHeading'
 import { QualityInspection } from './QualityInspection'
-import { QUALITY_DICAS, refreshQuality } from './quality'
+import { inspectionPdfName, QUALITY_DICAS, refreshQuality } from './quality'
 
 const action = 'inline-flex min-h-9 items-center rounded-md border border-border px-3 text-sm font-semibold text-primary'
 const pill = 'rounded-full border px-3 py-1 text-sm font-semibold aria-pressed:border-primary aria-pressed:bg-primary-soft'
@@ -88,8 +89,16 @@ export function QualityStepPage() {
   const { stepId } = useParams({ strict: false }) as { stepId: string }
   return (
     <>
-      <PageHeading title="Produção: Inspeção de qualidade" />
+      <PageHeading title="Produção: Inspeção de qualidade" actions={<InspectionPdf stepId={stepId} />} />
       <FormLayout><QualityInspection stepId={stepId} queue="/app/producao/qualidade" /></FormLayout>
     </>
   )
+}
+
+/** EXP-05 CA 9: a inspeção em PDF no cabeçalho, com "Prévia" enquanto não decidida (a mesma consulta da inspeção, sem chamada a mais). */
+function InspectionPdf({ stepId }: { stepId: string }) {
+  const query = useGetQualityStep(stepId, { query: { retry: false } })
+  const s = query.data?.step
+  if (!s) return null
+  return <DocumentActions url={getDownloadQualityInspectionPdfUrl(stepId, { attempt: s.attempt })} fileName={inspectionPdfName(s.orderNumber, s.stepCode, s.attempt)} />
 }

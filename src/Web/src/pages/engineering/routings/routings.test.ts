@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { draftProblems, exampleDraft, newStep, normalizeLetter, renameStep, suggestCenter, suggestLetter, toStepsInput, totalHours } from './routings'
+import { draftProblems, exampleDraft, newStep, normalizeLetter, renameStep, routingPdfName, suggestCenter, suggestLetter, toStepsInput, totalHours } from './routings'
 
 const centers = [{ id: 'c1', name: 'Corte a laser' }, { id: 'c2', name: 'Montagem' }]
 
@@ -49,5 +49,12 @@ describe('roteiro (ENG-01)', () => {
     const steps = [{ ...newStep('Corte'), standardHours: '1.50' }, { ...newStep('Montagem'), standardHours: '2.25', checklist: [' Fixar guias ', ''] }]
     expect(totalHours(steps)).toBe('3,75')
     expect(toStepsInput(steps)[1]).toMatchObject({ standardHours: 2.25, checklist: ['Fixar guias'], code: 'M' })
+  })
+})
+describe('PDF do roteiro (EXP-05 CA 4)', () => {
+  it('nome do arquivo sem acento nem espaço, igual ao do servidor', () => {
+    expect(routingPdfName('Elevador Hidráulico  2')).toBe('roteiro-elevador-hidraulico-2.pdf')
+    expect(routingPdfName('A & B')).toBe('roteiro-a-b.pdf')
+    expect(routingPdfName('***')).toBe('roteiro-sem-nome.pdf')
   })
 })

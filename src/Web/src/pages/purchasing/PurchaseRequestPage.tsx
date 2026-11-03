@@ -1,12 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { cancelPurchaseRequest, cancelPurchaseRequestLine, getGetPurchaseRequestQueryKey, updatePurchaseRequestLine, useGetPurchaseRequest } from '@/api/generated/bemaqui'
+import { cancelPurchaseRequest, cancelPurchaseRequestLine, getDownloadPurchaseRequestPdfUrl, getGetPurchaseRequestQueryKey, updatePurchaseRequestLine, useGetPurchaseRequest } from '@/api/generated/bemaqui'
 import type { PurchaseRequestDetail, PurchaseRequestLineView } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput, QuantityInput } from '@/components/form/inputs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { FactsBar } from '@/components/ui/facts-bar'
 import { NextSteps, type Step } from '@/components/ui/next-steps'
 import { ErrorState, Skeleton } from '@/components/ui/states'
@@ -81,10 +82,14 @@ export function PurchaseRequestPage() {
           <>
             <span className="flex flex-wrap gap-2">
             {canOrder && r.lines.some((l) => l.status === 'Open') ? (
+              <button type="button" onClick={() => quote(r.lines.filter((l) => l.status === 'Open').map((l) => l.id))} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
+                Cotar estes itens
+              </button>
+            ) : null}
+            {/* EXP-05 CA 6: a SC em PDF (itens, situação da linha e vínculos), primeiro botão secundário. */}
+            <DocumentActions url={getDownloadPurchaseRequestPdfUrl(r.id)} fileName={`${r.number}.pdf`} />
+            {canOrder && r.lines.some((l) => l.status === 'Open') ? (
               <>
-                <button type="button" onClick={() => quote(r.lines.filter((l) => l.status === 'Open').map((l) => l.id))} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
-                  Cotar estes itens
-                </button>
                 <button type="button" onClick={() => order(r.lines.filter((l) => l.status === 'Open').map((l) => l.id))} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">
                   Pedir direto ao último fornecedor
                 </button>

@@ -56,6 +56,10 @@ internal static partial class PurchasingEndpoints
             .RequirePermission("purchasing.create").WithName("GetPurchaseRequestDefaults").Produces<PurchaseRequestDefaults>();
         requests.MapGet("/{id:guid}", async (Guid id, PurchaseRequestService service, CancellationToken ct) => (await service.DetailAsync(id, ct)).ToHttpResult())
             .RequirePermission("purchasing.view").WithName("GetPurchaseRequest").Produces<PurchaseRequestDetail>();
+        // EXP-05 CA 6: PDF da solicitação (itens, situação da linha e vínculos), com a permissão da tela; cancelada com "Cancelado".
+        requests.MapGet("/{id:guid}/pdf", async (Guid id, HttpContext http, BemAqui.Purchasing.Application.Documents.PurchaseRequestDocumentService service, CancellationToken ct) =>
+                Pdf(http, await service.PdfAsync(id, ct)))
+            .RequirePermission("purchasing.view").WithName("DownloadPurchaseRequestPdf").Produces(StatusCodes.Status200OK, contentType: "application/pdf");
         requests.MapGet("/{id:guid}/history", async (Guid id, int? page, int? pageSize, AuditHistory history, CancellationToken ct) =>
                 (await history.GetWithChildrenAsync(nameof(PurchaseRequest), id.ToString(), HistoryChildren, "requestId", Page(page, pageSize), ct)).ToHttpResult())
             .RequirePermission("purchasing.view").WithName("GetPurchaseRequestHistory").Produces<PagedList<RelatedAuditEntryDto>>();

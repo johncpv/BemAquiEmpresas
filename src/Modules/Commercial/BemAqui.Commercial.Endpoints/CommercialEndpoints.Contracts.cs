@@ -55,6 +55,19 @@ internal static partial class CommercialEndpoints
             .RequirePermission("projects.view").WithName("GetProjectTimeline").Produces<IReadOnlyList<ProjectTimelineEntry>>();
         projects.MapGet("/{id:guid}", async (Guid id, ProjectService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())
             .RequirePermission("projects.view").WithName("GetProject").Produces<ProjectDetail>();
+        // EXP-05 CA 5: resumo do projeto em PDF; os blocos Custos e Financeiro saem só com a permissão de cada um (no serviço).
+        projects.MapGet("/{id:guid}/pdf", async (Guid id, HttpContext http, BemAqui.Commercial.Application.Documents.ProjectSummaryDocumentService service, CancellationToken ct) =>
+            {
+                var result = await service.PdfAsync(id, ct);
+                if (result.IsFailure)
+                {
+                    return result.Error!.ToProblem();
+                }
+
+                BemAqui.BuildingBlocks.Attachments.AttachmentEndpoints.ApplyDownloadHeaders(http.Response);
+                return Results.File(result.Value.Content, "application/pdf", result.Value.FileName);
+            })
+            .RequirePermission("projects.view").WithName("DownloadProjectSummaryPdf").Produces(StatusCodes.Status200OK, contentType: "application/pdf");
         projects.MapGet("/{id:guid}/budget", async (Guid id, ProjectService service, CancellationToken ct) => (await service.BudgetAsync(id, ct)).ToHttpResult())
             .RequirePermission("projects.view_cost").WithName("GetProjectBudget").Produces<IReadOnlyList<ProjectBudgetLine>>();
         projects.MapPost("/{id:guid}/fabrication", async (Guid id, ProjectEventInput input, ProjectService service, CancellationToken ct) => (await service.RegisterFabricationAsync(id, input, ct)).ToHttpResult())

@@ -18,6 +18,10 @@ Ver e editar as etapas do roteiro: nome, letra, centro de trabalho, horas padrã
 - No topo: **Duplicar**, **Inativar roteiro** (ou **Ativar roteiro**) e **Excluir roteiro**.
 - A **Expedição** do exemplo é "preparar e embalar"; a baixa do estoque é feita no romaneio.
 
+## Imprimir e exportar
+- **Baixar PDF** e **Imprimir**, no cabeçalho, geram o roteiro: nome, tipo de produto, situação, horas padrão, as letras das etapas, os produtos ligados e cada etapa com a letra, o nome, o centro de trabalho, as horas padrão, a marca **Qualidade** e o checklist com uma caixa por item.
+- Roteiro inativo sai com a faixa "Roteiro inativo".
+
 ## Perguntas frequentes
 **Apareceu "O roteiro mudou desde que você abriu".** Outra pessoa salvou antes. Clique em **Recarregar** e refaça a mudança.
 
