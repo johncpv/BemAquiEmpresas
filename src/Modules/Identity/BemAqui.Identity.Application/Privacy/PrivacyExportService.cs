@@ -29,8 +29,7 @@ public sealed partial class PrivacyExportService(
     PrivacyRequestService requests,
     IPermissionService permissions,
     AttachmentService attachments,
-    IFileStorage storage,
-    ICompanyIdentity company,
+    PdfFrameFactory frames,
     IPdfRenderer renderer,
     INotificationService notifications,
     IAuditWriter audit,
@@ -99,17 +98,7 @@ public sealed partial class PrivacyExportService(
 
         var generatedAt = clock.GetUtcNow();
         var json = BuildJson(request.Number, subject, generatedAt, sections);
-        var info = await company.GetAsync(cancellationToken);
-        byte[]? logo = null;
-        if (info.LogoStoragePath is { } path)
-        {
-            await using var logoStream = await storage.OpenReadAsync(path, cancellationToken);
-            using var logoBuffer = new MemoryStream();
-            await logoStream.CopyToAsync(logoBuffer, cancellationToken);
-            logo = logoBuffer.ToArray();
-        }
-
-        var pdf = await renderer.RenderAsync(new PersonalDataPdfDocument(new PersonalDataPdfModel(info.LegalName, logo, request.Number, PersonalDataMask.At(generatedAt) ?? string.Empty, subject.Name, sections)), cancellationToken);
+        var pdf = await renderer.RenderAsync(new PersonalDataPdfDocument(await frames.CreateAsync(cancellationToken), new PersonalDataPdfModel(request.Number, PersonalDataMask.At(generatedAt) ?? string.Empty, subject.Name, sections)), cancellationToken);
         var zip = BuildZip(json, pdf, files);
 
         // O pedido pode ter mudado enquanto o job montava o arquivo (xmin): recarrega antes de gravar.

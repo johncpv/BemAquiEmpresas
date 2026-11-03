@@ -7,16 +7,21 @@ using QuestPDF.Infrastructure;
 
 namespace BemAqui.Fiscal.Application.Invoices;
 
-/// <summary>Dados da prévia: emitente, a chave e o número que a nota teria agora (podem mudar), os avisos do Emissor e a nota.</summary>
+/// <summary>
+/// Dados da prévia: emitente, a chave e o número que a nota teria agora (podem mudar), os avisos do Emissor e a nota. A marca padrão é "Prévia";
+/// a DANFE de reserva da nota cancelada usa "Cancelado" com o aviso na faixa (EXP-05 CA 20).
+/// </summary>
 public sealed record DanfePreviewModel(
     string IssuerName, string? IssuerDocument, string AccessKey, long Number, int Series, IReadOnlyList<string> Warnings, OutgoingInvoice Invoice, IReadOnlyList<OutgoingInvoiceItem> Items,
     string? Complementary,
-    string? Band = null);
+    PdfMark Mark = PdfMark.Preview,
+    string? Notice = null);
 
 /// <summary>
 /// "Pré-visualizar" (FIS-03a CA 5): DANFE simplificado em PDF montado pelo BemAqui com o <c>IPdfRenderer</c> (reserva da ADR 0027 para a
-/// DANFE do Emissor, que na prévia só existe em HTML e nunca é repassada), com a faixa "Prévia, sem valor fiscal" em cada página. Os
-/// textos livres vão como texto do PDF (o QuestPDF não interpreta marcação): nada é montado como HTML (CA 4).
+/// DANFE do Emissor, que na prévia só existe em HTML e nunca é repassada). Mantém o layout do DANFE, fora do cabeçalho e do rodapé do frame
+/// (EXP-05 CA 21), com a marca padrão (<see cref="PdfMarks"/>: faixa "Prévia, sem valor fiscal" e marca d'água em cada página) e só as cores
+/// do <see cref="PdfTheme"/>. Os textos livres vão como texto do PDF (o QuestPDF não interpreta marcação): nada é montado como HTML (CA 4).
 /// </summary>
 public sealed class DanfePreviewDocument(DanfePreviewModel model) : IDocument
 {
@@ -26,17 +31,27 @@ public sealed class DanfePreviewDocument(DanfePreviewModel model) : IDocument
 
     private static readonly string[] Columns = ["Código", "Descrição", "NCM", "CFOP", "Qtde.", "Valor unit.", "Total"];
 
-    public DocumentMetadata GetMetadata() => new() { Title = model.Band is null ? "Prévia da NF-e — " + Band : "NF-e " + model.Series.ToString(CultureInfo.InvariantCulture) + "/" + model.Number.ToString(CultureInfo.InvariantCulture) + " — " + model.Band, Author = model.IssuerName, Creator = "BemAqui Empresas" };
+    private string Footer => model.Mark == PdfMark.Preview ? Band + ". O número e a chave podem mudar na emissão." : PdfMarks.BandText(model.Mark, model.Notice) + ".";
+
+    public DocumentMetadata GetMetadata() => new()
+    {
+        Title = model.Mark == PdfMark.Preview
+            ? "Prévia da NF-e — " + Band
+            : "NF-e " + model.Series.ToString(CultureInfo.InvariantCulture) + "/" + model.Number.ToString(CultureInfo.InvariantCulture) + " — " + PdfMarks.BandText(model.Mark, model.Notice),
+        Author = model.IssuerName,
+        Creator = "BemAqui Empresas",
+    };
 
     public void Compose(IDocumentContainer container) => container.Page(page =>
     {
         var invoice = model.Invoice;
         page.Size(PageSizes.A4);
         page.Margin(24);
-        page.DefaultTextStyle(t => t.FontFamily(QuestPdfRenderer.FontFamily).FontSize(8f).FontColor("#14202b").EnableFontFeature(FontFeatures.TabularFigures));
+        page.DefaultTextStyle(t => t.FontFamily(QuestPdfRenderer.FontFamily).FontSize(8f).FontColor(PdfTheme.Ink).EnableFontFeature(FontFeatures.TabularFigures));
+        PdfMarks.Watermark(page, model.Mark);
         page.Header().Column(col =>
         {
-            col.Item().Background("#fde7c3").Padding(6).AlignCenter().Text((model.Band ?? Band).ToUpperInvariant()).FontSize(12).Bold().FontColor("#7a4b00");
+            col.Item().Element(e => PdfMarks.Band(e, model.Mark, model.Notice));
             col.Item().PaddingTop(6).Row(row =>
             {
                 row.RelativeItem(3).Column(c =>
@@ -59,7 +74,7 @@ public sealed class DanfePreviewDocument(DanfePreviewModel model) : IDocument
         {
             col.Spacing(6);
             col.Item().Text("Natureza da operação: " + (invoice.NatureOfOperation ?? "—"));
-            col.Item().Background("#eef1f4").Padding(5).Column(c =>
+            col.Item().Background(PdfTheme.Surface).Padding(5).Column(c =>
             {
                 c.Item().Text("Destinatário").SemiBold();
                 c.Item().Text(invoice.RecipientName ?? "—");
@@ -80,25 +95,25 @@ public sealed class DanfePreviewDocument(DanfePreviewModel model) : IDocument
                 });
                 foreach (var title in Columns)
                 {
-                    table.Cell().Background("#e6ebf0").Padding(3).Text(title).SemiBold();
+                    table.Cell().Background(PdfTheme.Surface).Padding(3).Text(title).SemiBold();
                 }
 
                 foreach (var item in model.Items.OrderBy(i => i.Sequence))
                 {
-                    table.Cell().BorderBottom(0.5f).BorderColor("#c9d1d9").Padding(3).Text(item.Code);
-                    table.Cell().BorderBottom(0.5f).BorderColor("#c9d1d9").Padding(3).Column(c =>
+                    table.Cell().BorderBottom(0.5f).BorderColor(PdfTheme.Line).Padding(3).Text(item.Code);
+                    table.Cell().BorderBottom(0.5f).BorderColor(PdfTheme.Line).Padding(3).Column(c =>
                     {
                         c.Item().Text(item.Description);
                         if (item.AdditionalInfo is { } info)
                         {
-                            c.Item().Text(info).FontSize(6.5f).FontColor("#4b5866");
+                            c.Item().Text(info).FontSize(6.5f).FontColor(PdfTheme.Muted);
                         }
                     });
-                    table.Cell().BorderBottom(0.5f).BorderColor("#c9d1d9").Padding(3).Text(item.Ncm ?? "—");
-                    table.Cell().BorderBottom(0.5f).BorderColor("#c9d1d9").Padding(3).Text(item.Cfop ?? "—");
-                    table.Cell().BorderBottom(0.5f).BorderColor("#c9d1d9").Padding(3).AlignRight().Text(item.Quantity.ToString("0.####", PtBr) + " " + item.Unit);
-                    table.Cell().BorderBottom(0.5f).BorderColor("#c9d1d9").Padding(3).AlignRight().Text(item.UnitPrice.ToString("N2", PtBr));
-                    table.Cell().BorderBottom(0.5f).BorderColor("#c9d1d9").Padding(3).AlignRight().Text(item.GrossAmount.ToString("N2", PtBr));
+                    table.Cell().BorderBottom(0.5f).BorderColor(PdfTheme.Line).Padding(3).Text(item.Ncm ?? "—");
+                    table.Cell().BorderBottom(0.5f).BorderColor(PdfTheme.Line).Padding(3).Text(item.Cfop ?? "—");
+                    table.Cell().BorderBottom(0.5f).BorderColor(PdfTheme.Line).Padding(3).AlignRight().Text(item.Quantity.ToString("0.####", PtBr) + " " + item.Unit);
+                    table.Cell().BorderBottom(0.5f).BorderColor(PdfTheme.Line).Padding(3).AlignRight().Text(item.UnitPrice.ToString("N2", PtBr));
+                    table.Cell().BorderBottom(0.5f).BorderColor(PdfTheme.Line).Padding(3).AlignRight().Text(item.GrossAmount.ToString("N2", PtBr));
                 }
             });
             col.Item().AlignRight().Column(c =>
@@ -118,12 +133,12 @@ public sealed class DanfePreviewDocument(DanfePreviewModel model) : IDocument
 
             foreach (var warning in model.Warnings)
             {
-                col.Item().Text("Aviso do Emissor Fiscal: " + warning).FontColor("#7a4b00");
+                col.Item().Text("Aviso do Emissor Fiscal: " + warning).FontColor(PdfTheme.WarnInk);
             }
         });
         page.Footer().AlignCenter().Text(t =>
         {
-            t.Span((model.Band is null ? Band + ". O número e a chave podem mudar na emissão." : model.Band + ".") + "   Página ").FontSize(7f);
+            t.Span(Footer + "   Página ").FontSize(7f);
             t.CurrentPageNumber().FontSize(7f);
             t.Span(" de ").FontSize(7f);
             t.TotalPages().FontSize(7f);

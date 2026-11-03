@@ -19,7 +19,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using QuestPDF.Fluent;
-using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
 namespace BemAqui.HR.Application.TimeClock;
@@ -28,66 +27,42 @@ namespace BemAqui.HR.Application.TimeClock;
 public sealed record TimesheetPdfDay(DateOnly Day, string Entries, int Expected, int Worked, int Overtime, int Shortfall, int Justified, string Status);
 
 /// <summary>
-/// Espelho em PDF (RH-01c CA 18): o logo e a razão social do tenant, nome, matrícula, cargo, o período, os dias, os totais, o banco, o texto
-/// de controle interno e o campo de assinatura. O modelo não tem CPF, salário, motivo de saúde nem localização.
+/// Espelho em PDF (RH-01c CA 18): nome, matrícula, cargo, o período, os dias, os totais, o banco, o texto de controle interno e o campo de
+/// assinatura; a empresa (logo e razão social) vem do frame. O modelo não tem CPF, salário, motivo de saúde nem localização.
 /// </summary>
 public sealed record TimesheetPdfModel(
-    PayslipPdfCompany Company, string Name, string? Registration, string Position, DateOnly Period, DateOnly Start, DateOnly End, IReadOnlyList<TimesheetPdfDay> Days,
+    string Name, string? Registration, string Position, DateOnly Period, DateOnly Start, DateOnly End, IReadOnlyList<TimesheetPdfDay> Days,
     TimesheetTotals Totals, DateTimeOffset? ClosedAt);
 
-/// <summary>Layout do espelho (ADR 0022): A4, Archivo, dígitos tabulares, cabeçalho da tabela repetido na quebra.</summary>
-public sealed class TimesheetPdfDocument(TimesheetPdfModel model) : IDocument
+/// <summary>
+/// Layout do espelho no modelo único (ADR 0045 §1, EXP-05 CA 19): o mesmo conteúdo da RH-01c, com o cabeçalho, a faixa "Espelho de ponto
+/// {mês}" e o rodapé do frame; o texto de controle interno fecha o corpo.
+/// </summary>
+public sealed class TimesheetPdfDocument : PdfDocumentFrame
 {
-    private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
+    private static readonly CultureInfo PtBr = PdfTheme.PtBr;
 
     private static readonly string[] Columns = ["Dia", "Marcações", "Esperado", "Trabalhado", "Extra", "Falta/atraso", "Abono", "Situação"];
 
+    private readonly TimesheetPdfModel _model;
+
+    public TimesheetPdfDocument(PdfFrame frame, TimesheetPdfModel model)
+        : base(frame, Header(model)) => _model = model;
+
+    private static PdfDocumentHeader Header(TimesheetPdfModel model)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        return new PdfDocumentHeader("Espelho de ponto", "— " + PayrollRules.PeriodLabel(model.Period));
+    }
+
     private static string H(int minutes) => minutes == 0 ? "—" : TimesheetRules.Clock(minutes);
 
-    public DocumentMetadata GetMetadata() => new()
+    protected override void ComposeContent(IContainer container) => container.Column(col =>
     {
-        Title = $"Espelho de ponto {TimesheetRules.MonthYear(model.Period)} — {model.Name}", Author = model.Company.LegalName, Creator = "BemAqui Empresas",
-    };
-
-    public void Compose(IDocumentContainer container) => container.Page(page =>
-    {
-        page.Size(PageSizes.A4);
-        page.Margin(28);
-        page.DefaultTextStyle(t => t.FontFamily(QuestPdfRenderer.FontFamily).FontSize(8).FontColor("#14202b").EnableFontFeature(FontFeatures.TabularFigures));
-        page.Header().Element(Header);
-        page.Content().PaddingVertical(10).Element(Content);
-        page.Footer().Column(col =>
-        {
-            col.Item().AlignCenter().Text(TimesheetRules.PdfFooter).FontSize(8).SemiBold();
-            col.Item().AlignCenter().Text(t =>
-            {
-                t.Span("Documento gerado pelo BemAqui Empresas. Página ").FontSize(7);
-                t.CurrentPageNumber().FontSize(7);
-                t.Span(" de ").FontSize(7);
-                t.TotalPages().FontSize(7);
-            });
-        });
-    });
-
-    private void Header(IContainer c) => c.Row(row =>
-    {
-        if (model.Company.Logo is { Length: > 0 } logo)
-        {
-            row.ConstantItem(110).Height(40).Image(logo).FitArea();
-        }
-
-        row.RelativeItem().AlignRight().Column(col =>
-        {
-            col.Item().Text(model.Company.LegalName).SemiBold();
-            col.Item().Text($"Espelho de ponto — {PayrollRules.PeriodLabel(model.Period)}").FontSize(11).Bold();
-            col.Item().Text($"Período apurado: {TimesheetRules.Date(model.Start)} a {TimesheetRules.Date(model.End)}");
-        });
-    });
-
-    private void Content(IContainer c) => c.Column(col =>
-    {
+        var model = _model;
         col.Spacing(8);
-        col.Item().Background("#eef2f6").Padding(6).Row(r =>
+        col.Item().Text($"Período apurado: {TimesheetRules.Date(model.Start)} a {TimesheetRules.Date(model.End)}");
+        col.Item().Background(PdfTheme.Surface).Padding(6).Row(r =>
         {
             r.RelativeItem(3).Text("Funcionário: " + model.Name).SemiBold();
             r.RelativeItem(2).Text("Matrícula: " + (model.Registration ?? "—"));
@@ -110,23 +85,23 @@ public sealed class TimesheetPdfDocument(TimesheetPdfModel model) : IDocument
             {
                 foreach (var title in Columns)
                 {
-                    h.Cell().BorderBottom(1).BorderColor("#9aa7b4").PaddingVertical(3).Text(title).SemiBold();
+                    HeaderCell(h.Cell()).Text(title).SemiBold();
                 }
             });
             foreach (var d in model.Days)
             {
-                table.Cell().PaddingVertical(2).Text(d.Day.ToString("dd/MM ddd", PtBr));
-                table.Cell().PaddingVertical(2).Text(d.Entries);
-                table.Cell().PaddingVertical(2).Text(H(d.Expected));
-                table.Cell().PaddingVertical(2).Text(H(d.Worked));
-                table.Cell().PaddingVertical(2).Text(H(d.Overtime));
-                table.Cell().PaddingVertical(2).Text(H(d.Shortfall));
-                table.Cell().PaddingVertical(2).Text(H(d.Justified));
-                table.Cell().PaddingVertical(2).Text(d.Status);
+                BodyCell(table.Cell()).Text(d.Day.ToString("dd/MM ddd", PtBr));
+                BodyCell(table.Cell()).Text(d.Entries);
+                BodyCell(table.Cell()).Text(H(d.Expected));
+                BodyCell(table.Cell()).Text(H(d.Worked));
+                BodyCell(table.Cell()).Text(H(d.Overtime));
+                BodyCell(table.Cell()).Text(H(d.Shortfall));
+                BodyCell(table.Cell()).Text(H(d.Justified));
+                BodyCell(table.Cell()).Text(d.Status);
             }
         });
         var t = model.Totals;
-        col.Item().Background("#eef2f6").Padding(6).Column(tot =>
+        col.Item().Background(PdfTheme.Surface).Padding(6).Column(tot =>
         {
             tot.Item().Text($"Esperado {TimesheetRules.Duration(t.ExpectedMinutes)} · Trabalhado {TimesheetRules.Duration(t.WorkedMinutes)} · Extras {TimesheetRules.Duration(t.OvertimeMinutes)} · " +
                 $"Faltas {TimesheetRules.Duration(t.AbsenceMinutes)} ({t.AbsenceDays} dia(s)) · Atrasos {TimesheetRules.Duration(t.LateMinutes)} · Abonado {TimesheetRules.Duration(t.JustifiedMinutes)}").SemiBold();
@@ -139,16 +114,17 @@ public sealed class TimesheetPdfDocument(TimesheetPdfModel model) : IDocument
         {
             r.RelativeItem(3).Column(s =>
             {
-                s.Item().BorderBottom(1).BorderColor("#14202b").Height(18);
+                s.Item().BorderBottom(1).BorderColor(PdfTheme.Ink).Height(18);
                 s.Item().Text("Assinatura do funcionário");
             });
             r.ConstantItem(24);
             r.RelativeItem(1).Column(s =>
             {
-                s.Item().BorderBottom(1).BorderColor("#14202b").Height(18);
+                s.Item().BorderBottom(1).BorderColor(PdfTheme.Ink).Height(18);
                 s.Item().Text("Data");
             });
         });
+        col.Item().PaddingTop(6).AlignCenter().Text(TimesheetRules.PdfFooter).SemiBold();
     });
 }
 
@@ -174,7 +150,7 @@ public sealed class TimesheetBatchJob(ITenantDirectory directory, ITenantScopeFa
 /// </summary>
 public sealed class TimesheetPdfService(
     IHrDb db,
-    ICompanyIdentity company,
+    PdfFrameFactory frames,
     IFileStorage storage,
     IPdfRenderer renderer,
     AttachmentService attachments,
@@ -284,7 +260,7 @@ public sealed class TimesheetPdfService(
         return file;
     }
 
-    private async Task<(TimesheetFile File, Guid AttachmentId)> FileAsync(Timesheet sheet, PayslipPdfCompany info, CancellationToken ct)
+    private async Task<(TimesheetFile File, Guid AttachmentId)> FileAsync(Timesheet sheet, PdfFrame frame, CancellationToken ct)
     {
         var person = await (from e in db.Employees.IgnoreQueryFilters().AsNoTracking()
                             join p in db.JobPositions.IgnoreQueryFilters().AsNoTracking() on e.PositionId equals p.Id
@@ -298,9 +274,9 @@ public sealed class TimesheetPdfService(
         }
 
         var days = JsonSerializer.Deserialize<List<TimesheetDayResult>>(sheet.DaysSnapshot ?? "[]", TimesheetService.SnapshotJson) ?? [];
-        var model = new TimesheetPdfModel(info, person.Name, person.Registration, person.Position, sheet.Period, sheet.PeriodStart, sheet.PeriodEnd,
+        var model = new TimesheetPdfModel(person.Name, person.Registration, person.Position, sheet.Period, sheet.PeriodStart, sheet.PeriodEnd,
             days.Select(PdfDay).ToList(), TimesheetService.FrozenTotals(sheet), sheet.ClosedAt);
-        var bytes = await renderer.RenderAsync(new TimesheetPdfDocument(model), ct);
+        var bytes = await renderer.RenderAsync(new TimesheetPdfDocument(frame, model), ct);
         var stored = await attachments.StoreGeneratedAsync(OwnerType, sheet.Id, name, PdfContentType, bytes, ct);
         var tracked = await db.Timesheets.FirstAsync(t => t.Id == sheet.Id, ct);
         tracked.PdfAttachmentId = stored.Id;
@@ -347,20 +323,7 @@ public sealed class TimesheetPdfService(
         return stored.Id;
     }
 
-    private async Task<PayslipPdfCompany> CompanyAsync(CancellationToken ct)
-    {
-        var data = await company.GetAsync(ct);
-        byte[]? logo = null;
-        if (data.LogoStoragePath is { } path)
-        {
-            await using var stream = await storage.OpenReadAsync(path, ct);
-            using var buffer = new MemoryStream();
-            await stream.CopyToAsync(buffer, ct);
-            logo = buffer.ToArray();
-        }
-
-        return new PayslipPdfCompany(data.LegalName, data.Document, logo);
-    }
+    private Task<PdfFrame> CompanyAsync(CancellationToken ct) => frames.CreateAsync(ct);
 
     private static Error NotClosed(DateOnly period) =>
         Error.Conflict(TimesheetRules.NotClosedCode, $"Feche o período de ponto de {PayrollRules.PeriodLabel(period)} para baixar o espelho em PDF.");

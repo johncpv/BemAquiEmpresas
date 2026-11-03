@@ -21,7 +21,7 @@ Ter a folha do mês no sistema: os proventos e descontos que a contadora calculo
 ## Perguntas frequentes
 **Posso criar duas folhas do mesmo tipo no mesmo mês?** Não, no mesmo modo. O sistema avisa "Já existe a folha {tipo} de {mês}." Abra a que já existe. A calculada (simulação) convive com a lançada do mesmo mês, para comparar.
 
-**O que é a simulação?** Até a virada (a conferência paralela de três meses com a contadora), a folha calculada não fecha, não gera título e o holerite sai só como prévia, com a marca "Simulação: não é o holerite oficial". A folha lançada continua a oficial.
+**O que é a simulação?** Até a virada (a conferência paralela de três meses com a contadora), a folha calculada não fecha, não gera título e o holerite sai só como prévia, com a marca "Simulação" (a faixa "Simulação · não é o holerite oficial"). A folha lançada continua a oficial.
 
 **Por que não vejo os valores?** Os valores da folha são dados pessoais (LGPD). Sem a permissão "Ver dados sensíveis" do RH, a lista mostra só a competência, o tipo, a situação e o número de holerites.
 

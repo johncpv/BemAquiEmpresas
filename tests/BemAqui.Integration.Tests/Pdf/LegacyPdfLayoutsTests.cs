@@ -13,6 +13,7 @@ using BemAqui.HR.Application.TimeClock;
 using BemAqui.HR.Domain;
 using BemAqui.Identity.Application.Privacy;
 using BemAqui.Production.Application;
+using BemAqui.Production.Contracts;
 using FluentAssertions;
 using QuestPDF.Infrastructure;
 using UglyToad.PdfPig;
@@ -22,7 +23,7 @@ namespace BemAqui.Integration.Tests.Pdf;
 /// <summary>
 /// EXP-05 CA 19: regressão por texto dos 11 layouts antigos. Cada um é desenhado com um dataset fixo, o texto extraído (PdfPig, sem espaços) perde
 /// só o cabeçalho, a faixa de título, o rodapé e a marca, e o corpo é comparado com o gravado em <c>Fixtures/{documento}.txt</c> antes da
-/// migração para o <see cref="PdfDocumentFrame"/>. Para regravar: <c>BQ_UPDATE_PDF_TEXT=1 sh scripts/test-docker.sh --filter-class "*LegacyPdfLayoutsTests"</c>.
+/// migração para o <see cref="PdfDocumentFrame"/> (primeiro commit da EXP-05). Etiqueta e DANFE mantêm o formato próprio: só a marca sai do texto. Para regravar: <c>BQ_UPDATE_PDF_TEXT=1 sh scripts/test-docker.sh --filter-class "*LegacyPdfLayoutsTests"</c>.
 /// </summary>
 public partial class LegacyPdfLayoutsTests
 {
@@ -79,14 +80,14 @@ public partial class LegacyPdfLayoutsTests
     private static readonly DateOnly Day = new(2026, 11, 3);
 
     private static QuotePdfModel QuoteModel() => new(
-        new QuotePdfCompany(TradeName, LegalName, Cnpj, Address, Contact, null), "ORC-2026-0007", 2, Day,
+        "ORC-2026-0007", 2, Day,
         new QuotePdfCustomer("Condomínio Solar", "12.345.678/0001-90", "Rua B, 20 — Centro — Taubaté/SP", "Maria · maria@solar.com · (12) 9999-0000"),
         [new QuotePdfItem(1, "Elevador social 6 paradas", 1m, "un", 185_000m, 185_000m), new QuotePdfItem(2, "Instalação", 1m, null, 15_000m, 15_000m)],
         200_000m, [new QuotePdfMilestone("Sinal", 30m, 60_000m, "na aprovação"), new QuotePdfMilestone("Entrega", 70m, 140_000m, "em 10/12/2026")],
         new DateOnly(2026, 12, 3), 90, "Prazo sujeito à aprovação do projeto.");
 
     private static ShipmentPdfModel ShipmentModel() => new(
-        new ShipmentPdfCompany(TradeName, LegalName, Cnpj, Address, Contact, null), "ROM-2026-0003", Day, "PRJ-2026-0001", "Condomínio Solar", "12.345.678/0001-90",
+        "ROM-2026-0003", Day, "PRJ-2026-0001", "Condomínio Solar", "12.345.678/0001-90",
         "Rua B, 20 — Centro — Taubaté/SP", "Transportes Vale", "ABC1D23", "João", 3, 1250.5m,
         [new ShipmentPdfItem(1, "CAB-01", "Cabine 8 pessoas", 1m, "un", ["SN-0001"], null), new ShipmentPdfItem(2, "CAB-02", "Cabo de aço", 120.5m, "m", [], "L-77")]);
 
@@ -159,94 +160,132 @@ public partial class LegacyPdfLayoutsTests
 
     private const string DanfeKey = "35261147225005000186550010000000071000000070";
 
-    // ---------- Layouts antigos (antes da migração) ----------
+    // ---------- Layouts no modelo único (depois da migração) ----------
+
+    /// <summary>O cabeçalho do frame com a mesma empresa do dataset e um emissor fixo.</summary>
+    internal static readonly PdfFrame Frame = new(new PdfCompany(TradeName, LegalName, Cnpj, Address, Contact, null, true), "Fulano de Tal",
+        new DateTimeOffset(2026, 11, 3, 12, 0, 0, TimeSpan.Zero));
+
+    /// <summary>O que é do frame, nunca do corpo: a empresa, a faixa de título e o "Emitido por … em …".</summary>
+    private static string[] FrameParts(params string[] title) => [.. Company, .. title, PdfDocumentFrame.Issued(Frame)];
+
+    private static string[] Mark(PdfMark mark, string? notice = null) => [PdfMarks.BandText(mark, notice) ?? string.Empty, PdfMarks.Watermark(mark)];
 
     [Fact]
     public async Task Orcamento()
     {
-        var text = await TextAsync(new QuotePdfDocument(QuoteModel()));
-        Fixture("orcamento", Body(text, [.. Company, "Orçamento ORC-2026-0007 rev. 2", "Data: 03/11/2026"]));
+        var text = await TextAsync(new QuotePdfDocument(Frame, QuoteModel()));
+        Fixture("orcamento", Body(text, FrameParts("Orçamento ORC-2026-0007 rev. 2", "Data: 03/11/2026")));
     }
 
-    [Fact]
-    public async Task Romaneio()
+    /// <summary>CA 20: rascunho e aguardando o estoque com "Rascunho", cancelado e estornado com "Cancelado"; "não é documento fiscal" continua.</summary>
+    [Theory]
+    [InlineData(ShipmentState.Shipped, PdfMark.None)]
+    [InlineData(ShipmentState.Draft, PdfMark.Draft)]
+    [InlineData(ShipmentState.AwaitingStockApproval, PdfMark.Draft)]
+    [InlineData(ShipmentState.Cancelled, PdfMark.Cancelled)]
+    public async Task Romaneio(ShipmentState status, PdfMark mark)
     {
-        var text = await TextAsync(new ShipmentPdfDocument(ShipmentModel()));
-        Fixture("romaneio", Body(text, [.. Company, "Romaneio ROM-2026-0003", "Data: 03/11/2026"]));
+        ShipmentPdfDocument.Mark(status).Should().Be(mark);
+        var text = await TextAsync(new ShipmentPdfDocument(Frame, ShipmentModel() with { Status = status }));
+        if (mark != PdfMark.None)
+        {
+            text.Should().Contain(Flat(PdfMarks.Label(mark))).And.Contain(PdfMarks.Watermark(mark));
+        }
+
+        Fixture("romaneio", Body(text, [.. FrameParts("Romaneio ROM-2026-0003", "Data: 03/11/2026"), .. Mark(mark)]));
     }
 
+    /// <summary>CA 20: o holerite da folha em rascunho sai com "Rascunho" (o aviso "folha não fechada" na faixa).</summary>
     [Fact]
     public async Task Holerite()
     {
-        var model = new PayslipPdfModel(new PayslipPdfCompany(LegalName, Cnpj, null), Employee, new DateOnly(2026, 10, 1), PayrollRunType.Monthly, PayslipLines(),
-            7_904.82m, 711.23m, 7_193.59m, 7_904.82m, 7_904.82m, 7_193.59m, 632.39m, true);
-        var text = await TextAsync(new PayslipPdfDocument(model));
-        Fixture("holerite", Body(text, [.. Company, "Holerite — Mensal — competência 10/2026", PayslipDocumentRules.Watermark, "Documento gerado pelo BemAqui Empresas."]));
+        var model = new PayslipPdfModel(Employee, new DateOnly(2026, 10, 1), PayrollRunType.Monthly, PayslipLines(), 7_904.82m, 711.23m, 7_193.59m, 7_904.82m, 7_904.82m, 7_193.59m, 632.39m,
+            PayslipPdf.Mark(true, false), PayslipPdf.Notice(true, false));
+        var text = await TextAsync(new PayslipPdfDocument(Frame, model));
+        text.Should().Contain("Rascunho·folhanãofechada").And.Contain("RASCUNHO");
+        Fixture("holerite", Body(text, [.. FrameParts("Holerite Mensal competência 10/2026"), .. Mark(PdfMark.Draft, PayslipPdf.DraftNotice)]));
     }
 
     [Fact]
     public async Task Espelho_de_ponto()
     {
-        var model = new TimesheetPdfModel(new PayslipPdfCompany(LegalName, Cnpj, null), "Ana Souza", "123", "Soldador", new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 1),
-            new DateOnly(2026, 10, 31), Days(), Totals(), new DateTimeOffset(2026, 11, 1, 12, 0, 0, TimeSpan.Zero));
-        var text = await TextAsync(new TimesheetPdfDocument(model));
-        Fixture("espelho-de-ponto", Body(text, [.. Company, "Espelho de ponto — " + PayrollRules.PeriodLabel(new DateOnly(2026, 10, 1)), "Documento gerado pelo BemAqui Empresas."]));
+        var model = new TimesheetPdfModel("Ana Souza", "123", "Soldador", new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 31), Days(), Totals(),
+            new DateTimeOffset(2026, 11, 1, 12, 0, 0, TimeSpan.Zero));
+        var text = await TextAsync(new TimesheetPdfDocument(Frame, model));
+        Fixture("espelho-de-ponto", Body(text, FrameParts("Espelho de ponto — " + PayrollRules.PeriodLabel(new DateOnly(2026, 10, 1)))));
     }
 
     [Fact]
     public async Task Aviso_de_ferias()
     {
-        var model = new VacationNoticeModel(new PayslipPdfCompany(LegalName, Cnpj, null), "Ana Souza", "123", "Soldador", new DateOnly(2025, 1, 2), new DateOnly(2026, 1, 1),
-            new DateOnly(2026, 12, 1), new DateOnly(2026, 12, 20), 20, 10, new DateOnly(2026, 11, 28), Day);
-        var text = await TextAsync(new VacationNoticePdfDocument(model));
-        Fixture("aviso-de-ferias", Body(text, [.. Company, "Aviso de férias", "Documento gerado pelo BemAqui Empresas."]));
+        var model = new VacationNoticeModel("Ana Souza", "123", "Soldador", new DateOnly(2025, 1, 2), new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 1), new DateOnly(2026, 12, 20), 20, 10,
+            new DateOnly(2026, 11, 28), Day);
+        var text = await TextAsync(new VacationNoticePdfDocument(Frame, model));
+        Fixture("aviso-de-ferias", Body(text, FrameParts("Aviso de férias")));
     }
 
+    /// <summary>CA 20: o termo para conferência sai sempre com "Simulação", com o aviso de conferência interna na faixa.</summary>
     [Fact]
     public async Task Termo_de_rescisao()
     {
-        var model = new TerminationTermModel(new PayslipPdfCompany(LegalName, Cnpj, null), "Ana Souza", "123", "Soldador", new DateOnly(2020, 1, 2), new DateOnly(2026, 11, 15),
-            "Dispensa sem justa causa", "Indenizado", 48, TerminationLines(), 2_750m, 247.5m, 2_502.5m, 220m, 3_200m, new DateOnly(2026, 11, 25), true, Day);
-        var text = await TextAsync(new TerminationTermPdfDocument(model));
-        Fixture("termo-de-rescisao", Body(text, [.. Company, "Termo de rescisão para conferência", $"{TerminationTermPdfDocument.SimulationMark} · {TerminationTermPdfDocument.ConferenceMark}",
-            TerminationTermPdfDocument.ConferenceMark, "Gerado pelo BemAqui Empresas."]));
+        var model = new TerminationTermModel("Ana Souza", "123", "Soldador", new DateOnly(2020, 1, 2), new DateOnly(2026, 11, 15), "Dispensa sem justa causa", "Indenizado", 48,
+            TerminationLines(), 2_750m, 247.5m, 2_502.5m, 220m, 3_200m, new DateOnly(2026, 11, 25), Day);
+        var text = await TextAsync(new TerminationTermPdfDocument(Frame, model));
+        text.Should().Contain(Flat("Simulação · " + TerminationTermPdfDocument.ConferenceMark)).And.Contain("SIMULAÇÃO");
+        Fixture("termo-de-rescisao", Body(text, [.. FrameParts("Termo de rescisão para conferência"), .. Mark(PdfMark.Simulation, TerminationTermPdfDocument.ConferenceMark)]));
     }
 
     [Fact]
     public async Task Termo_de_conferencia_da_folha()
     {
-        var model = new PayrollParallelTermModel(LegalName, Cnpj, new DateOnly(2026, 10, 1), "Mensal", 12, new PayrollParallelTermTotals(98_000m, 21_000m, 77_000m, 7_840m),
+        var model = new PayrollParallelTermModel(new DateOnly(2026, 10, 1), "Mensal", 12, new PayrollParallelTermTotals(98_000m, 21_000m, 77_000m, 7_840m),
             new PayrollParallelTermTotals(98_000m, 21_000m, 77_000m, 7_840m), "2026.10", new DateTime(2026, 11, 3, 9, 30, 0, DateTimeKind.Unspecified), "Carla Contadora", "SP-123456/O-7");
-        var text = await TextAsync(new PayrollParallelTermDocument(model));
-        Fixture("termo-de-conferencia-da-folha", Body(text, [.. Company, "Termo de conferência da competência " + PayrollRules.PeriodLabel(new DateOnly(2026, 10, 1)),
-            "Documento gerado pelo BemAqui Empresas."]));
+        var text = await TextAsync(new PayrollParallelTermDocument(Frame, model));
+        Fixture("termo-de-conferencia-da-folha", Body(text, FrameParts("Termo de conferência da competência " + PayrollRules.PeriodLabel(new DateOnly(2026, 10, 1)))));
     }
 
     [Fact]
     public async Task Configuracao_fiscal()
     {
-        var model = new FiscalSettingsPdfModel(LegalName, "47225005000186", new DateTimeOffset(2026, 11, 3, 12, 0, 0, TimeSpan.Zero), 1, 3, FiscalRows());
-        var text = await TextAsync(new FiscalSettingsPdfDocument(model));
-        Fixture("configuracao-fiscal", Body(text, [.. Company, "Configuração fiscal para conferência da contadora", LegalName + " · CNPJ " + Cnpj]));
+        var model = new FiscalSettingsPdfModel(new DateTimeOffset(2026, 11, 3, 12, 0, 0, TimeSpan.Zero), 1, 3, FiscalRows());
+        var text = await TextAsync(new FiscalSettingsPdfDocument(Frame, model));
+        Fixture("configuracao-fiscal", Body(text, FrameParts("Configuração fiscal para conferência da contadora")));
     }
 
     [Fact]
     public async Task Dados_do_titular()
     {
-        var model = new PersonalDataPdfModel(LegalName, null, "LGPD-2026-0004", "03/11/2026 09:30", "Ana Souza", PersonalSections());
-        var text = await TextAsync(new PersonalDataPdfDocument(model));
-        Fixture("dados-do-titular", Body(text, [.. Company, "Dados pessoais do titular — pedido LGPD-2026-0004", "Documento gerado pelo BemAqui Empresas."]));
+        var model = new PersonalDataPdfModel("LGPD-2026-0004", "03/11/2026 09:30", "Ana Souza", PersonalSections());
+        var text = await TextAsync(new PersonalDataPdfDocument(Frame, model));
+        Fixture("dados-do-titular", Body(text, FrameParts("Dados pessoais do titular — pedido LGPD-2026-0004")));
     }
 
-    /// <summary>A etiqueta e a DANFE mantêm o formato próprio (CA 21): o texto inteiro, sem cabeçalho a tirar.</summary>
+    /// <summary>CA 21: a etiqueta mantém o formato próprio (uma por página, no tamanho do parâmetro), sem o cabeçalho e o rodapé do frame.</summary>
     [Fact]
-    public async Task Etiqueta_do_patrimonio() => Fixture("etiqueta-do-patrimonio", await TextAsync(new AssetLabelPdfDocument(LabelModel())));
+    public async Task Etiqueta_do_patrimonio()
+    {
+        var pdf = await new QuestPdfRenderer().RenderAsync(new AssetLabelPdfDocument(LabelModel()));
+        using (var read = PdfDocument.Open(pdf))
+        {
+            var page = read.GetPage(1);
+            page.Width.Should().BeApproximately(50 * 72 / 25.4, 0.5, "50 mm de largura, como em Configurações → Parâmetros → Patrimônio");
+            page.Height.Should().BeApproximately(25 * 72 / 25.4, 0.5);
+        }
 
+        Fixture("etiqueta-do-patrimonio", await TextAsync(new AssetLabelPdfDocument(LabelModel())));
+    }
+
+    /// <summary>CA 20 e 21: a prévia do DANFE mantém o layout do DANFE, com a marca padrão "Prévia" ("sem valor fiscal" na faixa) e a marca d'água.</summary>
     [Fact]
     public async Task Previa_do_DANFE()
     {
         var (invoice, items) = Invoice();
         var text = await TextAsync(new DanfePreviewDocument(new DanfePreviewModel(LegalName, Cnpj, DanfeKey, 7, 1, ["Confira o NCM do item 1."], invoice, items, "Pedido 123.")));
-        Fixture("previa-do-danfe", Body(text, [DanfePreviewDocument.Band.ToUpperInvariant()]));
+        var band = Flat(PdfMarks.Label(PdfMark.Preview));
+        text.Should().Contain(PdfMarks.Watermark(PdfMark.Preview));
+        var body = text.Replace(PdfMarks.Watermark(PdfMark.Preview), string.Empty, StringComparison.Ordinal);
+        body.Should().StartWith(band, "a faixa da marca abre o DANFE");
+        Fixture("previa-do-danfe", body[band.Length..]);
     }
 }

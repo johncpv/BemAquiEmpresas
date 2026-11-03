@@ -1,8 +1,5 @@
-using System.Globalization;
-using System.Text;
 using BemAqui.Assets.Domain;
 using BemAqui.BuildingBlocks.Pdf;
-using QRCoder;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -16,8 +13,9 @@ public sealed record AssetLabelItem(string Tag, string Name, string Url);
 public sealed record AssetLabelModel(IReadOnlyList<AssetLabelItem> Labels, string CompanyName, LabelSize Size, AssetLabelLayout Layout, DateTimeOffset GeneratedAt);
 
 /// <summary>
-/// Layout da etiqueta (PAT-01b CA 1 a 4, ADR 0022): QR à esquerda, em vetor (nítido em qualquer impressora térmica), gerado aqui com o
-/// QRCoder (MIT, sem chamada externa); à direita a etiqueta em texto grande, o nome em até 2 linhas e o nome fantasia. Com
+/// Layout da etiqueta (PAT-01b CA 1 a 4, ADR 0022): QR à esquerda, em vetor (nítido em qualquer impressora térmica), pelo <see cref="PdfQr"/>
+/// do modelo único; à direita a etiqueta em texto grande, o nome em até 2 linhas e o nome fantasia. Fica fora do cabeçalho e do rodapé do
+/// frame (EXP-05 CA 21: formato próprio, cores só do <see cref="PdfTheme"/>, preto puro para a impressora térmica). Com
 /// <see cref="AssetLabelLayout.Label"/>, uma etiqueta por página no tamanho do parâmetro; com <see cref="AssetLabelLayout.A4Sheet"/>, a grade
 /// da <see cref="AssetLabelRules.Grid"/> com linha de corte. As datas do PDF são fixas (a do bem na reimpressão): a mesma etiqueta sai igual.
 /// </summary>
@@ -58,7 +56,7 @@ public sealed class AssetLabelPdfDocument(AssetLabelModel model) : IDocument
                                 foreach (var label in line)
                                 {
                                     row.ConstantItem(model.Size.WidthMm, Unit.Millimetre).Height(model.Size.HeightMm, Unit.Millimetre)
-                                        .Border(0.3f).BorderColor(Colors.Grey.Lighten2).Element(c => Label(c, label));
+                                        .Border(0.3f).BorderColor(PdfTheme.Line).Element(c => Label(c, label));
                                 }
                             });
                         }
@@ -81,49 +79,10 @@ public sealed class AssetLabelPdfDocument(AssetLabelModel model) : IDocument
         }
     }
 
-    /// <summary>
-    /// SVG do QR (CA 2): só o texto recebido (a URL curta), correção M e a zona de silêncio de 4 módulos; um retângulo por trecho escuro de
-    /// cada linha, sem anti-serrilhado.
-    /// </summary>
-    public static string QrSvg(string text)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(text);
-        using var generator = new QRCodeGenerator();
-        using var data = generator.CreateQrCode(text, QRCodeGenerator.ECCLevel.M);
-        var matrix = data.ModuleMatrix;
-        var size = matrix.Count;
-        var svg = new StringBuilder();
-        svg.Append(CultureInfo.InvariantCulture, $"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {size} {size}\" width=\"{size}\" height=\"{size}\" shape-rendering=\"crispEdges\">");
-        svg.Append(CultureInfo.InvariantCulture, $"<rect width=\"{size}\" height=\"{size}\" fill=\"#ffffff\"/><path fill=\"#000000\" d=\"");
-        for (var y = 0; y < size; y++)
-        {
-            var x = 0;
-            while (x < size)
-            {
-                if (!matrix[y][x])
-                {
-                    x++;
-                    continue;
-                }
-
-                var start = x;
-                while (x < size && matrix[y][x])
-                {
-                    x++;
-                }
-
-                svg.Append(CultureInfo.InvariantCulture, $"M{start} {y}h{x - start}v1h{start - x}z");
-            }
-        }
-
-        svg.Append("\"/></svg>");
-        return svg.ToString();
-    }
-
     private static void Defaults(PageDescriptor page)
     {
-        page.PageColor(Colors.White);
-        page.DefaultTextStyle(t => t.FontFamily(QuestPdfRenderer.FontFamily).FontColor("#000000").EnableFontFeature(FontFeatures.TabularFigures).LineHeight(1.05f));
+        page.PageColor(PdfTheme.Paper);
+        page.DefaultTextStyle(t => t.FontFamily(QuestPdfRenderer.FontFamily).FontColor(PdfTheme.LabelInk).EnableFontFeature(FontFeatures.TabularFigures).LineHeight(1.05f));
     }
 
     private void Label(IContainer container, AssetLabelItem label)
@@ -137,7 +96,7 @@ public sealed class AssetLabelPdfDocument(AssetLabelModel model) : IDocument
         var nameSize = Math.Clamp(tagSize * 0.6f, 5f, 9f);
         container.Padding(PaddingMm, Unit.Millimetre).Row(row =>
         {
-            row.ConstantItem(qr, Unit.Millimetre).AlignMiddle().Height(qr, Unit.Millimetre).Svg(QrSvg(label.Url)).FitArea();
+            row.ConstantItem(qr, Unit.Millimetre).AlignMiddle().Height(qr, Unit.Millimetre).Svg(PdfQr.Svg(label.Url)).FitArea();
             row.ConstantItem(PaddingMm, Unit.Millimetre);
             row.RelativeItem().AlignMiddle().Column(column =>
             {

@@ -19,7 +19,7 @@ namespace BemAqui.Commercial.Application.Documents;
 /// pela fila, com cópia e "Responder para" de quem enviou.
 /// </summary>
 public sealed partial class QuoteDocumentService(
-    ICommercialDb db, QuoteService quotes, IParties parties, IItems items, ICompanyIdentity company, IFileStorage storage, IPdfRenderer renderer, AttachmentService attachments,
+    ICommercialDb db, QuoteService quotes, IParties parties, IItems items, ICompanyIdentity company, PdfFrameFactory frames, IPdfRenderer renderer, AttachmentService attachments,
     IEmailSender email, EmailLogReader emailLogs, EmailDispatchLimiter limiter, ITenantParameters tenantParameters, IUserDirectory users, ICurrentUser currentUser,
     IEventPublisher events, IAuditWriter audit, TimeProvider clock)
 {
@@ -56,14 +56,14 @@ public sealed partial class QuoteDocumentService(
         }
 
         var (quote, model) = built.Value;
-        var bytes = await renderer.RenderAsync(new QuotePdfDocument(model), cancellationToken);
+        var bytes = await renderer.RenderAsync(new QuotePdfDocument(await frames.CreateAsync(cancellationToken), model), cancellationToken);
         await audit.RecordExportAsync(OwnerType, quote.Id.ToString(), "pdf", model.Items.Count, cancellationToken);
         return (bytes, $"{quote.Number}-rev{quote.Revision}.pdf");
     }
 
     private async Task<Attachment> StoreAsync((Quote Quote, QuotePdfModel Model) built, CancellationToken ct)
     {
-        var bytes = await renderer.RenderAsync(new QuotePdfDocument(built.Model), ct);
+        var bytes = await renderer.RenderAsync(new QuotePdfDocument(await frames.CreateAsync(ct), built.Model), ct);
         return await attachments.StoreGeneratedAsync(OwnerType, built.Quote.Id, $"{built.Quote.Number}-rev{built.Quote.Revision}.pdf", "application/pdf", bytes, ct);
     }
 
@@ -88,21 +88,10 @@ public sealed partial class QuoteDocumentService(
 
         var conditions = (await quotes.ConditionsAsync(id, ct)).Value;
         var units = (await items.FindAsync(detail.Items.Where(i => i.ItemId != null).Select(i => i.ItemId!.Value).Distinct().ToList(), ct)).ToDictionary(i => i.Id, i => i.UnitCode);
-        var info = await company.GetAsync(ct);
-        byte[]? logo = null;
-        if (info.LogoStoragePath is { } path)
-        {
-            await using var stream = await storage.OpenReadAsync(path, ct);
-            using var buffer = new MemoryStream();
-            await stream.CopyToAsync(buffer, ct);
-            logo = buffer.ToArray();
-        }
-
         var party = await parties.FindAsync(quote.PartyId, ct);
         var contact = quote.ContactId is { } c ? (await parties.ContactsAsync(quote.PartyId, ct)).FirstOrDefault(x => x.Id == c) : null;
         var site = quote.SiteAddressId is { } s ? (await parties.AddressesAsync(quote.PartyId, ct)).FirstOrDefault(x => x.Id == s) : null;
         var model = new QuotePdfModel(
-            new QuotePdfCompany(info.TradeName ?? info.LegalName, info.LegalName, info.Document, info.Address, string.Join(" · ", new[] { info.Phone, info.Email }.Where(x => !string.IsNullOrWhiteSpace(x))), logo),
             quote.Number, quote.Revision, BusinessTime.Today(clock),
             new QuotePdfCustomer(detail.PartyName, party?.Document, site is null ? null : $"{site.Street}, {site.Number} — {site.District} — {site.City}/{site.State}",
                 contact is null ? null : string.Join(" · ", new[] { contact.Name, contact.Email, contact.Phone }.Where(x => !string.IsNullOrWhiteSpace(x)))),

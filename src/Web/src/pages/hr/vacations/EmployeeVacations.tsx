@@ -12,6 +12,7 @@ import { inputClass } from '@/components/form/form-utils'
 import { DateInput } from '@/components/form/inputs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogMessage } from '@/components/ui/dialog-message'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { notifyError, notifySuccess } from '@/components/ui/messages'
 import { type Step, NextSteps } from '@/components/ui/next-steps'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
@@ -81,7 +82,7 @@ function ScheduleDialog({ data, open, onOpenChange, onDone }: { data: Vacations;
         idempotency.renew()
         await client.invalidateQueries({ queryKey: getGetEmployeeVacationsQueryKey(data.employeeId) })
         onDone([
-          { label: 'Gerar aviso de férias', onSelect: () => void downloadNotice(result.schedule) },
+          { label: 'Baixar aviso de férias', onSelect: () => void downloadNotice(result.schedule) },
         ], result.warnings)
       }}>
       <Field label="Período aquisitivo" required dica={VACATION_DICAS.aquisitivo}>
@@ -151,7 +152,7 @@ function ScheduleRow({ s, employeeId, onChanged }: { s: VacationScheduleItem; em
       <div className="flex flex-wrap items-center gap-2">
         <StatusChip tone={SCHEDULE_TONES[s.status] ?? 'neutral'}>{s.statusLabel}</StatusChip>
         {s.calculated && s.isSimulation ? <StatusChip tone="warn">Simulação</StatusChip> : null}
-        {active ? <button type="button" className={button} onClick={() => void downloadNotice(s)}>Gerar aviso de férias</button> : null}
+        {active ? <DocumentActions url={getDownloadVacationNoticeUrl(s.id)} fileName={`aviso-ferias-${s.startsOn}.pdf`} label="Baixar aviso de férias" /> : null}
         {active && canEdit && canSensitive && !s.runClosed ? (
           <button type="button" className={button} disabled={calculating} onClick={() => void calculate()}>{calculating ? 'Calculando…' : s.calculated ? 'Recalcular férias' : 'Calcular férias'}</button>
         ) : null}

@@ -123,10 +123,10 @@ public class ShipmentRulesTests
     public async Task PDF_do_romaneio_traz_entrega_itens_series_e_assinaturas_sem_valor_nem_custo()
     {
         var model = new ShipmentPdfModel(
-            new ShipmentPdfCompany("Konebras", "Konebras Elevadores Ltda", "12.345.678/0001-90", "Rua A, 1", "31 3333-0000", null), "ROM-2026-0001", new DateOnly(2026, 10, 24),
+            "ROM-2026-0001", new DateOnly(2026, 10, 24),
             "PRJ-2026-0001", "Condomínio Solar", "11.222.333/0001-44", "Rua da Obra, 100 — Centro — Belo Horizonte/MG", "Transportes Rápidos", "ABC1D23", "José da Silva", 3, 850.5m,
             [new ShipmentPdfItem(1, "ELV-0001", "Elevador 6 paradas", 2m, "UN", ["ELV-0001-2026-00001", "ELV-0001-2026-00002"], null)]);
-        var bytes = await new QuestPdfRenderer().RenderAsync(new ShipmentPdfDocument(model));
+        var bytes = await new QuestPdfRenderer().RenderAsync(new ShipmentPdfDocument(Pdf.LegacyPdfLayoutsTests.Frame, model));
         using var document = PdfDocument.Open(bytes);
         var text = string.Join(" ", document.GetPages().Select(p => p.Text));
         text.Should().Contain("ROM-2026-0001").And.Contain("Condomínio Solar").And.Contain("Rua da Obra, 100").And.Contain("Transportes Rápidos").And.Contain("ELV-0001-2026-00002")

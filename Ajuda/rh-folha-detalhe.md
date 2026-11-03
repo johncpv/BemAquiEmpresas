@@ -44,7 +44,7 @@ Lançar, para cada funcionário, os proventos e descontos que a contadora calcul
 - Pagar e descontar exigem as permissões de editar o RH e de ver dados sensíveis.
 
 ## Simulação
-- Até a virada, a calculada é **simulação**: a faixa "Simulação: em conferência paralela com a folha da contadora" oferece **Comparar com a lançada**. O botão **Fechar folha** não aparece e o holerite sai só como prévia, com a marca "Simulação: não é o holerite oficial"; ele nunca vai para **Meus holerites** nem para o e-mail.
+- Até a virada, a calculada é **simulação**: a faixa "Simulação: em conferência paralela com a folha da contadora" oferece **Comparar com a lançada**. O botão **Fechar folha** não aparece e o holerite sai só como prévia, com a marca "Simulação" (a faixa "Simulação · não é o holerite oficial"); ele nunca vai para **Meus holerites** nem para o e-mail.
 - Depois da virada, fecha como a lançada (2FA de novo, um título por funcionário e um por guia), e só com todas as tabelas usadas conferidas: senão, "Confirme com a contadora as tabelas {lista} antes de fechar."
 
 ## Memória de cálculo
@@ -66,7 +66,7 @@ Lançar, para cada funcionário, os proventos e descontos que a contadora calcul
 - A marca **Origem no ponto** de cada rubrica fica em RH → Rubricas.
 ## Holerite em PDF
 - **Baixar** (na linha do funcionário) gera o holerite em PDF no layout padrão: empresa, funcionário (com o CPF mascarado: só os 3 primeiros e os 2 últimos dígitos), cargo, CBO, admissão, competência, proventos, descontos, bases do INSS, do FGTS e do IRRF, FGTS do mês e o líquido. O PDF não traz CPF completo, endereço, dados bancários nem dependentes.
-- Com a folha em lançamento, o PDF sai com a marca d'água "RASCUNHO — folha não fechada". Com a folha fechada, o PDF fica guardado e é refeito se a folha for reaberta e fechada de novo.
+- Com a folha em lançamento, o PDF sai com a marca "Rascunho" (a faixa "Rascunho · folha não fechada" e a marca d'água RASCUNHO em todas as páginas). Com a folha fechada, o PDF fica guardado e é refeito se a folha for reaberta e fechada de novo.
 - **Baixar todos os holerites** gera um arquivo ZIP com um PDF por funcionário (nome `holerite-{competência}-{matrícula}.pdf`, sem nome nem CPF). Até 20 holerites, sai na hora; acima disso aparece "Gerando {n} holerites…" e você recebe um aviso no sino quando estiver pronto.
 - Holerite com mais de 300 linhas não gera PDF. Cada download fica registrado no histórico de acessos.
 

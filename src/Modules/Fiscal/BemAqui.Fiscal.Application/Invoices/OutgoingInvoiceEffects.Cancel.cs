@@ -1,5 +1,6 @@
 using System.Globalization;
 using BemAqui.BuildingBlocks.Email;
+using BemAqui.BuildingBlocks.Pdf;
 using BemAqui.BuildingBlocks.Time;
 using BemAqui.Fiscal.Application.Emitter;
 using BemAqui.Fiscal.Contracts;
@@ -22,7 +23,7 @@ public sealed partial class OutgoingInvoiceEffects
     public const string CorrectionEmailTemplate = "invoice-correction";
     public const string CancelledType = "fiscal.invoice_cancelled";
     public const string RequestDoneType = "fiscal.cancellation_request_done";
-    public const string CancelledBand = "Cancelada — documento cancelado na SEFAZ";
+    public const string CancelledNotice = "nota cancelada na SEFAZ";
     public const string OutsideText = "Cancelada fora do BemAqui (no Emissor Fiscal).";
 
     private async Task CancelledAsync(OutgoingInvoice invoice, IFiscalEmitter emitter, CancellationToken ct)
@@ -131,7 +132,7 @@ public sealed partial class OutgoingInvoiceEffects
                 var info = await company.GetAsync(ct);
                 var items = await db.OutgoingInvoiceItems.AsNoTracking().Where(i => i.InvoiceId == invoice.Id).OrderBy(i => i.Sequence).ToListAsync(ct);
                 content = await renderer.RenderAsync(new DanfePreviewDocument(new DanfePreviewModel(info.LegalName, info.Document, key, number, series, [], invoice, items,
-                    invoice.AdditionalInformation, CancelledBand)), ct);
+                    invoice.AdditionalInformation, PdfMark.Cancelled, CancelledNotice)), ct);
             }
         }
 

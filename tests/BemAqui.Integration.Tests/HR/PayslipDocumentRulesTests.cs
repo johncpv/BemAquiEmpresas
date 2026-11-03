@@ -15,6 +15,8 @@ public class PayslipDocumentRulesTests
 {
     private const string Cpf = "52998224725";
 
+    private static readonly PdfFrame Frame = new(new PdfCompany("Konebras", "Konebras Elevadores Ltda", "12.345.678/0001-90", null, null, null, true), "RH", DateTimeOffset.UnixEpoch);
+
     [Theory]
     [InlineData("52998224725", "529.***.***-25")]
     [InlineData("529.982.247-25", "529.***.***-25")]
@@ -56,15 +58,15 @@ public class PayslipDocumentRulesTests
             new("FGTS", "FGTS", PayrollItemKind.Information, "8%", 632.39m),
         };
         lines.AddRange(Enumerable.Range(0, extraLines).Select(i => new PayslipPdfLine("AJ" + i, "Ajuste " + i, PayrollItemKind.Earning, null, 1m)));
-        return new PayslipPdfModel(new PayslipPdfCompany("Konebras Elevadores Ltda", "12.345.678/0001-90", null),
+        return new PayslipPdfModel(
             new PayslipPdfEmployee("Ana Souza", "123", PayslipDocumentRules.MaskCpf(Cpf), "Soldador", "7243-15", new DateOnly(2020, 1, 2)),
-            new DateOnly(2026, 10, 1), PayrollRunType.Monthly, lines, 7_904.82m, 711.23m, 7_193.59m, 7_904.82m, 7_904.82m, 7_193.59m, 632.39m, draft);
+            new DateOnly(2026, 10, 1), PayrollRunType.Monthly, lines, 7_904.82m, 711.23m, 7_193.59m, 7_904.82m, 7_904.82m, 7_193.59m, 632.39m, PayslipPdf.Mark(draft, false), PayslipPdf.Notice(draft, false));
     }
 
     [Fact]
     public async Task PDF_tem_empresa_funcionario_rubricas_bases_e_liquido_sem_CPF_completo_e_so_com_Archivo()
     {
-        var bytes = await new QuestPdfRenderer().RenderAsync(new PayslipPdfDocument(Model(draft: false)));
+        var bytes = await new QuestPdfRenderer().RenderAsync(new PayslipPdfDocument(Frame, Model(draft: false)));
         using var document = PdfDocument.Open(bytes);
         var text = string.Join(" ", document.GetPages().Select(p => p.Text));
 
@@ -79,7 +81,7 @@ public class PayslipDocumentRulesTests
     [Fact]
     public async Task Rascunho_leva_a_marca_dagua()
     {
-        var bytes = await new QuestPdfRenderer().RenderAsync(new PayslipPdfDocument(Model(draft: true)));
+        var bytes = await new QuestPdfRenderer().RenderAsync(new PayslipPdfDocument(Frame, Model(draft: true)));
         using var document = PdfDocument.Open(bytes);
         string.Join(" ", document.GetPages().Select(p => p.Text)).Should().Contain("RASCUNHO").And.Contain("folha não fechada");
     }
@@ -88,11 +90,11 @@ public class PayslipDocumentRulesTests
     public async Task Gera_50_holerites_em_menos_de_30_segundos()
     {
         var renderer = new QuestPdfRenderer();
-        await renderer.RenderAsync(new PayslipPdfDocument(Model(false)));
+        await renderer.RenderAsync(new PayslipPdfDocument(Frame, Model(false)));
         var watch = Stopwatch.StartNew();
         for (var i = 0; i < 50; i++)
         {
-            await renderer.RenderAsync(new PayslipPdfDocument(Model(false, extraLines: 20)));
+            await renderer.RenderAsync(new PayslipPdfDocument(Frame, Model(false, extraLines: 20)));
         }
 
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(30), "ADR 0022, CA 4");

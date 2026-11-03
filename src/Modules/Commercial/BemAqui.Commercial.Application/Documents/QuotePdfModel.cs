@@ -8,7 +8,7 @@ namespace BemAqui.Commercial.Application.Documents;
 /// custo-hora aqui, para nenhum usuário.
 /// </summary>
 public sealed record QuotePdfModel(
-    QuotePdfCompany Company, string Number, int Revision, DateOnly IssueDate, QuotePdfCustomer Customer, IReadOnlyList<QuotePdfItem> Items, decimal Total,
+    string Number, int Revision, DateOnly IssueDate, QuotePdfCustomer Customer, IReadOnlyList<QuotePdfItem> Items, decimal Total,
     IReadOnlyList<QuotePdfMilestone> Milestones, DateOnly? ValidUntil, int? DeliveryDays, string? Notes, PdfMark Mark = PdfMark.None, string? Notice = null);
 
 /// <summary>Marca e faixa do PDF do orçamento pela situação da revisão (EXP-03 CA 8), sem banco.</summary>
@@ -25,8 +25,6 @@ public static class QuotePdf
         _ => (PdfMark.None, null),
     };
 }
-
-public sealed record QuotePdfCompany(string Name, string LegalName, string? Document, string? Address, string? Contact, byte[]? Logo);
 
 public sealed record QuotePdfCustomer(string Name, string? Document, string? SiteAddress, string? Contact);
 
