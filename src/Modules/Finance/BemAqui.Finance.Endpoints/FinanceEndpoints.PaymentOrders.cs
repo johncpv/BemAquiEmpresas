@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Finance.Application;
@@ -17,6 +18,19 @@ internal static partial class FinanceEndpoints
             .RequirePermission("finance.view").WithName("ListPaymentOrders").Produces<PaymentOrderPage>();
         orders.MapGet("/{id:guid}", async (Guid id, PaymentOrderService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())
             .RequirePermission("finance.view").WithName("GetPaymentOrder").Produces<PaymentOrderDetail>();
+        // EXP-01: PDF da ordem no modelo único (Rascunho antes de aprovada, Cancelado se cancelada), com a mesma permissão da tela.
+        orders.MapGet("/{id:guid}/pdf", async (Guid id, PaymentOrderDocumentService service, HttpContext http, CancellationToken ct) =>
+            {
+                var result = await service.PdfAsync(id, ct);
+                if (result.IsFailure)
+                {
+                    return result.Error!.ToProblem();
+                }
+
+                AttachmentEndpoints.ApplyDownloadHeaders(http.Response);
+                return Results.File(result.Value.Content, "application/pdf", result.Value.FileName);
+            })
+            .RequirePermission("finance.view").WithName("DownloadPaymentOrderPdf");
         orders.MapPost(string.Empty, async (PaymentOrderInput input, PaymentOrderService service, CancellationToken ct) =>
                 (await service.SubmitAsync(input, ct)).ToHttpResult(saved => Results.Created("/api/v1/finance/payment-orders/" + saved.Summary.Id, saved)))
             .RequirePermission("finance.create").RequireIdempotencyKey().WithName("SubmitPaymentOrder").Produces<PaymentOrderDetail>(StatusCodes.Status201Created);

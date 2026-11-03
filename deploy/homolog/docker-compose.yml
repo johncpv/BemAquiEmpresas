@@ -28,6 +28,9 @@ x-api-env: &api-env
   ReverseProxy__RequireTrustedProxy: "true"
   Email__SmtpHost: ${SMTP_HOST}
   Email__SmtpUsername: ${SMTP_USERNAME}
+  # Remetente (o provedor só envia de domínio verificado; ex.: MailerSend com konebras.com.br). Vazio: o padrão do appsettings.
+  Email__FromAddress: ${SMTP_FROM_ADDRESS:-nao-responda@bemaquiapp.com.br}
+  Email__FromName: ${SMTP_FROM_NAME:-BemAqui Empresas}
   Storage__Root: /data/files
   ClamAV__Host: bqe-homolog-clamav
   # Worker de leitura do PDF da DANFE (FIS-05): só pelo socket Unix do volume pdf-socket.

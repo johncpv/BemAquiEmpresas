@@ -1,6 +1,7 @@
 using BemAqui.BuildingBlocks.Agenda;
 using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Email;
+using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Jobs;
 using BemAqui.BuildingBlocks.Logging;
@@ -107,6 +108,7 @@ try
     builder.Services.AddBemAquiEmail(builder.Configuration);
     builder.Services.AddBemAquiPrivacy(); // LGPD-01a: provedores de dado pessoal da base (e-mails e notificações)
     builder.Services.AddBemAquiLookups(builder.Configuration);
+    builder.Services.AddBemAquiExport(builder.Configuration); // EXP-01 (ADR 0045): exportação de listas (xlsx e PDF) e o modelo único de PDF
     builder.Services.AddBemAquiMessaging(builder.Configuration, HostEvents.Register);
     builder.Services.AddBemAquiAgenda(builder.Configuration); // Minha pauta (DSH-04): o agregador; as fontes vêm dos módulos
     // Webhooks de entrada (FND-16, ADR 0031): rota pública validada, evento e outbox na mesma transação, processamento por fila.
