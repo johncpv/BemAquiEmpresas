@@ -677,5 +677,19 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-8--cliente-e-comu
 
 ---
 
+## Pós-go-live: documentos e exportação
+
+Pedido do PO de 02/11/2026: todo documento com PDF para imprimir e exportação PDF/Excel nas listas, financeiro primeiro; [detalhe no README](stories/README.md#pós-go-live-documentos-e-exportação). As ondas dependem da EXP-01 (base).
+
+**EXP-02 [ ] Onda 1: exportação do financeiro (extrato, conciliação, ordens, a receber, DRE, fluxo de caixa e inadimplência) e PDF do extrato, da conciliação e do DRE do período (G)** — [story](stories/EXP-02-exportacao-financeiro.md)
+
+**EXP-03 [ ] Onda 1: PDF da cotação e do mapa comparativo, pedido de compra no template com prévia, "Baixar PDF" no orçamento, romaneio e ficha da OS de fabricação (M)** — [story](stories/EXP-03-pdf-compras-orcamento-os-fabricacao.md)
+
+**EXP-04 [ ] Onda 2: PDFs do comercial, da produção, das compras e do estoque, Excel das listas operacionais, holerite e boleto à mão (G)** — [story](stories/EXP-04-pdf-comercial-producao-estoque-listas.md)
+
+**EXP-05 [ ] Onda 3: PDFs restantes, Excel de RH, fiscal, patrimônio e cadastros, e migração dos layouts antigos para o template (M)** — [story](stories/EXP-05-pdf-restantes-excel-rh-cadastros-migracao.md)
+
+---
+
 ## Fase 9 — Evolução
 Ponto como registro oficial (REP-P / Portaria 671; P-26, depois do MVP) · Depreciação · Retalhos de corte · Etapas terceirizadas · SSO · Contratos de manutenção recorrente (se validado).

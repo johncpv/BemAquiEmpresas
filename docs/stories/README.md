@@ -988,3 +988,28 @@ As 2 stories tiveram **10/10 e `Ready (pré-condição externa)`**: a trilha ext
 | §4.4 (design) | Padrões comuns das Fases 4 a 8 e achados pontuais |
 | §5 (ADRs) | ADRs 0027 a 0042 e adendos às 0003, 0006, 0007, 0008, 0009, 0025 e 0026 |
 | §6 (ordem) | Substituída pela ordem da D1 mudada |
+
+---
+
+# Pós-go-live: documentos e exportação
+
+Pedido do PO de 02/11/2026, depois da virada: (1) todo documento gerado tem PDF para imprimir; (2) exportação PDF/Excel nas listas e nas etapas-chave, com o financeiro primeiro. Base: a auditoria de PDF e exportação de 02/11/2026 (inventário de 39 documentos, 15 com PDF e 24 sem; nenhuma lista com xlsx). As ondas EXP-02 a EXP-05 dependem da EXP-01 (template `PdfDocumentFrame`, `ITabularExporter` com ClosedXML, `GET .../export?format=xlsx|pdf`, `GET .../{id}/pdf`, `<DocumentActions>` e `<ExportMenu>`, tetos de 10.000 linhas no xlsx e 2.000 no PDF com 422, máscara por permissão **sem 2FA** (decisão do PO de 02/11/2026) e auditoria de exportação).
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 | EXP-01 | Base de exportação e template de PDF (piloto: lista de A pagar e PDF da ordem de pagamento) | M | InProgress | Pedido do PO de 02/11/2026, R-COM-3, PRD §6 LGPD, R-SEC-5 | ADR 0022 | [EXP-01](EXP-01-base-exportacao-template-pdf.md) |
+| 2 | EXP-02 | Onda 1: exportação do financeiro (extrato, extrato do banco, conciliação, ordens, a receber, DRE, fluxo de caixa e inadimplência), PDF do extrato, da conciliação e do DRE do período | G | Ready | Pedido do PO, R-FIN-13, R-FIN-12, R-FIN-5, R-COM-3, PRD §6, R-SEC-5 | EXP-01 | [EXP-02](EXP-02-exportacao-financeiro.md) |
+| 3 | EXP-03 | Onda 1: PDF do pedido de cotação e do mapa comparativo, pedido de compra no template com prévia "Rascunho", "Baixar PDF" no cabeçalho do orçamento, romaneio com `DocumentActions` e ficha da OS de fabricação (sem custo) | M | Ready | Pedido do PO, R-CMP-2, R-CMP-3, R-COML-5, R-PRD-1, R-ENG-6, R-PRD-8, R-COM-3, R-SEC-5 | EXP-01 | [EXP-03](EXP-03-pdf-compras-orcamento-os-fabricacao.md) |
+| 4 | EXP-04 | Onda 2: PDFs do contrato, aditivo, OS de instalação e termo de aceite em branco, recebimento, requisição, ajuste, inventário (folha cega e resultado) e NC; xlsx das listas de compras, estoque, comercial e produção; "Baixar holerite" e atalho na ficha; boleto à mão | G | Ready | Pedido do PO, R-PRJ-3, R-PRJ-6, R-CMP-5, R-EST-6, R-EST-9, R-RH-5, R-COM-3, PRD §6 LGPD, R-SEC-5 | EXP-01, EXP-03 | [EXP-04](EXP-04-pdf-comercial-producao-estoque-listas.md) |
+| 5 | EXP-05 | Onda 3: PDFs restantes (BOM, roteiro, projeto, SC, títulos, OS de manutenção, inspeção, painel, prévia do 13º); xlsx de RH (CPF e salário mascarados sem `hr.view_sensitive`), fiscal, patrimônio e cadastros; migração dos 11 layouts antigos restantes para o template | M | Ready | Pedido do PO, R-ENG-1, R-PRJ-2, R-CMP-1, R-FIN-2, R-FIN-4, R-RH-5, PRD §5.14, R-COM-3, PRD §6 LGPD, R-SEC-5 | EXP-01, EXP-03, EXP-04 | [EXP-05](EXP-05-pdf-restantes-excel-rh-cadastros-migracao.md) |
+
+Total: 5 stories (M: 3 · G: 2): EXP-01 `InProgress`; EXP-02 a EXP-05 `Ready`.
+
+## Padrões comuns das ondas
+1. **Onde fica o botão:** documento → `<DocumentActions>` no cabeçalho, à direita do título, primeiro botão secundário ("Baixar PDF" e "Imprimir"); lista → "Exportar" (`<ExportMenu>`) no slot `toolbar` do `DataTable`, à direita da busca. No celular, os dois vão para "Mais ações".
+2. **Permissão:** a mesma da tela (`view` do módulo); nenhuma ação nova no `ModuleCatalog`. Coluna ou bloco que a tela esconde sai mascarado ou some, pela mesma regra (`hr.view_sensitive`, `hr.view_health`, `quotes.view_cost`, `projects.view_cost`, `assets.edit`, `finance.view`).
+3. **Marcas por situação:** `PdfMark` padrão em todas as páginas: **Rascunho** (documento ainda não aprovado), **Prévia** (resultado que ainda muda: conciliação não fechada, mapa de cotação aberto, ajuste pendente, inspeção não decidida), **Simulação** (prévia do 13º, termo de rescisão) e **Cancelado** (cancelado, recusado, estornado). Situação informativa sem efeito (provisório, vencido, aguardando aprovação) vai numa faixa, sem marca d'água.
+4. **Conteúdo:** a exportação usa o mesmo serviço da tela, sem paginação e com os mesmos filtros; a contagem e os totais do arquivo são os da tela. Documento impresso para o chão de fábrica, almoxarifado ou fornecedor nunca leva custo.
+5. **Testes:** integração do endpoint e do conteúdo (xlsx lido com ClosedXML, PDF com texto extraído na imagem Alpine); Vitest do botão na tela; E2E com download só em 1 ou 2 fluxos-chave por story. Acesso por rota fica com a varredura (`EndpointAuthorizationTests`).
+6. **Ajuda:** toda tela que ganha botão ganha a seção "Imprimir e exportar" na `Ajuda/<chave>.md` do mesmo commit (o teste de cobertura não detecta seção faltando: item do DoD).
