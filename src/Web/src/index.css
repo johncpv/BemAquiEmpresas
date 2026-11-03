@@ -94,9 +94,12 @@
 
 @layer base {
   /* Foco e rolagem nunca escondidos sob a topbar fixa e o dock (WCAG 2.4.11). */
+  /* --dock-offset: altura do dock com a margem de baixo; a barra de ações fixa (FormActions) fica logo acima dele. */
   html {
+    --dock-offset: calc(4.75rem + env(safe-area-inset-bottom, 0px));
     scroll-padding-top: 7rem;
-    scroll-padding-bottom: 7.5rem;
+    /* Dock + barra de ações fixa: o campo com foco nunca fica embaixo deles. */
+    scroll-padding-bottom: calc(var(--dock-offset) + 4rem);
   }
 
   html,

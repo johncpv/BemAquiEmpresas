@@ -1,5 +1,6 @@
 import { Outlet, useRouterState } from '@tanstack/react-router'
 import { useState } from 'react'
+import { FORM_BOUND_CLASS, PAGE_WIDTH_CLASS, usePageWidth } from '@/components/layout/page-width'
 import { MessageRegion } from '@/components/ui/message-region'
 import { AppHelp } from '@/help/AppHelp'
 import { useHelp } from '@/help/help-context'
@@ -27,6 +28,7 @@ function Shell() {
   const area = module ? areaOf(areas, module) : undefined
   const tab = module && module.enabled && !module.locked ? module.tabs.find((t) => t.slug === tabSlug) : undefined
   const [palette, setPalette] = useState(false)
+  const width = usePageWidth()
 
   return (
     <div className="min-h-dvh pb-28">
@@ -34,9 +36,12 @@ function Shell() {
         Pular para o conteúdo
       </a>
       <Topbar area={area} module={module && !module.locked && module.enabled ? module : undefined} tab={tab} onSearch={() => setPalette(true)} onHelp={() => help.setOpen(true)} />
-      <main id="conteudo" className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-        <MessageRegion />
-        <Outlet />
+      {/* O main é fluido; a largura vem do tipo da tela (staticData.width da rota, ADR 0044). */}
+      <main id="conteudo" className="w-full px-4 py-6 sm:px-6 2xl:px-8">
+        <div data-page-width={width} className={PAGE_WIDTH_CLASS[width]}>
+          <MessageRegion />
+          {width === 'form' ? <div className={FORM_BOUND_CLASS}><Outlet /></div> : <Outlet />}
+        </div>
       </main>
       <Dock activeAreaId={area?.id} />
       <CommandPalette open={palette} onOpenChange={setPalette} />

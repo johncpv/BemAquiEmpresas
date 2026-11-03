@@ -12,7 +12,7 @@ Guardar os documentos, o endereço e o contato pessoal do funcionário, usados n
 ## Como usar
 - Preencha RG, PIS, CTPS (número e série) e título de eleitor.
 - Digite o CEP: o endereço vem preenchido. Confira e informe o número.
-- Clique em **Salvar dados pessoais**.
+- Clique em **Salvar dados pessoais**. O botão fica preso no rodapé, logo acima do menu, e avisa **Alterações não salvas** enquanto houver algo para salvar.
 
 ## Perguntas frequentes
 **Por que aparece "Dados protegidos"?** São dados pessoais protegidos pela LGPD. Só quem tem a permissão Ver dados sensíveis do RH vê e altera.

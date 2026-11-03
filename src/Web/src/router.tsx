@@ -189,6 +189,11 @@ const Gallery = galleryEnabled ? lazy(() => import('./dev/Gallery')) : null
 
 const text = (v: unknown) => (typeof v === 'string' && v ? v : undefined)
 
+// Largura por tipo de tela (ADR 0044): o AppShell lê staticData.width; rota sem declarar é 'default' (até 1536 px).
+// FULL: quadro, Gantt, painel do proprietário, DRE e fluxo de caixa (até 1920 px). FORM: cadastro e edição (coluna à esquerda).
+const FULL = { width: 'full' } as const
+const FORM = { width: 'form' } as const
+
 const rootRoute = createRootRoute({ component: Outlet, notFoundComponent: NotFound })
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -218,12 +223,12 @@ const appRoute = createRoute({
 })
 const appIndexRoute = createRoute({ getParentRoute: () => appRoute, path: '/', component: Inicio })
 // Painel do proprietário (DSH-01a): cenário do caixa na URL (?cenario=base|ajustado).
-const dashboardRoute = createRoute({ getParentRoute: () => appRoute, path: 'painel', component: () => <ModuleGate code="dashboard"><DashboardPage /></ModuleGate>, validateSearch: (s: Record<string, unknown>): { cenario?: string } => ({ cenario: text(s.cenario) }) })
+const dashboardRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'painel', component: () => <ModuleGate code="dashboard"><DashboardPage /></ModuleGate>, validateSearch: (s: Record<string, unknown>): { cenario?: string } => ({ cenario: text(s.cenario) }) })
 // Resultado gerencial por projeto (DSH-01b CA 6 a 8): filtros na URL (?situacao, ?cliente, ?de=aaaa-mm, ?ate=aaaa-mm); projects.view_cost e finance.view na tela e na API.
-const projectResultsRoute = createRoute({ getParentRoute: () => appRoute, path: 'painel/resultado-por-projeto', component: () => <ModuleGate code="dashboard"><ProjectResultsPage /></ModuleGate> })
-const projectResultRoute = createRoute({ getParentRoute: () => appRoute, path: 'painel/resultado-por-projeto/$id', component: () => <ModuleGate code="dashboard"><ProjectResultPage /></ModuleGate> })
-const accountRoute = createRoute({ getParentRoute: () => appRoute, path: 'conta', component: AccountPage })
-const accountSecurityRoute = createRoute({ getParentRoute: () => appRoute, path: 'conta/seguranca', component: AccountSecurityPage })
+const projectResultsRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'painel/resultado-por-projeto', component: () => <ModuleGate code="dashboard"><ProjectResultsPage /></ModuleGate> })
+const projectResultRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'painel/resultado-por-projeto/$id', component: () => <ModuleGate code="dashboard"><ProjectResultPage /></ModuleGate> })
+const accountRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'conta', component: AccountPage })
+const accountSecurityRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'conta/seguranca', component: AccountSecurityPage })
 // "Meus holerites" (RH-02b, ADR 0035): do funcionário, sem ação no grupo; a página confere o módulo liberado e o vínculo vem da API.
 const myPayslipsRoute = createRoute({ getParentRoute: () => appRoute, path: 'meus-holerites', component: MyPayslipsPage })
 // "Meu ponto" (RH-01a, ADR 0035): do funcionário, sem ação no grupo; o mesmo painel do /fab/ponto, mais "Minhas marcações".
@@ -235,11 +240,11 @@ const usersRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos/
 const groupsRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos/grupos', component: gated('identity', GroupsPage), validateSearch: (s: Record<string, unknown>): { grupo?: string } => ({ grupo: text(s.grupo) }) })
 const settingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes', beforeLoad: () => { throw redirect({ to: '/app/configuracoes/empresa' }) } })
 // Configurações da empresa (CAD-06): Empresa, Numeração e Parâmetros vêm antes de Segurança.
-const companyRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/empresa', component: gated('settings', CompanyPage) })
+const companyRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/empresa', component: gated('settings', CompanyPage) })
 const numberingRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/numeracao', component: gated('settings', NumberingPage) })
-const parametersRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/parametros', component: gated('settings', ParametersPage) })
-const securityRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/seguranca', component: gated('settings', SecurityPage) })
-const aiSettingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/ia', component: gated('settings', AiSettingsPage) })
+const parametersRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/parametros', component: gated('settings', ParametersPage) })
+const securityRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/seguranca', component: gated('settings', SecurityPage) })
+const aiSettingsRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/ia', component: gated('settings', AiSettingsPage) })
 // Importação do Dolibarr (MIG-01a): só leitura; a carga é pela CLI.
 // Integrações (FND-16): Eventos recebidos; Banco Inter (BNK-01a) e WhatsApp (WPP-01) entram como sub-telas.
 const integrationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes', beforeLoad: () => { throw redirect({ to: '/app/configuracoes/integracoes/eventos' }) } })
@@ -248,19 +253,19 @@ const integrationEventsRoute = createRoute({ getParentRoute: () => appRoute, pat
 const interAccountsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes/inter', component: gated('settings', InterAccountsPage) })
 const interAccountRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes/inter/$contaId', component: gated('settings', InterAccountPage), validateSearch: (s: Record<string, unknown>): { acao?: string } => ({ acao: text(s.acao) }) })
 // Configurações → Cobrança (BNK-01b): multa, juros, desconto, envio do boleto e a regra do vencido.
-const billingSettingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/cobranca', component: gated('settings', BillingSettingsPage) })
+const billingSettingsRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/cobranca', component: gated('settings', BillingSettingsPage) })
 const importRunsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/importacao', component: gated('settings', ImportRunsPage) })
 const importRunRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/importacao/$id', component: gated('settings', ImportRunPage) })
 // Emissor fiscal (FIS-01): conexão com o EmissorFiscal; a tela confere também o módulo fiscal liberado.
-const fiscalIntegrationRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes/emissor-fiscal', component: gated('settings', FiscalIntegrationPage) })
+const fiscalIntegrationRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/integracoes/emissor-fiscal', component: gated('settings', FiscalIntegrationPage) })
 // Configurações → Fiscal e Certificado digital (FIS-02a): a tela confere o módulo fiscal liberado; ver com settings.view ou fiscal.view.
 const fiscalSettingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/fiscal', component: FiscalSettingsPage })
-const fiscalCertificateRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/fiscal/certificado', component: FiscalCertificatePage })
+const fiscalCertificateRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/fiscal/certificado', component: FiscalCertificatePage })
 // Configurações → Privacidade (LGPD-01a): pedidos do titular, só do Proprietário (a tela mostra o aviso para os demais).
 const privacyRequestsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/privacidade', component: gated('settings', PrivacyRequestsPage) })
 const privacyRequestRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/privacidade/$id', component: gated('settings', PrivacyRequestPage) })
 // Configurações → Privacidade → Retenção (LGPD-01b CA 1): a tabela de retenção, só do Proprietário.
-const privacyRetentionRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/privacidade/retencao', component: gated('settings', RetentionPage) })
+const privacyRetentionRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/privacidade/retencao', component: gated('settings', RetentionPage) })
 // Fiscal → Regras fiscais (FIS-02b): /app/fiscal leva às notas de saída (FIS-03a); filtro, versão e o painel Simular (?simular=1) na URL.
 const fiscalRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal', beforeLoad: () => { throw redirect({ to: '/app/fiscal/saida' }) } })
 const taxRulesRoute = createRoute({ getParentRoute: () => appRoute, path: 'fiscal/regras', component: gated('fiscal', TaxRulesPage) })
@@ -283,7 +288,7 @@ const incomingReadingRoute = createRoute({ getParentRoute: () => appRoute, path:
 // Cadastros (CAD-01a): /app/cadastros leva à primeira aba do módulo.
 const partiesRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros', beforeLoad: () => { throw redirect({ to: '/app/cadastros/terceiros' }) } })
 const partiesRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros', component: gated('parties', PartiesPage) })
-const newPartyRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros/novo', component: gated('parties', NewPartyPage) })
+const newPartyRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'cadastros/terceiros/novo', component: gated('parties', NewPartyPage) })
 const partyRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastros/terceiros/$id', component: gated('parties', PartyPage) })
 // Financeiro (CAD-05b): contas e caixas e condições de pagamento.
 // Estoque e Produção (CAD-03): locais, centros de trabalho e calendário.
@@ -304,7 +309,7 @@ const requisitionRoute = createRoute({ getParentRoute: () => appRoute, path: 'es
 // Compras (CMP-01): Solicitações é a primeira aba; Cotações, Pedidos e Recebimentos entram com a CMP-02, a CMP-03a e a CMP-04.
 const purchasingRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras', beforeLoad: () => { throw redirect({ to: '/app/compras/solicitacoes' }) } })
 const purchaseRequestsRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/solicitacoes', component: gated('purchasing', PurchaseRequestsPage) })
-const newPurchaseRequestRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/solicitacoes/nova', component: gated('purchasing', NewPurchaseRequestPage) })
+const newPurchaseRequestRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'compras/solicitacoes/nova', component: gated('purchasing', NewPurchaseRequestPage) })
 const purchaseRequestRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/solicitacoes/$id', component: gated('purchasing', PurchaseRequestPage) })
 // Cotações (CMP-02): lista (abertas por padrão), nova (das SC por ?sc= ou com itens digitados) e detalhe com abas na URL.
 const rfqsRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/cotacoes', component: gated('purchasing', RfqsPage) })
@@ -330,7 +335,7 @@ const inventoryCountRoute = createRoute({ getParentRoute: () => appRoute, path: 
 const locationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/locais', component: gated('inventory', LocationsPage) })
 // Itens, unidades, categorias e garantia padrão (CAD-02a).
 const itemsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/itens', component: gated('inventory', ItemsPage) })
-const newItemRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/itens/novo', component: gated('inventory', NewItemPage) })
+const newItemRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'estoque/itens/novo', component: gated('inventory', NewItemPage) })
 const itemRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/itens/$id', component: gated('inventory', ItemPage) })
 const unitsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/unidades', component: gated('inventory', UnitsPage) })
 const categoriesRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/categorias', component: gated('inventory', CategoriesPage) })
@@ -347,11 +352,11 @@ const productionRootRoute = createRoute({ getParentRoute: () => appRoute, path: 
 const fabricationOrdersRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/os', component: gated('production', FabricationOrdersPage) })
 const fabricationOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/os/$id', component: gated('production', FabricationOrderPage) })
 // Kanban (PRD-02): colunas pelo código da etapa, filtros na URL e tempo real.
-const kanbanRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/kanban', component: gated('production', KanbanPage) })
+const kanbanRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'producao/kanban', component: gated('production', KanbanPage) })
 // Painel do supervisor (DSH-03): blocos do quadro, qualidade, faltas, capacidade e indicadores; linha na URL (?linha=).
 const supervisorRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/supervisor', component: gated('production', SupervisorPage), validateSearch: (s: Record<string, unknown>): { linha?: string } => ({ linha: text(s.linha) }) })
 // Planejamento (PLN-01a): última execução do plano, "Recalcular agora" e OS sem previsão; as abas chegam na PLN-02 a PLN-04.
-const planningRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/planejamento', component: gated('production', PlanningPage) })
+const planningRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'producao/planejamento', component: gated('production', PlanningPage) })
 // Apontamentos abertos há muito tempo (PRD-03a CA 22).
 const openLaborRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/apontamentos-abertos', component: gated('production', OpenLaborPage) })
 // Qualidade e não conformidade (PRD-05): fila e inspeção, lista e detalhe da NC (filtros na URL).
@@ -368,16 +373,16 @@ const operatorRoute = createRoute({ getParentRoute: () => appRoute, path: 'opera
 const workCentersRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/centros-de-trabalho', component: gated('production', WorkCentersPage) })
 const installationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/instalacoes', component: gated('production', InstallationsPage) })
 const installationRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/instalacoes/$id', component: gated('production', InstallationPage) })
-const installationTemplateRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/modelo-instalacao', component: gated('production', InstallationTemplatePage) })
+const installationTemplateRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'producao/modelo-instalacao', component: gated('production', InstallationTemplatePage) })
 const calendarRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/calendario', component: gated('production', CalendarPage) })
 const financeRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro', beforeLoad: () => { throw redirect({ to: '/app/financeiro/contas' }) } })
 const bankAccountsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/contas', component: gated('finance', BankAccountsPage), validateSearch: (s: Record<string, unknown>): { conta?: string } => ({ conta: text(s.conta) }) })
 const paymentTermsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento', component: gated('finance', PaymentTermsPage) })
-const newPaymentTermRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento/nova', component: gated('finance', NewPaymentTermPage) })
+const newPaymentTermRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'financeiro/condicoes-de-pagamento/nova', component: gated('finance', NewPaymentTermPage) })
 // Patrimônio (PAT-01a): bens (lista, novo com ?de= para duplicar, ficha com abas) e locais.
 const assetsRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio', beforeLoad: () => { throw redirect({ to: '/app/patrimonio/bens' }) } })
 const assetsRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/bens', component: gated('assets', AssetsPage) })
-const newAssetRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/bens/novo', component: gated('assets', NewAssetPage), validateSearch: (s: Record<string, unknown>): { de?: string } => ({ de: text(s.de) }) })
+const newAssetRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'patrimonio/bens/novo', component: gated('assets', NewAssetPage), validateSearch: (s: Record<string, unknown>): { de?: string } => ({ de: text(s.de) }) })
 const assetRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/bens/$id', component: gated('assets', AssetPage) })
 const assetSitesRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/locais', component: gated('assets', AssetSitesPage) })
 // Manutenção (PAT-03a): lista com filtros na URL (bem, centro, tipo, situação) e a OS de manutenção com abas.
@@ -397,7 +402,7 @@ const tagRoute = createRoute({
 // RH (CAD-04a e CAD-04b): funcionários, cargos, jornadas e sindicatos.
 const hrRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh', beforeLoad: () => { throw redirect({ to: '/app/rh/funcionarios' }) } })
 const employeesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/funcionarios', component: gated('hr', EmployeesPage) })
-const newEmployeeRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/funcionarios/novo', component: gated('hr', NewEmployeePage) })
+const newEmployeeRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'rh/funcionarios/novo', component: gated('hr', NewEmployeePage) })
 const employeeRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/funcionarios/$id', component: gated('hr', EmployeePage) })
 const positionsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/cargos', component: gated('hr', PositionsPage) })
 const schedulesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/jornadas', component: gated('hr', SchedulesPage) })
@@ -419,7 +424,7 @@ const vacationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/f
 // Tabelas legais da folha por vigência (FLH-01): ?tipo vem do link "Falta a tabela {tipo}".
 const payrollTaxTablesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/tabelas-folha', component: gated('hr', PayrollTaxTablesPage), validateSearch: (s: Record<string, unknown>): { tipo?: string } => ({ tipo: text(s.tipo) }) })
 // Exportação para a contadora (RH-03).
-const accountantExportRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/exportar-contadora', component: gated('hr', AccountantExportPage) })
+const accountantExportRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'rh/exportar-contadora', component: gated('hr', AccountantExportPage) })
 // Conferência paralela da folha calculada e virada (FLH-06): ?mes vem do "Comparar com a lançada" e ?id abre a competência.
 const payrollParallelRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/conferencia-folha', component: gated('hr', PayrollParallelPage), validateSearch: (s: Record<string, unknown>): { mes?: string; id?: string } => ({ mes: text(s.mes), id: text(s.id) }) })
 // Plano de contas e centros de custo (CAD-05a).
@@ -427,12 +432,12 @@ const chartRoute = createRoute({ getParentRoute: () => appRoute, path: 'financei
 const costCentersRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/centros-de-custo', component: gated('finance', CostCentersPage) })
 // Contas a receber (FIN-01).
 const receivablesRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/receber', component: gated('finance', ReceivablesPage) })
-const newReceivableRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/receber/novo', component: gated('finance', NewReceivablePage) })
+const newReceivableRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'financeiro/receber/novo', component: gated('finance', NewReceivablePage) })
 const discountsReportRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/receber/descontos-e-cancelamentos', component: gated('finance', DiscountsReportPage) })
 const receivableRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/receber/$id', component: gated('finance', ReceivablePage) })
 // Contas a pagar e recorrentes (FIN-02).
 const payablesRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/pagar', component: gated('finance', PayablesPage) })
-const newPayableRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/pagar/novo', component: gated('finance', NewPayablePage) })
+const newPayableRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'financeiro/pagar/novo', component: gated('finance', NewPayablePage) })
 const payableRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/pagar/$id', component: gated('finance', PayablePage) })
 const approvalRulesRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/alcadas', component: gated('finance', ApprovalRulesPage) })
 const recurringRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/recorrentes', component: gated('finance', RecurringExpensesPage) })
@@ -455,17 +460,17 @@ const statementRoute = createRoute({ getParentRoute: () => appRoute, path: 'fina
 const reconciliationRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/conciliacao', component: gated('finance', ReconciliationPage) })
 // Ordens de pagamento (FIN-03a).
 const paymentOrdersRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/ordens-de-pagamento', component: gated('finance', PaymentOrdersPage) })
-const newPaymentOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/ordens-de-pagamento/nova', component: gated('finance', NewPaymentOrderPage) })
+const newPaymentOrderRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'financeiro/ordens-de-pagamento/nova', component: gated('finance', NewPaymentOrderPage) })
 const paymentOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/ordens-de-pagamento/$id', component: gated('finance', PaymentOrderPage) })
 // Inadimplência (FIN-06a).
 const agingRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/inadimplencia', component: gated('finance', AgingPage) })
 // Fluxo de caixa (FIN-05).
-const cashFlowRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/fluxo-de-caixa', component: gated('finance', CashFlowPage) })
+const cashFlowRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'financeiro/fluxo-de-caixa', component: gated('finance', CashFlowPage) })
 // DRE gerencial (FIN-08): ?meses=3|6|12|24 e ?ate=aaaa-mm.
-const dreRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/dre', component: gated('finance', DrePage) })
+const dreRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'financeiro/dre', component: gated('finance', DrePage) })
 // Implantação financeira (FIN-00).
 const openingRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/implantacao', component: gated('finance', OpeningPage) })
-const paymentTermRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento/$id', component: gated('finance', PaymentTermPage) })
+const paymentTermRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'financeiro/condicoes-de-pagamento/$id', component: gated('finance', PaymentTermPage) })
 // Moldes de tela da FND-09d, dentro do shell, para o PO aprovar no contexto real.
 const moldsRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/moldes', beforeLoad: () => { throw redirect({ to: '/app/dev/moldes/cadastro' }) } })
 const createMoldRoute = createRoute({ getParentRoute: () => appRoute, path: 'dev/moldes/cadastro', component: CreateMold })

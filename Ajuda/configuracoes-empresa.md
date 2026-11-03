@@ -11,9 +11,10 @@ Guardar os dados da sua empresa que saem nos documentos (orçamentos, contratos,
 
 ## Como usar
 - Na primeira visita, a razão social e o nome fantasia já vêm do cadastro da plataforma. Confira e clique em **Salvar dados da empresa**.
+- O botão **Salvar dados da empresa** fica preso no rodapé, logo acima do menu, e avisa **Alterações não salvas** enquanto houver algo para salvar.
 - Digite o **CEP** para preencher o endereço. A consulta só completa os campos vazios.
 - O **nome fantasia** é o nome que aparece no topo do sistema e no login.
-- Para trocar o logo, clique em **Trocar logo** e escolha um arquivo PNG, JPG ou WebP de até 1 MB e até 1024 px no maior lado. O logo fica **Aguardando verificação** até o antivírus liberar e só depois aparece para todos.
+- O logo fica ao lado do formulário (em tela estreita, depois dele). Para trocar, clique em **Trocar logo** e escolha um arquivo PNG, JPG ou WebP de até 1 MB e até 1024 px no maior lado. O logo fica **Aguardando verificação** até o antivírus liberar e só depois aparece para todos.
 
 ## Perguntas frequentes
 **Como mudo o CNPJ?** O CNPJ é alterado pelo suporte da plataforma, porque ele identifica a empresa no sistema.
