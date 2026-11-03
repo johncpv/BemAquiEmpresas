@@ -10,7 +10,10 @@ export interface ProjectCost {
   costType: CostType | ''
 }
 
-/** Projeto e natureza do custo (COM-04a CA 18): com projeto, a natureza é obrigatória e vem sugerida pela conta. */
+/**
+ * Projeto e natureza do custo (COM-04a CA 18): com projeto, a natureza é obrigatória e vem sugerida pela conta. Sem invólucro:
+ * os campos entram direto na FormGrid da seção (Projeto 6 · Natureza 6), sem grade dentro de grade (ADR 0044).
+ */
 export function ProjectCostFields({ value, onChange, suggested, errors, withCostType = true, disabled }: {
   value: ProjectCost
   onChange: (value: ProjectCost) => void
@@ -20,13 +23,13 @@ export function ProjectCostFields({ value, onChange, suggested, errors, withCost
   disabled?: boolean
 }) {
   return (
-    <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
-      <Field label="Projeto" error={errors.projectId} hint="Opcional. Projetos abertos.">
+    <>
+      <Field label="Projeto" size="lg" error={errors.projectId} hint="Opcional. Projetos abertos.">
         {(p) => <Combobox {...p} queryKey={['finance-projects']} search={searchProjects} value={value.project?.id ?? null} selected={value.project} disabled={disabled} placeholder="Busque pelo número ou nome"
           onChange={(project) => onChange({ project, costType: project ? value.costType || suggested || '' : '' })} />}
       </Field>
       {withCostType && value.project ? (
-        <Field label="Natureza do custo" required error={errors.costType} hint={suggested ? 'Sugerida pela conta.' : undefined}>
+        <Field label="Natureza do custo" required size="lg" error={errors.costType} hint={suggested ? 'Sugerida pela conta.' : undefined}>
           {(p) => (
             <select {...p} value={value.costType} disabled={disabled} onChange={(e) => onChange({ ...value, costType: e.target.value as CostType | '' })} className={inputClass}>
               <option value="">Escolha</option>
@@ -35,6 +38,6 @@ export function ProjectCostFields({ value, onChange, suggested, errors, withCost
           )}
         </Field>
       ) : null}
-    </div>
+    </>
   )
 }

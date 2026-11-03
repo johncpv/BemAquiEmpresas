@@ -23,14 +23,11 @@ export function PaymentTermsPage() {
 
   return (
     <>
-      <PageHeading title="Financeiro: Condições de pagamento">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Como cada título se divide em parcelas. À vista, 30, 30/60 e 30/60/90 dias já vêm prontas.</p>
-          <Can perm="finance.create">
-            <Link to="/app/financeiro/condicoes-de-pagamento/nova" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Nova condição de pagamento</Link>
-          </Can>
-        </div>
-      </PageHeading>
+      <PageHeading title="Financeiro: Condições de pagamento" description="Como cada título se divide em parcelas. À vista, 30, 30/60 e 30/60/90 dias já vêm prontas." actions={
+        <Can perm="finance.create">
+          <Link to="/app/financeiro/condicoes-de-pagamento/nova" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Nova condição de pagamento</Link>
+        </Can>
+      } />
       <DataTable label="Condições de pagamento" columns={columns} query={query} getRowId={(t) => t.id} rowHref={(t) => `/app/financeiro/condicoes-de-pagamento/${t.id}`} inactiveFilter searchable={false}
         empty={{
           title: 'Cadastre a primeira condição de pagamento.',

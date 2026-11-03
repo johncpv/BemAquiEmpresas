@@ -46,12 +46,7 @@ export function RecurringExpensesPage() {
 
   return (
     <>
-      <PageHeading title="Financeiro: Recorrentes">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Despesas fixas, como aluguel e internet, lançadas em A pagar todo mês.</p>
-          {newButton}
-        </div>
-      </PageHeading>
+      <PageHeading title="Financeiro: Recorrentes" description="Despesas fixas, como aluguel e internet, lançadas em A pagar todo mês." actions={newButton} />
       {body}
       {editing ? <RecurringPanel expense={editing.expense} onClose={() => setEditing(null)} onSaved={refresh} /> : null}
     </>

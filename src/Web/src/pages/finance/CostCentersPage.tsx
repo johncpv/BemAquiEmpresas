@@ -24,12 +24,7 @@ export function CostCentersPage() {
 
   return (
     <>
-      <PageHeading title="Financeiro: Centros de custo">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">As áreas da empresa, para ver quanto cada uma custa.</p>
-          {newRoot}
-        </div>
-      </PageHeading>
+      <PageHeading title="Financeiro: Centros de custo" description="As áreas da empresa, para ver quanto cada uma custa." actions={newRoot} />
       <label className="mb-3 flex items-center justify-end gap-2 text-sm">
         <input type="checkbox" className="size-4" checked={showInactive} onChange={(e) => void navigate({ to: '.', search: (p: Record<string, unknown>) => ({ ...p, inativos: e.target.checked ? 'true' : undefined }) } as never)} />
         Mostrar inativos

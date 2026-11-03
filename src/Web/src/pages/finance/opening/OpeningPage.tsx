@@ -48,12 +48,8 @@ export function OpeningPage() {
 
   return (
     <>
-      <PageHeading title="Financeiro: Implantação financeira">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-muted-foreground">Comece o BemAqui numa data de corte, com o saldo das contas e os títulos em aberto nesse dia.</p>
-          <StageIndicator stages={OPENING_STEPS.map((s) => s.label)} current={step} />
-        </div>
-      </PageHeading>
+      <PageHeading title="Financeiro: Implantação financeira" description="Comece o BemAqui numa data de corte, com o saldo das contas e os títulos em aberto nesse dia."
+        actions={<StageIndicator stages={OPENING_STEPS.map((s) => s.label)} current={step} />} />
       {status.completedAt ? (
         <p role="status" className="mb-4 rounded-md border border-ok-soft bg-ok-soft px-3 py-2 text-sm text-ok-ink">
           Implantação concluída em {formatDateTime(status.completedAt)}, com data de corte em {formatDate(status.cutoverDate ?? '')}. A tela fica só para consulta.

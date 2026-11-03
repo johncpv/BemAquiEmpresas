@@ -27,9 +27,7 @@ export function NewPaymentTermPage() {
   }
   return (
     <>
-      <PageHeading title="Nova condição de pagamento">
-        <p className="mt-2"><Link to={LIST} className="text-sm font-semibold text-primary">Voltar às condições</Link></p>
-      </PageHeading>
+      <PageHeading title="Nova condição de pagamento" meta={<Link to={LIST} className="text-sm font-semibold text-primary">Voltar às condições</Link>} />
       <PaymentTermForm term={null} canEdit onSubmit={submit} />
       <div className="mt-4"><button type="submit" form="condicao" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar condição de pagamento</button></div>
     </>
@@ -55,13 +53,14 @@ export function PaymentTermPage() {
   const submit = async (input: PaymentTermInput) => { refresh(await updatePaymentTerm(id, input)); notifySuccess('Condição de pagamento salva') }
   return (
     <>
-      <PageHeading title={term.name}>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <Link to={LIST} className="text-sm font-semibold text-primary">Voltar às condições</Link>
-          <StatusChip tone={term.isActive ? 'ok' : 'neutral'}>{term.isActive ? 'Ativa' : 'Inativa'}</StatusChip>
-          <ImportedTag source={term.importSource} />
-        </div>
-      </PageHeading>
+      <PageHeading title={term.name}
+        meta={
+          <>
+            <StatusChip tone={term.isActive ? 'ok' : 'neutral'}>{term.isActive ? 'Ativa' : 'Inativa'}</StatusChip>
+            <ImportedTag source={term.importSource} />
+            <Link to={LIST} className="ml-2 text-sm font-semibold text-primary">Voltar às condições</Link>
+          </>
+        } />
       <PaymentTermForm key={JSON.stringify(term.installments) + term.name} term={term} canEdit={canEdit} onSubmit={submit} />
       <div className="mt-4 flex flex-wrap gap-2">
         {canEdit ? <button type="submit" form="condicao" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar condição de pagamento</button> : null}

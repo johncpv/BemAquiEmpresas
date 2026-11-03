@@ -5,8 +5,9 @@ import { getGetPayableQueryKey, getPayable, submitPaymentOrder } from '@/api/gen
 import type { PayableDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
-import { Field, FormError } from '@/components/form/form'
+import { Field, FormActions, FormError } from '@/components/form/form'
 import { DateInput, MoneyInput } from '@/components/form/inputs'
+import { FormLayout } from '@/components/layout/form-layout'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Money } from '@/components/ui/money'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
@@ -64,8 +65,10 @@ function OrderForm({ payables }: { payables: PayableDetail[] }) {
 
   return (
     <>
-      <PageHeading title="Nova ordem de pagamento"><p className="mt-2 text-muted-foreground">Confira o que vai ser pago e envie para aprovação.</p></PageHeading>
-      <div className="max-w-4xl space-y-4">
+      <PageHeading title="Nova ordem de pagamento" description="Confira o que vai ser pago e envie para aprovação." />
+      {/* Padrão de layout (ADR 0044): coluna de 896 px à esquerda; uma seção (a tabela dos títulos), botões no fim. */}
+      <FormLayout>
+      <div className="space-y-5">
         <FormError message={general} />
         <div className="overflow-x-auto rounded-md border border-border bg-card">
           <table className="w-full text-sm" aria-label="Títulos da ordem">
@@ -88,15 +91,16 @@ function OrderForm({ payables }: { payables: PayableDetail[] }) {
           <Field label="Data prevista do pagamento" hint="Sugestão: o menor vencimento.">{(f) => <DateInput {...f} value={date} onChange={setDate} />}</Field>
           <p aria-live="polite" className="flex items-center text-sm">Total aprovado<Dica nome="Total aprovado" texto={ORDER_DICAS.aprovado} />: <Money value={total} className="ml-1 font-semibold" /></p>
         </div>
-        <div className="flex justify-end gap-2">
+        <FormActions>
           <Link to={'/app/financeiro/pagar' as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</Link>
           <ConfirmDialog verb="Enviar para aprovação" done="Enviada para aprovação" title="Enviar a ordem para aprovação?" description="Os títulos ficam travados até a decisão. Quem aprova recebe o aviso no sino."
             impact={<p className="text-sm">{payables.length} {payables.length === 1 ? 'título' : 'títulos'}, total aprovado <Money value={total} /></p>}
             preconditions={[{ ok: Object.keys(local).length === 0, text: 'Todos os títulos com forma de pagamento e valor até o saldo.' }]}
             onConfirm={submit}
             trigger={<button type="button" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Enviar para aprovação</button>} />
-        </div>
+        </FormActions>
       </div>
+      </FormLayout>
     </>
   )
 }

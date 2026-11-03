@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { previewPaymentTerm } from '@/api/generated/bemaqui'
 import type { Installment } from '@/api/generated/model'
-import { Field } from '@/components/form/form'
+import { Field, FormGrid } from '@/components/form/form'
 import { DateInput, MoneyInput } from '@/components/form/inputs'
 import { Money } from '@/components/ui/money'
 import { formatDate } from '@/lib/format'
@@ -26,10 +26,11 @@ export function TermPreview({ installments, valid }: { installments: Installment
   return (
     <section aria-label="Prévia das parcelas" className="space-y-3 rounded-md border border-border bg-card p-4">
       <h2 className="text-base font-semibold">Prévia das parcelas</h2>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Valor de exemplo">{(p) => <MoneyInput {...p} value={amount} onChange={setAmount} />}</Field>
-        <Field label="Data base" hint="Normalmente a data da emissão do título.">{(p) => <DateInput {...p} value={baseDate} onChange={setBaseDate} />}</Field>
-      </div>
+      {/* No painel lateral (320 px) os dois campos ficam um embaixo do outro; abaixo de 1280 px, lado a lado. */}
+      <FormGrid>
+        <Field label="Valor de exemplo" size="sm">{(p) => <MoneyInput {...p} value={amount} onChange={setAmount} />}</Field>
+        <Field label="Data base" size="sm" hint="Normalmente a data da emissão do título.">{(p) => <DateInput {...p} value={baseDate} onChange={setBaseDate} />}</Field>
+      </FormGrid>
       {!ready ? (
         <p className="text-sm text-muted-foreground">Ajuste as parcelas para somar 100% e veja aqui como o valor se divide.</p>
       ) : query.isPending ? (

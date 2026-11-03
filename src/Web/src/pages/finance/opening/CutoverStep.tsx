@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { OpeningStatus } from '@/api/generated/model'
 import { setOpeningCutover } from '@/api/generated/bemaqui'
 import { ApiError } from '@/api/http'
-import { Field } from '@/components/form/form'
+import { Field, FormActions, FormGrid } from '@/components/form/form'
 import { DateInput } from '@/components/form/inputs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { formatDate } from '@/lib/format'
@@ -21,14 +21,16 @@ export function CutoverStep({ status, refresh, onNext }: StepProps) {
   const local = !date ? 'Informe a data de corte.' : date > today() ? 'A data de corte não pode ser futura.' : undefined
 
   return (
-    <section aria-labelledby="corte-titulo" className="max-w-xl space-y-3 rounded-md border border-border bg-card p-4">
+    <section aria-labelledby="corte-titulo" className="max-w-4xl space-y-3 rounded-md border border-border bg-card p-4 sm:p-5">
       <h2 id="corte-titulo" className="text-[15px] font-semibold">Data de corte</h2>
       {!canApprove ? <p role="note" className="rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">Quem define a data de corte é o Proprietário.</p> : null}
       {locked && !status.completedAt ? <p role="note" className="text-sm text-muted-foreground">A data de corte não muda depois do primeiro movimento.</p> : null}
-      <Field label="Data de corte" dica={OPENING_DICAS.corte} error={error ?? local} hint="Vale a posição no fim desse dia. Sugestão: o último dia do mês anterior.">
-        {(p) => <DateInput {...p} value={date} disabled={readOnly} onChange={(v) => { setError(undefined); setDate(v) }} />}
-      </Field>
-      <div className="flex flex-wrap justify-end gap-2">
+      <FormGrid>
+        <Field label="Data de corte" size="sm" dica={OPENING_DICAS.corte} error={error ?? local} hint="Vale a posição no fim desse dia. Sugestão: o último dia do mês anterior.">
+          {(p) => <DateInput {...p} value={date} disabled={readOnly} onChange={(v) => { setError(undefined); setDate(v) }} />}
+        </Field>
+      </FormGrid>
+      <FormActions>
         {status.cutoverDate ? <button type="button" onClick={onNext} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ir para os saldos</button> : null}
         {readOnly ? null : (
           <ConfirmDialog
@@ -49,7 +51,7 @@ export function CutoverStep({ status, refresh, onNext }: StepProps) {
             trigger={<button type="button" disabled={!!local} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">Definir data de corte</button>}
           />
         )}
-      </div>
+      </FormActions>
     </section>
   )
 }

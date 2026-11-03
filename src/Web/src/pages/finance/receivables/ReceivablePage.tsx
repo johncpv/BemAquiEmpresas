@@ -73,27 +73,26 @@ export function ReceivablePage() {
 
   return (
     <>
-      <PageHeading title={`${r.number} — ${r.partyName}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-1.5">
+      <PageHeading title={`${r.number} — ${r.partyName}`}
+        meta={
+          <>
             <StatusChip tone={s.tone}>{s.label}</StatusChip>
             {slip ? <StatusChip tone={slip.tone}>{slip.label}</StatusChip> : null}
             {r.origin === 'Opening' ? <Tag>Implantação</Tag> : r.origin === 'Contract' ? <Tag>Contrato</Tag> : null}
             <span className="text-sm text-muted-foreground">{r.description}</span>
             {canFiscal && r.projectId ? <Link to={'/app/fiscal/saida' as never} search={{ aba: 'emitidas', projeto: r.projectId } as never} className="ml-2 text-sm font-semibold text-primary">Notas fiscais do projeto</Link> : null}
             <Link to="/app/financeiro/receber" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
-          </div>
-          {canEdit ? (
-            <div className="flex flex-wrap gap-2">
+          </>
+        }
+        actions={canEdit ? (
+            <>
               {canIssue ? <button type="button" onClick={issue} className={button}>Emitir boleto</button> : null}
               {open ? <button type="button" onClick={() => setDialog('settle')} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Dar baixa</button> : null}
               {open ? <button type="button" onClick={() => setDialog('writeoff')} className={button}>Quitar o saldo com desconto</button> : null}
               {r.status === 'Open' ? <button type="button" onClick={() => setDialog('due')} className={button}>Alterar vencimento</button> : null}
               {r.status !== 'Cancelled' ? <button type="button" onClick={() => setDialog('cancel')} className={button + ' text-crit-ink'}>Cancelar título</button> : null}
-            </div>
-          ) : null}
-        </div>
-      </PageHeading>
+            </>
+          ) : undefined} />
       {shown.length > 0 ? <div className="mb-4"><NextSteps onDismiss={() => setSteps(null)} steps={shown} /></div> : null}
       {r.status === 'Paid' || r.status === 'Cancelled' ? (
         <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">

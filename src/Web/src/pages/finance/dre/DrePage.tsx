@@ -115,12 +115,13 @@ export function DrePage() {
 
   return (
     <>
-      <PageHeading title="Quanto a empresa vendeu, gastou e lucrou em cada mês.">
-        <p className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground">
+      <PageHeading title="Quanto a empresa vendeu, gastou e lucrou em cada mês."
+        meta={
+          <span className="flex flex-wrap items-center gap-2 text-muted-foreground">
           <span className="inline-flex items-center">DRE gerencial por competência<Dica texto={DRE_DICAS.competencia} nome="Competência" /></span>
           {query.data?.isProvisional ? <span className="inline-flex items-center"><StatusChip tone="info">Provisório</StatusChip><Dica texto={DRE_DICAS.provisorio} nome="Provisório" /></span> : null}
-        </p>
-      </PageHeading>
+          </span>
+        } />
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <label className="space-y-1 text-sm font-medium">Período
           <select value={months} onChange={(e) => set({ meses: e.target.value === '12' ? undefined : e.target.value })} className={inputClass + ' min-h-11 sm:min-h-0'}>

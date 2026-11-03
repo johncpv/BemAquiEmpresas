@@ -76,17 +76,14 @@ export function ReceivablesPage() {
 
   return (
     <>
-      <PageHeading title="Financeiro: A receber">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">O que os clientes devem à empresa, por vencimento.</p>
-          <div className="flex flex-wrap gap-2">
+      <PageHeading title="Financeiro: A receber" description="O que os clientes devem à empresa, por vencimento." actions={
+          <>
             <Link to="/app/financeiro/receber/descontos-e-cancelamentos" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Descontos e cancelamentos</Link>
             <Can perm="finance.create">
               <Link to="/app/financeiro/receber/novo" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo título a receber</Link>
             </Can>
-          </div>
-        </div>
-      </PageHeading>
+          </>
+      } />
       <DeadLetterBanner />
       {reviewing || reviewCount > 0 ? (
         <div className="mb-3 flex flex-wrap items-center gap-2">

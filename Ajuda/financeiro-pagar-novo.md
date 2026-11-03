@@ -15,7 +15,7 @@ Lançar uma conta a pagar: uma nota de fornecedor, um boleto ou uma despesa avul
 - Informe o valor, a emissão e o vencimento, ou parcele pela condição de pagamento.
 - Em **Retenções**, preencha só o que a nota destacar. O valor líquido aparece embaixo.
 - Em **Forma de pagamento**, informe Pix, boleto, TED ou outro. Ela é obrigatória para o título entrar numa ordem de pagamento.
-- Clique em **Salvar título a pagar**.
+- Clique em **Salvar título a pagar**, na barra presa no rodapé, logo acima do menu. Ela avisa **Alterações não salvas** enquanto houver algo para salvar.
 
 ## Perguntas frequentes
 **Onde ficam as retenções no parcelamento?** Na primeira parcela, que é a da nota.

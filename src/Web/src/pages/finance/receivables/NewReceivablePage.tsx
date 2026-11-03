@@ -6,10 +6,11 @@ import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { ToggleGroup } from '@/components/form/choice'
 import { type ComboOption, Combobox } from '@/components/form/combobox'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormActions, FormError, FormGridItem, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput, MoneyInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
+import { FormLayout } from '@/components/layout/form-layout'
 import { notifySuccess } from '@/components/ui/messages'
 import { Money } from '@/components/ui/money'
 import { ErrorState, Skeleton } from '@/components/ui/states'
@@ -42,7 +43,7 @@ export function NewReceivablePage() {
   const accounts = useListAccounts()
   const centers = useListCostCenters()
   const terms = useListPaymentTerms({ pageSize: 100 })
-  if (accounts.isPending || centers.isPending || terms.isPending) return <Skeleton className="h-96 max-w-3xl" />
+  if (accounts.isPending || centers.isPending || terms.isPending) return <Skeleton className="h-96 max-w-4xl" />
   if (accounts.isError || centers.isError || terms.isError) return <ErrorState onRetry={() => { void accounts.refetch(); void centers.refetch(); void terms.refetch() }} />
   const revenue = accounts.data.filter((a) => a.type === 'Revenue' && a.acceptsEntries && a.isActive)
   return (
@@ -116,20 +117,21 @@ function ReceivableForm({ accounts, centers, terms }: FormProps) {
 
   return (
     <>
-      <PageHeading title="Novo título a receber">
-        <p className="mt-2 text-muted-foreground">Um título só, ou parcelado pela condição de pagamento do cliente.</p>
-      </PageHeading>
-      <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="max-w-3xl space-y-4">
+      <PageHeading title="Novo título a receber" description="Um título só, ou parcelado pela condição de pagamento do cliente." />
+      {/* Padrão de layout (ADR 0044): coluna à esquerda, uma grade de 12 trilhas por seção e a barra de ações presa acima do dock. */}
+      <FormLayout>
+      <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="space-y-5">
         <UnsavedChangesGuard when={dirty} onSave={save} />
         <FormError message={server && Object.keys(server.fields).length === 0 ? server.message : undefined} />
-        <FormSection title="Cliente e conta">
-          <Field label="Cliente" required error={errors.partyId}>
+        {/* Cliente 6 · Descrição 6 / Conta de receita 6 · Centro de custo 6 / Projeto 6 */}
+        <FormSection title="Cliente e conta" grid="form">
+          <Field label="Cliente" required size="lg" error={errors.partyId}>
             {(p) => <Combobox {...p} queryKey={['finance-customers']} search={searchCustomers} value={draft.customer?.id ?? null} selected={draft.customer} placeholder="Busque pelo nome ou CNPJ" onChange={chooseCustomer} />}
           </Field>
-          <Field label="Descrição" required error={errors.description} hint="Aparece no título e nas parcelas.">
+          <Field label="Descrição" required size="lg" error={errors.description} hint="Aparece no título e nas parcelas.">
             {(p) => <input {...p} value={draft.description} maxLength={200} onChange={(e) => set({ description: e.target.value })} className={inputClass} />}
           </Field>
-          <Field label="Conta de receita" required error={errors.accountId}>
+          <Field label="Conta de receita" required size="lg" error={errors.accountId}>
             {(p) => (
               <select {...p} value={draft.accountId} onChange={(e) => set({ accountId: e.target.value })} className={inputClass}>
                 <option value="">Escolha</option>
@@ -137,7 +139,7 @@ function ReceivableForm({ accounts, centers, terms }: FormProps) {
               </select>
             )}
           </Field>
-          <Field label="Centro de custo" error={errors.costCenterId}>
+          <Field label="Centro de custo" size="lg" error={errors.costCenterId}>
             {(p) => (
               <select {...p} value={draft.costCenterId} onChange={(e) => set({ costCenterId: e.target.value })} className={inputClass}>
                 <option value="">Sem centro de custo</option>
@@ -147,16 +149,17 @@ function ReceivableForm({ accounts, centers, terms }: FormProps) {
           </Field>
           <ProjectCostFields value={draft.projectCost} onChange={(projectCost) => set({ projectCost })} withCostType={false} errors={errors} />
         </FormSection>
-        <FormSection title="Valor e vencimento">
-          <Field label="Valor" required error={errors.amount}>{(p) => <MoneyInput {...p} value={draft.amount} onChange={(v) => set({ amount: v })} />}</Field>
-          <Field label="Emissão" required error={errors.issueDate}>{(p) => <DateInput {...p} value={draft.issueDate} onChange={(issueDate) => set({ issueDate })} />}</Field>
-          <div className="space-y-1">
+        {/* Valor 3 · Emissão 3 · Forma 6 / Condição 6 · Data base 3 (ou Vencimento 3) / parcelas */}
+        <FormSection title="Valor e vencimento" grid="form">
+          <Field label="Valor" required size="sm" error={errors.amount}>{(p) => <MoneyInput {...p} value={draft.amount} onChange={(v) => set({ amount: v })} />}</Field>
+          <Field label="Emissão" required size="sm" error={errors.issueDate}>{(p) => <DateInput {...p} value={draft.issueDate} onChange={(issueDate) => set({ issueDate })} />}</Field>
+          <FormGridItem size="lg" className="space-y-1">
             <span className="block text-sm font-medium">Forma</span>
             <ToggleGroup label="Forma" value={draft.mode} onChange={(mode) => set({ mode })} options={[{ value: 'single', label: 'Título único' }, { value: 'split', label: 'Parcelar pela condição' }]} />
-          </div>
+          </FormGridItem>
           {split ? (
             <>
-              <Field label="Condição de pagamento" required error={errors.paymentTermId} hint={draft.customer?.termId && draft.termId === draft.customer.termId ? 'A condição padrão do cliente.' : undefined}>
+              <Field label="Condição de pagamento" required size="lg" error={errors.paymentTermId} hint={draft.customer?.termId && draft.termId === draft.customer.termId ? 'A condição padrão do cliente.' : undefined}>
                 {(p) => (
                   <select {...p} value={draft.termId} onChange={(e) => set({ termId: e.target.value })} className={inputClass}>
                     <option value="">Escolha</option>
@@ -164,12 +167,13 @@ function ReceivableForm({ accounts, centers, terms }: FormProps) {
                   </select>
                 )}
               </Field>
-              <Field label="Data base" required error={errors.baseDate} hint="Os vencimentos contam a partir dela.">{(p) => <DateInput {...p} value={draft.baseDate} onChange={(baseDate) => set({ baseDate })} />}</Field>
+              <Field label="Data base" required size="sm" error={errors.baseDate} hint="Os vencimentos contam a partir dela.">{(p) => <DateInput {...p} value={draft.baseDate} onChange={(baseDate) => set({ baseDate })} />}</Field>
             </>
           ) : (
-            <Field label="Vencimento" required error={errors.dueDate}>{(p) => <DateInput {...p} value={draft.dueDate} onChange={(dueDate) => set({ dueDate })} />}</Field>
+            <Field label="Vencimento" required size="sm" error={errors.dueDate}>{(p) => <DateInput {...p} value={draft.dueDate} onChange={(dueDate) => set({ dueDate })} />}</Field>
           )}
           {split && preview.data ? (
+            <FormGridItem>
             <table className="w-full text-sm" aria-label="Parcelas que serão lançadas">
               <thead className="text-xs text-muted-foreground"><tr><th className="py-1 text-left">Parcela</th><th className="py-1 text-left">Vencimento</th><th className="py-1 text-right">Valor</th></tr></thead>
               <tbody>
@@ -182,13 +186,15 @@ function ReceivableForm({ accounts, centers, terms }: FormProps) {
                 ))}
               </tbody>
             </table>
+            </FormGridItem>
           ) : null}
         </FormSection>
-        <div className="flex justify-end gap-2">
-          <Link to="/app/financeiro/receber" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</Link>
+        <FormActions sticky dirty={dirty}>
+          <Link to="/app/financeiro/receber" className="rounded-md border border-border px-3 py-2 text-center text-sm font-semibold">Voltar</Link>
           <button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">{split ? 'Salvar títulos a receber' : 'Salvar título a receber'}</button>
-        </div>
+        </FormActions>
       </form>
+      </FormLayout>
     </>
   )
 }

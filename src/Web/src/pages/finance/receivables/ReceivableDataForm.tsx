@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { updateReceivable, useListAccounts, useListCostCenters } from '@/api/generated/bemaqui'
 import type { ReceivableDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormActions, FormError, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { MoneyInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
+import { FormLayout } from '@/components/layout/form-layout'
 import { notifySuccess } from '@/components/ui/messages'
 import { type ProjectCost, ProjectCostFields } from '../payables/ProjectCostFields'
 
@@ -37,24 +38,32 @@ export function ReceivableDataForm({ receivable, canEdit, onSaved }: { receivabl
 
   const revenue = (accounts.data ?? []).filter((a) => a.type === 'Revenue' && a.acceptsEntries && (a.isActive || a.id === draft.accountId))
   const centerOptions = (centers.data ?? []).filter((c) => c.isActive || c.id === draft.costCenterId)
+  // Padrão de layout (ADR 0044): uma seção, com a grade de 12 trilhas; formulário curto, botão no fim.
   return (
-    <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="max-w-3xl space-y-4">
+    <FormLayout>
+    <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="space-y-5">
       <UnsavedChangesGuard when={dirty && canEdit} onSave={save} />
       <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
-      <fieldset disabled={!canEdit} className="space-y-4">
-        <FormSection title="Dados do título">
-          <Field label="Descrição" required error={field('description')}>{(p) => <input {...p} value={draft.description} maxLength={200} onChange={(e) => set({ description: e.target.value })} className={inputClass} />}</Field>
-          <Field label="Conta de receita" required error={field('accountId')}>
+      <fieldset disabled={!canEdit} className="space-y-5">
+        {/* Descrição 8 / Conta de receita 6 · Centro de custo 6 / Valor 3 · Projeto 6 */}
+        <FormSection title="Dados do título" grid="form">
+          <Field label="Descrição" required size="xl" error={field('description')}>{(p) => <input {...p} value={draft.description} maxLength={200} onChange={(e) => set({ description: e.target.value })} className={inputClass} />}</Field>
+          <Field label="Conta de receita" required size="lg" error={field('accountId')}>
             {(p) => <select {...p} value={draft.accountId} onChange={(e) => set({ accountId: e.target.value })} className={inputClass}>{revenue.map((a) => <option key={a.id} value={a.id}>{a.code} {a.name}</option>)}</select>}
           </Field>
-          <Field label="Centro de custo" error={field('costCenterId')}>
+          <Field label="Centro de custo" size="lg" error={field('costCenterId')}>
             {(p) => <select {...p} value={draft.costCenterId} onChange={(e) => set({ costCenterId: e.target.value })} className={inputClass}><option value="">Sem centro de custo</option>{centerOptions.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>}
           </Field>
-          <Field label="Valor" required error={field('amount')} hint={amountHint}>{(p) => <MoneyInput {...p} value={draft.amount} disabled={amountLocked} onChange={(amount) => set({ amount })} />}</Field>
+          <Field label="Valor" required size="sm" error={field('amount')} hint={amountHint}>{(p) => <MoneyInput {...p} value={draft.amount} disabled={amountLocked} onChange={(amount) => set({ amount })} />}</Field>
           <ProjectCostFields value={draft.projectCost} onChange={(projectCost) => set({ projectCost })} withCostType={false} errors={{ projectId: field('projectId') }} disabled={receivable.origin === 'Contract'} />
         </FormSection>
-        {canEdit ? <div className="flex justify-end"><button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar título a receber</button></div> : null}
+        {canEdit ? (
+          <FormActions>
+            <button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar título a receber</button>
+          </FormActions>
+        ) : null}
       </fieldset>
     </form>
+    </FormLayout>
   )
 }

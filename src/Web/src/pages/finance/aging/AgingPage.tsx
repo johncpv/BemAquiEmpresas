@@ -62,9 +62,7 @@ export function AgingPage() {
   const rows = query.data?.rows ?? []
   return (
     <>
-      <PageHeading title="Financeiro: Inadimplência">
-        <p className="mt-2 flex flex-wrap items-center text-muted-foreground">Quem está devendo e há quanto tempo, para cobrar primeiro quem pesa mais.<Dica nome="Aging" texto={DICAS.aging} /></p>
-      </PageHeading>
+      <PageHeading title="Financeiro: Inadimplência" description={<>Quem está devendo e há quanto tempo, para cobrar primeiro quem pesa mais.<Dica nome="Aging" texto={DICAS.aging} /></>} />
       <div className="space-y-4">
         {summary}
         <UrlTabs label="Visões da inadimplência" fallback="clientes" tabs={[{ id: 'clientes', label: 'Por cliente', content: (

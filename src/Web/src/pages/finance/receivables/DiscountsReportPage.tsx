@@ -19,12 +19,8 @@ export function DiscountsReportPage() {
   const query = useGetDiscountsAndCancellations({ from: from || undefined, to: to || undefined })
   return (
     <>
-      <PageHeading title="Descontos e cancelamentos">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">O que deixou de entrar no caixa no período, e quem decidiu.</p>
-          <Link to="/app/financeiro/receber" className="text-sm font-semibold text-primary">Voltar a A receber</Link>
-        </div>
-      </PageHeading>
+      <PageHeading title="Descontos e cancelamentos" description="O que deixou de entrar no caixa no período, e quem decidiu."
+        meta={<Link to="/app/financeiro/receber" className="text-sm font-semibold text-primary">Voltar a A receber</Link>} />
       <div className="mb-4 grid max-w-md grid-cols-2 gap-3">
         <Field label="De">{(p) => <DateInput {...p} value={from} onChange={setFrom} />}</Field>
         <Field label="Até">{(p) => <DateInput {...p} value={to} onChange={setTo} />}</Field>
