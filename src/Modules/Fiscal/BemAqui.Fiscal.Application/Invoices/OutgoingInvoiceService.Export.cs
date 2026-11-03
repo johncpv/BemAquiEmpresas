@@ -57,8 +57,8 @@ public sealed partial class OutgoingInvoiceService
     {
         ArgumentNullException.ThrowIfNull(query);
         var (total, rows) = await BookRowsAsync(query, max, cancellationToken);
-        var party = query.PartyId is { } partyId ? (await parties.FindManyAsync([partyId], cancellationToken)).FirstOrDefault() : null;
-        var project = query.ProjectId is { } projectId ? (await projects.FindManyAsync([projectId], cancellationToken)).FirstOrDefault() : null;
+        var party = query.PartyId is { } partyId && await parties.FindManyAsync([partyId], cancellationToken) is [var foundParty, ..] ? foundParty : null;
+        var project = query.ProjectId is { } projectId && await projects.FindManyAsync([projectId], cancellationToken) is [var foundProject, ..] ? foundProject : null;
         ExportFilter[] filters =
         [
             new("De", query.From?.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)),
