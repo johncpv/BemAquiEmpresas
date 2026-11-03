@@ -46,9 +46,7 @@ export function PayrollParallelPage() {
 
   return (
     <>
-      <PageHeading title="RH: Conferência da folha">
-        <p className="mt-2 text-muted-foreground">A folha calculada pelo sistema lado a lado com a da contadora, competência por competência, até a virada.</p>
-      </PageHeading>
+      <PageHeading title="RH: Conferência da folha" description="A folha calculada pelo sistema lado a lado com a da contadora, competência por competência, até a virada." />
       {query.isPending ? <Skeleton className="h-64" /> : query.isError ? (
         <ErrorState title="Não foi possível carregar a conferência da folha." message={query.error instanceof ApiError ? query.error.message : undefined} onRetry={() => query.refetch()} />
       ) : !view ? null : (
@@ -63,7 +61,7 @@ export function PayrollParallelPage() {
           )}
           {selected ? (
             canSensitive ? <ParallelDetail id={selected} isOwner={isOwner} onChanged={refresh} /> : (
-              <div className="flex max-w-3xl items-center gap-2 rounded-md border border-border bg-muted px-4 py-6 text-sm text-muted-foreground">
+              <div className="flex max-w-prose items-center gap-2 rounded-md border border-border bg-muted px-4 py-6 text-sm text-muted-foreground">
                 <Lock aria-hidden="true" className="size-4" />
                 Dados protegidos
                 <Dica nome="Dados protegidos" texto={PARALLEL_DICAS.protegidos} />

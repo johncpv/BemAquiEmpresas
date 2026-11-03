@@ -22,7 +22,7 @@ const period = (start: string, end: string) => `${formatDate(start)} a ${formatD
 export function EmployeeTimeline({ employee, onChanged, onReload }: { employee: EmployeeDetail; onChanged: (e: EmployeeDetail) => void; onReload: () => Promise<unknown> }) {
   const canSensitive = useCan('hr.view_sensitive')
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-4xl space-y-6">
       <section aria-labelledby="afastamentos" className="space-y-3">
         <h2 id="afastamentos" className="text-base font-semibold">Afastamentos</h2>
         {canSensitive ? <EmployeeLeaves employee={employee} onChanged={onChanged} onReload={onReload} /> : <EmployeeProtected />}

@@ -38,10 +38,10 @@ export function PayrollRunsPage() {
 
   return (
     <>
-      <PageHeading title="RH: Folha">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="inline-flex items-center text-muted-foreground">Folha lançada: os valores da contadora, conferidos antes de virar holerite e pagamento.<Dica nome="Folha lançada" texto={PAYROLL_DICAS.lancada} /></p>
-          <span className="flex flex-wrap gap-2">
+      <PageHeading title="RH: Folha"
+        description={<span className="inline-flex items-center">Folha lançada: os valores da contadora, conferidos antes de virar holerite e pagamento.<Dica nome="Folha lançada" texto={PAYROLL_DICAS.lancada} /></span>}
+        actions={
+          <>
             {canForecast ? (
               <ConfirmDialog verb="Recalcular previsão" done="Previsão recalculada" title="Recalcular a folha prevista?"
                 description="Refaz os próximos meses da folha no fluxo de caixa a partir da última folha Mensal fechada, com o 13º e as férias."
@@ -50,9 +50,8 @@ export function PayrollRunsPage() {
             ) : null}
             {canForecast ? <Dica nome="Folha prevista" texto={PAYROLL_DICAS.prevista} /> : null}
             {newButton}
-          </span>
-        </div>
-      </PageHeading>
+          </>
+        } />
       {query.isPending ? <Skeleton className="h-48" /> : query.isError ? <ErrorState title="Não foi possível carregar as folhas." onRetry={() => query.refetch()} /> : query.data.length === 0 ? (
         <EmptyState title="Nenhuma folha ainda." description="Crie a folha do mês para lançar os valores da contadora." action={newButton} />
       ) : (

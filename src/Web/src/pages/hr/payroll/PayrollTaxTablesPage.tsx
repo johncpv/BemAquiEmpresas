@@ -39,12 +39,8 @@ export function PayrollTaxTablesPage() {
 
   return (
     <>
-      <PageHeading title="RH: Tabelas da folha">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">INSS, IRRF, salário-família, salário mínimo, FGTS, vale-transporte e encargos, cada um com a data em que passa a valer.</p>
-          {newButton}
-        </div>
-      </PageHeading>
+      <PageHeading title="RH: Tabelas da folha" actions={newButton}
+        description="INSS, IRRF, salário-família, salário mínimo, FGTS, vale-transporte e encargos, cada um com a data em que passa a valer." />
       {query.isPending ? <Skeleton className="h-64" /> : query.isError ? (
         <ErrorState title="Não foi possível carregar as tabelas da folha." message="Verifique a conexão e tente de novo. Se continuar, fale com o administrador." onRetry={() => query.refetch()} />
       ) : !view ? null : total === 0 ? (

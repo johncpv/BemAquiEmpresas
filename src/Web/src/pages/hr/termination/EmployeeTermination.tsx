@@ -7,7 +7,7 @@ import {
 import type { EmployeeDetail, TerminationItem, TerminationResultView, TerminationView } from '@/api/generated/model'
 import { apiDownload, ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
-import { Field, FormError } from '@/components/form/form'
+import { Field, FormError, FormGrid } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput } from '@/components/form/inputs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -126,8 +126,9 @@ function TerminationForm({ data, calculate, onResult }: { data: TerminationView;
   return (
     <form className="space-y-3 rounded-md border border-border bg-card p-4" onSubmit={(e) => { e.preventDefault(); void submit() }}>
       <FormError message={error ?? undefined} />
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Tipo do desligamento" required>
+      {/* Grade de 12 trilhas (ADR 0044): Tipo 6 · Data 3 / Aviso 4 · Fim do contrato 3 / Saldo do FGTS 3 · Data do extrato 3 */}
+      <FormGrid>
+        <Field label="Tipo do desligamento" required size="lg">
           {(f) => (
             <select {...f} value={draft.kind} className={inputClass}
               onChange={(e) => setDraft({ ...draft, kind: e.target.value, noticeKind: data.kinds.find((k) => k.kind === e.target.value)?.defaultNotice ?? draft.noticeKind })}>
@@ -135,10 +136,10 @@ function TerminationForm({ data, calculate, onResult }: { data: TerminationView;
             </select>
           )}
         </Field>
-        <Field label={calculate ? 'Data do desligamento' : 'Data prevista'} required hint={calculate ? 'A data registrada no desligamento.' : 'Vem com hoje.'}>
+        <Field label={calculate ? 'Data do desligamento' : 'Data prevista'} required size="sm" hint={calculate ? 'A data registrada no desligamento.' : 'Vem com hoje.'}>
           {(f) => <DateInput {...f} value={draft.terminationDate} disabled={calculate} onChange={(v) => setDraft({ ...draft, terminationDate: v })} />}
         </Field>
-        <Field label="Aviso prévio" dica={TERMINATION_DICAS.avisoIndenizado} hint={`${data.noticeDays} dias pelo tempo de casa (30 + 3 por ano completo, até 90).`}>
+        <Field label="Aviso prévio" size="md" dica={TERMINATION_DICAS.avisoIndenizado} hint={`${data.noticeDays} dias pelo tempo de casa (30 + 3 por ano completo, até 90).`}>
           {(f) => (
             <select {...f} value={draft.noticeKind} onChange={(e) => setDraft({ ...draft, noticeKind: e.target.value })} className={inputClass}>
               {Object.entries(NOTICE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -146,17 +147,17 @@ function TerminationForm({ data, calculate, onResult }: { data: TerminationView;
           )}
         </Field>
         {needsContractEnd ? (
-          <Field label="Fim previsto do contrato de experiência" required>
+          <Field label="Fim previsto do contrato de experiência" required size="sm">
             {(f) => <DateInput {...f} value={draft.contractEndDate} onChange={(v) => setDraft({ ...draft, contractEndDate: v })} />}
           </Field>
         ) : null}
-        <Field label="Saldo do FGTS" required={calculate && hasFine} dica={TERMINATION_DICAS.saldoFgts} hint={hasFine ? `Multa de ${option?.fgtsFinePct}% neste tipo.` : 'Sem multa neste tipo.'}>
+        <Field label="Saldo do FGTS" size="sm" required={calculate && hasFine} dica={TERMINATION_DICAS.saldoFgts} hint={hasFine ? `Multa de ${option?.fgtsFinePct}% neste tipo.` : 'Sem multa neste tipo.'}>
           {(f) => <input {...f} inputMode="decimal" value={draft.fgtsBalance} onChange={(e) => setDraft({ ...draft, fgtsBalance: e.target.value.replace(/[^0-9,.]/g, '') })} className={inputClass + ' tabular-nums'} />}
         </Field>
-        <Field label="Data do extrato do FGTS" required={draft.fgtsBalance.trim() !== ''}>
+        <Field label="Data do extrato do FGTS" size="sm" required={draft.fgtsBalance.trim() !== ''}>
           {(f) => <DateInput {...f} value={draft.fgtsStatementDate} onChange={(v) => setDraft({ ...draft, fgtsStatementDate: v })} />}
         </Field>
-      </div>
+      </FormGrid>
       <button type="submit" disabled={busy} className={button + ' bg-primary text-primary-foreground'}>
         {busy ? (calculate ? 'Calculando…' : 'Simulando…') : calculate ? (saved ? 'Recalcular rescisão' : 'Calcular rescisão') : 'Simular rescisão'}
       </button>
@@ -209,7 +210,7 @@ export function EmployeeTermination({ employee, canEdit }: { employee: EmployeeD
   const t = data.termination
   const canCalculate = canEdit && canSensitive && t?.status !== 'Closed'
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="max-w-4xl space-y-5">
       {steps.length > 0 ? <NextSteps steps={steps} onDismiss={() => setSteps([])} /> : null}
       {t ? <TerminationCard t={t} employeeId={employee.id} canEdit={canEdit} /> : null}
       <section aria-labelledby="rescisao-form" className="space-y-2">

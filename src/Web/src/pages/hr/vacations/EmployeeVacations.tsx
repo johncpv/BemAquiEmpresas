@@ -186,7 +186,7 @@ export function EmployeeVacations({ employee, canEdit }: { employee: EmployeeDet
   const canSchedule = canEdit && data.periods.some((p) => (p.status === 'Available' || p.status === 'Expired') && p.balance > 0)
   const schedules = data.schedules
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="max-w-4xl space-y-5">
       {steps.length > 0 ? <NextSteps steps={steps} onDismiss={() => setSteps([])} /> : null}
       {warnings.map((w) => <p key={w} role="status" className="rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">{w}</p>)}
       <section aria-labelledby="ferias-periodos" className="space-y-2">

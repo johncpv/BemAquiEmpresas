@@ -50,7 +50,7 @@ export function PaymentsTab({ run }: { run: PayrollRunSummary }) {
     ...(view.chargePreselected.length > 0 ? [{ label: 'Criar ordem de pagamento das guias', onSelect: () => order(view.chargePreselected) }] : []),
   ]
   return (
-    <div className="max-w-4xl space-y-4">
+    <div className="space-y-4">
       {canOrder && !stepsDismissed && steps.length > 0 ? <NextSteps steps={steps} onDismiss={() => setStepsDismissed(true)} /> : null}
       {view.quarantined.length > 0 ? (
         <section aria-label="Fora do pagamento automático" className="rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">

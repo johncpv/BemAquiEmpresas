@@ -17,12 +17,7 @@ export function SchedulesPage() {
   const newButton = <Can perm="hr.create"><button type="button" onClick={() => setEditing({ schedule: null })} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Nova jornada</button></Can>
   return (
     <>
-      <PageHeading title="RH: Jornadas">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Os horários de trabalho, que dão as horas mensais de cada cargo.</p>
-          {newButton}
-        </div>
-      </PageHeading>
+      <PageHeading title="RH: Jornadas" description="Os horários de trabalho, que dão as horas mensais de cada cargo." actions={newButton} />
       {query.isPending ? <Skeleton className="h-48" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : query.data.length === 0 ? (
         <EmptyState title="Cadastre as jornadas de trabalho da empresa." action={newButton} />
       ) : (

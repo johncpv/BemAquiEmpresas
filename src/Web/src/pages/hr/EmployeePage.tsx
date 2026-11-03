@@ -90,17 +90,19 @@ export function EmployeePage() {
 
   return (
     <>
-      <PageHeading title={employee.name}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-1.5">
+      <PageHeading title={employee.name}
+        meta={
+          <>
             <StatusChip tone={STATUS_TONES[employee.status]}>{STATUS_LABELS[employee.status]}</StatusChip>
             {employee.status === 'OnLeave' ? <Dica nome="Afastado" texto={EMPLOYEE_DICAS.afastado} /> : null}
             {bankStatus.data ? <BankStatusChip status={bankStatus.data} /> : null}
             <Tag>{employee.positionName}</Tag>
             {employee.registration ? <span className="text-sm tabular-nums text-muted-foreground">Matrícula {employee.registration}</span> : null}
             <Link to="/app/rh/funcionarios" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
-          </div>
-          <div className="flex flex-wrap gap-2">
+          </>
+        }
+        actions={
+          <>
             {canEdit && active ? (
               <>
                 <PositionDialog employee={employee} onDone={setEmployee} />
@@ -114,9 +116,8 @@ export function EmployeePage() {
                 recovery={active && canEdit ? { verb: 'Registrar desligamento', when: (code) => code === 'employee_has_history', onSelect: async () => setTerminating(true) } : undefined}
                 trigger={<button type="button" className={button + ' text-crit-ink'}>Excluir</button>} />
             </Can>}
-          </div>
-        </div>
-      </PageHeading>
+          </>
+        } />
       <AnonymizedBand at={employee.anonymizedAt} request={employee.anonymizationRequest} />
       {canEdit && canSensitive && active ? (
         <LeaveDialog employee={employee} canHealth={canHealth} open={leaving} onOpenChange={setLeaving} onReload={() => query.refetch()}

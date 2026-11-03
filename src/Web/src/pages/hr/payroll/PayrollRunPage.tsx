@@ -25,7 +25,7 @@ import { ReviewTab } from './ReviewTab'
 /** Bloco "Dados protegidos" (padrão 8 das Fases 4 a 8): sem hr.view_sensitive, nada de valor é pedido ao servidor. */
 export function PayrollProtected() {
   return (
-    <div className="flex max-w-3xl items-center gap-2 rounded-md border border-border bg-muted px-4 py-6 text-sm text-muted-foreground">
+    <div className="flex max-w-prose items-center gap-2 rounded-md border border-border bg-muted px-4 py-6 text-sm text-muted-foreground">
       <Lock aria-hidden="true" className="size-4" />
       Dados protegidos
       <Dica nome="Dados protegidos" texto={PAYROLL_DICAS.protegidos} />
@@ -72,21 +72,22 @@ export function PayrollRunPage() {
   const protectedTab = <PayrollProtected />
   return (
     <>
-      <PageHeading title={`Folha ${typeLabel(run.type)} de ${periodLabel(run.period)}`}>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+      <PageHeading title={`Folha ${typeLabel(run.type)} de ${periodLabel(run.period)}`}
+        meta={
+          <>
           <StatusChip tone={STATUS_TONES[run.status] ?? 'neutral'}>{STATUS_LABELS[run.status] ?? run.status}</StatusChip>
           <span className="inline-flex items-center text-sm text-muted-foreground">{MODE_LABELS[run.mode] ?? run.mode}{run.rectifiesRunId ? ' (retificação)' : ''}<Dica nome={MODE_LABELS[run.mode] ?? 'Folha'} texto={calculated ? PAYROLL_DICAS.calculada : PAYROLL_DICAS.lancada} /></span>
           <span className="text-sm tabular-nums text-muted-foreground">{run.payslipCount === 1 ? '1 holerite' : `${run.payslipCount} holerites`}</span>
           {run.closedByName ? <span className="text-sm text-muted-foreground">Fechada por {run.closedByName}</span> : null}
           <Link to="/app/rh/folha" className="ml-2 text-sm font-semibold text-primary">Voltar às folhas</Link>
-        </div>
-      </PageHeading>
-      {canClose ? (
-        <div className="mb-4 flex flex-wrap gap-2">
-          {draft && !run.isSimulation ? <CloseRunDialog run={run} onClosed={async (result) => { setChangedAfterNotice(result.changedAfterNotice ?? 0); await refresh(); setClosedSteps(true); setTab('pagamentos') }} /> : null}
-          {run.status === 'Closed' ? <ReopenRunDialog run={run} onReopened={refresh} /> : null}
-        </div>
-      ) : null}
+          </>
+        }
+        actions={canClose ? (
+          <>
+            {draft && !run.isSimulation ? <CloseRunDialog run={run} onClosed={async (result) => { setChangedAfterNotice(result.changedAfterNotice ?? 0); await refresh(); setClosedSteps(true); setTab('pagamentos') }} /> : null}
+            {run.status === 'Closed' ? <ReopenRunDialog run={run} onReopened={refresh} /> : null}
+          </>
+        ) : undefined} />
       {calculated ? <CalculationBar run={run} onChanged={refresh} /> : null}
       {!draft ? <ClosedBand run={run} /> : null}
       {run.timesheetNotice ? (

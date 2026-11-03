@@ -29,7 +29,7 @@ export function EmployeeUser({ employee, linking, onLinkingChange }: Props) {
   if (linked.isPending) return <Skeleton className="h-20" />
   const user = linked.data?.user ?? null
   return (
-    <FormSection title="Usuário do sistema" description="O vínculo liga o login ao funcionário (ponto, apontamento). Não muda grupo nem permissão.">
+    <FormSection title="Usuário do sistema" description="O vínculo liga o login ao funcionário (ponto, apontamento). Não muda grupo nem permissão." grid="none">
       {user ? (
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
           <span><b>{user.name}</b> <span className="text-muted-foreground">{user.email}</span></span>

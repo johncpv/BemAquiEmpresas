@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { updateEmployee, useListSchedules, useListUnions } from '@/api/generated/bemaqui'
 import type { EmployeeDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormActions, FormError, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
+import { FormLayout } from '@/components/layout/form-layout'
 import { notifySuccess } from '@/components/ui/messages'
 import { EMPLOYEE_DICAS } from './employee'
 import { EmployeeUser } from './EmployeeUser'
@@ -33,23 +34,27 @@ export function EmployeeGeneral({ employee, canEdit, onSaved, linking, onLinking
     }
   }
 
+  // Padrão de layout (ADR 0044): uma grade só por seção, cada campo do tamanho do conteúdo e a barra presa acima do dock.
   return (
-    <div className="max-w-3xl space-y-4">
-      <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="space-y-4">
+    <FormLayout>
+      <div className="space-y-5">
+      <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="space-y-5">
         <UnsavedChangesGuard when={dirty} onSave={save} />
         <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
-        <fieldset disabled={!canEdit} className="space-y-4">
-          <FormSection title="Identificação">
-            <Field label="Nome" required error={field('name')}>
+        <fieldset disabled={!canEdit} className="space-y-5">
+          {/* Nome 8 · Matrícula 3 */}
+          <FormSection title="Identificação" grid="form">
+            <Field label="Nome" required size="xl" error={field('name')}>
               {(p) => <input {...p} value={draft.name} maxLength={150} autoComplete="off" onChange={(e) => set({ name: e.target.value })} className={inputClass} />}
             </Field>
-            <Field label="Matrícula" error={field('registration')} dica={EMPLOYEE_DICAS.matricula}>
+            <Field label="Matrícula" size="sm" error={field('registration')} dica={EMPLOYEE_DICAS.matricula}>
               {(p) => <input {...p} value={draft.registration} maxLength={20} autoComplete="off" onChange={(e) => set({ registration: e.target.value })} className={inputClass + ' tabular-nums'} />}
             </Field>
           </FormSection>
-          <FormSection title="Contrato" description={`Cargo: ${employee.positionName}${employee.workCenterName ? ` · Centro: ${employee.workCenterName}` : ''}. Para mudar o cargo, use "Trocar cargo".`}>
-            <Field label="Admissão" required error={field('admissionDate')}>{(p) => <DateInput {...p} value={draft.admissionDate} onChange={(admissionDate) => set({ admissionDate })} />}</Field>
-            <Field label="Jornada" error={field('workScheduleId')}>
+          <FormSection title="Contrato" description={`Cargo: ${employee.positionName}${employee.workCenterName ? ` · Centro: ${employee.workCenterName}` : ''}. Para mudar o cargo, use "Trocar cargo".`} grid="form">
+            {/* Admissão 3 · Jornada 4 · Sindicato 4 */}
+            <Field label="Admissão" required size="sm" error={field('admissionDate')}>{(p) => <DateInput {...p} value={draft.admissionDate} onChange={(admissionDate) => set({ admissionDate })} />}</Field>
+            <Field label="Jornada" size="md" error={field('workScheduleId')}>
               {(p) => (
                 <select {...p} value={draft.workScheduleId} onChange={(e) => set({ workScheduleId: e.target.value })} className={inputClass}>
                   <option value="">Sem jornada</option>
@@ -57,7 +62,7 @@ export function EmployeeGeneral({ employee, canEdit, onSaved, linking, onLinking
                 </select>
               )}
             </Field>
-            <Field label="Sindicato" error={field('unionId')}>
+            <Field label="Sindicato" size="md" error={field('unionId')}>
               {(p) => (
                 <select {...p} value={draft.unionId} onChange={(e) => set({ unionId: e.target.value })} className={inputClass}>
                   <option value="">Sem sindicato</option>
@@ -66,10 +71,15 @@ export function EmployeeGeneral({ employee, canEdit, onSaved, linking, onLinking
               )}
             </Field>
           </FormSection>
-          {canEdit ? <div className="flex justify-end"><button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar dados gerais</button></div> : null}
+          {canEdit ? (
+            <FormActions sticky dirty={dirty}>
+              <button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar dados gerais</button>
+            </FormActions>
+          ) : null}
         </fieldset>
       </form>
       <EmployeeUser employee={employee} linking={linking} onLinkingChange={onLinkingChange} />
-    </div>
+      </div>
+    </FormLayout>
   )
 }

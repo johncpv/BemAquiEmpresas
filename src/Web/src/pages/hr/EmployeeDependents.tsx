@@ -24,21 +24,21 @@ export function EmployeeDependents({ employee, canEdit, onFirstSaved }: { employ
   const query = useListEmployeeDependentsSensitive(employee.id, { query: { enabled: canSee, gcTime: 0, staleTime: 0 } })
   const [editing, setEditing] = useState<EmployeeDependentDetail | 'new' | null>(null)
   if (!canSee) return <EmployeeProtected />
-  if (query.isPending) return <div className="max-w-3xl space-y-2">{[0, 1].map((i) => <Skeleton key={i} className="h-20" />)}</div>
+  if (query.isPending) return <div className="space-y-2">{[0, 1].map((i) => <Skeleton key={i} className="h-20" />)}</div>
   if (query.isError) return <ErrorState title="Não foi possível carregar os dependentes." onRetry={() => query.refetch()} />
   const list = query.data
   const add = canEdit ? <button type="button" onClick={() => setEditing('new')} className={primary}>Novo dependente</button> : undefined
   const saved = async () => { const first = list.length === 0; await query.refetch(); if (first) onFirstSaved() }
 
   return (
-    <div className="max-w-3xl space-y-3">
+    <div className="space-y-3">
       {editing ? <DependentDialog employee={employee} dependent={editing === 'new' ? undefined : editing} onClose={() => setEditing(null)} onSaved={saved} /> : null}
       {list.length === 0 ? (
         <EmptyState title="Nenhum dependente cadastrado." description="Cadastre os filhos e demais dependentes para o IR e o salário-família." action={add} />
       ) : (
         <>
           {add ? <div className="flex justify-end">{add}</div> : null}
-          <ul aria-label="Dependentes" className="grid gap-2 sm:grid-cols-2">
+          <ul aria-label="Dependentes" className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {list.map((d) => (
               <li key={d.id} className="space-y-2 rounded-md border border-border bg-card p-3 text-sm">
                 <div className="flex flex-wrap items-start justify-between gap-2">

@@ -33,12 +33,8 @@ export function PayrollItemsPage() {
   const pending = (query.data ?? []).filter((i) => !i.confirmed).length
   return (
     <>
-      <PageHeading title="RH: Rubricas">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Proventos, descontos e informativas dos holerites. {pending > 0 ? `${pending} ${pending === 1 ? 'rubrica a confirmar' : 'rubricas a confirmar'} com a contadora.` : ''}</p>
-          {newButton}
-        </div>
-      </PageHeading>
+      <PageHeading title="RH: Rubricas" actions={newButton}
+        description={<>Proventos, descontos e informativas dos holerites. {pending > 0 ? `${pending} ${pending === 1 ? 'rubrica a confirmar' : 'rubricas a confirmar'} com a contadora.` : ''}</>} />
       {query.isPending ? <Skeleton className="h-48" /> : query.isError ? <ErrorState title="Não foi possível carregar as rubricas." onRetry={() => query.refetch()} /> : query.data.length === 0 ? (
         <EmptyState title="Nenhuma rubrica cadastrada." description="Cadastre as rubricas que a contadora usa no holerite." action={newButton} />
       ) : (

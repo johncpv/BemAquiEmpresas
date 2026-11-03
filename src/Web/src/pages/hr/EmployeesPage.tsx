@@ -30,16 +30,13 @@ export function EmployeesPage() {
 
   return (
     <>
-      <PageHeading title="RH: Funcionários">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Quem trabalha na empresa e em qual cargo.</p>
-          <Can perm="hr.view_sensitive">
-            <Can perm="hr.create">
-              <Link to="/app/rh/funcionarios/novo" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo funcionário</Link>
-            </Can>
+      <PageHeading title="RH: Funcionários" description="Quem trabalha na empresa e em qual cargo." actions={
+        <Can perm="hr.view_sensitive">
+          <Can perm="hr.create">
+            <Link to="/app/rh/funcionarios/novo" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo funcionário</Link>
           </Can>
-        </div>
-      </PageHeading>
+        </Can>
+      } />
       <DataTable
         label="Funcionários"
         columns={columns}

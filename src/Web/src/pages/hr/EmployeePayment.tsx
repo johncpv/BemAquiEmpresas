@@ -8,10 +8,11 @@ import {
 import type { EmployeeBankAccountRevealed, EmployeeDetail, EmployeePaymentDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { ToggleGroup } from '@/components/form/choice'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormActions, FormError, FormGridItem, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { CpfInput } from '@/components/form/inputs'
 import { TwoFactorCodeField } from '@/components/form/two-factor-code'
+import { FormLayout } from '@/components/layout/form-layout'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogMessage } from '@/components/ui/dialog-message'
 import { notifySuccess } from '@/components/ui/messages'
@@ -40,7 +41,7 @@ export function EmployeePayment({ employee, canEdit }: { employee: EmployeeDetai
   const [reviewing, setReviewing] = useState(false)
   const [steps, setSteps] = useState(false)
   if (!canSee) return <EmployeeProtected />
-  if (query.isPending) return <Skeleton className="h-96 max-w-3xl" />
+  if (query.isPending) return <Skeleton className="h-96 max-w-4xl" />
   if (query.isError || !query.data) return <ErrorState title="Não foi possível carregar a conta para pagamento." onRetry={() => query.refetch()} />
   const payment = query.data
   const changed = (next: EmployeePaymentDetail) => {
@@ -50,13 +51,15 @@ export function EmployeePayment({ employee, canEdit }: { employee: EmployeeDetai
   }
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <FormLayout>
+      <div className="space-y-5">
       {steps && payment.status.canReview ? <NextSteps onDismiss={() => setSteps(false)} steps={[{ label: 'Revisar conta', onSelect: () => { setSteps(false); setReviewing(true) } }]} /> : null}
       <BankSection payment={payment} employee={employee} canEdit={canEdit} onChange={() => setFlow(true)} onReview={() => setReviewing(true)} />
       {flow ? <BankAccountFlow employee={employee} payment={payment} onClose={() => setFlow(false)} onReload={() => query.refetch()} onDone={(next) => { changed(next); setSteps(next.status.inQuarantine) }} /> : null}
       {reviewing ? <ReviewDialog employee={employee} payment={payment} onClose={() => setReviewing(false)} onReload={() => query.refetch()} onDone={changed} /> : null}
       <AdditionalForm key={payment.version} employee={employee} payment={payment} canEdit={canEdit} onSaved={changed} onReload={() => query.refetch()} />
-    </div>
+      </div>
+    </FormLayout>
   )
 }
 
@@ -73,7 +76,7 @@ function BankSection({ payment, employee, canEdit, onChange, onReview }: { payme
 
   if (!account) {
     return (
-      <FormSection title="Conta para pagamento" description="Banco e Pix para receber o salário. Dado protegido pela LGPD; cada leitura fica registrada.">
+      <FormSection title="Conta para pagamento" description="Banco e Pix para receber o salário. Dado protegido pela LGPD; cada leitura fica registrada." grid="none">
         <EmptyState title="Nenhuma conta para pagamento." description="Registre a conta do funcionário antes da primeira folha." action={canEdit ? <button type="button" onClick={onChange} className={primary}>Registrar conta para pagamento</button> : undefined} />
       </FormSection>
     )
@@ -87,7 +90,7 @@ function BankSection({ payment, employee, canEdit, onChange, onReview }: { payme
   )
 
   return (
-    <FormSection title="Conta para pagamento" description="Agência, conta, titular e chave Pix ficam mascarados. Mostrar registra a leitura.">
+    <FormSection title="Conta para pagamento" description="Agência, conta, titular e chave Pix ficam mascarados. Mostrar registra a leitura." grid="none">
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           {chip ? <StatusChip tone={chip.tone}>{chip.label}</StatusChip> : null}
@@ -303,12 +306,14 @@ function AdditionalForm({ employee, payment, canEdit, onSaved, onReload }: { emp
   }
 
   return (
-    <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }}>
-      <FormSection title="Adicionais e vale-transporte" description="O valor do vale-transporte e o desconto saem na folha.">
-        <FormError message={error?.message} />
-        {error?.code === 'concurrency_conflict' ? <button type="button" onClick={() => void onReload()} className={button}>Recarregar</button> : null}
-        <fieldset disabled={!canEdit} className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
-          <Field label="Insalubridade">
+    // Formulário curto (ADR 0044): uma seção na grade de 12 trilhas (antes, grade dentro da grade) e os botões no fim.
+    <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="space-y-3">
+      <FormError message={error?.message} />
+      {error?.code === 'concurrency_conflict' ? <button type="button" onClick={() => void onReload()} className={button}>Recarregar</button> : null}
+      <fieldset disabled={!canEdit}>
+        {/* Insalubridade 4 · Periculosidade 4 · Vale-transporte 4 */}
+        <FormSection title="Adicionais e vale-transporte" description="O valor do vale-transporte e o desconto saem na folha." grid="form">
+          <Field label="Insalubridade" size="md">
             {(p) => (
               <select {...p} value={insalubrity} onChange={(e) => setInsalubrity(e.target.value)} className={inputClass}>
                 <option value="">Não recebe</option>
@@ -316,17 +321,19 @@ function AdditionalForm({ employee, payment, canEdit, onSaved, onReload }: { emp
               </select>
             )}
           </Field>
-          <label className="flex min-h-11 items-center gap-2 self-end text-sm">
-            <input type="checkbox" className="size-4" checked={hazard} onChange={(e) => setHazard(e.target.checked)} />
-            Recebe periculosidade
-          </label>
-          <div className="space-y-1">
+          <FormGridItem size="md" className="self-end">
+            <label className="flex min-h-11 items-center gap-2 text-sm">
+              <input type="checkbox" className="size-4" checked={hazard} onChange={(e) => setHazard(e.target.checked)} />
+              Recebe periculosidade
+            </label>
+          </FormGridItem>
+          <FormGridItem size="md" className="space-y-1">
             <span className="flex items-center text-sm font-medium">Vale-transporte<Dica nome="Vale-transporte" texto={COMPLEMENT_DICAS.valeTransporte} /></span>
             <ToggleGroup label="Vale-transporte" value={voucher} onChange={setVoucher} disabled={!canEdit} options={[{ value: 'uses', label: 'Usa' }, { value: 'no', label: 'Não usa' }]} />
-          </div>
-        </fieldset>
-        {canEdit ? <div className="mt-3 flex justify-end"><button type="submit" className={primary}>Salvar adicionais</button></div> : null}
-      </FormSection>
+          </FormGridItem>
+        </FormSection>
+      </fieldset>
+      {canEdit ? <FormActions><button type="submit" className={primary}>Salvar adicionais</button></FormActions> : null}
     </form>
   )
 }

@@ -143,10 +143,8 @@ export function TimesheetOverviewPage() {
   const data = query.data
   return (
     <>
-      <PageHeading title="RH: Ponto">
-        <p className="mt-1 text-muted-foreground">O espelho de cada funcionário no período, para conferir, fechar e mandar à contadora e à folha.</p>
-      </PageHeading>
-      <div className="max-w-5xl space-y-4">
+      <PageHeading title="RH: Ponto" description="O espelho de cada funcionário no período, para conferir, fechar e mandar à contadora e à folha." />
+      <div className="space-y-4">
         <TimeClockTabs />
         <InternalControlBanner />
         {steps.length > 0 ? <NextSteps steps={steps} onDismiss={() => setSteps([])} /> : null}

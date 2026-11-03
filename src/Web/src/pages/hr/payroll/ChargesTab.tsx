@@ -6,7 +6,7 @@ import { addPayrollCharge, deletePayrollCharge, getListPayrollChargesSensitiveQu
 import type { PayrollChargeDetail, PayrollChargeKind, PayrollChargesView, PayrollRunSummary } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { type ComboOption, Combobox } from '@/components/form/combobox'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormError, FormGridItem, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput, MoneyInput } from '@/components/form/inputs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -82,9 +82,9 @@ function Charges({ run, view, editable }: { run: PayrollRunSummary; view: Payrol
 
   const newButton = editable ? <button type="button" onClick={() => { setError(null); setDraft(fresh('Fgts')) }} className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Adicionar guia</button> : null
   return (
-    <div className="max-w-3xl space-y-4">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">As guias que a contadora calculou para a competência. Cada uma vira um título a pagar no fechamento da folha.</p>
+        <p className="max-w-prose text-sm text-muted-foreground">As guias que a contadora calculou para a competência. Cada uma vira um título a pagar no fechamento da folha.</p>
         {draft ? null : newButton}
       </div>
       {view.fgtsMismatch ? (
@@ -118,11 +118,11 @@ function Charges({ run, view, editable }: { run: PayrollRunSummary; view: Payrol
         </ul>
       )}
       {draft ? (
-        <FormSection title={draft.id ? 'Editar guia' : 'Nova guia'}>
-          <div className="space-y-3 sm:col-span-2">
-            <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Guia" required error={error?.fields.kind?.[0]}>
+        // Formulário da guia na coluna de 896 px, com uma grade só (ADR 0044): Guia 4 · Valor 3 / Descrição 6 · Vencimento 3 / Órgão 6.
+        <div className="max-w-4xl">
+        <FormSection title={draft.id ? 'Editar guia' : 'Nova guia'} grid="form">
+            {error && Object.keys(error.fields).length === 0 ? <FormGridItem><FormError message={error.message} /></FormGridItem> : null}
+              <Field label="Guia" required size="md" error={error?.fields.kind?.[0]}>
                 {(p) => (
                   <select {...p} value={draft.kind} disabled={draft.calculated} onChange={(e) => {
                     const kind = e.target.value as PayrollChargeKind
@@ -133,31 +133,30 @@ function Charges({ run, view, editable }: { run: PayrollRunSummary; view: Payrol
                   </select>
                 )}
               </Field>
-              <Field label="Valor" required error={error?.fields.amount?.[0]} hint={draft.kind === 'Fgts' ? `Soma do FGTS dos holerites: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(view.payslipsFgts)}` : undefined}>
+              <Field label="Valor" required size="sm" error={error?.fields.amount?.[0]} hint={draft.kind === 'Fgts' ? `Soma do FGTS dos holerites: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(view.payslipsFgts)}` : undefined}>
                 {(p) => <MoneyInput {...p} value={draft.amount} disabled={draft.calculated} onChange={(amount) => set({ amount })} />}
               </Field>
-              <Field label="Descrição" required={draft.kind === 'Other'} error={error?.fields.description?.[0]} hint="Vazio: o nome da guia e a competência.">
+              <Field label="Descrição" required={draft.kind === 'Other'} size="lg" error={error?.fields.description?.[0]} hint="Vazio: o nome da guia e a competência.">
                 {(p) => <input {...p} value={draft.description} maxLength={100} onChange={(e) => set({ description: e.target.value })} className={inputClass} />}
               </Field>
-              <Field label="Vencimento" required error={error?.fields.dueDate?.[0]} hint={view.defaults.find((d) => d.kind === draft.kind)?.dueDate ? 'Pelo padrão de Configurações → Parâmetros → RH (o dia não útil antecipa).' : 'Informado na folha.'}>
+              <Field label="Vencimento" required size="sm" error={error?.fields.dueDate?.[0]} hint={view.defaults.find((d) => d.kind === draft.kind)?.dueDate ? 'Pelo padrão de Configurações → Parâmetros → RH (o dia não útil antecipa).' : 'Informado na folha.'}>
                 {(p) => <DateInput {...p} value={draft.dueDate} onChange={(dueDate) => set({ dueDate })} />}
               </Field>
-            </div>
-            <Field label="Órgão favorecido" error={error?.fields.payeePartyId?.[0]} hint="O título a pagar sai no nome dele.">
+            <Field label="Órgão favorecido" size="lg" error={error?.fields.payeePartyId?.[0]} hint="O título a pagar sai no nome dele.">
               {(p) => <Combobox {...p} queryKey={['payroll-payees']} search={searchPayees} value={draft.payee?.id ?? null} selected={draft.payee} placeholder="Busque pelo nome ou CNPJ" onChange={(payee) => set({ payee })} />}
             </Field>
             {canParties && !draft.payee ? (
-              <p className="text-sm">
+              <FormGridItem><p className="text-sm">
                 <Link to="/app/cadastros/terceiros/novo" search={{ papel: 'Supplier', nome: SUGGESTED[draft.kind] || undefined } as never} target="_blank" className="font-semibold text-primary underline">Cadastrar órgão</Link>
                 {SUGGESTED[draft.kind] ? <span className="text-muted-foreground"> (já com o nome {SUGGESTED[draft.kind]})</span> : null}
-              </p>
+              </p></FormGridItem>
             ) : null}
-            <div className="flex flex-wrap justify-end gap-2">
+            <FormGridItem className="flex flex-wrap justify-end gap-2">
               <button type="button" onClick={() => setDraft(null)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</button>
               <button type="button" onClick={() => void save()} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar guia</button>
-            </div>
-          </div>
+            </FormGridItem>
         </FormSection>
+        </div>
       ) : null}
       {view.items.some((c) => !c.payeePartyId) ? <StatusChip tone="warn">Guia sem órgão: escolha antes do fechamento</StatusChip> : null}
     </div>
