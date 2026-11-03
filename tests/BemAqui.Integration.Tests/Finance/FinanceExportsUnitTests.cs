@@ -14,7 +14,7 @@ public class FinanceExportsUnitTests
 {
     private static readonly DateOnly Day = new(2026, 10, 15);
 
-    private static IReadOnlyList<string> Headers<T>(ExportSpec<T> spec) => spec.OutputColumns(ExportFormat.Xlsx, _ => true).Select(c => c.Header).ToList();
+    private static List<string> Headers<T>(ExportSpec<T> spec) => spec.OutputColumns(ExportFormat.Xlsx, _ => true).Select(c => c.Header).ToList();
 
     [Fact]
     public void Extrato_comeca_no_saldo_de_partida_termina_no_saldo_final_e_marca_os_estornos()
