@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Web;
@@ -41,6 +42,10 @@ internal static class FiscalIncomingEndpoints
         invoices.MapGet(string.Empty, async (IncomingInvoiceStatus? status, int? page, int? pageSize, IncomingInvoiceService service, CancellationToken ct) =>
                 Results.Ok(await service.ListAsync(status, new PageRequest(page ?? 1, pageSize ?? 50).Normalize(), ct)))
             .RequirePermission("fiscal.view").WithName("ListIncomingInvoices").Produces<IncomingInvoiceList>();
+        // EXP-05 CA 16: a lista em Excel com o filtro de situação da tela.
+        invoices.MapGet("/export", (string? format, IncomingInvoiceStatus? status, HttpContext http, IncomingInvoiceService service, ListExportService export, CancellationToken ct) =>
+                export.ExportAsync(http, format, IncomingInvoiceExports.Spec, IncomingInvoiceExports.Filters(status), (max, c) => IncomingInvoiceExports.RowsAsync(service, status, max, c), ct))
+            .RequirePermission("fiscal.view").WithName("ExportIncomingInvoices");
 
         invoices.MapPost("/import", async ([FromForm] IncomingXmlForm form, IncomingInvoiceService service, CancellationToken ct) =>
             {

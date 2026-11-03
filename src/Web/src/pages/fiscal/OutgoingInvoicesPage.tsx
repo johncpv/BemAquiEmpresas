@@ -1,9 +1,10 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { createOutgoingInvoice, useListInvoicesToIssue, useListOutgoingInvoices } from '@/api/generated/bemaqui'
+import { createOutgoingInvoice, getExportOutgoingInvoicesUrl, useListInvoicesToIssue, useListOutgoingInvoices } from '@/api/generated/bemaqui'
 import type { InvoiceQueueRow, InvoiceType, OutgoingInvoiceStatus } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { UrlTabs } from '@/components/ui/url-tabs'
@@ -108,8 +109,8 @@ function Issued() {
   const gaps = search.situacao === TO_INVALIDATE
   const requested = search.situacao === REQUESTED
   const status = gaps || requested ? undefined : (search.situacao as OutgoingInvoiceStatus | undefined)
-  const list = useListOutgoingInvoices({ from: search.de, to: search.ate, status, type: search.tipo, partyId: search.cliente, projectId: search.projeto, cancellationRequested: requested || undefined, page, pageSize: 25 },
-    { query: { enabled: !gaps } })
+  const filters = { from: search.de, to: search.ate, status, type: search.tipo, partyId: search.cliente, projectId: search.projeto, cancellationRequested: requested || undefined }
+  const list = useListOutgoingInvoices({ ...filters, page, pageSize: 25 }, { query: { enabled: !gaps } })
   const go = (next: Partial<typeof search>) => void navigate({ to: '.', search: (prev: Record<string, unknown>) => ({ ...prev, pagina: undefined, ...next }) } as never)
   const input = 'min-h-11 rounded-md border border-input bg-card px-2 text-sm'
 
@@ -182,6 +183,11 @@ function Issued() {
           </select>
         </label>
         {search.cliente || search.projeto ? <button type="button" className={secondary} onClick={() => go({ cliente: undefined, projeto: undefined })}>Tirar o filtro de cliente e projeto</button> : null}
+        {gaps ? null : (
+          <div className="ml-auto">
+            <ExportMenu formats={['xlsx']} fileBase="notas-de-saida" empty={list.data?.total === 0} url={(format) => getExportOutgoingInvoicesUrl({ ...filters, format })} />
+          </div>
+        )}
       </div>
       {body}
     </div>

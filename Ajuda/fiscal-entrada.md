@@ -22,6 +22,10 @@ Lista as notas fiscais eletrônicas (NF-e) que os fornecedores mandaram, importa
 - **Recebida**: o material deu entrada pelo recebimento da nota.
 - **Recusada**: a nota foi recusada com o motivo; a mesma chave pode ser importada de novo.
 
+## Imprimir e exportar
+- **Exportar → Excel (.xlsx)**, ao lado dos botões de importar, baixa as notas da situação escolhida: número, série, chave, emissão, emitente, CNPJ, total, pedido e situação.
+- O XML das notas não vai na planilha: ele fica em cada nota.
+
 ## Perguntas frequentes
 **Quem importa a nota?** Quem tem a permissão **Importar nota de entrada** do Fiscal (o Almoxarifado, no padrão). Emitir nota de saída não dá essa permissão.
 

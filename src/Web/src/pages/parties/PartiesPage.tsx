@@ -1,9 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListParties } from '@/api/generated/bemaqui'
+import { getExportPartiesUrl, useListParties } from '@/api/generated/bemaqui'
 import type { PartyListItem, PartyRoleKind } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
 import { Can } from '@/pages/ModuleGate'
@@ -15,7 +16,8 @@ export function PartiesPage() {
   const [search] = useTableSearch()
   const { papel, inativos } = useTableFilters(['papel'])
   const role = ROLE_OPTIONS.some((o) => o.value === papel) ? (papel as PartyRoleKind) : undefined
-  const query = useListParties({ q: search.q, role, includeInactive: inativos === 'true', page: search.page, pageSize: search.pageSize, sort: search.sort })
+  const filters = { q: search.q, role, includeInactive: inativos === 'true', sort: search.sort }
+  const query = useListParties({ ...filters, page: search.page, pageSize: search.pageSize })
 
   const columns: ColumnDef<PartyListItem>[] = [
     {
@@ -47,6 +49,7 @@ export function PartiesPage() {
         getRowId={(p) => p.id}
         rowHref={(p) => `/app/cadastros/terceiros/${p.id}`}
         searchPlaceholder="Buscar por nome, CNPJ ou CPF completo"
+        toolbar={<ExportMenu formats={['xlsx']} fileBase="terceiros" empty={query.data?.total === 0} url={(format) => getExportPartiesUrl({ ...filters, format })} />}
         filters={[{ key: 'papel', label: 'Papel', options: ROLE_OPTIONS }]}
         inactiveFilter
         empty={{

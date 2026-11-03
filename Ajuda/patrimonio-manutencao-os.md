@@ -18,6 +18,13 @@ Acompanhar uma OS de manutenção do começo ao fim: o bem, o problema, a data a
 - **Cancelar OS**: informe o motivo. O bem volta a Ativo se nenhuma outra OS o segurar. A preventiva cancelada não muda a última execução do plano.
 - No celular, use **Abrir no celular**: a mesma OS com botões grandes.
 
+## Imprimir e exportar
+- **Baixar PDF**, no cabeçalho, baixa a OS de manutenção (`MAN-….pdf`); **Imprimir** abre o mesmo PDF numa aba nova.
+- O PDF leva o número, o bem (patrimônio, nome, local e centro), o tipo, o plano de origem, a data agendada, o executor (equipe interna ou o prestador), o problema, o checklist com uma caixa por item (marcada quando feito, com traço quando não se aplica), o horímetro do plano por horas, as observações e as assinaturas **Executado por** e **Conferido por**.
+- O custo (valor combinado e o total por natureza: mão de obra interna, prestador, peças e outros) sai só para quem edita o patrimônio, como na aba Custo. Nome e custo-hora de funcionário nunca saem.
+- A OS aberta ou em andamento sai sem marca; a cancelada sai com **Cancelado** e o motivo.
+- Ao abrir uma OS, os próximos passos oferecem **Imprimir a OS para o executor**: ele marca o checklist no papel e assina.
+
 ## Perguntas frequentes
 **Por que "Concluir manutenção" está desabilitado?** Faltam itens do checklist. O botão diz quantos: marque cada um como **Feito** ou **Não se aplica**.
 

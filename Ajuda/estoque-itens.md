@@ -15,6 +15,9 @@ Cadastrar tudo o que a empresa compra, fabrica, consome ou vende: matérias-prim
 - Clique no item para abrir os dados. Use **Novo item** para cadastrar.
 - Pela busca da barra do topo (Ctrl K), digite duas letras do código ou do nome para ir direto a um item.
 
+## Imprimir e exportar
+- **Exportar → Excel (.xlsx)**, na barra da lista, baixa todos os itens do filtro: código, descrição, tipo, categoria, unidade, NCM, controle (lote, série), estoque mínimo e situação.
+
 ## Perguntas frequentes
 **Por que um item não aparece na lista?** Ele pode estar inativo. Ligue o filtro **Inativos**.
 

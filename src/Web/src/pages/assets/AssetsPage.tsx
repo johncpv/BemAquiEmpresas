@@ -1,10 +1,11 @@
 import { Link, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListAssetResponsibleChoices, useListAssets, useListAssetSites, useListAssetWorkCenterChoices } from '@/api/generated/bemaqui'
+import { getExportAssetsUrl, useListAssetResponsibleChoices, useListAssets, useListAssetSites, useListAssetWorkCenterChoices } from '@/api/generated/bemaqui'
 import type { AssetListItem } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatMoney } from '@/lib/format'
@@ -32,10 +33,11 @@ export function AssetsPage() {
   const sites = useListAssetSites({ includeInactive: true })
   const centers = useListAssetWorkCenterChoices()
   const responsibles = useListAssetResponsibleChoices()
-  const query = useListAssets({
+  const filters = {
     q: search.q, type: isAssetType(tipo) ? tipo : undefined, siteId: local || undefined, workCenterId: centro || undefined, responsibleEmployeeId: responsavel || undefined,
-    status: isAssetStatus(situacao) ? situacao : undefined, responsibleTerminated: terminated || undefined, page: search.page, pageSize: search.pageSize, sort: search.sort,
-  })
+    status: isAssetStatus(situacao) ? situacao : undefined, responsibleTerminated: terminated || undefined, sort: search.sort,
+  }
+  const query = useListAssets({ ...filters, page: search.page, pageSize: search.pageSize })
 
   const columns: ColumnDef<AssetListItem>[] = [
     {
@@ -80,6 +82,7 @@ export function AssetsPage() {
         selectable={{ selected, onChange: setSelected, rowLabel: (a) => `bem ${a.tag}` }}
         rowHref={(a) => `/app/patrimonio/bens/${a.id}`}
         searchPlaceholder="Buscar pela etiqueta, nome ou série"
+        toolbar={<ExportMenu formats={['xlsx']} fileBase="bens" empty={query.data?.total === 0} url={(format) => getExportAssetsUrl({ ...filters, format })} />}
         filters={[
           { key: 'tipo', label: 'Tipo', options: TYPE_OPTIONS },
           { key: 'local', label: 'Local', options: (sites.data ?? []).map((s) => ({ value: s.id, label: s.name })) },

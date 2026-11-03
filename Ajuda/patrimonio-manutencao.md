@@ -16,6 +16,10 @@ Ver num lugar só o que está em manutenção: as OS de manutenção abertas e e
 - Clique no número da OS para executar, marcar o checklist e concluir.
 - O plano preventivo fica na ficha de cada bem, na aba **Manutenção**. Pela preventiva vencida, clique no bem para ir direto ao plano.
 
+## Imprimir e exportar
+- **Exportar → Excel (.xlsx)**, no cabeçalho, baixa as OS do filtro (número, bem, centro, tipo, plano, data agendada, executor, máquina parada e situação) e, numa aba à parte, as preventivas vencidas e a vencer.
+- Sem filtro de situação, saem as abertas e em andamento, como na tela. O custo não vai nesta planilha: ele está em **Custo de manutenção**.
+
 ## Perguntas frequentes
 **Quem abre a OS preventiva?** O sistema. Todo dia de manhã ele confere os planos: avisa quem cuida do patrimônio na antecedência do plano e, no dia do vencimento, abre a OS preventiva com o checklist do plano. Uma OS por vencimento.
 

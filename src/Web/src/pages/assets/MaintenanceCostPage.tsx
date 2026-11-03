@@ -1,11 +1,12 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
-import { useGetMaintenanceCostReport, useListAssetWorkCenterChoices, useListMaintenanceCostOrders } from '@/api/generated/bemaqui'
+import { getExportMaintenanceCostsUrl, useGetMaintenanceCostReport, useListAssetWorkCenterChoices, useListMaintenanceCostOrders } from '@/api/generated/bemaqui'
 import type { ListMaintenanceCostOrdersParams, MaintenanceCostCell, MaintenanceOrderType } from '@/api/generated/model'
 import { inputClass } from '@/components/form/form-utils'
 import { ColumnChart } from '@/components/ui/column-chart'
 import { DashboardCard } from '@/components/ui/dashboard-card'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { Money } from '@/components/ui/money'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { formatInstantDate } from '@/lib/format'
@@ -39,7 +40,11 @@ export function MaintenanceCostPage() {
   const setFilter = (patch: Filters) => { setCell(null); void navigate({ to: '/app/patrimonio/custo', search: { ...search, ...patch } as never, replace: true }) }
 
   const heading = (
-    <PageHeading title="Patrimônio: Custo de manutenção" description="Quanto cada máquina custa em manutenção, por mês, por bem e por centro de trabalho." />
+    <PageHeading title="Patrimônio: Custo de manutenção" description="Quanto cada máquina custa em manutenção, por mês, por bem e por centro de trabalho."
+      actions={canEdit ? (
+        <ExportMenu formats={['xlsx']} fileBase="custo-de-manutencao" empty={!!report.data && report.data.total.total <= 0}
+          url={(format) => getExportMaintenanceCostsUrl({ from, to, workCenterId: search.centro || undefined, assetId: search.bem || undefined, format })} />
+      ) : undefined} />
   )
   if (!canEdit) {
     return (
