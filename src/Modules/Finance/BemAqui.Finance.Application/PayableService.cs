@@ -1,4 +1,5 @@
 using BemAqui.BuildingBlocks.Authorization;
+using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Notifications;
 using BemAqui.BuildingBlocks.Paging;
@@ -50,6 +51,66 @@ public sealed partial class PayableService(
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(page);
         var today = Today;
+        var payables = Filter(query, today);
+        var open = payables.Where(p => Unpaid.Contains(p.Status));
+        // Salários sem finance.approve nem finance.pay (RH-02c CA 7): fora da página, só agrupados por folha (os totais seguem inteiros).
+        IReadOnlyList<PayablePayrollGroup>? groups = null;
+        if (!await CanSeeEmployeesAsync(cancellationToken))
+        {
+            groups = PayrollGroups(await payables.Where(p => p.PayeeType == PayeeType.Employee).ToListAsync(cancellationToken));
+            payables = payables.Where(p => p.PayeeType != PayeeType.Employee);
+        }
+
+        var totals = new PayableTotals(
+            await open.SumAsync(p => p.Amount - p.RetentionIss - p.RetentionInss - p.RetentionIr - p.RetentionPcc - p.PaidAmount, cancellationToken),
+            await open.Where(p => p.DueDate < today).SumAsync(p => p.Amount - p.RetentionIss - p.RetentionInss - p.RetentionIr - p.RetentionPcc - p.PaidAmount, cancellationToken));
+        var paged = await Sort(payables, page).ToPagedListAsync(page, cancellationToken);
+        return new PayablePage(new PagedList<PayableDetail>(await DetailsAsync(paged.Items, cancellationToken), paged.Page, paged.PageSize, paged.Total), totals, groups);
+    }
+
+    /// <summary>
+    /// Linhas da exportação (EXP-01, ADR 0045 §3): os mesmos filtros e a mesma ordem da lista, sem paginação, até <paramref name="max"/>
+    /// linhas. A regra dos salários é a da tela (RH-02c CA 7): sem aprovar nem pagar, cada folha vira uma linha "Folha …" com o total.
+    /// </summary>
+    public async Task<ExportRows<PayableExportRow>> ExportRowsAsync(PayableListQuery query, string? sort, int max, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        var payables = Filter(query, Today);
+        var rows = new List<PayableExportRow>();
+        if (!await CanSeeEmployeesAsync(cancellationToken))
+        {
+            rows.AddRange(PayrollGroups(await payables.Where(p => p.PayeeType == PayeeType.Employee).ToListAsync(cancellationToken)).Select(PayableExportRow.FromGroup));
+            payables = payables.Where(p => p.PayeeType != PayeeType.Employee);
+        }
+
+        var total = rows.Count + await payables.CountAsync(cancellationToken);
+        if (total > max)
+        {
+            return new ExportRows<PayableExportRow>(total, []);
+        }
+
+        var items = await Sort(payables, new PageRequest(Sort: sort)).ToListAsync(cancellationToken);
+        rows.AddRange((await DetailsAsync(items, cancellationToken)).Select(PayableExportRow.FromDetail));
+        return new ExportRows<PayableExportRow>(total, rows);
+    }
+
+    /// <summary>Os filtros da exportação com os rótulos da tela (aba "Filtros", linha "Filtros:" do PDF e auditoria).</summary>
+    public async Task<IReadOnlyList<ExportFilter>> ExportFiltersAsync(PayableListQuery query, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        var party = query.PartyId is { } id ? await parties.FindAsync(id, cancellationToken) : null;
+        return
+        [
+            new("Busca", string.IsNullOrWhiteSpace(query.Q) ? null : query.Q.Trim()),
+            new("Situação", query.Situation is { } s ? PayableExport.Situations.GetValueOrDefault(s, s) : null),
+            new("Fornecedor", party is null ? null : party.TradeName ?? party.LegalName),
+            new("Vencimento de", query.DueFrom?.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)),
+            new("Vencimento até", query.DueTo?.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)),
+        ];
+    }
+
+    private IQueryable<Payable> Filter(PayableListQuery query, DateOnly today)
+    {
         var payables = db.Payables.AsNoTracking();
         if (query.PartyId is { } party)
         {
@@ -72,7 +133,7 @@ public sealed partial class PayableService(
             payables = payables.Where(p => EF.Functions.ILike(p.Number, like) || EF.Functions.ILike(p.Description, like));
         }
 
-        payables = query.Situation switch
+        return query.Situation switch
         {
             "aberto" => payables.Where(p => Unpaid.Contains(p.Status)),
             "vencido" => payables.Where(p => Unpaid.Contains(p.Status) && p.DueDate < today),
@@ -82,31 +143,17 @@ public sealed partial class PayableService(
             "cancelado" => payables.Where(p => p.Status == PayableStatus.Cancelled),
             _ => payables.Where(p => p.Status != PayableStatus.Cancelled),
         };
-
-        var open = payables.Where(p => Unpaid.Contains(p.Status));
-        // Salários sem finance.approve nem finance.pay (RH-02c CA 7): fora da página, só agrupados por folha (os totais seguem inteiros).
-        IReadOnlyList<PayablePayrollGroup>? groups = null;
-        if (!await CanSeeEmployeesAsync(cancellationToken))
-        {
-            groups = PayrollGroups(await payables.Where(p => p.PayeeType == PayeeType.Employee).ToListAsync(cancellationToken));
-            payables = payables.Where(p => p.PayeeType != PayeeType.Employee);
-        }
-
-        var totals = new PayableTotals(
-            await open.SumAsync(p => p.Amount - p.RetentionIss - p.RetentionInss - p.RetentionIr - p.RetentionPcc - p.PaidAmount, cancellationToken),
-            await open.Where(p => p.DueDate < today).SumAsync(p => p.Amount - p.RetentionIss - p.RetentionInss - p.RetentionIr - p.RetentionPcc - p.PaidAmount, cancellationToken));
-        payables = page.ParseSort() switch
-        {
-            ("number", true) => payables.OrderByDescending(p => p.Number),
-            ("number", false) => payables.OrderBy(p => p.Number),
-            ("amount", true) => payables.OrderByDescending(p => p.Amount),
-            ("amount", false) => payables.OrderBy(p => p.Amount),
-            ("dueDate", true) => payables.OrderByDescending(p => p.DueDate).ThenByDescending(p => p.Number),
-            _ => payables.OrderBy(p => p.DueDate).ThenBy(p => p.Number),
-        };
-        var paged = await payables.ToPagedListAsync(page, cancellationToken);
-        return new PayablePage(new PagedList<PayableDetail>(await DetailsAsync(paged.Items, cancellationToken), paged.Page, paged.PageSize, paged.Total), totals, groups);
     }
+
+    private static IQueryable<Payable> Sort(IQueryable<Payable> payables, PageRequest page) => page.ParseSort() switch
+    {
+        ("number", true) => payables.OrderByDescending(p => p.Number),
+        ("number", false) => payables.OrderBy(p => p.Number),
+        ("amount", true) => payables.OrderByDescending(p => p.Amount),
+        ("amount", false) => payables.OrderBy(p => p.Amount),
+        ("dueDate", true) => payables.OrderByDescending(p => p.DueDate).ThenByDescending(p => p.Number),
+        _ => payables.OrderBy(p => p.DueDate).ThenBy(p => p.Number),
+    };
 
     public async Task<Result<PayableDetail>> GetAsync(Guid id, CancellationToken cancellationToken = default)
     {

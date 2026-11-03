@@ -2,19 +2,16 @@ import * as Menu from '@radix-ui/react-dropdown-menu'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { MoreVertical } from 'lucide-react'
 import { useState } from 'react'
-import { completeFabricationStep } from '@/api/generated/bemaqui'
 import type { BoardCard as Card } from '@/api/generated/model'
-import { inputClass } from '@/components/form/form-utils'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { StageIndicator } from '@/components/ui/stage-indicator'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { cn } from '@/lib/utils'
-import { useBomRecovery } from '@/pages/engineering/boms/bom-recovery'
-import { quantity } from '../orders/fabrication'
+import { CompleteStepDialog } from '../orders/CompleteStepDialog'
+import { FABRICATION_DICAS, quantity, STEP_IDLE } from '../orders/fabrication'
 import { orderEndText, PLANNING_DICAS } from '../planning/planning'
 import { useForecast } from '../planning/use-forecasts'
-import { canCompleteStep, completeLabel, hoursText, KANBAN_DICAS, MAX_REASON, meter, promisedText, stripe } from './kanban'
+import { canCompleteStep, completeLabel, hoursText, idleStep, meter, promisedText, stripe } from './kanban'
 
 const itemClass = 'cursor-pointer rounded-sm px-2 py-1.5 text-sm outline-none data-[highlighted]:bg-muted'
 
@@ -76,6 +73,7 @@ export function BoardCard({ card, canApprove, onChanged }: { card: Card; canAppr
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         {card.inExecution ? <StatusChip tone="info">Em execução</StatusChip> : null}
         {card.pausedReason ? <StatusChip tone="warn">Pausada: {card.pausedReason}</StatusChip> : null}
+        {idleStep(card) ? <span className="inline-flex items-center"><StatusChip tone="warn">{STEP_IDLE}</StatusChip><Dica nome="Etapa iniciada" texto={FABRICATION_DICAS.iniciada} /></span> : null}
         {card.readyToComplete ? <StatusChip tone="ok">Pronta para concluir</StatusChip> : null}
         {card.noRouting ? <StatusChip tone="warn">Sem roteiro</StatusChip> : null}
         {card.openNonConformities ? <StatusChip tone="crit">NC aberta</StatusChip> : null}
@@ -84,31 +82,10 @@ export function BoardCard({ card, canApprove, onChanged }: { card: Card; canAppr
       </div>
       {card.noRouting ? <Link to={'/app/producao/os/$id' as never} params={{ id: card.id } as never} className="mt-1 inline-block text-xs font-semibold text-primary hover:underline">Escolher o roteiro da {card.number}</Link> : null}
       {card.readyToComplete ? <Link to={'/app/producao/os/$id' as never} params={{ id: card.id } as never} className="mt-1 inline-block text-xs font-semibold text-primary hover:underline">Abrir a {card.number} para concluir</Link> : null}
-      {completable ? <CompleteStepDialog card={card} open={completing} onOpenChange={setCompleting} onDone={onChanged} /> : null}
+      {completable ? (
+        <CompleteStepDialog orderId={card.id} orderNumber={card.number} step={{ id: card.currentStepId!, code: card.currentStepCode, name: card.currentStepName }} version={card.version}
+          open={completing} onOpenChange={setCompleting} onDone={onChanged} />
+      ) : null}
     </article>
-  )
-}
-
-/** "Concluir etapa" (CA 8, padrão 4): motivo obrigatório (até 200) e confirmação com o mesmo verbo. */
-export function CompleteStepDialog({ card, open, onOpenChange, onDone }: { card: Card; open: boolean; onOpenChange: (open: boolean) => void; onDone: () => Promise<void> }) {
-  const [reason, setReason] = useState('')
-  // ENG-02 CA 16: etapa depois da primeira sem BOM liberada → "Abrir BOM da OS".
-  const recovery = useBomRecovery(card.id)
-  return (
-    <ConfirmDialog verb="Concluir etapa" done="Etapa concluída" open={open} onOpenChange={onOpenChange} onOpen={() => setReason('')}
-      title={`${completeLabel(card)} da ${card.number}?`}
-      description={<span className="inline-flex items-center">A etapa fica concluída pelo supervisor, sem apontamento, e a próxima fica pronta.<Dica nome="Concluir etapa" texto={KANBAN_DICAS.concluirEtapa} /></span>}
-      preconditions={[{ ok: reason.trim().length > 0, text: 'Informe o motivo.' }]}
-      onReload={onDone} recovery={recovery}
-      onConfirm={async () => {
-        await completeFabricationStep(card.id, card.currentStepId!, { reason: reason.trim(), version: card.version })
-        await onDone()
-      }}>
-      <label className="mt-3 block space-y-1 text-sm font-medium">
-        Motivo
-        <textarea rows={3} maxLength={MAX_REASON} value={reason} onChange={(e) => setReason(e.target.value)} className={inputClass} />
-        <span className="block text-right text-xs font-normal text-muted-foreground tabular-nums">{reason.length}/{MAX_REASON}</span>
-      </label>
-    </ConfirmDialog>
   )
 }

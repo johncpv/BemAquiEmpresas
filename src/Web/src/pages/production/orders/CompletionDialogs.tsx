@@ -177,7 +177,7 @@ export function CompleteOrderDialog({ order: o, onDone, open: controlled, onOpen
  * "Escolher item do produto" (PRD-06a2 CA 1): a OS sem item de estoque ganha o produto acabado ou componente, com production.edit,
  * antes de concluir.
  */
-function ChooseProductDialog({ order: o, open, onOpenChange, onDone }: { order: FabricationOrderDetail; open: boolean; onOpenChange: (v: boolean) => void; onDone: () => Promise<void> }) {
+export function ChooseProductDialog({ order: o, open, onOpenChange, onDone }: { order: FabricationOrderDetail; open: boolean; onOpenChange: (v: boolean) => void; onDone: () => Promise<void> }) {
   const [term, setTerm] = useState('')
   const [chosen, setChosen] = useState<string | null>(null)
   const options = useListFabricationProductOptions(o.id, { q: term || undefined }, { query: { enabled: open } })

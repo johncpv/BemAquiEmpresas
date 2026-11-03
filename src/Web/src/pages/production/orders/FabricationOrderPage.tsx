@@ -20,7 +20,7 @@ import { orderShortageSummary, RESERVATION_DICAS } from '@/pages/inventory/stock
 import { useCan } from '@/pages/use-can'
 import { MaterialTab } from './MaterialTab'
 import { OrderDocuments } from '../OrderDocuments'
-import { CompleteOrderDialog, ReverseCompletionDialog } from './CompletionDialogs'
+import { ChooseProductDialog, CompleteOrderDialog, ReverseCompletionDialog } from './CompletionDialogs'
 import { CancelFabricationDialog, ChangeRoutingDialog } from './FabricationActions'
 import { FabricationHistory } from './FabricationHistory'
 import { FabricationSteps } from './FabricationSteps'
@@ -28,7 +28,7 @@ import { FabricationCostsTab } from './labor-costs'
 import { LaborEntriesTab } from './LaborEntriesTab'
 import { OrderQualityTab } from '../quality/OrderQualityTab'
 import { QUALITY_DICAS } from '../quality/quality'
-import { canChangeSteps, delayLabel, FABRICATION_DICAS, FABRICATION_STATUS, FINISHED_GOODS, hours, quantity } from './fabrication'
+import { canChangeSteps, delayLabel, FABRICATION_DICAS, FABRICATION_STATUS, FINISHED_GOODS, hours, needsProduct, quantity } from './fabrication'
 import { SerialsTab } from './SerialsTab'
 import { orderEndText, PLANNING_DICAS } from '../planning/planning'
 import { useOrderForecasts } from '../planning/use-forecasts'
@@ -51,6 +51,7 @@ export function FabricationOrderPage() {
   const canShip = useCan('production.create')
   const [completeOpen, setCompleteOpen] = useState(false)
   const [readyDismissed, setReadyDismissed] = useState(false)
+  const [choosingProduct, setChoosingProduct] = useState(false)
   const query = useGetFabricationOrder(id)
   const forecast = useOrderForecasts([id]).get(id)
   // EST-02 CA 14: aba Material e o total de faltas no cabeçalho, com o módulo Estoque liberado (a aba aceita production.view).
@@ -144,6 +145,18 @@ export function FabricationOrderPage() {
         <div role="note" className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">
           <span>Escolha o roteiro desta OS. Sem roteiro, a OS não tem etapas e não entra na fila da fábrica.</span>
           {canEdit ? <ChangeRoutingDialog order={o} onDone={refresh} label="Escolher roteiro" /> : null}
+        </div>
+      ) : null}
+      {/* PRD-06a2 CA 1: com o Estoque liberado, a OS sem item de estoque do produto não conclui; o aviso vem antes, com o atalho. */}
+      {needsProduct(o, stockReleased) ? (
+        <div role="note" className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">
+          <span className="inline-flex items-center">Antes de concluir a OS: escolha o item do produto.<Dica nome="Item do produto" texto={FABRICATION_DICAS.semProduto} /></span>
+          {canEdit ? (
+            <>
+              <button type="button" onClick={() => setChoosingProduct(true)} className="font-semibold text-primary underline">Escolher item do produto</button>
+              <ChooseProductDialog order={o} open={choosingProduct} onOpenChange={setChoosingProduct} onDone={refresh} />
+            </>
+          ) : null}
         </div>
       ) : null}
       {o.started && o.status !== 'Cancelled' ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">A OS já começou. As etapas seguem o roteiro gravado.</p> : null}

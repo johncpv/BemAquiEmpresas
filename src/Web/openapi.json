@@ -29477,6 +29477,73 @@
         }
       }
     },
+    "/api/v1/finance/payables/export": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ExportPayables",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "dueFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "dueTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/finance/payables/{id}": {
       "get": {
         "tags": [
@@ -30792,6 +30859,30 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-orders/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "DownloadPaymentOrderPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -52951,6 +53042,12 @@
           "selfInspection": {
             "type": "boolean",
             "default": false
+          },
+          "pausedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

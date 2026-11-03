@@ -1,10 +1,11 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListPayables } from '@/api/generated/bemaqui'
+import { getExportPayablesUrl, useListPayables } from '@/api/generated/bemaqui'
 import type { PayableDetail, PayablePayrollGroup } from '@/api/generated/model'
 import { Dica } from '@/help/Dica'
 import { DataTable } from '@/components/data-table/DataTable'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
 import { Money } from '@/components/ui/money'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -90,6 +91,7 @@ export function PayablesPage() {
         rowClassName={(p) => (p.isOverdue ? 'border-l-4 border-l-crit' : undefined)}
         searchPlaceholder="Buscar pelo número ou descrição"
         filters={[{ key: 'situacao', label: 'Situação', options: PAYABLE_SITUATIONS }]}
+        toolbar={<ExportMenu fileBase="contas-a-pagar" url={(format) => getExportPayablesUrl({ q: search.q, situation: situacao || undefined, sort: search.sort, format })} />}
         totals={totals ? { net: <span className="block">Em aberto <Money value={totals.open} /><br /><span className="text-crit-ink">Vencido <Money value={totals.overdue} /></span></span> } : undefined}
         empty={{
           title: 'Lance a primeira conta a pagar ou cadastre as despesas fixas do mês.',

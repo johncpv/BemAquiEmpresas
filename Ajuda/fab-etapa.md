@@ -19,6 +19,7 @@ Apontar o seu trabalho numa etapa da OS: iniciar, pausar, retomar, sair e finali
 - Toque em **Pausar** e escolha o motivo: Falta de material, Máquina parada, Intervalo, Fim do turno ou Outro. O motivo que você mais usa aparece primeiro. O texto é opcional.
 - O cronômetro para e o cartão mostra "Pausada: {motivo}". **Falta de material** avisa o almoxarifado sozinha.
 - Toque em **Retomar** para voltar. As pausas não contam como horas trabalhadas.
+- Na tela da OS e no Kanban, a etapa pausada aparece como **Pausada: {motivo}**. Quando ninguém está na etapa e não há pausa aberta (por exemplo, o supervisor registrou as suas horas por **Apontar por funcionário**), ela aparece como **Iniciada · ninguém trabalhando agora**: para continuar, toque em **Iniciar etapa** de novo.
 - Precisa de material? Toque em **Pedir material**, escolha os itens da BOM e as quantidades. Depois de pausar por **Falta de material**, o pedido aparece em destaque. O almoxarifado separa e baixa; você vê **Material separado** ou **Recusado: {motivo}** na própria etapa.
 
 ## Finalizar
@@ -33,7 +34,9 @@ Apontar o seu trabalho numa etapa da OS: iniciar, pausar, retomar, sair e finali
 ## Perguntas frequentes
 **Toquei duas vezes em Iniciar. Abriu dois apontamentos?** Não. Cada pessoa tem um apontamento aberto por vez; o segundo toque não cria outro.
 
-**Esqueci de finalizar ontem. E agora?** Fale com o supervisor: ele corrige o apontamento ou conclui a etapa pela tela da OS.
+**Esqueci de finalizar ontem. E agora?** Fale com o supervisor: ele corrige o apontamento ou usa **Concluir etapa** na tela da OS (abas Etapas ou Apontamentos) ou no Kanban.
+
+**O supervisor apontou as minhas horas. A etapa acabou?** Não. **Apontar por funcionário** só registra horas: a etapa fica **Iniciada · ninguém trabalhando agora**. Para continuar, toque em **Iniciar etapa**; quando terminar, **Finalizar etapa**.
 
 **Por que não consigo iniciar a etapa de qualidade?** A inspeção de qualidade é feita por quem tem a ação **Aprovar ou reprovar a qualidade**, na tela **Qualidade** do app (/fab/qualidade). Na fila do operador, a OS aparece como "Aguardando qualidade".
 

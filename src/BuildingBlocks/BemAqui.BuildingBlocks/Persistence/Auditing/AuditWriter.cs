@@ -29,6 +29,11 @@ public interface IAuditWriter
     Task RecordExportAsync(string entity, string entityId, string format, int rows, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Exportação de lista (EXP-01 CA 6, ADR 0045 §5): como a de cima, mais os filtros aplicados (rótulo e valor da tela), sem as linhas.
+    /// </summary>
+    Task RecordExportAsync(string entity, string entityId, string format, int rows, IReadOnlyDictionary<string, string?> filters, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// A mesma exportação em vários registros de uma vez (PAT-01b CA 12: as etiquetas do lote vão para o histórico de cada bem): uma linha
     /// <c>Exported</c> por registro, com o formato e uma linha cada, gravadas juntas.
     /// </summary>
@@ -67,6 +72,19 @@ public sealed class AuditWriter(BemAquiDbContext db, ICurrentUser currentUser, T
     {
         var changes = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object> { ["format"] = new { old = (string?)null, @new = format }, ["rows"] = new { old = (int?)null, @new = rows } });
         db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.Exported, UserId = currentUser.UserId, At = clock.GetUtcNow(), Changes = changes });
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RecordExportAsync(string entity, string entityId, string format, int rows, IReadOnlyDictionary<string, string?> filters, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(filters);
+        var changes = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object>
+        {
+            ["format"] = new { old = (string?)null, @new = format },
+            ["rows"] = new { old = (int?)null, @new = rows },
+            ["filters"] = new { old = (object?)null, @new = filters },
+        });
+        db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.Exported, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Changes = changes });
         await db.SaveChangesAsync(cancellationToken);
     }
 

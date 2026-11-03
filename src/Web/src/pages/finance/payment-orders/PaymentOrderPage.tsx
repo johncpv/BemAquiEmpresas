@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { useState } from 'react'
-import { getGetPaymentOrderQueryKey, useGetPaymentOrder } from '@/api/generated/bemaqui'
+import { getDownloadPaymentOrderPdfUrl, getGetPaymentOrderQueryKey, useGetPaymentOrder } from '@/api/generated/bemaqui'
 import type { PaymentResult } from '@/api/generated/model'
 import { RecordHistory } from '@/components/history/RecordHistory'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { Money } from '@/components/ui/money'
 import { NextSteps } from '@/components/ui/next-steps'
 import { ErrorState, Skeleton } from '@/components/ui/states'
@@ -57,6 +58,7 @@ export function PaymentOrderPage() {
             {s.selfApproved ? <span className="inline-flex items-center"><Tag>Aprovada pelo próprio solicitante</Tag><Dica nome="Aprovada pelo próprio solicitante" texto={ORDER_DICAS.propria} /></span> : null}
           </p>
           <div className="flex flex-wrap gap-2">
+            <DocumentActions url={getDownloadPaymentOrderPdfUrl(s.id)} fileName={`${s.number}.pdf`} />
             <DecisionActions order={order} refresh={refresh} onApproved={approved} />
             {s.status === 'Approved' && canPay ? <PayDialog order={order} refresh={refresh} onPaid={paid} /> : null}
           </div>

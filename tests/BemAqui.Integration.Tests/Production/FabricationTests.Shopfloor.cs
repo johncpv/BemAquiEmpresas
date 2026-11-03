@@ -353,6 +353,30 @@ public partial class FabricationShopfloorTests
     }
 
     [Fact]
+    public async Task OS_mostra_o_motivo_so_com_a_pausa_aberta_e_nada_na_etapa_iniciada_sem_ninguem()
+    {
+        var (owner, mine, _, _, orders) = await ShopfloorDatasetAsync();
+        var (_, employee, client, _) = await OperatorAsync(mine);
+        var (_, supervisor) = await ActorAsync("production:view,edit,approve;shopfloor:view,create");
+        var step = await StepIdAsync(orders[0], 1);
+        async Task<JsonElement> StepViewAsync() =>
+            (await OkAsync(await owner.GetAsync($"{Base}/{orders[0]}"))).GetProperty("steps").EnumerateArray().Single(s => s.GetProperty("id").GetGuid() == step);
+        var start = DateTimeOffset.UtcNow.AddHours(-3);
+        await OkAsync(await supervisor.SendAsync(Post($"{Base}/{orders[0]}/labor-entries",
+            new { employeeId = employee, stepId = step, startedAt = start, endedAt = start.AddHours(1), pauses = Array.Empty<object>(), notes = (string?)null })));
+        var idle = await StepViewAsync();
+        idle.GetProperty("status").GetString().Should().Be("Paused", "o apontamento do supervisor nasce fechado: iniciada, sem ninguém nela");
+        idle.GetProperty("pausedReason").ValueKind.Should().Be(JsonValueKind.Null, "sem pausa aberta: Iniciada · ninguém trabalhando agora");
+
+        await OkAsync(await client.SendAsync(Tap($"{Shopfloor}/steps/{step}/start")));
+        (await StepViewAsync()).GetProperty("pausedReason").ValueKind.Should().Be(JsonValueKind.Null, "alguém trabalhando");
+        await OkAsync(await client.SendAsync(Tap($"{Shopfloor}/steps/{step}/pause", new { reason = "Machine" })));
+        var paused = await StepViewAsync();
+        paused.GetProperty("status").GetString().Should().Be("Paused");
+        paused.GetProperty("pausedReason").GetString().Should().Be("Máquina parada");
+    }
+
+    [Fact]
     public async Task Finalizar_exige_o_checklist_fecha_o_apontamento_e_libera_a_proxima()
     {
         var (_, mine, _, _, orders) = await ShopfloorDatasetAsync();

@@ -38,9 +38,14 @@ public sealed record FabricationRoutingOption(Guid Id, string Name, string? Prod
 
 public sealed record FabricationCancelInput(string? Reason, uint Version);
 
+/// <summary>
+/// Etapa da OS. <c>PausedReason</c>: o motivo da pausa aberta ("Falta de material"...) quando todos os apontamentos abertos da etapa
+/// estão em pausa; nulo sem apontamento aberto (a etapa iniciada e <c>Paused</c> sem pausa é "Iniciada · ninguém trabalhando agora"). Só leitura.
+/// </summary>
 public sealed record FabricationStepView(
     Guid Id, int Sequence, string Code, string Name, Guid? WorkCenterId, string? WorkCenterName, string? Line, decimal StandardHours, ProductionStepStatus Status, bool IsQualityStep,
-    bool RequiresApproval, IReadOnlyList<string> Checklist, decimal AppliedHours = 0m, bool AwaitingApproval = false, bool SelfApproved = false, bool SelfInspection = false);
+    bool RequiresApproval, IReadOnlyList<string> Checklist, decimal AppliedHours = 0m, bool AwaitingApproval = false, bool SelfApproved = false, bool SelfInspection = false,
+    string? PausedReason = null);
 
 /// <summary>
 /// OS de fabricação (CA 10): cabeçalho (número, situação, projeto, cliente, produto, quantidade), fatos (prometido, horas padrão,
