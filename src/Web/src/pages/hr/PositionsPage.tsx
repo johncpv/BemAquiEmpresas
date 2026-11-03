@@ -2,10 +2,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
-import { getGetPositionsSummaryQueryKey, getListPositionsQueryKey, useGetPosition, useGetPositionsSummary, useListPositions } from '@/api/generated/bemaqui'
+import { getExportPositionsUrl, getGetPositionsSummaryQueryKey, getListPositionsQueryKey, useGetPosition, useGetPositionsSummary, useListPositions } from '@/api/generated/bemaqui'
 import type { PositionDetail } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { Money } from '@/components/ui/money'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Can } from '@/pages/ModuleGate'
@@ -55,6 +56,8 @@ export function PositionsPage() {
       <PageHeading title="RH: Cargos" description="Cargos da empresa e o custo de cada hora trabalhada."
         actions={<Can perm="hr.create"><button type="button" onClick={open} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo cargo</button></Can>} />
       <DataTable label="Cargos" columns={columns} query={query} getRowId={(p) => p.id} inactiveFilter searchPlaceholder="Buscar pelo nome"
+        toolbar={<ExportMenu fileBase="cargos" formats={['xlsx']} empty={query.data?.total === 0}
+          url={(format) => getExportPositionsUrl({ q: search.q, includeInactive: inativos === 'true', sort: search.sort, format })} />}
         empty={{
           title: 'Cadastre os cargos da empresa para calcular o custo da hora trabalhada.',
           action: <Can perm="hr.create"><button type="button" onClick={open} className="text-sm font-semibold text-primary">Novo cargo</button></Can>,

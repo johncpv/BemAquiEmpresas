@@ -92,6 +92,7 @@ public static class HrInfrastructure
         services.TryAddScoped<HrParametersService>();
         services.TryAddScoped<PayrollItemService>();
         services.TryAddScoped<PayrollService>();
+        services.TryAddScoped<BemAqui.HR.Application.Exports.HrExportService>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, PayrollSeeder>());
         services.AddAuditableEntity<PayrollItem>("hr");
         services.AddAuditableEntity<PayrollRun>("hr", PositionService.SensitiveAction);

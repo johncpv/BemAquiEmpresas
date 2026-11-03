@@ -56,6 +56,7 @@ internal static partial class HrEndpoints
         MapTimesheets(hr, employees, runs);
         MapVacations(hr, employees);
         MapTerminations(hr, employees);
+        MapHrExports(hr, employees, runs);
 
         // Autoatendimento do funcionário (RH-02b, ADR 0035): camada 1 no grupo; o vínculo ativo em cada endpoint.
         var me = api.MapGroup("/me/hr").WithTags("Autoatendimento").RequireModule("hr")

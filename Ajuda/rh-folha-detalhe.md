@@ -86,6 +86,10 @@ Lançar, para cada funcionário, os proventos e descontos que a contadora calcul
 - A prévia mostra os funcionários encontrados, as linhas por rubrica, os totais e os erros por linha ("Linha 12: rubrica 'HE75' não existe."). Só sem erro o botão **Importar {n} lançamentos** fica habilitado.
 - Importar **substitui** os lançamentos dos funcionários que estão no arquivo; os outros holerites ficam como estão. O arquivo não fica guardado: a auditoria registra só quantas linhas e quantos funcionários.
 
+## Imprimir e exportar
+- **Exportar → Excel (.xlsx)**, na aba Holerites, baixa o resumo por funcionário: matrícula, nome, cargo, proventos, descontos, líquido, FGTS e a situação do holerite, com a linha **Total** igual ao líquido da folha. Só com a permissão Ver dados sensíveis. O arquivo se chama folha-{competência}-{tipo}-{data}.xlsx, sem nome nem CPF.
+- O holerite de cada um continua em **Baixar** (PDF) na linha do funcionário.
+
 ## Perguntas frequentes
 **O líquido ficou negativo e não salva.** O líquido não pode ser negativo. Confira os descontos com a contadora.
 

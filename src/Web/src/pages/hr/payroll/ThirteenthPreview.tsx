@@ -1,8 +1,10 @@
+import { getDownloadThirteenthPreviewPdfUrl } from '@/api/generated/bemaqui'
 import type { ThirteenthPreview } from '@/api/generated/model'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
-import { avosLabel, PAYROLL_DICAS } from './payroll'
+import { avosLabel, PAYROLL_DICAS, thirteenthPreviewFile } from './payroll'
 
 const dateLabel = (iso: string) => iso.split('-').reverse().join('/')
 
@@ -20,7 +22,10 @@ export function ThirteenthPreviewPanel({ query, confirm, onConfirm }: {
   const p = query.data
   return (
     <section aria-label="Prévia dos avos" className="space-y-2">
-      <p className="inline-flex items-center text-sm font-medium">Avos de {p.year} por funcionário<Dica nome="Avos" texto={PAYROLL_DICAS.avos} /></p>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <p className="inline-flex items-center text-sm font-medium">Avos de {p.year} por funcionário<Dica nome="Avos" texto={PAYROLL_DICAS.avos} /></p>
+        {p.employees.length > 0 ? <DocumentActions url={getDownloadThirteenthPreviewPdfUrl({ year: p.year, type: p.type })} fileName={thirteenthPreviewFile(p.year, p.type)} /> : null}
+      </div>
       <p className="text-xs text-muted-foreground">
         {p.dueDate ? `Data limite: ${dateLabel(p.dueDate)}. ` : ''}O mês conta com {p.monthMinDays} dias ou mais trabalhados.
       </p>

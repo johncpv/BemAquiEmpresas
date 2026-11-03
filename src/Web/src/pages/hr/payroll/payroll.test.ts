@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { avosLabel, CALCULATION_LABELS, choosesEmployees, currentPeriod, formatPct, hoursLabel, isManualCalculation, isThirteenth, MODE_LABELS, parseHours, periodLabel, thirteenthPeriod, totals, typeLabel } from './payroll'
+import { avosLabel, CALCULATION_LABELS, choosesEmployees, currentPeriod, formatPct, hoursLabel, isManualCalculation, isThirteenth, MODE_LABELS, parseHours, payrollTypeSlug, periodLabel, thirteenthPeriod, thirteenthPreviewFile, totals, typeLabel } from './payroll'
 
 describe('folha lançada (RH-02a)', () => {
   it('totais com a mesma regra do servidor: a informativa fica fora do líquido (CA 6)', () => {
@@ -69,5 +69,14 @@ describe('13º calculado (FLH-04)', () => {
     expect(CALCULATION_LABELS.ThirteenthAdvance).toBe('13º salário, 1ª parcela')
     expect(CALCULATION_LABELS.ThirteenthAdvanceDeduction).toBe('Adiantamento do 13º (desconto)')
     expect(isManualCalculation('ThirteenthFinal')).toBe(false)
+  })
+})
+
+describe('exportação do RH (EXP-05)', () => {
+  it('nomes de arquivo como o servidor, sem nome nem CPF', () => {
+    expect(payrollTypeSlug('Monthly')).toBe('mensal')
+    expect(payrollTypeSlug('Thirteenth2')).toBe('13-2a-parcela')
+    expect(thirteenthPreviewFile(2026, 'Thirteenth1')).toBe('previa-13-2026-1a-parcela.pdf')
+    expect(thirteenthPreviewFile(2026, 'Thirteenth2')).toBe('previa-13-2026-2a-parcela.pdf')
   })
 })

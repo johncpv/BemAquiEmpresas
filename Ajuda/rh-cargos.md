@@ -15,6 +15,10 @@ Cadastrar os cargos da empresa e saber quanto custa cada hora trabalhada, já co
 - Em **Faixa salarial**, informe o salário mínimo e o máximo. O salário de referência vem como a média da faixa, e a prévia mostra o custo-hora. Clique em **Salvar faixa salarial**.
 - Para usar um custo-hora diferente, informe o valor e clique em **Ajustar custo-hora**. **Voltar ao calculado** retoma a fórmula.
 
+## Imprimir e exportar
+- **Exportar → Excel (.xlsx)**, na barra da lista, baixa os cargos com a busca e o filtro de inativos da tela: nome, CBO, centro padrão, jornada, horas no mês, salário base, custo-hora, funcionários e situação.
+- Salário base e custo-hora saem completos só com a permissão Ver dados sensíveis; sem ela, saem como ***.
+
 ## Perguntas frequentes
 **Como o custo-hora é calculado?** Salário de referência × (1 + % de encargos) ÷ horas mensais. Exemplo: R$ 3.300,00 com 80% de encargos e 220 horas dá R$ 27,00 por hora.
 

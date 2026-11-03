@@ -34,6 +34,10 @@ Ver o espelho de ponto de todos os funcionários no período, conferir, **fechar
 - **Baixar espelhos em PDF** (período fechado) gera um PDF por funcionário num ZIP. Com até 20 funcionários sai na hora; acima disso, o sistema avisa no sino quando terminar.
 - O PDF traz o logo da empresa, nome, matrícula, cargo, o período, os dias, os totais, o banco de horas, o texto "Controle interno de jornada; não substitui o registro legal de ponto." e o campo de assinatura do funcionário. Nunca traz CPF, salário, motivo de saúde nem localização. Cada download fica registrado.
 
+## Imprimir e exportar
+- **Exportar → Excel (.xlsx)**, ao lado dos botões do período, baixa a visão geral do mês: por funcionário, horas previstas, trabalhadas, extras, faltas, atrasos, o banco do mês e o saldo (em horas, com casas decimais), a confirmação do funcionário e a situação do espelho. O arquivo se chama espelho-{competência}-{data}.xlsx.
+- O tipo do afastamento não sai aqui: a visão geral não mostra. No espelho de cada funcionário, o dia afastado aparece só como "Afastado" para quem não tem Ver dados de saúde.
+
 ## Perguntas frequentes
 **De onde vem o esperado?** Da jornada do funcionário no dia da semana. Feriado ou parada do calendário padrão da produção vale zero. O afastamento e os dias fora do vínculo (antes da admissão, depois do desligamento) não contam como falta.
 
