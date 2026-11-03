@@ -59,10 +59,8 @@ export function TimeEntriesPage() {
 
   return (
     <>
-      <PageHeading title="RH: Ponto">
-        <p className="mt-1 text-muted-foreground">Marcações de cada funcionário por dia, para o espelho, o banco de horas e a folha.</p>
-      </PageHeading>
-      <div className="max-w-4xl space-y-4">
+      <PageHeading title="RH: Ponto" description="Marcações de cada funcionário por dia, para o espelho, o banco de horas e a folha." />
+      <div className="space-y-4">
         <TimeClockTabs />
         <InternalControlBanner />
         <form aria-label="Filtros das marcações" className="flex flex-wrap items-end gap-3" onSubmit={(e) => e.preventDefault()}>

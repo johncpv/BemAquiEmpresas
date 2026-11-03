@@ -232,7 +232,7 @@ const accountSecurityRoute = createRoute({ getParentRoute: () => appRoute, stati
 // "Meus holerites" (RH-02b, ADR 0035): do funcionário, sem ação no grupo; a página confere o módulo liberado e o vínculo vem da API.
 const myPayslipsRoute = createRoute({ getParentRoute: () => appRoute, path: 'meus-holerites', component: MyPayslipsPage })
 // "Meu ponto" (RH-01a, ADR 0035): do funcionário, sem ação no grupo; o mesmo painel do /fab/ponto, mais "Minhas marcações".
-const myTimeClockRoute = createRoute({ getParentRoute: () => appRoute, path: 'meu-ponto', component: MyTimeClockPage, validateSearch: (s: Record<string, unknown>): { aba?: string } => ({ aba: text(s.aba) }) })
+const myTimeClockRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'meu-ponto', component: MyTimeClockPage, validateSearch: (s: Record<string, unknown>): { aba?: string } => ({ aba: text(s.aba) }) })
 // Telas reais de módulo: mesmas regras do menu (ModuleGate) e rota própria por aba (FND-09b CA 8).
 const gated = (code: string, Page: () => React.ReactNode) => () => <ModuleGate code={code}><Page /></ModuleGate>
 const accessRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos', beforeLoad: () => { throw redirect({ to: '/app/acessos/usuarios' }) } })
@@ -413,8 +413,8 @@ const timeEntriesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh
 // RH → Ponto → Ajustes para aprovar (RH-01b): situação, funcionário e o pedido aberto no painel, na URL.
 const timeAdjustmentsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/ponto/ajustes', component: gated('hr', TimeAdjustmentsPage), validateSearch: (s: Record<string, unknown>): { situacao?: string; funcionario?: string; pedido?: string } => ({ situacao: text(s.situacao), funcionario: text(s.funcionario), pedido: text(s.pedido) }) })
 // RH → Ponto → Espelho (RH-01c): a visão geral e o espelho do funcionário, com o mês na URL (?mes=2026-10).
-const timesheetsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/ponto/espelho', component: gated('hr', TimesheetOverviewPage), validateSearch: (s: Record<string, unknown>): { mes?: string; lote?: string } => ({ mes: text(s.mes), lote: text(s.lote) }) })
-const timesheetRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/ponto/espelho/$employeeId', component: gated('hr', TimesheetEmployeePage), validateSearch: (s: Record<string, unknown>): { mes?: string } => ({ mes: text(s.mes) }) })
+const timesheetsRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'rh/ponto/espelho', component: gated('hr', TimesheetOverviewPage), validateSearch: (s: Record<string, unknown>): { mes?: string; lote?: string } => ({ mes: text(s.mes), lote: text(s.lote) }) })
+const timesheetRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'rh/ponto/espelho/$employeeId', component: gated('hr', TimesheetEmployeePage), validateSearch: (s: Record<string, unknown>): { mes?: string } => ({ mes: text(s.mes) }) })
 // Folha lançada e rubricas (RH-02a).
 const payrollRunsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/folha', component: gated('hr', PayrollRunsPage) })
 const payrollRunRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/folha/$id', component: gated('hr', PayrollRunPage) })
@@ -426,7 +426,7 @@ const payrollTaxTablesRoute = createRoute({ getParentRoute: () => appRoute, path
 // Exportação para a contadora (RH-03).
 const accountantExportRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'rh/exportar-contadora', component: gated('hr', AccountantExportPage) })
 // Conferência paralela da folha calculada e virada (FLH-06): ?mes vem do "Comparar com a lançada" e ?id abre a competência.
-const payrollParallelRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/conferencia-folha', component: gated('hr', PayrollParallelPage), validateSearch: (s: Record<string, unknown>): { mes?: string; id?: string } => ({ mes: text(s.mes), id: text(s.id) }) })
+const payrollParallelRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'rh/conferencia-folha', component: gated('hr', PayrollParallelPage), validateSearch: (s: Record<string, unknown>): { mes?: string; id?: string } => ({ mes: text(s.mes), id: text(s.id) }) })
 // Plano de contas e centros de custo (CAD-05a).
 const chartRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/plano-de-contas', component: gated('finance', ChartOfAccountsPage) })
 const costCentersRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/centros-de-custo', component: gated('finance', CostCentersPage) })

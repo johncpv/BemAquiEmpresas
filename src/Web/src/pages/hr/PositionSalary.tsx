@@ -20,13 +20,13 @@ export function PositionSalary({ position, chargesPct, onSaved }: { position: Po
   const salary = useGetPositionSalary(position?.id ?? '', { query: { enabled: canSee && !!position } })
   if (!canSee) {
     return (
-      <FormSection title="Faixa salarial">
+      <FormSection title="Faixa salarial" grid="none">
         <p className="inline-flex items-center gap-1 text-sm text-muted-foreground">Dados protegidos <Dica nome="Dados protegidos" texto={DICAS.protegidos} /></p>
       </FormSection>
     )
   }
 
-  if (!position) return <FormSection title="Faixa salarial"><p className="text-sm text-muted-foreground">Salve o cargo para informar a faixa salarial.</p></FormSection>
+  if (!position) return <FormSection title="Faixa salarial" grid="none"><p className="text-sm text-muted-foreground">Salve o cargo para informar a faixa salarial.</p></FormSection>
   if (salary.isPending) return <Skeleton className="h-32" />
   return <SalaryForm key={salary.data?.id ?? 'x'} position={position} current={salary.data ?? null} chargesPct={chargesPct} onSaved={onSaved} />
 }
@@ -55,8 +55,8 @@ function SalaryForm({ position, current, chargesPct, onSaved }: { position: Posi
   }
 
   return (
-    <FormSection title="Faixa salarial" description="Dado protegido: só quem tem acesso aos dados sensíveis do RH vê.">
-      <fieldset disabled={!canEdit} className="space-y-3 sm:col-span-2">
+    <FormSection title="Faixa salarial" description="Dado protegido: só quem tem acesso aos dados sensíveis do RH vê." grid="none">
+      <fieldset disabled={!canEdit} className="space-y-3">
         <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
         <div className="grid grid-cols-2 gap-3">
           <Field label="Salário mínimo" error={error?.fields.salaryMin?.[0]}>{(p) => <MoneyInput {...p} value={min} onChange={setMin} />}</Field>

@@ -67,9 +67,7 @@ export function VacationsPage() {
 
   return (
     <>
-      <PageHeading title="RH: Férias">
-        <p className="mt-1 text-sm text-muted-foreground">Quem tem férias a vencer e quem está de férias. Programe pela aba "Férias" do funcionário.</p>
-      </PageHeading>
+      <PageHeading title="RH: Férias" description='Quem tem férias a vencer e quem está de férias. Programe pela aba "Férias" do funcionário.' />
       {content}
     </>
   )

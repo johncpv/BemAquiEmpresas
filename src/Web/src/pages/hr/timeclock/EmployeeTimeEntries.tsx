@@ -30,7 +30,7 @@ export function EmployeeTimeEntries({ employee }: { employee: EmployeeDetail }) 
   } else content = <TimeEntriesByDay items={query.data.items} canSensitive={canSensitive} showEmployee={false} />
 
   return (
-    <div className="max-w-3xl space-y-4">
+    <div className="max-w-4xl space-y-4">
       <InternalControlBanner />
       <HourBankAgreement employee={employee} />
       <div className="flex flex-wrap items-end gap-3">

@@ -52,12 +52,8 @@ export function PositionsPage() {
 
   return (
     <>
-      <PageHeading title="RH: Cargos">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Cargos da empresa e o custo de cada hora trabalhada.</p>
-          <Can perm="hr.create"><button type="button" onClick={open} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo cargo</button></Can>
-        </div>
-      </PageHeading>
+      <PageHeading title="RH: Cargos" description="Cargos da empresa e o custo de cada hora trabalhada."
+        actions={<Can perm="hr.create"><button type="button" onClick={open} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo cargo</button></Can>} />
       <DataTable label="Cargos" columns={columns} query={query} getRowId={(p) => p.id} inactiveFilter searchPlaceholder="Buscar pelo nome"
         empty={{
           title: 'Cadastre os cargos da empresa para calcular o custo da hora trabalhada.',

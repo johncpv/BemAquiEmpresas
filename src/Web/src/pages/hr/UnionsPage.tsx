@@ -24,12 +24,7 @@ export function UnionsPage() {
   const newButton = <Can perm="hr.create"><button type="button" onClick={() => setEditing({ union: null })} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo sindicato</button></Can>
   return (
     <>
-      <PageHeading title="RH: Sindicatos">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Os sindicatos das categorias, com o mês da data-base.</p>
-          {newButton}
-        </div>
-      </PageHeading>
+      <PageHeading title="RH: Sindicatos" description="Os sindicatos das categorias, com o mês da data-base." actions={newButton} />
       {query.isPending ? <Skeleton className="h-48" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : query.data.length === 0 ? (
         <EmptyState title="Cadastre o sindicato da categoria." description="Ele é escolhido no cadastro do funcionário." action={newButton} />
       ) : (

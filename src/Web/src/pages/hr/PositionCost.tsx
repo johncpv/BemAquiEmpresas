@@ -35,7 +35,9 @@ export function PositionCost({ position, onSaved }: { position: PositionDetail; 
   const canEdit = useCan('hr.edit')
   const [manual, setManual] = useState<string | null>(null)
   return (
-    <FormSection title="Custo-hora">
+    // No painel do cargo: a seção sem grade (o valor e o ajuste ocupam a largura toda, ADR 0044).
+    <FormSection title="Custo-hora" grid="none">
+      <div className="space-y-3">
       <p className="flex flex-wrap items-center gap-2 text-sm">
         <span className="inline-flex items-center gap-1">Custo-hora <Dica nome="Custo-hora" texto={DICAS.custoHora} /></span>
         <b className="tabular-nums">{formatMoney(position.hourlyCost)}</b>
@@ -51,6 +53,7 @@ export function PositionCost({ position, onSaved }: { position: PositionDetail; 
           ) : null}
         </div>
       ) : null}
+      </div>
     </FormSection>
   )
 }

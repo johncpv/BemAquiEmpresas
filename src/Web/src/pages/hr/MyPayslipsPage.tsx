@@ -66,13 +66,13 @@ export function MyPayslipsPage() {
   if (status === 'loading') return null
   if (hr?.locked) return <ModuleNotReleased module={hr} />
   const heading = (
-    <PageHeading title="Meus holerites">
-      <p className="mt-1 inline-flex items-center text-muted-foreground">
+    <PageHeading title="Meus holerites" description={
+      <span className="inline-flex items-center">
         <Lock aria-hidden="true" className="mr-1 size-4" />
         Só você vê, com o seu login.
         <Dica nome="Meus holerites" texto={PAYSLIP_DICAS.canal} />
-      </p>
-    </PageHeading>
+      </span>
+    } />
   )
 
   if (query.isPending) return <>{heading}<div className="space-y-3"><Skeleton className="h-28" /><Skeleton className="h-28" /></div></>
@@ -95,7 +95,7 @@ export function MyPayslipsPage() {
       {items.length === 0 ? (
         <EmptyState title="Nenhum holerite disponível ainda." description="Ele aparece aqui quando a folha do mês for fechada." />
       ) : (
-        <ul aria-label="Meus holerites" className="max-w-2xl space-y-3">
+        <ul aria-label="Meus holerites" className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {items.map((p) => <PayslipCard key={p.id} payslip={p} onDownloaded={() => void client.invalidateQueries({ queryKey: getListMyPayslipsQueryKey() })} />)}
         </ul>
       )}

@@ -8,6 +8,7 @@ import { ApiError, apiDownload } from '@/api/http'
 import { FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { notifySuccess } from '@/components/ui/messages'
+import { FormLayout } from '@/components/layout/form-layout'
 import { NextSteps } from '@/components/ui/next-steps'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -29,11 +30,9 @@ export function AccountantExportPage() {
   const canSensitive = useCan('hr.view_sensitive')
   return (
     <>
-      <PageHeading title="RH: Exportar para a contadora">
-        <p className="mt-2 text-muted-foreground">O pacote do mês para a contadora calcular a folha com o que já está no sistema, sem redigitar nada.</p>
-      </PageHeading>
+      <PageHeading title="RH: Exportar para a contadora" description="O pacote do mês para a contadora calcular a folha com o que já está no sistema, sem redigitar nada." />
       {canSensitive ? <ExportPanel /> : (
-        <div className="flex max-w-3xl items-center gap-2 rounded-md border border-border bg-muted px-4 py-6 text-sm text-muted-foreground">
+        <div className="flex max-w-prose items-center gap-2 rounded-md border border-border bg-muted px-4 py-6 text-sm text-muted-foreground">
           <Lock aria-hidden="true" className="size-4" />
           Dados protegidos
           <Dica nome="Dados protegidos" texto={ACCOUNTANT_DICAS.protegidos} />
@@ -69,9 +68,11 @@ function ExportPanel() {
     }
   }
 
+  // Rota form (ADR 0044): a coluna de 896 px alinhada ao título, com o pacote e o histórico um abaixo do outro.
   return (
+    <FormLayout>
     <div className="space-y-6">
-      <section aria-label="Gerar pacote" className="max-w-3xl space-y-4 rounded-md border border-border bg-card p-4">
+      <section aria-label="Gerar pacote" className="space-y-4 rounded-md border border-border bg-card p-4 sm:p-5">
         <div className="flex flex-wrap items-end gap-3">
           <label className="space-y-1 text-sm font-medium">
             <span>Competência</span>
@@ -100,6 +101,7 @@ function ExportPanel() {
       </section>
       <History view={query.data} pending={query.isPending && !invalid} />
     </div>
+    </FormLayout>
   )
 }
 
@@ -141,7 +143,7 @@ function Preview({ view, generating, error, onGenerate }: { view: AccountantExpo
 
 function History({ view, pending }: { view: AccountantExportOverview | undefined; pending: boolean }) {
   return (
-    <section aria-labelledby="exportacoes-anteriores" className="max-w-3xl space-y-2">
+    <section aria-labelledby="exportacoes-anteriores" className="space-y-2">
       <h2 id="exportacoes-anteriores" className="text-base font-semibold">Exportações anteriores</h2>
       {pending ? <Skeleton className="h-24" /> : !view ? null : view.history.length === 0 ? (
         <EmptyState title="Nenhuma exportação ainda. Escolha o mês e gere o pacote." description="Cada pacote gerado fica registrado aqui (quando, quem, a competência e a versão do layout). O arquivo não fica guardado no sistema." />

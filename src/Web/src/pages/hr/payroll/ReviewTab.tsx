@@ -19,7 +19,7 @@ export function ReviewTab({ run }: { run: PayrollRunSummary }) {
   const r = query.data
   const alerts = r.variations.filter((v) => v.alert)
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="space-y-5">
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[['Holerites', String(r.payslipCount)], ['Proventos', r.gross], ['Descontos', r.deductions], ['Líquido', r.net]].map(([label, value]) => (
           <div key={label as string} className="rounded-md border border-border bg-card px-3 py-2">

@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react'
 import { createEmployee, getPositionSalary, useListPositions, useListSchedules } from '@/api/generated/bemaqui'
 import type { PositionSalaryDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormActions, FormError, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { CpfInput, DateInput, MoneyInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
+import { FormLayout } from '@/components/layout/form-layout'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { notifySuccess } from '@/components/ui/messages'
 import { useCan } from '@/pages/use-can'
@@ -20,7 +21,7 @@ export function NewEmployeePage() {
   const positions = useListPositions({ pageSize: 100 })
   const schedules = useListSchedules()
   if (!canSensitive) return <EmptyState title="Cadastrar funcionário exige ver dados sensíveis." description="CPF e salário são obrigatórios e protegidos. Peça ao administrador a permissão Ver dados sensíveis do RH." />
-  if (positions.isPending || schedules.isPending) return <Skeleton className="h-96 max-w-3xl" />
+  if (positions.isPending || schedules.isPending) return <Skeleton className="h-96 max-w-4xl" />
   if (positions.isError || schedules.isError) return <ErrorState onRetry={() => { void positions.refetch(); void schedules.refetch() }} />
   const active = positions.data.items.filter((p) => p.isActive)
   if (active.length === 0) {
@@ -82,22 +83,24 @@ function NewEmployeeForm({ initialPositionId, positions, schedules }: FormProps)
 
   return (
     <>
-      <PageHeading title="Novo funcionário">
-        <p className="mt-2 text-muted-foreground">Só o obrigatório. Os dados pessoais você completa depois, na aba própria.</p>
-      </PageHeading>
-      <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="max-w-3xl space-y-4">
+      <PageHeading title="Novo funcionário" description="Só o obrigatório. Os dados pessoais você completa depois, na aba própria." />
+      {/* Padrão de layout (ADR 0044): coluna à esquerda, uma grade de 12 trilhas por seção e a barra de ações presa acima do dock. */}
+      <FormLayout>
+      <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="space-y-5">
         <UnsavedChangesGuard when={dirty} onSave={save} />
         <FormError message={server && Object.keys(server.fields).length === 0 ? server.message : undefined} />
-        <FormSection title="Identificação">
-          <Field label="Nome" required error={errors.name}>
+        {/* Nome 8 · CPF 4 (span: a linha fecha em 12) / Nascimento 3 */}
+        <FormSection title="Identificação" grid="form">
+          <Field label="Nome" required size="xl" error={errors.name}>
             {(p) => <input {...p} value={draft.name} maxLength={150} autoComplete="off" onChange={(e) => set({ name: e.target.value })} className={inputClass} />}
           </Field>
-          <Field label="CPF" required error={errors.cpf}>{(p) => <CpfInput {...p} value={draft.cpf} onChange={(cpf) => set({ cpf })} />}</Field>
-          <Field label="Data de nascimento" required error={errors.birthDate}>{(p) => <DateInput {...p} value={draft.birthDate} onChange={(birthDate) => set({ birthDate })} />}</Field>
+          <Field label="CPF" required size="sm" span={{ lg: 4 }} error={errors.cpf}>{(p) => <CpfInput {...p} value={draft.cpf} onChange={(cpf) => set({ cpf })} />}</Field>
+          <Field label="Data de nascimento" required size="sm" error={errors.birthDate}>{(p) => <DateInput {...p} value={draft.birthDate} onChange={(birthDate) => set({ birthDate })} />}</Field>
         </FormSection>
-        <FormSection title="Contrato">
-          <Field label="Admissão" required error={errors.admissionDate}>{(p) => <DateInput {...p} value={draft.admissionDate} onChange={(admissionDate) => set({ admissionDate })} />}</Field>
-          <Field label="Cargo" required error={errors.positionId} hint="Sugere a jornada e o salário de referência.">
+        {/* Admissão 3 · Cargo 6 / Jornada 4 · Salário base 3 */}
+        <FormSection title="Contrato" grid="form">
+          <Field label="Admissão" required size="sm" error={errors.admissionDate}>{(p) => <DateInput {...p} value={draft.admissionDate} onChange={(admissionDate) => set({ admissionDate })} />}</Field>
+          <Field label="Cargo" required size="lg" error={errors.positionId} hint="Sugere a jornada e o salário de referência.">
             {(p) => (
               <select {...p} value={draft.positionId} onChange={(e) => void choosePosition(e.target.value)} className={inputClass}>
                 <option value="">Escolha</option>
@@ -105,7 +108,7 @@ function NewEmployeeForm({ initialPositionId, positions, schedules }: FormProps)
               </select>
             )}
           </Field>
-          <Field label="Jornada" hint={draft.touched.schedule ? undefined : 'A do cargo, enquanto você não trocar.'}>
+          <Field label="Jornada" size="md" hint={draft.touched.schedule ? undefined : 'A do cargo, enquanto você não trocar.'}>
             {(p) => (
               <select {...p} value={draft.workScheduleId} onChange={(e) => set({ workScheduleId: e.target.value, touched: { ...draft.touched, schedule: true } })} className={inputClass}>
                 <option value="">Sem jornada</option>
@@ -113,15 +116,16 @@ function NewEmployeeForm({ initialPositionId, positions, schedules }: FormProps)
               </select>
             )}
           </Field>
-          <Field label="Salário base" required error={errors.baseSalary} warning={outsideRange(draft.baseSalary, range)} hint={draft.touched.salary ? undefined : 'O de referência do cargo, enquanto você não trocar.'}>
+          <Field label="Salário base" required size="sm" error={errors.baseSalary} warning={outsideRange(draft.baseSalary, range)} hint={draft.touched.salary ? undefined : 'O de referência do cargo, enquanto você não trocar.'}>
             {(p) => <MoneyInput {...p} value={draft.baseSalary} onChange={(baseSalary) => set({ baseSalary, touched: { ...draft.touched, salary: true } })} />}
           </Field>
         </FormSection>
-        <div className="flex justify-end gap-2">
-          <Link to="/app/rh/funcionarios" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</Link>
+        <FormActions sticky dirty={dirty}>
+          <Link to="/app/rh/funcionarios" className="rounded-md border border-border px-3 py-2 text-center text-sm font-semibold">Voltar</Link>
           <button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar funcionário</button>
-        </div>
+        </FormActions>
       </form>
+      </FormLayout>
     </>
   )
 }

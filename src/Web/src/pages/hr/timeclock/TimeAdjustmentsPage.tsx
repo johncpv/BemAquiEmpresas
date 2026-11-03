@@ -66,10 +66,8 @@ export function TimeAdjustmentsPage() {
 
   return (
     <>
-      <PageHeading title="RH: Ponto">
-        <p className="mt-1 text-muted-foreground">Ajustes pedidos pelos funcionários e lançados pelo RH: nada muda no ponto antes da aprovação.</p>
-      </PageHeading>
-      <div className="max-w-4xl space-y-4">
+      <PageHeading title="RH: Ponto" description="Ajustes pedidos pelos funcionários e lançados pelo RH: nada muda no ponto antes da aprovação." />
+      <div className="space-y-4">
         <TimeClockTabs />
         <InternalControlBanner />
         <form aria-label="Filtros dos ajustes" className="flex flex-wrap items-end gap-3" onSubmit={(e) => e.preventDefault()}>

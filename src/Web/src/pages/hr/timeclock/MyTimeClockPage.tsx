@@ -66,14 +66,15 @@ export function MyTimeClockPage() {
   if (hr?.locked) return <ModuleNotReleased module={hr} />
   return (
     <>
-      <PageHeading title="Meu ponto">
-        <p className="mt-1 inline-flex items-center text-sm text-muted-foreground">
+      <PageHeading title="Meu ponto" description={
+        <span className="inline-flex items-center text-sm">
           <Lock aria-hidden="true" className="mr-1 size-4" />
           Só você e o RH veem as suas marcações.
           <Dica nome="Hora do servidor" texto={TIME_CLOCK_DICAS.horaServidor} />
-        </p>
-      </PageHeading>
-      <div className="max-w-xl space-y-6">
+        </span>
+      } />
+      {/* Página pessoal (rota form, ADR 0044): uma coluna alinhada ao título, com o relógio e os blocos um abaixo do outro. */}
+      <div className="max-w-4xl space-y-6">
         <TimeClockPanel onRequestAdjustment={() => setRequest({ mode: 'add' })} />
         <section aria-labelledby="minhas-marcacoes" className="space-y-2">
           <div className="flex items-center justify-between gap-2">

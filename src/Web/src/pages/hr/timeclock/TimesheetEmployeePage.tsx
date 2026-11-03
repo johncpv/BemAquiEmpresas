@@ -106,10 +106,8 @@ export function TimesheetEmployeePage() {
 
   return (
     <>
-      <PageHeading title="RH: Espelho de ponto">
-        <p className="mt-1 text-muted-foreground">Os dias do funcionário no período, com o esperado pela jornada, o trabalhado, as extras, as faltas e o banco de horas.</p>
-      </PageHeading>
-      <div className="max-w-5xl space-y-4">
+      <PageHeading title="RH: Espelho de ponto" description="Os dias do funcionário no período, com o esperado pela jornada, o trabalhado, as extras, as faltas e o banco de horas." />
+      <div className="space-y-4">
         <InternalControlBanner />
         <div className="flex flex-wrap items-center gap-2">
           <Link to="/app/rh/ponto/espelho" search={{ mes: period } as never} className="min-h-11 rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar ao espelho geral</Link>
