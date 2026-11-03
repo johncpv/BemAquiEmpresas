@@ -30,7 +30,7 @@ public partial class AssetTests
         var site = await SiteAsync(supervisor, Unique("Galpão"));
         var asset = await CreateAsync(supervisor, Input(Unique("Torno"), site: site));
         var assetId = asset.GetProperty("id").GetGuid();
-        var plan = await PlanAsync(supervisor, assetId, new { description = "Preventiva trimestral", frequencyType = "Days", frequencyValue = 90, checklist = new[] { "Trocar o óleo", "Revisar correias" } });
+        var plan = await PlanAsync(supervisor, assetId, new { description = "Preventiva trimestral", frequencyType = "Days", frequencyValue = 90, lastDoneAt = Day(-10), checklist = new[] { "Trocar o óleo", "Revisar correias" } });
         var order = await OrderAsync(supervisor, new { assetId, type = "Preventive", problem = "Preventiva trimestral", planId = plan.GetProperty("id").GetGuid() });
         var orderId = order.GetProperty("id").GetGuid();
         var number = order.GetProperty("number").GetString()!;
