@@ -144,9 +144,7 @@ export function CashFlowPage() {
 
   return (
     <>
-      <PageHeading title="Financeiro: Fluxo de caixa">
-        <p className="mt-2 text-muted-foreground">Entradas, saídas e saldo, do realizado ao previsto, na data combinada e com o atraso de sempre de cada cliente.</p>
-      </PageHeading>
+      <PageHeading title="Financeiro: Fluxo de caixa" description="Entradas, saídas e saldo, do realizado ao previsto, na data combinada e com o atraso de sempre de cada cliente." />
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <label className="space-y-1 text-sm font-medium">Visão
           <select value={view.value} onChange={(e) => set({ visao: e.target.value === 'diaria' ? undefined : e.target.value })} className={inputClass}>{VIEWS.map((v) => <option key={v.value} value={v.value}>{v.label}</option>)}</select>

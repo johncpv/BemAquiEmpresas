@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { updatePayable, useListAccounts, useListCostCenters } from '@/api/generated/bemaqui'
 import type { PayableDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormActions, FormError, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput, MoneyInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
+import { FormLayout } from '@/components/layout/form-layout'
 import { notifySuccess } from '@/components/ui/messages'
 import { toNumber } from '../receivables/receivables'
 import { type RetentionDraft, suggestCostType } from './payables'
@@ -50,32 +51,40 @@ export function PayableDataForm({ payable, canEdit, onSaved }: { payable: Payabl
 
   const suggested = suggestCostType((accounts.data ?? []).find((a) => a.id === draft.accountId)?.code)
   const options = (accounts.data ?? []).filter((a) => a.type !== 'Revenue' && a.acceptsEntries && (a.isActive || a.id === draft.accountId))
+  // Padrão de layout (ADR 0044): uma grade só por seção e a barra presa acima do dock (três seções).
   return (
-    <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="max-w-3xl space-y-4">
+    <FormLayout>
+    <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="space-y-5">
       <UnsavedChangesGuard when={dirty && canEdit} onSave={save} />
       <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
-      <fieldset disabled={!canEdit} className="space-y-4">
-        <FormSection title="Dados do título">
-          <Field label="Descrição" required error={errors.description}>{(p) => <input {...p} value={draft.description} maxLength={200} onChange={(e) => set({ description: e.target.value })} className={inputClass} />}</Field>
-          <Field label="Conta" required error={errors.accountId}>
+      <fieldset disabled={!canEdit} className="space-y-5">
+        {/* Descrição 8 / Conta 6 · Centro de custo 6 / Valor 3 · Vencimento 3 */}
+        <FormSection title="Dados do título" grid="form">
+          <Field label="Descrição" required size="xl" error={errors.description}>{(p) => <input {...p} value={draft.description} maxLength={200} onChange={(e) => set({ description: e.target.value })} className={inputClass} />}</Field>
+          <Field label="Conta" required size="lg" error={errors.accountId}>
             {(p) => <select {...p} value={draft.accountId} disabled={inOrder} onChange={(e) => { const code = (accounts.data ?? []).find((a) => a.id === e.target.value)?.code; set({ accountId: e.target.value, projectCost: draft.projectCost.project && !draft.projectCost.costType ? { ...draft.projectCost, costType: suggestCostType(code) ?? '' } : draft.projectCost }) }} className={inputClass}>{options.map((a) => <option key={a.id} value={a.id}>{a.code} {a.name}</option>)}</select>}
           </Field>
-          <Field label="Centro de custo" error={errors.costCenterId}>
+          <Field label="Centro de custo" size="lg" error={errors.costCenterId}>
             {(p) => <select {...p} value={draft.costCenterId} disabled={inOrder} onChange={(e) => set({ costCenterId: e.target.value })} className={inputClass}><option value="">Sem centro de custo</option>{(centers.data ?? []).filter((c) => c.isActive || c.id === draft.costCenterId).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>}
           </Field>
-          <Field label="Valor" required error={errors.amount} hint={inOrder ? 'Em ordem de pagamento: o valor não muda.' : lockedAmount ? 'Gerado por outro módulo: ajuste na origem.' : undefined}>
+          <Field label="Valor" required size="sm" error={errors.amount} hint={inOrder ? 'Em ordem de pagamento: o valor não muda.' : lockedAmount ? 'Gerado por outro módulo: ajuste na origem.' : undefined}>
             {(p) => <MoneyInput {...p} value={draft.amount} disabled={lockedAmount} onChange={(amount) => set({ amount })} />}
           </Field>
-          <Field label="Vencimento" required error={errors.dueDate}>{(p) => <DateInput {...p} value={draft.dueDate} onChange={(dueDate) => set({ dueDate })} />}</Field>
+          <Field label="Vencimento" required size="sm" error={errors.dueDate}>{(p) => <DateInput {...p} value={draft.dueDate} onChange={(dueDate) => set({ dueDate })} />}</Field>
         </FormSection>
-        <FormSection title="Projeto">
+        <FormSection title="Projeto" grid="form">
           <ProjectCostFields value={draft.projectCost} onChange={(projectCost) => set({ projectCost })} suggested={suggested} errors={errors} />
         </FormSection>
-        <FormSection title="Retenções">
+        <FormSection title="Retenções" grid="form">
           <RetentionFields value={draft.retentions} onChange={(retentions) => set({ retentions })} amount={toNumber(draft.amount)} errors={errors} disabled={inOrder} />
         </FormSection>
-        {canEdit ? <div className="flex justify-end"><button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar título a pagar</button></div> : null}
+        {canEdit ? (
+          <FormActions sticky dirty={dirty}>
+            <button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar título a pagar</button>
+          </FormActions>
+        ) : null}
       </fieldset>
     </form>
+    </FormLayout>
   )
 }

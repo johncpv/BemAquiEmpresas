@@ -240,9 +240,7 @@ export function ReconciliationPage() {
   }
 
   const header = (
-    <PageHeading title="Conciliação">
-      <p className="mt-2 text-muted-foreground">O extrato do banco lado a lado com o que o sistema registrou, com o par já sugerido.</p>
-    </PageHeading>
+    <PageHeading title="Conciliação" description="O extrato do banco lado a lado com o que o sistema registrou, com o par já sugerido." />
   )
   const filters = (
     <div className="mb-3 flex flex-wrap items-end gap-3">

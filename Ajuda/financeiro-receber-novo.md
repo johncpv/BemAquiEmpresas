@@ -15,7 +15,7 @@ Lançar o que um cliente vai pagar: um título só, ou várias parcelas pela con
 - Informe a descrição, a **conta de receita** (vem "Venda de equipamentos") e, se quiser, o centro de custo.
 - Informe o valor e a emissão (vem hoje).
 - Em **Título único**, informe o vencimento. Em **Parcelar pela condição**, escolha a condição (vem a padrão do cliente) e a data base: a tabela mostra as parcelas antes de salvar.
-- Clique em **Salvar título a receber** (ou **Salvar títulos a receber**, no parcelamento).
+- Clique em **Salvar título a receber** (ou **Salvar títulos a receber**, no parcelamento), na barra presa no rodapé, logo acima do menu.
 
 ## Perguntas frequentes
 **Por que a última parcela tem um centavo a mais?** A divisão arredonda cada parcela e a última absorve a diferença, para a soma dar o valor exato.

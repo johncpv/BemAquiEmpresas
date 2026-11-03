@@ -31,12 +31,7 @@ export function PaymentOrdersPage() {
   const goPayables = <Link to={'/app/financeiro/pagar' as never} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Ir para A pagar</Link>
   return (
     <>
-      <PageHeading title="Financeiro: Ordens de pagamento">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Nenhum pagamento sai sem ordem aprovada.</p>
-          {goPayables}
-        </div>
-      </PageHeading>
+      <PageHeading title="Financeiro: Ordens de pagamento" description="Nenhum pagamento sai sem ordem aprovada." actions={goPayables} />
       <DataTable
         label="Ordens de pagamento"
         columns={columns}

@@ -50,20 +50,21 @@ export function PaymentOrderPage() {
 
   return (
     <>
-      <PageHeading title={`${s.number} — ${ORDER_STATUS[s.status]?.label ?? s.status}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-          <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+      <PageHeading title={`${s.number} — ${ORDER_STATUS[s.status]?.label ?? s.status}`}
+        meta={
+          <span className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <StatusChip tone={ORDER_STATUS[s.status]?.tone ?? 'neutral'}>{ORDER_STATUS[s.status]?.label ?? s.status}</StatusChip>
             <Money value={s.total} className="font-semibold text-foreground" /> · {s.items} {s.items === 1 ? 'título' : 'títulos'}
             {s.selfApproved ? <span className="inline-flex items-center"><Tag>Aprovada pelo próprio solicitante</Tag><Dica nome="Aprovada pelo próprio solicitante" texto={ORDER_DICAS.propria} /></span> : null}
-          </p>
-          <div className="flex flex-wrap gap-2">
+          </span>
+        }
+        actions={
+          <>
             <DocumentActions url={getDownloadPaymentOrderPdfUrl(s.id)} fileName={`${s.number}.pdf`} />
             <DecisionActions order={order} refresh={refresh} onApproved={approved} />
             {s.status === 'Approved' && canPay ? <PayDialog order={order} refresh={refresh} onPaid={paid} /> : null}
-          </div>
-        </div>
-      </PageHeading>
+          </>
+        } />
       {next.length ? <div className="mb-4"><NextSteps onDismiss={() => setNext([])} steps={next} /></div> : null}
       {decided ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">Ordem {ORDER_STATUS[s.status]?.label.toLowerCase()}: só para consulta.{order.cancelReason ? ` Motivo: ${order.cancelReason}` : ''}{order.reversalReason ? ` Motivo do estorno: ${order.reversalReason}` : ''}</p> : null}
       <dl className="mb-4 grid gap-3 rounded-md border border-border bg-card p-4 text-sm sm:grid-cols-4">

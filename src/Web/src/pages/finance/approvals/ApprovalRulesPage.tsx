@@ -39,12 +39,8 @@ export function ApprovalRulesPage() {
   const rules = query.data ?? []
   return (
     <>
-      <PageHeading title="Financeiro: Alçadas">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Quem aprova cada ordem de pagamento e cada pedido de compra.</p>
-          {isOwner ? <button type="button" onClick={() => { setEditing(undefined); setOpen(true) }} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Nova regra de alçada</button> : null}
-        </div>
-      </PageHeading>
+      <PageHeading title="Financeiro: Alçadas" description="Quem aprova cada ordem de pagamento e cada pedido de compra."
+        actions={isOwner ? <button type="button" onClick={() => { setEditing(undefined); setOpen(true) }} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Nova regra de alçada</button> : undefined} />
       <div role="group" aria-label="Tipo de documento" className="mb-4 flex flex-wrap gap-2">
         {DOCUMENT_TYPES.map((t) => (
           <button key={t.id} type="button" aria-pressed={t.id === type.id}

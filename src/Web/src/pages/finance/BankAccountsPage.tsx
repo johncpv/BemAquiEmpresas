@@ -68,14 +68,11 @@ export function BankAccountsPage() {
 
   return (
     <>
-      <PageHeading title="Financeiro: Contas e caixas">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Contas bancárias e caixas da empresa, com o saldo de partida.</p>
-          <Can perm="finance.create">
-            <button type="button" onClick={() => setEditing({ account: null })} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Nova conta bancária</button>
-          </Can>
-        </div>
-      </PageHeading>
+      <PageHeading title="Financeiro: Contas e caixas" description="Contas bancárias e caixas da empresa, com o saldo de partida." actions={
+        <Can perm="finance.create">
+          <button type="button" onClick={() => setEditing({ account: null })} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Nova conta bancária</button>
+        </Can>
+      } />
       <div className="mb-3 space-y-2">
         {steps ? <NextSteps steps={[{ label: 'Cadastrar condições de pagamento', onSelect: () => void navigate({ to: '/app/financeiro/condicoes-de-pagamento' }) }]} onDismiss={() => setSteps(false)} /> : null}
         {missing && balanceHint ? (

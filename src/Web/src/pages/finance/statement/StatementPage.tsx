@@ -75,12 +75,8 @@ export function StatementPage() {
 
   return (
     <>
-      <PageHeading title={`Extrato: ${query.data?.accountName ?? 'conta'}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Tudo o que entrou e saiu desta conta, com o saldo dia a dia.</p>
-          {canPay ? <span className="flex flex-wrap gap-2"><TransferDialog fromId={id} onDone={transferred} /><EntryDialog accountId={id} onDone={refresh} /></span> : null}
-        </div>
-      </PageHeading>
+      <PageHeading title={`Extrato: ${query.data?.accountName ?? 'conta'}`} description="Tudo o que entrou e saiu desta conta, com o saldo dia a dia."
+        actions={canPay ? <><TransferDialog fromId={id} onDone={transferred} /><EntryDialog accountId={id} onDone={refresh} /></> : undefined} />
       {next.length ? <div className="mb-3"><NextSteps onDismiss={() => setNext([])} steps={next} /></div> : null}
       <div className="mb-3 flex flex-wrap items-end gap-3">
         <label className="space-y-1 text-sm font-medium">De<DateInput value={from} onChange={(v) => { if (v) set({ de: v, page: undefined }) }} /></label>

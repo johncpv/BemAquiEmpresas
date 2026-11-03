@@ -190,7 +190,7 @@ const Gallery = galleryEnabled ? lazy(() => import('./dev/Gallery')) : null
 const text = (v: unknown) => (typeof v === 'string' && v ? v : undefined)
 
 // Largura por tipo de tela (ADR 0044): o AppShell lê staticData.width; rota sem declarar é 'default' (até 1536 px).
-// FULL: quadro, Gantt, painel do proprietário, DRE e fluxo de caixa (até 1920 px). FORM: cadastro e edição (coluna à esquerda).
+// FULL: quadro, Gantt, painel do proprietário, DRE, fluxo de caixa, inadimplência, conciliação e extrato (até 1920 px). FORM: cadastro e edição (coluna à esquerda).
 const FULL = { width: 'full' } as const
 const FORM = { width: 'form' } as const
 
@@ -455,15 +455,15 @@ const projectsRoute = createRoute({ getParentRoute: () => appRoute, staticData: 
 const projectMarginsRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'projetos/margens', component: gated('projects', ProjectMarginsPage) })
 const projectRoute = createRoute({ getParentRoute: () => appRoute, path: 'projetos/$id', component: gated('projects', ProjectPage) })
 // Extrato da conta (FIN-04).
-const statementRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/contas/$id/extrato', component: gated('finance', StatementPage) })
+const statementRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'financeiro/contas/$id/extrato', component: gated('finance', StatementPage) })
 // Conciliação bancária (BNK-03b): ?conta=, ?de= e ?ate=.
-const reconciliationRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/conciliacao', component: gated('finance', ReconciliationPage) })
+const reconciliationRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'financeiro/conciliacao', component: gated('finance', ReconciliationPage) })
 // Ordens de pagamento (FIN-03a).
 const paymentOrdersRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/ordens-de-pagamento', component: gated('finance', PaymentOrdersPage) })
 const newPaymentOrderRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'financeiro/ordens-de-pagamento/nova', component: gated('finance', NewPaymentOrderPage) })
 const paymentOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/ordens-de-pagamento/$id', component: gated('finance', PaymentOrderPage) })
 // Inadimplência (FIN-06a).
-const agingRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/inadimplencia', component: gated('finance', AgingPage) })
+const agingRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'financeiro/inadimplencia', component: gated('finance', AgingPage) })
 // Fluxo de caixa (FIN-05).
 const cashFlowRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'financeiro/fluxo-de-caixa', component: gated('finance', CashFlowPage) })
 // DRE gerencial (FIN-08): ?meses=3|6|12|24 e ?ate=aaaa-mm.

@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { getGetPayablePaymentMethodQueryKey, setPayablePaymentMethod, useGetPayablePaymentMethod } from '@/api/generated/bemaqui'
 import type { PayableDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { FormError } from '@/components/form/form'
+import { FormActions, FormError } from '@/components/form/form'
+import { FormLayout } from '@/components/layout/form-layout'
 import { notifySuccess } from '@/components/ui/messages'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { formatDateTime } from '@/lib/format'
@@ -38,7 +39,8 @@ export function PayableMethodTab({ payable, canEdit, onChanged }: { payable: Pay
 
   const warnings = [view?.holderWarning, view?.boletoWarning].filter(Boolean) as string[]
   return (
-    <div className="max-w-3xl space-y-4">
+    <FormLayout>
+    <div className="space-y-4">
       {warnings.map((w) => <p key={w} role="status" className="flex items-start gap-2 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink"><AlertTriangle aria-hidden="true" className="mt-0.5 size-4" />{w}</p>)}
       {d ? (
         <dl className="grid gap-2 rounded-md border border-border bg-card p-4 text-sm sm:grid-cols-2">
@@ -57,12 +59,13 @@ export function PayableMethodTab({ payable, canEdit, onChanged }: { payable: Pay
         <div className="space-y-3 rounded-md border border-border bg-card p-4">
           <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
           <PaymentMethodFields value={method} onChange={setMethod} errors={Object.fromEntries(Object.entries(error?.fields ?? {}).map(([k, v]) => [k, v[0]]))} />
-          <div className="flex justify-end gap-2">
+          <FormActions>
             <button type="button" onClick={() => setEditing(false)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</button>
             <button type="button" onClick={() => void save()} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar forma de pagamento</button>
-          </div>
+          </FormActions>
         </div>
       ) : null}
     </div>
+    </FormLayout>
   )
 }

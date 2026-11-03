@@ -12,7 +12,7 @@ Ver e ajustar as parcelas de uma condição, com a prévia de como um valor se d
 ## Como usar
 - Em **Parcelas**, informe os dias a partir da data base e o percentual de cada parcela. A soma precisa dar 100%.
 - **Dividir igualmente** preenche os percentuais (ex.: 33,3333% + 33,3333% + 33,3334%).
-- A **prévia** mostra as parcelas para um valor e uma data base de exemplo.
+- A **prévia** (à direita, em tela larga; embaixo das parcelas, em tela menor) mostra as parcelas para um valor e uma data base de exemplo.
 - Clique em **Salvar condição de pagamento**.
 
 ## Perguntas frequentes

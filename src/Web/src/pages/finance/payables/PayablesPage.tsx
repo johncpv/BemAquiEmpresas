@@ -66,14 +66,11 @@ export function PayablesPage() {
 
   return (
     <>
-      <PageHeading title="Financeiro: A pagar">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">O que a empresa precisa pagar, por vencimento.</p>
-          <Can perm="finance.create">
-            <Link to="/app/financeiro/pagar/novo" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo título a pagar</Link>
-          </Can>
-        </div>
-      </PageHeading>
+      <PageHeading title="Financeiro: A pagar" description="O que a empresa precisa pagar, por vencimento." actions={
+        <Can perm="finance.create">
+          <Link to="/app/financeiro/pagar/novo" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo título a pagar</Link>
+        </Can>
+      } />
       {canCreate ? (
         <div className="mb-3 flex flex-wrap items-center gap-2">
           {dueSoon.length > 0 ? <button type="button" onClick={() => setSelected([...new Set([...selected, ...dueSoon])])} className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold">Selecionar os que vencem até {formatDate(limit)}</button> : null}

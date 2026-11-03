@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import type { PaymentTermDetail, PaymentTermInput } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { Field, FormError } from '@/components/form/form'
+import { Field, FormError, FormGrid } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { PercentInput } from '@/components/form/inputs'
 import { RowsEditor } from '@/components/form/rows-editor'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
+import { FormLayout } from '@/components/layout/form-layout'
 import { type InstallmentRow, percentSum, splitEqually, toInstallments, toRows } from './terms'
 import { TermPreview } from './TermPreview'
 
@@ -45,14 +46,19 @@ export function PaymentTermForm({ term, canEdit, onSubmit }: { term: PaymentTerm
     }
   }
 
+  // Padrão de layout (ADR 0044): o formulário na coluna de 896 px e a prévia no painel lateral (a partir de 1280 px; abaixo, depois
+  // do formulário). A prévia fica fora do <form>: os campos dela são só de exemplo e não vão para o servidor.
   return (
-    <form id="condicao" onSubmit={(e) => { e.preventDefault(); void save() }} noValidate className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+    <FormLayout aside={<TermPreview installments={toInstallments(rows)} valid={!invalid} />}>
+    <form id="condicao" onSubmit={(e) => { e.preventDefault(); void save() }} noValidate>
       <UnsavedChangesGuard when={dirty && canEdit} onSave={save} />
-      <fieldset disabled={!canEdit} className="space-y-4">
+      <fieldset disabled={!canEdit} className="space-y-5">
         <FormError message={error ?? undefined} />
-        <Field label="Nome" required error={tried ? nameError : undefined} hint="Ex.: 30/60 dias, Entrada + 30.">
-          {(p) => <input {...p} value={name} onChange={(e) => setName(e.target.value)} maxLength={100} className={inputClass} />}
-        </Field>
+        <FormGrid>
+          <Field label="Nome" required size="lg" error={tried ? nameError : undefined} hint="Ex.: 30/60 dias, Entrada + 30.">
+            {(p) => <input {...p} value={name} onChange={(e) => setName(e.target.value)} maxLength={100} className={inputClass} />}
+          </Field>
+        </FormGrid>
         <div className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base font-semibold">Parcelas</h2>
@@ -69,7 +75,7 @@ export function PaymentTermForm({ term, canEdit, onSubmit }: { term: PaymentTerm
           {tried && invalid ? <p role="alert" className="text-sm text-crit-ink">{invalid}</p> : null}
         </div>
       </fieldset>
-      <TermPreview installments={toInstallments(rows)} valid={!invalid} />
     </form>
+    </FormLayout>
   )
 }

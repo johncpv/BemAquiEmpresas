@@ -6,10 +6,11 @@ import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { ToggleGroup } from '@/components/form/choice'
 import { type ComboOption, Combobox } from '@/components/form/combobox'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormActions, FormError, FormGridItem, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput, MoneyInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
+import { FormLayout } from '@/components/layout/form-layout'
 import { notifySuccess } from '@/components/ui/messages'
 import { Money } from '@/components/ui/money'
 import { ErrorState, Skeleton } from '@/components/ui/states'
@@ -31,7 +32,7 @@ export function NewPayablePage() {
   const accounts = useListAccounts()
   const centers = useListCostCenters()
   const terms = useListPaymentTerms({ pageSize: 100 })
-  if (accounts.isPending || centers.isPending || terms.isPending) return <Skeleton className="h-96 max-w-3xl" />
+  if (accounts.isPending || centers.isPending || terms.isPending) return <Skeleton className="h-96 max-w-4xl" />
   if (accounts.isError || centers.isError || terms.isError) return <ErrorState onRetry={() => { void accounts.refetch(); void centers.refetch(); void terms.refetch() }} />
   const expense = accounts.data.filter((a) => a.type !== 'Revenue' && a.acceptsEntries && a.isActive)
   return (
@@ -127,62 +128,68 @@ function PayableForm({ accounts, centers, terms }: { accounts: Option[]; centers
 
   return (
     <>
-      <PageHeading title="Novo título a pagar">
-        <p className="mt-2 text-muted-foreground">O pagamento sai depois, pela ordem de pagamento aprovada.</p>
-      </PageHeading>
-      <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="max-w-3xl space-y-4">
+      <PageHeading title="Novo título a pagar" description="O pagamento sai depois, pela ordem de pagamento aprovada." />
+      {/* Padrão de layout (ADR 0044): coluna à esquerda, uma grade de 12 trilhas por seção e a barra de ações presa acima do dock. */}
+      <FormLayout>
+      <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="space-y-5">
         <UnsavedChangesGuard when={dirty} onSave={save} />
         <FormError message={server && Object.keys(server.fields).length === 0 ? server.message : undefined} />
-        <FormSection title="Fornecedor e conta">
-          <Field label="Fornecedor" required error={errors.partyId} hint="Fornecedores e instaladores ativos.">
+        {/* Fornecedor 6 · Descrição 6 / Conta 6 · Centro de custo 6 */}
+        <FormSection title="Fornecedor e conta" grid="form">
+          <Field label="Fornecedor" required size="lg" error={errors.partyId} hint="Fornecedores e instaladores ativos.">
             {(p) => <Combobox {...p} queryKey={['finance-suppliers']} search={searchSuppliers} value={draft.supplier?.id ?? null} selected={draft.supplier} placeholder="Busque pelo nome ou CNPJ" onChange={chooseSupplier} />}
           </Field>
-          <Field label="Descrição" required error={errors.description}>{(p) => <input {...p} value={draft.description} maxLength={200} onChange={(e) => set({ description: e.target.value })} className={inputClass} />}</Field>
-          <Field label="Conta" required error={errors.accountId} hint="Despesa, investimento ou financiamento.">
+          <Field label="Descrição" required size="lg" error={errors.description}>{(p) => <input {...p} value={draft.description} maxLength={200} onChange={(e) => set({ description: e.target.value })} className={inputClass} />}</Field>
+          <Field label="Conta" required size="lg" error={errors.accountId} hint="Despesa, investimento ou financiamento.">
             {(p) => <select {...p} value={draft.accountId} onChange={(e) => chooseAccount(e.target.value)} className={inputClass}><option value="">Escolha</option>{accounts.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}</select>}
           </Field>
-          <Field label="Centro de custo" error={errors.costCenterId}>
+          <Field label="Centro de custo" size="lg" error={errors.costCenterId}>
             {(p) => <select {...p} value={draft.costCenterId} onChange={(e) => set({ costCenterId: e.target.value })} className={inputClass}><option value="">Sem centro de custo</option>{centers.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}</select>}
           </Field>
         </FormSection>
-        <FormSection title="Projeto">
+        <FormSection title="Projeto" grid="form">
           <ProjectCostFields value={draft.projectCost} onChange={(projectCost) => set({ projectCost })} suggested={suggested} errors={errors} />
         </FormSection>
-        <FormSection title="Valor e vencimento">
-          <Field label="Valor" required error={errors.amount}>{(p) => <MoneyInput {...p} value={draft.amount} onChange={(v) => set({ amount: v })} />}</Field>
-          <Field label="Emissão" required error={errors.issueDate}>{(p) => <DateInput {...p} value={draft.issueDate} onChange={(issueDate) => set({ issueDate })} />}</Field>
-          <div className="space-y-1">
+        {/* Valor 3 · Emissão 3 · Forma 6 / Condição 6 · Data base 3 (ou Vencimento 3) / parcelas */}
+        <FormSection title="Valor e vencimento" grid="form">
+          <Field label="Valor" required size="sm" error={errors.amount}>{(p) => <MoneyInput {...p} value={draft.amount} onChange={(v) => set({ amount: v })} />}</Field>
+          <Field label="Emissão" required size="sm" error={errors.issueDate}>{(p) => <DateInput {...p} value={draft.issueDate} onChange={(issueDate) => set({ issueDate })} />}</Field>
+          <FormGridItem size="lg" className="space-y-1">
             <span className="block text-sm font-medium">Forma</span>
             <ToggleGroup label="Forma" value={draft.mode} onChange={(mode) => set({ mode })} options={[{ value: 'single', label: 'Título único' }, { value: 'split', label: 'Parcelar pela condição' }]} />
-          </div>
+          </FormGridItem>
           {split ? (
             <>
-              <Field label="Condição de pagamento" required error={errors.paymentTermId}>
+              <Field label="Condição de pagamento" required size="lg" error={errors.paymentTermId}>
                 {(p) => <select {...p} value={draft.termId} onChange={(e) => set({ termId: e.target.value })} className={inputClass}><option value="">Escolha</option>{terms.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</select>}
               </Field>
-              <Field label="Data base" required>{(p) => <DateInput {...p} value={draft.baseDate} onChange={(baseDate) => set({ baseDate })} />}</Field>
+              <Field label="Data base" required size="sm">{(p) => <DateInput {...p} value={draft.baseDate} onChange={(baseDate) => set({ baseDate })} />}</Field>
             </>
           ) : (
-            <Field label="Vencimento" required error={errors.dueDate}>{(p) => <DateInput {...p} value={draft.dueDate} onChange={(dueDate) => set({ dueDate })} />}</Field>
+            <Field label="Vencimento" required size="sm" error={errors.dueDate}>{(p) => <DateInput {...p} value={draft.dueDate} onChange={(dueDate) => set({ dueDate })} />}</Field>
           )}
           {split && preview.data ? (
-            <table className="w-full text-sm" aria-label="Parcelas que serão lançadas">
-              <thead className="text-xs text-muted-foreground"><tr><th className="py-1 text-left">Parcela</th><th className="py-1 text-left">Vencimento</th><th className="py-1 text-right">Valor</th></tr></thead>
-              <tbody>{preview.data.map((p) => <tr key={p.number} className="border-t border-border"><td className="py-1">{p.number}/{preview.data.length}</td><td className="py-1 tabular-nums">{formatDate(p.dueDate)}</td><td className="py-1 text-right"><Money value={p.amount} /></td></tr>)}</tbody>
-            </table>
+            <FormGridItem>
+              <table className="w-full text-sm" aria-label="Parcelas que serão lançadas">
+                <thead className="text-xs text-muted-foreground"><tr><th className="py-1 text-left">Parcela</th><th className="py-1 text-left">Vencimento</th><th className="py-1 text-right">Valor</th></tr></thead>
+                <tbody>{preview.data.map((p) => <tr key={p.number} className="border-t border-border"><td className="py-1">{p.number}/{preview.data.length}</td><td className="py-1 tabular-nums">{formatDate(p.dueDate)}</td><td className="py-1 text-right"><Money value={p.amount} /></td></tr>)}</tbody>
+              </table>
+            </FormGridItem>
           ) : null}
         </FormSection>
-        <FormSection title="Retenções" description={PAYABLE_DICAS.retencoes}>
+        <FormSection title="Retenções" description={PAYABLE_DICAS.retencoes} grid="form">
           <RetentionFields value={draft.retentions} onChange={(retentions) => set({ retentions })} amount={amount} errors={errors} />
         </FormSection>
-        <FormSection title="Forma de pagamento">
+        {/* Sem grade na seção: o PaymentMethodFields traz a própria (os campos mudam com o tipo, e ele também vive no SidePanel). */}
+        <FormSection title="Forma de pagamento" grid="none">
           <PaymentMethodFields value={draft.method} onChange={(method) => set({ method })} errors={errors} />
         </FormSection>
-        <div className="flex justify-end gap-2">
-          <Link to="/app/financeiro/pagar" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</Link>
+        <FormActions sticky dirty={dirty}>
+          <Link to="/app/financeiro/pagar" className="rounded-md border border-border px-3 py-2 text-center text-sm font-semibold">Voltar</Link>
           <button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">{split ? 'Salvar títulos a pagar' : 'Salvar título a pagar'}</button>
-        </div>
+        </FormActions>
       </form>
+      </FormLayout>
     </>
   )
 }

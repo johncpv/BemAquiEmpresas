@@ -56,16 +56,17 @@ export function PayablePage() {
 
   return (
     <>
-      <PageHeading title={`${p.number} — ${p.partyName}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-1.5">
+      <PageHeading title={`${p.number} — ${p.partyName}`}
+        meta={
+          <>
             <StatusChip tone={s.tone}>{s.label}</StatusChip>
             {ORIGIN_LABELS[p.origin] ? <Tag>{ORIGIN_LABELS[p.origin]}</Tag> : null}
             {p.originId && ORIGIN_LINKS[p.origin] ? <Link to={(ORIGIN_LINKS[p.origin]! + p.originId) as never} className="text-sm font-semibold text-primary">{p.origin === 'GoodsReceipt' ? 'Ver recebimento' : 'Ver pedido'}</Link> : null}
             <span className="text-sm text-muted-foreground">{p.description}</span>
             <Link to="/app/financeiro/pagar" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
-          </div>
-          {canEdit && !closed && !inOrder && editable ? (
+          </>
+        }
+        actions={canEdit && !closed && !inOrder && editable ? (
             <ConfirmDialog size="lg" destructive verb="Cancelar título" done="Título cancelado" title={`Cancelar o título ${p.number}?`} description="Ele sai dos totais em aberto e continua consultável. O Proprietário é avisado."
               onOpen={() => setReason('')} onReload={() => query.refetch()}
               preconditions={[{ ok: !overLimit || canApprove, text: 'Valor acima do limite de cancelamento: só quem aprova em Caixa e pagamentos pode cancelar.' }]}
@@ -74,9 +75,7 @@ export function PayablePage() {
               trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold text-crit-ink">Cancelar título</button>}>
               <Field label="Motivo" required hint="Até 200 caracteres. Fica no histórico.">{(f) => <input {...f} value={reason} maxLength={200} onChange={(e) => setReason(e.target.value)} className={inputClass} />}</Field>
             </ConfirmDialog>
-          ) : null}
-        </div>
-      </PageHeading>
+          ) : undefined} />
       {steps && canCreate ? <div className="mb-4"><NextSteps onDismiss={() => setSteps(false)} steps={[{ label: 'Novo título para este fornecedor', onSelect: () => void navigate({ to: '/app/financeiro/pagar/novo' }) }]} /></div> : null}
       {inOrder ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">Este título está numa ordem de pagamento. Para mudar valor ou dados de pagamento, retire-o da ordem.</p> : null}
       {closed ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">{p.status === 'Paid' ? 'Título pago.' : `Título cancelado: ${p.cancelReason ?? ''}`}</p> : null}
