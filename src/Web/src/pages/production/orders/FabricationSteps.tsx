@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { saveFabricationOrderSteps, useListWorkCenters } from '@/api/generated/bemaqui'
-import type { FabricationOrderDetail, OrderForecastInfo, StepForecastInfo } from '@/api/generated/model'
+import type { FabricationOrderDetail, FabricationStepView, OrderForecastInfo, StepForecastInfo } from '@/api/generated/model'
 import { notifySuccess } from '@/components/ui/messages'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -8,7 +9,8 @@ import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
 import { RoutingEditor } from '../../engineering/routings/RoutingEditor'
 import { type RoutingDraft, toDraftSteps, toStepsInput } from '../../engineering/routings/routings'
-import { canChangeSteps, FABRICATION_DICAS, hours, STEP_STATUS } from './fabrication'
+import { CompleteStepDialog } from './CompleteStepDialog'
+import { canChangeSteps, canConcludeStep, FABRICATION_DICAS, hours, stepActionLabel, stepChip } from './fabrication'
 import { forecastText, hoursText, PLANNING_DICAS, stepForecast } from '../planning/planning'
 
 /** PLN-01a CA 16: "Previsto {início} → {fim}" e as horas restantes da etapa, lidos do plano; sem data, "Sem previsão: {motivo}". */
@@ -23,12 +25,25 @@ function StepForecastLine({ forecast }: { forecast?: StepForecastInfo }) {
   )
 }
 
+/** Chip da etapa: "Pausada: {motivo}" com a pausa aberta; "Iniciada · ninguém trabalhando agora" com a dica de como seguir. */
+function StepStatus({ step }: { step: FabricationStepView }) {
+  const chip = stepChip(step)
+  return (
+    <span className="inline-flex items-center">
+      <StatusChip tone={chip.tone}>{chip.label}</StatusChip>
+      {chip.idle ? <Dica nome="Etapa iniciada" texto={FABRICATION_DICAS.iniciada} /> : null}
+    </span>
+  )
+}
+
 /**
  * Aba Etapas (CA 7 e 8): com production.edit e a OS aberta sem etapa iniciada, o editor do roteiro só com as etapas (mesmas
- * regras da ENG-01, "Salvar etapas"); senão, as etapas em cartões, só leitura.
+ * regras da ENG-01, "Salvar etapas"); senão, as etapas em cartões, só leitura, com "Concluir etapa" na atual iniciada (production.approve).
  */
 export function FabricationSteps({ order: o, onSaved, forecast }: { order: FabricationOrderDetail; onSaved: () => Promise<void>; forecast?: OrderForecastInfo }) {
   const canEdit = useCan('production.edit')
+  const canApprove = useCan('production.approve')
+  const [concluding, setConcluding] = useState<string | null>(null)
   const editable = canEdit && canChangeSteps(o)
   const centers = useListWorkCenters({ pageSize: 100 }, { query: { enabled: editable } })
   if (o.steps.length === 0 && !editable) {
@@ -61,29 +76,39 @@ export function FabricationSteps({ order: o, onSaved, forecast }: { order: Fabri
     )
   }
 
+  const concludeStep = concluding ? o.steps.find((s) => s.id === concluding) : undefined
   return (
-    <ol aria-label="Etapas da OS" className="grid gap-2 sm:grid-cols-2">
-      {o.steps.map((s, i) => (
-        <li key={s.id} className={`rounded-md border border-border bg-card p-3 text-sm ${i === o.currentStepIndex && o.status !== 'Cancelled' ? 'border-l-4 border-l-signal' : ''}`}>
-          <div className="flex items-center justify-between gap-2">
-            <span className="flex items-center gap-2">
-              <span className="grid h-[26px] min-w-[30px] place-items-center rounded-[5px] bg-rail px-1.5 font-display text-[13px] font-extrabold text-signal">{s.code}</span>
-              <b className="font-semibold">{s.name}</b>
-            </span>
-            <StatusChip tone={s.status === 'Done' ? 'ok' : s.status === 'Paused' ? 'warn' : s.status === 'Ready' || s.status === 'InProgress' ? 'info' : 'neutral'}>{s.awaitingApproval ? 'Aguardando aprovação' : STEP_STATUS[s.status] ?? s.status}</StatusChip>
-          </div>
-          <p className="mt-1 flex flex-wrap items-center gap-x-3 text-muted-foreground">
-            <span>{s.workCenterName ?? 'Sem centro'}{s.line ? ` · ${s.line}` : ''}</span>
-            <span className="inline-flex items-center tabular-nums">{hours(s.standardHours)} h<Dica nome="Horas padrão" texto={FABRICATION_DICAS.horas} /></span>
-            {s.appliedHours ? <span className="tabular-nums">Apontadas {hours(s.appliedHours)} h</span> : null}
-            {s.selfApproved ? <Tag>Autoaprovado</Tag> : null}
-            {s.isQualityStep ? <span className="inline-flex items-center"><Tag>Qualidade</Tag><Dica nome="Etapa de qualidade" texto={FABRICATION_DICAS.qualidade} /></span> : null}
-            {s.requiresApproval ? <Tag>Exige aprovação</Tag> : null}
-          </p>
-          <StepForecastLine forecast={stepForecast(forecast, s.id)} />
-          {s.checklist.length > 0 ? <ul aria-label={`Checklist da etapa ${s.name}`} className="mt-2 list-disc pl-5">{s.checklist.map((t, n) => <li key={n}>{t}</li>)}</ul> : null}
-        </li>
-      ))}
-    </ol>
+    <>
+      <ol aria-label="Etapas da OS" className="grid gap-2 sm:grid-cols-2">
+        {o.steps.map((s, i) => (
+          <li key={s.id} className={`rounded-md border border-border bg-card p-3 text-sm ${i === o.currentStepIndex && o.status !== 'Cancelled' ? 'border-l-4 border-l-signal' : ''}`}>
+            <div className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2">
+                <span className="grid h-[26px] min-w-[30px] place-items-center rounded-[5px] bg-rail px-1.5 font-display text-[13px] font-extrabold text-signal">{s.code}</span>
+                <b className="font-semibold">{s.name}</b>
+              </span>
+              <StepStatus step={s} />
+            </div>
+            <p className="mt-1 flex flex-wrap items-center gap-x-3 text-muted-foreground">
+              <span>{s.workCenterName ?? 'Sem centro'}{s.line ? ` · ${s.line}` : ''}</span>
+              <span className="inline-flex items-center tabular-nums">{hours(s.standardHours)} h<Dica nome="Horas padrão" texto={FABRICATION_DICAS.horas} /></span>
+              {s.appliedHours ? <span className="tabular-nums">Apontadas {hours(s.appliedHours)} h</span> : null}
+              {s.selfApproved ? <Tag>Autoaprovado</Tag> : null}
+              {s.isQualityStep ? <span className="inline-flex items-center"><Tag>Qualidade</Tag><Dica nome="Etapa de qualidade" texto={FABRICATION_DICAS.qualidade} /></span> : null}
+              {s.requiresApproval ? <Tag>Exige aprovação</Tag> : null}
+            </p>
+            <StepForecastLine forecast={stepForecast(forecast, s.id)} />
+            {s.checklist.length > 0 ? <ul aria-label={`Checklist da etapa ${s.name}`} className="mt-2 list-disc pl-5">{s.checklist.map((t, n) => <li key={n}>{t}</li>)}</ul> : null}
+            {canConcludeStep(o, s.id, canApprove) ? (
+              <button type="button" aria-label={`${stepActionLabel(s)} da ${o.number}`} onClick={() => setConcluding(s.id)}
+                className="mt-2 rounded-md border border-border px-3 py-2 text-sm font-semibold">Concluir etapa</button>
+            ) : null}
+          </li>
+        ))}
+      </ol>
+      {concludeStep ? (
+        <CompleteStepDialog orderId={o.id} orderNumber={o.number} step={concludeStep} version={o.version} open onOpenChange={(v) => { if (!v) setConcluding(null) }} onDone={onSaved} />
+      ) : null}
+    </>
   )
 }

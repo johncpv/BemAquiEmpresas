@@ -53042,6 +53042,12 @@
           "selfInspection": {
             "type": "boolean",
             "default": false
+          },
+          "pausedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

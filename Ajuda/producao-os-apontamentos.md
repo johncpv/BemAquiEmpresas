@@ -20,11 +20,16 @@ Ver as horas apontadas na OS, quem apontou e quando, e corrigir ou aprovar quand
 - Para quem não conseguiu apontar no tablet. Exige a ação de editar na produção e a de apontar do app do operador.
 - Escolha o funcionário ativo, a etapa, o início e o fim (ou **Termina agora**) e as pausas.
 - O sistema recusa início no futuro, fim antes do início, apontamento com mais de 7 dias e horário que cruza com outro apontamento do mesmo funcionário.
+- O apontamento do supervisor **nasce fechado** e **não conclui a etapa**. Depois de salvar, a tela avisa: "Horas registradas. A etapa fica iniciada até alguém finalizar ou o supervisor concluir." Para quem aprova na produção, o aviso traz **Concluir a etapa agora**, que abre o mesmo diálogo de **Concluir etapa** (com motivo). Nada é concluído sozinho.
+- Enquanto ninguém volta à etapa, ela aparece como **Iniciada · ninguém trabalhando agora** na aba **Etapas** e no Kanban.
 
-## Corrigir apontamento e aprovar etapa
+## Corrigir apontamento, aprovar e concluir etapa
 - **Corrigir apontamento** (quem aprova na produção): ajuste início, fim e pausas e informe o motivo. Apontamento aberto fecha com a marca "Encerrado pelo supervisor".
 - **Aprovar etapa** aparece quando uma etapa que exige aprovação foi finalizada.
+- **Concluir etapa {letra} {nome}** (quem aprova na produção): fica ao lado de **Apontar por funcionário** quando a etapa atual já começou e não foi concluída. Informe o motivo. Os apontamentos abertos da etapa fecham com a marca **Encerrado pelo supervisor** e a próxima etapa fica pronta.
 - Quem fez o apontamento não corrige nem aprova a própria etapa. Se não houver outro aprovador na empresa, a ação passa com a marca **Autoaprovado** e o Proprietário recebe o aviso.
 
 ## Perguntas frequentes
 **As horas já viram custo?** Sim. Cada apontamento fechado vira custo de mão de obra: horas líquidas × custo-hora do cargo, no fechamento. A correção refaz o valor com o mesmo custo-hora e as horas novas, e a diferença entra no custo do projeto.
+
+**Apontei por um funcionário e a etapa não andou. Por quê?** Porque **Apontar por funcionário** só registra as horas. A etapa fica iniciada até o operador finalizar no tablet ou o supervisor usar **Concluir etapa**.

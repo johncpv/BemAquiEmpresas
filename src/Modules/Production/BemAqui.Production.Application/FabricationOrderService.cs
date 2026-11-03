@@ -114,6 +114,10 @@ public sealed partial class FabricationOrderService(
         var product = order.ProductId is { } productId ? context.Products.GetValueOrDefault(productId) : null;
         var routing = order.RoutingTemplateId is { } routingId && await routings.FindAsync([routingId], cancellationToken) is [var template, ..] ? template : null;
         var applied = await LaborReader.AppliedMinutesAsync(db, stepIds, clock.GetUtcNow(), cancellationToken);
+        // Motivo da pausa só quando todos os apontamentos abertos da etapa estão em pausa (a mesma regra do Kanban). Só leitura.
+        var open = await LaborReader.OpenByStepAsync(db, stepIds, cancellationToken);
+        string? PausedReason(Guid stepId) =>
+            open[stepId].ToList() is { Count: > 0 } onStep && onStep.All(e => e.Paused is not null) ? ShopfloorService.PauseLabel(onStep[0].Paused!.Value) : null;
         // PRD-06a1 CA 4 e 12: o motivo do botão "Concluir OS" desabilitado, quem concluiu e o último estorno.
         // PRD-06a2 CA 1: sem o item de estoque do produto, o botão também fica desabilitado com o motivo.
         var blocker = order.Status is ProductionOrderStatus.Completed or ProductionOrderStatus.Cancelled ? null
@@ -124,7 +128,7 @@ public sealed partial class FabricationOrderService(
             s.Id, s.Sequence, s.Code ?? string.Empty, s.Name, s.WorkCenterId, s.WorkCenterId is { } c ? centers.GetValueOrDefault(c)?.Name : null,
             s.WorkCenterId is { } l ? centers.GetValueOrDefault(l)?.Line : null, s.StandardHours.GetValueOrDefault(), s.Status ?? ProductionStepStatus.Waiting, s.IsQualityStep,
             s.RequiresApproval, checklist[s.Id].Select(x => x.Text).ToList(), LaborRules.Hours(applied.GetValueOrDefault(s.Id)), s.AwaitingApprovalSince is not null,
-            s.SelfApproved, s.SelfInspection)).ToList();
+            s.SelfApproved, s.SelfInspection, PausedReason(s.Id))).ToList();
         return new FabricationOrderDetail(
             order.Id, order.Number, order.Status, order.ProjectId, project?.Number ?? string.Empty, project?.Name ?? string.Empty, project?.PartyId ?? Guid.Empty,
             project is null ? string.Empty : context.Parties.GetValueOrDefault(project.PartyId, string.Empty), project?.PromisedDate, order.ProjectItemId.GetValueOrDefault(),

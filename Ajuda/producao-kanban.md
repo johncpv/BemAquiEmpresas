@@ -21,9 +21,10 @@ Ver todas as OS de fabricação abertas por etapa, num quadro que se atualiza so
 
 ## Como a etapa avança
 - O quadro **não arrasta**. A etapa segue o roteiro, em ordem: ela avança pelo apontamento do operador no app do chão de fábrica.
-- Quem aprova na produção pode usar **Concluir etapa** no menu do cartão (os três pontos), quando a etapa terminou sem apontamento. Informe o motivo: fica registrado quem concluiu e por quê.
+- Quem aprova na produção pode usar **Concluir etapa** no menu do cartão (os três pontos), quando a etapa terminou sem apontamento. Informe o motivo: fica registrado quem concluiu e por quê. O mesmo botão está na tela da OS, nas abas **Etapas** e **Apontamentos**.
 - A etapa de qualidade não aparece no menu: ela é decidida na inspeção.
-- Quando a primeira etapa é concluída, a OS passa a **Em produção** e o projeto também.
+- A OS sai de **Aberta** (e o projeto passa a **Em andamento**) no **primeiro apontamento** da OS, não quando a primeira etapa é concluída. Com o operador trabalhando (tocou em **Iniciar etapa**), ela fica **Em produção**; se o primeiro apontamento já nasceu fechado (**Apontar por funcionário**), fica **Pausada** até alguém iniciar de novo. Concluir a primeira etapa pelo supervisor, sem apontamento, também tira a OS de Aberta.
+- **Pausada: {motivo}** quer dizer que quem está na etapa pausou (Falta de material, Máquina parada, Intervalo, Fim do turno ou Outro). **Iniciada · ninguém trabalhando agora** quer dizer que a etapa já teve apontamento, mas ninguém está nela e não há pausa aberta (por exemplo, depois de um **Apontar por funcionário**, que nasce fechado). Para continuar, o operador toca em **Iniciar etapa** no tablet (/fab); para encerrar sem novo apontamento, o supervisor usa **Concluir etapa**.
 
 ## Filtros
 - Clique em **{n} atrasadas** ou **{n} em risco** para ver só essas OS.
@@ -44,3 +45,5 @@ Uma coluna por vez: escolha a etapa nas abas do topo. Os contadores de atraso e 
 **Por que uma OS que vence daqui a 3 dias não está mais "em risco"?** Porque o risco agora vem do plano: só fica em risco quando a entrega prevista do projeto passa da prometida. A regra antiga (prometido em até 7 dias) saiu.
 
 **Quem recebe o aviso "OS atrasada"?** Todo dia de manhã, o responsável do projeto e quem aprova na produção recebem um aviso por OS atrasada, uma vez para cada data prometida.
+
+**O cartão diz "Iniciada · ninguém trabalhando agora". Está parada?** A etapa começou, mas ninguém está nela e ninguém pausou. Se o trabalho continua, o operador toca em **Iniciar etapa** no tablet; se a etapa já terminou, o supervisor usa **Concluir etapa**.
