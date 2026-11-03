@@ -14,6 +14,10 @@ Separar os gastos por área da empresa, para saber quanto custa a administraçã
 - Clique em **Novo centro de custo**, ou em **Novo centro filho** para criar dentro de outro. O código vem sugerido.
 - Clique em **Salvar centro de custo**.
 
+## Imprimir e exportar
+- **Exportar** → **Excel (.xlsx)** baixa os centros de custo com o código, o nome (com recuo por nível, como a árvore) e a situação.
+- Vale o filtro da tela: com **Mostrar inativos** marcado, os inativos também saem. A exportação fica na auditoria.
+
 ## Perguntas frequentes
 **Por que não consigo excluir um centro?** Centro com lançamentos ou com centros filhos não pode ser excluído. Inative-o.
 

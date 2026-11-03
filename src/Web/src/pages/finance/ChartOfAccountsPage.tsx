@@ -1,8 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { getListAccountsQueryKey, useListAccounts } from '@/api/generated/bemaqui'
+import { getExportAccountsUrl, getListAccountsQueryKey, useListAccounts } from '@/api/generated/bemaqui'
 import type { AccountDetail } from '@/api/generated/model'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
@@ -33,6 +34,9 @@ export function ChartOfAccountsPage() {
           <input type="checkbox" className="size-4" checked={showInactive} onChange={(e) => void navigate({ to: '.', search: (p: Record<string, unknown>) => ({ ...p, inativas: e.target.checked ? 'true' : undefined }) } as never)} />
           Mostrar inativas
         </label>
+        {/* EXP-05 CA 18: a árvore em Excel, com o código e o recuo por nível, e o filtro "Inativas" da tela. */}
+        <ExportMenu formats={['xlsx']} fileBase="plano-de-contas" empty={!query.data || query.data.length === 0}
+          url={(format) => getExportAccountsUrl({ format, inactive: showInactive || undefined })} />
       </div>
       {query.isPending ? <Skeleton className="h-96" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : query.data.length === 0 ? (
         <EmptyState title="Cadastre as contas para classificar receitas e despesas." action={newRoot} />
