@@ -60,7 +60,7 @@ export function PayslipsTab({ run, editable, canNotify, importing, onImportingCh
           ) : null}
         </div>
       </div>
-      {!closed && rows.length > 0 ? <p className="text-sm text-muted-foreground">{run.isSimulation ? 'Na simulação, o holerite sai só como prévia, com a marca "Simulação: não é o holerite oficial", e nunca vai para o funcionário.' : "Com a folha em lançamento, o holerite sai com a marca d'água “RASCUNHO — folha não fechada”. Avise os funcionários depois de fechar a folha."}</p> : null}
+      {!closed && rows.length > 0 ? <p className="text-sm text-muted-foreground">{run.isSimulation ? 'Na simulação, o holerite sai só como prévia, com a marca "Simulação" e o aviso "não é o holerite oficial", e nunca vai para o funcionário.' : "Com a folha em lançamento, o holerite sai com a marca “Rascunho” e o aviso “folha não fechada”. Avise os funcionários depois de fechar a folha."}</p> : null}
       {run.mode === 'Calculated' && !run.rectifiesRunId ? <HourBankSection run={run} editable={editable} onChanged={refresh} /> : null}
       {closed && notices.isError ? <ErrorState title="Não foi possível carregar a situação dos avisos." onRetry={() => notices.refetch()} /> : null}
       {rows.length === 0 ? (

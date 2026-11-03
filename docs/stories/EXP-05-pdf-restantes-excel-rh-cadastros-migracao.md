@@ -5,7 +5,7 @@
 | ID | EXP-05 |
 | Título | PDFs da BOM, do roteiro, do resumo do projeto, da solicitação de compra, da ficha do título a receber e a pagar, da OS de manutenção, da inspeção de qualidade, do painel do proprietário e da prévia do 13º; exportação xlsx de RH (CPF e salário só com `hr.view_sensitive`, senão mascarados), notas fiscais, patrimônio e cadastros; migração dos layouts antigos para o `PdfDocumentFrame` com o mesmo conteúdo |
 | Tamanho | M |
-| Status | Ready |
+| Status | Done (03/11/2026) |
 | Requisitos | Pedido do PO de 02/11/2026 (auditoria, seções A, B, D1, D4 "EXP-05" e E) · R-ENG-1 · R-PRJ-2 · R-CMP-1 · R-FIN-2 e R-FIN-4 (títulos) · R-PAT (manutenção, PAT-03a) · R-RH-5 · PRD §5.14 (painel) · R-COM-3 · PRD §6 LGPD · R-SEC-5 |
 | Dependências | EXP-01 (frame, marcas, `ITabularExporter`, `Sensitivity`, `<DocumentActions>`, `<ExportMenu>`); EXP-03 (`PdfQr`, `PdfStageIndicator`, migração do pedido de compra como modelo); EXP-04 (`Sensitivity.Omit`); ENG-01, ENG-02, COM-05, CMP-01, FIN-01, FIN-02, PAT-03a, PRD-05, DSH-01a/01b, FLH-04, CAD-04b/04c2, RH-01c, RH-02a, FIS-03a, FIS-04a, PAT-01a (telas e consultas entregues) |
 | Bloqueia | — |
@@ -22,7 +22,7 @@ Como **qualquer usuário do sistema**, quero **que todo documento restante tenha
 
 ## Critérios de aceite
 **PDFs novos (comum)**
-1. **Dado** a permissão `view` do documento e um dos documentos da tabela "PDFs", **quando** clico "Baixar PDF" no cabeçalho (`<DocumentActions>`), **então** baixa `{número}.pdf` no `PdfDocumentFrame`, com as seções e a marca da tabela; acima de 300 linhas, 422; dados da empresa incompletos, 422 com o link.
+1. **Dado** a permissão `view` do documento e um dos documentos da tabela "PDFs", **quando** clico "Baixar PDF" no cabeçalho (`<DocumentActions>`), **então** baixa `{número}.pdf` no `PdfDocumentFrame`, com as seções e a marca da tabela; acima de 300 linhas, 422. ~~Dados da empresa incompletos, 422 com o link.~~ (descartado por decisão do PO de 03/11/2026: o PDF não bloqueia por dado faltante da empresa, ADR 0045 §1).
 2. **[Segurança]** **Dado** um usuário sem a permissão do documento, **quando** chama o `/pdf`, **então** 403 (varredura); id de outro recurso dá 404 (IDOR, teste próprio na ficha do título); cada download entra na auditoria de exportação.
 
 **Engenharia (ENG-01, ENG-02)**
@@ -178,3 +178,4 @@ Checklist do SM, 02/11/2026, sobre o pedido do PO do mesmo dia.
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 02/11/2026 | 0.1 | Story detalhada a partir da auditoria de PDF e exportação (onda 3); `Ready` pelo pedido do PO de 02/11/2026 | Claude (SM) |
+| 03/11/2026 | 1.0 | Implementada (`Done`). Decisões do PO aplicadas: exportação sensível sem 2FA (a permissão basta; sem `hr.view_sensitive`, CPF `123.***.***-45` e valores `***`); auditoria com `sensitive = true` quando alguma coluna sensível sai sem máscara; etiqueta e DANFE fora do cabeçalho e rodapé do frame (CA 21); PDF não bloqueia por dado faltante da empresa (CA 1, ADR 0045 §1). Desvios: (1) resumo do projeto em `GET /projects/{id}/pdf` (os projetos já moram em `/api/v1/projects`); (2) BOM sem a lista de anexos do item e sem a marca de fantasma/agrupador (campos não existem; desenhos seguem na ficha da OS); (3) inspeção usa a marca padrão `Preview` ("Prévia, sem valor fiscal" + "Inspeção ainda não decidida."); (4) painel sem `?month`: a tela não tem seletor de mês, o PDF é a fotografia de agora e não há bloco "a pagar" (o painel não tem o card); (5) custo de manutenção exporta com `assets.edit`, a mesma permissão da tela, com as abas da tela (por bem, por mês, por centro), sem o desdobramento peças/mão de obra/terceiros que a tela não tem; manutenções sem coluna de custo e bens sem data de aquisição (a lista não mostra); (6) custo-hora de Cargos mascarado sem `hr.view_sensitive` na planilha (a tela mostra com `hr.view`); (7) prévia do 13º em PDF com os valores do motor do 13º simulado sem gravar (`ThirteenthSimulationAsync`), nome `previa-13-{ano}-{1\|2}a-parcela.pdf`; (8) romaneio estornado sai "Cancelado" com a faixa "Romaneio estornado"; DANFE de reserva de nota cancelada sai "Cancelado"; (9) valor de aquisição omitido sem `assets.edit` montando o spec pela permissão (sem depender do `Sensitivity.Omit` da EXP-04); (10) E2E fica para o nightly. | Dev (Claude) |

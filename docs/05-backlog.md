@@ -693,7 +693,7 @@ Pedido do PO de 02/11/2026: todo documento gerado tem PDF para imprimir e as lis
 
 **EXP-04 [ ] Onda 2: PDFs do comercial, da produção, das compras e do estoque, Excel das listas operacionais, holerite e boleto à mão (G)** — [story](stories/EXP-04-pdf-comercial-producao-estoque-listas.md)
 
-**EXP-05 [ ] Onda 3: PDFs restantes, Excel de RH, fiscal, patrimônio e cadastros, e migração dos layouts antigos para o template (M)** — [story](stories/EXP-05-pdf-restantes-excel-rh-cadastros-migracao.md)
+**EXP-05 [x] Onda 3: PDFs restantes, Excel de RH, fiscal, patrimônio e cadastros, e migração dos layouts antigos para o template (M)** — Pós-go-live, ordem 5 — `Done` (03/11/2026) — [story](stories/EXP-05-pdf-restantes-excel-rh-cadastros-migracao.md)
 
 ---
 
