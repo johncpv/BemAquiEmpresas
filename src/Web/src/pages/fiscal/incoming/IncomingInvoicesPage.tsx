@@ -1,10 +1,11 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { FileText, FileUp, Keyboard } from 'lucide-react'
 import { useState } from 'react'
-import { startManualIncomingInvoice, useListIncomingInvoices } from '@/api/generated/bemaqui'
+import { getExportIncomingInvoicesUrl, startManualIncomingInvoice, useListIncomingInvoices } from '@/api/generated/bemaqui'
 import type { IncomingInvoiceStatus, IncomingInvoiceSummary, IncomingReadingSummary } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useTableFilters } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { Money } from '@/components/ui/money'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -64,7 +65,10 @@ export function IncomingInvoicesPage() {
             </button>
           ))}
         </div>
-        <div className="flex flex-wrap gap-2">{importButton}{otherButtons}</div>
+        <div className="flex flex-wrap items-start gap-2">
+          <ExportMenu formats={['xlsx']} fileBase="notas-de-entrada" empty={data?.total === 0} url={(format) => getExportIncomingInvoicesUrl({ status, format })} />
+          {importButton}{otherButtons}
+        </div>
       </div>
       {error ? <p role="alert" className="mb-3 text-sm text-crit-ink">{error}</p> : null}
 

@@ -1,6 +1,7 @@
 using BemAqui.Assets.Application;
 using BemAqui.Assets.Contracts;
 using BemAqui.BuildingBlocks.Attachments;
+using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Web;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -40,6 +41,24 @@ internal static partial class AssetsEndpoints
             .RequirePermission("assets.view").WithName("ListMaintenanceOrders").Produces<MaintenanceOverview>();
         orders.MapGet("/{id:guid}", async (Guid id, MaintenanceService service, CancellationToken ct) => (await service.GetOrderAsync(id, ct)).ToHttpResult())
             .RequirePermission("assets.view").WithName("GetMaintenanceOrder").Produces<MaintenanceOrderDetail>();
+        // EXP-05 CA 8: a OS em PDF (checklist com caixas, custo como a tela mostra, assinaturas), com a permissão da tela.
+        orders.MapGet("/{id:guid}/pdf", async (Guid id, HttpContext http, MaintenanceOrderDocumentService service, CancellationToken ct) =>
+            {
+                var result = await service.PdfAsync(id, ct);
+                if (result.IsFailure)
+                {
+                    return result.Error!.ToProblem();
+                }
+
+                AttachmentEndpoints.ApplyDownloadHeaders(http.Response);
+                return Results.File(result.Value.Content, "application/pdf", result.Value.FileName);
+            })
+            .RequirePermission("assets.view").WithName("DownloadMaintenanceOrderPdf").Produces(StatusCodes.Status200OK, contentType: "application/pdf");
+        // EXP-05 CA 17: a lista em Excel com os filtros da tela (e a aba das preventivas).
+        orders.MapGet("/export", (string? format, Guid? assetId, Guid? workCenterId, MaintenanceOrderType? type, MaintenanceOrderStatus? status, HttpContext http,
+                AssetExportService service, ListExportService export, CancellationToken ct) =>
+                export.ExportAsync(http, format, (_, c) => service.OrdersAsync(new MaintenanceListQuery(assetId, workCenterId, type, status), c), ct))
+            .RequirePermission("assets.view").WithName("ExportMaintenanceOrders");
         orders.MapPost(string.Empty, async (MaintenanceOrderInput input, MaintenanceService service, CancellationToken ct) =>
                 (await service.OpenAsync(input, ct)).ToHttpResult(saved => Results.Created("/api/v1/assets/maintenance-orders/" + saved.Id, saved)))
             .RequirePermission("assets.create").RequireIdempotencyKey().WithName("OpenMaintenanceOrder").Produces<MaintenanceOrderDetail>(StatusCodes.Status201Created);
@@ -71,6 +90,10 @@ internal static partial class AssetsEndpoints
         costs.MapGet(string.Empty, async (string? from, string? to, Guid? assetId, Guid? workCenterId, MaintenanceCostService service, CancellationToken ct) =>
                 (await service.ReportAsync(new MaintenanceCostQuery(from, to, assetId, workCenterId), ct)).ToHttpResult())
             .RequirePermission("assets.edit").WithName("GetMaintenanceCostReport").Produces<MaintenanceCostReport>();
+        // EXP-05 CA 17: o relatório em Excel (por bem, por mês e por centro), com a mesma assets.edit da tela.
+        costs.MapGet("/export", (string? format, string? from, string? to, Guid? assetId, Guid? workCenterId, HttpContext http, AssetExportService service, ListExportService export,
+                CancellationToken ct) => export.ExportAsync(http, format, (_, c) => service.CostAsync(new MaintenanceCostQuery(from, to, assetId, workCenterId), c), ct))
+            .RequirePermission("assets.edit").WithName("ExportMaintenanceCosts");
         costs.MapGet("/orders", async (string? from, string? to, string? month, Guid? assetId, Guid? workCenterId, MaintenanceOrderType? type, MaintenanceCostService service, CancellationToken ct) =>
                 (await service.OrdersAsync(new MaintenanceCostQuery(from, to, assetId, workCenterId, type, month), ct)).ToHttpResult())
             .RequirePermission("assets.edit").WithName("ListMaintenanceCostOrders").Produces<MaintenanceCostOrders>();

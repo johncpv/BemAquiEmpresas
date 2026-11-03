@@ -257,6 +257,24 @@ public sealed partial class OutgoingInvoiceService(
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(page);
+        var invoices = Filtered(query);
+        var totals = await invoices.GroupBy(_ => 1).Select(g => new { Count = g.Count(), Amount = g.Sum(i => i.TotalAmount), Taxes = g.Sum(i => i.TaxAmount) }).FirstOrDefaultAsync(cancellationToken);
+        var rows = await invoices.OrderByDescending(i => i.CreatedAt).ThenByDescending(i => i.Id).Skip(page.Skip).Take(page.PageSize)
+            .Select(i => new { i.Id, i.Series, i.Number, i.IssuedOn, i.CreatedAt, i.PartyId, i.ProjectId, i.ShipmentNumber, i.TotalAmount, i.TaxAmount, i.Environment, i.Status, i.Type, i.InstallationOrderNumber })
+            .ToListAsync(cancellationToken);
+        var partyNames = (await parties.FindManyAsync(rows.Where(r => r.PartyId != null).Select(r => r.PartyId!.Value).Distinct().ToList(), cancellationToken))
+            .ToDictionary(p => p.Id, p => p.TradeName ?? p.LegalName);
+        var projectNumbers = (await projects.FindManyAsync(rows.Where(r => r.ProjectId != null).Select(r => r.ProjectId!.Value).Distinct().ToList(), cancellationToken))
+            .ToDictionary(p => p.Id, p => p.Number);
+        var items = rows.Select(r => new OutgoingInvoiceRow(r.Id, r.Series, r.Number, r.IssuedOn, r.CreatedAt, r.PartyId, r.PartyId is { } pid ? partyNames.GetValueOrDefault(pid, string.Empty) : string.Empty,
+            r.ProjectId, r.ProjectId is { } prid ? projectNumbers.GetValueOrDefault(prid) : null, r.ShipmentNumber, r.TotalAmount, r.TaxAmount, r.Environment, r.Status, r.Type,
+            r.InstallationOrderNumber)).ToList();
+        return new OutgoingInvoicePage(items, totals?.Count ?? 0, page.Page, page.PageSize, totals?.Amount ?? 0m, totals?.Taxes ?? 0m);
+    }
+
+    /// <summary>Os filtros da lista "Emitidas" (CA 17), também usados pela exportação do livro simples (EXP-05 CA 16).</summary>
+    internal IQueryable<OutgoingInvoice> Filtered(OutgoingInvoiceQuery query)
+    {
         // FIS-06: a NFS-e da instalação aparece junto, com o filtro "NFS-e".
         var invoices = db.OutgoingInvoices.AsNoTracking().Where(i => (i.ShipmentId != null || i.InstallationOrderId != null) && i.DiscardedAt == null);
         if (query.Type is { } type)
@@ -297,18 +315,7 @@ public sealed partial class OutgoingInvoiceService(
             invoices = invoices.Where(i => db.CancellationRequests.Any(r => r.InvoiceId == i.Id && r.Status == CancellationRequestStatus.Pending));
         }
 
-        var totals = await invoices.GroupBy(_ => 1).Select(g => new { Count = g.Count(), Amount = g.Sum(i => i.TotalAmount), Taxes = g.Sum(i => i.TaxAmount) }).FirstOrDefaultAsync(cancellationToken);
-        var rows = await invoices.OrderByDescending(i => i.CreatedAt).ThenByDescending(i => i.Id).Skip(page.Skip).Take(page.PageSize)
-            .Select(i => new { i.Id, i.Series, i.Number, i.IssuedOn, i.CreatedAt, i.PartyId, i.ProjectId, i.ShipmentNumber, i.TotalAmount, i.TaxAmount, i.Environment, i.Status, i.Type, i.InstallationOrderNumber })
-            .ToListAsync(cancellationToken);
-        var partyNames = (await parties.FindManyAsync(rows.Where(r => r.PartyId != null).Select(r => r.PartyId!.Value).Distinct().ToList(), cancellationToken))
-            .ToDictionary(p => p.Id, p => p.TradeName ?? p.LegalName);
-        var projectNumbers = (await projects.FindManyAsync(rows.Where(r => r.ProjectId != null).Select(r => r.ProjectId!.Value).Distinct().ToList(), cancellationToken))
-            .ToDictionary(p => p.Id, p => p.Number);
-        var items = rows.Select(r => new OutgoingInvoiceRow(r.Id, r.Series, r.Number, r.IssuedOn, r.CreatedAt, r.PartyId, r.PartyId is { } pid ? partyNames.GetValueOrDefault(pid, string.Empty) : string.Empty,
-            r.ProjectId, r.ProjectId is { } prid ? projectNumbers.GetValueOrDefault(prid) : null, r.ShipmentNumber, r.TotalAmount, r.TaxAmount, r.Environment, r.Status, r.Type,
-            r.InstallationOrderNumber)).ToList();
-        return new OutgoingInvoicePage(items, totals?.Count ?? 0, page.Page, page.PageSize, totals?.Amount ?? 0m, totals?.Taxes ?? 0m);
+        return invoices;
     }
 
     // ---------- CA 16: A emitir ----------

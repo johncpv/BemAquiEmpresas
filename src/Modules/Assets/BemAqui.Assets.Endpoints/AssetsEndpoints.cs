@@ -1,6 +1,7 @@
 using BemAqui.Assets.Application;
 using BemAqui.Assets.Contracts;
 using BemAqui.BuildingBlocks.Attachments;
+using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.SharedKernel;
@@ -108,6 +109,12 @@ internal static partial class AssetsEndpoints
                 AssetService service, CancellationToken ct) =>
                 Results.Ok(await service.ListAsync(new AssetListQuery(q, type, siteId, workCenterId, responsibleEmployeeId, status, responsibleTerminated == true), new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize, sort).Normalize(), ct)))
             .RequirePermission("assets.view").WithName("ListAssets").Produces<PagedList<AssetListItem>>();
+        // EXP-05 CA 17: a lista em Excel com a busca, os filtros e a ordem da tela; o valor de aquisição só com assets.edit (omitido sem ela).
+        assets.MapGet("/export", (string? format, string? q, AssetType? type, Guid? siteId, Guid? workCenterId, Guid? responsibleEmployeeId, AssetStatus? status, bool? responsibleTerminated,
+                string? sort, HttpContext http, AssetExportService service, ListExportService export, CancellationToken ct) =>
+                export.ExportAsync(http, format, (max, c) => service.AssetsAsync(
+                    new AssetListQuery(q, type, siteId, workCenterId, responsibleEmployeeId, status, responsibleTerminated == true), sort, max, c), ct))
+            .RequirePermission("assets.view").WithName("ExportAssets");
         assets.MapGet("/suggestions", async (Guid workCenterId, AssetService service, CancellationToken ct) => Results.Ok(await service.SuggestAsync(workCenterId, ct)))
             .RequirePermission("assets.view").WithName("SuggestAssetPlacement").Produces<AssetSuggestionView>();
         assets.MapGet("/{id:guid}", async (Guid id, AssetService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())

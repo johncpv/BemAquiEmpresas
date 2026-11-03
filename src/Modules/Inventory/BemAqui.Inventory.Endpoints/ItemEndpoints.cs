@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Inventory.Application;
@@ -31,6 +32,11 @@ internal static partial class ItemEndpoints
         items.MapGet(string.Empty, async (string? q, ItemType? type, Guid? categoryId, bool? includeInactive, int? page, int? pageSize, string? sort, ItemService service, CancellationToken ct) =>
                 Results.Ok(await service.ListAsync(new ItemListQuery(q, type, categoryId, includeInactive == true), new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize, sort).Normalize(), ct)))
             .RequirePermission("inventory.view").WithName("ListItems").Produces<PagedList<ItemListItem>>();
+        // EXP-05 CA 18: a lista em Excel com a busca, os filtros e a ordem da tela.
+        items.MapGet("/export", (string? format, string? q, ItemType? type, Guid? categoryId, bool? includeInactive, string? sort, HttpContext http, ItemService service,
+                ListExportService export, CancellationToken ct) =>
+                export.ExportAsync(http, format, (max, c) => ItemExports.LoadAsync(service, new ItemListQuery(q, type, categoryId, includeInactive == true), sort, max, c), ct))
+            .RequirePermission("inventory.view").WithName("ExportItems");
         items.MapGet("/search", async (string? q, ItemService service, CancellationToken ct) => Results.Ok(await service.SearchHitsAsync(q, ct)))
             .RequirePermission("inventory.view").WithName("SearchItems").Produces<IReadOnlyList<ItemSearchHit>>();
         items.MapGet("/{id:guid}", async (Guid id, ItemService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())
