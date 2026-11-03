@@ -241,7 +241,7 @@ const groupsRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos
 const settingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes', beforeLoad: () => { throw redirect({ to: '/app/configuracoes/empresa' }) } })
 // Configurações da empresa (CAD-06): Empresa, Numeração e Parâmetros vêm antes de Segurança.
 const companyRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/empresa', component: gated('settings', CompanyPage) })
-const numberingRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/numeracao', component: gated('settings', NumberingPage) })
+const numberingRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/numeracao', component: gated('settings', NumberingPage) })
 const parametersRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/parametros', component: gated('settings', ParametersPage) })
 const securityRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/seguranca', component: gated('settings', SecurityPage) })
 const aiSettingsRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/ia', component: gated('settings', AiSettingsPage) })
@@ -259,7 +259,7 @@ const importRunRoute = createRoute({ getParentRoute: () => appRoute, path: 'conf
 // Emissor fiscal (FIS-01): conexão com o EmissorFiscal; a tela confere também o módulo fiscal liberado.
 const fiscalIntegrationRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/integracoes/emissor-fiscal', component: gated('settings', FiscalIntegrationPage) })
 // Configurações → Fiscal e Certificado digital (FIS-02a): a tela confere o módulo fiscal liberado; ver com settings.view ou fiscal.view.
-const fiscalSettingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/fiscal', component: FiscalSettingsPage })
+const fiscalSettingsRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/fiscal', component: FiscalSettingsPage })
 const fiscalCertificateRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'configuracoes/fiscal/certificado', component: FiscalCertificatePage })
 // Configurações → Privacidade (LGPD-01a): pedidos do titular, só do Proprietário (a tela mostra o aviso para os demais).
 const privacyRequestsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/privacidade', component: gated('settings', PrivacyRequestsPage) })

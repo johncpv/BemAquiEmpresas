@@ -4,8 +4,9 @@ import { useSearch } from '@tanstack/react-router'
 import { getGetTenantParametersQueryKey, saveEmailDispatchLimit, savePayrollCharges, savePricingMode, useGetPositionsSummary, useGetTenantParameters } from '@/api/generated/bemaqui'
 import { PricingMode, type TenantParametersDto } from '@/api/generated/model'
 import { RecordHistory } from '@/components/history/RecordHistory'
+import { FormLayout } from '@/components/layout/form-layout'
 import { ToggleGroup } from '@/components/form/choice'
-import { Field, FormSection } from '@/components/form/form'
+import { Field, FormGrid, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { PercentInput } from '@/components/form/inputs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -43,8 +44,10 @@ export function ParametersPage() {
   return (
     <>
       <PageHeading title="Configurações: Parâmetros" />
-      {query.isPending ? <Skeleton className="h-96 max-w-3xl" /> : query.isError || !query.data ? <ErrorState onRetry={() => query.refetch()} /> : (
-        <div className="max-w-3xl space-y-6">
+      {/* Rota form (ADR 0044): as seções na coluna de 896 px, alinhada ao título; cada seção salva o seu bloco. */}
+      <FormLayout>
+      {query.isPending ? <Skeleton className="h-96" /> : query.isError || !query.data ? <ErrorState onRetry={() => query.refetch()} /> : (
+        <div className="space-y-5">
           <ChargesSection key={`c${query.data.payrollChargesPct}`} params={query.data} canEdit={canEdit} />
           <PricingSection key={`p${query.data.pricingMode}`} params={query.data} canEdit={canEdit} />
           <CommercialPricingSection canEdit={canEdit} />
@@ -58,6 +61,7 @@ export function ParametersPage() {
           <EmailDispatchSection key={`e${query.data.emailDispatchMaxPerUserDay}`} params={query.data} canEdit={canEdit} />
         </div>
       )}
+      </FormLayout>
     </>
   )
 }
@@ -82,10 +86,13 @@ function ChargesSection({ params, canEdit }: { params: TenantParametersDto; canE
   const impact = canHr && typeof positions.data?.calculated === 'number' ? (positions.data.calculated === 1 ? '1 cargo será recalculado.' : positions.data.calculated + ' cargos serão recalculados.') : 'Os cargos com custo-hora calculado serão recalculados.'
 
   return (
-    <FormSection title="Encargos" description="Usado no custo-hora dos cargos (RH) e no custo das ordens de serviço.">
-      <Field label="% de encargos estimados" required error={error} dica={CHARGES_DICA}>
-        {(p) => <PercentInput {...p} value={value} onChange={setValue} disabled={!canEdit} />}
-      </Field>
+    <FormSection title="Encargos" description="Usado no custo-hora dos cargos (RH) e no custo das ordens de serviço." grid="none">
+      <div className="space-y-3">
+      <FormGrid>
+        <Field label="% de encargos estimados" required size="md" error={error} dica={CHARGES_DICA}>
+          {(p) => <PercentInput {...p} value={value} onChange={setValue} disabled={!canEdit} />}
+        </Field>
+      </FormGrid>
       {canEdit ? (
         <div className="flex justify-end">
           <ConfirmDialog verb="Salvar % de encargos" done="% de encargos salvo" title="Salvar % de encargos?"
@@ -95,6 +102,7 @@ function ChargesSection({ params, canEdit }: { params: TenantParametersDto; canE
         </div>
       ) : null}
       {params.chargesSettingId ? <History id={params.chargesSettingId} /> : null}
+      </div>
     </FormSection>
   )
 }
@@ -103,7 +111,8 @@ function PricingSection({ params, canEdit }: { params: TenantParametersDto; canE
   const [mode, setMode] = useState<PricingMode>(params.pricingMode)
   const saved = useSaved()
   return (
-    <FormSection title="Precificação" description="Como o orçamento sugere o preço a partir do custo. O % padrão entra com o módulo Comercial.">
+    <FormSection title="Precificação" description="Como o orçamento sugere o preço a partir do custo. O % padrão entra com o módulo Comercial." grid="none">
+      <div className="space-y-3">
       <div className="space-y-1">
         <p className="text-sm font-semibold">Modo de precificação</p>
         <ToggleGroup label="Modo de precificação" options={MODES} value={mode} onChange={setMode} disabled={!canEdit} />
@@ -117,6 +126,7 @@ function PricingSection({ params, canEdit }: { params: TenantParametersDto; canE
         </div>
       ) : null}
       {params.pricingSettingId ? <History id={params.pricingSettingId} /> : null}
+      </div>
     </FormSection>
   )
 }
@@ -131,10 +141,13 @@ function EmailDispatchSection({ params, canEdit }: { params: TenantParametersDto
   const max = Number(value)
   const error = value.trim() === '' || !Number.isInteger(max) || max < 1 || max > 50 ? 'Informe de 1 a 50 envios por dia.' : undefined
   return (
-    <FormSection title="Envios por e-mail" description="Limite diário de envios de orçamento e de pedido de compra por e-mail. O total da empresa é 50 por dia.">
-      <Field label="Envios por usuário por dia" required error={error} dica={DISPATCH_DICA}>
-        {(p) => <input {...p} inputMode="numeric" value={value} onChange={(e) => setValue(e.target.value.replace(/[^0-9]/g, ''))} disabled={!canEdit} className={inputClass + ' max-w-32 tabular-nums'} />}
-      </Field>
+    <FormSection title="Envios por e-mail" description="Limite diário de envios de orçamento e de pedido de compra por e-mail. O total da empresa é 50 por dia." grid="none">
+      <div className="space-y-3">
+      <FormGrid>
+        <Field label="Envios por usuário por dia" required size="md" error={error} dica={DISPATCH_DICA}>
+          {(p) => <input {...p} inputMode="numeric" value={value} onChange={(e) => setValue(e.target.value.replace(/[^0-9]/g, ''))} disabled={!canEdit} className={inputClass + ' tabular-nums'} />}
+        </Field>
+      </FormGrid>
       {canEdit ? (
         <div className="flex justify-end">
           <ConfirmDialog verb="Salvar limite de envios" done="Limite de envios salvo" title="Salvar limite de envios?"
@@ -144,6 +157,7 @@ function EmailDispatchSection({ params, canEdit }: { params: TenantParametersDto
         </div>
       ) : null}
       {params.emailDispatchSettingId ? <History id={params.emailDispatchSettingId} /> : null}
+      </div>
     </FormSection>
   )
 }

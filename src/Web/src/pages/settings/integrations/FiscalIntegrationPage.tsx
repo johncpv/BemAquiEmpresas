@@ -5,8 +5,9 @@ import { type ReactNode, useState } from 'react'
 import { getGetFiscalIntegrationQueryKey, saveFiscalIntegration, testFiscalIntegration, useGetFiscalIntegration } from '@/api/generated/bemaqui'
 import type { FiscalConnectionTest, FiscalIntegrationView } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { Field, FormError } from '@/components/form/form'
+import { Field, FormActions, FormError, FormGrid, FormGridItem } from '@/components/form/form'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
+import { FormLayout } from '@/components/layout/form-layout'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogMessage } from '@/components/ui/dialog-message'
 import { EnvironmentBanner } from '@/components/ui/environment-banner'
@@ -53,16 +54,16 @@ function FiscalIntegration() {
 
   return (
     <>
-      <PageHeading title="Integrações: Emissor fiscal">
-        <p className="mt-2 text-muted-foreground">O BemAqui emite as notas pelo Emissor Fiscal, pela internet em conexão segura. Aqui ficam a chave, o segredo e o endereço do aviso.</p>
-      </PageHeading>
+      <PageHeading title="Integrações: Emissor fiscal" description="O BemAqui emite as notas pelo Emissor Fiscal, pela internet em conexão segura. Aqui ficam a chave, o segredo e o endereço do aviso." />
       <IntegrationsNav />
-      {query.isPending ? <Skeleton className="h-64 max-w-3xl" /> : query.isError ? (
-        <ErrorState className="max-w-3xl" message={query.error instanceof ApiError ? query.error.message : undefined} onRetry={() => query.refetch()} />
+      {/* Rota form (ADR 0044): a coluna de 896 px, alinhada ao título. */}
+      <FormLayout>
+      {query.isPending ? <Skeleton className="h-64" /> : query.isError ? (
+        <ErrorState message={query.error instanceof ApiError ? query.error.message : undefined} onRetry={() => query.refetch()} />
       ) : !view!.allowed ? (
-        <EmptyState className="max-w-3xl" title="Emissão não liberada nesta empresa." description={NOT_ALLOWED} />
+        <EmptyState title="Emissão não liberada nesta empresa." description={NOT_ALLOWED} />
       ) : (
-        <div className="max-w-3xl space-y-4">
+        <div className="space-y-4">
           <EnvironmentBanner service="sefaz" test={isTestEnvironment(view!)} />
           {test?.ok ? <NextStepsAfterTest onDismiss={() => setTest(null)} /> : null}
           {editing ? (
@@ -75,6 +76,7 @@ function FiscalIntegration() {
           )}
         </div>
       )}
+      </FormLayout>
     </>
   )
 }
@@ -210,35 +212,38 @@ function ConnectionForm({ view, onCancel, onSaved }: { view: FiscalIntegrationVi
   return (
     <form onSubmit={open} noValidate aria-label="Conexão com o Emissor Fiscal" className="space-y-4 rounded-md border border-border bg-card p-5">
       <FormError message={form.formState.errors.root?.server?.message} />
-      <div className="space-y-1 text-sm">
+      {/* Grade de 12 trilhas (ADR 0044): a chave e o segredo com 6 trilhas cada. */}
+      <FormGrid>
+      <FormGridItem className="space-y-1 text-sm">
         <p className="flex items-center font-medium">Endereço do Emissor Fiscal<Dica texto={HINTS.baseUrl} nome="Endereço do Emissor Fiscal" /></p>
         <p><code className="break-all text-xs">{view.defaultBaseUrl}</code></p>
         <p className="text-xs text-muted-foreground">Definido pelo sistema, o mesmo para homologação e produção.</p>
-      </div>
+      </FormGridItem>
       {replaceKey ? (
-        <Field label="Chave de API" required error={form.formState.errors.apiKey?.message} hint={HINTS.apiKey} dica={HINTS.admin}>
+        <Field label="Chave de API" required size="lg" error={form.formState.errors.apiKey?.message} hint={HINTS.apiKey} dica={HINTS.admin}>
           {(p) => <input {...p} type="password" autoComplete="new-password" spellCheck={false} {...form.register('apiKey')} className={inputClass} />}
         </Field>
       ) : (
-        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+        <FormGridItem size="lg" className="flex flex-wrap items-center justify-between gap-2 text-sm">
           <span className="tabular-nums">Chave configurada em {view.apiKeySetAt ? formatInstantDate(view.apiKeySetAt) : '—'}</span>
           <button type="button" onClick={() => setReplaceKey(true)} className={secondary}>Trocar a chave</button>
-        </div>
+        </FormGridItem>
       )}
       {replaceSecret ? (
-        <Field label="Segredo do aviso (webhook)" required error={form.formState.errors.webhookSecret?.message} hint="Mostrado uma vez pelo Emissor Fiscal ao cadastrar o aviso." dica={HINTS.webhookSecret}>
+        <Field label="Segredo do aviso (webhook)" required size="lg" error={form.formState.errors.webhookSecret?.message} hint="Mostrado uma vez pelo Emissor Fiscal ao cadastrar o aviso." dica={HINTS.webhookSecret}>
           {(p) => <input {...p} type="password" autoComplete="new-password" spellCheck={false} {...form.register('webhookSecret')} className={inputClass} />}
         </Field>
       ) : (
-        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+        <FormGridItem size="lg" className="flex flex-wrap items-center justify-between gap-2 text-sm">
           <span className="tabular-nums">Segredo configurado em {view.webhookSecretSetAt ? formatInstantDate(view.webhookSecretSetAt) : '—'}</span>
           <button type="button" onClick={() => setReplaceSecret(true)} className={secondary}>Trocar o segredo</button>
-        </div>
+        </FormGridItem>
       )}
-      <div className="flex flex-wrap justify-end gap-2 pt-1">
+      </FormGrid>
+      <FormActions>
         <button type="button" onClick={onCancel} className={secondary}>Voltar</button>
         <button type="submit" className={primary}>Salvar integração fiscal</button>
-      </div>
+      </FormActions>
       <ConfirmDialog
         open={confirming}
         onOpenChange={setConfirming}

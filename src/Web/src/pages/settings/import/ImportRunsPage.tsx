@@ -36,9 +36,7 @@ export function ImportRunsPage() {
 
   return (
     <>
-      <PageHeading title="Configurações: Importação do Dolibarr">
-        <p className="mt-2 text-muted-foreground">Execuções da importação dos cadastros do Dolibarr, com o que entrou, o que ficou de fora e por quê.</p>
-      </PageHeading>
+      <PageHeading title="Configurações: Importação do Dolibarr" description="Execuções da importação dos cadastros do Dolibarr, com o que entrou, o que ficou de fora e por quê." />
       <DataTable
         label="Execuções da importação"
         columns={columns}

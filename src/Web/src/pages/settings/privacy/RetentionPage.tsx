@@ -45,7 +45,7 @@ export function RetentionPage() {
     <>
       <PageHeading title="Retenção dos dados pessoais" />
       {back}
-      <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+      <p className="mt-2 max-w-prose text-sm text-muted-foreground">
         Por quanto tempo cada dado pessoal fica guardado antes de poder ser anonimizado a pedido do titular. Os valores vêm pré-configurados;
         confira cada linha com a contadora e com o jurídico e marque como conferida.
       </p>

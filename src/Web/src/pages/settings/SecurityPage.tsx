@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { getGetSecuritySettingsQueryKey, saveSecuritySettings, useGetSecuritySettings } from '@/api/generated/bemaqui'
+import { FormLayout } from '@/components/layout/form-layout'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -23,8 +24,11 @@ export function SecurityPage() {
   return (
     <>
       <PageHeading title="Configurações: Segurança" />
-      {settings.isPending ? <Skeleton className="h-28 max-w-xl" /> : settings.isError ? <ErrorState onRetry={() => settings.refetch()} /> : (
-        <section className="max-w-xl space-y-3 rounded-md border border-border bg-card p-5">
+      {/* Rota form (ADR 0044): os blocos na coluna de 896 px, alinhada ao título. */}
+      <FormLayout>
+      <div className="space-y-5">
+      {settings.isPending ? <Skeleton className="h-28" /> : settings.isError ? <ErrorState onRetry={() => settings.refetch()} /> : (
+        <section className="space-y-3 rounded-md border border-border bg-card p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <b className="font-semibold">Exigir verificação em duas etapas para todos<Dica texto="Quem ainda não tem será levado à configuração no próximo acesso." /></b>
             <StatusChip tone={settings.data.requireTwoFactor ? 'ok' : 'info'}>{settings.data.requireTwoFactor ? 'Exigida' : 'Não exigida'}</StatusChip>
@@ -41,7 +45,9 @@ export function SecurityPage() {
           </Can>
         </section>
       )}
-      <div className="mt-6"><ShopfloorDevicesSection /></div>
+      <ShopfloorDevicesSection />
+      </div>
+      </FormLayout>
     </>
   )
 }

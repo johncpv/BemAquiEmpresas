@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { getGetPurchasingParametersQueryKey, updatePurchasingParameters, useGetPurchasingParameters } from '@/api/generated/bemaqui'
 import type { CostType, PurchasingParametersView } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { Field, FormSection } from '@/components/form/form'
+import { Field, FormGrid, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { MoneyInput } from '@/components/form/inputs'
 import { RecordHistory } from '@/components/history/RecordHistory'
@@ -84,17 +84,20 @@ function PurchasingForm({ params, canEdit }: { params: PurchasingParametersView;
   const pending = accountingPending(params) ? <StatusChip tone="warn">{PENDING_LABEL}</StatusChip> : null
 
   return (
-    <FormSection title="Compras" description="Prazo usado para calcular quando o material precisa estar comprado, a tolerância do recebimento e a classificação dos títulos dos pedidos.">
-      <fieldset disabled={!canEdit} className="space-y-3 sm:col-span-2">
-        <Field label="Prazo padrão de compra (dias)" dica={LEAD_DICA} error={invalid ?? errors.defaultLeadDays} hint="Padrão 15 dias.">
+    <FormSection title="Compras" description="Prazo usado para calcular quando o material precisa estar comprado, a tolerância do recebimento e a classificação dos títulos dos pedidos." grid="none">
+      <div className="space-y-3">
+      <fieldset disabled={!canEdit} className="space-y-3">
+        <FormGrid>
+        <Field label="Prazo padrão de compra (dias)" size="md" dica={LEAD_DICA} error={invalid ?? errors.defaultLeadDays} hint="Padrão 15 dias.">
           {(p) => <input {...p} inputMode="numeric" maxLength={3} value={days} onChange={(e) => setDays(e.target.value.replace(/[^0-9]/g, ''))} className={inputClass + ' tabular-nums'} />}
         </Field>
-        <Field label="Tolerância do recebimento (%)" dica={TOLERANCE_DICA} error={toleranceInvalid ?? errors.receiptTolerancePct} hint="Padrão 0%: o recebimento não passa do pedido.">
+        <Field label="Tolerância do recebimento (%)" size="md" dica={TOLERANCE_DICA} error={toleranceInvalid ?? errors.receiptTolerancePct} hint="Padrão 0%: o recebimento não passa do pedido.">
           {(p) => <input {...p} inputMode="decimal" maxLength={5} value={tolerance} onChange={(e) => setTolerance(e.target.value.replace(/[^0-9,.]/g, ''))} className={inputClass + ' tabular-nums'} />}
         </Field>
-        <Field label="Anexo da proposta obrigatório acima de" dica={ATTACHMENT_DICA} error={errors.quoteAttachmentAmount} hint="Padrão R$ 5.000,00 no custo total da resposta.">
+        <Field label="Anexo da proposta obrigatório acima de" size="md" dica={ATTACHMENT_DICA} error={errors.quoteAttachmentAmount} hint="Padrão R$ 5.000,00 no custo total da resposta.">
           {(p) => <MoneyInput {...p} value={attachment} onChange={setAttachment} />}
         </Field>
+        </FormGrid>
         <div role="group" aria-label="Títulos do pedido de compra" className="space-y-3 rounded-md border border-border p-3">
           <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">Títulos do pedido de compra<Dica nome="Títulos do pedido de compra" texto={PAYABLE_DICA} />{pending}</p>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -115,11 +118,12 @@ function PurchasingForm({ params, canEdit }: { params: PurchasingParametersView;
         {canEdit ? <button type="button" disabled={!changed || !!invalid || !!toleranceInvalid} onClick={() => void save()} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">Salvar parâmetros de compras</button> : null}
       </fieldset>
       {params.defaultLeadDaysId ? (
-        <details className="rounded-md border border-border bg-card px-3 py-2 text-sm sm:col-span-2">
+        <details className="rounded-md border border-border bg-card px-3 py-2 text-sm">
           <summary className="cursor-pointer font-semibold">Histórico de alterações</summary>
           <div className="mt-3"><RecordHistory entity="PurchasingParameter" id={params.defaultLeadDaysId} /></div>
         </details>
       ) : null}
+      </div>
     </FormSection>
   )
 }

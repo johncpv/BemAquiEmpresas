@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { saveAiSettings, testAiSettings } from '@/api/generated/bemaqui'
 import type { AiSettingsDto, AiSettingsRequest, AiTestResult } from '@/api/generated/model'
-import { Field, FormError } from '@/components/form/form'
+import { Field, FormActions, FormError, FormGrid, FormGridItem } from '@/components/form/form'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
 import { StatusChip } from '@/components/ui/status-chip'
 import { notifySuccess } from '@/components/ui/messages'
@@ -80,8 +80,11 @@ export function AiSettingsForm({ settings, onDone, onCancel }: { settings: AiSet
   })
 
   return (
-    <form onSubmit={submit} noValidate aria-label="Provedor de IA" className="max-w-xl space-y-4 rounded-md border border-border bg-card p-5">
+    // Formulário curto (ADR 0044): grade de 12 trilhas (Modelo 6 · Nome do modelo 6 / Chave 6) e os botões no fim.
+    <form onSubmit={submit} noValidate aria-label="Provedor de IA" className="space-y-4 rounded-md border border-border bg-card p-5">
       <FormError message={form.formState.errors.root?.server?.message} />
+      <FormGrid>
+      <FormGridItem>
       <fieldset className="space-y-1">
         <legend className="text-sm font-medium">Provedor</legend>
         <div className="flex flex-wrap gap-2">
@@ -93,7 +96,8 @@ export function AiSettingsForm({ settings, onDone, onCancel }: { settings: AiSet
           ))}
         </div>
       </fieldset>
-      <Field label="Modelo" error={form.formState.errors.model?.message} hint="Os modelos mais leves respondem mais rápido e custam menos.">
+      </FormGridItem>
+      <Field label="Modelo" size="lg" error={form.formState.errors.model?.message} hint="Os modelos mais leves respondem mais rápido e custam menos.">
         {(p) => (
           <select {...p} {...form.register('model')} className={inputClass}>
             {suggestions(provider).map((m) => <option key={m} value={m}>{m}</option>)}
@@ -102,29 +106,32 @@ export function AiSettingsForm({ settings, onDone, onCancel }: { settings: AiSet
         )}
       </Field>
       {model === OTHER ? (
-        <Field label="Nome do modelo" error={form.formState.errors.customModel?.message}>{(p) => <input {...p} {...form.register('customModel')} autoComplete="off" spellCheck={false} className={inputClass} />}</Field>
+        <Field label="Nome do modelo" size="lg" error={form.formState.errors.customModel?.message}>{(p) => <input {...p} {...form.register('customModel')} autoComplete="off" spellCheck={false} className={inputClass} />}</Field>
       ) : null}
       {keepsKey ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+        <FormGridItem className="flex flex-wrap items-center justify-between gap-2 text-sm">
           <span className="tabular-nums">Chave configurada em {settings.keySetAt ? formatDateTime(settings.keySetAt) : '—'}</span>
           <button type="button" onClick={() => setReplaceKey(true)} className={secondary}>Substituir</button>
-        </div>
+        </FormGridItem>
       ) : (
-        <Field label="Chave de API" error={form.formState.errors.apiKey?.message} hint="A chave é guardada cifrada e nunca é mostrada de novo.">
+        <Field label="Chave de API" size="lg" error={form.formState.errors.apiKey?.message} hint="A chave é guardada cifrada e nunca é mostrada de novo.">
           {(p) => <input {...p} type="password" autoComplete="new-password" spellCheck={false} {...form.register('apiKey')} className={inputClass} />}
         </Field>
       )}
+      <FormGridItem>
       <p className="text-xs text-muted-foreground">
         Só vão para o provedor a pergunta e os trechos de ajuda.<Dica texto="Nome da empresa, clientes, valores e usuários nunca entram na chamada. Se a pergunta tiver um dado assim, o sistema avisa antes de enviar." />
       </p>
+      </FormGridItem>
+      </FormGrid>
       <div aria-live="polite">
         {test ? (test.ok ? <StatusChip tone="ok">{test.message}</StatusChip> : <p role="alert" className="text-sm text-crit-ink">{test.message}</p>) : null}
       </div>
-      <div className="flex flex-wrap justify-end gap-2 pt-1">
+      <FormActions>
         <button type="button" onClick={onCancel} className={secondary}>Voltar</button>
         <button type="button" onClick={() => void runTest()} disabled={testing} className={test?.ok ? secondary : primary}>{testing ? 'Testando…' : 'Testar conexão'}</button>
         <button type="submit" disabled={form.formState.isSubmitting} className={cn(test?.ok ? primary : secondary)}>Salvar configuração</button>
-      </div>
+      </FormActions>
     </form>
   )
 }

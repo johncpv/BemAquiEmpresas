@@ -60,7 +60,8 @@ function AssetsForm({ params, canEdit }: { params: AssetParametersView; canEdit:
   }
   const digits = (v: string) => v.replace(/[^0-9]/g, '').slice(0, 3)
   return (
-    <FormSection title="Patrimônio" description="O tamanho da etiqueta com QR code dos bens, como no rolo da impressora de etiquetas.">
+    <FormSection title="Patrimônio" description="O tamanho da etiqueta com QR code dos bens, como no rolo da impressora de etiquetas." grid="none">
+      <div className="space-y-3">
       <fieldset disabled={!canEdit} className="space-y-3">
         <legend className="flex items-center text-sm font-semibold">Tamanho da etiqueta (mm)<Dica nome="Tamanho da etiqueta" texto={LABEL_DICAS.tamanho} /></legend>
         <div className="flex flex-wrap items-end gap-3">
@@ -85,6 +86,7 @@ function AssetsForm({ params, canEdit }: { params: AssetParametersView; canEdit:
           <div className="mt-3"><RecordHistory entity="AssetParameter" id={params.labelSizeId} /></div>
         </details>
       ) : null}
+      </div>
     </FormSection>
   )
 }
@@ -137,8 +139,8 @@ function MaintenanceAccounts({ params, canEdit }: { params: AssetParametersView;
     try { saved(await confirmAssetParameter({ key }), 'Conferido') } catch (e) { fail(e, 'Não foi possível marcar como conferido.') }
   }
   return (
-    <FormSection title="Patrimônio: contas da manutenção" description={`A conta e o centro de custo do título do prestador e do custo da manutenção. Nenhum custo de manutenção vai para projeto. ${params.pendingCount > 0 ? `${params.pendingCount} ${params.pendingCount === 1 ? 'valor a confirmar' : 'valores a confirmar'} com a contadora.` : 'Tudo conferido com a contadora.'}`}>
-      <div className="space-y-3 sm:col-span-2">
+    <FormSection title="Patrimônio: contas da manutenção" description={`A conta e o centro de custo do título do prestador e do custo da manutenção. Nenhum custo de manutenção vai para projeto. ${params.pendingCount > 0 ? `${params.pendingCount} ${params.pendingCount === 1 ? 'valor a confirmar' : 'valores a confirmar'} com a contadora.` : 'Tudo conferido com a contadora.'}`} grid="none">
+      <div className="space-y-3">
         {error ? <p role="alert" className="text-sm text-crit-ink">{error}</p> : null}
         {params.maintenance.map((item) => {
           const id = `assets-${item.key}`

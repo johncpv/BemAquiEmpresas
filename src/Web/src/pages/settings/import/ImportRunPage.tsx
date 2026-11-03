@@ -30,9 +30,7 @@ export function ImportRunPage() {
   const run = query.data
   return (
     <>
-      <PageHeading title={`Importação de ${formatDateTime(run.startedAt)}`}>
-        <p className="mt-2"><Link to="/app/configuracoes/importacao" className="text-sm font-semibold text-primary">Voltar às importações</Link></p>
-      </PageHeading>
+      <PageHeading title={`Importação de ${formatDateTime(run.startedAt)}`} meta={<Link to="/app/configuracoes/importacao" className="text-sm font-semibold text-primary">Voltar às importações</Link>} />
       <RunSummary run={run} />
       <Totals entities={run.entities} />
       <h2 className="mb-2 mt-6 text-base font-semibold">Pendências</h2>
