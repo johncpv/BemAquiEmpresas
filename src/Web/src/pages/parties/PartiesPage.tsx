@@ -34,14 +34,12 @@ export function PartiesPage() {
 
   return (
     <>
-      <PageHeading title="Terceiros">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Clientes, fornecedores, instaladores e transportadoras num cadastro só.</p>
+      <PageHeading title="Terceiros" description="Clientes, fornecedores, instaladores e transportadoras num cadastro só."
+        actions={
           <Can perm="parties.create">
             <Link to="/app/cadastros/terceiros/novo" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo terceiro</Link>
           </Can>
-        </div>
-      </PageHeading>
+        } />
       <DataTable
         label="Terceiros"
         columns={columns}

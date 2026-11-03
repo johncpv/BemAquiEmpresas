@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { removePartyContact } from '@/api/generated/bemaqui'
 import type { PartyContactDto, PartyDetail } from '@/api/generated/model'
+import { FormLayout } from '@/components/layout/form-layout'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { EmptyState } from '@/components/ui/states'
 import { Tag } from '@/components/ui/tag'
@@ -12,7 +13,9 @@ const phone = (p?: string | null) => p?.replace(/^(\d{2})(\d{4,5})(\d{4})$/, '($
 export function PartyContacts({ party, canEdit, onSaved, adding, onAddingChange }: { party: PartyDetail; canEdit: boolean; onSaved: (p: PartyDetail) => void; adding: boolean; onAddingChange: (v: boolean) => void }) {
   const [editing, setEditing] = useState<PartyContactDto | null>(null)
   return (
-    <div className="max-w-3xl space-y-3">
+    // Mesma coluna da aba Dados (ADR 0044): a largura não muda ao trocar de aba.
+    <FormLayout>
+    <div className="space-y-3">
       {party.contacts.length === 0 ? (
         <EmptyState title="Nenhum contato ainda." description="Quem recebe a cobrança e quem fala pelo terceiro." action={canEdit ? <button type="button" onClick={() => onAddingChange(true)} className="text-sm font-semibold text-primary">Adicionar contato</button> : undefined} />
       ) : (
@@ -38,5 +41,6 @@ export function PartyContacts({ party, canEdit, onSaved, adding, onAddingChange 
       {canEdit && party.contacts.length > 0 ? <button type="button" onClick={() => onAddingChange(true)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Adicionar contato</button> : null}
       {editing || adding ? <ContactPanel key={editing?.id ?? 'novo'} party={party} contact={editing} onClose={() => { setEditing(null); onAddingChange(false) }} onSaved={onSaved} /> : null}
     </div>
+    </FormLayout>
   )
 }

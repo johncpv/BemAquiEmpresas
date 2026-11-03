@@ -73,10 +73,10 @@ export function QuotePage() {
 
   return (
     <>
-      <PageHeading title={`${quote.number}${quote.revision > 0 ? ` rev. ${quote.revision}` : ''} — ${quote.partyName}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <StatusChip tone={QUOTE_STATUS[quote.status]?.tone ?? 'neutral'}>{QUOTE_STATUS[quote.status]?.label ?? quote.status}</StatusChip>
-          <span className="flex flex-wrap items-start gap-2">
+      <PageHeading title={`${quote.number}${quote.revision > 0 ? ` rev. ${quote.revision}` : ''} — ${quote.partyName}`}
+        meta={<StatusChip tone={QUOTE_STATUS[quote.status]?.tone ?? 'neutral'}>{QUOTE_STATUS[quote.status]?.label ?? quote.status}</StatusChip>}
+        actions={
+          <>
             {/* EXP-03 CA 7: baixa direto o PDF desta revisão, gerado na hora e sem gravar no histórico (o "Gerar PDF" da aba Documentos grava). */}
             <DocumentActions url={getDownloadQuotePdfUrl(id)} fileName={`${quote.number}-rev${quote.revision}.pdf`} />
             {simulable ? (
@@ -103,9 +103,8 @@ export function QuotePage() {
                 onConfirm={async () => { await deleteQuote(id, { version: quote.version }); await navigate({ to: '/app/orcamentos' } as never) }}
                 trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Excluir orçamento</button>} />
             ) : null}
-          </span>
-        </div>
-      </PageHeading>
+          </>
+        } />
       {steps ? <div className="mb-4"><NextSteps onDismiss={() => setSteps(false)} steps={[
         { label: 'Adicionar item', onSelect: () => { setSteps(false); document.querySelector<HTMLInputElement>('input[placeholder^="Ex.: Elevador"]')?.focus() } },
         ...(simulable ? [{ label: 'Simular prazo', onSelect: () => setSimulating(true) }] : []),

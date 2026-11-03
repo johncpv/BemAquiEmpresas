@@ -5,8 +5,9 @@ import type { AmendmentDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { ToggleGroup } from '@/components/form/choice'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormActions, FormError, FormGridItem, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
+import { FormLayout } from '@/components/layout/form-layout'
 import { MoneyInput } from '@/components/form/inputs'
 import { notifySuccess } from '@/components/ui/messages'
 import { Money } from '@/components/ui/money'
@@ -58,18 +59,27 @@ export function AmendmentForm({ contractId, amendment }: { contractId: string; a
   }
 
   const field = (k: string) => error?.fields[k]?.[0]
+  // Padrão de layout (ADR 0044): o formulário à esquerda e o "Antes e depois" no painel lateral (a partir de 1280 px).
+  const summary = (
+    <section aria-label="Antes e depois" className="space-y-3 rounded-md border border-border bg-card p-4 text-sm">
+      <p><span className="flex items-center text-xs text-muted-foreground">Contratado (valor vigente)<Dica nome="Valor vigente" texto={AMENDMENT_DICAS.vigente} /></span><Money value={c.currentValue} /> → <Money value={c.currentValue + value} className="font-semibold" /></p>
+      <p><span className="block text-xs text-muted-foreground">Data prometida</span>{c.promisedDate ? `${formatDate(c.promisedDate)} → ${formatDate(addDays(c.promisedDate, daysDelta))}` : '—'}</p>
+    </section>
+  )
   return (
-    <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="max-w-4xl space-y-4">
+    <FormLayout aside={summary} asideLabel="Resumo do aditivo">
+    <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="space-y-5">
       <FormError message={error ? (Object.values(error.fields)[0]?.[0] ?? error.message) : undefined} />
-      <FormSection title="O que muda">
-        <Field label="Descrição" required error={field('description')}>{(p) => <textarea {...p} rows={2} maxLength={500} value={description} onChange={(e) => setDescription(e.target.value)} className={inputClass} />}</Field>
-        <ToggleGroup label="Tipo" value={kind} onChange={setKind} options={[{ value: 'more', label: 'Acréscimo' }, { value: 'less', label: 'Redução' }, { value: 'days', label: 'Só prazo' }]} />
-        {kind !== 'days' ? <Field label={kind === 'more' ? 'Valor do acréscimo' : 'Valor da redução'} required error={field('valueDelta')}>{(p) => <MoneyInput {...p} value={amount} onChange={setAmount} />}</Field> : null}
-        <Field label="Variação de prazo (dias)" error={field('daysDelta')}>{(p) => <input {...p} inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/[^\d-]/g, ''))} className={inputClass} />}</Field>
+      {/* Descrição 12 / Tipo 6 / Valor 3 · Prazo 3 */}
+      <FormSection title="O que muda" grid="form">
+        <Field label="Descrição" required size="full" error={field('description')}>{(p) => <textarea {...p} rows={2} maxLength={500} value={description} onChange={(e) => setDescription(e.target.value)} className={inputClass} />}</Field>
+        <FormGridItem><ToggleGroup label="Tipo" value={kind} onChange={setKind} options={[{ value: 'more', label: 'Acréscimo' }, { value: 'less', label: 'Redução' }, { value: 'days', label: 'Só prazo' }]} /></FormGridItem>
+        {kind !== 'days' ? <Field label={kind === 'more' ? 'Valor do acréscimo' : 'Valor da redução'} required size="sm" error={field('valueDelta')}>{(p) => <MoneyInput {...p} value={amount} onChange={setAmount} />}</Field> : null}
+        <Field label="Variação de prazo (dias)" size="sm" error={field('daysDelta')}>{(p) => <input {...p} inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/[^\d-]/g, ''))} className={inputClass} />}</Field>
       </FormSection>
-      {kind === 'more' ? <FormSection title="Marcos do acréscimo" description="Os marcos precisam somar 100% do acréscimo."><AmendmentMilestones value={value} rows={rows} onChange={setRows} /></FormSection> : null}
+      {kind === 'more' ? <FormSection title="Marcos do acréscimo" description="Os marcos precisam somar 100% do acréscimo." grid="none"><AmendmentMilestones value={value} rows={rows} onChange={setRows} /></FormSection> : null}
       {kind === 'less' ? (
-        <FormSection title="Redução dos títulos futuros" description={AMENDMENT_DICAS.reducao}>
+        <FormSection title="Redução dos títulos futuros" description={AMENDMENT_DICAS.reducao} grid="none">
           {proposal === null ? <p className="text-sm text-crit-ink">A redução é maior que o saldo a receber sem baixa.</p> : (
             <ul className="space-y-2 text-sm" aria-label="Títulos reduzidos">
               {reductions.map((r) => { const parcel = c.reducible.find((x) => x.id === r.receivableId)!; return (
@@ -82,11 +92,8 @@ export function AmendmentForm({ contractId, amendment }: { contractId: string; a
           )}
         </FormSection>
       ) : null}
-      <section aria-label="Antes e depois" className="grid gap-3 rounded-md border border-border bg-card p-4 text-sm sm:grid-cols-2">
-        <p><span className="flex items-center text-xs text-muted-foreground">Contratado (valor vigente)<Dica nome="Valor vigente" texto={AMENDMENT_DICAS.vigente} /></span><Money value={c.currentValue} /> → <Money value={c.currentValue + value} className="font-semibold" /></p>
-        <p><span className="block text-xs text-muted-foreground">Data prometida</span>{c.promisedDate ? `${formatDate(c.promisedDate)} → ${formatDate(addDays(c.promisedDate, daysDelta))}` : '—'}</p>
-      </section>
-      <div className="flex justify-end"><button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar aditivo</button></div>
+      <FormActions sticky={kind !== 'days'}><button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar aditivo</button></FormActions>
     </form>
+    </FormLayout>
   )
 }

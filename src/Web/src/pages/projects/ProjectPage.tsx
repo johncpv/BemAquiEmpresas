@@ -50,18 +50,23 @@ export function ProjectPage() {
 
   return (
     <>
-      <PageHeading title={`${p.number} — ${p.name}`}>
-        <div className="mt-2 flex flex-wrap items-center gap-3">
-          {p.isOnboarding ? <Tag>Implantação</Tag> : null}
-          {stage < 0 ? <StatusChip tone="neutral">Cancelado</StatusChip> : <StageIndicator stages={PROJECT_STAGES} letters={PROJECT_LETTERS} current={stage} showLabel />}
-          <span className="text-sm text-muted-foreground">{p.partyName}</span>
+      <PageHeading title={`${p.number} — ${p.name}`}
+        meta={
+          <>
+            {p.isOnboarding ? <Tag>Implantação</Tag> : null}
+            {stage < 0 ? <StatusChip tone="neutral">Cancelado</StatusChip> : <StageIndicator stages={PROJECT_STAGES} letters={PROJECT_LETTERS} current={stage} showLabel />}
+            <span className="text-sm text-muted-foreground">{p.partyName}</span>
+          </>
+        }
+        actions={
+          <>
           <Link to={'/app/contratos/$id' as never} params={{ id: p.contractId } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ver contrato {p.contractNumber}</Link>
           {canEdit && active ? <Link to={'/app/contratos/$id/aditivos/$aditivoId' as never} params={{ id: p.contractId, aditivoId: 'novo' } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Aditivo</Link> : null}
           {canFabricate ? <ProjectEventDialog project={p} kind="fabrication" onDone={refresh} /> : null}
           {canDeliver ? <ProjectEventDialog project={p} kind="delivery" onDone={refresh} /> : null}
           {canBill && stage >= 0 ? <ProjectBillingPanel projectId={p.id} /> : null}
-        </div>
-      </PageHeading>
+          </>
+        } />
       {active && inProduction && byOrders ? (
         <p role="note" className="mb-3 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
           <span>A fabricação deste projeto é concluída pelas OS ({p.openFabricationOrders} {p.openFabricationOrders === 1 ? 'aberta' : 'abertas'}).</span>

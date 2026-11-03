@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { updateQuote, useListQuoteCustomerAddresses, useListQuoteCustomerContacts } from '@/api/generated/bemaqui'
 import type { QuoteDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { Field, FormError } from '@/components/form/form'
+import { Field, FormActions, FormError, FormGrid } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
+import { FormLayout } from '@/components/layout/form-layout'
 import { notifySuccess } from '@/components/ui/messages'
 
 /** Aba Dados (CA 4 a 6): contato e obra do cliente, prazo prometido e observações. */
@@ -42,22 +43,25 @@ export function QuoteHeaderTab({ quote, editable, refresh, proposedDays, onSaved
 
   const field = (k: string) => error?.fields[k]?.[0]
   return (
-    <fieldset disabled={!editable} className="max-w-3xl space-y-3">
+    // Aba que é formulário (ADR 0044): coluna de 896 px e uma grade de 12 trilhas. Contato 6 · Obra 6 / Prazo 4 / Observações 12.
+    <FormLayout>
+    <fieldset disabled={!editable} className="space-y-4">
       <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
       <p className="text-sm"><span className="text-muted-foreground">Cliente: </span><b>{quote.partyName}</b></p>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Contato" error={field('contactId')} hint="Vem com o contato de cobrança do cliente.">
+      <FormGrid>
+        <Field label="Contato" size="lg" error={field('contactId')} hint="Vem com o contato de cobrança do cliente.">
           {(p) => <select {...p} value={contact} onChange={(e) => setContact(e.target.value)} className={inputClass}><option value="">Sem contato</option>{(contacts.data ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}{c.role ? ` · ${c.role}` : ''}</option>)}</select>}
         </Field>
-        <Field label="Endereço da obra" error={field('siteAddressId')} hint="Vem com o endereço de obra padrão do cliente.">
+        <Field label="Endereço da obra" size="lg" error={field('siteAddressId')} hint="Vem com o endereço de obra padrão do cliente.">
           {(p) => <select {...p} value={site} onChange={(e) => setSite(e.target.value)} className={inputClass}><option value="">Sem endereço</option>{(addresses.data ?? []).map((a) => <option key={a.id} value={a.id}>{a.street}, {a.number} · {a.city}/{a.state}</option>)}</select>}
         </Field>
-        <Field label="Prazo de entrega prometido (dias)" error={field('deliveryDays')} hint={fromSimulation ? 'Preenchido pela simulação de prazo. Salve o orçamento para gravar.' : 'Dias corridos depois da aprovação.'}>
+        <Field label="Prazo de entrega prometido (dias)" size="md" error={field('deliveryDays')} hint={fromSimulation ? 'Preenchido pela simulação de prazo. Salve o orçamento para gravar.' : 'Dias corridos depois da aprovação.'}>
           {(p) => <input {...p} inputMode="numeric" maxLength={4} value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} className={inputClass + ' tabular-nums'} />}
         </Field>
-      </div>
-      <Field label="Observações" error={field('notes')}>{(p) => <textarea {...p} rows={4} maxLength={2000} value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass} />}</Field>
-      {editable ? <button type="button" onClick={() => void save()} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar orçamento</button> : null}
+        <Field label="Observações" size="full" error={field('notes')}>{(p) => <textarea {...p} rows={4} maxLength={2000} value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass} />}</Field>
+      </FormGrid>
+      {editable ? <FormActions><button type="button" onClick={() => void save()} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar orçamento</button></FormActions> : null}
     </fieldset>
+    </FormLayout>
   )
 }

@@ -61,12 +61,8 @@ export function ProjectsPage() {
   const goQuotes = <Link to={'/app/orcamentos' as never} search={{ situacao: 'enviado' } as never} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Ver orçamentos enviados</Link>
   return (
     <>
-      <PageHeading title="Comercial: Projetos">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Cada contrato vira um projeto. Todo custo lançado cai aqui.</p>
-          <Link to={'/app/contratos' as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ver contratos</Link>
-        </div>
-      </PageHeading>
+      <PageHeading title="Comercial: Projetos" description="Cada contrato vira um projeto. Todo custo lançado cai aqui."
+        actions={<Link to={'/app/contratos' as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ver contratos</Link>} />
       <DataTable label="Projetos" columns={columns} query={query} getRowId={(p) => p.id} searchPlaceholder="Buscar pelo número ou nome"
         rowClassName={(p) => riskStripe(p.risk) ?? (p.delayDays ? 'border-l-4 border-l-crit' : undefined)}
         filters={[{ key: 'situacao', label: 'Situação', options: SITUATIONS }]}

@@ -32,14 +32,19 @@ export function ContractPage() {
   const cancellable = canApprove && c.status === 'Active' && c.projectStatus !== 'Delivered' && c.projectStatus !== 'Closed'
   return (
     <>
-      <PageHeading title={`${c.number} — ${c.partyName}`}>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <StatusChip tone={CONTRACT_STATUS[c.status]?.tone ?? 'neutral'}>{CONTRACT_STATUS[c.status]?.label ?? c.status}</StatusChip>
-          {c.isOnboarding ? <Tag>Implantação</Tag> : null}
+      <PageHeading title={`${c.number} — ${c.partyName}`}
+        meta={
+          <>
+            <StatusChip tone={CONTRACT_STATUS[c.status]?.tone ?? 'neutral'}>{CONTRACT_STATUS[c.status]?.label ?? c.status}</StatusChip>
+            {c.isOnboarding ? <Tag>Implantação</Tag> : null}
+          </>
+        }
+        actions={c.projectId || cancellable ? (
+          <>
           {c.projectId ? <Link to={'/app/projetos/$id' as never} params={{ id: c.projectId } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ver projeto {c.projectNumber}</Link> : null}
           {cancellable ? <CancelContractDialog contract={c} onDone={() => client.invalidateQueries({ queryKey: getGetContractQueryKey(id) })} /> : null}
-        </div>
-      </PageHeading>
+          </>
+        ) : undefined} />
       {c.status === 'Cancelled' ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">Contrato cancelado{c.cancelReason ? `: ${c.cancelReason}` : ''}. Só para consulta.</p> : null}
       {c.status === 'Completed' ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">Contrato concluído: projeto entregue e parcelas quitadas.</p> : null}
       {parcels === 'pending' ? <p role="status" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">Gerando parcelas no financeiro…</p> : null}

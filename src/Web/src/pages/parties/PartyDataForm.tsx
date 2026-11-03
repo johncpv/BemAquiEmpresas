@@ -4,7 +4,8 @@ import type { PartyDetail, PartyRoleKind, TaxRegime } from '@/api/generated/mode
 import { ChipGroup } from '@/components/form/choice'
 import { Combobox } from '@/components/form/combobox'
 import { StatusChip } from '@/components/ui/status-chip'
-import { Field, FormError } from '@/components/form/form'
+import { Field, FormError, FormGrid, FormGridItem } from '@/components/form/form'
+import { FormLayout } from '@/components/layout/form-layout'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
 import { DocumentInput, PhoneInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
@@ -65,23 +66,27 @@ export function PartyDataForm({ party, canEdit, onSaved }: { party: PartyDetail;
   })
 
   return (
-    <form id="dados-terceiro" onSubmit={submit} noValidate className="max-w-3xl">
+    // Padrão de layout (ADR 0044): coluna de 896 px e uma grade de 12 trilhas; o "Salvar terceiro" fica no cabeçalho da tela.
+    <FormLayout>
+    <form id="dados-terceiro" onSubmit={submit} noValidate>
       <UnsavedChangesGuard when={form.formState.isDirty} onSave={async () => { await submit(); return !Object.keys(form.formState.errors).length }} />
-      <fieldset disabled={!canEdit} className="grid gap-3 sm:grid-cols-2">
-        <div className="sm:col-span-2"><FormError message={errors.root?.server?.message} /></div>
-        <Field label={party.kind === 'PF' ? 'CPF' : 'CNPJ'} error={errors.document?.message}>
+      <fieldset disabled={!canEdit}>
+        <FormGrid>
+        {errors.root?.server?.message ? <FormGridItem><FormError message={errors.root.server.message} /></FormGridItem> : null}
+        {/* Documento 4 · Razão social 8 / Nome fantasia 6 */}
+        <Field label={party.kind === 'PF' ? 'CPF' : 'CNPJ'} size="md" error={errors.document?.message}>
           {(p) => <Controller control={form.control} name="document" render={({ field }) => <DocumentInput {...p} value={field.value} onChange={field.onChange} />} />}
         </Field>
-        <Field label={party.kind === 'PF' ? 'Nome' : 'Razão social'} required error={errors.legalName?.message}>{(p) => <input {...p} {...form.register('legalName')} className={inputClass} />}</Field>
+        <Field label={party.kind === 'PF' ? 'Nome' : 'Razão social'} required size="xl" error={errors.legalName?.message}>{(p) => <input {...p} {...form.register('legalName')} className={inputClass} />}</Field>
         {party.kind === 'PJ' ? <Field label="Nome fantasia" error={errors.tradeName?.message}>{(p) => <input {...p} {...form.register('tradeName')} className={inputClass} />}</Field> : null}
-        <div className="sm:col-span-2">
+        <FormGridItem>
           <Controller control={form.control} name="roles" render={({ field }) => (
             <ChipGroup legend="Papéis" required value={field.value} onChange={field.onChange} error={errors.roles?.message} options={ROLE_OPTIONS} disabled={!canEdit} />
           )} />
-        </div>
-        <Field label="Inscrição estadual" error={errors.stateRegistration?.message} hint="Só os dígitos, ou ISENTO.">{(p) => <input {...p} {...form.register('stateRegistration')} className={inputClass} />}</Field>
-        <Field label="Inscrição municipal" error={errors.municipalRegistration?.message}>{(p) => <input {...p} {...form.register('municipalRegistration')} className={inputClass} />}</Field>
-        <Field label="Regime tributário" dica="Define como os impostos são calculados nas notas e nos custos. Na dúvida, confira com a contadora ou na consulta do CNPJ.">
+        </FormGridItem>
+        <Field label="Inscrição estadual" size="sm" error={errors.stateRegistration?.message} hint="Só os dígitos, ou ISENTO.">{(p) => <input {...p} {...form.register('stateRegistration')} className={inputClass} />}</Field>
+        <Field label="Inscrição municipal" size="sm" error={errors.municipalRegistration?.message}>{(p) => <input {...p} {...form.register('municipalRegistration')} className={inputClass} />}</Field>
+        <Field label="Regime tributário" size="md" dica="Define como os impostos são calculados nas notas e nos custos. Na dúvida, confira com a contadora ou na consulta do CNPJ.">
           {(p) => (
             <select {...p} {...form.register('taxRegime')} className={inputClass}>
               {Object.entries(TAX_REGIME_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -103,13 +108,13 @@ export function PartyDataForm({ party, canEdit, onSaved }: { party: PartyDetail;
           )}
         </Field>
         <Field label="E-mail" error={errors.email?.message}>{(p) => <input {...p} type="email" {...form.register('email')} className={inputClass} />}</Field>
-        <Field label="Telefone" error={errors.phone?.message}>
+        <Field label="Telefone" size="sm" error={errors.phone?.message}>
           {(p) => <Controller control={form.control} name="phone" render={({ field }) => <PhoneInput {...p} value={field.value} onChange={field.onChange} />} />}
         </Field>
-        <div className="sm:col-span-2">
-          <Field label="Observações" error={errors.notes?.message}>{(p) => <textarea {...p} rows={3} {...form.register('notes')} className={inputClass} />}</Field>
-        </div>
+        <Field label="Observações" size="full" error={errors.notes?.message}>{(p) => <textarea {...p} rows={3} {...form.register('notes')} className={inputClass} />}</Field>
+        </FormGrid>
       </fieldset>
     </form>
+    </FormLayout>
   )
 }
