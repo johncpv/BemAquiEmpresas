@@ -75,7 +75,7 @@ public class HrExportTests(TenancyFixture tenancy) : IClassFixture<TenancyFixtur
         return workbook.Worksheet(name);
     }
 
-    private static IXLRangeRow Row(IXLWorksheet sheet, string registration) => sheet.RowsUsed().Single(r => r.Cell(1).GetString() == registration);
+    private static IXLRow Row(IXLWorksheet sheet, string registration) => sheet.RowsUsed().Single(r => r.Cell(1).GetString() == registration);
 
     private static List<string> Headers(IXLWorksheet sheet) => sheet.Row(1).CellsUsed().Select(c => c.GetString()).ToList();
 
