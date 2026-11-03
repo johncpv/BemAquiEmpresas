@@ -35,14 +35,8 @@ export function WorkCentersPage() {
 
   return (
     <>
-      <PageHeading title="Produção: Centros de trabalho">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Onde as etapas são feitas e quantas horas cada centro tem por dia.</p>
-          <Can perm="production.create">
-            <button type="button" onClick={open} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo centro de trabalho</button>
-          </Can>
-        </div>
-      </PageHeading>
+      <PageHeading title="Produção: Centros de trabalho" description="Onde as etapas são feitas e quantas horas cada centro tem por dia."
+        actions={<Can perm="production.create"><button type="button" onClick={open} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo centro de trabalho</button></Can>} />
       {steps ? <div className="mb-3"><NextSteps steps={[{ label: 'Cadastrar o calendário', onSelect: () => void navigate({ to: '/app/producao/calendario' }) }]} onDismiss={() => setSteps(false)} /></div> : null}
       <DataTable label="Centros de trabalho" columns={columns} query={query} getRowId={(c) => c.id} inactiveFilter searchPlaceholder="Buscar pelo nome ou linha"
         empty={{

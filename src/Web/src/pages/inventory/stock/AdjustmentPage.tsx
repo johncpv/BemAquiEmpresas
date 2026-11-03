@@ -114,16 +114,20 @@ export function AdjustmentPage() {
   const pending = a.status === 'Pending'
   return (
     <>
-      <PageHeading title={`${a.number} — ajuste de ${a.locationName}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <AdjustmentStatusChip status={a.status} reversed={!!a.reversedAt} />
-            {a.selfApproved || a.reversalSelfApproved ? <span className="inline-flex items-center"><Tag>Autoaprovado</Tag><Dica nome="Autoaprovado" texto={ADJUSTMENT_DICAS.autoaprovado} /></span> : null}
-            <span className="inline-flex items-center">{ADJUSTMENT_MODE[a.mode]}<Dica nome="Quantidade contada × diferença" texto={ADJUSTMENT_DICAS.modo} /></span>
-            <span>{a.requestedByName ?? '—'}</span>
-            <Link to={'/app/estoque/ajustes' as never} className="font-semibold text-primary">Voltar aos ajustes</Link>
-          </p>
-          <div className="flex flex-wrap gap-2">
+      <PageHeading title={`${a.number} — ajuste de ${a.locationName}`}
+        meta={
+          <>
+            <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <AdjustmentStatusChip status={a.status} reversed={!!a.reversedAt} />
+              {a.selfApproved || a.reversalSelfApproved ? <span className="inline-flex items-center"><Tag>Autoaprovado</Tag><Dica nome="Autoaprovado" texto={ADJUSTMENT_DICAS.autoaprovado} /></span> : null}
+              <span className="inline-flex items-center">{ADJUSTMENT_MODE[a.mode]}<Dica nome="Quantidade contada × diferença" texto={ADJUSTMENT_DICAS.modo} /></span>
+              <span>{a.requestedByName ?? '—'}</span>
+              <Link to={'/app/estoque/ajustes' as never} className="font-semibold text-primary">Voltar aos ajustes</Link>
+            </p>
+          </>
+        }
+        actions={
+          <>
             {a.canDecide ? (
               <>
                 <ConfirmDialog size="lg" verb="Aprovar ajuste" done="Ajuste aprovado" title={`Aprovar o ${a.number}?`}
@@ -161,9 +165,8 @@ export function AdjustmentPage() {
                 <textarea id="motivo-estorno" value={text} maxLength={200} rows={2} onChange={(e) => setText(e.target.value)} className={inputClass} />
               </ConfirmDialog>
             ) : null}
-          </div>
-        </div>
-      </PageHeading>
+          </>
+        } />
       {pending && a.decideBlockedReason ? <p role="note" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">{a.decideBlockedReason}</p> : null}
       {a.status === 'Approved' && a.decidedAt && !a.reversedAt ? (
         <p role="note" className="mb-3 rounded-md border border-info-soft bg-info-soft px-3 py-2 text-sm text-info-ink">

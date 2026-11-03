@@ -76,10 +76,9 @@ export function BalancesPage() {
 
   return (
     <>
-      <PageHeading title="Estoque: Saldos">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">O que existe em cada local, o que está reservado e o custo médio de cada item.</p>
-          <div className="flex flex-wrap gap-2">
+      <PageHeading title="Estoque: Saldos" description="O que existe em cada local, o que está reservado e o custo médio de cada item."
+        actions={
+          <>
             <Can perm="inventory.adjust">
               <button type="button" onClick={() => setOpen({ adjust: true })} className={secondaryButton}>Lançar ajuste</button>
             </Can>
@@ -96,9 +95,8 @@ export function BalancesPage() {
                 ) : null}
               </div>
             </Can>
-          </div>
-        </div>
-      </PageHeading>
+          </>
+        } />
       {opening.data?.completed && opening.data.completedAt ? (
         <p role="note" className="mb-3 rounded-md border border-info-soft bg-info-soft px-3 py-2 text-sm text-info-ink">
           Implantação concluída em {formatDateTime(opening.data.completedAt)} por {opening.data.completedByName ?? 'usuário removido'}. Saldo novo entra por entrada ou ajuste de estoque.

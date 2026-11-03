@@ -19,8 +19,7 @@ export function OpenLaborPage() {
   const limit = query.data?.hours ?? 12
   return (
     <>
-      <PageHeading title="Produção: Apontamentos abertos" />
-      <p className="mb-3 text-sm text-muted-foreground">Apontamentos abertos há mais de {limit} h. Normalmente é um operador que esqueceu de finalizar ou pausar no fim do turno.</p>
+      <PageHeading title="Produção: Apontamentos abertos" description={`Apontamentos abertos há mais de ${limit} h. Normalmente é um operador que esqueceu de finalizar ou pausar no fim do turno.`} />
       {query.isPending ? <Skeleton className="h-40" /> : query.isError ? <ErrorState title="Não foi possível carregar os apontamentos abertos." onRetry={() => query.refetch()} /> : query.data.items.length === 0 ? (
         <EmptyState title={`Nenhum apontamento aberto há mais de ${limit} h.`} description="Quando alguém esquecer de finalizar a etapa, ela aparece aqui para você corrigir ou concluir."
           action={<Link to="/app/producao/kanban" className={action}>Ver o Kanban</Link>} />

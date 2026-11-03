@@ -62,17 +62,15 @@ export function AssetsPage() {
   const newLink = <Can perm="assets.create"><Link to="/app/patrimonio/bens/novo" className="inline-flex min-h-11 items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo bem</Link></Can>
   return (
     <>
-      <PageHeading title="Patrimônio: Bens">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">O que a empresa tem, onde está e quem responde por cada bem.</p>
-          <div className="flex flex-wrap gap-2">
+      <PageHeading title="Patrimônio: Bens" description="O que a empresa tem, onde está e quem responde por cada bem."
+        actions={
+          <>
             <PrintLabelsDialog selected={selected} filteredTotal={query.data?.total ?? 0} onDone={() => setSelected([])}
               filter={{ q: search.q ?? null, type: isAssetType(tipo) ? tipo : null, siteId: local || null, workCenterId: centro || null, responsibleEmployeeId: responsavel || null, status: isAssetStatus(situacao) ? situacao : null }} />
             <Can perm="assets.edit"><TransferAssetsDialog selected={selected} suggestedReason={terminated ? TERMINATED_REASON : undefined} onDone={() => setSelected([])} /></Can>
             {newLink}
-          </div>
-        </div>
-      </PageHeading>
+          </>
+        } />
       {typeof lote === 'string' && lote ? <LabelBatchReady attachmentId={lote} /> : null}
       <DataTable
         label="Bens"

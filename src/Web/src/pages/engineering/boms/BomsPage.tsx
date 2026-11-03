@@ -69,9 +69,7 @@ export function BomsPage() {
   ]
   return (
     <>
-      <PageHeading title="BOMs das OS">
-        <p className="mt-2 text-muted-foreground">A lista de materiais de cada OS de fabricação em aberto. A partir da segunda etapa, a OS só anda com a BOM liberada.</p>
-      </PageHeading>
+      <PageHeading title="BOMs das OS" description="A lista de materiais de cada OS de fabricação em aberto. A partir da segunda etapa, a OS só anda com a BOM liberada." />
       <DataTable label="BOMs das OS" columns={columns} query={query} getRowId={(r) => r.productionOrderId} searchPlaceholder="Buscar pela OS ou pelo produto"
         rowClassName={(r) => (r.willStop ? 'border-l-4 border-l-crit' : undefined)}
         filters={[{ key: 'situacao', label: 'Situação da BOM', options: BOM_SITUATIONS.filter((s) => s.value !== 'todas').map(({ value, label }) => ({ value, label })) }]}

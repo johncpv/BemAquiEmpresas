@@ -55,9 +55,7 @@ export function SupervisorPage() {
   const data = overview.data
   return (
     <>
-      <PageHeading title={TITLE}>
-        <p className="mt-1 text-muted-foreground">Onde agir primeiro: a qualidade, o material que falta, as OS atrasadas, a ocupação e as paradas.</p>
-      </PageHeading>
+      <PageHeading title={TITLE} description="Onde agir primeiro: a qualidade, o material que falta, as OS atrasadas, a ocupação e as paradas." />
       {overview.isPending ? (
         <div aria-busy="true" aria-label="Carregando o painel do supervisor" className="grid gap-4 lg:grid-cols-12">
           <Skeleton className="h-40 lg:col-span-12" /><Skeleton className="h-64 lg:col-span-6" /><Skeleton className="h-64 lg:col-span-6" />

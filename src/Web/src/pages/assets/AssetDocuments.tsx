@@ -9,6 +9,7 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { ASSET_DICAS } from './assets'
+import { FormLayout } from '@/components/layout/form-layout'
 
 const attachClass = 'inline-flex min-h-11 cursor-pointer items-center rounded-md border border-border px-3 py-2 text-sm font-semibold'
 
@@ -18,18 +19,20 @@ const attachClass = 'inline-flex min-h-11 cursor-pointer items-center rounded-md
  */
 export function AssetDocuments({ asset, canEdit, onPhotoChanged }: { asset: AssetDetail; canEdit: boolean; onPhotoChanged: () => void }) {
   const files = useListAssetFiles(asset.id, { query: { gcTime: 0, staleTime: 0 } })
-  if (files.isPending) return <Skeleton className="h-48 max-w-3xl" />
+  if (files.isPending) return <Skeleton className="h-48 max-w-4xl" />
   if (files.isError || !files.data) return <ErrorState title="Não foi possível carregar a foto e os documentos." onRetry={() => files.refetch()} />
   const reload = async () => { await files.refetch() }
   return (
-    <div className="max-w-3xl space-y-6">
-      <Upload title="Foto" titleDica={ASSET_DICAS.foto} description="PNG, JPG ou WEBP até 5 MB. A localização gravada na foto é apagada." accept=".png,.jpg,.jpeg,.webp" inputId="foto-bem" verb="Enviar foto"
-        canEdit={canEdit} items={files.data.photos} assetId={asset.id} empty="Sem foto. Uma foto ajuda a reconhecer o bem na lista."
-        send={async (file) => { await uploadAssetPhoto(asset.id, { file }); notifySuccess('Foto enviada'); await reload(); onPhotoChanged() }} />
-      <Upload title="Documentos" description="Nota, manual e garantia, em PDF, PNG ou JPG até 10 MB." accept=".pdf,.png,.jpg,.jpeg" inputId="documento-bem" verb="Anexar documento"
-        canEdit={canEdit} items={files.data.documents} assetId={asset.id} empty="Nenhum documento anexado."
-        send={async (file) => { await uploadAssetDocument(asset.id, { file }); notifySuccess('Documento anexado'); await reload() }} />
-    </div>
+    <FormLayout>
+      <div className="space-y-6">
+        <Upload title="Foto" titleDica={ASSET_DICAS.foto} description="PNG, JPG ou WEBP até 5 MB. A localização gravada na foto é apagada." accept=".png,.jpg,.jpeg,.webp" inputId="foto-bem" verb="Enviar foto"
+          canEdit={canEdit} items={files.data.photos} assetId={asset.id} empty="Sem foto. Uma foto ajuda a reconhecer o bem na lista."
+          send={async (file) => { await uploadAssetPhoto(asset.id, { file }); notifySuccess('Foto enviada'); await reload(); onPhotoChanged() }} />
+        <Upload title="Documentos" description="Nota, manual e garantia, em PDF, PNG ou JPG até 10 MB." accept=".pdf,.png,.jpg,.jpeg" inputId="documento-bem" verb="Anexar documento"
+          canEdit={canEdit} items={files.data.documents} assetId={asset.id} empty="Nenhum documento anexado."
+          send={async (file) => { await uploadAssetDocument(asset.id, { file }); notifySuccess('Documento anexado'); await reload() }} />
+      </div>
+    </FormLayout>
   )
 }
 
@@ -72,8 +75,8 @@ function Upload({ title, titleDica, description, accept, inputId, verb, canEdit,
   ) : undefined
 
   return (
-    <FormSection title={title} description={description}>
-      <div className="col-span-full space-y-2">
+    <FormSection title={title} description={description} grid="none">
+      <div className="space-y-2">
         {titleDica ? <p className="inline-flex items-center text-xs text-muted-foreground">Sobre a foto<Dica nome="Foto" texto={titleDica} /></p> : null}
         <FormError message={error} />
         {items.length === 0 ? <EmptyState title={empty} action={attach} /> : (

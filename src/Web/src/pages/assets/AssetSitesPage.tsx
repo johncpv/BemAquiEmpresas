@@ -27,12 +27,8 @@ export function AssetSitesPage() {
   const reload = () => { void client.invalidateQueries({ queryKey: getListAssetSitesQueryKey() }); setEditing(null) }
   return (
     <>
-      <PageHeading title="Patrimônio: Locais">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Os setores onde ficam os bens.</p>
-          {newButton}
-        </div>
-      </PageHeading>
+      <PageHeading title="Patrimônio: Locais" description="Os setores onde ficam os bens."
+        actions={newButton} />
       {query.isPending ? <Skeleton className="h-48" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : query.data.length === 0 ? (
         <EmptyState title="Cadastre os setores da empresa." description="O local é escolhido no cadastro de cada bem." action={newButton} />
       ) : (

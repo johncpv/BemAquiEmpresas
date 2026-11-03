@@ -48,12 +48,8 @@ export function PurchaseOrdersPage() {
   const showLabel = SHOW_OPTIONS.find((o) => o.value === show)?.label ?? 'Todos'
   return (
     <>
-      <PageHeading title="Compras: Pedidos">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Pedidos aos fornecedores, da aprovação ao recebimento. Aprovado, o pagamento previsto entra no fluxo de caixa.</p>
-          <span className="flex flex-wrap gap-2">{requests}{create}</span>
-        </div>
-      </PageHeading>
+      <PageHeading title="Compras: Pedidos" description="Pedidos aos fornecedores, da aprovação ao recebimento. Aprovado, o pagamento previsto entra no fluxo de caixa."
+        actions={<>{requests}{create}</>} />
       <p className="mb-3 text-sm text-muted-foreground">Mostrando: {showLabel}</p>
       <DataTable label="Pedidos de compra" columns={columns} query={list} getRowId={(o) => o.id} searchPlaceholder="Buscar pelo número (PC-…)"
         filters={[

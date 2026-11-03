@@ -42,15 +42,16 @@ export function RoutingPage() {
 
   return (
     <>
-      <PageHeading title={t.name}>
-        <div className="mt-2 flex flex-wrap items-center gap-3">
-          <StatusChip tone={t.isActive ? 'ok' : 'neutral'}>{t.isActive ? 'Ativo' : 'Inativo'}</StatusChip>
-          {t.isExample ? <Tag>Exemplo</Tag> : null}
-          {t.steps.length > 0 ? <StageIndicator stages={t.steps.map((s) => s.name)} letters={t.steps.map((s) => s.code)} current={0} /> : null}
-          <span className="text-sm text-muted-foreground tabular-nums">{t.productType ? `${t.productType} · ` : ''}{t.steps.length} etapas · {formatBrDecimal(t.totalStandardHours.toFixed(4), 2)} h padrão{t.usage ? ` · Usado em ${t.usage}` : ''}</span>
-          <RoutingActions template={t} onChange={refresh} />
-        </div>
-      </PageHeading>
+      <PageHeading title={t.name}
+        meta={
+          <>
+            <StatusChip tone={t.isActive ? 'ok' : 'neutral'}>{t.isActive ? 'Ativo' : 'Inativo'}</StatusChip>
+            {t.isExample ? <Tag>Exemplo</Tag> : null}
+            {t.steps.length > 0 ? <StageIndicator stages={t.steps.map((s) => s.name)} letters={t.steps.map((s) => s.code)} current={0} /> : null}
+            <span className="text-sm text-muted-foreground tabular-nums">{t.productType ? `${t.productType} · ` : ''}{t.steps.length} etapas · {formatBrDecimal(t.totalStandardHours.toFixed(4), 2)} h padrão{t.usage ? ` · Usado em ${t.usage}` : ''}</span>
+          </>
+        }
+        actions={<RoutingActions template={t} onChange={refresh} />} />
       {justCreated ? (
         <div className="mb-4"><NextSteps onDismiss={() => setJustCreated(false)} steps={[
           ...(t.itemCount === 0 ? [{ label: 'Vincular produtos', onSelect: () => void navigate({ to: '.', search: { aba: 'produtos' } } as never) }] : []),

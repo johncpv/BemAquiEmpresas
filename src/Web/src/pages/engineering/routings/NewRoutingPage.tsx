@@ -36,9 +36,7 @@ export function NewRoutingPage() {
 
   return (
     <>
-      <PageHeading title={de ? 'Duplicar roteiro' : 'Novo roteiro'}>
-        <p className="mt-2 text-muted-foreground">{de ? 'Ajuste o nome e o que muda; os produtos não vêm junto, porque cada produto tem um roteiro só.' : 'Começa com as etapas de exemplo. Ajuste os nomes, as letras, os centros e as horas.'}</p>
-      </PageHeading>
+      <PageHeading title={de ? 'Duplicar roteiro' : 'Novo roteiro'} description={<>{de ? 'Ajuste o nome e o que muda; os produtos não vêm junto, porque cada produto tem um roteiro só.' : 'Começa com as etapas de exemplo. Ajuste os nomes, as letras, os centros e as horas.'}</>} />
       {loading ? <Skeleton className="h-96" /> : failed ? <ErrorState title="Não foi possível abrir o roteiro." onRetry={() => { void centers.refetch(); void suggestions.refetch(); if (de) void copy.refetch() }} /> : (
         <RoutingEditor initial={initial()} centers={centers.data ?? []} suggestions={suggestions.data ?? []} productTypes={types.data ?? []} canEdit={canCreate} onSubmit={submit}
           footerExtra={<button type="button" onClick={() => void navigate({ to: '/app/engenharia/roteiros' } as never)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</button>} />

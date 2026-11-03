@@ -59,9 +59,7 @@ export function ShortagesPage() {
 
   return (
     <>
-      <PageHeading title="Estoque: Faltas">
-        <p className="mt-2 text-muted-foreground">O que as OS abertas precisam e o estoque ainda não tem livre. Cada falta vira solicitação de compra.</p>
-      </PageHeading>
+      <PageHeading title="Estoque: Faltas" description="O que as OS abertas precisam e o estoque ainda não tem livre. Cada falta vira solicitação de compra." />
       <DataTable label="Faltas de material" columns={columns} query={query} getRowId={(r) => r.itemId} searchPlaceholder="Buscar pelo código ou nome do item"
         filters={[{ key: 'projeto', label: 'Projeto', options: (projects.data ?? []).map((p) => ({ value: p.id, label: `${p.number} — ${p.name}` })) }]}
         rowClassName={() => 'border-l-4 border-l-crit'}

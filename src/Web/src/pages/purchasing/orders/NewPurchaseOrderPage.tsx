@@ -33,10 +33,8 @@ export function NewPurchaseOrderPage() {
   const defaults = useGetPurchaseOrderDefaults({ requestLineIds, itemId: item })
   return (
     <>
-      <PageHeading title="Novo pedido de compra">
-        <p className="mt-2 text-muted-foreground">O pedido nasce em rascunho. Depois de salvar, envie para aprovação: aprovado, o pagamento previsto entra no fluxo de caixa.</p>
-      </PageHeading>
-      {defaults.isPending ? <Skeleton className="h-96 max-w-5xl" /> : defaults.isError || !defaults.data
+      <PageHeading title="Novo pedido de compra" description="O pedido nasce em rascunho. Depois de salvar, envie para aprovação: aprovado, o pagamento previsto entra no fluxo de caixa." />
+      {defaults.isPending ? <Skeleton className="h-96 max-w-4xl" /> : defaults.isError || !defaults.data
         ? <ErrorState title="Não foi possível abrir o pedido." message="As solicitações escolhidas podem ter virado pedido ou sido canceladas. Volte às solicitações e tente de novo." onRetry={() => defaults.refetch()} />
         : (
           <PurchaseOrderForm initial={draftFromDefaults(defaults.data)} options={defaults.data.lines.map((l) => l.item)} fromRequests={!!requestLineIds?.length}

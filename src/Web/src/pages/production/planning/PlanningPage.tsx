@@ -75,9 +75,7 @@ export function PlanningPage() {
 
   return (
     <>
-      <PageHeading title="Produção: Planejamento">
-        <p className="mt-2 text-muted-foreground">O plano calcula quando cada etapa de cada OS começa e termina, pela fila e pelas horas que cada centro tem por dia.</p>
-      </PageHeading>
+      <PageHeading title="Produção: Planejamento" description="O plano calcula quando cada etapa de cada OS começa e termina, pela fila e pelas horas que cada centro tem por dia." />
       {query.isPending ? <Skeleton className="h-40" /> : query.isError ? (
         <ErrorState title="Não foi possível carregar o planejamento." message="Verifique a conexão e tente de novo. Se continuar, fale com o suporte." onRetry={() => query.refetch()} />
       ) : (

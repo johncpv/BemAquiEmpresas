@@ -6,7 +6,7 @@ import {
 import type { AssetType } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { Combobox } from '@/components/form/combobox'
-import { Field, FormSection } from '@/components/form/form'
+import { Field, FormGridItem, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput, MoneyInput } from '@/components/form/inputs'
 import { notifyError, notifySuccess } from '@/components/ui/messages'
@@ -57,12 +57,13 @@ export function AssetForm({ draft, onChange, errors, canEditValue, disabled, ter
   }
 
   return (
-    <fieldset disabled={disabled} className="space-y-4">
-      <FormSection title="Identificação">
-        <Field label="Nome" required error={errors.name}>
+    <fieldset disabled={disabled} className="space-y-5">
+      {/* Grade de 12 trilhas (ADR 0044): Nome 8 · Tipo 4 / Marca 4 · Modelo 4 · Série 4 / Observação 12 */}
+      <FormSection title="Identificação" grid="form">
+        <Field label="Nome" required size="xl" error={errors.name}>
           {(p) => <input {...p} value={draft.name} maxLength={150} autoComplete="off" onChange={(e) => set({ name: e.target.value })} className={inputClass} />}
         </Field>
-        <Field label="Tipo" required error={errors.type}>
+        <Field label="Tipo" required size="md" error={errors.type}>
           {(p) => (
             <select {...p} value={draft.type} onChange={(e) => set({ type: e.target.value as AssetType | '' })} className={inputClass}>
               <option value="">Escolha</option>
@@ -70,13 +71,13 @@ export function AssetForm({ draft, onChange, errors, canEditValue, disabled, ter
             </select>
           )}
         </Field>
-        <Field label="Marca" error={errors.brand}>{(p) => <input {...p} value={draft.brand} maxLength={80} onChange={(e) => set({ brand: e.target.value })} className={inputClass} />}</Field>
-        <Field label="Modelo" error={errors.model}>{(p) => <input {...p} value={draft.model} maxLength={80} onChange={(e) => set({ model: e.target.value })} className={inputClass} />}</Field>
-        <Field label="Número de série" error={errors.serialNumber}>{(p) => <input {...p} value={draft.serialNumber} maxLength={80} autoComplete="off" onChange={(e) => set({ serialNumber: e.target.value })} className={inputClass} />}</Field>
-        <Field label="Observação" error={errors.notes}>{(p) => <input {...p} value={draft.notes} maxLength={1000} onChange={(e) => set({ notes: e.target.value })} className={inputClass} />}</Field>
+        <Field label="Marca" size="md" error={errors.brand}>{(p) => <input {...p} value={draft.brand} maxLength={80} onChange={(e) => set({ brand: e.target.value })} className={inputClass} />}</Field>
+        <Field label="Modelo" size="md" error={errors.model}>{(p) => <input {...p} value={draft.model} maxLength={80} onChange={(e) => set({ model: e.target.value })} className={inputClass} />}</Field>
+        <Field label="Número de série" size="md" error={errors.serialNumber}>{(p) => <input {...p} value={draft.serialNumber} maxLength={80} autoComplete="off" onChange={(e) => set({ serialNumber: e.target.value })} className={inputClass} />}</Field>
+        <Field label="Observação" size="full" error={errors.notes}>{(p) => <input {...p} value={draft.notes} maxLength={1000} onChange={(e) => set({ notes: e.target.value })} className={inputClass} />}</Field>
       </FormSection>
-      <FormSection title="Aquisição" description="Com a nota de entrada do sistema, o fornecedor e a data vêm dela.">
-        <Field label="NF de entrada" error={errors.incomingInvoiceId} hint={draft.incomingInvoiceId ? undefined : 'Só notas importadas no Fiscal. Bem antigo? Use a referência ao lado.'}>
+      <FormSection title="Aquisição" description="Com a nota de entrada do sistema, o fornecedor e a data vêm dela." grid="form">
+        <Field label="NF de entrada" size="lg" error={errors.incomingInvoiceId} hint={draft.incomingInvoiceId ? undefined : 'Só notas importadas no Fiscal. Bem antigo? Use a referência ao lado.'}>
           {(p) => (
             <Combobox {...p} queryKey={['asset-invoices']} placeholder="Buscar nota pelo número"
               selected={draft.incomingInvoiceId ? { id: draft.incomingInvoiceId, label: draft.invoiceLabel ?? 'Nota escolhida' } : null}
@@ -89,10 +90,10 @@ export function AssetForm({ draft, onChange, errors, canEditValue, disabled, ter
               }} />
           )}
         </Field>
-        <Field label="Referência da nota" error={errors.invoiceRef} hint="Número e série, sem nota no sistema.">
+        <Field label="Referência da nota" size="md" error={errors.invoiceRef} hint="Número e série, sem nota no sistema.">
           {(p) => <input {...p} value={draft.invoiceRef} maxLength={30} disabled={!!draft.incomingInvoiceId} onChange={(e) => set({ invoiceRef: e.target.value })} className={inputClass} />}
         </Field>
-        <Field label="Fornecedor" error={errors.supplierPartyId}>
+        <Field label="Fornecedor" size="lg" error={errors.supplierPartyId}>
           {(p) => (
             <Combobox {...p} queryKey={['asset-suppliers']} placeholder="Buscar fornecedor"
               selected={draft.supplierPartyId ? { id: draft.supplierPartyId, label: draft.supplierName ?? 'Fornecedor escolhido' } : null}
@@ -100,21 +101,21 @@ export function AssetForm({ draft, onChange, errors, canEditValue, disabled, ter
               onChange={(o) => set({ supplierPartyId: o?.id ?? null, supplierName: o?.label ?? null })} />
           )}
         </Field>
-        <Field label="Data de aquisição" error={errors.acquisitionDate}>{(p) => <DateInput {...p} value={draft.acquisitionDate} onChange={(acquisitionDate) => set({ acquisitionDate })} />}</Field>
+        <Field label="Data de aquisição" size="sm" error={errors.acquisitionDate}>{(p) => <DateInput {...p} value={draft.acquisitionDate} onChange={(acquisitionDate) => set({ acquisitionDate })} />}</Field>
         {canEditValue ? (
-          <Field label="Valor de aquisição" error={errors.acquisitionValue} hint="Só quem edita o patrimônio vê e informa.">
+          <Field label="Valor de aquisição" size="sm" error={errors.acquisitionValue} hint="Só quem edita o patrimônio vê e informa.">
             {(p) => <MoneyInput {...p} value={draft.acquisitionValue} onChange={(acquisitionValue) => set({ acquisitionValue })} />}
           </Field>
         ) : null}
       </FormSection>
-      <FormSection title="Onde está" description={placementLocked ? 'Para trocar o local, o responsável ou o centro, registre uma movimentação: ela fica no histórico do bem.' : undefined}>
+      <FormSection title="Onde está" description={placementLocked ? 'Para trocar o local, o responsável ou o centro, registre uma movimentação: ela fica no histórico do bem.' : undefined} grid="form">
         {placementLocked?.onMove ? (
-          <div className="sm:col-span-2">
+          <FormGridItem>
             <button type="button" onClick={placementLocked.onMove} className="inline-flex min-h-11 items-center rounded-md border border-border px-3 py-2 text-sm font-semibold">Registrar movimentação</button>
-          </div>
+          </FormGridItem>
         ) : null}
         <fieldset disabled={!!placementLocked} className="contents">
-        <Field label="Centro de trabalho" dica={ASSET_DICAS.centro} error={errors.workCenterId}>
+        <Field label="Centro de trabalho" size="lg" dica={ASSET_DICAS.centro} error={errors.workCenterId}>
           {(p) => (
             <select {...p} value={draft.workCenterId} onChange={(e) => void chooseCenter(e.target.value)} className={inputClass}>
               <option value="">Sem centro</option>
@@ -122,7 +123,7 @@ export function AssetForm({ draft, onChange, errors, canEditValue, disabled, ter
             </select>
           )}
         </Field>
-        <Field label="Local" error={errors.siteId} hint={draft.touched.site ? undefined : 'O do último bem do centro, enquanto você não trocar.'}>
+        <Field label="Local" size="lg" error={errors.siteId} hint={draft.touched.site ? undefined : 'O do último bem do centro, enquanto você não trocar.'}>
           {(p) => (
             <Combobox {...p} queryKey={['asset-sites', activeSites.length]} placeholder="Escolher local"
               selected={draft.siteId ? { id: draft.siteId, label: activeSites.find((s) => s.id === draft.siteId)?.name ?? 'Local escolhido' } : null}
@@ -131,7 +132,7 @@ export function AssetForm({ draft, onChange, errors, canEditValue, disabled, ter
               onCreate={canEditValue ? (name) => void createSite(name) : undefined} createLabel="Criar local" />
           )}
         </Field>
-        <Field label="Responsável" error={errors.responsibleEmployeeId} hint={draft.touched.responsible ? undefined : 'O mais comum entre os bens do centro, enquanto você não trocar.'}
+        <Field label="Responsável" size="lg" error={errors.responsibleEmployeeId} hint={draft.touched.responsible ? undefined : 'O mais comum entre os bens do centro, enquanto você não trocar.'}
           warning={terminatedResponsible && draft.responsibleEmployeeId === terminatedResponsible.id ? 'Desligado. Troque o responsável.' : undefined}>
           {(p) => (
             <select {...p} value={draft.responsibleEmployeeId} onChange={(e) => set({ responsibleEmployeeId: e.target.value, touched: { ...draft.touched, responsible: true } })} className={inputClass}>

@@ -40,9 +40,7 @@ export function ManualPostingsPage() {
   ]
   return (
     <>
-      <PageHeading title="Estoque: Lançamentos pendentes">
-        <p className="mt-2 inline-flex items-center text-muted-foreground">Entradas e saídas manuais que esperam a decisão de outra pessoa.<Dica nome="Aguardando aprovação" texto={DICAS.aprovacao} /></p>
-      </PageHeading>
+      <PageHeading title="Estoque: Lançamentos pendentes" description={<>Entradas e saídas manuais que esperam a decisão de outra pessoa.<Dica nome="Aguardando aprovação" texto={DICAS.aprovacao} /></>} />
       <p className="mb-2 text-sm text-muted-foreground">Mostrando: {SHOW_LABELS[show] ?? SHOW_LABELS.todos}</p>
       <DataTable label="Lançamentos manuais" columns={columns} query={query} searchable={false} getRowId={(p) => p.id}
         filters={[

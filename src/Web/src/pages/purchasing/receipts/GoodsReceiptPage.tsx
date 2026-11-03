@@ -165,19 +165,24 @@ export function GoodsReceiptPage() {
 
   return (
     <>
-      <PageHeading title={`${r.number} — ${r.partyName}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-          <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <StatusChip tone={RECEIPT_STATUS[r.status].tone}>{RECEIPT_STATUS[r.status].label}</StatusChip>
-            <Link to={'/app/compras/pedidos/$id' as never} params={{ id: r.purchaseOrderId } as never} className="font-semibold text-primary">{r.purchaseOrderNumber}</Link>
-            <span>{r.projectNumber ?? 'Estoque geral'}</span>
-            {r.origin === 'Invoice' && r.incomingInvoiceId ? <Link to="/app/fiscal/entrada/$id" params={{ id: r.incomingInvoiceId }} className="font-semibold text-primary">Pela NF-e de entrada</Link> : null}
-            {r.soleOwner ? <Tag>Recebido pelo Proprietário único</Tag> : null}
-            <Link to={'/app/compras/recebimentos' as never} search={{ aba: 'recebidos' } as never} className="font-semibold text-primary">Voltar aos recebimentos</Link>
-          </p>
-          {r.canReverse ? reverse : null}
-        </div>
-      </PageHeading>
+      <PageHeading title={`${r.number} — ${r.partyName}`}
+        meta={
+          <>
+            <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <StatusChip tone={RECEIPT_STATUS[r.status].tone}>{RECEIPT_STATUS[r.status].label}</StatusChip>
+              <Link to={'/app/compras/pedidos/$id' as never} params={{ id: r.purchaseOrderId } as never} className="font-semibold text-primary">{r.purchaseOrderNumber}</Link>
+              <span>{r.projectNumber ?? 'Estoque geral'}</span>
+              {r.origin === 'Invoice' && r.incomingInvoiceId ? <Link to="/app/fiscal/entrada/$id" params={{ id: r.incomingInvoiceId }} className="font-semibold text-primary">Pela NF-e de entrada</Link> : null}
+              {r.soleOwner ? <Tag>Recebido pelo Proprietário único</Tag> : null}
+              <Link to={'/app/compras/recebimentos' as never} search={{ aba: 'recebidos' } as never} className="font-semibold text-primary">Voltar aos recebimentos</Link>
+            </p>
+          </>
+        }
+        actions={
+          <>
+            {r.canReverse ? reverse : null}
+          </>
+        } />
       {steps.length ? <div className="mb-3"><NextSteps steps={steps} onDismiss={() => setStepsShown(false)} /></div> : null}
       {r.status === 'Reversed'
         ? <p role="note" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">Recebimento estornado{r.reversedByName ? ` por ${r.reversedByName}` : ''}{r.reversedAt ? ` em ${formatDateTime(r.reversedAt)}` : ''}: só para consulta. Motivo: {r.reversalReason ?? '—'}</p>

@@ -25,9 +25,7 @@ export function InstallationsPage() {
   const goProjects = <Link to={'/app/projetos' as never} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Ver projetos</Link>
   return (
     <>
-      <PageHeading title="Produção: Instalações">
-        <p className="mt-2 text-muted-foreground">A instalação é feita pelo instalador terceirizado; o aceite técnico libera a parcela do cliente.</p>
-      </PageHeading>
+      <PageHeading title="Produção: Instalações" description="A instalação é feita pelo instalador terceirizado; o aceite técnico libera a parcela do cliente." />
       <DataTable label="OS de instalação" columns={columns} query={query} getRowId={(o) => o.id}
         filters={[{ key: 'situacao', label: 'Situação', options: INSTALLATION_SITUATIONS }]}
         empty={{ title: 'Crie a OS de instalação a partir do projeto.', action: goProjects }} />

@@ -22,9 +22,7 @@ export function MovementsPage() {
   })
   return (
     <>
-      <PageHeading title="Estoque: Movimentos">
-        <p className="mt-2 text-muted-foreground">Toda entrada, saída e transferência, na ordem em que foi lançada. Movimento não é apagado: é estornado.</p>
-      </PageHeading>
+      <PageHeading title="Estoque: Movimentos" description="Toda entrada, saída e transferência, na ordem em que foi lançada. Movimento não é apagado: é estornado." />
       <div role="group" aria-label="Período" className="mb-3 flex flex-wrap items-end gap-3 text-sm">
         <label className="space-y-1 font-medium">De<DateInput value={de ?? ''} onChange={(v) => setPeriod('de', v)} /></label>
         <label className="space-y-1 font-medium">Até<DateInput value={ate ?? ''} onChange={(v) => setPeriod('ate', v)} /></label>

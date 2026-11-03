@@ -52,12 +52,8 @@ export function KanbanPage() {
 
   return (
     <>
-      <PageHeading title="Produção: Kanban">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">A etapa anda pelo apontamento ou por "Concluir etapa" no menu do cartão. O quadro não arrasta.</p>
-          {liveChip}
-        </div>
-      </PageHeading>
+      <PageHeading title="Produção: Kanban" description={'A etapa anda pelo apontamento ou por "Concluir etapa" no menu do cartão. O quadro não arrasta.'}
+        actions={liveChip} />
       {live === 'offline' ? <p role="status" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">Atualização ao vivo pausada. Tentando reconectar…</p> : null}
       {query.isPending ? <BoardSkeleton /> : query.isError ? (
         <ErrorState title="Não foi possível carregar o quadro." message="Verifique a conexão e tente de novo. Se continuar, fale com o suporte." onRetry={() => query.refetch()} />

@@ -76,8 +76,8 @@ describe('shell do backoffice (FND-09b)', () => {
     // Declaração nas rotas (a rota mais profunda manda; sem declarar, default).
     const router = createAppRouter(createMemoryHistory({ initialEntries: ['/app'] }))
     const widthAt = (path: string) => widthOfMatches(router.matchRoutes(path, {}))
-    for (const path of ['/app/producao/kanban', '/app/producao/planejamento', '/app/painel', '/app/painel/resultado-por-projeto', '/app/painel/resultado-por-projeto/p1', '/app/financeiro/dre', '/app/financeiro/fluxo-de-caixa']) expect(widthAt(path), path).toBe('full')
-    for (const path of ['/app/configuracoes/empresa', '/app/configuracoes/parametros', '/app/producao/modelo-instalacao', '/app/financeiro/pagar/novo', '/app/financeiro/receber/novo', '/app/rh/funcionarios/novo', '/app/cadastros/terceiros/novo', '/app/estoque/itens/novo']) expect(widthAt(path), path).toBe('form')
+    for (const path of ['/app/producao/kanban', '/app/producao/planejamento', '/app/painel', '/app/painel/resultado-por-projeto', '/app/painel/resultado-por-projeto/p1', '/app/financeiro/dre', '/app/financeiro/fluxo-de-caixa', '/app/producao/supervisor', '/app/estoque/saldos', '/app/estoque/rastreabilidade', '/app/compras/cotacoes/c1']) expect(widthAt(path), path).toBe('full')
+    for (const path of ['/app/configuracoes/empresa', '/app/configuracoes/parametros', '/app/producao/modelo-instalacao', '/app/financeiro/pagar/novo', '/app/financeiro/receber/novo', '/app/rh/funcionarios/novo', '/app/cadastros/terceiros/novo', '/app/estoque/itens/novo', '/app/producao/expedicao/novo', '/app/compras/pedidos/novo', '/app/compras/pedidos/p1/editar']) expect(widthAt(path), path).toBe('form')
     for (const path of ['/app', '/app/acessos/grupos', '/app/rh/funcionarios', '/app/rh/funcionarios/e1', '/app/financeiro/receber', '/app/producao/os']) expect(widthAt(path), path).toBe('default')
 
     // O shell aplica a classe do tipo num contêiner em volta do Outlet; o main fica fluido.

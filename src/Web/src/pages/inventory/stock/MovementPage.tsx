@@ -40,30 +40,35 @@ export function MovementPage() {
 
   return (
     <>
-      <PageHeading title={`${m.number} — ${MOVEMENT_TYPE[m.type]}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <span><span className="font-mono">{m.itemCode}</span> {m.itemName}</span>
-            {m.reversesMovementId ? <Tag>Estorno de {detail.reversesNumber}</Tag> : null}
-            {m.reversedByMovementId ? <StatusChip tone="neutral">Estornado em {formatDateTime(m.reversedAt!)} por {detail.reversedByName ?? 'usuário removido'}</StatusChip> : null}
-            {detail.reversalSelfApproved ? <Tag>Autoaprovado</Tag> : null}
-            <Link to="/app/estoque/movimentos" className="font-semibold text-primary">Voltar aos movimentos</Link>
-          </p>
-          {canReverse ? (
-            <ConfirmDialog destructive size="lg" verb="Estornar movimento" done="Movimento estornado" title={`Estornar o ${m.number}?`}
-              description={detail.reverseRule === 'Author' ? 'Você lançou este movimento: o estorno vale até R$ 1.000,00 e 24 h depois do lançamento.' : 'O estorno lança o movimento inverso pelo custo do original.'}
-              preconditions={[{ ok: reason.trim().length > 0, text: 'Motivo do estorno escrito.' }]}
-              impact={<div className="space-y-1"><p>Saldo no local {formatQuantity(detail.onHandNow)} → <b>{formatQuantity(after)}</b> {m.unitCode}</p><p>Valor estornado: <Money value={Math.abs(m.totalCost)} className="font-semibold" /></p>{after < 0 ? <p className="text-xs text-crit-ink">O saldo do local não cobre o estorno: o sistema vai recusar.</p> : null}</div>}
-              onConfirm={async () => { await reverseStockMovement(id, { reason: reason.trim() }, idempotency.options); idempotency.renew(); setReason(''); await refresh() }} onReload={refresh}
-              trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold text-crit-ink">Estornar movimento</button>}>
-              <div className="space-y-1">
-                <label htmlFor="motivo-estorno" className="inline-flex items-center text-sm font-medium">Motivo<Dica nome="Estornar" texto={DICAS.estornar} /></label>
-                <textarea id="motivo-estorno" value={reason} maxLength={200} rows={3} onChange={(e) => setReason(e.target.value)} className={inputClass} />
-              </div>
-            </ConfirmDialog>
-          ) : null}
-        </div>
-      </PageHeading>
+      <PageHeading title={`${m.number} — ${MOVEMENT_TYPE[m.type]}`}
+        meta={
+          <>
+            <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <span><span className="font-mono">{m.itemCode}</span> {m.itemName}</span>
+              {m.reversesMovementId ? <Tag>Estorno de {detail.reversesNumber}</Tag> : null}
+              {m.reversedByMovementId ? <StatusChip tone="neutral">Estornado em {formatDateTime(m.reversedAt!)} por {detail.reversedByName ?? 'usuário removido'}</StatusChip> : null}
+              {detail.reversalSelfApproved ? <Tag>Autoaprovado</Tag> : null}
+              <Link to="/app/estoque/movimentos" className="font-semibold text-primary">Voltar aos movimentos</Link>
+            </p>
+          </>
+        }
+        actions={
+          <>
+            {canReverse ? (
+              <ConfirmDialog destructive size="lg" verb="Estornar movimento" done="Movimento estornado" title={`Estornar o ${m.number}?`}
+                description={detail.reverseRule === 'Author' ? 'Você lançou este movimento: o estorno vale até R$ 1.000,00 e 24 h depois do lançamento.' : 'O estorno lança o movimento inverso pelo custo do original.'}
+                preconditions={[{ ok: reason.trim().length > 0, text: 'Motivo do estorno escrito.' }]}
+                impact={<div className="space-y-1"><p>Saldo no local {formatQuantity(detail.onHandNow)} → <b>{formatQuantity(after)}</b> {m.unitCode}</p><p>Valor estornado: <Money value={Math.abs(m.totalCost)} className="font-semibold" /></p>{after < 0 ? <p className="text-xs text-crit-ink">O saldo do local não cobre o estorno: o sistema vai recusar.</p> : null}</div>}
+                onConfirm={async () => { await reverseStockMovement(id, { reason: reason.trim() }, idempotency.options); idempotency.renew(); setReason(''); await refresh() }} onReload={refresh}
+                trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold text-crit-ink">Estornar movimento</button>}>
+                <div className="space-y-1">
+                  <label htmlFor="motivo-estorno" className="inline-flex items-center text-sm font-medium">Motivo<Dica nome="Estornar" texto={DICAS.estornar} /></label>
+                  <textarea id="motivo-estorno" value={reason} maxLength={200} rows={3} onChange={(e) => setReason(e.target.value)} className={inputClass} />
+                </div>
+              </ConfirmDialog>
+            ) : null}
+          </>
+        } />
       {!canReverse && detail.reverseMessage ? (
         <p role="note" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">
           {detail.reverseMessage}

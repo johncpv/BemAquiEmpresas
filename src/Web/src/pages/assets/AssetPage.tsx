@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { deleteAsset, getGetAssetQueryKey, getListAssetsQueryKey, updateAsset, useGetAsset, useGetAssetMaintenanceCost } from '@/api/generated/bemaqui'
 import type { AssetDetail, AssetReceivableDraft } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { FormError } from '@/components/form/form'
+import { FormActions, FormError } from '@/components/form/form'
+import { FormLayout } from '@/components/layout/form-layout'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { notifySuccess } from '@/components/ui/messages'
@@ -75,17 +76,19 @@ export function AssetPage() {
 
   return (
     <>
-      <PageHeading title={asset.name}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-1.5">
+      <PageHeading title={asset.name}
+        meta={
+          <>
             <span className="inline-flex items-center text-sm font-semibold tabular-nums">{asset.tag}<Dica nome="Etiqueta" texto={ASSET_DICAS.etiqueta} /></span>
             <StatusChip tone={STATUS_TONES[asset.status]}>{STATUS_LABELS[asset.status]}</StatusChip>
             <Tag>{TYPE_LABELS[asset.type]}</Tag>
             {asset.nextMaintenanceOn ? <span className="text-sm text-muted-foreground">Próxima preventiva: <b className="tabular-nums text-foreground">{formatDate(asset.nextMaintenanceOn)}</b></span> : null}
             {canEdit ? <AssetMaintenanceCostLine assetId={asset.id} /> : null}
             <Link to="/app/patrimonio/bens" className="ml-2 inline-flex min-h-11 items-center text-sm font-semibold text-primary">Voltar à lista</Link>
-          </div>
-          <div className="flex flex-wrap gap-2">
+          </>
+        }
+        actions={
+          <>
             <AssetLabelButtons id={asset.id} tag={asset.tag} />
             {canEdit && !disposed ? (
               <>
@@ -104,9 +107,8 @@ export function AssetPage() {
                 recovery={canEdit && !disposed ? { verb: 'Baixar bem', onSelect: async () => setDialog('dispose'), when: (code) => code === 'asset_has_history' } : undefined}
                 trigger={<button type="button" className={button + ' text-crit-ink'}>Excluir</button>} />
             </Can>
-          </div>
-        </div>
-      </PageHeading>
+          </>
+        } />
       {asset.responsibleTerminated && !disposed ? (
         <div role="status" className="mb-4 flex flex-wrap items-center gap-2 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">
           <b>{asset.responsibleName} foi desligado.</b>
@@ -180,7 +182,8 @@ function AssetData({ asset, canEdit, readOnly, onSaved, onReload, onMove }: {
   }
 
   return (
-    <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="max-w-3xl space-y-4">
+    <FormLayout>
+    <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="space-y-5">
       <div className="flex flex-wrap items-start gap-4">
         <AssetPhoto assetId={asset.id} photoId={asset.photoId} name={asset.name} size="large" />
         {!canEdit ? <p className="text-sm text-muted-foreground">Modo leitura: para alterar o bem, peça a permissão de editar o patrimônio.</p> : null}
@@ -191,11 +194,12 @@ function AssetData({ asset, canEdit, readOnly, onSaved, onReload, onMove }: {
       <AssetForm draft={draft} onChange={(next) => { setServer(null); setDraft(next) }} errors={errors} canEditValue={canEdit} disabled={!editable} terminatedResponsible={terminated}
         placementLocked={{ onMove: editable ? onMove : undefined }} />
       {editable ? (
-        <div className="flex justify-end">
+        <FormActions sticky dirty={dirty}>
           <button type="submit" disabled={!dirty || saving} className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">{saving ? 'Salvando…' : 'Salvar bem'}</button>
-        </div>
+        </FormActions>
       ) : null}
     </form>
+    </FormLayout>
   )
 }
 

@@ -40,9 +40,7 @@ export function EditPurchaseOrderPage() {
   const reapproval = o.status !== 'Draft'
   return (
     <>
-      <PageHeading title={`Editar ${o.number}`}>
-        <p className="mt-2 text-muted-foreground">{reapproval ? 'Mudar valor, fornecedor, condição, data ou itens volta o pedido para a aprovação.' : 'Rascunho: as mudanças só valem depois do envio para aprovação.'}</p>
-      </PageHeading>
+      <PageHeading title={`Editar ${o.number}`} description={<>{reapproval ? 'Mudar valor, fornecedor, condição, data ou itens volta o pedido para a aprovação.' : 'Rascunho: as mudanças só valem depois do envio para aprovação.'}</>} />
       <PurchaseOrderForm initial={draftOf(o)} options={[]} fromRequests={o.lines.some((l) => l.requestLineIds.length > 0)} reapproval={reapproval ? { wasSent: o.status === 'Sent' } : undefined}
         saveLabel={reapproval ? 'Salvar e enviar para aprovação' : 'Salvar pedido'} sendingLabel="Salvando…" onBack={back}
         onSubmit={async (payload) => {

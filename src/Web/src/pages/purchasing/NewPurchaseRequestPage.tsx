@@ -5,7 +5,8 @@ import type { PurchaseItemOption, PurchaseRequestDefaults } from '@/api/generate
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { Combobox, type ComboOption } from '@/components/form/combobox'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormActions, FormError, FormGridItem, FormSection } from '@/components/form/form'
+import { FormLayout } from '@/components/layout/form-layout'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput, QuantityInput } from '@/components/form/inputs'
 import { RowsEditor } from '@/components/form/rows-editor'
@@ -47,9 +48,7 @@ export function NewPurchaseRequestPage() {
   const defaults = useGetPurchaseRequestDefaults(prefill ? {} : { productionOrderId: os, itemId: item })
   return (
     <>
-      <PageHeading title="Nova solicitação de compra">
-        <p className="mt-2 text-muted-foreground">Peça o que precisa ser comprado e para quando. Não tem aprovação: o comprador recebe na lista.</p>
-      </PageHeading>
+      <PageHeading title="Nova solicitação de compra" description="Peça o que precisa ser comprado e para quando. Não tem aprovação: o comprador recebe na lista." />
       {defaults.isPending ? <Skeleton className="h-96 max-w-4xl" /> : defaults.isError || !defaults.data
         ? <ErrorState title="Não foi possível abrir a solicitação." message="Verifique a conexão e tente de novo. Se veio de uma OS, ela pode ter sido removida." onRetry={() => defaults.refetch()} />
         : <PurchaseRequestForm defaults={defaults.data} prefill={prefill} />}
@@ -121,15 +120,16 @@ function PurchaseRequestForm({ defaults, prefill }: { defaults: PurchaseRequestD
   }
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <FormLayout>
+    <div className="space-y-5">
       {prefill ? (
         <p role="note" className="rounded-md border border-info-soft bg-info-soft px-3 py-2 text-sm text-info-ink">
           {prefill.source}. Confira as quantidades e envie: nada foi gravado ainda.
           {prefill.leftOut > 0 ? ` A solicitação leva até ${MAX_REQUEST_LINES} itens: ${prefill.leftOut} ${prefill.leftOut === 1 ? 'falta ficou' : 'faltas ficaram'} para uma segunda solicitação.` : ''}
         </p>
       ) : null}
-      <FormSection title="Itens" description="Quantidade na unidade de estoque ou noutra com conversão cadastrada. Serviço não entra: lance um título a pagar.">
-        <div className="sm:col-span-2">
+      <FormSection title="Itens" description="Quantidade na unidade de estoque ou noutra com conversão cadastrada. Serviço não entra: lance um título a pagar." grid="none">
+        <div>
         <RowsEditor<Line> noun="item" rows={lines} onChange={setLines} min={1} max={50} disabled={!canCreate}
           newRow={() => ({ item: null, quantity: null, unitId: '', neededBy: defaults.neededBy, suggested: true })}
           rowError={(i) => errors[`lines[${i}]`]}
@@ -186,30 +186,33 @@ function PurchaseRequestForm({ defaults, prefill }: { defaults: PurchaseRequestD
             },
           ]} />
         </div>
-        <p className="inline-flex items-center text-xs text-muted-foreground sm:col-span-2">Necessidade<Dica nome="Necessidade" texto={PURCHASE_DICAS.necessidade} /> é quando o material precisa estar na fábrica.</p>
+        <p className="mt-3 inline-flex items-center text-xs text-muted-foreground">Necessidade<Dica nome="Necessidade" texto={PURCHASE_DICAS.necessidade} /> é quando o material precisa estar na fábrica.</p>
       </FormSection>
 
-      <FormSection title="Destino" description="Para um projeto em andamento ou para o estoque geral.">
-        {fromOrder ? <p className="text-sm">Falta da <b>{defaults.orderNumber}</b>: o destino é o projeto da OS.</p> : null}
+      <FormSection title="Destino" description="Para um projeto em andamento ou para o estoque geral." grid="form">
+        {fromOrder ? <FormGridItem><p className="text-sm">Falta da <b>{defaults.orderNumber}</b>: o destino é o projeto da OS.</p></FormGridItem> : null}
+        <FormGridItem>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={general} disabled={fromOrder || !canCreate} onChange={(e) => setGeneral(e.target.checked)} className="size-4 accent-primary" />
           Estoque geral (sem projeto)
         </label>
+        </FormGridItem>
         {!general ? (
-          <Field label="Projeto" required error={errors.projectId}>
+          <Field label="Projeto" required size="lg" error={errors.projectId}>
             {(p) => <Combobox {...p} queryKey={['purchase-projects']} search={searchProjects} value={project?.id ?? null} selected={project} placeholder="Projeto em andamento" onChange={setProject} disabled={fromOrder || !canCreate} />}
           </Field>
         ) : null}
-        <Field label="Observação (opcional)" error={errors.notes}>
+        <Field label="Observação (opcional)" size="full" error={errors.notes}>
           {(p) => <textarea {...p} value={notes} maxLength={500} rows={2} onChange={(e) => setNotes(e.target.value)} className={inputClass} />}
         </Field>
       </FormSection>
 
       <FormError message={failure} />
-      <div className="flex flex-wrap justify-end gap-2">
+      <FormActions sticky>
         <button type="button" onClick={() => void navigate({ to: '/app/compras/solicitacoes' } as never)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</button>
         {canCreate ? <button type="button" disabled={sending} onClick={() => void submit()} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">{sending ? 'Enviando…' : 'Enviar solicitação'}</button> : null}
-      </div>
+      </FormActions>
     </div>
+    </FormLayout>
   )
 }

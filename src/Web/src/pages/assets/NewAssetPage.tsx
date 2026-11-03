@@ -2,7 +2,8 @@ import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import { createAsset, useGetAsset } from '@/api/generated/bemaqui'
 import { ApiError } from '@/api/http'
-import { FormError } from '@/components/form/form'
+import { FormActions, FormError } from '@/components/form/form'
+import { FormLayout } from '@/components/layout/form-layout'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
 import { notifySuccess } from '@/components/ui/messages'
 import { ErrorState, Skeleton } from '@/components/ui/states'
@@ -15,7 +16,7 @@ import { type AssetDraft, assetDraftErrors, assetInput, draftFromAsset, emptyAss
 export function NewAssetPage() {
   const { de } = useSearch({ strict: false }) as { de?: string }
   const source = useGetAsset(de ?? '', { query: { enabled: !!de } })
-  if (de && source.isPending) return <Skeleton className="h-96 max-w-3xl" />
+  if (de && source.isPending) return <Skeleton className="h-96 max-w-4xl" />
   if (de && source.isError) return <ErrorState title="Não foi possível carregar o bem a duplicar." onRetry={() => source.refetch()} />
   return <NewAssetForm key={de ?? 'novo'} initial={de && source.data ? draftFromAsset(source.data, true) : emptyAssetDraft()} duplicateOf={de && source.data ? source.data.tag : undefined} />
 }
@@ -52,19 +53,19 @@ function NewAssetForm({ initial, duplicateOf }: { initial: AssetDraft; duplicate
 
   return (
     <>
-      <PageHeading title={duplicateOf ? `Novo bem (cópia de ${duplicateOf})` : 'Novo bem'}>
-        <p className="mt-2 text-muted-foreground">Nome e tipo bastam. A etiqueta é gerada ao salvar.</p>
-      </PageHeading>
-      <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="max-w-3xl space-y-4">
+      <PageHeading title={duplicateOf ? `Novo bem (cópia de ${duplicateOf})` : 'Novo bem'} description="Nome e tipo bastam. A etiqueta é gerada ao salvar." />
+      <FormLayout>
+      <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="space-y-5">
         <UnsavedChangesGuard when={dirty} onSave={save} />
         <FormError message={server && Object.keys(server.fields).length === 0 ? server.message : undefined} />
         {server?.assetId ? <Link to="/app/patrimonio/bens/$id" params={{ id: server.assetId }} className="inline-flex min-h-11 items-center text-sm font-semibold text-primary">Abrir bem</Link> : null}
         <AssetForm draft={draft} onChange={(next) => { setServer(null); setDraft(next) }} errors={errors} canEditValue={canEditValue} />
-        <div className="flex justify-end gap-2">
-          <Link to="/app/patrimonio/bens" className="inline-flex min-h-11 items-center rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</Link>
+        <FormActions sticky dirty={dirty}>
+          <Link to="/app/patrimonio/bens" className="inline-flex min-h-11 items-center justify-center rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</Link>
           <button type="submit" disabled={saving} className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">{saving ? 'Salvando…' : 'Salvar bem'}</button>
-        </div>
+        </FormActions>
       </form>
+      </FormLayout>
     </>
   )
 }
