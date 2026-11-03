@@ -62,16 +62,18 @@ export function PartyPage() {
 
   return (
     <>
-      <PageHeading title={party.tradeName ? `${party.legalName} (${party.tradeName})` : party.legalName}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-1.5">
+      <PageHeading title={party.tradeName ? `${party.legalName} (${party.tradeName})` : party.legalName}
+        meta={
+          <>
             <StatusChip tone={party.isActive ? 'ok' : 'neutral'}>{party.isActive ? 'Ativo' : 'Inativo'}</StatusChip>
             {party.roles.map((r) => <Tag key={r}>{ROLE_LABELS[r]}</Tag>)}
             {party.document ? <span className="text-sm text-muted-foreground tabular-nums">{party.document}</span> : <Tag>Sem documento</Tag>}
             <ImportedTag source={party.importSource} />
             <Link to="/app/cadastros/terceiros" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
-          </div>
-          {anonymized ? null : <div className="flex flex-wrap gap-2">
+          </>
+        }
+        actions={anonymized ? undefined : (
+          <>
             <Can perm="parties.edit">
               {party.kind === 'PJ' && party.document ? (
                 <button type="button" onClick={() => setReceita(true)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Atualizar pela Receita</button>
@@ -93,9 +95,8 @@ export function PartyPage() {
             <Can perm="parties.edit">
               <button type="submit" form="dados-terceiro" onClick={() => setTab('dados')} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar terceiro</button>
             </Can>
-          </div>}
-        </div>
-      </PageHeading>
+          </>
+        )} />
       <AnonymizedBand at={party.anonymizedAt} request={party.anonymizationRequest} />
 
       {steps && canEdit ? (

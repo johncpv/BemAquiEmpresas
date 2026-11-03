@@ -1,6 +1,7 @@
 import { Link, useParams } from '@tanstack/react-router'
 import { useGetAmendment } from '@/api/generated/bemaqui'
 import type { AmendmentDetail } from '@/api/generated/model'
+import { FormLayout } from '@/components/layout/form-layout'
 import { Money } from '@/components/ui/money'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -25,14 +26,19 @@ export function AmendmentPage() {
   const a = query.data
   return (
     <>
-      <PageHeading title={`Aditivo ${a.number} — ${a.contractNumber}`}>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <StatusChip tone={AMENDMENT_STATUS[a.status]?.tone ?? 'neutral'}>{AMENDMENT_STATUS[a.status]?.label ?? a.status}</StatusChip>
-          {a.selfApproved ? <Tag>Aprovado pelo próprio autor</Tag> : null}
-          <Link to={'/app/contratos/$id' as never} params={{ id } as never} search={{ aba: 'aditivos' } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ver contrato</Link>
-          <AmendmentActions amendment={a} />
-        </div>
-      </PageHeading>
+      <PageHeading title={`Aditivo ${a.number} — ${a.contractNumber}`}
+        meta={
+          <>
+            <StatusChip tone={AMENDMENT_STATUS[a.status]?.tone ?? 'neutral'}>{AMENDMENT_STATUS[a.status]?.label ?? a.status}</StatusChip>
+            {a.selfApproved ? <Tag>Aprovado pelo próprio autor</Tag> : null}
+          </>
+        }
+        actions={
+          <>
+            <Link to={'/app/contratos/$id' as never} params={{ id } as never} search={{ aba: 'aditivos' } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ver contrato</Link>
+            <AmendmentActions amendment={a} />
+          </>
+        } />
       {a.status === 'Draft' && canEdit ? <AmendmentForm key={a.version} contractId={id} amendment={a} /> : <AmendmentReadOnly amendment={a} />}
     </>
   )
@@ -40,7 +46,8 @@ export function AmendmentPage() {
 
 function AmendmentReadOnly({ amendment: a }: { amendment: AmendmentDetail }) {
   return (
-    <div className="max-w-4xl space-y-4 text-sm">
+    <FormLayout>
+    <div className="space-y-4 text-sm">
       {a.status === 'Approved' ? <p role="note" className="rounded-md border border-border bg-muted px-3 py-2">Aditivo aprovado em {a.approvedAt ? formatDate(a.approvedAt.slice(0, 10)) : '—'}{a.approvedByName ? ` por ${a.approvedByName}` : ''}. Não muda mais.</p> : null}
       {a.status === 'Rejected' ? <p role="note" className="rounded-md border border-border bg-muted px-3 py-2">Aditivo reprovado: {a.rejectionComment}</p> : null}
       {a.status === 'PendingApproval' && !a.canDecide ? <p role="note" className="rounded-md border border-border bg-muted px-3 py-2">Aguardando a aprovação de outra pessoa.</p> : null}
@@ -65,5 +72,6 @@ function AmendmentReadOnly({ amendment: a }: { amendment: AmendmentDetail }) {
         </ul>
       ) : null}
     </div>
+    </FormLayout>
   )
 }

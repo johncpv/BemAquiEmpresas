@@ -52,12 +52,8 @@ export function QuotesPage() {
   const create = canCreate ? <span className="flex flex-wrap gap-2"><CopyQuoteDialog mode="quote" onDone={open} /><NewQuoteDialog onCreated={open} /></span> : null
   return (
     <>
-      <PageHeading title="Comercial: Orçamentos">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Pré-propostas com validade. Ao aprovar, o sistema gera o contrato, o projeto e as parcelas a receber.</p>
-          {create}
-        </div>
-      </PageHeading>
+      <PageHeading title="Comercial: Orçamentos" description="Pré-propostas com validade. Ao aprovar, o sistema gera o contrato, o projeto e as parcelas a receber."
+        actions={create} />
       {fromFunnel ? (
         <p role="status" className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm">
           <span>Filtrado pelo funil{de && ate ? `: criados de ${formatDate(de)} a ${formatDate(ate)}` : ''}{autor ? ', de um autor' : ''}.</span>

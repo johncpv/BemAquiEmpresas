@@ -14,7 +14,7 @@ Cadastra um cliente, fornecedor, instalador ou transportadora, já com o endere�
 - Se já estiver, use **Adicionar papel** (por exemplo, tornar um cliente também fornecedor) ou **Abrir cadastro**. Se o cadastro tiver sido excluído, use **Restaurar cadastro**.
 - Marque os **papéis**. Pelo menos um é obrigatório.
 - O **endereço de cobrança** e o **contato principal** são opcionais; se começar a preencher, complete os campos pedidos.
-- Clique em **Salvar terceiro**. Depois de salvar, o sistema sugere os próximos passos: endereço de entrega e outros contatos.
+- Clique em **Salvar terceiro**, na barra presa no rodapé (ela avisa "Alterações não salvas" enquanto houver mudança). Depois de salvar, o sistema sugere os próximos passos: endereço de entrega e outros contatos.
 
 ## Consulta de CNPJ
 - Ao sair do campo de um CNPJ que ainda não está cadastrado, o sistema consulta a base pública da Receita e mostra o quadro **Dados da Receita**. Também dá para clicar em **Consultar CNPJ**.

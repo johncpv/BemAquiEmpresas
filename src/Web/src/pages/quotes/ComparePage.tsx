@@ -33,9 +33,8 @@ export function ComparePage() {
   const milestones = (qid: string) => (qid === id ? leftConditions.data : rightConditions.data)?.milestones ?? []
   return (
     <>
-      <PageHeading title={`Comparar ${before.number}: rev. ${before.revision} × rev. ${after.revision}`}>
-        <p className="mt-2 text-sm"><Link to={'/app/orcamentos/$id' as never} params={{ id: after.id } as never} className="font-semibold text-primary hover:underline">Voltar ao orçamento</Link></p>
-      </PageHeading>
+      <PageHeading title={`Comparar ${before.number}: rev. ${before.revision} × rev. ${after.revision}`}
+        actions={<Link to={'/app/orcamentos/$id' as never} params={{ id: after.id } as never} className="text-sm font-semibold text-primary hover:underline">Voltar ao orçamento</Link>} />
       <section aria-label="Totais" className="mb-4 grid gap-3 rounded-md border border-border bg-card p-4 text-sm sm:grid-cols-4">
         <p><span className="block text-xs text-muted-foreground">Preço total</span><Money value={before.totalPrice} /> → <Money value={after.totalPrice} className="font-semibold" /> <Delta before={before.totalPrice} after={after.totalPrice} /></p>
         {canCost ? <p><span className="block text-xs text-muted-foreground">Custo total</span><Money value={cost(before.id)?.totalCost ?? 0} /> → <Money value={cost(after.id)?.totalCost ?? 0} className="font-semibold" /></p> : null}

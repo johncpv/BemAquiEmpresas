@@ -3,6 +3,7 @@ import { Controller } from 'react-hook-form'
 import { addPartyAddress, removePartyAddress, updatePartyAddress } from '@/api/generated/bemaqui'
 import type { AddressKind, PartyAddressDto, PartyDetail } from '@/api/generated/model'
 import { Field, FormError } from '@/components/form/form'
+import { FormLayout } from '@/components/layout/form-layout'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
 import { CepInput } from '@/components/form/inputs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -36,7 +37,9 @@ export function PartyAddresses({ party, canEdit, onSaved, adding, onAddingChange
   const open = editing !== null || adding !== null
 
   return (
-    <div className="max-w-3xl space-y-3">
+    // Mesma coluna da aba Dados (ADR 0044): a largura não muda ao trocar de aba.
+    <FormLayout>
+    <div className="space-y-3">
       {party.addresses.length === 0 ? (
         <EmptyState title="Nenhum endereço ainda." description="Cadastre o endereço de cobrança e os de entrega e de obra." action={canEdit ? <button type="button" onClick={() => onAddingChange('Billing')} className="text-sm font-semibold text-primary">Adicionar endereço</button> : undefined} />
       ) : (
@@ -64,6 +67,7 @@ export function PartyAddresses({ party, canEdit, onSaved, adding, onAddingChange
       {canEdit && party.addresses.length > 0 ? <button type="button" onClick={() => onAddingChange('Delivery')} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Adicionar endereço</button> : null}
       {open ? <AddressPanel key={editing?.id ?? adding ?? ''} party={party} address={editing} kind={editing?.kind ?? adding ?? 'Billing'} onClose={() => { setEditing(null); onAddingChange(null) }} onSaved={onSaved} /> : null}
     </div>
+    </FormLayout>
   )
 }
 

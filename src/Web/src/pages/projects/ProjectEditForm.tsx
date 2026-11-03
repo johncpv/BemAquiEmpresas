@@ -3,9 +3,10 @@ import { useState } from 'react'
 import { listQuoteCustomerAddresses, updateProject, useListUsers } from '@/api/generated/bemaqui'
 import type { ProjectDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormActions, FormError, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
+import { FormLayout } from '@/components/layout/form-layout'
 import { notifySuccess } from '@/components/ui/messages'
 
 /** Editar nome, responsável e obra (COM-05 CA 4); data prometida e valor só por aditivo. */
@@ -32,12 +33,14 @@ export function ProjectEditForm({ project, onSaved }: { project: ProjectDetail; 
   const current = users.some((u) => u.id === draft.managerUserId) || !project.managerUserId ? null : { id: project.managerUserId, name: project.managerName ?? 'Responsável atual' }
   const sites = (addresses.data ?? []).filter((a) => a.kind === 'Site')
   return (
-    <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="max-w-3xl space-y-4">
+    // Padrão de layout (ADR 0044): coluna de 896 px, grade de 12 trilhas. Nome 8 / Responsável 6 · Obra 6.
+    <FormLayout>
+    <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="space-y-5">
       <UnsavedChangesGuard when={dirty} onSave={save} />
       <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
-      <FormSection title="Dados do projeto">
-        <Field label="Nome" required error={error?.fields.name?.[0]}>{(p) => <input {...p} value={draft.name} maxLength={200} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={inputClass} />}</Field>
-        <Field label="Responsável" error={error?.fields.managerUserId?.[0]}>
+      <FormSection title="Dados do projeto" grid="form">
+        <Field label="Nome" required size="xl" error={error?.fields.name?.[0]}>{(p) => <input {...p} value={draft.name} maxLength={200} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={inputClass} />}</Field>
+        <Field label="Responsável" size="lg" error={error?.fields.managerUserId?.[0]}>
           {(p) => (
             <select {...p} value={draft.managerUserId} onChange={(e) => setDraft({ ...draft, managerUserId: e.target.value })} className={inputClass}>
               <option value="">Sem responsável</option>
@@ -46,7 +49,7 @@ export function ProjectEditForm({ project, onSaved }: { project: ProjectDetail; 
             </select>
           )}
         </Field>
-        <Field label="Endereço da obra" error={error?.fields.siteAddressId?.[0]}>
+        <Field label="Endereço da obra" size="lg" error={error?.fields.siteAddressId?.[0]}>
           {(p) => (
             <select {...p} value={draft.siteAddressId} onChange={(e) => setDraft({ ...draft, siteAddressId: e.target.value })} className={inputClass}>
               <option value="">Sem endereço de obra</option>
@@ -55,7 +58,8 @@ export function ProjectEditForm({ project, onSaved }: { project: ProjectDetail; 
           )}
         </Field>
       </FormSection>
-      <div className="flex justify-end"><button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar projeto</button></div>
+      <FormActions><button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar projeto</button></FormActions>
     </form>
+    </FormLayout>
   )
 }

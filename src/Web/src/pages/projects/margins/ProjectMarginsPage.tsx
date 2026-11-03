@@ -117,9 +117,7 @@ export function ProjectMarginsPage() {
 
   return (
     <>
-      <PageHeading title="Quanto cada projeto está rendendo de verdade.">
-        <p className="mt-1 text-muted-foreground">Orçado × realizado e margem de cada projeto, do pior para o melhor desvio. Clique num valor para ver de onde ele vem.</p>
-      </PageHeading>
+      <PageHeading title="Quanto cada projeto está rendendo de verdade." description="Orçado × realizado e margem de cada projeto, do pior para o melhor desvio. Clique num valor para ver de onde ele vem." />
 
       <div className="mb-4 flex flex-wrap items-end gap-3 text-sm" role="group" aria-label="Filtros do relatório">
         <label className="inline-flex flex-col gap-1 text-xs font-medium text-muted-foreground">Situação

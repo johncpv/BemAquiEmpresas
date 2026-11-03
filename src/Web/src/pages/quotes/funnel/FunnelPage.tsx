@@ -36,9 +36,7 @@ export function FunnelPage() {
 
   return (
     <>
-      <PageHeading title="Comercial: Funil">
-        <p className="mt-2 text-muted-foreground">Quantos orçamentos estão em cada etapa, quantos viram contrato e por que perdemos os outros.</p>
-      </PageHeading>
+      <PageHeading title="Comercial: Funil" description="Quantos orçamentos estão em cada etapa, quantos viram contrato e por que perdemos os outros." />
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <label className="space-y-1 text-sm font-medium"><span className="inline-flex items-center">De<Dica nome="Período do funil" texto={FUNNEL_DICAS.periodo} /></span>
           <DateInput value={from} onChange={(v) => { if (v) set({ de: v }) }} className="w-36" />

@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { quoteMilestonesFromTerm, saveQuoteConditions, useGetQuoteConditions, useListQuotePaymentTerms } from '@/api/generated/bemaqui'
 import type { QuoteConditions, QuoteDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { FormError } from '@/components/form/form'
+import { Field, FormError, FormGrid } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
+import { FormLayout } from '@/components/layout/form-layout'
 import { DateInput } from '@/components/form/inputs'
 import { RowsEditor } from '@/components/form/rows-editor'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -46,12 +47,15 @@ function ConditionsForm({ quote, conditions, editable, refresh }: { quote: Quote
 
   const adjustLast = () => setRows(rows.map((r, i) => (i === rows.length - 1 ? { ...r, percent: String(Math.round(((r.percent ? Number(r.percent) : 0) + 100 - sum) * 10000) / 10000) } : r)))
   return (
-    <fieldset disabled={!editable} className="max-w-4xl space-y-4">
+    // Aba que é formulário (ADR 0044): a coluna de 896 px, igual à aba Dados.
+    <FormLayout>
+    <fieldset disabled={!editable} className="space-y-4">
       <FormError message={error} />
-      <label className="block max-w-xs space-y-1 text-sm font-medium">
-        <span className="inline-flex items-center">Validade<Dica nome="Validade" texto="Até quando o preço vale. Depois disso, o orçamento não é enviado sem ajustar a data." /></span>
-        <DateInput value={valid} onChange={setValid} />
-      </label>
+      <FormGrid>
+        <Field label="Validade" size="sm" dica="Até quando o preço vale. Depois disso, o orçamento não é enviado sem ajustar a data.">
+          {(p) => <DateInput {...p} value={valid} onChange={setValid} />}
+        </Field>
+      </FormGrid>
       {rows.length === 0 ? <p className="text-sm text-muted-foreground">Defina como o cliente vai pagar.</p> : null}
       <RowsEditor noun="marco" rows={rows} onChange={setRows} newRow={emptyMilestone} duplicate disabled={!editable} columns={milestoneColumns(values)}
         summary={<span>Soma {sum.toLocaleString('pt-BR', { maximumFractionDigits: 4 })}% · <Money value={values.reduce((a, b) => a + b, 0)} />{missing ? <b className="ml-2 text-warn-ink">{missing}</b> : null}</span>} />
@@ -74,5 +78,6 @@ function ConditionsForm({ quote, conditions, editable, refresh }: { quote: Quote
         · Prazo após o evento<Dica nome="Prazo após o evento" texto="Dias corridos depois do evento para o vencimento da parcela." />
       </p>
     </fieldset>
+    </FormLayout>
   )
 }

@@ -5,10 +5,11 @@ import { checkPartyDocument, createParty, restoreParty } from '@/api/generated/b
 import type { PartyRoleKind } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { ChipGroup, ToggleGroup } from '@/components/form/choice'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormActions, FormError, FormGridItem, FormSection } from '@/components/form/form'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
 import { CepInput, DocumentInput, PhoneInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
+import { FormLayout } from '@/components/layout/form-layout'
 import { notifySuccess } from '@/components/ui/messages'
 import { documentKind } from '@/lib/masks'
 import { Dica } from '@/help/Dica'
@@ -95,30 +96,23 @@ export function NewPartyPage() {
     }
   }
 
-  const actions = (
-    <div className="flex flex-wrap gap-2">
-      <button type="button" onClick={() => window.history.back()} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</button>
-      <button type="submit" form="novo-terceiro" disabled={form.formState.isSubmitting || busy} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">Salvar terceiro</button>
-    </div>
-  )
 
   const text = (name: 'legalName' | 'tradeName' | 'email' | 'street' | 'number' | 'complement' | 'district' | 'city' | 'contactName' | 'contactEmail') => form.register(name)
 
   return (
     <>
       <UnsavedChangesGuard when={form.formState.isDirty && !saved} onSave={async () => { await submit(); return false }} />
-      <PageHeading title="Novo terceiro">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Cliente, fornecedor, instalador ou transportadora. Um mesmo documento pode ter vários papéis.</p>
-          {actions}
-        </div>
-      </PageHeading>
+      <PageHeading title="Novo terceiro" description="Cliente, fornecedor, instalador ou transportadora. Um mesmo documento pode ter vários papéis."
+ />
 
-      <form id="novo-terceiro" onSubmit={submit} noValidate className="max-w-3xl space-y-4">
+      {/* Padrão de layout (ADR 0044): coluna de 896 px, uma grade de 12 trilhas por seção e a barra de ações presa acima do dock. */}
+      <FormLayout>
+      <form id="novo-terceiro" onSubmit={submit} noValidate className="space-y-5">
         <FormError message={errors.root?.server?.message} />
 
-        <FormSection title="Identificação" description="Comece pelo documento: ele define PF ou PJ e confere se o terceiro já existe.">
-          <Field label="CPF ou CNPJ" error={errors.document?.message} hint="Aceita o CNPJ com letras. Em branco, o terceiro fica com o aviso &quot;Sem documento&quot;." dica="Sem documento, o terceiro não recebe nota fiscal nem boleto. Dá para completar depois.">
+        <FormSection title="Identificação" description="Comece pelo documento: ele define PF ou PJ e confere se o terceiro já existe." grid="form">
+          {/* Documento 6 · Tipo 6 / Razão social 8 · Nome fantasia 4 / E-mail 6 · Telefone 3 / Papéis 12 */}
+          <Field label="CPF ou CNPJ" size="lg" error={errors.document?.message} hint="Aceita o CNPJ com letras. Em branco, o terceiro fica com o aviso &quot;Sem documento&quot;." dica="Sem documento, o terceiro não recebe nota fiscal nem boleto. Dá para completar depois.">
             {(p) => (
               <div className="flex gap-2">
                 <DocumentInput {...p} value={document} onChange={onDocument} onBlur={() => void checkDocument()} />
@@ -131,47 +125,48 @@ export function NewPartyPage() {
               </div>
             )}
           </Field>
-          <ReceitaPanel state={cnpj.state} onUse={({ data }) => fill({
+          <FormGridItem className="empty:hidden"><ReceitaPanel state={cnpj.state} onUse={({ data }) => fill({
             legalName: data.legalName, tradeName: data.tradeName, email: data.email, phone: data.phone, zipCode: data.address?.zipCode, street: data.address?.street,
             number: data.address?.number, complement: data.address?.complement, district: data.address?.district, city: data.address?.city, state: data.address?.state, ibgeCode: data.address?.ibgeCode,
-          })} />
-          <div className="space-y-1">
+          })} /></FormGridItem>
+          <FormGridItem size="lg" className="space-y-1">
             <span className="block text-sm font-medium">Tipo</span>
             <Controller control={form.control} name="kind" render={({ field }) => (
               <ToggleGroup label="Tipo de pessoa" value={field.value} onChange={(v) => { setKindTouched(true); field.onChange(v) }} options={[{ value: 'PJ', label: 'Pessoa jurídica' }, { value: 'PF', label: 'Pessoa física' }]} />
             )} />
-          </div>
+          </FormGridItem>
           {existing ? (
-            <DocumentNotice existing={existing} wanted={form.watch('roles') as PartyRoleKind[]} kindLabel={kindLabel} busy={busy}
+            <FormGridItem><DocumentNotice existing={existing} wanted={form.watch('roles') as PartyRoleKind[]} kindLabel={kindLabel} busy={busy}
               onOpen={() => void open(existing.id)}
               onAddRoles={(roles) => void act(() => addRoles(existing.id, roles), roles.length > 1 ? 'Papéis adicionados' : 'Papel adicionado')}
-              onRestore={() => void act(() => restoreParty(existing.id), 'Cadastro restaurado')} />
+              onRestore={() => void act(() => restoreParty(existing.id), 'Cadastro restaurado')} /></FormGridItem>
           ) : null}
-          <Field label={kind === 'PF' ? 'Nome' : 'Razão social'} error={errors.legalName?.message} required>
+          <Field label={kind === 'PF' ? 'Nome' : 'Razão social'} size="xl" error={errors.legalName?.message} required>
             {(p) => <input {...p} {...text('legalName')} autoComplete="off" className={inputClass} />}
           </Field>
-          {kind === 'PJ' ? <Field label="Nome fantasia" error={errors.tradeName?.message}>{(p) => <input {...p} {...text('tradeName')} className={inputClass} />}</Field> : <div />}
+          {kind === 'PJ' ? <Field label="Nome fantasia" size="md" error={errors.tradeName?.message}>{(p) => <input {...p} {...text('tradeName')} className={inputClass} />}</Field> : null}
           <Field label="E-mail" error={errors.email?.message}>{(p) => <input {...p} type="email" {...text('email')} className={inputClass} />}</Field>
-          <Field label="Telefone" error={errors.phone?.message}>
+          <Field label="Telefone" size="sm" error={errors.phone?.message}>
             {(p) => <Controller control={form.control} name="phone" render={({ field }) => <PhoneInput {...p} value={field.value} onChange={field.onChange} />} />}
           </Field>
-          <div className="sm:col-span-2">
+          <FormGridItem>
             <Controller control={form.control} name="roles" render={({ field }) => (
               <ChipGroup legend="Papéis" required value={field.value} onChange={field.onChange} error={errors.roles?.message} options={ROLE_OPTIONS} />
             )} />
-          </div>
+          </FormGridItem>
         </FormSection>
 
-        <FormSection title="Endereço de cobrança" description="Opcional. Vira o endereço padrão; endereços de entrega e de obra entram na aba Endereços depois de salvar.">
-          <Field label="CEP" error={errors.zipCode?.message} hint={cep.message} hintLive>
+        <FormSection title="Endereço de cobrança" description="Opcional. Vira o endereço padrão; endereços de entrega e de obra entram na aba Endereços depois de salvar." grid="form">
+          {/* CEP 2 · Logradouro 8 · Nº 2 / Complemento 4 · Bairro 3 · Cidade 3 · UF 2 (span: as linhas fecham em 12) */}
+          <Field label="CEP" size="sm" span={{ lg: 2 }} error={errors.zipCode?.message} hint={cep.message} hintLive>
             {(p) => <Controller control={form.control} name="zipCode" render={({ field }) => <CepInput {...p} value={field.value} onChange={(v) => { field.onChange(v); void cep.onCep(v) }} />} />}
           </Field>
-          <Field label="Logradouro" error={errors.street?.message}>{(p) => <input {...p} {...text('street')} className={inputClass} />}</Field>
-          <Field label="Número" error={errors.number?.message}>{(p) => <input {...p} {...text('number')} className={inputClass} />}</Field>
-          <Field label="Complemento">{(p) => <input {...p} {...text('complement')} className={inputClass} />}</Field>
-          <Field label="Bairro" error={errors.district?.message}>{(p) => <input {...p} {...text('district')} className={inputClass} />}</Field>
-          <Field label="Cidade" error={errors.city?.message}>{(p) => <input {...p} {...text('city')} className={inputClass} />}</Field>
-          <Field label="UF" error={errors.state?.message}>
+          <Field label="Logradouro" size="xl" error={errors.street?.message}>{(p) => <input {...p} {...text('street')} className={inputClass} />}</Field>
+          <Field label="Número" size="xs" error={errors.number?.message}>{(p) => <input {...p} {...text('number')} className={inputClass} />}</Field>
+          <Field label="Complemento" size="md">{(p) => <input {...p} {...text('complement')} className={inputClass} />}</Field>
+          <Field label="Bairro" size="md" span={{ lg: 3 }} error={errors.district?.message}>{(p) => <input {...p} {...text('district')} className={inputClass} />}</Field>
+          <Field label="Cidade" size="md" span={{ lg: 3 }} error={errors.city?.message}>{(p) => <input {...p} {...text('city')} className={inputClass} />}</Field>
+          <Field label="UF" size="xs" error={errors.state?.message}>
             {(p) => (
               <select {...p} {...form.register('state')} className={inputClass}>
                 <option value="">Escolha</option>
@@ -181,16 +176,20 @@ export function NewPartyPage() {
           </Field>
         </FormSection>
 
-        <FormSection title="Contato principal" description="Opcional. Recebe a cobrança; outros contatos entram na aba Contatos.">
+        <FormSection title="Contato principal" description="Opcional. Recebe a cobrança; outros contatos entram na aba Contatos." grid="form">
           <Field label="Nome do contato" error={errors.contactName?.message}>{(p) => <input {...p} {...text('contactName')} className={inputClass} />}</Field>
           <Field label="E-mail" error={errors.contactEmail?.message}>{(p) => <input {...p} type="email" {...text('contactEmail')} className={inputClass} />}</Field>
-          <Field label="Telefone" error={errors.contactPhone?.message}>
+          <Field label="Telefone" size="sm" error={errors.contactPhone?.message}>
             {(p) => <Controller control={form.control} name="contactPhone" render={({ field }) => <PhoneInput {...p} value={field.value} onChange={field.onChange} />} />}
           </Field>
         </FormSection>
 
-        <div className="flex justify-end">{actions}</div>
+        <FormActions sticky dirty={form.formState.isDirty && !saved}>
+          <button type="button" onClick={() => window.history.back()} className="rounded-md border border-border px-3 py-2 text-center text-sm font-semibold">Voltar</button>
+          <button type="submit" disabled={form.formState.isSubmitting || busy} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">Salvar terceiro</button>
+        </FormActions>
       </form>
+      </FormLayout>
     </>
   )
 }

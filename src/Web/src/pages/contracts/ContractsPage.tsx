@@ -27,9 +27,7 @@ export function ContractsPage() {
   const goQuotes = <Link to={'/app/orcamentos' as never} search={{ situacao: 'enviado' } as never} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Ver orçamentos enviados</Link>
   return (
     <>
-      <PageHeading title="Comercial: Contratos">
-        <p className="mt-2 text-muted-foreground">Cada contrato nasce da aprovação de um orçamento, com a cópia congelada, o projeto e as parcelas a receber.</p>
-      </PageHeading>
+      <PageHeading title="Comercial: Contratos" description="Cada contrato nasce da aprovação de um orçamento, com a cópia congelada, o projeto e as parcelas a receber." />
       <DataTable label="Contratos" columns={columns} query={query} getRowId={(c) => c.id} searchPlaceholder="Buscar pelo número ou cliente"
         filters={[{ key: 'situacao', label: 'Situação', options: SITUATIONS }]}
         empty={{ title: 'Nenhum contrato ainda. Aprove um orçamento enviado para gerar o primeiro.', action: goQuotes }} />

@@ -448,11 +448,11 @@ const quoteCompareRoute = createRoute({ getParentRoute: () => appRoute, path: 'o
 const quoteRoute = createRoute({ getParentRoute: () => appRoute, path: 'orcamentos/$id', component: gated('quotes', QuotePage) })
 // Contratos e projetos (COM-04a): o menu "Contratos e projetos" abre a lista de contratos até a COM-05.
 const contractsRoute = createRoute({ getParentRoute: () => appRoute, path: 'contratos', component: gated('projects', ContractsPage) })
-const amendmentRoute = createRoute({ getParentRoute: () => appRoute, path: 'contratos/$id/aditivos/$aditivoId', component: gated('projects', AmendmentPage) })
+const amendmentRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'contratos/$id/aditivos/$aditivoId', component: gated('projects', AmendmentPage) })
 const contractRoute = createRoute({ getParentRoute: () => appRoute, path: 'contratos/$id', component: gated('projects', ContractPage) })
-const projectsRoute = createRoute({ getParentRoute: () => appRoute, path: 'projetos', component: gated('projects', ProjectsPage) })
+const projectsRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'projetos', component: gated('projects', ProjectsPage) })
 // Orçado × realizado (DSH-02): só com projects.view_cost (a tela confere; a API devolve 403).
-const projectMarginsRoute = createRoute({ getParentRoute: () => appRoute, path: 'projetos/margens', component: gated('projects', ProjectMarginsPage) })
+const projectMarginsRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'projetos/margens', component: gated('projects', ProjectMarginsPage) })
 const projectRoute = createRoute({ getParentRoute: () => appRoute, path: 'projetos/$id', component: gated('projects', ProjectPage) })
 // Extrato da conta (FIN-04).
 const statementRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/contas/$id/extrato', component: gated('finance', StatementPage) })
