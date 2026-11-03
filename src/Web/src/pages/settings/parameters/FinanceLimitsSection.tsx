@@ -45,7 +45,7 @@ function LimitsForm({ limits, canEdit }: { limits: FinanceLimits; canEdit: boole
   const field = (k: string) => error?.fields[k]?.[0]
   return (
     <FormSection title="Limites do financeiro" description="Acima destes valores, só quem aprova em Caixa e pagamentos confirma. Datas muito antigas pedem motivo e avisam o Proprietário.">
-      <fieldset disabled={!canEdit} className="space-y-3">
+      <fieldset disabled={!canEdit} className="space-y-3 sm:col-span-2">
         <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Desconto: % do saldo" error={field('discountApprovalPct')}>{(p) => <PercentInput {...p} value={pct} onChange={setPct} />}</Field>

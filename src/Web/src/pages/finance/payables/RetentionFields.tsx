@@ -8,7 +8,7 @@ import { PAYABLE_DICAS, type RetentionDraft, retentionSum } from './payables'
 export function RetentionFields({ value, onChange, amount, errors, disabled }: { value: RetentionDraft; onChange: (r: RetentionDraft) => void; amount: number; errors: Partial<Record<string, string>>; disabled?: boolean }) {
   const set = (patch: Partial<RetentionDraft>) => onChange({ ...value, ...patch })
   return (
-    <fieldset disabled={disabled} className="space-y-3">
+    <fieldset disabled={disabled} className="space-y-3 sm:col-span-2">
       <div className="grid gap-3 sm:grid-cols-4">
         <Field label="ISS" error={errors.retentionIss} dica={PAYABLE_DICAS.retencoes}>{(p) => <MoneyInput {...p} value={value.iss} onChange={(iss) => set({ iss })} />}</Field>
         <Field label="INSS" error={errors.retentionInss}>{(p) => <MoneyInput {...p} value={value.inss} onChange={(inss) => set({ inss })} />}</Field>

@@ -56,7 +56,7 @@ function SalaryForm({ position, current, chargesPct, onSaved }: { position: Posi
 
   return (
     <FormSection title="Faixa salarial" description="Dado protegido: só quem tem acesso aos dados sensíveis do RH vê.">
-      <fieldset disabled={!canEdit} className="space-y-3">
+      <fieldset disabled={!canEdit} className="space-y-3 sm:col-span-2">
         <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
         <div className="grid grid-cols-2 gap-3">
           <Field label="Salário mínimo" error={error?.fields.salaryMin?.[0]}>{(p) => <MoneyInput {...p} value={min} onChange={setMin} />}</Field>

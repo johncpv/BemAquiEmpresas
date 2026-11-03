@@ -112,17 +112,15 @@ function BillingForm({ view }: { view: BillingSettingsView }) {
       <fieldset disabled={!canEdit} className="space-y-4">
         <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
         <FormSection title="Multa e juros" description="Valem para todo boleto novo. Acima destes valores, só quem aprova no Financeiro emite.">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1">
-              <Field label="Multa" dica={BILLING_DICAS.multa} error={field('finePct')} hint="De 0,00% a 2,00%.">{(p) => <PercentInput {...p} value={fine} onChange={setFine} />}</Field>
-              {chip(review(FINE_KEY), 'Multa')}
-              {history(review(FINE_KEY))}
-            </div>
-            <div className="space-y-1">
-              <Field label="Juros de mora (ao mês)" dica={BILLING_DICAS.juros} error={field('interestMonthPct')} hint="De 0,00% a 1,00% ao mês.">{(p) => <PercentInput {...p} value={interest} onChange={setInterest} />}</Field>
-              {chip(review(INTEREST_KEY), 'Juros de mora')}
-              {history(review(INTEREST_KEY))}
-            </div>
+          <div className="space-y-1">
+            <Field label="Multa" dica={BILLING_DICAS.multa} error={field('finePct')} hint="De 0,00% a 2,00%.">{(p) => <PercentInput {...p} value={fine} onChange={setFine} />}</Field>
+            {chip(review(FINE_KEY), 'Multa')}
+            {history(review(FINE_KEY))}
+          </div>
+          <div className="space-y-1">
+            <Field label="Juros de mora (ao mês)" dica={BILLING_DICAS.juros} error={field('interestMonthPct')} hint="De 0,00% a 1,00% ao mês.">{(p) => <PercentInput {...p} value={interest} onChange={setInterest} />}</Field>
+            {chip(review(INTEREST_KEY), 'Juros de mora')}
+            {history(review(INTEREST_KEY))}
           </div>
         </FormSection>
         <FormSection title="Desconto" description="Desconto sugerido no boleto, até o vencimento. O limite de desconto sem aprovação fica em Parâmetros.">

@@ -1,5 +1,6 @@
 import { keepPreviousData, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
+import { Maximize2, Minimize2 } from 'lucide-react'
 import { type KeyboardEvent, useRef } from 'react'
 import { getGetProductionBoardQueryKey, getListFabricationOrdersQueryKey, useGetProductionBoard } from '@/api/generated/bemaqui'
 import type { BoardCard as Card, BoardColumn, ProductionBoard } from '@/api/generated/model'
@@ -8,7 +9,6 @@ import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StageIndicator } from '@/components/ui/stage-indicator'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
-import { useScrollStrip } from '@/hooks/useScrollStrip'
 import { cn } from '@/lib/utils'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
@@ -16,6 +16,7 @@ import { FABRICATION_STATUS } from '../orders/fabrication'
 import { ForecastsContext, useOrderForecasts } from '../planning/use-forecasts'
 import { BoardCard } from './BoardCard'
 import { boardParams, hasFilters, hoursText, KANBAN_DICAS, KANBAN_FILTERS, promisedText, stripe } from './kanban'
+import { useBoardFullscreen } from './useBoardFullscreen'
 import { FALLBACK_POLL_MS, useBoardLive } from './useBoardLive'
 
 const button = 'rounded-md border border-border px-3 py-2 text-sm font-semibold'
@@ -25,7 +26,8 @@ const select = 'rounded-md border border-input bg-card px-2 py-2 text-sm'
 /**
  * Fábrica → Produção → Kanban (PRD-02): uma coluna por código de etapa (a letra do roteiro, D10), cartões na etapa atual,
  * contadores de atraso e risco que filtram, filtros na URL, tempo real pelo ProductionHub e a alternativa em lista. Sem arraste:
- * a etapa anda pelo apontamento (PRD-03a) ou por "Concluir etapa" no menu do cartão (production.approve).
+ * a etapa anda pelo apontamento (PRD-03a) ou por "Concluir etapa" no menu do cartão (production.approve). "Tela cheia" põe o quadro
+ * sobre a barra do topo, o dock e os filtros, com a largura e a altura inteiras para as colunas (o tempo real continua).
  */
 export function KanbanPage() {
   const filters = useTableFilters([...KANBAN_FILTERS])
@@ -45,13 +47,15 @@ export function KanbanPage() {
   const board = query.data
   // PLN-01a CA 16: "Fim previsto" de cada cartão, lido do plano em uma leitura por lote de cartões.
   const forecasts = useOrderForecasts(board?.cards.map((c) => c.id) ?? [])
+  const { full, toggle } = useBoardFullscreen()
+  const liveChip = <StatusChip tone={live === 'live' ? 'ok' : 'neutral'}>{live === 'live' ? 'Ao vivo' : live === 'offline' ? 'Offline' : 'Conectando'}</StatusChip>
 
   return (
     <>
       <PageHeading title="Produção: Kanban">
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <p className="text-muted-foreground">A etapa anda pelo apontamento ou por "Concluir etapa" no menu do cartão. O quadro não arrasta.</p>
-          <StatusChip tone={live === 'live' ? 'ok' : 'neutral'}>{live === 'live' ? 'Ao vivo' : live === 'offline' ? 'Offline' : 'Conectando'}</StatusChip>
+          {liveChip}
         </div>
       </PageHeading>
       {live === 'offline' ? <p role="status" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">Atualização ao vivo pausada. Tentando reconectar…</p> : null}
@@ -62,15 +66,34 @@ export function KanbanPage() {
           action={<Link to={'/app/producao/os' as never} className={primary}>Ver OS de fabricação</Link>} />
       ) : board ? (
         <>
-          <Toolbar board={board} filters={filters} setFilter={setFilter} clear={clear} asList={asList} />
-          {board.cards.length === 0 ? (
-            <EmptyState title="Nenhuma OS com estes filtros." description="Mude ou limpe os filtros para ver as outras OS abertas."
-              action={<button type="button" className={button} onClick={clear}>Limpar filtros</button>} />
-          ) : asList ? <BoardList board={board} /> : (
-            <ForecastsContext.Provider value={forecasts}>
-              <Columns board={board} selected={filters.coluna} onSelect={(key) => setFilter('coluna', key)} canApprove={canApprove} onChanged={refresh} />
-            </ForecastsContext.Provider>
-          )}
+          {full ? null : <Toolbar board={board} filters={filters} setFilter={setFilter} clear={clear} asList={asList} />}
+          {/* O mesmo elemento nos dois modos: o foco fica no botão ao entrar e ao sair da tela cheia. */}
+          <div data-testid="quadro" data-tela-cheia={full || undefined}
+            className={cn(full && 'fixed inset-0 z-30 flex flex-col overflow-hidden bg-background p-3 text-foreground sm:p-4')}>
+            <div className={cn('flex items-center gap-2', full ? 'mb-3' : 'mb-2 justify-end')}>
+              {full ? (
+                <>
+                  <p className="font-display text-lg font-bold">Produção: Kanban</p>
+                  {liveChip}
+                  <p className="text-sm text-muted-foreground tabular-nums max-sm:hidden">
+                    {board.lateCount} {board.lateCount === 1 ? 'atrasada' : 'atrasadas'}, {board.atRiskCount} em risco
+                  </p>
+                </>
+              ) : null}
+              <button type="button" aria-pressed={full} onClick={toggle} className={cn(button, 'inline-flex items-center gap-1.5', full && 'ml-auto')}>
+                {full ? <Minimize2 aria-hidden="true" className="size-4" /> : <Maximize2 aria-hidden="true" className="size-4" />}
+                {full ? 'Sair da tela cheia' : 'Tela cheia'}
+              </button>
+            </div>
+            {board.cards.length === 0 ? (
+              <EmptyState title="Nenhuma OS com estes filtros." description="Mude ou limpe os filtros para ver as outras OS abertas."
+                action={<button type="button" className={button} onClick={clear}>Limpar filtros</button>} />
+            ) : asList ? <div className={cn(full && 'min-h-0 flex-1 overflow-auto')}><BoardList board={board} /></div> : (
+              <ForecastsContext.Provider value={forecasts}>
+                <Columns board={board} selected={filters.coluna} onSelect={(key) => setFilter('coluna', key)} canApprove={canApprove} onChanged={refresh} full={full} />
+              </ForecastsContext.Provider>
+            )}
+          </div>
         </>
       ) : null}
     </>
@@ -131,13 +154,13 @@ function ColumnBadge({ column }: { column: BoardColumn }) {
 
 /**
  * Colunas (CA 1 e 5): cada coluna é uma lista; setas para cima e para baixo andam entre os cartões da coluna, para os lados
- * entre colunas. A 400 px, uma coluna por vez com o seletor de etapa (abas com rolagem horizontal).
+ * entre colunas. A 400 px, uma coluna por vez com o seletor de etapa (abas que quebram linha, nenhuma escondida). Em tela
+ * cheia as colunas dividem a largura inteira (rolagem lateral só se não couberem) e cada uma rola na própria altura.
  */
-function Columns({ board, selected, onSelect, canApprove, onChanged }: {
-  board: ProductionBoard; selected: string | undefined; onSelect: (key: string) => void; canApprove: boolean; onChanged: () => Promise<void>
+function Columns({ board, selected, onSelect, canApprove, onChanged, full = false }: {
+  board: ProductionBoard; selected: string | undefined; onSelect: (key: string) => void; canApprove: boolean; onChanged: () => Promise<void>; full?: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const stageStrip = useScrollStrip<HTMLDivElement>()
   const current = board.columns.find((c) => c.key === selected && c.count > 0)?.key ?? board.columns.find((c) => c.count > 0)?.key ?? board.columns[0]?.key
   const byColumn = (key: string) => board.cards.filter((c) => c.columnKey === key)
   const move = (event: KeyboardEvent) => {
@@ -164,19 +187,19 @@ function Columns({ board, selected, onSelect, canApprove, onChanged }: {
     }
   }
   return (
-    <div ref={ref} onKeyDown={move}>
-      <div ref={stageStrip} role="tablist" aria-label="Etapa" className="scrollbar-none fade-x mb-3 flex gap-1 overflow-x-auto border-b border-border sm:hidden">
+    <div ref={ref} onKeyDown={move} className={cn(full && 'flex min-h-0 flex-1 flex-col')}>
+      <div role="tablist" aria-label="Etapa" className="mb-3 flex flex-wrap gap-x-1 border-b border-border sm:hidden">
         {board.columns.map((c) => (
           <button key={c.key} type="button" role="tab" aria-selected={c.key === current} onClick={() => onSelect(c.key)}
-            className="-mb-px flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent px-2 py-2 text-sm font-semibold text-muted-foreground aria-selected:border-primary aria-selected:text-foreground">
+            className="-mb-px flex items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent px-2 py-2 text-sm font-semibold text-muted-foreground aria-selected:border-primary aria-selected:text-foreground">
             <ColumnBadge column={c} />{c.name}<span className="tabular-nums">({c.count})</span>
           </button>
         ))}
       </div>
-      <div className="flex gap-3 overflow-x-auto pb-2">
+      <div className={cn('flex gap-3 overflow-x-auto pb-2', full && 'min-h-0 flex-1')}>
         {board.columns.map((c, i) => (
           <section key={c.key} data-column="" data-selected={c.key === current} aria-labelledby={`col-${c.key}`}
-            className={cn('flex w-full shrink-0 flex-col rounded-md bg-muted/50 p-2 sm:w-72', c.key !== current && 'max-sm:hidden')}>
+            className={cn('flex w-full shrink-0 flex-col rounded-md bg-muted/50 p-2', full ? 'min-h-0 overflow-y-auto sm:w-auto sm:min-w-72 sm:flex-1' : 'sm:w-72', c.key !== current && 'max-sm:hidden')}>
             <header className="mb-2 flex items-start gap-2 px-1">
               <ColumnBadge column={c} />
               <div className="min-w-0">

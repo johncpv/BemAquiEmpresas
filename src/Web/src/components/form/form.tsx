@@ -89,7 +89,8 @@ export function FormError({ message }: { message?: string }) {
 /**
  * Grupo de campos com legenda (molde "cadastro em seções", FND-09d CA 2).
  * `grid`: `legacy` (padrão, até migrar a tela) mantém a grade antiga de 2 colunas; `form` usa a FormGrid de 12 trilhas
- * (cada Field com o seu `size`); `none` deixa o conteúdo sem grade (ex.: uma textarea ou o logo).
+ * (cada Field com o seu `size`); `none` deixa o conteúdo sem grade (ex.: uma textarea ou o logo). Na `legacy`, bloco com
+ * grade própria ocupa a linha inteira (sm:col-span-2): nunca grade de 2 colunas dentro de uma célula (campo com 1/4 da largura).
  */
 export function FormSection({ title, description, grid = 'legacy', children }: { title: string; description?: string; grid?: 'legacy' | 'form' | 'none'; children: ReactNode }) {
   const legacy = grid === 'legacy'
