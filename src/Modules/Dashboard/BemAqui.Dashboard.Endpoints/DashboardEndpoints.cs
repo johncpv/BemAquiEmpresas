@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Dashboard.Application;
 using Microsoft.AspNetCore.Builder;
@@ -29,6 +30,14 @@ internal static class DashboardEndpoints
                 return Results.NoContent();
             })
             .RequireRateLimiting(DashboardRefreshPolicy.Name).WithName("RefreshDashboard").Produces(StatusCodes.Status204NoContent).ProducesProblem(StatusCodes.Status429TooManyRequests);
+        // EXP-05 CA 10: fotografia do painel em PDF, só com os cards que o usuário vê (o mesmo critério da tela).
+        dashboard.MapGet("/pdf", async (HttpContext http, OwnerDashboardPdfService service, CancellationToken ct) =>
+            {
+                var (content, fileName) = await service.PdfAsync(ct);
+                AttachmentEndpoints.ApplyDownloadHeaders(http.Response);
+                return Results.File(content, "application/pdf", fileName);
+            })
+            .WithName("DownloadOwnerDashboardPdf").Produces(StatusCodes.Status200OK, contentType: "application/pdf");
 
         var cards = dashboard.MapGroup("/cards");
         cards.MapGet("/balances", async (DashboardService service, CancellationToken ct) => Results.Ok(await service.BalancesAsync(ct)))

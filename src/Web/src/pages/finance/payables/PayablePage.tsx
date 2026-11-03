@@ -1,13 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { cancelPayable, getGetPayableQueryKey, useGetFinanceLimits, useGetPayable } from '@/api/generated/bemaqui'
+import { cancelPayable, getDownloadPayablePdfUrl, getGetPayableQueryKey, useGetFinanceLimits, useGetPayable } from '@/api/generated/bemaqui'
 import type { PayableDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { Field } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { DialogMessage } from '@/components/ui/dialog-message'
 import { Money } from '@/components/ui/money'
 import { NextSteps } from '@/components/ui/next-steps'
@@ -66,7 +67,11 @@ export function PayablePage() {
             <Link to="/app/financeiro/pagar" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
           </>
         }
-        actions={canEdit && !closed && !inOrder && editable ? (
+        actions={(
+          <>
+            {/* EXP-05 CA 7: ficha do título (retenções, baixas, saldo e ordem de pagamento), com finance.view. */}
+            <DocumentActions url={getDownloadPayablePdfUrl(p.id)} fileName={`${p.number}.pdf`} />
+            {canEdit && !closed && !inOrder && editable ? (
             <ConfirmDialog size="lg" destructive verb="Cancelar título" done="Título cancelado" title={`Cancelar o título ${p.number}?`} description="Ele sai dos totais em aberto e continua consultável. O Proprietário é avisado."
               onOpen={() => setReason('')} onReload={() => query.refetch()}
               preconditions={[{ ok: !overLimit || canApprove, text: 'Valor acima do limite de cancelamento: só quem aprova em Caixa e pagamentos pode cancelar.' }]}
@@ -75,7 +80,9 @@ export function PayablePage() {
               trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold text-crit-ink">Cancelar título</button>}>
               <Field label="Motivo" required hint="Até 200 caracteres. Fica no histórico.">{(f) => <input {...f} value={reason} maxLength={200} onChange={(e) => setReason(e.target.value)} className={inputClass} />}</Field>
             </ConfirmDialog>
-          ) : undefined} />
+            ) : null}
+          </>
+        )} />
       {steps && canCreate ? <div className="mb-4"><NextSteps onDismiss={() => setSteps(false)} steps={[{ label: 'Novo título para este fornecedor', onSelect: () => void navigate({ to: '/app/financeiro/pagar/novo' }) }]} /></div> : null}
       {inOrder ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">Este título está numa ordem de pagamento. Para mudar valor ou dados de pagamento, retire-o da ordem.</p> : null}
       {closed ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">{p.status === 'Paid' ? 'Título pago.' : `Título cancelado: ${p.cancelReason ?? ''}`}</p> : null}

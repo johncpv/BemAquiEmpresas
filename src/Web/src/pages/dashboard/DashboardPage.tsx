@@ -2,10 +2,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
-import { refreshDashboard, useGetDashboardOverview } from '@/api/generated/bemaqui'
+import { getDownloadOwnerDashboardPdfUrl, refreshDashboard, useGetDashboardOverview } from '@/api/generated/bemaqui'
 import type { AttentionAlert } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
+import { Dica } from '@/help/Dica'
 import { cn } from '@/lib/utils'
 import { PageHeading } from '@/shell/PageHeading'
 import { BalancesKpi, CashForecastPanel, CommercialPanel, DecisionsPanel, OverdueKpi, RevenueKpi } from './cards'
@@ -15,6 +17,7 @@ import { ActiveProjectsPanel, BacklogPanel, DeliveriesPanel, MarginKpi, Producti
 const TITLE = 'Painel do proprietário'
 export const NO_CARDS_MESSAGE = 'Você ainda não tem acesso aos indicadores. Fale com o administrador.'
 export const REFRESH_LIMITED = 'Aguarde alguns segundos para atualizar de novo.'
+export const SNAPSHOT_DICA = 'O PDF é a fotografia do painel na hora em que você baixa: os mesmos números dos cards que você vê, em tabelas. Os números mudam com novos lançamentos.'
 
 /** Cada card na posição do desktop e com a ordem do celular (400 px). */
 const LAYOUT: Record<string, { Card: (p: { className?: string }) => ReactNode; span: string }> = {
@@ -67,11 +70,18 @@ export function DashboardPage() {
         </PageHeading>
         {data && data.cards.length > 0 ? (
           <div className="flex flex-col items-end gap-1">
-            <button type="button" onClick={() => void refresh()} disabled={refreshing}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold disabled:opacity-60">
-              <RefreshCw aria-hidden="true" className={cn('size-4', refreshing && 'animate-spin')} />
-              {refreshing ? 'Atualizando…' : 'Atualizar'}
-            </button>
+            <div className="flex flex-wrap items-start justify-end gap-2">
+              {/* EXP-05 CA 10: fotografia do painel (só os cards que você vê), com tabelas no lugar dos gráficos. */}
+              <span className="inline-flex items-start">
+                <DocumentActions url={getDownloadOwnerDashboardPdfUrl()} fileName={`painel-${data.today}.pdf`} />
+                <Dica nome="Fotografia do painel" texto={SNAPSHOT_DICA} />
+              </span>
+              <button type="button" onClick={() => void refresh()} disabled={refreshing}
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold disabled:opacity-60">
+                <RefreshCw aria-hidden="true" className={cn('size-4', refreshing && 'animate-spin')} />
+                {refreshing ? 'Atualizando…' : 'Atualizar'}
+              </button>
+            </div>
             <p role="status" className="text-xs text-warn-ink">{notice}</p>
           </div>
         ) : null}

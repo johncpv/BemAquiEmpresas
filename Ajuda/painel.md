@@ -27,6 +27,11 @@ Ver a empresa em um minuto: quanto há em caixa, como ele fica nas próximas sem
 - **"Como calculamos":** o **?** ao lado do nome de cada card explica a regra do número.
 - **"Atualizado às":** cada card mostra a hora em que o número foi calculado.
 
+## Imprimir e exportar
+- **Baixar PDF**, ao lado de **Atualizar**, baixa a **fotografia do painel** (os números de agora, do jeito que você vê); **Imprimir** abre o mesmo PDF numa aba nova.
+- Saem só os cards que você vê na tela (saldo em contas, caixa projetado, faturamento do mês e do ano, a receber vencido, margem, decisões, projetos, produção, carteira, entregas e comercial), com os mesmos números, em tabelas no lugar dos gráficos. Um card que o seu acesso não mostra também não sai no PDF.
+- O PDF traz a nota "Fotografia de {data e hora}: os números mudam com novos lançamentos." Cada download fica na auditoria.
+
 ## Perguntas frequentes
 **Por que não vejo algum card?** Cada card só aparece para quem tem acesso ao módulo de onde vem o número: Caixa e pagamentos para os cards de dinheiro, Orçamentos para o Comercial, Contratos e projetos para projetos, carteira e entregas (e o custo dos projetos para a margem) e Produção para a fábrica. Sem nenhum, o painel mostra "Você ainda não tem acesso aos indicadores. Fale com o administrador."
 

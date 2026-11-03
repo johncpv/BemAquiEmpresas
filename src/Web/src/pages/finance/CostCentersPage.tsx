@@ -1,8 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { getListCostCentersQueryKey, useListCostCenters } from '@/api/generated/bemaqui'
+import { getExportCostCentersUrl, getListCostCentersQueryKey, useListCostCenters } from '@/api/generated/bemaqui'
 import type { CostCenterDetail } from '@/api/generated/model'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { TreeTable } from '@/components/ui/tree-table'
@@ -25,10 +26,15 @@ export function CostCentersPage() {
   return (
     <>
       <PageHeading title="Financeiro: Centros de custo" description="As áreas da empresa, para ver quanto cada uma custa." actions={newRoot} />
-      <label className="mb-3 flex items-center justify-end gap-2 text-sm">
-        <input type="checkbox" className="size-4" checked={showInactive} onChange={(e) => void navigate({ to: '.', search: (p: Record<string, unknown>) => ({ ...p, inativos: e.target.checked ? 'true' : undefined }) } as never)} />
-        Mostrar inativos
-      </label>
+      <div className="mb-3 flex flex-wrap items-center justify-end gap-3 text-sm">
+        <label className="flex items-center gap-2">
+          <input type="checkbox" className="size-4" checked={showInactive} onChange={(e) => void navigate({ to: '.', search: (p: Record<string, unknown>) => ({ ...p, inativos: e.target.checked ? 'true' : undefined }) } as never)} />
+          Mostrar inativos
+        </label>
+        {/* EXP-05 CA 18: os centros em Excel, com o código e o recuo por nível. */}
+        <ExportMenu formats={['xlsx']} fileBase="centros-de-custo" empty={!query.data || query.data.length === 0}
+          url={(format) => getExportCostCentersUrl({ format, inactive: showInactive || undefined })} />
+      </div>
       {query.isPending ? <Skeleton className="h-64" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : query.data.length === 0 ? (
         <EmptyState title="Cadastre os centros de custo da empresa." description="Por exemplo: Administrativo, Comercial, Produção e Instalação." action={newRoot} />
       ) : (

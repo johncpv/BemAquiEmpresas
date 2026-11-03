@@ -48,6 +48,7 @@ internal static partial class FinanceEndpoints
         MapBankStatementLines(finance);
         MapReconciliation(finance);
         MapExports(finance);
+        MapTitleDocuments(finance);
         MapPaymentReviews(finance.MapGroup("/billing-slips"));
         // Metas de faturamento (DSH-01a CA 9): leitura com finance.view; gravação também com settings.edit (Configurações → Parâmetros).
         finance.MapGet("/revenue-targets/{year:int}", async (int year, RevenueTargetService service, CancellationToken ct) => (await service.GetAsync(year, ct)).ToHttpResult())

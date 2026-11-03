@@ -1,10 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { getGetReceivableQueryKey, getListReceivableSettlementsQueryKey, useGetReceivable } from '@/api/generated/bemaqui'
+import { getDownloadReceivablePdfUrl, getGetReceivableQueryKey, getListReceivableSettlementsQueryKey, useGetReceivable } from '@/api/generated/bemaqui'
 import type { ReceivableDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { RecordHistory } from '@/components/history/RecordHistory'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { Money } from '@/components/ui/money'
 import { NextSteps } from '@/components/ui/next-steps'
 import { ErrorState, Skeleton } from '@/components/ui/states'
@@ -84,15 +85,17 @@ export function ReceivablePage() {
             <Link to="/app/financeiro/receber" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
           </>
         }
-        actions={canEdit ? (
+        actions={(
             <>
+              {/* EXP-05 CA 7: ficha do título (dados, baixas, saldo e boleto), com finance.view. */}
+              <DocumentActions url={getDownloadReceivablePdfUrl(r.id)} fileName={`${r.number}.pdf`} />
               {canIssue ? <button type="button" onClick={issue} className={button}>Emitir boleto</button> : null}
-              {open ? <button type="button" onClick={() => setDialog('settle')} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Dar baixa</button> : null}
-              {open ? <button type="button" onClick={() => setDialog('writeoff')} className={button}>Quitar o saldo com desconto</button> : null}
-              {r.status === 'Open' ? <button type="button" onClick={() => setDialog('due')} className={button}>Alterar vencimento</button> : null}
-              {r.status !== 'Cancelled' ? <button type="button" onClick={() => setDialog('cancel')} className={button + ' text-crit-ink'}>Cancelar título</button> : null}
+              {canEdit && open ? <button type="button" onClick={() => setDialog('settle')} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Dar baixa</button> : null}
+              {canEdit && open ? <button type="button" onClick={() => setDialog('writeoff')} className={button}>Quitar o saldo com desconto</button> : null}
+              {canEdit && r.status === 'Open' ? <button type="button" onClick={() => setDialog('due')} className={button}>Alterar vencimento</button> : null}
+              {canEdit && r.status !== 'Cancelled' ? <button type="button" onClick={() => setDialog('cancel')} className={button + ' text-crit-ink'}>Cancelar título</button> : null}
             </>
-          ) : undefined} />
+          )} />
       {shown.length > 0 ? <div className="mb-4"><NextSteps onDismiss={() => setSteps(null)} steps={shown} /></div> : null}
       {r.status === 'Paid' || r.status === 'Cancelled' ? (
         <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">
