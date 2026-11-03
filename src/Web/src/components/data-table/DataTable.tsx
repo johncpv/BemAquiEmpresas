@@ -60,6 +60,8 @@ interface DataTableProps<T> {
   totals?: Record<string, ReactNode>
   /** Linha expansível por teclado (aria-expanded), com o conteúdo abaixo dela. */
   expandable?: { render: (row: T) => ReactNode; label: (row: T) => string }
+  /** Ações da lista à direita da busca (ex.: <ExportMenu>, EXP-01): recebem os mesmos filtros da tela. */
+  toolbar?: ReactNode
   /** Classe extra da linha (ex.: faixa lateral vermelha do vencido, padrão 6 da Fase 2). */
   rowClassName?: (row: T) => string | undefined
 }
@@ -78,7 +80,7 @@ const cellClass = (secondary?: boolean, numeric?: boolean) =>
  * Tabela padrão (FND-09c CA 4 a 7): paginação, ordenação e busca no servidor, refletidas na URL; estados de carregando,
  * vazio, vazio por filtro e erro; colunas secundárias somem a 400px.
  */
-export function DataTable<T>({ columns, query, empty, filteredEmpty, label, searchPlaceholder = 'Buscar', getRowId, filters = [], inactiveFilter, rowHref, searchable = true, selectable, totals, expandable, rowClassName }: DataTableProps<T>) {
+export function DataTable<T>({ columns, query, empty, filteredEmpty, label, searchPlaceholder = 'Buscar', getRowId, filters = [], inactiveFilter, rowHref, searchable = true, selectable, totals, expandable, rowClassName, toolbar }: DataTableProps<T>) {
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
   const [search, setSearch] = useTableSearch()
   const navigate = useNavigate()
@@ -216,10 +218,15 @@ export function DataTable<T>({ columns, query, empty, filteredEmpty, label, sear
 
   return (
     <div className="rounded-md border border-border bg-card">
-      {searchable ? (
+      {searchable || toolbar ? (
         <div className="flex items-center gap-2 border-b border-border p-2">
-          <Search aria-hidden="true" className="ml-1 size-4 text-muted-foreground" />
-          <input type="search" value={text} onChange={(e) => setText(e.target.value)} placeholder={searchPlaceholder} aria-label={searchPlaceholder} className="w-full bg-transparent py-1 text-sm outline-none" />
+          {searchable ? (
+            <>
+              <Search aria-hidden="true" className="ml-1 size-4 text-muted-foreground" />
+              <input type="search" value={text} onChange={(e) => setText(e.target.value)} placeholder={searchPlaceholder} aria-label={searchPlaceholder} className="w-full bg-transparent py-1 text-sm outline-none" />
+            </>
+          ) : <span className="flex-1" />}
+          {toolbar ? <div role="toolbar" aria-label={`Ações de ${label}`} className="flex shrink-0 items-start gap-2">{toolbar}</div> : null}
         </div>
       ) : null}
       {filters.length > 0 || inactiveFilter ? (
