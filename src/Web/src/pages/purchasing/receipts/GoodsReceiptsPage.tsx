@@ -1,9 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListGoodsReceipts, useListPurchaseOrders } from '@/api/generated/bemaqui'
+import { getExportGoodsReceiptsToReceiveUrl, getExportGoodsReceiptsUrl, useListGoodsReceipts, useListPurchaseOrders } from '@/api/generated/bemaqui'
 import type { GoodsReceiptStatus, GoodsReceiptSummary, PurchaseOrderSummary } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { Money } from '@/components/ui/money'
 import { StatusChip } from '@/components/ui/status-chip'
 import { UrlTabs } from '@/components/ui/url-tabs'
@@ -41,6 +42,7 @@ function ToReceive() {
     <div className="mt-3">
       <DataTable label="Pedidos a receber" columns={columns} query={list} getRowId={(o) => o.id} searchPlaceholder="Buscar pelo número do pedido (PC-…)"
         rowClassName={(o) => (lateLabel(o.daysLate) ? 'border-l-4 border-l-crit' : undefined)}
+        toolbar={<ExportMenu formats={['xlsx']} fileBase="pedidos-a-receber" empty={list.data?.total === 0} url={(format) => getExportGoodsReceiptsToReceiveUrl({ q: search.q, format })} />}
         expandable={{ label: (o) => `detalhes de ${o.number}`, render: (o) => <p className="text-sm">{o.itemSummary} · {orderDestination(o.projectNumber, o.projectName)} · total <Money value={o.total} /></p> }}
         empty={{ title: 'Nenhum pedido a receber. Os pedidos aprovados aparecem aqui.', action: <Link to={'/app/compras/pedidos' as never} search={{ filtro: 'abertos' } as never} className={secondary}>Ver pedidos</Link> }} />
     </div>
@@ -65,6 +67,8 @@ function Received() {
     <div className="mt-3">
       <DataTable label="Recebimentos registrados" columns={columns} query={list} getRowId={(r) => r.id} searchPlaceholder="Buscar pelo número (REC-… ou PC-…)"
         filters={[{ key: 'situacao', label: 'Situação', options: STATUS_OPTIONS }]}
+        toolbar={<ExportMenu formats={['xlsx']} fileBase="recebimentos" empty={list.data?.total === 0}
+          url={(format) => getExportGoodsReceiptsUrl({ status: (situacao || undefined) as GoodsReceiptStatus | undefined, q: search.q, format })} />}
         expandable={{ label: (r) => `detalhes de ${r.number}`, render: (r) => <p className="text-sm">{r.itemSummary} · pedido {r.purchaseOrderNumber} · {formatDate(r.receivedOn)}</p> }}
         empty={{ title: 'Nenhum recebimento.', action: <Link to={'/app/compras/recebimentos' as never} className={secondary}>Ver pedidos a receber</Link> }} />
     </div>

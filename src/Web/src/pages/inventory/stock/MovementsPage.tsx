@@ -1,9 +1,10 @@
 import { Link, useNavigate } from '@tanstack/react-router'
-import { useListLocations, useListStockMovements } from '@/api/generated/bemaqui'
+import { getExportStockMovementsUrl, useListLocations, useListStockMovements } from '@/api/generated/bemaqui'
 import type { StockMovementType } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
 import { DateInput } from '@/components/form/inputs'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { PageHeading } from '@/shell/PageHeading'
 import { movementColumns } from './movement-columns'
 import { formatUnitCost, MOVEMENT_TYPE_OPTIONS } from './stock'
@@ -16,10 +17,11 @@ export function MovementsPage() {
   const setPeriod = (key: 'de' | 'ate', value: string) =>
     void navigate({ to: '.', replace: true, search: (prev: Record<string, unknown>) => ({ ...prev, [key]: value || undefined, page: undefined }) } as never)
   const locations = useListLocations({ pageSize: 100 })
-  const query = useListStockMovements({
+  const filters = {
     number: search.q, itemId: item || undefined, locationId: local || undefined, type: (tipo || undefined) as StockMovementType | undefined, from: de || undefined, to: ate || undefined,
-    origin: origem || undefined, projectId: projeto || undefined, productionOrderId: os || undefined, page: search.page, pageSize: search.pageSize,
-  })
+    origin: origem || undefined, projectId: projeto || undefined, productionOrderId: os || undefined,
+  }
+  const query = useListStockMovements({ ...filters, page: search.page, pageSize: search.pageSize })
   return (
     <>
       <PageHeading title="Estoque: Movimentos" description="Toda entrada, saída e transferência, na ordem em que foi lançada. Movimento não é apagado: é estornado." />
@@ -29,6 +31,7 @@ export function MovementsPage() {
         {de || ate ? <button type="button" onClick={() => { setPeriod('de', ''); setPeriod('ate', '') }} className="pb-2 font-semibold text-primary">Limpar período</button> : null}
       </div>
       <DataTable label="Movimentos de estoque" columns={movementColumns()} query={query} getRowId={(m) => m.id} searchPlaceholder="Número do movimento ou do documento"
+        toolbar={<ExportMenu fileBase="movimentos-de-estoque" empty={query.data?.total === 0} url={(format) => getExportStockMovementsUrl({ ...filters, format })} />}
         filters={[
           { key: 'local', label: 'Local', options: (locations.data?.items ?? []).map((l) => ({ value: l.id, label: `${l.code} — ${l.name}` })) },
           { key: 'tipo', label: 'Tipo', options: MOVEMENT_TYPE_OPTIONS },

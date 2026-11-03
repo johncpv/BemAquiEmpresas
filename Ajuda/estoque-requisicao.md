@@ -18,6 +18,14 @@ Ver uma requisição de material, uma devolução ou uma perda da OS: o que foi 
 - Em **Linhas**, cada linha mostra o item, o lote, o local, a quantidade, o excedente com o motivo, o movimento (MOV) e o valor.
 - **Histórico de alterações** mostra quem pediu, quem confirmou, quem decidiu e quando.
 
+## Imprimir e exportar
+- **Baixar PDF** e **Imprimir**, no cabeçalho, geram a **folha de separação**: número, OS e etapa, projeto, quem pediu e quando, e os itens com código, descrição, quantidade, unidade, local, lote e se veio da reserva ("Reservado") ou é material extra ("Extra").
+- A coluna **Separado** e as assinaturas **Separado por** e **Recebido por** vêm em branco, para preencher à mão.
+- A folha **nunca** traz custo nem valor, para ninguém.
+- Aguardando aprovação, sai com a faixa "Aguardando aprovação: não separe.". Recusada ou estornada, sai com a marca **Cancelado** e o motivo. Pedida e baixada saem sem marca.
+- No pedido do operador, o próximo passo é **Imprimir a folha de separação**.
+- Todo download fica registrado na auditoria (quem e quando). Documento com mais de 300 linhas não sai em PDF: o sistema avisa antes de gerar.
+
 ## Perguntas frequentes
 **Por que não consigo estornar?** A requisição tem devolução ou perda (estorne a devolução antes), ou o estorno passa do limite do autor e precisa de outra pessoa com a ação **Aprovar** no Estoque. O motivo aparece acima dos fatos.
 

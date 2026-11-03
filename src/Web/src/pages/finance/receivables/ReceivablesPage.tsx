@@ -16,6 +16,7 @@ import { PageHeading } from '@/shell/PageHeading'
 import { Dica } from '@/help/Dica'
 import { useCan } from '@/pages/use-can'
 import { BatchBillingDialog } from './BatchBillingDialog'
+import { BillingSlipShortcut } from './billing-slip-download'
 import { slipStatus } from './billing-slips'
 import { DeadLetterBanner } from './DeadLetterBanner'
 import { REVIEW_DICAS, REVIEW_FILTER } from './payment-review'
@@ -72,6 +73,7 @@ export function ReceivablesPage() {
       const wait = awaits(r)
       return <span className="flex flex-col items-start gap-0.5"><StatusChip tone={s.tone}>{s.label}</StatusChip>{wait ? <span className="text-xs text-muted-foreground">{wait}</span> : null}</span>
     } },
+    { id: 'slip', header: 'Boleto', meta: { secondary: true }, cell: ({ row: { original: r } }) => <BillingSlipShortcut receivable={r} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-primary sm:min-h-0" /> },
   ]
 
   return (

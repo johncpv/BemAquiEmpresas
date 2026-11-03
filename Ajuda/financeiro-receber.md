@@ -26,6 +26,7 @@ Ver o que os clientes devem à empresa, por vencimento, e abrir cada título par
 - A lista de **Pagamentos a conferir** não é exportada nesta versão.
 - O limite é de 10.000 linhas no Excel e 2.000 no PDF. Acima disso, o sistema avisa e pede para refinar os filtros (período, situação ou busca).
 - Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+- Na coluna **Boleto**, o título com boleto emitido ou pago tem **Baixar boleto**: o mesmo PDF da aba Boleto do título.
 
 ## Perguntas frequentes
 **Quando um título aparece como "Vencido"?** Quando está em aberto e o vencimento é antes de hoje. Vencimento num sábado, domingo ou feriado passa a vencido só no dia seguinte.

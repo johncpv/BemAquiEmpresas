@@ -13,6 +13,7 @@ Emite o boleto com Pix do título pelo Banco Inter, mostra a linha digitável, o
 - Clique em **Emitir boleto**. O valor é o saldo do título; vencimento, multa, juros, desconto e o e-mail do cliente já vêm preenchidos. Confira e confirme.
 - O banco confirma em alguns segundos. Enquanto isso, a aba mostra "Aguardando"; se demorar, avisamos quando o boleto ficar pronto.
 - Com o boleto emitido, use **Copiar** na linha digitável ou no Pix, **Baixar PDF**, **Enviar ao cliente** ou **Cancelar boleto** (com o motivo).
+- O mesmo PDF sai pelo **Baixar boleto** no cabeçalho do título e na coluna **Boleto** da lista A receber, sem abrir esta aba.
 - Se o banco recusar, a aba mostra o motivo. Corrija o cadastro do cliente e clique em **Tentar de novo**: o sistema confere no banco antes de criar outra cobrança.
 
 ## Perguntas frequentes

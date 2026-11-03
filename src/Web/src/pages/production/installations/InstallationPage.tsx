@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { useState } from 'react'
-import { getGetInstallationQueryKey, useGetInstallation } from '@/api/generated/bemaqui'
+import { getDownloadAcceptanceTermPdfUrl, getDownloadInstallationOrderPdfUrl, getGetInstallationQueryKey, useGetInstallation } from '@/api/generated/bemaqui'
 import type { InstallationAcceptResult } from '@/api/generated/model'
 import { RecordHistory } from '@/components/history/RecordHistory'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { FactsBar } from '@/components/ui/facts-bar'
 import { Money } from '@/components/ui/money'
 import { NextSteps } from '@/components/ui/next-steps'
@@ -38,10 +39,18 @@ export function InstallationPage() {
         status={{ label: INSTALLATION_STATUS[o.status]?.label ?? o.status, tone: INSTALLATION_STATUS[o.status]?.tone ?? 'neutral' }}
         stages={o.status !== 'Cancelled' ? { names: o.steps.map((s) => s.name), current: currentStep(o.steps) } : null}
         project={{ id: o.projectId, number: o.projectNumber }}
-        actions={<InstallationActions order={o} onChange={refresh} onAccepted={setAccepted} />} />
+        actions={(
+          <span className="flex flex-wrap items-start gap-2">
+            {/* EXP-04 CA 7 e 8: a OS impressa (sem o valor do instalador) e o termo de aceite em branco, ou preenchido depois do aceite. */}
+            <DocumentActions url={getDownloadInstallationOrderPdfUrl(id)} fileName={`${o.number}.pdf`} />
+            {o.status !== 'Cancelled' ? <DocumentActions url={getDownloadAcceptanceTermPdfUrl(id)} fileName={`${o.number}-termo-de-aceite.pdf`} label="Baixar termo de aceite" print={false} /> : null}
+            <InstallationActions order={o} onChange={refresh} onAccepted={setAccepted} />
+          </span>
+        )} />
       {accepted ? (
         <div className="mb-4"><NextSteps onDismiss={() => setAccepted(null)} steps={[
           ...(canFinance ? [{ label: 'Ver parcela liberada', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: o.projectId }, search: { aba: 'financeiro' } } as never) }] : []),
+          { label: 'Enviar termo assinado', onSelect: () => void navigate({ to: '.', search: { aba: 'documentos' } } as never) },
           { label: 'Conferir título do instalador', onSelect: () => void navigate({ to: '/app/financeiro/pagar/$id', params: { id: accepted.payableId } } as never) },
           // FIS-06 CA 1: o aceite técnico oferece a NFS-e da instalação.
           ...(canInvoice ? [{ label: 'Emitir NFS-e da instalação', onSelect: () => void nfse.start(o.id, o.projectId) }] : []),
@@ -64,7 +73,7 @@ export function InstallationPage() {
       <UrlTabs label="Seções da OS" fallback="etapas" tabs={[
         { id: 'etapas', label: 'Etapas', content: <InstallationSteps order={o} onChange={refresh} /> },
         { id: 'checklist', label: 'Checklist de entrega técnica', content: <InstallationChecklist order={o} onChange={refresh} /> },
-        { id: 'documentos', label: 'Documentos', content: <InstallationDocuments orderId={id} /> },
+        { id: 'documentos', label: 'Documentos', content: <InstallationDocuments orderId={id} number={o.number} status={o.status} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="ProductionOrder" id={id} /> },
       ]} />
     </>

@@ -15,6 +15,12 @@ Consultar todas as entradas, saídas, transferências e saldos iniciais, do mais
 - A quantidade aparece com sinal: entrada positiva e saída negativa.
 - Clique no número para ver o movimento, a origem e, se for o caso, **Estornar movimento**.
 
+## Imprimir e exportar
+- Clique em **Exportar** e escolha **Excel (.xlsx)** ou **PDF**. Valem a busca, o período, o local, o tipo e a origem da tela, com todas as páginas.
+- A planilha traz data, número, tipo (com "estorno" ou "estornado"), origem, item, local, lote/série, quantidade (saída negativa), custo unitário, valor e quem lançou.
+- O limite é de 10.000 linhas no Excel e 2.000 no PDF. Acima disso, o sistema avisa e pede para refinar os filtros.
+- Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+
 ## Perguntas frequentes
 **Posso apagar ou corrigir um movimento?** Não. Movimento não muda nem é apagado: para desfazer, estorne. O estorno lança o movimento inverso e o original fica marcado como estornado.
 

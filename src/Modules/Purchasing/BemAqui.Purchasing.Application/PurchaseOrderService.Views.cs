@@ -3,6 +3,7 @@ using BemAqui.Commercial.Contracts;
 using BemAqui.Finance.Contracts;
 using BemAqui.Inventory.Contracts;
 using BemAqui.Parties.Contracts;
+using BemAqui.Purchasing.Application.Exports;
 using BemAqui.Purchasing.Contracts;
 using BemAqui.Purchasing.Domain;
 using BemAqui.SharedKernel;
@@ -110,7 +111,11 @@ public sealed partial class PurchaseOrderService
     /// Lista "Pedidos" (CA 20): para quem aprova, o padrão é "Aguardando você" (só o que o usuário pode decidir agora); para os demais, os
     /// abertos. Ordem: a previsão de entrega mais próxima primeiro, depois o número.
     /// </summary>
-    public async Task<PagedList<PurchaseOrderSummary>> ListAsync(PurchaseOrderListQuery query, PageRequest page, CancellationToken cancellationToken = default)
+    public Task<PagedList<PurchaseOrderSummary>> ListAsync(PurchaseOrderListQuery query, PageRequest page, CancellationToken cancellationToken = default) =>
+        ListAsync(query, page, null, cancellationToken);
+
+    /// <summary>A lista com os mesmos filtros; com <paramref name="max"/>, sem paginação, para exportar (EXP-04).</summary>
+    internal async Task<PagedList<PurchaseOrderSummary>> ListAsync(PurchaseOrderListQuery query, PageRequest page, int? max, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(page);
@@ -152,7 +157,7 @@ public sealed partial class PurchaseOrderService
             orders = orders.Where(o => o.Number.Contains(term));
         }
 
-        var result = await orders.OrderBy(o => o.ExpectedDate).ThenByDescending(o => o.Number).ToPagedListAsync(page, cancellationToken);
+        var result = await orders.OrderBy(o => o.ExpectedDate).ThenByDescending(o => o.Number).PageOrAllAsync(page, max, cancellationToken);
         var ids = result.Items.Select(o => o.Id).ToList();
         var lines = await db.PurchaseOrderLines.AsNoTracking().Where(l => ids.Contains(l.OrderId)).OrderBy(l => l.Sequence).Select(l => new { l.OrderId, l.ItemId }).ToListAsync(cancellationToken);
         var itemInfo = (await items.FindAsync(lines.Select(l => l.ItemId).Distinct().ToList(), cancellationToken)).ToDictionary(i => i.Id);

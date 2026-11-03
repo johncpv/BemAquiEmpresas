@@ -1,13 +1,14 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
-import { openInventoryCount, useListInventoryCounts, useListItemCategories, useListLocations } from '@/api/generated/bemaqui'
+import { getExportInventoryCountsUrl, openInventoryCount, useListInventoryCounts, useListItemCategories, useListLocations } from '@/api/generated/bemaqui'
 import type { InventoryCountStatus, InventoryCountSummary, ItemType } from '@/api/generated/model'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { Field } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
@@ -90,7 +91,8 @@ export function OpenCountDialog({ onClose, locationId: initial }: { onClose: () 
 export function InventoryCountsPage() {
   const [search] = useTableSearch()
   const { situacao } = useTableFilters(['situacao'])
-  const query = useListInventoryCounts({ status: (situacao || undefined) as InventoryCountStatus | undefined, page: search.page, pageSize: search.pageSize })
+  const filters = { status: (situacao || undefined) as InventoryCountStatus | undefined }
+  const query = useListInventoryCounts({ ...filters, page: search.page, pageSize: search.pageSize })
   const [open, setOpen] = useState(false)
   const start = (primary: boolean) => (
     <button type="button" onClick={() => setOpen(true)} className={primary ? 'min-h-[44px] rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground' : 'text-sm font-semibold text-primary'}>Novo inventário</button>
@@ -108,6 +110,7 @@ export function InventoryCountsPage() {
       <PageHeading title="Estoque: Inventários" description={<>Conte um local sem ver o saldo do sistema; a diferença vira um ajuste para aprovação.<Dica nome="Contagem cega" texto={INVENTORY_DICAS.cega} /></>}
         actions={<Can perm="inventory.adjust">{start(true)}</Can>} />
       <DataTable label="Inventários" columns={columns} query={query} searchable={false} getRowId={(c) => c.id}
+        toolbar={<ExportMenu fileBase="inventarios" formats={['xlsx']} empty={query.data?.total === 0} url={(format) => getExportInventoryCountsUrl({ ...filters, format })} />}
         filters={[{ key: 'situacao', label: 'Situação', options: STATUS_OPTIONS }]}
         rowClassName={(c) => (c.status === 'Counting' ? 'border-l-4 border-l-warn' : undefined)}
         expandable={{ label: (c) => `detalhes de ${c.number}`, render: (c) => <p className="text-sm">{c.countedCount} de {c.lineCount} contados · foto {formatDateTime(c.snapshotAt)}{c.adjustmentNumber ? ` · ajuste ${c.adjustmentNumber}` : ''}</p> }}

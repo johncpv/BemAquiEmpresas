@@ -12,6 +12,12 @@ public sealed record PayslipFile(Stream Content, string FileName, string Content
 public sealed record PayslipBatchResult(bool Queued, int Count, Guid? AttachmentId, string FileName, string Message);
 
 /// <summary>Holerite em "Meus holerites" (CA 5): competência, tipo, líquido e quando o próprio funcionário abriu pela primeira vez.</summary>
+/// <summary>
+/// Holerite no bloco "Holerites" da ficha do funcionário (EXP-04 CA 18): competência, tipo, líquido e a situação da folha (todas, inclusive
+/// rascunho), com o id da folha para o download pelo endpoint da folha.
+/// </summary>
+public sealed record EmployeePayslip(Guid Id, Guid PayrollRunId, DateOnly Period, PayrollRunType Type, decimal Net, PayrollRunStatus RunStatus);
+
 public sealed record MyPayslip(Guid Id, DateOnly Period, PayrollRunType Type, decimal Net, DateOnly? PaymentDate, DateTimeOffset? FirstViewedAt);
 
 /// <summary>Vínculo do usuário da sessão com o funcionário (menu e "Meus holerites"): nome e situação, sem nada sensível.</summary>

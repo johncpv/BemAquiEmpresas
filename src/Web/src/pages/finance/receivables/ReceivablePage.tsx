@@ -16,6 +16,7 @@ import { formatDate } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { useCanSettings } from '@/pages/settings/use-can-settings'
+import { BillingSlipShortcut } from './billing-slip-download'
 import { BillingSlipTab } from './BillingSlipTab'
 import { ReceivableCollectionTab } from './CollectionPanel'
 import { slipStatus } from './billing-slips'
@@ -84,15 +85,20 @@ export function ReceivablePage() {
             <Link to="/app/financeiro/receber" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
           </>
         }
-        actions={canEdit ? (
+        actions={
             <>
-              {canIssue ? <button type="button" onClick={issue} className={button}>Emitir boleto</button> : null}
-              {open ? <button type="button" onClick={() => setDialog('settle')} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Dar baixa</button> : null}
-              {open ? <button type="button" onClick={() => setDialog('writeoff')} className={button}>Quitar o saldo com desconto</button> : null}
-              {r.status === 'Open' ? <button type="button" onClick={() => setDialog('due')} className={button}>Alterar vencimento</button> : null}
-              {r.status !== 'Cancelled' ? <button type="button" onClick={() => setDialog('cancel')} className={button + ' text-crit-ink'}>Cancelar título</button> : null}
+              <BillingSlipShortcut receivable={r} className={button + ' inline-flex items-center gap-1.5'} />
+              {canEdit ? (
+                <>
+                  {canIssue ? <button type="button" onClick={issue} className={button}>Emitir boleto</button> : null}
+                  {open ? <button type="button" onClick={() => setDialog('settle')} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Dar baixa</button> : null}
+                  {open ? <button type="button" onClick={() => setDialog('writeoff')} className={button}>Quitar o saldo com desconto</button> : null}
+                  {r.status === 'Open' ? <button type="button" onClick={() => setDialog('due')} className={button}>Alterar vencimento</button> : null}
+                  {r.status !== 'Cancelled' ? <button type="button" onClick={() => setDialog('cancel')} className={button + ' text-crit-ink'}>Cancelar título</button> : null}
+                </>
+              ) : null}
             </>
-          ) : undefined} />
+          } />
       {shown.length > 0 ? <div className="mb-4"><NextSteps onDismiss={() => setSteps(null)} steps={shown} /></div> : null}
       {r.status === 'Paid' || r.status === 'Cancelled' ? (
         <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">

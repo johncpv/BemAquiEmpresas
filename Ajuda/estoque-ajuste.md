@@ -19,6 +19,12 @@ Ver um ajuste de estoque, o que cada item mudaria (ou mudou) no saldo, e decidir
 - Aprovado, o ajuste fica em modo leitura. Para corrigir, lance outro ajuste ou estorne este.
 - Depois de decidir, os próximos passos levam ao próximo aguardando você e, se o item ficou abaixo do mínimo, a **Gerar solicitação de compra**.
 
+## Imprimir e exportar
+- **Baixar PDF** e **Imprimir**, no cabeçalho, geram o ajuste: número, situação, modo (Quantidade contada ou Diferença), local, motivo, quem lançou, quem decidiu e a origem.
+- Por item, o saldo no envio, o contado (ou a diferença informada), a diferença e o valor pelo custo médio, como a tela; no fim, as sobras, as faltas e o valor líquido, com as assinaturas **Lançado por** e **Aprovado por**.
+- Aguardando aprovação, sai com a marca **Prévia** e a faixa "Aguardando aprovação". Estornado, com a faixa "Estornado em {data}: {motivo}". Reprovado ou cancelado, com a marca **Cancelado** e o motivo. Aprovado sai sem marca.
+- Todo download fica registrado na auditoria (quem e quando). Documento com mais de 300 linhas não sai em PDF: o sistema avisa antes de gerar.
+
 ## Perguntas frequentes
 **Apareceu "O saldo ficaria …, abaixo do reservado para OS".** Parte do material está reservado para OS abertas, e o ajuste não pode tirar o que as OS esperam. Clique em **Ver reservas do item** para ver quais OS reservaram. Libere a reserva ou baixe pela requisição da OS antes de ajustar.
 

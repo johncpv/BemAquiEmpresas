@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
-  approveMaterialRequisition, declineMaterialRequest, getGetMaterialRequisitionQueryKey, rejectMaterialRequisition, reverseMaterialRequisition, useGetMaterialRequisition,
+  approveMaterialRequisition, declineMaterialRequest, getDownloadRequisitionPdfUrl, getGetMaterialRequisitionQueryKey, rejectMaterialRequisition, reverseMaterialRequisition, useGetMaterialRequisition,
 } from '@/api/generated/bemaqui'
 import type { RequisitionDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
@@ -10,6 +10,7 @@ import { useIdempotencyKey } from '@/api/idempotency'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { FactsBar } from '@/components/ui/facts-bar'
 import { Money } from '@/components/ui/money'
 import { NextSteps, type Step } from '@/components/ui/next-steps'
@@ -23,6 +24,7 @@ import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { REQUISITION_DICAS, REQUISITION_KIND, REQUISITION_STATUS } from './requisitions'
 import { RequisitionDialog } from './RequisitionDialog'
+import { printPdf } from './print-pdf'
 import { formatQuantity, formatUnitCost } from './stock'
 
 const button = (text: string, primary = false, onClick?: () => void) => (
@@ -43,6 +45,7 @@ export function RequisitionPage() {
   const [text, setText] = useState('')
   const [confirming, setConfirming] = useState(false)
   const [steps, setSteps] = useState<Step[]>([])
+  const [printDismissed, setPrintDismissed] = useState(false)
   const idempotency = useIdempotencyKey()
   if (query.isPending) return <Skeleton className="h-96" />
   if (query.isError || !query.data) {
@@ -76,6 +79,7 @@ export function RequisitionPage() {
         }
         actions={
           <>
+            <DocumentActions url={getDownloadRequisitionPdfUrl(id)} fileName={`${r.number}.pdf`} />
             {r.canConfirm ? (
               <>
                 {button('Confirmar pedido', true, () => setConfirming(true))}
@@ -121,6 +125,10 @@ export function RequisitionPage() {
       {r.status === 'PendingApproval' && r.decideBlockedReason ? <p role="note" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">{r.decideBlockedReason}</p> : null}
       {r.status === 'Completed' && !r.canReverse && r.reverseBlockedReason ? <p role="note" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">{r.reverseBlockedReason}</p> : null}
       {steps.length ? <div className="mb-3"><NextSteps steps={steps} onDismiss={() => setSteps([])} /></div> : null}
+      {/* EXP-04 (propositivo): no pedido do operador, quem separa no papel imprime a folha de separação. */}
+      {r.status === 'Requested' && r.canConfirm && !steps.length && !printDismissed ? (
+        <div className="mb-3"><NextSteps onDismiss={() => setPrintDismissed(true)} steps={[{ label: 'Imprimir a folha de separação', onSelect: () => void printPdf(getDownloadRequisitionPdfUrl(id)) }]} /></div>
+      ) : null}
       <FactsBar label="Fatos da requisição" facts={[
         { label: 'OS', value: <Link to={'/app/producao/os/$id' as never} params={{ id: r.productionOrderId } as never} search={{ aba: 'material' } as never} className="font-semibold text-primary">{r.orderNumber ?? 'Abrir OS'}</Link> },
         { label: 'Quem pediu', value: `${r.requestedByName ?? '—'} · ${formatDateTime(r.requestedAt)}${r.stepName ? ` · etapa ${r.stepName}` : ''}` },

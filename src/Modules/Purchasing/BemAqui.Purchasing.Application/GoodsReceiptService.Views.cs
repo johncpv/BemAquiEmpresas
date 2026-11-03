@@ -1,5 +1,6 @@
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.Finance.Contracts;
+using BemAqui.Purchasing.Application.Exports;
 using BemAqui.Purchasing.Contracts;
 using BemAqui.Purchasing.Domain;
 using BemAqui.SharedKernel;
@@ -57,7 +58,11 @@ public sealed partial class GoodsReceiptService
     }
 
     /// <summary>Aba "Recebidos" (CA 15): número, data, pedido, fornecedor, itens, valor e situação; o mais recente primeiro.</summary>
-    public async Task<PagedList<GoodsReceiptSummary>> ListAsync(GoodsReceiptListQuery query, PageRequest page, CancellationToken cancellationToken = default)
+    public Task<PagedList<GoodsReceiptSummary>> ListAsync(GoodsReceiptListQuery query, PageRequest page, CancellationToken cancellationToken = default) =>
+        ListAsync(query, page, null, cancellationToken);
+
+    /// <summary>A lista com os mesmos filtros; com <paramref name="max"/>, sem paginação, para exportar (EXP-04).</summary>
+    internal async Task<PagedList<GoodsReceiptSummary>> ListAsync(GoodsReceiptListQuery query, PageRequest page, int? max, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(page);
@@ -84,7 +89,7 @@ public sealed partial class GoodsReceiptService
             receipts = receipts.Where(r => r.Number.Contains(term) || matching.Contains(r.PurchaseOrderId));
         }
 
-        var result = await receipts.OrderByDescending(r => r.ReceivedOn).ThenByDescending(r => r.Number).ToPagedListAsync(page, cancellationToken);
+        var result = await receipts.OrderByDescending(r => r.ReceivedOn).ThenByDescending(r => r.Number).PageOrAllAsync(page, max, cancellationToken);
         return new PagedList<GoodsReceiptSummary>(await SummariesAsync(result.Items, cancellationToken), result.Page, result.PageSize, result.Total);
     }
 

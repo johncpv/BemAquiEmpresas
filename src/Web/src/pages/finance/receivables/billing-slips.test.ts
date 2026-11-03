@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { issuePhase, messageError, needsApproval, slipStatus, SLOW_TEXT, PHASE_TEXT } from './billing-slips'
+import { hasSlipShortcut, issuePhase, messageError, needsApproval, slipStatus, SLOW_TEXT, PHASE_TEXT } from './billing-slips'
 
 const draft = { amount: 1000, discountLimitPct: 5, discountLimitAmount: 500, finePct: 2, interestMonthPct: 1 }
 
@@ -27,5 +27,11 @@ describe('boleto (BNK-01b)', () => {
     expect(messageError('a\nb\nc')).toBeUndefined()
     expect(messageError('a\nb\nc\nd')).toBe('Use até 3 linhas.')
     expect(messageError('x'.repeat(79))).toBe('Cada linha tem até 78 caracteres.')
+  })
+
+  it('"Baixar boleto" só com o boleto emitido ou pago (EXP-04 CA 19)', () => {
+    expect(hasSlipShortcut('Issued')).toBe(true)
+    expect(hasSlipShortcut('Paid')).toBe(true)
+    expect(['Cancelled', 'Expired', 'Requested', 'Failed', null].map((s) => hasSlipShortcut(s as never))).toEqual([false, false, false, false, false])
   })
 })

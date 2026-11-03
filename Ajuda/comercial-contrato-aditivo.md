@@ -16,6 +16,12 @@ Mudar valor e prazo do contrato com aprovação, sem mexer no contrato original.
 - A prévia **Antes e depois** mostra o contratado e a data prometida antes e depois do aditivo. Em tela larga ela fica no painel à direita do formulário; em tela menor, logo depois dele.
 - **Salvar aditivo**, depois **Enviar para aprovação**. Quem aprova vê o impacto e clica em **Aprovar aditivo** ou **Reprovar aditivo** (com o motivo).
 
+## Imprimir e exportar
+- **Baixar PDF** e **Imprimir**, no cabeçalho do aditivo, geram o aditivo para assinar: contrato de origem, cliente, motivo, o **antes e depois** do valor e da data prometida, os recebíveis a acrescentar (marcos), os títulos futuros ajustados, a aprovação (quem e quando) e as assinaturas **Contratante** e **Contratada**.
+- Rascunho e aguardando aprovação saem com a marca **Rascunho**; reprovado, com **Cancelado** e o motivo; aprovado, sem marca.
+- A distribuição no orçado (custo) **não** vai no PDF, para ninguém.
+- O arquivo se chama `{contrato}-aditivo-{n}.pdf`.
+
 ## Perguntas frequentes
 **O que muda no orçado do projeto?** A variação é distribuída pelas naturezas na proporção do orçado atual.
 

@@ -2,10 +2,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
-import { getListStockAdjustmentsQueryKey, useListStockAdjustments } from '@/api/generated/bemaqui'
+import { getExportStockAdjustmentsUrl, getListStockAdjustmentsQueryKey, useListStockAdjustments } from '@/api/generated/bemaqui'
 import type { StockAdjustmentDetail, StockAdjustmentMode, StockAdjustmentStatus, StockAdjustmentSummary } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { Money } from '@/components/ui/money'
 import { NextSteps, type Step } from '@/components/ui/next-steps'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -40,10 +41,8 @@ export function AdjustmentsPage() {
   const { filtro, situacao, modo } = useTableFilters(['filtro', 'situacao', 'modo'])
   const show = filtro ?? (canApprove ? 'aguardando-voce' : 'todos')
   const awaiting = show === 'aguardando-voce'
-  const query = useListStockAdjustments({
-    awaitingMe: awaiting || undefined, status: awaiting ? undefined : (situacao || undefined) as StockAdjustmentStatus | undefined, mode: (modo || undefined) as StockAdjustmentMode | undefined,
-    page: search.page, pageSize: search.pageSize,
-  })
+  const filters = { awaitingMe: awaiting || undefined, status: awaiting ? undefined : (situacao || undefined) as StockAdjustmentStatus | undefined, mode: (modo || undefined) as StockAdjustmentMode | undefined }
+  const query = useListStockAdjustments({ ...filters, page: search.page, pageSize: search.pageSize })
   const [open, setOpen] = useState(false)
   const [steps, setSteps] = useState<Step[]>([])
   const sent = async (detail: StockAdjustmentDetail) => {
@@ -74,6 +73,7 @@ export function AdjustmentsPage() {
       {steps.length ? <div className="mb-3"><NextSteps steps={steps} onDismiss={() => setSteps([])} /></div> : null}
       <p className="mb-2 text-sm text-muted-foreground">Mostrando: {SHOW_LABELS[show] ?? SHOW_LABELS.todos}</p>
       <DataTable label="Ajustes de estoque" columns={columns} query={query} searchable={false} getRowId={(a) => a.id}
+        toolbar={<ExportMenu fileBase="ajustes-de-estoque" formats={['xlsx']} empty={query.data?.total === 0} url={(format) => getExportStockAdjustmentsUrl({ ...filters, format })} />}
         filters={[
           { key: 'filtro', label: 'Mostrar', options: [{ value: 'aguardando-voce', label: 'Aguardando você' }, { value: 'todos', label: 'Todos os ajustes' }] },
           { key: 'situacao', label: 'Situação', options: STATUS_OPTIONS },

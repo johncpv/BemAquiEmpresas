@@ -16,6 +16,11 @@ Registrar o que houve, a causa, a ação corretiva e o resultado de uma não con
 - **Encerrar NC** pede o resultado e exige a causa e a ação preenchidas. A mensagem é **NC encerrada**. Depois disso a NC fica só para leitura.
 - Com **Ver custo e margem** dos projetos aparece o **custo estimado**, só para informação: ele não entra no custo realizado do projeto, porque o retrabalho já entra pelas horas apontadas e pelo material.
 
+## Imprimir e exportar
+- **Baixar PDF** e **Imprimir**, no cabeçalho, geram a NC: número, situação, OS, projeto, cliente, etapa de qualidade, tentativa, idade, responsável, etapa de retorno, quem abriu e quem encerrou, descrição, causa, ação corretiva, resultado, o checklist da inspeção com o resultado de cada item e a lista de fotos e anexos (nome e data; as fotos não vão impressas).
+- O **custo estimado** só sai para quem tem **Ver custo e margem** dos projetos. Para os demais, a linha nem aparece.
+- Aberta ou em ação, a NC sai com a faixa **Em aberto**. Encerrada, sem faixa.
+
 ## Perguntas frequentes
 **Posso reabrir uma NC encerrada?** Não. Se o defeito voltar, a próxima reprovação abre uma NC nova.
 

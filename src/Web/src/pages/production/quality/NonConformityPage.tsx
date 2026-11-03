@@ -3,7 +3,7 @@ import { Link, useParams } from '@tanstack/react-router'
 import { Camera } from 'lucide-react'
 import { useRef, useState } from 'react'
 import {
-  closeNonConformity, getDownloadNonConformityAttachmentUrl, getGetNonConformityQueryKey, getListNonConformityAttachmentsQueryKey, setNonConformityCost, startNonConformityAction,
+  closeNonConformity, getDownloadNonConformityAttachmentUrl, getDownloadNonConformityPdfUrl, getGetNonConformityQueryKey, getListNonConformityAttachmentsQueryKey, setNonConformityCost, startNonConformityAction,
   updateNonConformity, uploadNonConformityAttachment, useGetNonConformity, useGetNonConformityHistory, useListNonConformityAttachments,
 } from '@/api/generated/bemaqui'
 import type { NonConformityDetail } from '@/api/generated/model'
@@ -12,6 +12,7 @@ import { FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { describeChanges } from '@/components/history/describe-changes'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { FactsBar } from '@/components/ui/facts-bar'
 import { notifySuccess } from '@/components/ui/messages'
 import { formatMoney } from '@/lib/format'
@@ -50,7 +51,13 @@ export function NonConformityPage() {
             <span className="tabular-nums">{ageLabel(n.ageDays)}</span>
           </span>
         )}
-        actions={<Link to="/app/producao/os/$id" params={{ id: n.orderId }} search={{ aba: 'qualidade' } as never} className={secondary}>Ver a OS {n.orderNumber}</Link>} />
+        actions={(
+          <span className="flex flex-wrap items-start gap-2">
+            {/* EXP-04 CA 14: a NC impressa; o custo estimado só sai com projects.view_cost. */}
+            <DocumentActions url={getDownloadNonConformityPdfUrl(n.id)} fileName={`${n.number}.pdf`} />
+            <Link to="/app/producao/os/$id" params={{ id: n.orderId }} search={{ aba: 'qualidade' } as never} className={secondary}>Ver a OS {n.orderNumber}</Link>
+          </span>
+        )} />
       {n.status === 'Closed' ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">NC encerrada em {n.closedAt ? formatDateTime(n.closedAt) : '—'}{n.closedByName ? ` por ${n.closedByName}` : ''}. Só leitura.</p> : null}
       <FactsBar facts={[
         { label: 'Responsável', value: n.responsibleName },

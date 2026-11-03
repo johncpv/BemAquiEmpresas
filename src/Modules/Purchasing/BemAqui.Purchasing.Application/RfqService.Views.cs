@@ -1,6 +1,7 @@
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.Inventory.Contracts;
 using BemAqui.Parties.Contracts;
+using BemAqui.Purchasing.Application.Exports;
 using BemAqui.Purchasing.Contracts;
 using BemAqui.Purchasing.Domain;
 using BemAqui.SharedKernel;
@@ -109,7 +110,10 @@ public sealed partial class RfqService
     }
 
     /// <summary>Lista "Cotações": por padrão as abertas; a mais recente primeiro.</summary>
-    public async Task<PagedList<RfqSummary>> ListAsync(RfqListQuery query, PageRequest page, CancellationToken cancellationToken = default)
+    public Task<PagedList<RfqSummary>> ListAsync(RfqListQuery query, PageRequest page, CancellationToken cancellationToken = default) => ListAsync(query, page, null, cancellationToken);
+
+    /// <summary>A lista com os mesmos filtros; com <paramref name="max"/>, sem paginação, para exportar (EXP-04).</summary>
+    internal async Task<PagedList<RfqSummary>> ListAsync(RfqListQuery query, PageRequest page, int? max, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(page);
@@ -130,7 +134,7 @@ public sealed partial class RfqService
             rfqs = rfqs.Where(r => r.Number.Contains(term));
         }
 
-        var result = await rfqs.OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Number).ToPagedListAsync(page, cancellationToken);
+        var result = await rfqs.OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Number).PageOrAllAsync(page, max, cancellationToken);
         var ids = result.Items.Select(r => r.Id).ToList();
         var lines = await db.RfqLines.AsNoTracking().Where(l => ids.Contains(l.RfqId)).OrderBy(l => l.Sequence).Select(l => new { l.RfqId, l.ItemId }).ToListAsync(cancellationToken);
         var suppliers = await db.RfqSuppliers.AsNoTracking().Where(s => ids.Contains(s.RfqId)).Select(s => new { s.RfqId, s.Responded, s.Declined }).ToListAsync(cancellationToken);

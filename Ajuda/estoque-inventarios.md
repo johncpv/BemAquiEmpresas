@@ -15,6 +15,13 @@ Contar o estoque de um local para o saldo do sistema voltar a bater com a pratel
 - Ao clicar **Abrir inventário**, o sistema tira a foto do saldo de cada item e lote e abre o inventário na aba **Contagem**.
 - Enquanto o inventário está **Em contagem**, ajustes e estornos manuais no local ficam bloqueados. Entradas, saídas, requisições, recebimentos e romaneios continuam.
 
+## Imprimir e exportar
+- Clique em **Exportar** e escolha **Excel (.xlsx)**. Vale a situação da tela, com todas as páginas.
+- A planilha traz número, local, foto do saldo, itens contados, itens no escopo, o ajuste gerado e a situação. Não traz saldo do sistema.
+- A folha de contagem e o resultado de cada inventário saem na tela do inventário.
+- O limite é de 10.000 linhas no Excel e 2.000 no PDF. Acima disso, o sistema avisa e pede para refinar os filtros.
+- Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+
 ## Perguntas frequentes
 **Apareceu "Já há um inventário aberto em …".** Cada local tem um inventário em contagem por vez. Abra o que já existe pelo número ou feche-o antes.
 

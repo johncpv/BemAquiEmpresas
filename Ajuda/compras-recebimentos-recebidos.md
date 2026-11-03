@@ -14,5 +14,11 @@ Consultar os recebimentos já registrados e os estornados.
 - Busque pelo número do recebimento ou do pedido e filtre pela situação.
 - Clique no número para abrir o recebimento, com os itens, os títulos a pagar e o histórico.
 
+## Imprimir e exportar
+- Clique em **Exportar** e escolha **Excel (.xlsx)**. Valem a situação e a busca da tela.
+- A planilha traz número, pedido, fornecedor, data, quantidade de itens, total, quem recebeu e se foi estornado (Sim ou Não).
+- Exportar só gera **Excel (.xlsx)** nesta lista, com todas as páginas. O limite é de 10.000 linhas; acima disso, o sistema pede para refinar os filtros.
+- Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+
 ## Perguntas frequentes
 **Registrei errado. Como corrijo?** Peça a quem tem a permissão Aprovar em Compras para **Estornar recebimento** e registre de novo.
