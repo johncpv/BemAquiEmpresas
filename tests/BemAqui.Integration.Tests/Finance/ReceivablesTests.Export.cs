@@ -40,7 +40,7 @@ public partial class ReceivablesTests
         rows.Should().HaveCount(total + 2, "todas as linhas do filtro (não só a página) mais Em aberto e Vencido");
         rows.Take(total).Select(r => r.Cell(7).GetValue<decimal>()).Should().Equal([1_000m, 300m, 250.5m], "a ordem da tela");
         rows[1].Cell(6).DataType.Should().Be(XLDataType.DateTime);
-        rows.Single(r => r.Cell(7).GetValue<decimal>() == 250.5m).Cell(10).GetString().Should().Be("Vencido");
+        rows.Take(total).Single(r => r.Cell(7).GetValue<decimal>() == 250.5m).Cell(10).GetString().Should().Be("Vencido");
         rows[^2].Cell(1).GetString().Should().Be("Em aberto");
         rows[^2].Cell(9).GetValue<decimal>().Should().Be(list.GetProperty("totals").GetProperty("open").GetDecimal());
         rows[^1].Cell(1).GetString().Should().Be("Vencido");
