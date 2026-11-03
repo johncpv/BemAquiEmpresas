@@ -39,6 +39,7 @@ internal static partial class CommercialEndpoints
         MapScheduleSimulation(quotes);
         MapApproval(quotes);
         MapDocuments(quotes);
+        MapQuoteExports(quotes);
         MapContracts(api);
         MapLookups(quotes.MapGroup("/lookups"));
         var commercial = api.MapGroup("/commercial").WithTags("Orçamentos").RequireModule("settings");

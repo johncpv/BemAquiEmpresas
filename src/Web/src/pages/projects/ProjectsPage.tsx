@@ -1,9 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListProjectMargins, useListProjectReceived, useListProjects } from '@/api/generated/bemaqui'
+import { getExportProjectsUrl, useListProjectMargins, useListProjectReceived, useListProjects } from '@/api/generated/bemaqui'
 import type { ProjectListRow } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { Money } from '@/components/ui/money'
 import { StageIndicator } from '@/components/ui/stage-indicator'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -44,7 +45,8 @@ export function ProjectsPage() {
   const { situacao, cliente, responsavel } = useTableFilters(['situacao', 'cliente', 'responsavel'])
   const canCost = useCan('projects.view_cost')
   const canFinance = useCan('finance.view')
-  const query = useListProjects({ q: search.q, situation: situacao || undefined, partyId: cliente || undefined, managerId: responsavel || undefined, page: search.page, pageSize: search.pageSize })
+  const filters = { q: search.q, situation: situacao || undefined, partyId: cliente || undefined, managerId: responsavel || undefined }
+  const query = useListProjects({ ...filters, page: search.page, pageSize: search.pageSize })
   const ids = (query.data?.items ?? []).map((p) => p.id).join(',')
   const margins = useListProjectMargins({ ids }, { query: { enabled: canCost && ids.length > 0 } })
   const received = useListProjectReceived({ ids }, { query: { enabled: canFinance && ids.length > 0 } })
@@ -66,6 +68,7 @@ export function ProjectsPage() {
       <DataTable label="Projetos" columns={columns} query={query} getRowId={(p) => p.id} searchPlaceholder="Buscar pelo número ou nome"
         rowClassName={(p) => riskStripe(p.risk) ?? (p.delayDays ? 'border-l-4 border-l-crit' : undefined)}
         filters={[{ key: 'situacao', label: 'Situação', options: SITUATIONS }]}
+        toolbar={<ExportMenu formats={['xlsx']} fileBase="projetos" empty={query.data?.total === 0} url={(format) => getExportProjectsUrl({ ...filters, format })} />}
         empty={{ title: 'Os projetos nascem quando um orçamento é aprovado.', action: goQuotes }} />
     </>
   )

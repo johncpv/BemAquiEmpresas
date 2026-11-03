@@ -18,6 +18,12 @@ Ver tudo o que precisa ser comprado e para quando. As solicitações nascem de t
 - Os filtros ficam no endereço da página, para você guardar ou mandar o link.
 - No celular aparecem número, itens, necessidade e situação. Toque na linha para ver a origem, o destino e a OS.
 
+## Imprimir e exportar
+- Clique em **Exportar** e escolha **Excel (.xlsx)**. Valem o **Mostrar** (inclusive **Aguardando você**), a origem, a situação, o projeto, o item, a OS e a busca da tela.
+- A planilha traz número, origem, destino, OS, quantidade de itens, necessidade mais próxima, situação e a data em que a solicitação foi criada. A visão **Por item** não é exportada.
+- Exportar só gera **Excel (.xlsx)** nesta lista, com todas as páginas. O limite é de 10.000 linhas; acima disso, o sistema pede para refinar os filtros.
+- Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+
 ## Perguntas frequentes
 **Quem abre a solicitação da falta da BOM?** O sistema. Quando a BOM de uma OS é liberada e o estoque não tem tudo livre, nasce uma solicitação por OS com o que falta. Se a falta diminuir (chegou material) ou zerar, a linha em aberto diminui ou é cancelada sozinha, com o motivo "Falta resolvida pelo estoque".
 

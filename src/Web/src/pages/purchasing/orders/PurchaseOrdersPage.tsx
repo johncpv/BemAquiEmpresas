@@ -1,9 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListPurchaseOrders, useListPurchaseProjectOptions } from '@/api/generated/bemaqui'
+import { getExportPurchaseOrdersUrl, useListPurchaseOrders, useListPurchaseProjectOptions } from '@/api/generated/bemaqui'
 import type { PurchaseOrderStatus, PurchaseOrderSummary } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { Money } from '@/components/ui/money'
 import { StatusChip } from '@/components/ui/status-chip'
 import { formatDate } from '@/lib/format'
@@ -26,8 +27,9 @@ export function PurchaseOrdersPage() {
   const { filtro, situacao, projeto } = useTableFilters(['filtro', 'situacao', 'projeto'])
   const show = filtro ?? (canApprove ? 'aguardando-voce' : 'abertos')
   const projects = useListPurchaseProjectOptions()
+  const filters = { show, status: (situacao || undefined) as PurchaseOrderStatus | undefined, projectId: projeto || undefined, q: search.q }
   const list = useListPurchaseOrders({
-    show, status: (situacao || undefined) as PurchaseOrderStatus | undefined, projectId: projeto || undefined, q: search.q, page: search.page, pageSize: search.pageSize,
+    ...filters, page: search.page, pageSize: search.pageSize,
   })
 
   const columns: ColumnDef<PurchaseOrderSummary>[] = [
@@ -58,6 +60,7 @@ export function PurchaseOrdersPage() {
           { key: 'projeto', label: 'Projeto', options: (projects.data ?? []).map((p) => ({ value: p.id, label: `${p.number} — ${p.name}` })) },
         ]}
         rowClassName={(o) => (lateLabel(o.daysLate) ? 'border-l-4 border-l-crit' : undefined)}
+        toolbar={<ExportMenu formats={['xlsx']} fileBase="pedidos-de-compra" empty={list.data?.total === 0} url={(format) => getExportPurchaseOrdersUrl({ ...filters, format })} />}
         expandable={{
           label: (o) => `detalhes de ${o.number}`,
           render: (o) => <p className="text-sm">{o.itemSummary} · {orderDestination(o.projectNumber, o.projectName)} · previsão {formatDate(o.expectedDate)}{lateLabel(o.daysLate) ? ` · ${lateLabel(o.daysLate)}` : ''}</p>,

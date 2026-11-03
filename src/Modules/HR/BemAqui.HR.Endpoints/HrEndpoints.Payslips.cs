@@ -94,6 +94,14 @@ internal static partial class HrEndpoints
     }
 
     /// <summary>
+    /// Bloco "Holerites" da ficha do funcionário (EXP-04 CA 18): os últimos holerites (<c>?take=6</c>), com <c>hr.view_sensitive</c> e o
+    /// <c>no-store</c> do grupo <c>/hr</c>; o download usa o <c>DownloadPayslipPdf</c> da folha (IDOR coberto lá).
+    /// </summary>
+    private static void MapEmployeePayslips(RouteGroupBuilder employees) =>
+        employees.MapGet("/{id:guid}/payslips", async (Guid id, int? take, PayslipDocumentService service, CancellationToken ct) => (await service.EmployeeAsync(id, take, ct)).ToHttpResult())
+            .RequirePermission("hr.view_sensitive").WithName("ListEmployeePayslips").Produces<IReadOnlyList<EmployeePayslip>>();
+
+    /// <summary>
     /// "Meus holerites" (RH-02b CA 5 e 6, ADR 0035): <c>/api/v1/me/hr/*</c> pela camada 1 (<c>RequireModule("hr")</c>) e pelo vínculo com
     /// funcionário ativo ou afastado, sem ação no grupo; fora da sessão por PIN (sem <c>[PinSessionAllowed]</c>) e sempre <c>no-store</c>.
     /// </summary>

@@ -1,6 +1,7 @@
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Time;
 using BemAqui.Inventory.Contracts;
+using BemAqui.Purchasing.Application.Exports;
 using BemAqui.Purchasing.Contracts;
 using BemAqui.Purchasing.Domain;
 using BemAqui.SharedKernel;
@@ -52,7 +53,11 @@ public sealed partial class PurchaseRequestService
     /// Lista "Solicitações" (CA 12): filtros na URL; "Aguardando você" (SC aberta, sem cotação nem pedido) é o padrão de quem tem
     /// <c>purchasing.edit</c>; sem ela, as abertas e em cotação. Ordem: a necessidade aberta mais próxima primeiro, depois o número.
     /// </summary>
-    public async Task<PagedList<PurchaseRequestSummary>> ListAsync(PurchaseRequestListQuery query, PageRequest page, CancellationToken cancellationToken = default)
+    public Task<PagedList<PurchaseRequestSummary>> ListAsync(PurchaseRequestListQuery query, PageRequest page, CancellationToken cancellationToken = default) =>
+        ListAsync(query, page, null, cancellationToken);
+
+    /// <summary>A lista com os mesmos filtros; com <paramref name="max"/>, sem paginação, para exportar (EXP-04).</summary>
+    internal async Task<PagedList<PurchaseRequestSummary>> ListAsync(PurchaseRequestListQuery query, PageRequest page, int? max, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(page);
@@ -98,7 +103,7 @@ public sealed partial class PurchaseRequestService
         var ordered = requests
             .Select(r => new { Request = r, Nearest = db.PurchaseRequestLines.Where(l => l.RequestId == r.Id && l.Status == PurchaseRequestStatus.Open).Min(l => (DateOnly?)l.NeededBy) })
             .OrderBy(x => x.Nearest == null).ThenBy(x => x.Nearest).ThenByDescending(x => x.Request.Number);
-        var result = await ordered.ToPagedListAsync(page, cancellationToken);
+        var result = await ordered.PageOrAllAsync(page, max, cancellationToken);
         var ids = result.Items.Select(x => x.Request.Id).ToList();
         var lines = await db.PurchaseRequestLines.AsNoTracking().Where(l => ids.Contains(l.RequestId)).OrderBy(l => l.Sequence)
             .Select(l => new { l.RequestId, l.ItemId, l.Status }).ToListAsync(cancellationToken);

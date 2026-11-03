@@ -65,10 +65,11 @@ Lançar, para cada funcionário, os proventos e descontos que a contadora calcul
 - Se o ponto do mês for reaberto depois de a folha fechar, a folha mostra "O ponto deste mês foi reaberto depois do fechamento da folha."
 - A marca **Origem no ponto** de cada rubrica fica em RH → Rubricas.
 ## Holerite em PDF
-- **Baixar** (na linha do funcionário) gera o holerite em PDF no layout padrão: empresa, funcionário (com o CPF mascarado: só os 3 primeiros e os 2 últimos dígitos), cargo, CBO, admissão, competência, proventos, descontos, bases do INSS, do FGTS e do IRRF, FGTS do mês e o líquido. O PDF não traz CPF completo, endereço, dados bancários nem dependentes.
+- **Baixar holerite** (na linha do funcionário) gera o holerite em PDF no layout padrão: empresa, funcionário (com o CPF mascarado: só os 3 primeiros e os 2 últimos dígitos), cargo, CBO, admissão, competência, proventos, descontos, bases do INSS, do FGTS e do IRRF, FGTS do mês e o líquido. O PDF não traz CPF completo, endereço, dados bancários nem dependentes.
 - Com a folha em lançamento, o PDF sai com a marca "Rascunho" (a faixa "Rascunho · folha não fechada" e a marca d'água RASCUNHO em todas as páginas). Com a folha fechada, o PDF fica guardado e é refeito se a folha for reaberta e fechada de novo.
 - **Baixar todos os holerites** gera um arquivo ZIP com um PDF por funcionário (nome `holerite-{competência}-{matrícula}.pdf`, sem nome nem CPF). Até 20 holerites, sai na hora; acima disso aparece "Gerando {n} holerites…" e você recebe um aviso no sino quando estiver pronto.
 - Holerite com mais de 300 linhas não gera PDF. Cada download fica registrado no histórico de acessos.
+- Os holerites também aparecem na ficha do funcionário, no bloco **Holerites** da aba Dados gerais, com **Baixar holerite** em cada um.
 
 ## Aviso aos funcionários
 - Com a folha fechada, **Avisar funcionários** mostra quantos recebem o aviso (têm usuário ligado e ativo), quem está **sem usuário** (com **Convidar usuário**, que abre o convite com o e-mail pessoal do cadastro) e quem está **desligado** (com **Baixar holerite**, para entregar pessoalmente).

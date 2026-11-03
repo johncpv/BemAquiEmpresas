@@ -25,6 +25,11 @@ Ver a fila do que a fábrica tem para produzir: cada equipamento vendido vira um
 - Projeto já fabricado, em instalação, entregue ou cancelado não gera OS nova.
 - Cada item gera uma OS, com a quantidade do item.
 
+## Imprimir e exportar
+- **Exportar** → **Excel (.xlsx)** baixa a lista com a situação, a linha, o prazo, o projeto e o cliente filtrados na tela (inclusive **Aguardando você**), com todas as páginas.
+- A planilha traz número, projeto, cliente, produto, quantidade, etapa atual (letra e nome), data prometida, fim previsto, atrasada (Sim/Não) e situação. Nunca traz custo.
+- Esta lista não tem PDF. O limite é de 10.000 linhas; acima disso, refine os filtros. Com a lista vazia, **Exportar** fica desabilitado. Toda exportação fica na auditoria.
+
 ## Perguntas frequentes
 **A lista abriu vazia em "Aguardando você". E agora?** Nenhuma OS está pronta para concluir. Acompanhe a fábrica pelo Kanban ou escolha **Todas** em Situação.
 

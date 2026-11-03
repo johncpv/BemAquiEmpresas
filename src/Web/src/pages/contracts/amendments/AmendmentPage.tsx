@@ -1,7 +1,8 @@
 import { Link, useParams } from '@tanstack/react-router'
-import { useGetAmendment } from '@/api/generated/bemaqui'
+import { getDownloadAmendmentPdfUrl, useGetAmendment } from '@/api/generated/bemaqui'
 import type { AmendmentDetail } from '@/api/generated/model'
 import { FormLayout } from '@/components/layout/form-layout'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { Money } from '@/components/ui/money'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -35,6 +36,7 @@ export function AmendmentPage() {
         }
         actions={
           <>
+            <DocumentActions url={getDownloadAmendmentPdfUrl(id, a.id)} fileName={`${a.contractNumber}-aditivo-${a.number}.pdf`} />
             <Link to={'/app/contratos/$id' as never} params={{ id } as never} search={{ aba: 'aditivos' } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ver contrato</Link>
             <AmendmentActions amendment={a} />
           </>

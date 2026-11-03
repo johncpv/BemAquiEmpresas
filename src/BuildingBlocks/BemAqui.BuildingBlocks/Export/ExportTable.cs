@@ -37,6 +37,12 @@ public sealed record ExportSensitivity(IReadOnlyList<string> AnyOf, string Mask 
     public ExportSensitivity(string permission) : this([permission])
     {
     }
+
+    /// <summary>Sem a ação, a coluna sai do arquivo em vez de vir mascarada (EXP-04: custo e margem que a tela esconde).</summary>
+    public bool Omit { get; init; }
+
+    /// <summary>Coluna que some do arquivo sem a ação (EXP-04).</summary>
+    public static ExportSensitivity Omitted(string permission) => new(permission) { Omit = true };
 }
 
 /// <summary>Coluna pronta para o exportador (depois da máscara). <c>Indented</c>: a coluna recebe o recuo da linha (<see cref="ExportRowStyle"/>).</summary>

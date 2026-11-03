@@ -145,7 +145,7 @@ public sealed class ListExportService(
         }
 
         var recorded = filters.Where(f => !string.IsNullOrWhiteSpace(f.Value)).ToDictionary(f => f.Label, f => f.Value);
-        if (allowed.Values.Any(v => v))
+        if (allowed.Any(a => a.Value && !a.Key.Omit))
         {
             // EXP-05: o arquivo levou alguma coluna sensível sem máscara (CPF, salário); a auditoria registra o fato, nunca o conteúdo.
             recorded[SensitiveKey] = "true";

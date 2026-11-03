@@ -691,7 +691,9 @@ Pedido do PO de 02/11/2026: todo documento gerado tem PDF para imprimir e as lis
 
 **EXP-03 [x] Onda 1: PDF da cotação e do mapa comparativo, pedido de compra no template com prévia, "Baixar PDF" no orçamento, romaneio e ficha da OS de fabricação (M)** — Pós-go-live, ordem 3 — `Done` (03/11/2026) — [story](stories/EXP-03-pdf-compras-orcamento-os-fabricacao.md)
 
-**EXP-04 [ ] Onda 2: PDFs do comercial, da produção, das compras e do estoque, Excel das listas operacionais, holerite e boleto à mão (G)** — [story](stories/EXP-04-pdf-comercial-producao-estoque-listas.md)
+**EXP-04 [x] Onda 2: PDFs do comercial, da produção, das compras e do estoque, Excel das listas operacionais, holerite e boleto à mão (G)** — Pós-go-live, ordem 4 — `Done` (03/11/2026) — [story](stories/EXP-04-pdf-comercial-producao-estoque-listas.md)
+- Requisitos: pedido do PO de 02/11/2026, R-PRJ-3, R-PRJ-6, R-CMP-5, R-EST-6, R-EST-9, R-PRD-1, R-RH-5, R-COM-3, PRD §6 (LGPD), R-SEC-5, ADR 0045.
+- CA: PDFs no modelo único do contrato (Cancelado, faixa de implantação), do aditivo (Rascunho, Cancelado; IDOR), da OS de instalação (sem valor do instalador), do termo de aceite técnico (em branco, preenchido com "Aceite registrado em", texto fixo, 409 cancelada), do comprovante de recebimento (sem custo), da folha de separação, do ajuste (Prévia, estornado), da folha de contagem cega (sem saldo, só em contagem) e do resultado do inventário (409 em contagem) e da NC (custo estimado só com `projects.view_cost`); xlsx das listas de compras, estoque (Saldos e Movimentos também em PDF), comercial e produção com os filtros da tela, custo e margem omitidos sem a ação (`ExportSensitivity.Omitted`); "Baixar holerite" na folha e bloco Holerites na ficha (`GET /hr/employees/{id}/payslips`, `hr.view_sensitive`, `no-store`); "Baixar boleto" no cabeçalho do título e na lista A receber; ajuda "Imprimir e exportar".
 
 **EXP-05 [x] Onda 3: PDFs restantes, Excel de RH, fiscal, patrimônio e cadastros, e migração dos layouts antigos para o template (M)** — Pós-go-live, ordem 5 — `Done` (03/11/2026) — [story](stories/EXP-05-pdf-restantes-excel-rh-cadastros-migracao.md)
 

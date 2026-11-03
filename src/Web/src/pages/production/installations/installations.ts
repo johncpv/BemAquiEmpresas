@@ -18,6 +18,7 @@ export const INSTALLATION_DICAS = {
   aceite: 'Confirma que a instalação foi entregue ao cliente. Confirma o título do instalador e libera a parcela do cliente ligada ao aceite.',
   valor: 'Valor que a empresa combinou pagar ao instalador por esta OS. Vira um título a pagar previsto até o aceite.',
   estimado: 'Vencimento estimado pela data prevista de fim. Fica certo no aceite técnico.',
+  termo: 'Folha para o cliente assinar na obra: equipamento, séries e o checklist da entrega técnica. Sai em branco até o aceite; sem valor do instalador.',
 }
 
 /** Etapa atual para o indicador: a primeira não concluída; com todas concluídas, a última. */

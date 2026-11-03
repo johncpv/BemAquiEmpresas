@@ -78,7 +78,7 @@ export function PayslipsTab({ run, editable, canNotify, importing, onImportingCh
                   {r.lineCount === 0 ? <span>{run.mode === 'Calculated' ? 'Sem cálculo' : 'Sem lançamento'}</span> : <span>{r.lineCount === 1 ? '1 linha' : `${r.lineCount} linhas`}</span>}
                   <span>Líquido <Money value={r.net} className="font-semibold text-foreground" /></span>
                   {notice ? <NoticeCell run={run} row={notice} canNotify={canNotify} onChanged={refreshNotices} /> : null}
-                  <button type="button" onClick={() => void downloadPayslip(run, { payslipId: r.id, registration: r.registration })} className="min-h-11 font-semibold text-primary sm:min-h-0">Baixar</button>
+                  <button type="button" onClick={() => void downloadPayslip(run, { payslipId: r.id, registration: r.registration })} className="min-h-11 font-semibold text-primary sm:min-h-0">Baixar holerite</button>
                 </span>
               </li>
             )

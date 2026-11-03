@@ -16,6 +16,12 @@ Pedir preço a mais de um fornecedor, comparar as respostas lado a lado, escolhe
 - **Nova cotação sem solicitação** serve para uma compra pontual: você digita os itens e as quantidades.
 - Os filtros ficam no endereço da página, para guardar ou mandar o link.
 
+## Imprimir e exportar
+- Clique em **Exportar** e escolha **Excel (.xlsx)**. Valem o **Mostrar**, a situação e a busca da tela.
+- A planilha traz número, quantidade de itens, fornecedores convidados, quantos responderam, a data de criação e a situação. Preços e respostas não vão na planilha: veja o mapa comparativo da cotação.
+- Exportar só gera **Excel (.xlsx)** nesta lista, com todas as páginas. O limite é de 10.000 linhas; acima disso, o sistema pede para refinar os filtros.
+- Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+
 ## Perguntas frequentes
 **Preciso de três cotações?** Não. Uma resposta basta. Quando só um fornecedor responde, o pedido gerado leva o aviso **1 cotação** na aprovação, sem bloquear.
 

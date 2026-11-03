@@ -1,7 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from '@tanstack/react-router'
-import { getGetContractQueryKey, useGetContract } from '@/api/generated/bemaqui'
+import { getDownloadContractPdfUrl, getGetContractQueryKey, useGetContract } from '@/api/generated/bemaqui'
 import { RecordHistory } from '@/components/history/RecordHistory'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { Money } from '@/components/ui/money'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -35,16 +36,18 @@ export function ContractPage() {
       <PageHeading title={`${c.number} — ${c.partyName}`}
         meta={
           <>
+          <DocumentActions url={getDownloadContractPdfUrl(id)} fileName={`${c.number}.pdf`} />
             <StatusChip tone={CONTRACT_STATUS[c.status]?.tone ?? 'neutral'}>{CONTRACT_STATUS[c.status]?.label ?? c.status}</StatusChip>
             {c.isOnboarding ? <Tag>Implantação</Tag> : null}
           </>
         }
-        actions={c.projectId || cancellable ? (
+        actions={
           <>
+          <DocumentActions url={getDownloadContractPdfUrl(id)} fileName={`${c.number}.pdf`} />
           {c.projectId ? <Link to={'/app/projetos/$id' as never} params={{ id: c.projectId } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ver projeto {c.projectNumber}</Link> : null}
           {cancellable ? <CancelContractDialog contract={c} onDone={() => client.invalidateQueries({ queryKey: getGetContractQueryKey(id) })} /> : null}
           </>
-        ) : undefined} />
+        } />
       {c.status === 'Cancelled' ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">Contrato cancelado{c.cancelReason ? `: ${c.cancelReason}` : ''}. Só para consulta.</p> : null}
       {c.status === 'Completed' ? <p role="note" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">Contrato concluído: projeto entregue e parcelas quitadas.</p> : null}
       {parcels === 'pending' ? <p role="status" className="mb-4 rounded-md border border-border bg-muted px-3 py-2 text-sm">Gerando parcelas no financeiro…</p> : null}

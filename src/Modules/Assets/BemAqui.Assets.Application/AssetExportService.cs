@@ -1,5 +1,4 @@
 using BemAqui.Assets.Contracts;
-using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.SharedKernel;
@@ -14,7 +13,7 @@ public sealed record MaintenanceCostExportRow(string Label, string? Center, deci
 /// com os mesmos filtros. O valor de aquisição só existe para quem tem <c>assets.edit</c>: sem a ação, a coluna nem entra no arquivo (como a
 /// tela, que não a mostra). O custo de manutenção é a mesma tela (só com <c>assets.edit</c>, na rota).
 /// </summary>
-public sealed class AssetExportService(AssetService assets, MaintenanceService maintenance, MaintenanceCostService costs, IPermissionChecker permissions)
+public sealed class AssetExportService(AssetService assets, MaintenanceService maintenance, MaintenanceCostService costs)
 {
     public static readonly IReadOnlyDictionary<AssetType, string> TypeLabels = new Dictionary<AssetType, string>
     {
@@ -26,24 +25,17 @@ public sealed class AssetExportService(AssetService assets, MaintenanceService m
         [AssetStatus.Active] = "Ativo", [AssetStatus.Maintenance] = "Em manutenção", [AssetStatus.Disposed] = "Baixado",
     };
 
-    /// <summary>As colunas da lista de bens; o valor de aquisição só com <paramref name="withValue"/> (<c>assets.edit</c>).</summary>
-    public static ExportSpec<AssetListItem> AssetsSpec(bool withValue)
-    {
-        var spec = new ExportSpec<AssetListItem>("Asset", "bens", "Bens")
-            .Text("Etiqueta", a => a.Tag)
-            .Text("Nome", a => a.Name)
-            .Text("Tipo", a => TypeLabels.GetValueOrDefault(a.Type, a.Type.ToString()))
-            .Text("Série", a => a.SerialNumber).NotInPdf()
-            .Text("Local", a => a.SiteName)
-            .Text("Responsável", a => a.ResponsibleName is { } name ? (a.ResponsibleTerminated ? name + " (desligado)" : name) : null)
-            .Text("Centro", a => a.WorkCenterName);
-        if (withValue)
-        {
-            spec = spec.Money("Valor de aquisição", a => a.AcquisitionValue);
-        }
-
-        return spec.Text("Situação", a => StatusLabels.GetValueOrDefault(a.Status, a.Status.ToString()));
-    }
+    /// <summary>As colunas da lista de bens; o valor de aquisição some do arquivo sem <c>assets.edit</c> (<see cref="ExportSensitivity.Omitted"/>, EXP-04).</summary>
+    public static readonly ExportSpec<AssetListItem> AssetsSpec = new ExportSpec<AssetListItem>("Asset", "bens", "Bens")
+        .Text("Etiqueta", a => a.Tag)
+        .Text("Nome", a => a.Name)
+        .Text("Tipo", a => TypeLabels.GetValueOrDefault(a.Type, a.Type.ToString()))
+        .Text("Série", a => a.SerialNumber).NotInPdf()
+        .Text("Local", a => a.SiteName)
+        .Text("Responsável", a => a.ResponsibleName is { } name ? (a.ResponsibleTerminated ? name + " (desligado)" : name) : null)
+        .Text("Centro", a => a.WorkCenterName)
+        .Money("Valor de aquisição", a => a.AcquisitionValue, ExportSensitivity.Omitted("assets.edit"))
+        .Text("Situação", a => StatusLabels.GetValueOrDefault(a.Status, a.Status.ToString()));
 
     public static readonly ExportSpec<MaintenanceOrderListItem> OrdersSpec = new ExportSpec<MaintenanceOrderListItem>("MaintenanceOrder", "manutencao", "Manutenção")
         .Text("Número", o => o.Number)
@@ -85,7 +77,6 @@ public sealed class AssetExportService(AssetService assets, MaintenanceService m
     public async Task<Result<ExportData<AssetListItem>>> AssetsAsync(AssetListQuery query, string? sort, int max, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(query);
-        var withValue = await permissions.HasPermissionAsync("assets", "edit", ct);
         var page = await assets.ListAsync(query, new PageRequest(1, Math.Max(1, max), sort), ct);
         ExportFilter[] filters =
         [
@@ -97,7 +88,7 @@ public sealed class AssetExportService(AssetService assets, MaintenanceService m
             new("Situação", query.Status is { } status ? (status == AssetStatus.Disposed ? "Baixados" : StatusLabels.GetValueOrDefault(status)) : null),
             new("Responsável desligado", query.ResponsibleTerminated ? "Só os do desligado" : null),
         ];
-        return new ExportData<AssetListItem>(AssetsSpec(withValue), filters, new ExportRows<AssetListItem>(page.Total, page.Items));
+        return new ExportData<AssetListItem>(AssetsSpec, filters, new ExportRows<AssetListItem>(page.Total, page.Items));
     }
 
     /// <summary>Manutenção (CA 17): as OS do filtro (sem situação, as abertas e em andamento) e a aba das preventivas vencidas e a vencer.</summary>

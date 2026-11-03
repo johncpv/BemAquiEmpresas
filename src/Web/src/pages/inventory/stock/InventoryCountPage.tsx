@@ -1,21 +1,24 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { useState } from 'react'
-import { cancelInventoryCount, closeInventoryCount, reopenInventoryCount, useGetInventoryCount, useGetInventoryCountDivergences } from '@/api/generated/bemaqui'
+import { cancelInventoryCount, closeInventoryCount, getDownloadInventoryCountResultPdfUrl, getDownloadInventoryCountSheetPdfUrl, reopenInventoryCount, useGetInventoryCount, useGetInventoryCountDivergences } from '@/api/generated/bemaqui'
 import type { InventoryCountDetail, UncountedPolicy } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { FactsBar } from '@/components/ui/facts-bar'
 import { Money } from '@/components/ui/money'
 import { NextSteps, type Step } from '@/components/ui/next-steps'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { UrlTabs } from '@/components/ui/url-tabs'
+import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
 import { ADJUSTMENT_TONE, closeTotals, COUNT_STATUS, lineLabel, linesLabel, UNCOUNTED_POLICY } from './inventory-counts'
 import { CountHistorySection, CountingSection, DivergencesSection } from './InventoryCountSections'
+import { printPdf } from './print-pdf'
 import { formatQuantity } from './stock'
 import { useRefreshCount } from './use-refresh-count'
 
@@ -79,6 +82,7 @@ export function InventoryCountPage() {
   const refresh = useRefreshCount(id)
   const [reason, setReason] = useState('')
   const [steps, setSteps] = useState<Step[]>([])
+  const [printDismissed, setPrintDismissed] = useState(false)
   if (query.isPending) return <Skeleton className="h-96" />
   if (query.isError || !query.data) {
     const notFound = query.error instanceof ApiError && query.error.status === 404
@@ -105,6 +109,9 @@ export function InventoryCountPage() {
         }
         actions={
           <>
+            {counting
+              ? <span className="inline-flex items-start"><DocumentActions url={getDownloadInventoryCountSheetPdfUrl(c.id)} fileName={`${c.number}-folha-de-contagem.pdf`} label="Baixar folha de contagem" /><Dica nome="Folha de contagem" texto="Sem o saldo do sistema: conte o que está na prateleira." /></span>
+              : <DocumentActions url={getDownloadInventoryCountResultPdfUrl(c.id)} fileName={`${c.number}.pdf`} label="Baixar resultado" />}
             {c.canCount ? <Link to={'/app/estoque/inventarios/$id/contagem' as never} params={{ id: c.id } as never} className="inline-flex min-h-[44px] items-center rounded-md border border-border px-3 py-2 text-sm font-semibold">Contar no celular</Link> : null}
             {counting && c.canManage ? <CloseDialog count={c} onDone={closed} /> : null}
             {c.canCancel ? (
@@ -136,6 +143,10 @@ export function InventoryCountPage() {
       {c.status === 'Closed' && !c.adjustmentId ? <p role="note" className="mb-3 rounded-md border border-info-soft bg-info-soft px-3 py-2 text-sm text-info-ink">Fechado sem divergência: nenhum ajuste foi gerado.</p> : null}
       {c.status === 'Cancelled' ? <p role="note" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">Cancelado em {c.cancelledAt ? formatDateTime(c.cancelledAt) : '—'} por {c.cancelledByName ?? '—'}: {c.cancelReason}</p> : null}
       {steps.length ? <div className="mb-3"><NextSteps steps={steps} onDismiss={() => setSteps([])} /></div> : null}
+      {/* EXP-04 (propositivo): no inventário aberto, quem conta no papel imprime a folha de contagem (cega). */}
+      {counting && !steps.length && !printDismissed ? (
+        <div className="mb-3"><NextSteps onDismiss={() => setPrintDismissed(true)} steps={[{ label: 'Imprimir a folha de contagem', onSelect: () => void printPdf(getDownloadInventoryCountSheetPdfUrl(c.id)) }]} /></div>
+      ) : null}
       <FactsBar label="Fatos do inventário" facts={[
         { label: 'Progresso', value: c.progress },
         { label: 'Foto do saldo', value: formatDateTime(c.snapshotAt) },

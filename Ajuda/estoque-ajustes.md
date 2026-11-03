@@ -15,6 +15,13 @@ Acertar o saldo quando o que existe na prateleira não bate com o sistema e não
 - Clique no número para ver o ajuste, os itens e decidir.
 - A situação aparece em cor: **Aguardando aprovação** (informativo), **Aprovado** (ok), **Reprovado** (crítico), **Cancelado** e **Estornado** (neutros). A marca **Autoaprovado** aparece quando o Proprietário era o único que podia aprovar.
 
+## Imprimir e exportar
+- Clique em **Exportar** e escolha **Excel (.xlsx)**. Valem o "Mostrar" (inclusive **Aguardando você**), a situação e o modo da tela, com todas as páginas.
+- A planilha traz número, modo, local, itens, sobras, faltas, valor líquido, quem lançou, situação, quem decidiu e quando.
+- O PDF de cada ajuste sai na tela do ajuste (**Baixar PDF**).
+- O limite é de 10.000 linhas no Excel e 2.000 no PDF. Acima disso, o sistema avisa e pede para refinar os filtros.
+- Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+
 ## Perguntas frequentes
 **Por que todo ajuste precisa de aprovação?** O ajuste muda o saldo sem nota, pedido ou requisição. Para o estoque não mudar sem alguém responder por isso, outra pessoa com a ação **Aprovar** no Estoque decide, qualquer que seja o valor.
 

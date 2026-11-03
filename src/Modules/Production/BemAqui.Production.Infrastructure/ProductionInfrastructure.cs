@@ -47,6 +47,9 @@ public static class ProductionInfrastructure
         services.TryAddScoped<FabricationOrderService>();
         // EXP-03: ficha da OS de fabricação em PDF.
         services.TryAddScoped<ProductionOrderDocumentService>();
+        services.TryAddScoped<InstallationDocumentService>();
+        services.TryAddScoped<NonConformityDocumentService>();
+        services.TryAddScoped<ProductionExportService>();
         // Produto acabado na conclusão (PRD-06a2): entrada, séries, lotes e reservas pelos contratos do Inventory, na transação da OS.
         services.TryAddScoped<FinishedGoods>();
         services.TryAddScoped<IProductionOrders, ProductionOrdersContract>();

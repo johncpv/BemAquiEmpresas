@@ -29,6 +29,7 @@ internal static partial class PurchasingEndpoints
         MapOrderBalance(orders);
         MapReceipts(purchasing);
         MapOrderOptions(purchasing);
+        MapExports(purchasing);
         purchasing.MapGet("/items", async (string? q, PurchaseRequestService service, CancellationToken ct) => Results.Ok(await service.ItemOptionsAsync(q, ct)))
             .RequirePermission("purchasing.create").WithName("ListPurchaseItemOptions").Produces<IReadOnlyList<PurchaseItemOption>>();
         purchasing.MapGet("/projects", async (string? q, PurchaseRequestService service, CancellationToken ct) => Results.Ok(await service.ProjectOptionsAsync(q, ct)))

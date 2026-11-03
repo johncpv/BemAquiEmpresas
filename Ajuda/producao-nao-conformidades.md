@@ -15,6 +15,11 @@ Acompanhar as não conformidades abertas nas reprovações da qualidade até o e
 - Situações: **Aberta** (vermelho), **Em ação** (âmbar, causa e ação definidas) e **Encerrada** (verde, com o resultado).
 - Toque no número para abrir a NC; na OS, a aba **Qualidade** mostra as tentativas e as NC daquela OS.
 
+## Imprimir e exportar
+- **Exportar** → **Excel (.xlsx)** baixa a lista com o filtro **Aguardando você** ou **Todas** e a situação da tela, com todas as páginas: número, OS, projeto, etapa de qualidade, responsável, situação e idade em dias.
+- A coluna **Custo estimado** só vem para quem tem **Ver custo e margem** dos projetos. Para os demais, a coluna some do arquivo.
+- Esta lista não tem PDF; o PDF de cada NC fica no cabeçalho da NC. O limite é de 10.000 linhas. Com a lista vazia, **Exportar** fica desabilitado. Toda exportação fica na auditoria.
+
 ## Perguntas frequentes
 **Quem é o responsável?** Por padrão, quem reprovou. Quem tem **Editar** na Produção troca o responsável na NC.
 
