@@ -257,7 +257,7 @@ public sealed class OwnerDashboardPdfDocument : PdfDocumentFrame
     private static void Block(ColumnDescriptor col, string title) => col.Item().Element(c => Section(c, title));
 
     /// <summary>Tabela simples: primeira coluna em texto e as demais à direita (números).</summary>
-    private static void Table(IContainer c, string[] headers, IReadOnlyList<string[]> rows)
+    private static void Table(IContainer c, string[] headers, List<string[]> rows)
     {
         if (rows.Count == 0)
         {

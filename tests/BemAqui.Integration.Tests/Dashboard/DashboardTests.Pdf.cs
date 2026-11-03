@@ -27,12 +27,12 @@ public partial class DashboardTests
         full.Should().Contain("Paineldoproprietário").And.Contain("Fotografiade").And.Contain("osnúmerosmudamcomnovoslançamentos")
             .And.Contain("Saldoemcontas").And.Contain("Faturamento").And.Contain("Arecebervencido").And.Contain("Comercial");
 
-        var (_, sales) = await ActorWithAsync("dashboard.view", "quotes.view");
+        var (_, sales, _) = await ActorWithAsync("dashboard.view", "quotes.view");
         var partial = await PanelPdfAsync(sales);
         partial.Should().Contain("Comercial").And.Contain("Fotografiade");
         partial.Should().NotContain("Saldoemcontas", "sem finance.view o bloco do caixa não é montado").And.NotContain("Faturamento").And.NotContain("Arecebervencido");
 
-        var (_, nobody) = await ActorWithAsync("quotes.view");
+        var (_, nobody, _) = await ActorWithAsync("quotes.view");
         (await nobody.GetAsync(Base + "/pdf")).StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 }
