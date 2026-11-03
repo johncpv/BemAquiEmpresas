@@ -3,6 +3,7 @@ import { createMemoryHistory } from '@tanstack/react-router'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setAccessToken } from './api/session'
+import { PAGE_WIDTH_CLASS, widthOfMatches } from './components/layout/page-width'
 import { SAMPLE_MODULES } from './navigation/sample'
 import { App } from './App'
 import { createAppRouter } from './router'
@@ -69,6 +70,30 @@ describe('shell do backoffice (FND-09b)', () => {
     const heading = await screen.findByRole('heading', { level: 1, name: 'Patrimônio: Locais' })
     await waitFor(() => expect(document.title).toBe('Patrimônio: Locais · Empresa · BemAqui Empresas'))
     expect(document.activeElement).toBe(heading)
+  })
+
+  it('largura pelo tipo de tela: full no quadro e nos painéis, form nos cadastros, default sem declarar (ADR 0044)', async () => {
+    // Declaração nas rotas (a rota mais profunda manda; sem declarar, default).
+    const router = createAppRouter(createMemoryHistory({ initialEntries: ['/app'] }))
+    const widthAt = (path: string) => widthOfMatches(router.matchRoutes(path, {}))
+    for (const path of ['/app/producao/kanban', '/app/producao/planejamento', '/app/painel', '/app/painel/resultado-por-projeto', '/app/painel/resultado-por-projeto/p1', '/app/financeiro/dre', '/app/financeiro/fluxo-de-caixa']) expect(widthAt(path), path).toBe('full')
+    for (const path of ['/app/configuracoes/empresa', '/app/configuracoes/parametros', '/app/producao/modelo-instalacao', '/app/financeiro/pagar/novo', '/app/financeiro/receber/novo', '/app/rh/funcionarios/novo', '/app/cadastros/terceiros/novo', '/app/estoque/itens/novo']) expect(widthAt(path), path).toBe('form')
+    for (const path of ['/app', '/app/acessos/grupos', '/app/rh/funcionarios', '/app/rh/funcionarios/e1', '/app/financeiro/receber', '/app/producao/os']) expect(widthAt(path), path).toBe('default')
+
+    // O shell aplica a classe do tipo num contêiner em volta do Outlet; o main fica fluido.
+    const router2 = renderAt('/app')
+    await screen.findByRole('heading', { level: 1, name: 'Início' })
+    const container = document.querySelector('#conteudo > [data-page-width]')!
+    expect(container.getAttribute('data-page-width')).toBe('default')
+    expect(container.className).toBe(PAGE_WIDTH_CLASS.default)
+    expect(document.getElementById('conteudo')!.className).not.toContain('max-w-')
+    // Tela de formulário: o conteúdo fica à esquerda, limitado à coluna do formulário + painel (sem centralizar de novo).
+    await act(() => router2.navigate({ to: '/app/conta' }))
+    await waitFor(() => expect(document.querySelector('#conteudo > [data-page-width]')?.getAttribute('data-page-width')).toBe('form'))
+    expect(document.querySelector('#conteudo > [data-page-width="form"] > .max-w-\\[77\\.5rem\\]')).not.toBeNull()
+    expect(PAGE_WIDTH_CLASS.full).toContain('max-w-[1920px]')
+    expect(PAGE_WIDTH_CLASS.default).toContain('max-w-screen-2xl')
+    expect(PAGE_WIDTH_CLASS.form).toContain('max-w-screen-2xl')
   })
 
   it('primeiro item focável é "Pular para o conteúdo" (CA 12)', async () => {

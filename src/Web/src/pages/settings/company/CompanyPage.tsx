@@ -2,10 +2,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Controller } from 'react-hook-form'
 import { getGetCompanyProfileQueryKey, getGetTenantPublicContextQueryKey, lookupCompanyCep, saveCompanyProfile, useGetCompanyProfile } from '@/api/generated/bemaqui'
 import type { CompanyProfileDto } from '@/api/generated/model'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, type FieldSize, type FieldSpan, FormActions, FormError, FormSection } from '@/components/form/form'
 import { applyServerErrors, inputClass, useZodForm } from '@/components/form/form-utils'
 import { CepInput, PhoneInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
+import { FormLayout } from '@/components/layout/form-layout'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { notifySuccess } from '@/components/ui/messages'
 import { cnpjMask } from '@/lib/masks'
@@ -23,7 +24,7 @@ export function CompanyPage() {
   return (
     <>
       <PageHeading title="Configurações: Empresa" />
-      {query.isPending ? <Skeleton className="h-96 max-w-3xl" /> : query.isError || !query.data ? <ErrorState onRetry={() => query.refetch()} /> : (
+      {query.isPending ? <Skeleton className="h-96 max-w-4xl" /> : query.isError || !query.data ? <ErrorState onRetry={() => query.refetch()} /> : (
         <CompanyForm key={query.data.id ?? 'novo'} profile={query.data} canEdit={canEdit} />
       )}
     </>
@@ -55,55 +56,63 @@ function CompanyForm({ profile, canEdit }: { profile: CompanyProfileDto; canEdit
     }
   })
 
-  const input = (label: string, name: TextField, extra: { required?: boolean; hint?: string } = {}) => (
-    <Field label={label} required={extra.required} hint={extra.hint} error={errors[name]?.message}>{(p) => <input {...p} {...text(name)} className={inputClass} />}</Field>
+  const input = (label: string, name: TextField, extra: { required?: boolean; hint?: string; size?: FieldSize; span?: FieldSpan } = {}) => (
+    <Field label={label} required={extra.required} hint={extra.hint} size={extra.size} span={extra.span} error={errors[name]?.message}>{(p) => <input {...p} {...text(name)} className={inputClass} />}</Field>
   )
 
+  // Formulário longo (padrão de layout, ADR 0044): coluna à esquerda com o título, grade de 12 trilhas com o campo do tamanho do
+  // conteúdo, barra de ações presa acima do dock e o logo no painel lateral (a partir de 1280 px; abaixo, depois do formulário).
   return (
-    <form id="empresa" onSubmit={submit} noValidate className="max-w-3xl space-y-4">
-      <UnsavedChangesGuard when={form.formState.isDirty} onSave={async () => { await submit(); return !Object.keys(form.formState.errors).length }} />
-      {!profile.exists ? <p role="status" className="rounded-md border border-primary-soft bg-primary-soft px-3 py-2 text-sm">Os dados vieram do cadastro da plataforma. Confira e clique em <b>Salvar dados da empresa</b>.</p> : null}
-      <FormError message={errors.root?.server?.message} />
-      <fieldset disabled={!canEdit} className="space-y-4">
-        <FormSection title="Identificação">
-          <Field label="CNPJ" dica="O CNPJ é alterado pelo suporte da plataforma.">
-            {(p) => <input {...p} value={profile.document ? cnpjMask.format(profile.document) : ''} readOnly disabled className={inputClass} />}
-          </Field>
-          {input('Razão social', 'legalName', { required: true })}
-          {input('Nome fantasia', 'tradeName', { hint: 'Aparece no topo do sistema e no login.' })}
-          {input('Inscrição estadual', 'stateRegistration', { hint: 'Só os dígitos, ou ISENTO.' })}
-          {input('Inscrição municipal', 'municipalRegistration')}
-        </FormSection>
-        <FormSection title="Endereço">
-          <Field label="CEP" error={errors.zipCode?.message} hint={cep.message} hintLive>
-            {(p) => <Controller control={form.control} name="zipCode" render={({ field }) => <CepInput {...p} value={field.value} onChange={(v) => { field.onChange(v); void cep.onCep(v) }} />} />}
-          </Field>
-          {input('Logradouro', 'street')}
-          {input('Número', 'number')}
-          {input('Complemento', 'complement')}
-          {input('Bairro', 'district')}
-          {input('Cidade', 'city')}
-          <Field label="UF" error={errors.state?.message}>
-            {(p) => (
-              <select {...p} {...form.register('state')} className={inputClass}>
-                <option value="">Escolha</option>
-                {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            )}
-          </Field>
-          {input('Código IBGE', 'cityIbge', { hint: 'A consulta de CEP preenche.' })}
-        </FormSection>
-        <FormSection title="Contato">
-          <Field label="Telefone" error={errors.phone?.message}>
-            {(p) => <Controller control={form.control} name="phone" render={({ field }) => <PhoneInput {...p} value={field.value} onChange={field.onChange} />} />}
-          </Field>
-          {input('E-mail', 'email')}
-        </FormSection>
-      </fieldset>
-      <FormSection title="Logo">
-        <CompanyLogo profile={profile} canEdit={canEdit} />
-      </FormSection>
-      {canEdit ? <div className="flex justify-end"><button type="submit" disabled={form.formState.isSubmitting} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar dados da empresa</button></div> : null}
-    </form>
+    <FormLayout asideLabel="Logo da empresa" aside={<FormSection title="Logo" grid="none"><CompanyLogo profile={profile} canEdit={canEdit} /></FormSection>}>
+      <form id="empresa" onSubmit={submit} noValidate className="space-y-5">
+        <UnsavedChangesGuard when={form.formState.isDirty} onSave={async () => { await submit(); return !Object.keys(form.formState.errors).length }} />
+        {!profile.exists ? <p role="status" className="rounded-md border border-primary-soft bg-primary-soft px-3 py-2 text-sm">Os dados vieram do cadastro da plataforma. Confira e clique em <b>Salvar dados da empresa</b>.</p> : null}
+        <FormError message={errors.root?.server?.message} />
+        <fieldset disabled={!canEdit} className="space-y-5">
+          {/* CNPJ 4 · Razão social 8 / Nome fantasia 6 · IE 3 · IM 3 */}
+          <FormSection title="Identificação" grid="form">
+            <Field label="CNPJ" size="md" dica="O CNPJ é alterado pelo suporte da plataforma.">
+              {(p) => <input {...p} value={profile.document ? cnpjMask.format(profile.document) : ''} readOnly disabled className={inputClass} />}
+            </Field>
+            {input('Razão social', 'legalName', { required: true, size: 'xl' })}
+            {input('Nome fantasia', 'tradeName', { hint: 'Aparece no topo do sistema e no login.', size: 'lg' })}
+            {input('Inscrição estadual', 'stateRegistration', { hint: 'Só os dígitos, ou ISENTO.', size: 'sm' })}
+            {input('Inscrição municipal', 'municipalRegistration', { size: 'sm' })}
+          </FormSection>
+          {/* CEP 3 · Logradouro 7 · Nº 2 / Complemento 4 · Bairro 3 · Cidade 3 · UF 2 / IBGE 3. Exceções (span): o logradouro e o
+              bairro e a cidade cedem uma trilha para a linha fechar em 12; o CEP fica com 3 por causa da mensagem da consulta. */}
+          <FormSection title="Endereço" grid="form">
+            <Field label="CEP" size="sm" error={errors.zipCode?.message} hint={cep.message} hintLive>
+              {(p) => <Controller control={form.control} name="zipCode" render={({ field }) => <CepInput {...p} value={field.value} onChange={(v) => { field.onChange(v); void cep.onCep(v) }} />} />}
+            </Field>
+            {input('Logradouro', 'street', { size: 'xl', span: { lg: 7 } })}
+            {input('Número', 'number', { size: 'xs' })}
+            {input('Complemento', 'complement', { size: 'md' })}
+            {input('Bairro', 'district', { size: 'md', span: { lg: 3 } })}
+            {input('Cidade', 'city', { size: 'md', span: { lg: 3 } })}
+            <Field label="UF" size="xs" error={errors.state?.message}>
+              {(p) => (
+                <select {...p} {...form.register('state')} className={inputClass}>
+                  <option value="">Escolha</option>
+                  {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              )}
+            </Field>
+            {input('Código IBGE', 'cityIbge', { hint: 'A consulta de CEP preenche.', size: 'sm' })}
+          </FormSection>
+          <FormSection title="Contato" grid="form">
+            <Field label="Telefone" size="sm" error={errors.phone?.message}>
+              {(p) => <Controller control={form.control} name="phone" render={({ field }) => <PhoneInput {...p} value={field.value} onChange={field.onChange} />} />}
+            </Field>
+            {input('E-mail', 'email', { size: 'lg' })}
+          </FormSection>
+        </fieldset>
+        {canEdit ? (
+          <FormActions sticky dirty={form.formState.isDirty}>
+            <button type="submit" disabled={form.formState.isSubmitting} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar dados da empresa</button>
+          </FormActions>
+        ) : null}
+      </form>
+    </FormLayout>
   )
 }
