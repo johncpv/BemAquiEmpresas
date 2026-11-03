@@ -20,6 +20,36 @@ export const STEP_STATUS: Record<string, string> = {
   Waiting: 'Aguardando', Ready: 'Pronta', InProgress: 'Em andamento', Paused: 'Pausada', Done: 'Concluída', Rejected: 'Reprovada',
 }
 
+/** A etapa começou e ninguém está nela agora, sem pausa aberta (ex.: só o apontamento fechado do supervisor). */
+export const STEP_IDLE = 'Iniciada · ninguém trabalhando agora'
+
+/**
+ * Chip da etapa (aba Etapas e Kanban): com a pausa aberta, "Pausada: {motivo}"; iniciada e sem ninguém, sem pausa aberta,
+ * "Iniciada · ninguém trabalhando agora" (`idle`, com a dica de como seguir). Só apresentação: a situação vem do servidor.
+ */
+export function stepChip(s: { status: string; pausedReason?: string | null; awaitingApproval?: boolean }): { label: string; tone: StatusTone; idle: boolean } {
+  if (s.awaitingApproval) return { label: 'Aguardando aprovação', tone: 'info', idle: false }
+  if (s.status === 'Paused') return s.pausedReason ? { label: `Pausada: ${s.pausedReason}`, tone: 'warn', idle: false } : { label: STEP_IDLE, tone: 'warn', idle: true }
+  const tone: StatusTone = s.status === 'Done' ? 'ok' : s.status === 'Ready' || s.status === 'InProgress' ? 'info' : 'neutral'
+  return { label: STEP_STATUS[s.status] ?? s.status, tone, idle: false }
+}
+
+export const MAX_STEP_REASON = 200
+
+/** Rótulo de "Concluir etapa {letra} {nome}". */
+export const stepActionLabel = (step: { code?: string | null; name?: string | null }) => `Concluir etapa ${step.code ?? ''} ${step.name ?? ''}`.replace(/\s+/g, ' ').trim()
+
+/**
+ * "Concluir etapa" na OS (aba Etapas e Apontamentos): com production.approve, só a etapa atual já iniciada (em andamento ou parada),
+ * fora a de qualidade e a que aguarda aprovação, em OS não concluída nem cancelada. As mesmas regras do menu do Kanban.
+ */
+export function canConcludeStep(order: { status: string; currentStepIndex: number; steps: { id: string; status: string; isQualityStep: boolean; awaitingApproval?: boolean }[] },
+  stepId: string, canApprove: boolean) {
+  if (!canApprove || order.status === 'Completed' || order.status === 'Cancelled') return false
+  const step = order.steps[order.currentStepIndex]
+  return !!step && step.id === stepId && (step.status === 'InProgress' || step.status === 'Paused') && !step.isQualityStep && !step.awaitingApproval
+}
+
 /** Filtro de situação na URL (?situacao=aberta). */
 export const FABRICATION_SITUATIONS = [
   { value: 'aberta', label: 'Abertas' },
@@ -41,7 +71,13 @@ export const FABRICATION_DICAS = {
   custoApurado: 'Horas apontadas mais o material baixado para a OS, menos o devolvido.',
   serie: 'Número único de cada unidade do produto, no formato código do item, ano e sequência. Dá para editar antes de concluir.',
   antesDoEstoque: 'Esta OS foi concluída antes de o sistema dar entrada do produto acabado. Se o produto ainda está na fábrica, lance a entrada pelo Estoque.',
+  iniciada: 'Para continuar, toque em Iniciar etapa no tablet (/fab). Para encerrar sem novo apontamento, use Concluir etapa.',
+  concluirEtapa: 'Use quando a etapa terminou sem apontamento. Fica registrado quem concluiu e por quê.',
+  semProduto: 'Com o Estoque liberado, a OS só conclui com o item de estoque do produto: é ele que entra no estoque ao concluir.',
 } as const
+
+/** Aviso depois de "Apontar por funcionário": o apontamento do supervisor nasce fechado e não conclui a etapa. */
+export const RECORDED_NOTICE = 'Horas registradas. A etapa fica iniciada até alguém finalizar ou o supervisor concluir.'
 
 /** Textos da conclusão com estoque (PRD-06a2), os mesmos do servidor. */
 export const FINISHED_GOODS = {
@@ -158,3 +194,6 @@ export function canCancel(order: { status: string; started: boolean }, canEdit: 
 export function routingImpact(current: { steps: number; hours: number }, next: { steps: number; hours: number }) {
   return `${current.steps} → ${next.steps} etapas · ${hours(current.hours)} h → ${hours(next.hours)} h padrão`
 }
+/** Aviso "Antes de concluir a OS: escolha o item do produto" (PRD-06a2 CA 1): com o Estoque liberado, OS em aberto sem item de estoque. */
+export const needsProduct = (order: { productId?: string | null; status: string }, stockReleased: boolean) =>
+  stockReleased && !order.productId && order.status !== 'Completed' && order.status !== 'Cancelled'

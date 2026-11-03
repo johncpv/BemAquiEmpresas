@@ -62,6 +62,17 @@ describe('Cartão do Kanban (PRD-02 CA 3, 5 e 7)', () => {
     expect(screen.getByText('Em execução')).toBeTruthy()
   })
 
+  it('etapa iniciada sem ninguém e sem pausa aberta mostra "Iniciada · ninguém trabalhando agora"; com pausa, o motivo', async () => {
+    await renderCard(card({ currentStepStatus: 'Paused', appliedHours: 1 }))
+    expect(screen.getByText('Iniciada · ninguém trabalhando agora')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Dica: Etapa iniciada' })).toBeTruthy()
+    cleanup()
+
+    await renderCard(card({ currentStepStatus: 'Paused', pausedReason: 'Falta de material' }))
+    expect(screen.getByText('Pausada: Falta de material')).toBeTruthy()
+    expect(screen.queryByText('Iniciada · ninguém trabalhando agora')).toBeNull()
+  })
+
   it('pronta para concluir e sem roteiro levam à OS (próximo passo)', async () => {
     await renderCard(card({ readyToComplete: true, currentStepId: null, columnKey: 'pronta' }))
     expect(screen.getByText('Pronta para concluir')).toBeTruthy()

@@ -18,6 +18,9 @@ Ver e ajustar as etapas desta OS antes de a fábrica começar: letra, nome, cent
 - **Trocar roteiro** substitui as etapas pelas do roteiro escolhido. O diálogo mostra quantas etapas e horas mudam, antes e depois. O roteiro sugerido aparece com a tag **Sugerido**.
 - **Cancelar OS** pede o motivo. A OS que já começou só é cancelada por quem aprova na produção.
 - Depois da primeira etapa iniciada, as etapas ficam só para leitura.
+- **Como a etapa anda:** o operador toca em **Iniciar etapa** no tablet (/fab) e a etapa fica **Em andamento**. Ao **Pausar**, o chip mostra **Pausada: {motivo}** (Falta de material, Máquina parada, Intervalo, Fim do turno ou Outro); ao **Retomar**, volta a **Em andamento**. **Finalizar etapa** conclui e deixa a próxima pronta.
+- **Iniciada · ninguém trabalhando agora:** a etapa já teve apontamento, mas ninguém está nela e não há pausa aberta. Acontece, por exemplo, depois de um **Apontar por funcionário** (o apontamento do supervisor nasce fechado e não conclui a etapa) ou quando o supervisor corrigiu e fechou um apontamento que estava aberto. Para continuar, o operador toca em **Iniciar etapa** no tablet; para encerrar sem novo apontamento, use **Concluir etapa**.
+- **Concluir etapa** (quem aprova na produção): aparece no cartão da etapa atual quando ela já começou e não foi concluída. Informe o motivo. Os apontamentos abertos da etapa fecham com a marca **Encerrado pelo supervisor** e a próxima etapa fica pronta. É o mesmo diálogo do menu do Kanban. A etapa de qualidade é decidida na inspeção, não aqui.
 - A aba **BOM** (para quem vê a Engenharia) tem a lista de materiais da OS. A primeira etapa começa sem BOM; as seguintes só começam, e só são concluídas pelo supervisor, com a BOM liberada.
 - **Pronta para concluir:** todas as etapas e a qualidade foram feitas. A OS espera o supervisor concluir. Ela aparece assim na lista, no Kanban e aqui. Para quem aprova na produção, o próximo passo é **Concluir OS**. A etapa **Expedição** do roteiro é preparar e embalar: a saída do produto é pelo romaneio, depois de concluir.
 - **Concluir OS** (quem aprova na produção, com login completo): o diálogo mostra o que muda. A OS passa a **Concluída**; se é a última OS de fabricação do projeto, o projeto passa a **Fabricado** e a parcela do marco "fabricação concluída" é liberada, com valor e vencimento para quem vê o financeiro. A OS conclui com a quantidade inteira.
@@ -26,6 +29,7 @@ Ver e ajustar as etapas desta OS antes de a fábrica começar: letra, nome, cent
 - **Custo da OS zerado:** sem horas nem material, o diálogo mostra o aviso âmbar e pede para marcar **Confirmo a entrada com custo 0** antes de concluir.
 - Se algo falha (por exemplo, um número de série que já existe no item), nada é gravado: a OS continua **Pronta para concluir** e o erro aparece no diálogo. Se a conclusão demorar mais de 30 segundos, o diálogo avisa; não feche a tela.
 - **Sem item de estoque do produto:** **Concluir OS** fica desabilitado com "Escolha o item de estoque do produto antes de concluir.". Quem edita na produção clica em **Escolher item do produto**, busca o produto acabado ou componente e confirma.
+- **Antes de concluir a OS: escolha o item do produto.** Com o Estoque liberado, a OS sem item de estoque do produto mostra esse aviso logo no começo, para não travar só na hora de concluir. Quem edita na produção clica em **Escolher item do produto** no próprio aviso.
 - Enquanto falta etapa, qualidade ou há apontamento aberto, **Concluir OS** fica desabilitado e diz o motivo, por exemplo "Falta aprovar a Qualidade".
 - Depois de concluir, os próximos passos levam à parcela liberada, ao **Novo romaneio** (já com o projeto e as séries da OS), às séries e ao projeto. A aba **Séries** mostra a entrada, as séries e os lotes consumidos.
 - **Estornar conclusão** (quem aprova na produção): informe o motivo. A OS volta para a última etapa e o projeto volta de Fabricado para Em andamento. A entrada no estoque ganha o movimento inverso, as séries ficam **Canceladas** e a reserva do material volta a seguir a BOM. A parcela já liberada continua em aberto e o Financeiro é avisado. A mensagem é **Conclusão estornada**.
@@ -48,3 +52,7 @@ Ver e ajustar as etapas desta OS antes de a fábrica começar: letra, nome, cent
 **O estorno cancela a parcela?** Não. O título a receber continua em aberto; quem decide é o Financeiro. Concluir a OS de novo não libera a parcela outra vez.
 
 **Quem só aprova a qualidade conclui a OS?** Não. Concluir e estornar a conclusão são do supervisor, com a ação **Aprovar** da Produção.
+
+**A etapa diz "Iniciada · ninguém trabalhando agora". O que fazer?** Se o trabalho continua, o operador toca em **Iniciar etapa** no tablet. Se a etapa já terminou, quem aprova na produção clica em **Concluir etapa** e informa o motivo. O **Apontar por funcionário** só registra horas: ele não conclui a etapa.
+
+**Quando a OS sai de Aberta?** No primeiro apontamento da OS, não quando a primeira etapa é concluída. Com alguém trabalhando, ela fica **Em produção**; se o primeiro apontamento já nasceu fechado, fica **Pausada** até alguém iniciar de novo.

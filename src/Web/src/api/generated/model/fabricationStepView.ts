@@ -26,4 +26,6 @@ export interface FabricationStepView {
   awaitingApproval?: boolean;
   selfApproved?: boolean;
   selfInspection?: boolean;
+  /** @nullable */
+  pausedReason?: string | null;
 }

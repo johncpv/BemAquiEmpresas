@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
-  approveFabricationStep, completeFabricationStep, correctLaborEntry, getGetOrderLaborCostsQueryKey, getListOrderLaborEntriesQueryKey, recordLaborEntry, useListLaborEmployees,
+  approveFabricationStep, correctLaborEntry, getGetOrderLaborCostsQueryKey, getListOrderLaborEntriesQueryKey, recordLaborEntry, useListLaborEmployees,
   useListOrderLaborEntries,
 } from '@/api/generated/bemaqui'
 import type { FabricationOrderDetail, LaborEntryView, LaborPauseInput, PauseReason } from '@/api/generated/model'
@@ -17,7 +17,8 @@ import { useBomRecovery } from '@/pages/engineering/boms/bom-recovery'
 import { useCan } from '@/pages/use-can'
 import { PAUSE_REASONS, pauseLabel } from '@/pages/shopfloor/shopfloor'
 import { Dica } from '@/help/Dica'
-import { hours } from './fabrication'
+import { CompleteStepDialog } from './CompleteStepDialog'
+import { canConcludeStep, hours, RECORDED_NOTICE, stepActionLabel } from './fabrication'
 import { fromLocalInput, laborMarks, toLocalInput } from './labor'
 import { LABOR_COST_DICAS, useOrderLaborCosts } from './labor-cost'
 import { LaborCostCell, MissingCostNotice } from './labor-costs'
@@ -29,7 +30,8 @@ interface PauseRow { reason: PauseReason; startedAt: string; endedAt: string }
 
 /**
  * Aba Apontamentos da OS (PRD-03a CA 15, 18 a 21, 31): funcionário, etapa, início, fim, pausas com motivo, horas líquidas, quem
- * registrou e as marcas; "Apontar por funcionário" (production.edit + shopfloor.create), "Corrigir apontamento" e "Aprovar etapa"
+ * registrou e as marcas; "Apontar por funcionário" (production.edit + shopfloor.create, com o aviso de que a etapa segue iniciada),
+ * "Corrigir apontamento", "Aprovar etapa" e "Concluir etapa" da etapa atual iniciada
  * (production.approve). Os links dos apontamentos abertos chegam com ?corrigir= ou ?concluir= e abrem a ação direto.
  */
 export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderDetail; onChanged: () => Promise<void> }) {
@@ -45,11 +47,11 @@ export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderD
   const canEdit = useCan('production.edit')
   const canPoint = useCan('shopfloor.create')
   const canRecord = canEdit && canPoint
-  const [concludeReason, setConcludeReason] = useState('')
   const canApprove = useCan('production.approve')
-  // ENG-02 CA 16: a recusa por BOM não liberada leva à aba BOM.
-  const bomRecovery = useBomRecovery(order.id)
   const [recording, setRecording] = useState(false)
+  // Depois de "Apontar por funcionário": a etapa do apontamento, para o aviso de que ela continua iniciada.
+  const [recordedStepId, setRecordedStepId] = useState<string | null>(null)
+  const [concluding, setConcluding] = useState<string | null>(null)
   const [picked, setCorrecting] = useState<LaborEntryView | null>(null)
   const refresh = async () => {
     await client.invalidateQueries({ queryKey: getListOrderLaborEntriesQueryKey(order.id) })
@@ -65,9 +67,26 @@ export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderD
     ? <button type="button" className={primary} onClick={() => setRecording(true)}>Apontar por funcionário</button> : null
   // Vindo dos apontamentos abertos (CA 22): ?corrigir={apontamento} ou ?concluir={etapa} abrem a ação direto.
   const correcting = picked ?? (canApprove && search.corrigir ? data.entries.find((e) => e.id === search.corrigir) ?? null : null)
-  const concludeStep = canApprove ? order.steps.find((s) => s.id === search.concluir && s.status !== 'Done') : undefined
+  const concludeId = concluding ?? (canApprove ? search.concluir : undefined)
+  const concludeStep = concludeId ? order.steps.find((s) => s.id === concludeId && s.status !== 'Done') : undefined
+  const closeConclude = () => { setConcluding(null); if (search.concluir) clearSearch() }
+  // "Concluir etapa" visível na aba: a etapa atual iniciada, com production.approve (as mesmas regras do Kanban).
+  const current = order.currentStepIndex >= 0 ? order.steps[order.currentStepIndex] : undefined
+  const concludeButton = current && canConcludeStep(order, current.id, canApprove)
+    ? <button type="button" className={button} onClick={() => setConcluding(current.id)}>{stepActionLabel(current)}</button> : null
+  // O apontamento do supervisor nasce fechado: a etapa continua iniciada até alguém finalizar ou o supervisor concluir.
+  const recordedStep = recordedStepId ? order.steps.find((s) => s.id === recordedStepId && (s.status === 'InProgress' || s.status === 'Paused')) : undefined
   return (
     <div className="space-y-3">
+      {recordedStep ? (
+        <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-l-4 border-info-soft border-l-info bg-info-soft px-3 py-2 text-sm text-info-ink">
+          <span>{RECORDED_NOTICE}</span>
+          <span className="flex flex-wrap gap-2">
+            {canConcludeStep(order, recordedStep.id, canApprove) ? <button type="button" className={primary} onClick={() => setConcluding(recordedStep.id)}>Concluir a etapa agora</button> : null}
+            <button type="button" className={button} onClick={() => setRecordedStepId(null)}>Dispensar</button>
+          </span>
+        </div>
+      ) : null}
       {data.awaitingApprovalStepId ? (
         <div role="note" className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-l-4 border-info-soft border-l-info bg-info-soft px-3 py-2 text-sm text-info-ink">
           <span>A etapa {data.awaitingApprovalStepName} foi finalizada e aguarda aprovação.</span>
@@ -81,7 +100,7 @@ export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderD
       ) : null}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground tabular-nums">{data.entries.length} {data.entries.length === 1 ? 'apontamento' : 'apontamentos'} · {hours(data.totalHours)} h líquidas{canSeeCost && costs.data ? ` · ${formatMoney(costs.data.laborCost)} de mão de obra` : ''}</p>
-        {data.entries.length > 0 ? recordButton : null}
+        <span className="flex flex-wrap gap-2">{concludeButton}{data.entries.length > 0 ? recordButton : null}</span>
       </div>
       {canSeeCost && costs.data ? <MissingCostNotice orderId={order.id} positions={costs.data.missingPositions} onDone={refresh} /> : null}
       {data.entries.length === 0 ? (
@@ -111,17 +130,11 @@ export function LaborEntriesTab({ order, onChanged }: { order: FabricationOrderD
           </table>
         </div>
       )}
-      {recording ? <RecordLaborDialog order={order} onClose={() => setRecording(false)} onDone={refresh} /> : null}
+      {recording ? <RecordLaborDialog order={order} onClose={() => setRecording(false)} onDone={async (stepId) => { setRecordedStepId(stepId); await refresh() }} /> : null}
       {correcting ? <CorrectLaborDialog orderId={order.id} entry={correcting} onClose={() => { setCorrecting(null); if (search.corrigir) clearSearch() }} onDone={refresh} /> : null}
       {concludeStep ? (
-        <ConfirmDialog verb="Concluir etapa" done="Etapa concluída" title={`Concluir a etapa ${concludeStep.name} da ${order.number}?`} open onOpenChange={(o) => { if (!o) clearSearch() }}
-          description="Os apontamentos abertos da etapa fecham agora, com a marca Encerrado pelo supervisor, e a próxima etapa fica pronta." onReload={refresh} recovery={bomRecovery}
-          preconditions={[{ ok: concludeReason.trim().length > 0, text: 'Informe o motivo.' }]}
-          onConfirm={async () => { await completeFabricationStep(order.id, concludeStep.id, { reason: concludeReason.trim(), version: order.version }); await refresh() }}>
-          <label className="block space-y-1 text-sm font-medium">Motivo
-            <textarea rows={3} maxLength={200} value={concludeReason} onChange={(e) => setConcludeReason(e.target.value)} className={inputClass} />
-          </label>
-        </ConfirmDialog>
+        <CompleteStepDialog orderId={order.id} orderNumber={order.number} step={concludeStep} version={order.version} open
+          onOpenChange={(o) => { if (!o) closeConclude() }} onDone={async () => { setRecordedStepId(null); await refresh() }} />
       ) : null}
     </div>
   )
@@ -158,7 +171,7 @@ const toPauses = (rows: PauseRow[]): LaborPauseInput[] =>
  * "Apontar por funcionário" (CA 18, 19): funcionário ativo, etapa, início e fim ("agora" por padrão) e as pausas. O servidor
  * recusa início no futuro, fim antes do início, mais de 7 dias e sobreposição com outro apontamento do funcionário.
  */
-function RecordLaborDialog({ order, onClose, onDone }: { order: FabricationOrderDetail; onClose: () => void; onDone: () => Promise<void> }) {
+function RecordLaborDialog({ order, onClose, onDone }: { order: FabricationOrderDetail; onClose: () => void; onDone: (stepId: string) => Promise<void> }) {
   const employees = useListLaborEmployees()
   const bomRecovery = useBomRecovery(order.id)
   const steps = order.steps.filter((s) => !s.isQualityStep && (s.status === 'Ready' || s.status === 'InProgress' || s.status === 'Paused') && !s.awaitingApproval)
@@ -171,11 +184,11 @@ function RecordLaborDialog({ order, onClose, onDone }: { order: FabricationOrder
   const [pauses, setPauses] = useState<PauseRow[]>([])
   return (
     <ConfirmDialog size="lg" open onOpenChange={(o) => { if (!o) onClose() }} recovery={bomRecovery} verb="Apontar por funcionário" done="Apontamento registrado" title={`Apontar por funcionário na ${order.number}`}
-      description="O apontamento fica com a marca Apontado por você e entra nas horas da etapa. Retroativo só até 7 dias."
+      description="O apontamento fica com a marca Apontado por você e entra nas horas da etapa, sem concluí-la. Retroativo só até 7 dias."
       preconditions={[{ ok: !!employeeId, text: 'Escolha o funcionário.' }, { ok: !!stepId, text: steps.length === 0 ? 'Nenhuma etapa pronta ou em andamento nesta OS.' : 'Escolha a etapa.' }, { ok: !!start, text: 'Informe o início.' }]}
       onConfirm={async () => {
         await recordLaborEntry(order.id, { employeeId, stepId, startedAt: fromLocalInput(start), endedAt: now ? null : fromLocalInput(end), pauses: toPauses(pauses), notes: null }, { headers: { [IDEMPOTENCY_HEADER]: key } })
-        await onDone()
+        await onDone(stepId)
       }}>
       <label className="block space-y-1 text-sm font-medium">Funcionário
         <select value={employeeId} onChange={(e) => setEmployeeId(e.target.value)} className={inputClass}>

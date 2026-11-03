@@ -1,14 +1,12 @@
 import type { BoardCard } from '@/api/generated/model'
 import { formatDate } from '@/lib/format'
+import { stepActionLabel } from '../orders/fabrication'
 
 /** Textos das dicas do Kanban (Telas e estados da PRD-02). */
 export const KANBAN_DICAS = {
   emRisco: 'A entrega prevista do projeto (o plano, mais o prazo de instalação) passou da data prometida ao cliente, mesmo que por um dia. O plano se refaz sozinho a cada apontamento.',
   horasRestantes: 'Soma do que falta das horas padrão das etapas atuais desta coluna: padrão menos apontadas, nunca abaixo de zero.',
-  concluirEtapa: 'Use quando a etapa terminou sem apontamento. Fica registrado quem concluiu e por quê.',
 } as const
-
-export const MAX_REASON = 200
 
 /** Horas em 1 casa, com vírgula ("12,5 h"). */
 export const hoursText = (value: number) => `${value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} h`
@@ -38,7 +36,10 @@ export const canCompleteStep = (card: Pick<BoardCard, 'currentStepId' | 'current
   !!card.currentStepId && !card.currentStepIsQuality && !card.readyToComplete && !card.noRouting
 
 /** Rótulo do item do menu: "Concluir etapa {letra} {nome}". */
-export const completeLabel = (card: Pick<BoardCard, 'currentStepCode' | 'currentStepName'>) => `Concluir etapa ${card.currentStepCode ?? ''} ${card.currentStepName ?? ''}`.replace(/\s+/g, ' ').trim()
+export const completeLabel = (card: Pick<BoardCard, 'currentStepCode' | 'currentStepName'>) => stepActionLabel({ code: card.currentStepCode, name: card.currentStepName })
+
+/** A etapa atual começou e ninguém está nela, sem pausa aberta: "Iniciada · ninguém trabalhando agora" no cartão. */
+export const idleStep = (card: Pick<BoardCard, 'currentStepStatus' | 'pausedReason' | 'inExecution'>) => card.currentStepStatus === 'Paused' && !card.pausedReason && !card.inExecution
 
 /** Filtros do Kanban na URL (CA 6): projeto, cliente, linha, roteiro, atrasadas e em risco. */
 export const KANBAN_FILTERS = ['projeto', 'cliente', 'linha', 'roteiro', 'atrasadas', 'risco', 'ver', 'coluna'] as const
