@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { CheckCircle2, ChevronDown, Loader2, XCircle } from 'lucide-react'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import {
-  fetchBankStatement, getGetBankStatementLinesQueryKey, grantOfxContingency, ignoreBankStatementLine, importBankStatementOfx, undoBankStatementBatch, useGetBankStatementLines,
+  fetchBankStatement, getExportBankStatementLinesUrl, getGetBankStatementLinesQueryKey, grantOfxContingency, ignoreBankStatementLine, importBankStatementOfx, undoBankStatementBatch, useGetBankStatementLines,
 } from '@/api/generated/bemaqui'
 import type { BankStatementBatchView, BankStatementImportResult, BankStatementLineView, BankStatementView } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
@@ -12,6 +12,7 @@ import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogMessage } from '@/components/ui/dialog-message'
 import { EnvironmentBanner } from '@/components/ui/environment-banner'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { notifySuccess } from '@/components/ui/messages'
 import { Money } from '@/components/ui/money'
 import { NextSteps } from '@/components/ui/next-steps'
@@ -237,7 +238,10 @@ export function BankStatementTab({ accountId, from, to }: { accountId: string; f
             <option value="">Todas</option><option value="Pending">Pendentes</option><option value="Reconciled">Conciliadas</option><option value="Ignored">Ignoradas</option>
           </select>
         </label>
-        {actions}
+        <span className="flex flex-wrap items-start gap-2">
+          {actions}
+          <ExportMenu fileBase="extrato-banco" empty={v.total === 0} url={(format) => getExportBankStatementLinesUrl(accountId, { from, to, status, format })} />
+        </span>
       </div>
       <FetchStatus phase={fetcher.phase} refusal={fetcher.refusal} result={fetcher.result} />
       {v.nextFetchAt && canEdit && v.apiConnected ? <p className="text-xs text-muted-foreground">Próxima busca a partir de {formatDateTime(v.nextFetchAt)}.</p> : null}

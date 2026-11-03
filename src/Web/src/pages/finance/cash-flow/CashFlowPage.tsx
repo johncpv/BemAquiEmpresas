@@ -1,14 +1,16 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { type ReactNode, useState } from 'react'
-import { useGetCashFlow, useListBankAccounts } from '@/api/generated/bemaqui'
+import { getExportCashFlowUrl, useGetCashFlow, useListBankAccounts } from '@/api/generated/bemaqui'
 import type { CashFlowAdjusted, CashFlowResult } from '@/api/generated/model'
 import { ToggleGroup } from '@/components/form/choice'
 import { inputClass } from '@/components/form/form-utils'
 import { Chart } from '@/components/ui/chart'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { Money } from '@/components/ui/money'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatMoney } from '@/lib/format'
+import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { adjustedOf, CASH_FLOW_DICAS, chartPoints, chartReferences, chartSeries, chartSummary, HORIZONS, SCENARIOS, type Scenario, VIEWS } from './cash-flow'
 import { CashFlowDayPanel } from './CashFlowDayPanel'
@@ -158,6 +160,10 @@ export function CashFlowPage() {
             {(accounts.data?.items ?? []).filter((a) => a.isActive).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
         </label>
+        <Can perm="finance.view">
+          <ExportMenu fileBase="fluxo-de-caixa" empty={flow.data ? flow.data.periods.length === 0 : false}
+            url={(format) => getExportCashFlowUrl({ view: view.api, days, bankAccountId: search.conta || undefined, scenario, format })} />
+        </Can>
       </div>
       {body}
       {day ? <CashFlowDayPanel key={`${day.date}-${day.scenario}`} date={day.date} scenario={day.scenario} canAdjust={!search.conta && (flow.data?.adjusted ?? null) !== null} bankAccountId={search.conta || undefined} onClose={() => setDay(null)} /> : null}

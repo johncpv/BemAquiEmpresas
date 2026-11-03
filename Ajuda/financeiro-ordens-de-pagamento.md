@@ -14,6 +14,13 @@ Garantir que nenhum dinheiro saia da empresa sem uma ordem aprovada. Toda saída
 - Use o filtro **Aguardando você** para ver o que espera a sua aprovação.
 - O filtro **Aprovadas pelo próprio solicitante** mostra as ordens que o próprio Proprietário pediu e aprovou.
 
+## Imprimir e exportar
+- Clique em **Exportar** e escolha **Excel (.xlsx)** ou **PDF**. Valem a situação e o "Mostrar" da tela, com todas as páginas.
+- Saem número, situação, data prevista, total, quantidade de títulos, solicitante, data e hora do envio e se foi autoaprovada. A última linha soma o total do filtro.
+- O PDF de cada ordem continua no botão **Baixar PDF** da própria ordem.
+- O limite é de 10.000 linhas no Excel e 2.000 no PDF. Acima disso, o sistema avisa e pede para refinar os filtros (período, situação ou busca).
+- Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+
 ## Perguntas frequentes
 **Quem aprova?** Quem a alçada indicar, em Financeiro → **Alçadas**: por faixa de valor, por conta e em até três níveis, sempre com a permissão de aprovar no Financeiro. A regra padrão é "Proprietário aprova tudo". A ordem guarda a alçada do envio; reenviar recalcula.
 

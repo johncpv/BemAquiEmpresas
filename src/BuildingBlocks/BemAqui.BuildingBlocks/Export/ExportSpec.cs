@@ -11,6 +11,7 @@ namespace BemAqui.BuildingBlocks.Export;
 public sealed class ExportSpec<T>(string entity, string fileBase, string title)
 {
     private readonly List<Column> _columns = [];
+    private Func<T, ExportRowStyle?>? _style;
 
     public string Entity { get; } = entity;
 
@@ -40,11 +41,38 @@ public sealed class ExportSpec<T>(string entity, string fileBase, string title)
         return this;
     }
 
+    /// <summary>
+    /// Coluna tipada que, em algumas linhas, mostra o texto da tela no lugar do número ou da data (ex.: "Sem histórico" no atraso médio,
+    /// "Aguarda: entrega" no vencimento da parcela prevista). O valor é <c>string</c> ou o tipo da coluna.
+    /// </summary>
+    public ExportSpec<T> Mixed(string header, ExportColumnType type, Func<T, object?> value) => Add(header, type, value, null);
+
+    /// <summary>A última coluna recebe o recuo da linha (ex.: "Linha" do DRE, por nível).</summary>
+    public ExportSpec<T> Indented()
+    {
+        _columns[^1] = _columns[^1] with { Indented = true };
+        return this;
+    }
+
+    /// <summary>Destaque por linha (recuo e negrito), na planilha e no PDF de lista.</summary>
+    public ExportSpec<T> Style(Func<T, ExportRowStyle?> style)
+    {
+        _style = style;
+        return this;
+    }
+
+    /// <summary>O destaque de cada linha, na ordem; sem <see cref="Style"/>, vazio.</summary>
+    public IReadOnlyList<ExportRowStyle?> Styles(IEnumerable<T> items)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        return _style is null ? [] : items.Select(_style).ToList();
+    }
+
     /// <summary>Colunas de saída do formato: a coluna mascarada vira texto (a máscara não é número nem data).</summary>
     public IReadOnlyList<ExportColumn> OutputColumns(ExportFormat format, Func<ExportSensitivity, bool> allowed)
     {
         ArgumentNullException.ThrowIfNull(allowed);
-        return Of(format).Select(c => new ExportColumn(c.Header, Masked(c, allowed) ? ExportColumnType.Text : c.Type)).ToList();
+        return Of(format).Select(c => new ExportColumn(c.Header, Masked(c, allowed) ? ExportColumnType.Text : c.Type, c.Indented)).ToList();
     }
 
     /// <summary>
@@ -66,9 +94,9 @@ public sealed class ExportSpec<T>(string entity, string fileBase, string title)
 
     private ExportSpec<T> Add(string header, ExportColumnType type, Func<T, object?> value, ExportSensitivity? sensitivity)
     {
-        _columns.Add(new Column(header, type, value, sensitivity, true));
+        _columns.Add(new Column(header, type, value, sensitivity, true, false));
         return this;
     }
 
-    private sealed record Column(string Header, ExportColumnType Type, Func<T, object?> Value, ExportSensitivity? Sensitivity, bool InPdf);
+    private sealed record Column(string Header, ExportColumnType Type, Func<T, object?> Value, ExportSensitivity? Sensitivity, bool InPdf, bool Indented);
 }

@@ -2,9 +2,10 @@ import { Link } from '@tanstack/react-router'
 import { Receipt } from 'lucide-react'
 import { useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListPaymentsToReview, useListReceivables } from '@/api/generated/bemaqui'
+import { getExportReceivablesUrl, useListPaymentsToReview, useListReceivables } from '@/api/generated/bemaqui'
 import type { ReceivableDetail } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
 import { Money } from '@/components/ui/money'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -47,7 +48,8 @@ export function ReceivablesPage() {
   const reviewing = filtro === REVIEW_FILTER
   const toReview = useListPaymentsToReview()
   const reviewCount = toReview.data?.count ?? 0
-  const query = useListReceivables({ q: search.q, situation: situacao || undefined, partyId: cliente || undefined, contractId: contrato || undefined, withBillingSlip: boleto === 'com' ? true : undefined, ...period(vencimento), page: search.page, pageSize: search.pageSize, sort: search.sort })
+  const filters = { q: search.q, situation: situacao || undefined, partyId: cliente || undefined, contractId: contrato || undefined, withBillingSlip: boleto === 'com' ? true : undefined, ...period(vencimento), sort: search.sort }
+  const query = useListReceivables({ ...filters, page: search.page, pageSize: search.pageSize })
   const table = { ...query, data: query.data?.page }
   const totals = query.data?.totals
   const canEdit = useCan('finance.edit')
@@ -125,6 +127,7 @@ export function ReceivablesPage() {
         selectable={canEdit ? { selected, onChange: setSelected, rowLabel: (r) => `título ${r.number}` } : undefined}
         rowClassName={(r) => (r.isOverdue ? 'border-l-4 border-l-crit' : undefined)}
         searchPlaceholder="Buscar pelo número ou descrição"
+        toolbar={<Can perm="finance.view"><ExportMenu fileBase="contas-a-receber" empty={query.data?.page.total === 0} url={(format) => getExportReceivablesUrl({ ...filters, format })} /></Can>}
         filters={[{ key: 'situacao', label: 'Situação', options: SITUATION_OPTIONS }, { key: 'vencimento', label: 'Vencimento', options: PERIODS }, { key: 'boleto', label: 'Boleto', options: [{ value: 'com', label: 'Com boleto' }] }]}
         totals={totals ? { balance: <span className="block">Em aberto <Money value={totals.open} /><br /><span className="text-crit-ink">Vencido <Money value={totals.overdue} /></span></span> } : undefined}
         empty={{

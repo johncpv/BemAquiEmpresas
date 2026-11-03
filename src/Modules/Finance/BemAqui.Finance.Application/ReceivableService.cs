@@ -48,7 +48,33 @@ public sealed partial class ReceivableService(
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(page);
-        var today = Today;
+        var receivables = Filter(query, Today);
+        var totals = await TotalsAsync(receivables, cancellationToken);
+        var paged = await Sort(receivables, page).ToPagedListAsync(page, cancellationToken);
+        return new ReceivablePage(new PagedList<ReceivableDetail>(await DetailsAsync(paged.Items, cancellationToken), paged.Page, paged.PageSize, paged.Total), totals);
+    }
+
+    /// <summary>
+    /// Exportação da lista (EXP-02 CA 13): a mesma consulta, filtro e ordem do <see cref="ListAsync"/>, sem paginação, até <paramref name="max"/>
+    /// linhas, com o total do filtro e os totais do rodapé.
+    /// </summary>
+    public async Task<(int Total, IReadOnlyList<ReceivableDetail> Items, ReceivableTotals Totals)> ExportRowsAsync(ReceivableListQuery query, string? sort, int max, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        var receivables = Filter(query, Today);
+        var total = await receivables.CountAsync(cancellationToken);
+        var totals = await TotalsAsync(receivables, cancellationToken);
+        if (total > max)
+        {
+            return (total, [], totals);
+        }
+
+        var items = await Sort(receivables, new PageRequest(Sort: sort)).ToListAsync(cancellationToken);
+        return (total, await DetailsAsync(items, cancellationToken), totals);
+    }
+
+    private IQueryable<Receivable> Filter(ReceivableListQuery query, DateOnly today)
+    {
         var receivables = db.Receivables.AsNoTracking();
         if (query.PartyId is { } party)
         {
@@ -81,7 +107,7 @@ public sealed partial class ReceivableService(
             receivables = receivables.Where(r => EF.Functions.ILike(r.Number, like) || EF.Functions.ILike(r.Description, like));
         }
 
-        receivables = query.Situation switch
+        return query.Situation switch
         {
             "aberto" => receivables.Where(r => r.Status == ReceivableStatus.Open || r.Status == ReceivableStatus.PartiallyPaid),
             "vencido" => receivables.Where(r => (r.Status == ReceivableStatus.Open || r.Status == ReceivableStatus.PartiallyPaid) && r.DueDate < today),
@@ -90,23 +116,26 @@ public sealed partial class ReceivableService(
             "cancelado" => receivables.Where(r => r.Status == ReceivableStatus.Cancelled),
             _ => receivables.Where(r => r.Status != ReceivableStatus.Cancelled),
         };
-
-        var open = receivables.Where(r => r.Status == ReceivableStatus.Open || r.Status == ReceivableStatus.PartiallyPaid);
-        var totals = new ReceivableTotals(
-            await open.SumAsync(r => r.Amount - r.PaidAmount, cancellationToken),
-            await open.Where(r => r.DueDate < today).SumAsync(r => r.Amount - r.PaidAmount, cancellationToken));
-        receivables = page.ParseSort() switch
-        {
-            ("number", true) => receivables.OrderByDescending(r => r.Number),
-            ("number", false) => receivables.OrderBy(r => r.Number),
-            ("amount", true) => receivables.OrderByDescending(r => r.Amount),
-            ("amount", false) => receivables.OrderBy(r => r.Amount),
-            ("dueDate", true) => receivables.OrderByDescending(r => r.DueDate).ThenByDescending(r => r.Number),
-            _ => receivables.OrderBy(r => r.DueDate).ThenBy(r => r.Number),
-        };
-        var paged = await receivables.ToPagedListAsync(page, cancellationToken);
-        return new ReceivablePage(new PagedList<ReceivableDetail>(await DetailsAsync(paged.Items, cancellationToken), paged.Page, paged.PageSize, paged.Total), totals);
     }
+
+    private async Task<ReceivableTotals> TotalsAsync(IQueryable<Receivable> receivables, CancellationToken ct)
+    {
+        var today = Today;
+        var open = receivables.Where(r => r.Status == ReceivableStatus.Open || r.Status == ReceivableStatus.PartiallyPaid);
+        return new ReceivableTotals(
+            await open.SumAsync(r => r.Amount - r.PaidAmount, ct),
+            await open.Where(r => r.DueDate < today).SumAsync(r => r.Amount - r.PaidAmount, ct));
+    }
+
+    private static IQueryable<Receivable> Sort(IQueryable<Receivable> receivables, PageRequest page) => page.ParseSort() switch
+    {
+        ("number", true) => receivables.OrderByDescending(r => r.Number),
+        ("number", false) => receivables.OrderBy(r => r.Number),
+        ("amount", true) => receivables.OrderByDescending(r => r.Amount),
+        ("amount", false) => receivables.OrderBy(r => r.Amount),
+        ("dueDate", true) => receivables.OrderByDescending(r => r.DueDate).ThenByDescending(r => r.Number),
+        _ => receivables.OrderBy(r => r.DueDate).ThenBy(r => r.Number),
+    };
 
     /// <summary>Clientes ativos para o seletor (CA 2), com a condição padrão de cada um (CA 3).</summary>
     public async Task<IReadOnlyList<CustomerOption>> CustomersAsync(string? q, CancellationToken cancellationToken = default) =>

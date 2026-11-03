@@ -24,6 +24,15 @@ Ver quanto entra, quanto sai e qual será o saldo dia a dia, para antecipar falt
 - Na visão diária, clique no dia para ver o que compõe o valor, com o link de cada título. No ajustado, cada recebimento mostra o vencimento original, a data ajustada e o motivo, e os que saíram do dia aparecem à parte. O total do painel é o mesmo da tabela.
 - No celular, a tabela mostra o período e os saldos; toque em **Entradas e saídas** para ver o resto da linha.
 
+## Imprimir e exportar
+- Clique em **Exportar**, ao lado dos filtros, e escolha **Excel (.xlsx)** ou **PDF**. Valem a visão, o horizonte, a conta e o cenário da tela.
+- Cada período é uma linha com início, fim, tipo (Realizado, Hoje ou Projetado), entradas, saídas, vencidos a receber e a pagar e o saldo do cenário escolhido; com **Os dois**, saem lado a lado "Saldo base", "Entradas ajustadas" e "Saldo ajustado".
+- A aba **Destaques** traz o saldo atual, o menor saldo e o primeiro dia negativo de cada cenário, a diferença causada por atrasos, o risco de não receber (com os clientes acima do limite) e o deslocado para depois do período. A aba **A receber sem data** lista as parcelas que esperam um marco.
+- O PDF sai em paisagem, com os destaques no topo e a tabela de períodos. O gráfico não vai para o arquivo; a tabela é a mesma da tela.
+- A folha prevista sai como na tela: só o total de cada folha para quem não aprova nem paga no Financeiro.
+- O limite é de 10.000 linhas no Excel e 2.000 no PDF. Acima disso, o sistema avisa e pede para refinar os filtros (período, situação ou busca).
+- Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+
 ## Perguntas frequentes
 **Por que o caixa aparece negativo?** A soma do que vence é maior que o saldo. O alerta vermelho mostra o primeiro dia negativo; no ajustado, o alerta diz "Considerando os atrasos de sempre". Clique no botão do alerta para ver o que entra e sai nesse dia.
 

@@ -1,13 +1,15 @@
 import { Link } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListPaymentOrders } from '@/api/generated/bemaqui'
+import { getExportPaymentOrdersUrl, useListPaymentOrders } from '@/api/generated/bemaqui'
 import type { PaymentOrderSummary } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
 import { Money } from '@/components/ui/money'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
 import { formatDate } from '@/lib/format'
+import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
 import { ORDER_SITUATIONS, ORDER_STATUS } from './payment-orders'
 
@@ -15,7 +17,8 @@ import { ORDER_SITUATIONS, ORDER_STATUS } from './payment-orders'
 export function PaymentOrdersPage() {
   const [search] = useTableSearch()
   const { situacao, filtro } = useTableFilters(['situacao', 'filtro'])
-  const query = useListPaymentOrders({ situation: situacao || undefined, awaitingMe: filtro === 'aguardando-voce' || undefined, selfApproved: filtro === 'propria' || undefined, page: search.page, pageSize: search.pageSize })
+  const filters = { situation: situacao || undefined, awaitingMe: filtro === 'aguardando-voce' || undefined, selfApproved: filtro === 'propria' || undefined }
+  const query = useListPaymentOrders({ ...filters, page: search.page, pageSize: search.pageSize })
   const awaiting = filtro === 'aguardando-voce'
   const columns: ColumnDef<PaymentOrderSummary>[] = [
     { id: 'number', header: 'Número', cell: ({ row: { original: o } }) => <Link to={'/app/financeiro/ordens-de-pagamento/$id' as never} params={{ id: o.id } as never} className="font-semibold text-primary hover:underline">{o.number}</Link> },
@@ -40,6 +43,7 @@ export function PaymentOrdersPage() {
         searchable={false}
         getRowId={(o) => o.id}
         query={query}
+        toolbar={<Can perm="finance.view"><ExportMenu fileBase="ordens-de-pagamento" empty={query.data?.total === 0} url={(format) => getExportPaymentOrdersUrl({ ...filters, format })} /></Can>}
         filters={[{ key: 'situacao', label: 'Situação', options: ORDER_SITUATIONS }, { key: 'filtro', label: 'Mostrar', options: [{ value: 'aguardando-voce', label: 'Aguardando você' }, { value: 'propria', label: 'Aprovadas pelo próprio solicitante' }] }]}
         empty={awaiting ? { title: 'Nada para aprovar agora.' } : { title: 'Selecione títulos em A pagar e crie a primeira ordem de pagamento.', action: goPayables }}
         rowClassName={(o) => (o.status === 'Pending' ? 'border-l-4 border-l-warn' : undefined)}

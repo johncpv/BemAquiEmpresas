@@ -19,6 +19,13 @@ Ver, dentro do sistema, o extrato que o banco informou: as linhas do Inter chega
 - **Ignorar linha** tira uma linha errada da conciliação, com motivo. Linha de saída só pode ser ignorada por quem aprova em Caixa e pagamentos.
 - **Desfazer importação** (em Importações) tira do extrato todas as linhas de um lote, com motivo, enquanto nenhuma estiver conciliada. Depois, o mesmo arquivo pode ser importado de novo.
 
+## Imprimir e exportar
+- Clique em **Exportar** ao lado das ações e escolha **Excel (.xlsx)** ou **PDF**. Valem o período e a situação da tela.
+- Saem as linhas importadas (API ou OFX) com o tipo, a contraparte, o valor, a origem, se foi verificada pelo banco, a situação e o motivo de quem ignorou.
+- A contraparte (nome e CPF/CNPJ) sai **mascarada** do mesmo jeito que a tela mostra para você: inteira só para quem edita o financeiro.
+- O limite é de 10.000 linhas no Excel e 2.000 no PDF. Acima disso, o sistema avisa e pede para refinar os filtros (período, situação ou busca).
+- Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+
 ## Perguntas frequentes
 **Por que não consigo importar OFX numa conta do Inter?** O extrato dessa conta vem direto do banco. Se a API ficar fora do ar, quem aprova em Caixa e pagamentos pode **Liberar OFX nesta conta** por até 30 dias, com motivo. As linhas desse arquivo ficam marcadas "Não verificada pelo banco".
 

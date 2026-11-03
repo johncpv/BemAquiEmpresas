@@ -4,6 +4,7 @@ using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Pdf;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
+using BemAqui.SharedKernel;
 using ClosedXML.Excel;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
@@ -179,11 +180,58 @@ public class ExportTests
         audit.Filters.Should().ContainSingle().Which.Should().Equal(new Dictionary<string, string?> { ["Situação"] = "Ativos" });
     }
 
+    [Fact]
+    public async Task Consulta_que_recusa_abas_a_mais_notas_e_PDF_proprio_da_tela()
+    {
+        var audit = new FakeAudit();
+        var service = Service(audit, new ExportOptions(), granted: ["hr.view_sensitive"]);
+        var refused = await service.BuildAsync<Row>("xlsx", (_, _) => Task.FromResult<Result<ExportData<Row>>>(Error.NotFound("x", "Conta não encontrada.")));
+        refused.Error!.Code.Should().Be("x");
+        audit.Exports.Should().BeEmpty();
+
+        var extra = new ExportSpec<Row>("Employee", "funcionarios", "Extra").Text("Nome", r => r.Name);
+        Func<int, CancellationToken, Task<Result<ExportData<Row>>>> load = (_, _) => Task.FromResult<Result<ExportData<Row>>>(new ExportData<Row>(Spec(), [], new ExportRows<Row>(2, Rows))
+        {
+            Decorate = t => t with { SheetName = "Principal", Sheets = [ExportSheet.From("Extra", extra, Rows)], Notes = ["Nota da tela"] },
+            Document = (frame, t) => new TabularPdfDocument(frame, t with { Title = "Documento próprio" }),
+        });
+
+        var xlsx = await service.BuildAsync("xlsx", load);
+        using var workbook = Open(xlsx.Value.Content);
+        workbook.Worksheets.Select(w => w.Name).Should().Equal("Principal", "Extra", "Filtros");
+        workbook.Worksheet("Extra").Cell(3, 1).GetString().Should().StartWith("=HYPERLINK");
+        workbook.Worksheet("Filtros").Column(2).CellsUsed().Select(c => c.GetString()).Should().Contain("Nota da tela");
+
+        var pdf = await service.BuildAsync("pdf", load);
+        var text = PdfFrameTests.Text(pdf.Value.Content, out _);
+        text.Should().Contain("Documentopróprio").And.Contain("Notadatela");
+        audit.Exports.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task Linha_com_destaque_sai_em_negrito_com_recuo_e_agrupada()
+    {
+        var spec = new ExportSpec<Row>("Employee", "funcionarios", "Funcionários").Text("Nome", r => r.Name).Indented().Money("Salário", r => -r.Salary)
+            .Style(r => r.Name == "Ana" ? new ExportRowStyle(2, true, true) : null);
+        var table = new ExportTable(spec.Title, spec.OutputColumns(ExportFormat.Xlsx, _ => true), spec.Rows(ExportFormat.Xlsx, Rows, _ => true), [], "Fulano", At) { RowStyles = spec.Styles(Rows) };
+        using var workbook = Open(XlsxTabularExporter.Build(table));
+        var sheet = workbook.Worksheet("Funcionários");
+        sheet.Cell(2, 1).Style.Alignment.Indent.Should().Be(2);
+        sheet.Cell(2, 2).Style.Alignment.Indent.Should().Be(0, "só a coluna marcada recua");
+        sheet.Cell(2, 2).Style.Font.Bold.Should().BeTrue();
+        sheet.Cell(2, 2).Style.Font.FontColor.Should().Be(XLColor.FromHtml(PdfTheme.CritInk));
+        sheet.Row(2).OutlineLevel.Should().Be(2);
+        sheet.Cell(3, 1).Style.Font.Bold.Should().BeFalse();
+
+        var text = PdfFrameTests.Text(await new QuestPdfRenderer().RenderAsync(new TabularPdfDocument(PdfFrameTests.Frame, table)), out _);
+        text.Should().Contain("Ana");
+    }
+
     private static ListExportService Service(FakeAudit audit, ExportOptions options, string[] granted)
     {
         var frames = new PdfFrameFactory(new FakeCompany(), new FakeStorage(), new FakeUser(), new FakeDirectory(), TimeProvider.System);
         return new ListExportService([new XlsxTabularExporter(), new PdfTabularExporter(new QuestPdfRenderer(), frames)], new FakePermissions(granted), audit, frames,
-            Options.Create(options), TimeProvider.System);
+            Options.Create(options), TimeProvider.System, new QuestPdfRenderer());
     }
 
     private static byte[] Save(XLWorkbook workbook)
