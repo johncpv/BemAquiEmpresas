@@ -20,7 +20,8 @@ Conferir o romaneio, baixar o PDF e confirmar a saída do produto acabado para a
 - Depois de expedir, os próximos passos levam à **OS de instalação** do projeto ou a **Registrar entrega**. A NF-e de saída nasce do romaneio expedido, em Fiscal → saída (**A emitir**).
 
 ## Imprimir e exportar
-- **Baixar PDF** e **Imprimir** ficam no cabeçalho do romaneio. O PDF é o mesmo de antes; **Imprimir** abre o PDF numa aba nova.
+- **Baixar PDF** e **Imprimir** ficam no cabeçalho do romaneio. **Imprimir** abre o PDF numa aba nova.
+- O PDF tem o mesmo cabeçalho e rodapé dos outros documentos do sistema (empresa, "Emitido por … em …" e a página). Antes de expedir (rascunho ou aguardando o estoque), sai com a marca **Rascunho**; cancelado ou estornado, com **Cancelado**. A linha "Romaneio de expedição: não é documento fiscal." continua no fim.
 
 ## Perguntas frequentes
 **Por que não consigo confirmar o estoque geral?** Você montou ou pediu a confirmação deste romaneio, ou não tem a aprovação no Estoque. Peça a outra pessoa do estoque.

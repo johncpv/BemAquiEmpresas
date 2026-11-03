@@ -12,6 +12,7 @@ import { inputClass } from '@/components/form/form-utils'
 import { DateInput } from '@/components/form/inputs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogMessage } from '@/components/ui/dialog-message'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { notifyError, notifySuccess } from '@/components/ui/messages'
 import { type Step, NextSteps } from '@/components/ui/next-steps'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
@@ -111,7 +112,7 @@ function TerminationForm({ data, calculate, onResult }: { data: TerminationView;
         notifySuccess(done.message)
         await client.invalidateQueries({ queryKey: getGetEmployeeTerminationQueryKey(data.employeeId) })
         onResult(done.result, [
-          { label: 'Gerar termo para conferência', onSelect: () => void downloadTerm(done.termination) },
+          { label: 'Baixar termo para conferência', onSelect: () => void downloadTerm(done.termination) },
           { label: done.run.isSimulation ? 'Ver folha de rescisão' : 'Fechar folha de rescisão', onSelect: () => void navigate({ to: '/app/rh/folha/$id', params: { id: done.run.id }, search: { aba: done.run.isSimulation ? 'holerites' : 'fechamento' } as never }) },
         ])
       } else {
@@ -178,7 +179,7 @@ function TerminationCard({ t, employeeId, canEdit }: { t: TerminationItem; emplo
       <div className="flex flex-wrap items-center gap-2">
         <StatusChip tone={STATUS_TONES[t.status] ?? 'neutral'}>{t.statusLabel}</StatusChip>
         {t.isSimulation ? <StatusChip tone="warn">Simulação</StatusChip> : null}
-        {t.payrollRunId ? <button type="button" className={button} onClick={() => void downloadTerm(t)}>Gerar termo para conferência</button> : null}
+        {t.payrollRunId ? <DocumentActions url={getDownloadTerminationTermUrl(t.id)} fileName={`termo-rescisao-conferencia-${t.terminationDate}.pdf`} label="Baixar termo para conferência" /> : null}
         {t.payrollRunId ? <Link to="/app/rh/folha/$id" params={{ id: t.payrollRunId }} className="text-sm font-semibold text-primary">Ver folha de rescisão</Link> : null}
         {canEdit && t.status !== 'Closed' ? (
           <ConfirmDialog verb="Estornar desligamento" done="Desligamento estornado" destructive title="Estornar o desligamento?" onOpen={() => setReason('')}

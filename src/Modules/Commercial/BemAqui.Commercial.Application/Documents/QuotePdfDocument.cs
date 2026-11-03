@@ -1,88 +1,45 @@
 using System.Globalization;
 using BemAqui.BuildingBlocks.Pdf;
 using QuestPDF.Fluent;
-using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
 namespace BemAqui.Commercial.Application.Documents;
 
-/// <summary>Layout do orçamento (ADR 0022): A4, Archivo, números em pt-BR com dígitos tabulares e cabeçalho da tabela repetido na quebra.</summary>
-public sealed class QuotePdfDocument(QuotePdfModel model) : IDocument
+/// <summary>
+/// Layout do orçamento no modelo único (ADR 0045 §1, EXP-05 CA 19): o mesmo conteúdo da COM-03 (cliente, itens, total, condições de pagamento,
+/// validade, prazo e observações), com o cabeçalho, a faixa de título ("Orçamento {número} rev. {n}") e o rodapé do frame. As faixas e as marcas
+/// da EXP-03 (vencido, recusado) vão na faixa do frame; a validade e "Sem efeito de contrato" fecham o corpo.
+/// </summary>
+public sealed class QuotePdfDocument : PdfDocumentFrame
 {
-    private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
+    private static readonly CultureInfo PtBr = PdfTheme.PtBr;
 
     private static readonly string[] Columns = ["#", "Descrição", "Qtd.", "Un.", "Preço unit.", "Total"];
+
+    private readonly QuotePdfModel _model;
+
+    public QuotePdfDocument(PdfFrame frame, QuotePdfModel model)
+        : base(frame, Header(model)) => _model = model;
+
+    private static PdfDocumentHeader Header(QuotePdfModel model)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        return new PdfDocumentHeader("Orçamento", $"{model.Number} rev. {model.Revision}", model.IssueDate, model.Mark, Notice: model.Notice);
+    }
 
     private static string Money(decimal v) => v.ToString("C2", PtBr);
 
     private static string Qty(decimal v) => v.ToString("0.####", PtBr);
 
-    public DocumentMetadata GetMetadata() => new() { Title = $"Orçamento {model.Number} rev. {model.Revision}", Author = model.Company.Name, Creator = "BemAqui Empresas" };
+    /// <summary>A linha que fechava cada página do layout antigo: a validade e "Sem efeito de contrato".</summary>
+    public static string ClosingText(DateOnly? validUntil) =>
+        validUntil is { } v ? $"Orçamento válido até {PdfTheme.Date(v)}. Sem efeito de contrato." : "Sem efeito de contrato.";
 
-    public void Compose(IDocumentContainer container) => container.Page(page =>
+    protected override void ComposeContent(IContainer container) => container.Column(col =>
     {
-        page.Size(PageSizes.A4);
-        page.Margin(32);
-        page.DefaultTextStyle(t => t.FontFamily(QuestPdfRenderer.FontFamily).FontSize(9).FontColor("#14202b").EnableFontFeature(FontFeatures.TabularFigures));
-        // EXP-03 CA 8: a marca e a faixa padrão do modelo único (o layout migra para o frame na EXP-05).
-        PdfMarks.Watermark(page, model.Mark);
-        page.Header().Element(Header);
-        page.Content().PaddingVertical(12).Element(Content);
-        page.Footer().AlignCenter().Text(t =>
-        {
-            t.Span(model.ValidUntil is { } v ? $"Orçamento válido até {v:dd/MM/yyyy}. Sem efeito de contrato." : "Sem efeito de contrato.").FontSize(8);
-            t.Span("   Página ").FontSize(8);
-            t.CurrentPageNumber().FontSize(8);
-            t.Span(" de ").FontSize(8);
-            t.TotalPages().FontSize(8);
-        });
-    });
-
-    private void Header(IContainer c) => c.Row(row =>
-    {
-        if (model.Company.Logo is { Length: > 0 } logo)
-        {
-            row.ConstantItem(110).Height(48).Image(logo).FitArea();
-        }
-        else
-        {
-            row.ConstantItem(160).Text(model.Company.Name).FontSize(14).SemiBold();
-        }
-
-        row.RelativeItem().AlignRight().Column(col =>
-        {
-            col.Item().Text(model.Company.LegalName).SemiBold();
-            if (model.Company.Document is { } doc)
-            {
-                col.Item().Text("CNPJ " + doc);
-            }
-
-            if (model.Company.Address is { } address)
-            {
-                col.Item().Text(address);
-            }
-
-            if (model.Company.Contact is { } contact)
-            {
-                col.Item().Text(contact);
-            }
-        });
-    });
-
-    private void Content(IContainer c) => c.Column(col =>
-    {
+        var model = _model;
         col.Spacing(10);
-        col.Item().Row(r =>
-        {
-            r.RelativeItem().Text($"Orçamento {model.Number} rev. {model.Revision}").FontSize(14).Bold();
-            r.ConstantItem(120).AlignRight().Text($"Data: {model.IssueDate:dd/MM/yyyy}");
-        });
-        if (PdfMarks.BandText(model.Mark, model.Notice) is not null)
-        {
-            col.Item().Element(e => PdfMarks.Band(e, model.Mark, model.Notice));
-        }
-
-        col.Item().Background("#eef2f6").Padding(8).Column(cust =>
+        col.Item().Background(PdfTheme.Surface).Padding(8).Column(cust =>
         {
             cust.Item().Text("Cliente: " + model.Customer.Name).SemiBold();
             if (model.Customer.Document is { } doc)
@@ -109,7 +66,7 @@ public sealed class QuotePdfDocument(QuotePdfModel model) : IDocument
 
         col.Item().Text(t =>
         {
-            t.Line(model.ValidUntil is { } v ? $"Validade: {v:dd/MM/yyyy}" : "Validade: a combinar");
+            t.Line(model.ValidUntil is { } v ? $"Validade: {PdfTheme.Date(v)}" : "Validade: a combinar");
             t.Line(model.DeliveryDays is { } d ? $"Prazo de entrega: {d} dias corridos após a aprovação" : "Prazo de entrega: a combinar");
         });
         if (!string.IsNullOrWhiteSpace(model.Notes))
@@ -117,6 +74,8 @@ public sealed class QuotePdfDocument(QuotePdfModel model) : IDocument
             col.Item().Text("Observações").SemiBold();
             col.Item().Text(model.Notes);
         }
+
+        col.Item().PaddingTop(6).Text(ClosingText(model.ValidUntil)).FontSize(PdfTheme.SmallFontSize).FontColor(PdfTheme.Muted);
     });
 
     private void Items(IContainer c) => c.Table(table =>
@@ -134,17 +93,17 @@ public sealed class QuotePdfDocument(QuotePdfModel model) : IDocument
         {
             foreach (var title in Columns)
             {
-                h.Cell().BorderBottom(1).BorderColor("#9aa7b4").PaddingVertical(4).Text(title).SemiBold();
+                HeaderCell(h.Cell()).Text(title).SemiBold();
             }
         });
-        foreach (var i in model.Items)
+        foreach (var i in _model.Items)
         {
-            table.Cell().PaddingVertical(3).Text(i.Sequence.ToString(PtBr));
-            table.Cell().PaddingVertical(3).Text(i.Description);
-            table.Cell().PaddingVertical(3).AlignRight().Text(Qty(i.Quantity));
-            table.Cell().PaddingVertical(3).PaddingLeft(4).Text(i.Unit ?? "un");
-            table.Cell().PaddingVertical(3).AlignRight().Text(Money(i.UnitPrice));
-            table.Cell().PaddingVertical(3).AlignRight().Text(Money(i.Total));
+            BodyCell(table.Cell()).Text(i.Sequence.ToString(PtBr));
+            BodyCell(table.Cell()).Text(i.Description);
+            BodyCell(table.Cell()).AlignRight().Text(Qty(i.Quantity));
+            BodyCell(table.Cell()).PaddingLeft(4).Text(i.Unit ?? "un");
+            BodyCell(table.Cell()).AlignRight().Text(Money(i.UnitPrice));
+            BodyCell(table.Cell()).AlignRight().Text(Money(i.Total));
         }
     });
 
@@ -160,7 +119,7 @@ public sealed class QuotePdfDocument(QuotePdfModel model) : IDocument
                 cols.ConstantColumn(90);
                 cols.RelativeColumn(4);
             });
-            foreach (var m in model.Milestones)
+            foreach (var m in _model.Milestones)
             {
                 table.Cell().PaddingVertical(2).Text(m.Description);
                 table.Cell().PaddingVertical(2).AlignRight().Text(m.Percent.ToString("0.##", PtBr) + "%");

@@ -225,7 +225,7 @@ public class TerminationTests(TenancyFixture tenancy) : IClassFixture<TenancyFix
         run.GetProperty("type").GetString().Should().Be("Termination");
         run.GetProperty("mode").GetString().Should().Be("Calculated");
         run.GetProperty("isSimulation").GetBoolean().Should().BeTrue();
-        calc.GetProperty("nextSteps")[0].GetProperty("label").GetString().Should().Be("Gerar termo para conferência");
+        calc.GetProperty("nextSteps")[0].GetProperty("label").GetString().Should().Be("Baixar termo para conferência");
         var termination = calc.GetProperty("termination");
         var terminationId = termination.GetProperty("id").GetGuid();
         termination.GetProperty("status").GetString().Should().Be("Calculated");

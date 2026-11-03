@@ -209,7 +209,7 @@ public sealed partial class VacationService
         }
     }
 
-    /// <summary>"Gerar aviso de férias" (CA 5): o aviso em PDF pelo <c>IPdfRenderer</c>, sem valor; com <c>hr.view</c>.</summary>
+    /// <summary>"Baixar aviso de férias" (CA 5): o aviso em PDF pelo <c>IPdfRenderer</c>, sem valor; com <c>hr.view</c>.</summary>
     public async Task<Result<PayslipFile>> NoticeAsync(Guid scheduleId, CancellationToken cancellationToken = default)
     {
         var schedule = await db.VacationSchedules.AsNoTracking().FirstOrDefaultAsync(s => s.Id == scheduleId && s.Status != VacationScheduleStatus.Cancelled, cancellationToken);
@@ -223,9 +223,9 @@ public sealed partial class VacationService
                             join pos in db.JobPositions.IgnoreQueryFilters().AsNoTracking() on e.PositionId equals pos.Id
                             where e.Id == schedule.EmployeeId
                             select new { e.Name, e.Registration, Position = pos.Name }).FirstAsync(cancellationToken);
-        var model = new VacationNoticeModel(await documents.CompanyAsync(cancellationToken), person.Name, person.Registration, person.Position, period.StartsOn, period.EndsOn, schedule.StartsOn,
+        var model = new VacationNoticeModel(person.Name, person.Registration, person.Position, period.StartsOn, period.EndsOn, schedule.StartsOn,
             schedule.EndsOn, schedule.Days, schedule.SoldDays, schedule.PaymentDueOn, BusinessTime.Today(clock));
-        var bytes = await renderer.RenderAsync(new VacationNoticePdfDocument(model), cancellationToken);
+        var bytes = await renderer.RenderAsync(new VacationNoticePdfDocument(await documents.CompanyAsync(cancellationToken), model), cancellationToken);
         await audit.RecordReadAsync(nameof(VacationSchedule) + ".Notice", scheduleId.ToString(), cancellationToken);
         return new PayslipFile(new MemoryStream(bytes), $"aviso-ferias-{schedule.StartsOn:yyyy-MM-dd}.pdf", Documents.PayslipDocumentService.PdfContentType);
     }

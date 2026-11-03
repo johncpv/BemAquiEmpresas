@@ -31,7 +31,7 @@ public sealed record ShipmentListQuery(Guid? ProjectId, string? Filter, string? 
 public sealed partial class ShipmentService(
     IProductionDb db, IProjects projects, IParties parties, IItems items, ILocations locations, IFinishedGoodsStock finished, IStockSerials serials, IStockMovements stock,
     IStockBalances balances, INumberSequence numbers, IPermissionChecker permissions, ICurrentUser currentUser, IUserDirectory users, INotificationService notifications,
-    IEventPublisher events, TimeProvider clock, IPdfRenderer renderer, AttachmentService attachments, ICompanyIdentity company, IFileStorage storage,
+    IEventPublisher events, TimeProvider clock, IPdfRenderer renderer, AttachmentService attachments, PdfFrameFactory frames,
     BemAqui.Fiscal.Contracts.IOutgoingInvoices invoices)
 {
     public const string Link = "/app/producao/expedicao/";
@@ -220,7 +220,7 @@ public sealed partial class ShipmentService(
             return detail.Error!;
         }
 
-        var bytes = await renderer.RenderAsync(new ShipmentPdfDocument(await PdfModelAsync(detail.Value, cancellationToken)), cancellationToken);
+        var bytes = await renderer.RenderAsync(new ShipmentPdfDocument(await frames.CreateAsync(cancellationToken), await PdfModelAsync(detail.Value, cancellationToken)), cancellationToken);
         return (bytes, detail.Value.Number + ".pdf");
     }
 
@@ -229,22 +229,11 @@ public sealed partial class ShipmentService(
 
     internal async Task<ShipmentPdfModel> PdfModelAsync(ShipmentDetail detail, CancellationToken ct)
     {
-        var info = await company.GetAsync(ct);
-        byte[]? logo = null;
-        if (info.LogoStoragePath is { } path)
-        {
-            await using var content = await storage.OpenReadAsync(path, ct);
-            using var buffer = new MemoryStream();
-            await content.CopyToAsync(buffer, ct);
-            logo = buffer.ToArray();
-        }
-
         var party = await parties.FindAsync(detail.PartyId, ct);
         return new ShipmentPdfModel(
-            new ShipmentPdfCompany(info.TradeName ?? info.LegalName, info.LegalName, info.Document, info.Address, string.Join(" · ", new[] { info.Phone, info.Email }.Where(x => !string.IsNullOrWhiteSpace(x))), logo),
             detail.Number, detail.PlannedDate ?? BusinessTime.Today(clock), detail.ProjectNumber, detail.PartyName, party?.Document, detail.DeliveryAddress, detail.CarrierName,
             detail.VehiclePlate, detail.DriverName, detail.Volumes, detail.GrossWeight,
-            detail.Lines.Select(l => new ShipmentPdfItem(l.Sequence, l.ItemCode, l.ItemName, l.Quantity, l.UnitCode, l.Serials.Select(s => s.SerialNumber).ToList(), l.LotNumber)).ToList());
+            detail.Lines.Select(l => new ShipmentPdfItem(l.Sequence, l.ItemCode, l.ItemName, l.Quantity, l.UnitCode, l.Serials.Select(s => s.SerialNumber).ToList(), l.LotNumber)).ToList(), detail.Status);
     }
 
     private async Task<IReadOnlyList<ShipmentLineView>> LineViewsAsync(Guid shipmentId, CancellationToken ct)

@@ -126,11 +126,10 @@ public sealed partial class PayrollParallelService
 
         var entered = await TotalsAsync(run.EnteredRunId, cancellationToken);
         var calculated = await TotalsAsync(run.CalculatedRunId, cancellationToken);
-        var info = await company.GetAsync(cancellationToken);
         var version = await db.PayrollRuns.AsNoTracking().Where(r => r.Id == run.CalculatedRunId).Select(r => r.CalculatorVersion).FirstOrDefaultAsync(cancellationToken);
-        var model = new PayrollParallelTermModel(info.LegalName, info.Document, run.Period, PayrollParallelRules.TypeLabel(run.RunType), run.Employees, entered, calculated, version,
+        var model = new PayrollParallelTermModel(run.Period, PayrollParallelRules.TypeLabel(run.RunType), run.Employees, entered, calculated, version,
             BusinessTime.ToBusiness(clock.GetUtcNow()).DateTime, run.AccountantName, run.AccountantCrc);
-        var pdf = await renderer.RenderAsync(new PayrollParallelTermDocument(model), cancellationToken);
+        var pdf = await renderer.RenderAsync(new PayrollParallelTermDocument(await frames.CreateAsync(cancellationToken), model), cancellationToken);
         await audit.RecordReadAsync(nameof(PayrollParallelRun) + ".Term", id.ToString(), cancellationToken);
         return new PayrollParallelFile(pdf, $"termo-conferencia-{PayrollParallelRules.Month(run.Period)}.pdf", PdfContentType);
     }

@@ -11,7 +11,7 @@ public class AssetLabelRulesTests
     public void QR_leva_so_o_caminho_curto_com_a_etiqueta()
     {
         AssetLabelRules.ShortPath("PAT-00012").Should().Be("/b/PAT-00012");
-        var svg = AssetLabelPdfDocument.QrSvg("https://app.konebras.com.br/b/PAT-00012");
+        var svg = BemAqui.BuildingBlocks.Pdf.PdfQr.Svg("https://app.konebras.com.br/b/PAT-00012");
         svg.Should().StartWith("<svg").And.Contain("shape-rendering=\"crispEdges\"").And.NotContain("PAT-00012", "o SVG só tem os módulos, nunca o texto");
     }
 
