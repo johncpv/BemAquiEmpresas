@@ -677,5 +677,15 @@ Stories detalhadas em [`docs/stories/`](stories/README.md#fase-8--cliente-e-comu
 
 ---
 
+## Pós-go-live: documentos e exportação
+
+Pedido do PO de 02/11/2026: todo documento gerado tem PDF para imprimir e as listas e etapas-chave exportam em PDF e Excel, com o financeiro primeiro. Base na [ADR 0045](adr/0045-pdf-e-exportacao.md) (modelo único de PDF, Excel no servidor com ClosedXML, contrato `GET …/export`, teto, máscara sem 2FA e auditoria). Ondas da auditoria de 02/11/2026: EXP-01 (base) → EXP-02 (financeiro) → EXP-03 (compras, romaneio e OS) → EXP-04 → EXP-05.
+
+**EXP-01 [x] Base de PDF e exportação: modelo único, Excel com ClosedXML, contas a pagar e ordem de pagamento (M)** — Pós-go-live, ordem 1 — `Done` (02/11/2026) — [story](stories/EXP-01-base-pdf-exportacao.md)
+- Requisitos: pedido do PO de 02/11/2026, PRD §6 (LGPD, auditoria), R-SEC-5, R-PRP-1, ADR 0022, ADR 0045.
+- CA: `PdfDocumentFrame` (cabeçalho da empresa, título com número e data, marcas Rascunho/Simulação/Cancelado/Prévia em todas as páginas, rodapé "Emitido por … · Página x de y", cores do `PdfTheme`); `ITabularExporter` xlsx (ClosedXML: tipos, cabeçalho congelado, autofiltro, aba Filtros, anti-fórmula) e PDF de lista; `GET …/export?format=xlsx|pdf` com os filtros e a permissão da lista, teto 10.000/2.000 com 422 `export_too_large`, `{tela}-{AAAA-MM-DD}.{ext}`, máscara por coluna e `Exported` com filtros; `<DocumentActions>`, `<ExportMenu>` e `toolbar` do `DataTable`; pilotos: Contas a pagar e PDF da ordem de pagamento.
+
+---
+
 ## Fase 9 — Evolução
 Ponto como registro oficial (REP-P / Portaria 671; P-26, depois do MVP) · Depreciação · Retalhos de corte · Etapas terceirizadas · SSO · Contratos de manutenção recorrente (se validado).

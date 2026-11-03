@@ -44,3 +44,17 @@ describe('DataTable (FND-09c CA 4 e 6)', () => {
     expect(screen.getByText(/Página 1 de 3 · 45 registros/)).toBeDefined()
   })
 })
+
+describe('DataTable: barra de ações (EXP-01 CA 9)', () => {
+  it('toolbar fica à direita da busca, com nome acessível, e aparece mesmo sem busca', async () => {
+    const data = { items: [{ id: '1', nome: 'Ana' }], page: 1, pageSize: 20, total: 1 }
+    const { unmount } = renderWithRouter(() => <DataTable label="Títulos" columns={columns} query={{ ...base, data }} empty={{ title: 'Nada.' }} toolbar={<button type="button">Exportar</button>} />)
+    const toolbar = await screen.findByRole('toolbar', { name: 'Ações de Títulos' })
+    expect(toolbar.textContent).toBe('Exportar')
+    expect(screen.getByRole('searchbox')).toBeDefined()
+    unmount()
+    renderWithRouter(() => <DataTable label="Títulos" columns={columns} query={{ ...base, data }} empty={{ title: 'Nada.' }} searchable={false} toolbar={<button type="button">Exportar</button>} />)
+    expect(await screen.findByRole('toolbar', { name: 'Ações de Títulos' })).toBeDefined()
+    expect(screen.queryByRole('searchbox')).toBeNull()
+  })
+})

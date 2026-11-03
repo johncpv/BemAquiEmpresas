@@ -375,6 +375,7 @@ export * from './employeeStatus';
 export * from './employeeVacations';
 export * from './employerChargesContent';
 export * from './entitySummary';
+export * from './exportPayablesParams';
 export * from './extendValidityInput';
 export * from './fabricationBatchInput';
 export * from './fabricationBatchResult';

@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Finance.Application;
@@ -15,6 +16,14 @@ internal static partial class FinanceEndpoints
         payables.MapGet(string.Empty, async (string? q, string? situation, Guid? partyId, DateOnly? dueFrom, DateOnly? dueTo, int? page, int? pageSize, string? sort, PayableService service, CancellationToken ct) =>
                 Results.Ok(await service.ListAsync(new PayableListQuery(q, situation, partyId, dueFrom, dueTo), new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize, sort).Normalize(), ct)))
             .RequirePermission("finance.view").WithName("ListPayables").Produces<PayablePage>();
+        // EXP-01 (ADR 0045 §3): os mesmos filtros e a mesma permissão da lista; teto, máscara, auditoria e nome do arquivo no ListExportService.
+        payables.MapGet("/export", async (string? format, string? q, string? situation, Guid? partyId, DateOnly? dueFrom, DateOnly? dueTo, string? sort, HttpContext http,
+                PayableService service, ListExportService export, CancellationToken ct) =>
+            {
+                var query = new PayableListQuery(q, situation, partyId, dueFrom, dueTo);
+                return await export.ExportAsync(http, format, PayableExport.Spec, await service.ExportFiltersAsync(query, ct), (max, c) => service.ExportRowsAsync(query, sort, max, c), ct);
+            })
+            .RequirePermission("finance.view").WithName("ExportPayables");
         payables.MapGet("/{id:guid}", async (Guid id, PayableService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())
             .RequirePermission("finance.view").WithName("GetPayable").Produces<PayableDetail>();
         payables.MapGet("/{id:guid}/payment-method", async (Guid id, PayableService service, CancellationToken ct) => (await service.PaymentMethodAsync(id, ct)).ToHttpResult())
