@@ -685,6 +685,14 @@ Pedido do PO de 02/11/2026: todo documento gerado tem PDF para imprimir e as lis
 - Requisitos: pedido do PO de 02/11/2026, PRD §6 (LGPD, auditoria), R-SEC-5, R-PRP-1, ADR 0022, ADR 0045.
 - CA: `PdfDocumentFrame` (cabeçalho da empresa, título com número e data, marcas Rascunho/Simulação/Cancelado/Prévia em todas as páginas, rodapé "Emitido por … · Página x de y", cores do `PdfTheme`); `ITabularExporter` xlsx (ClosedXML: tipos, cabeçalho congelado, autofiltro, aba Filtros, anti-fórmula) e PDF de lista; `GET …/export?format=xlsx|pdf` com os filtros e a permissão da lista, teto 10.000/2.000 com 422 `export_too_large`, `{tela}-{AAAA-MM-DD}.{ext}`, máscara por coluna e `Exported` com filtros; `<DocumentActions>`, `<ExportMenu>` e `toolbar` do `DataTable`; pilotos: Contas a pagar e PDF da ordem de pagamento.
 
+**EXP-02 [ ] Onda 1: exportação do financeiro (extrato, conciliação, ordens, a receber, DRE, fluxo de caixa e inadimplência) e PDF do extrato, da conciliação e do DRE do período (G)** — [story](stories/EXP-02-exportacao-financeiro.md)
+
+**EXP-03 [ ] Onda 1: PDF da cotação e do mapa comparativo, pedido de compra no template com prévia, "Baixar PDF" no orçamento, romaneio e ficha da OS de fabricação (M)** — [story](stories/EXP-03-pdf-compras-orcamento-os-fabricacao.md)
+
+**EXP-04 [ ] Onda 2: PDFs do comercial, da produção, das compras e do estoque, Excel das listas operacionais, holerite e boleto à mão (G)** — [story](stories/EXP-04-pdf-comercial-producao-estoque-listas.md)
+
+**EXP-05 [ ] Onda 3: PDFs restantes, Excel de RH, fiscal, patrimônio e cadastros, e migração dos layouts antigos para o template (M)** — [story](stories/EXP-05-pdf-restantes-excel-rh-cadastros-migracao.md)
+
 ---
 
 ## Fase 9 — Evolução
