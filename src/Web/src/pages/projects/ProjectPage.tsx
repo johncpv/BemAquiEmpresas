@@ -1,7 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
-import { getGetContractQueryKey, getGetProjectQueryKey, useGetProject } from '@/api/generated/bemaqui'
+import { getDownloadProjectSummaryPdfUrl, getGetContractQueryKey, getGetProjectQueryKey, useGetProject } from '@/api/generated/bemaqui'
 import { RecordHistory } from '@/components/history/RecordHistory'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { StageIndicator } from '@/components/ui/stage-indicator'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -60,6 +61,8 @@ export function ProjectPage() {
         }
         actions={
           <>
+          {/* EXP-05 CA 5: o resumo em PDF; custos e financeiro saem só para quem os vê aqui (o servidor decide). */}
+          <DocumentActions url={getDownloadProjectSummaryPdfUrl(p.id)} fileName={`${p.number}.pdf`} />
           <Link to={'/app/contratos/$id' as never} params={{ id: p.contractId } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ver contrato {p.contractNumber}</Link>
           {canEdit && active ? <Link to={'/app/contratos/$id/aditivos/$aditivoId' as never} params={{ id: p.contractId, aditivoId: 'novo' } as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Aditivo</Link> : null}
           {canFabricate ? <ProjectEventDialog project={p} kind="fabrication" onDone={refresh} /> : null}

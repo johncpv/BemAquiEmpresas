@@ -61,6 +61,8 @@ public static class PurchasingInfrastructure
         services.TryAddScoped<RfqService>();
         // EXP-03: pedido de cotação por fornecedor e mapa comparativo em PDF.
         services.TryAddScoped<BemAqui.Purchasing.Application.Documents.RfqDocumentService>();
+        // EXP-05: PDF da solicitação de compra.
+        services.TryAddScoped<BemAqui.Purchasing.Application.Documents.PurchaseRequestDocumentService>();
         services.AddAuditableEntity<Rfq>("purchasing");
         services.AddAuditableEntity<RfqSupplier>("purchasing");
         services.AddAuditableEntity<RfqLine>("purchasing");

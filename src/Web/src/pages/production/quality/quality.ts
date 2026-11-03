@@ -82,3 +82,6 @@ export function decisionNext(result: Pick<QualityDecisionResult, 'result' | 'rea
 
 /** "há 3 d" / "hoje" (idade da NC, CA 11). */
 export const ageLabel = (days: number) => (days <= 0 ? 'Hoje' : days === 1 ? '1 dia' : `${days} dias`)
+
+/** Nome do PDF da inspeção (EXP-05 CA 9), igual ao do servidor: {OS}-qualidade-{letra}-t{tentativa}.pdf. */
+export const inspectionPdfName = (orderNumber: string, stepCode: string, attempt: number) => `${orderNumber}-qualidade-${stepCode}-t${attempt}.pdf`

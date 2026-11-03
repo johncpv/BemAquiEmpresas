@@ -28,6 +28,7 @@ public static class EngineeringInfrastructure
         services.AddAuditableEntity<RoutingTemplateItem>("engineering");
 
         services.TryAddScoped<BomService>();
+        services.TryAddScoped<BemAqui.Engineering.Application.Documents.EngineeringDocumentService>();
         services.TryAddScoped<IBoms, BomsContract>();
         // Saldo e custo médio pelo motor de estoque (EST-01a); "vai reservar" e o baixado por OS ligam na EST-02.
         services.TryAddScoped<IBomStock, StockBalancesBomStock>();

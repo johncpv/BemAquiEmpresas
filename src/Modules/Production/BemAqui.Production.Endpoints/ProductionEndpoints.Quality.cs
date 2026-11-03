@@ -35,6 +35,20 @@ internal static partial class ProductionEndpoints
         steps.MapPost("/reject", async (Guid stepId, QualityRejectInput input, QualityService service, CancellationToken ct) => (await service.RejectAsync(stepId, input, ct)).ToHttpResult())
             .RequirePermission("production.approve_quality").RequireIdempotencyKey().AllowPinSession().WithName("RejectQuality").Produces<QualityDecisionResult>();
 
+        // EXP-05 CA 9: PDF da inspeção (tentativa pedida ou a mais recente), com production.view; não decidida sai com "Prévia".
+        quality.MapGet("/{stepId:guid}/pdf", async (Guid stepId, int? attempt, HttpContext http, QualityInspectionDocumentService service, CancellationToken ct) =>
+            {
+                var result = await service.PdfAsync(stepId, attempt, ct);
+                if (result.IsFailure)
+                {
+                    return result.Error!.ToProblem();
+                }
+
+                AttachmentEndpoints.ApplyDownloadHeaders(http.Response);
+                return Results.File(result.Value.Content, "application/pdf", result.Value.FileName);
+            })
+            .RequirePermission("production.view").WithName("DownloadQualityInspectionPdf").Produces(StatusCodes.Status200OK, contentType: "application/pdf");
+
         // Aba Qualidade da OS (CA 7) e a NC pela OS (IDOR, CA 12), com production.view.
         production.MapGet("/production-orders/{id:guid}/quality", async (Guid id, QualityService service, NonConformityService nonConformities, CancellationToken ct) =>
                 (await service.OrderAsync(id, nonConformities, ct)).ToHttpResult())

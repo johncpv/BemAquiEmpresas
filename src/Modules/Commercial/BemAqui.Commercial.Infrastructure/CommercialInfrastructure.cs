@@ -42,6 +42,8 @@ public static class CommercialInfrastructure
         // Orçado × realizado e margem (DSH-02): um cálculo só para a aba Custos, o relatório e o painel do dono.
         services.TryAddScoped<ProjectMarginService>();
         services.TryAddScoped<IProjectMargins>(sp => sp.GetRequiredService<ProjectMarginService>());
+        // EXP-05 CA 5: resumo do projeto em PDF, com os blocos de custo e financeiro pela permissão.
+        services.TryAddScoped<BemAqui.Commercial.Application.Documents.ProjectSummaryDocumentService>();
         // EST-03 CA 11: recomposição do custo de material das saídas com projeto anteriores ao consumidor (D3).
         services.TryAddScoped<MaterialCostBackfill>();
         services.TryAddScoped<AmendmentService>();

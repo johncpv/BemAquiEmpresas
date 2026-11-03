@@ -16,6 +16,9 @@ export const BOM_SITUATION: Record<string, { label: string; tone: StatusTone }> 
   Released: { label: 'Liberada', tone: 'ok' },
 }
 
+/** Nome do PDF da BOM (EXP-05 CA 3), igual ao do servidor: BOM-{OS}-rev{n}.pdf. */
+export const bomPdfName = (orderNumber: string, revision: number) => `BOM-${orderNumber}-rev${revision}.pdf`
+
 /** Filtro da lista na URL (?situacao=vao-parar), com o valor da API. Sem filtro na URL, a lista abre em "vão parar" (CA 17). */
 export const BOM_SITUATIONS = [
   { value: 'vao-parar', label: 'OS que vão parar sem BOM', api: 'will_stop' },

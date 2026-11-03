@@ -2,11 +2,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
-  activateRoutingTemplate, deleteRoutingTemplate, getGetRoutingTemplateQueryKey, getListRoutingTemplatesQueryKey, inactivateRoutingTemplate, updateRoutingTemplate,
+  activateRoutingTemplate, deleteRoutingTemplate, getDownloadRoutingTemplatePdfUrl, getGetRoutingTemplateQueryKey, getListRoutingTemplatesQueryKey, inactivateRoutingTemplate, updateRoutingTemplate,
   useGetRoutingTemplate, useListRoutingProductTypes, useListRoutingWorkCenters, useListSuggestedRoutingWorkCenters,
 } from '@/api/generated/bemaqui'
 import type { RoutingTemplateDetail } from '@/api/generated/model'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { notifySuccess } from '@/components/ui/messages'
 import { NextSteps } from '@/components/ui/next-steps'
 import { StageIndicator } from '@/components/ui/stage-indicator'
@@ -20,7 +21,7 @@ import { PageHeading } from '@/shell/PageHeading'
 import { RoutingEditor } from './RoutingEditor'
 import { RoutingHistory } from './RoutingHistory'
 import { RoutingProducts } from './RoutingProducts'
-import { type RoutingDraft, toDraftSteps, toStepsInput } from './routings'
+import { type RoutingDraft, routingPdfName, toDraftSteps, toStepsInput } from './routings'
 
 const action = 'rounded-md border border-border px-3 py-2 text-sm font-semibold'
 
@@ -100,6 +101,8 @@ function RoutingActions({ template: t, onChange }: { template: RoutingTemplateDe
   const ready = t.steps.length > 0 && t.steps.every((s) => s.workCenterId && s.workCenterActive)
   return (
     <span className="flex flex-wrap gap-2">
+      {/* EXP-05 CA 4: o roteiro em PDF (etapas, checklist e produtos), primeiro botão secundário. */}
+      <DocumentActions url={getDownloadRoutingTemplatePdfUrl(t.id)} fileName={routingPdfName(t.name)} />
       {canCreate ? <button type="button" onClick={() => void navigate({ to: '/app/engenharia/roteiros/novo', search: { de: t.id } } as never)} className={action}>Duplicar</button> : null}
       {canEdit && t.isActive ? (
         <ConfirmDialog verb="Inativar roteiro" done="Roteiro inativado" title={`Inativar o roteiro ${t.name}?`} description="Ele some dos seletores e da sugestão pelo produto. As OS que já o usam continuam como estão."

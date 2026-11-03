@@ -16,6 +16,9 @@ Ver as inspeções de qualidade da OS, tentativa por tentativa, e as não confor
 - Com a ação de qualidade, a tentativa em andamento tem **Inspecionar**.
 - Embaixo ficam as não conformidades da OS, com a situação e o responsável.
 
+## Imprimir e exportar
+- Cada tentativa tem **Baixar PDF**: a inspeção daquela tentativa, com o checklist, o resultado de cada item, a decisão, quem decidiu e a NC. A tentativa ainda não decidida sai com a marca **Prévia**.
+
 ## Perguntas frequentes
 **A OS aprovada ficou concluída?** Não. Aprovar a qualidade da última etapa deixa a OS **Pronta para concluir**; o supervisor conclui a OS.
 

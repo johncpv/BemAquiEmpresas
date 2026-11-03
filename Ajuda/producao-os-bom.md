@@ -19,6 +19,13 @@ Montar a lista de materiais (BOM) desta OS e liberá-la para o estoque reservar 
 - **Descartar rascunho** apaga a revisão em rascunho. A liberada, se houver, continua valendo.
 - **Revisões** lista todas as revisões e compara duas lado a lado. **Histórico de alterações** mostra quem mudou o quê, inclusive o rascunho descartado.
 
+## Imprimir e exportar
+- **Baixar BOM em PDF** e **Imprimir**, no alto da aba, geram a lista de materiais da revisão que está na tela (o rascunho em edição ou a liberada): OS, produto, quantidade da OS, revisão, situação, quem liberou e quando, de onde foi copiada e as linhas (código, descrição, quantidade por unidade, unidade, perda, necessidade da OS e observação), com o campo **Conferido por**.
+- Em **Revisões**, cada revisão tem o próprio **Baixar PDF**.
+- O rascunho sai com a marca **Rascunho**; a revisão substituída sai com a faixa "Revisão substituída pela {n}"; a liberada vigente sai sem marca.
+- O PDF **nunca** traz custo, nem para quem vê o custo previsto na tela.
+- Ao liberar a BOM, o próximo passo **Imprimir a BOM para a fábrica** baixa o PDF da revisão liberada.
+
 ## Perguntas frequentes
 **A OS pode começar sem BOM?** A primeira etapa, sim: a BOM nasce na etapa Projeto. Da segunda etapa em diante, a etapa só começa (e só é concluída pelo supervisor) com a BOM liberada. Sem ela, a fábrica vê "A BOM desta OS ainda não foi liberada. Fale com a Engenharia."
 

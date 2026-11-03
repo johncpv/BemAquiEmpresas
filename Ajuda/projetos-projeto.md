@@ -24,6 +24,12 @@ Acompanhar o que a fábrica vai entregar do contrato. O projeto nasce na aprova�
 - O **Resumo** mostra o contratado, a entrega prometida, o contrato e o orçamento de origem. Quem vê o financeiro vê também o recebido e o que falta receber; quem vê custo, a margem orçada e a projetada.
 - Quem pode editar muda o nome, o responsável e o endereço da obra e clica em **Salvar projeto**. A data prometida e o valor só mudam por aditivo.
 
+## Imprimir e exportar
+- **Baixar PDF** e **Imprimir**, no cabeçalho, geram o **resumo do projeto**: número, nome, cliente, responsável, endereço da obra, contrato, situação, o indicador de etapa (P, E, F, I, T, C), entrega prometida, entrega prevista e atraso, os itens e o cronograma com os marcos do contrato (percentual, valor e quando vence).
+- As **OS de fabricação** (número, produto, etapa atual e situação) saem só para quem vê Produção, como na aba Itens e OS.
+- O bloco **Custos** (orçado, realizado, projetado e desvio por natureza, e as margens) sai só para quem vê o custo do projeto; o bloco **Financeiro** (a receber, recebido e % recebido do contratado) só para quem vê o Financeiro. Sem a permissão, o bloco não sai.
+- Projeto cancelado sai com a marca **Cancelado**.
+
 ## Perguntas frequentes
 **Quando usar "Registrar entrega"?** Quando não há instalação. Com OS de instalação, a entrega vem do aceite técnico.
 

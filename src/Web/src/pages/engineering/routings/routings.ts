@@ -1,6 +1,12 @@
 import { DEFAULT_LETTERS, DEFAULT_STAGES } from '@/lib/stages'
 import { formatBrDecimal, sumDecimal } from '@/lib/decimal'
 
+/** Nome do PDF do roteiro (EXP-05 CA 4), igual ao do servidor: roteiro-{nome sem acento, em minúsculas e com hífen}.pdf. */
+export function routingPdfName(name: string) {
+  const slug = name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[\s_-]+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '')
+  return `roteiro-${slug || 'sem-nome'}.pdf`
+}
+
 /** Etapa em edição (CA 3 a 6): id nulo é etapa nova; a sequência é a posição na lista, regravada pelo servidor. */
 export interface StepDraft {
   id: string | null

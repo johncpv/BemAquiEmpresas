@@ -1,11 +1,12 @@
 import { Link } from '@tanstack/react-router'
-import { useGetOrderQuality } from '@/api/generated/bemaqui'
+import { getDownloadQualityInspectionPdfUrl, useGetOrderQuality } from '@/api/generated/bemaqui'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { useCan } from '@/pages/use-can'
-import { ageLabel, NC_STATUS, QUALITY_DICAS, resultLabel } from './quality'
+import { ageLabel, inspectionPdfName, NC_STATUS, QUALITY_DICAS, resultLabel } from './quality'
 
 const action = 'inline-flex min-h-9 items-center rounded-md border border-border px-3 text-sm font-semibold text-primary'
 
@@ -40,6 +41,10 @@ export function OrderQualityTab({ orderId }: { orderId: string }) {
               {a.decidedAt ? <span className="text-muted-foreground tabular-nums">{a.decidedByName ?? 'Usuário'} · {formatDateTime(a.decidedAt)}</span> : null}
               {!a.result && canDecide ? <Link to="/app/producao/qualidade/$stepId" params={{ stepId: a.stepId }} className={action}>Inspecionar</Link> : null}
             </p>
+            {/* EXP-05 CA 9: a inspeção desta tentativa em PDF ("Prévia" enquanto não decidida). */}
+            <div className="mt-2">
+              <DocumentActions url={getDownloadQualityInspectionPdfUrl(a.stepId, { attempt: a.attempt })} fileName={inspectionPdfName(q.orderNumber, a.stepCode, a.attempt)} print={false} />
+            </div>
             {a.nonConformityId ? (
               <p className="mt-1">
                 <Link to="/app/producao/nao-conformidades/$id" params={{ id: a.nonConformityId }} className="font-semibold text-primary hover:underline">{a.nonConformityNumber}</Link>

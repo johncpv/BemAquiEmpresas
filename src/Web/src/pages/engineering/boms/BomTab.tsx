@@ -1,10 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { createBom, discardBom, getGetOrderBomQueryKey, getListBomsQueryKey, reviseBom, saveBom, useGetOrderBom } from '@/api/generated/bemaqui'
+import { createBom, discardBom, getDownloadBomPdfUrl, getGetOrderBomQueryKey, getListBomsQueryKey, reviseBom, saveBom, useGetOrderBom } from '@/api/generated/bemaqui'
 import type { BomDetail, BomLineView, BomReleasePreview } from '@/api/generated/model'
+import { apiDownload } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { notifySuccess } from '@/components/ui/messages'
 import { NextSteps } from '@/components/ui/next-steps'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
@@ -16,7 +18,7 @@ import { useCan } from '@/pages/use-can'
 import { BomEditor } from './BomEditor'
 import { CopyBomDialog, ReleaseBomDialog } from './BomDialogs'
 import { BomHistory, BomRevisions } from './BomRevisions'
-import { BOM_DICAS, BOM_STATUS, draftLines, qty, toInput } from './boms'
+import { BOM_DICAS, BOM_STATUS, bomPdfName, draftLines, qty, toInput } from './boms'
 
 const primary = 'rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground'
 const secondary = 'rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold'
@@ -62,8 +64,11 @@ export function BomTab({ orderId }: { orderId: string }) {
   }
 
   const tabs: { id: View; label: string }[] = [{ id: 'bom', label: 'BOM' }, { id: 'revisoes', label: 'Revisões' }, { id: 'historico', label: 'Histórico de alterações' }]
+  // EXP-05 CA 3: o PDF da revisão em tela (o rascunho em edição, senão a liberada vigente).
+  const shown = draft ?? current
   return (
     <div className="space-y-4">
+      {shown ? <DocumentActions url={getDownloadBomPdfUrl(shown.id)} fileName={bomPdfName(order.number, shown.revision)} label="Baixar BOM em PDF" /> : null}
       <div className="flex flex-wrap items-center gap-2 text-sm">
         {order.productId ? null : <span className="inline-flex items-center"><StatusChip tone="warn">Sem item de estoque</StatusChip><Dica nome="Sem item de estoque" texto={BOM_DICAS.semItem} /></span>}
         {current ? <StatusChip tone="ok">Revisão {current.revision} liberada</StatusChip> : null}
@@ -78,6 +83,8 @@ export function BomTab({ orderId }: { orderId: string }) {
       {order.closed ? <p role="note" className="rounded-md border border-border bg-muted px-3 py-2 text-sm">A OS {order.number} está {order.status === 'Cancelled' ? 'cancelada' : 'concluída'}: a BOM não muda.</p> : null}
       {released ? (
         <NextSteps onDismiss={() => setReleased(null)} steps={[
+          // EXP-05 (propositivo): a BOM liberada vai para o papel da fábrica.
+          { label: 'Imprimir a BOM para a fábrica', onSelect: () => void apiDownload(getDownloadBomPdfUrl(released.bomId), bomPdfName(order.number, released.revision)).catch(() => undefined) },
           ...(released.shortageCount > 0 ? [{ label: 'Ver solicitações de compra geradas', onSelect: () => void navigate({ to: '/app/compras/solicitacoes', search: { os: orderId, filtro: 'todas' } } as never) }] : []),
           ...(released.shortageCount > 0 ? [{ label: 'Ver faltas da OS', onSelect: () => { setReleased(null); void navigate({ to: '.', search: { aba: 'material' } } as never) } }] : []),
           { label: 'Ver etapas da OS', onSelect: () => void navigate({ to: '.', search: { aba: 'etapas' } } as never) },
@@ -92,7 +99,7 @@ export function BomTab({ orderId }: { orderId: string }) {
         ))}
       </div>
 
-      {view === 'revisoes' ? <BomRevisions revisions={revisions} /> : view === 'historico' ? <BomHistory orderId={orderId} /> : !draft && !current ? (
+      {view === 'revisoes' ? <BomRevisions revisions={revisions} orderNumber={order.number} /> : view === 'historico' ? <BomHistory orderId={orderId} /> : !draft && !current ? (
         <EmptyState title="Esta OS ainda não tem BOM." description="Monte a lista de materiais do zero ou copie de uma OS parecida. Nada vai para o estoque até liberar."
           action={order.closed || !canCreate ? undefined : (
             <span className="flex flex-wrap justify-center gap-2">
