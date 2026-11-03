@@ -38,7 +38,7 @@ public partial class LegacyPdfLayoutsTests
     [GeneratedRegex(@"\s+")]
     private static partial Regex Spaces();
 
-    [GeneratedRegex(@"Página\d+de\d+")]
+    [GeneratedRegex(@"·?Página\d+de\d+")]
     private static partial Regex Pages();
 
     private static string Flat(string text) => Spaces().Replace(text, string.Empty);
@@ -50,7 +50,7 @@ public partial class LegacyPdfLayoutsTests
         return Flat(string.Join(" ", read.GetPages().Select(p => p.Text)));
     }
 
-    /// <summary>O corpo: o texto sem os trechos de cabeçalho e rodapé (do maior para o menor, para a razão social sair antes do nome) e sem "Página x de y".</summary>
+    /// <summary>O corpo: o texto sem os trechos de cabeçalho e rodapé (do maior para o menor, para a razão social sair antes do nome) e sem "· Página x de y" (o rodapé do frame).</summary>
     private static string Body(string text, IEnumerable<string> strip)
     {
         foreach (var part in strip.Select(Flat).Where(p => p.Length > 0).Distinct().OrderByDescending(p => p.Length))
@@ -286,6 +286,6 @@ public partial class LegacyPdfLayoutsTests
         text.Should().Contain(PdfMarks.Watermark(PdfMark.Preview));
         var body = text.Replace(PdfMarks.Watermark(PdfMark.Preview), string.Empty, StringComparison.Ordinal);
         body.Should().StartWith(band, "a faixa da marca abre o DANFE");
-        Fixture("previa-do-danfe", body[band.Length..]);
+        Fixture("previa-do-danfe", Body(body[band.Length..], []));
     }
 }
