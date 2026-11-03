@@ -1,26 +1,13 @@
 import * as Menu from '@radix-ui/react-dropdown-menu'
 import { ChevronDown, FileDown } from 'lucide-react'
 import { useId, useState } from 'react'
-import { getDownloadRfqComparisonPdfUrl, getDownloadRfqRequestPdfUrl } from '@/api/generated/bemaqui'
+import { getDownloadRfqComparisonPdfUrl } from '@/api/generated/bemaqui'
 import type { RfqDetail, RfqSupplierView } from '@/api/generated/model'
-import { ApiError, apiDownload } from '@/api/http'
 import { DocumentActions } from '@/components/ui/document-actions'
-import { responseState, rfqRequestFileName } from './rfqs'
+import { canDownloadComparison, downloadRfqRequest } from './rfq-pdf'
+import { responseState } from './rfqs'
 
 const button = 'inline-flex min-h-10 items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold disabled:opacity-60'
-
-/** Baixa o pedido de cotação de um fornecedor; devolve a mensagem de erro do servidor (409 da cotação fechada, 404) ou null. */
-export async function downloadRfqRequest(rfq: Pick<RfqDetail, 'id' | 'number'>, supplier: Pick<RfqSupplierView, 'id' | 'partyName'>): Promise<string | null> {
-  try {
-    await apiDownload(getDownloadRfqRequestPdfUrl(rfq.id, supplier.id), rfqRequestFileName(rfq.number, supplier.partyName))
-    return null
-  } catch (e) {
-    return e instanceof ApiError ? e.message : 'Não foi possível gerar o PDF. Verifique a conexão e tente de novo.'
-  }
-}
-
-/** O mapa comparativo sai da cotação aberta com ao menos uma resposta, da concluída e da cancelada (EXP-03 CA 2). */
-export const canDownloadComparison = (rfq: Pick<RfqDetail, 'status' | 'suppliers'>) => rfq.status !== 'Open' || rfq.suppliers.some((s) => s.responded)
 
 /**
  * "Baixar pedido de cotação" (EXP-03 CA 1): menu com um item por fornecedor e a situação da resposta; cada um baixa o PDF só daquele
