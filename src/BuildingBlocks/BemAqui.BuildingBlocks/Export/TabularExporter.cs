@@ -59,43 +59,76 @@ public sealed class XlsxTabularExporter : ITabularExporter
     {
         _ = Configured.Value;
         using var workbook = new XLWorkbook();
-        var sheet = workbook.Worksheets.Add(SheetName(table.Title));
-        for (var c = 0; c < table.Columns.Count; c++)
+        Sheet(workbook.Worksheets.Add(SheetName(table.SheetName ?? table.Title)), table.Columns, table.Rows, table.RowStyles);
+        foreach (var extra in table.Sheets)
         {
-            var header = sheet.Cell(1, c + 1);
-            header.Value = table.Columns[c].Header;
-            header.Style.Font.Bold = true;
-            header.Style.Fill.BackgroundColor = XLColor.FromHtml(PdfTheme.Surface);
-            if (IsNumeric(table.Columns[c].Type))
-            {
-                header.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-            }
-        }
-
-        for (var r = 0; r < table.Rows.Count; r++)
-        {
-            var row = table.Rows[r];
-            for (var c = 0; c < table.Columns.Count; c++)
-            {
-                Write(sheet.Cell(r + 2, c + 1), table.Columns[c].Type, c < row.Count ? row[c] : null);
-            }
-        }
-
-        for (var c = 0; c < table.Columns.Count; c++)
-        {
-            sheet.Column(c + 1).Width = Width(table.Columns[c], table.Rows.Select(r => c < r.Count ? r[c] : null));
-        }
-
-        if (table.Columns.Count > 0)
-        {
-            sheet.SheetView.FreezeRows(1);
-            sheet.Range(1, 1, Math.Max(1, table.Rows.Count + 1), table.Columns.Count).SetAutoFilter();
+            Sheet(workbook.Worksheets.Add(SheetName(extra.Name)), extra.Columns, extra.Rows, extra.RowStyles);
         }
 
         Filters(workbook.Worksheets.Add("Filtros"), table);
         using var output = new MemoryStream();
         workbook.SaveAs(output);
         return output.ToArray();
+    }
+
+    /// <summary>
+    /// Uma aba: cabeçalho em negrito, congelado e com autofiltro, células tipadas e largura por tipo. Linha com destaque: negrito em todas as
+    /// células, recuo na coluna marcada e o agrupamento da planilha (outline) pelo nível, aberto (EXP-02, hierarquia do DRE).
+    /// </summary>
+    private static void Sheet(IXLWorksheet sheet, IReadOnlyList<ExportColumn> columns, IReadOnlyList<IReadOnlyList<object?>> rows, IReadOnlyList<ExportRowStyle?> styles)
+    {
+        for (var c = 0; c < columns.Count; c++)
+        {
+            var header = sheet.Cell(1, c + 1);
+            header.Value = columns[c].Header;
+            header.Style.Font.Bold = true;
+            header.Style.Fill.BackgroundColor = XLColor.FromHtml(PdfTheme.Surface);
+            if (IsNumeric(columns[c].Type))
+            {
+                header.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+            }
+        }
+
+        for (var r = 0; r < rows.Count; r++)
+        {
+            var row = rows[r];
+            var style = r < styles.Count ? styles[r] : null;
+            for (var c = 0; c < columns.Count; c++)
+            {
+                var cell = sheet.Cell(r + 2, c + 1);
+                Write(cell, columns[c].Type, c < row.Count ? row[c] : null);
+                if (style is { Bold: true })
+                {
+                    cell.Style.Font.Bold = true;
+                }
+
+                if (style is { CriticalWhenNegative: true } && c < row.Count && row[c] is decimal and < 0m)
+                {
+                    cell.Style.Font.FontColor = XLColor.FromHtml(PdfTheme.CritInk);
+                }
+
+                if (style is { Indent: > 0 } && columns[c].Indented)
+                {
+                    cell.Style.Alignment.Indent = style.Indent;
+                }
+            }
+
+            if (style is { Indent: > 0 })
+            {
+                sheet.Row(r + 2).OutlineLevel = Math.Min(style.Indent, 7);
+            }
+        }
+
+        for (var c = 0; c < columns.Count; c++)
+        {
+            sheet.Column(c + 1).Width = Width(columns[c], rows.Select(r => c < r.Count ? r[c] : null));
+        }
+
+        if (columns.Count > 0)
+        {
+            sheet.SheetView.FreezeRows(1);
+            sheet.Range(1, 1, Math.Max(1, rows.Count + 1), columns.Count).SetAutoFilter();
+        }
     }
 
     /// <summary>Célula tipada; texto perigoso (fórmula, DDE) fica como texto com o prefixo de texto.</summary>
@@ -176,6 +209,7 @@ public sealed class XlsxTabularExporter : ITabularExporter
             ("Linhas", table.Rows.Count),
         };
         lines.AddRange(table.Filters.Select(f => (f.Label, (object?)(string.IsNullOrWhiteSpace(f.Value) ? "Todos" : f.Value))));
+        lines.AddRange(table.Notes.Select(n => ("Nota", (object?)n)));
         for (var i = 0; i < lines.Count; i++)
         {
             var label = sheet.Cell(i + 1, 1);

@@ -4,6 +4,9 @@ import { markDreViewed, useGetDre } from '@/api/generated/bemaqui'
 import type { DreChangeSummary, DreReport } from '@/api/generated/model'
 import { inputClass } from '@/components/form/form-utils'
 import { Chart } from '@/components/ui/chart'
+import { ExportMenu } from '@/components/ui/export-menu'
+import { Can } from '@/pages/ModuleGate'
+import { dreExportUrl } from '../finance-exports'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
@@ -127,6 +130,9 @@ export function DrePage() {
         <label className="space-y-1 text-sm font-medium">Até o mês
           <input type="month" value={to.slice(0, 7)} max={currentMonth().slice(0, 7)} onChange={(e) => set({ ate: e.target.value && e.target.value !== currentMonth().slice(0, 7) ? e.target.value : undefined })} className={inputClass + ' min-h-11 sm:min-h-0'} />
         </label>
+        <Can perm="finance.view">
+          <ExportMenu fileBase="dre" pdfLabel="PDF do DRE" empty={query.data ? !query.data.hasEntries : false} url={dreExportUrl({ from, to })} />
+        </Can>
       </div>
       {body}
       {target ? <DreCellPanel target={target} from={from} to={to} onClose={() => setTarget(null)} /> : null}

@@ -3,6 +3,9 @@ import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import { getGetBankBalancesQueryKey, getGetBankStatementQueryKey, useGetBankStatement } from '@/api/generated/bemaqui'
 import { DateInput } from '@/components/form/inputs'
+import { ExportMenu } from '@/components/ui/export-menu'
+import { Can } from '@/pages/ModuleGate'
+import { statementExportUrl } from '../finance-exports'
 import { Money } from '@/components/ui/money'
 import { NextSteps } from '@/components/ui/next-steps'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
@@ -87,10 +90,15 @@ export function StatementPage() {
       <UrlTabs label="Extratos da conta" fallback="extrato" tabs={[
         { id: 'extrato', label: 'Extrato do sistema', content: (
           <div className="space-y-3 pt-3">
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={search.semOp === '1'} onChange={(e) => set({ semOp: e.target.checked ? '1' : undefined, page: undefined })} className="size-4 accent-primary" />
-              Só movimentos sem OP<Dica nome="Sem OP" texto="Tarifas, IOF, juros e rendimentos lançados direto na conta, sem ordem de pagamento. O Proprietário é avisado de cada um." />
-            </label>
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={search.semOp === '1'} onChange={(e) => set({ semOp: e.target.checked ? '1' : undefined, page: undefined })} className="size-4 accent-primary" />
+                Só movimentos sem OP<Dica nome="Sem OP" texto="Tarifas, IOF, juros e rendimentos lançados direto na conta, sem ordem de pagamento. O Proprietário é avisado de cada um." />
+              </label>
+              <Can perm="finance.view">
+                <ExportMenu fileBase="extrato" pdfLabel="PDF do extrato" empty={query.data?.lines.total === 0} url={statementExportUrl(id, { from, to, withoutOrder: search.semOp === '1' || undefined })} />
+              </Can>
+            </div>
             {body}
           </div>
         ) },

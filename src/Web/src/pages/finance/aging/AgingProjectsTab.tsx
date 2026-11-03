@@ -1,8 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useGetAgingByProject } from '@/api/generated/bemaqui'
+import { getExportAgingByProjectUrl, useGetAgingByProject } from '@/api/generated/bemaqui'
 import type { AgingProject } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
+import { ExportMenu } from '@/components/ui/export-menu'
+import { Can } from '@/pages/ModuleGate'
 import { Money } from '@/components/ui/money'
 
 const LABELS = ['0–30 dias', '31–60 dias', '61–90 dias', 'Mais de 90 dias']
@@ -22,6 +24,7 @@ export function AgingProjectsTab() {
   ]
   return (
     <DataTable label="Inadimplência por projeto" columns={columns} searchable={false} getRowId={(r) => r.projectId ?? 'sem-projeto'}
+      toolbar={<Can perm="finance.view"><ExportMenu fileBase="inadimplencia-projetos" empty={rows.length === 0} url={(format) => getExportAgingByProjectUrl({ format })} /></Can>}
       query={{ data: query.data ? { items: rows, page: 1, pageSize: Math.max(rows.length, 1), total: rows.length } : undefined, isPending: query.isPending, isError: query.isError, error: query.error, refetch: query.refetch }}
       empty={{ title: 'Nenhum título vencido. Bom sinal.' }}
       totals={query.data ? { total: <Money value={query.data.total} className="font-semibold" /> } : undefined} />

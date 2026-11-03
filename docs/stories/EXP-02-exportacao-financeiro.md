@@ -5,7 +5,7 @@
 | ID | EXP-02 |
 | Título | Exportação em Excel (xlsx) e PDF das listas e relatórios do financeiro (extrato da conta, extrato do banco, conciliação, ordens de pagamento, a receber, DRE, fluxo de caixa e inadimplência), com os filtros da tela, a mesma permissão e a mesma máscara; PDF próprio do extrato do período e do DRE do período |
 | Tamanho | G |
-| Status | Ready |
+| Status | Done (03/11/2026) |
 | Requisitos | Pedido do PO de 02/11/2026 (auditoria de PDF e exportação, seções B, D4 e E) · R-FIN-13 (DRE) · R-FIN-12 (inadimplência) · R-FIN-5 (ordens) · R-COM-3 · PRD §1.1 (visibilidade financeira) · PRD §6 (LGPD, Desempenho) · R-SEC-5 |
 | Dependências | EXP-01 (`PdfDocumentFrame`, `PdfMark`, `ListPdfDocument`, `ITabularExporter` com ClosedXML, `ExportLimits`, `<ExportMenu>`, slot `toolbar` do `DataTable`, auditoria de exportação); FIN-04, FIN-05, FIN-06a/06b, FIN-07, FIN-08, FIN-03a, BNK-03a, BNK-03b (telas e consultas já entregues) |
 | Bloqueia | — |

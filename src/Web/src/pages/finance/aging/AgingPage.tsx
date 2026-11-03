@@ -1,8 +1,10 @@
 import { Link, useSearch } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useGetAging } from '@/api/generated/bemaqui'
+import { getExportAgingUrl, useGetAging } from '@/api/generated/bemaqui'
 import type { AgingCustomer } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
+import { ExportMenu } from '@/components/ui/export-menu'
+import { Can } from '@/pages/ModuleGate'
 import { Money } from '@/components/ui/money'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { Dica } from '@/help/Dica'
@@ -70,6 +72,7 @@ export function AgingPage() {
           <p className="mb-2 flex flex-wrap items-center text-xs text-muted-foreground">Por cliente, do maior saldo vencido para o menor. Dias de atraso<Dica nome="Dias de atraso" texto={DICAS.atraso} /> · Atraso médio<Dica nome="Atraso médio" texto={DICAS.atrasoMedio} /> · % pago com atraso<Dica nome="% pago com atraso" texto={DICAS.pagoComAtraso} /></p>
           <DataTable
             label="Inadimplência por cliente"
+            toolbar={<Can perm="finance.view"><ExportMenu fileBase="inadimplencia-clientes" empty={rows.length === 0} url={(format) => getExportAgingUrl({ sort: search.sort, format })} /></Can>}
             columns={columns}
             searchable={false}
             getRowId={(r) => r.partyId}

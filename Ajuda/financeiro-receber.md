@@ -20,6 +20,13 @@ Ver o que os clientes devem à empresa, por vencimento, e abrir cada título par
 - **Pagamentos a conferir** (aparece com a contagem quando há algum): boletos que o Inter confirmou com valor diferente do título (pago a menos fora da data do desconto, pago a mais além dos juros e da multa, ou boleto já cancelado). O dinheiro já está na conta, marcado "Recebido do Inter, aguardando conferência". Clique em **Conferir pagamento**, escolha **Baixar com desconto**, **Baixar com juros** ou **Deixar saldo em aberto** e confira o saldo antes e depois. Desconto acima do limite só quem aprova em Caixa e pagamentos confirma.
 - Boleto pago sem diferença baixa sozinho pelo aviso do Inter (ou na conferência das 7h e das 13h), com a data do crédito do banco; quem vê o Financeiro recebe "Recebido R$ … de … · título …" no sino.
 
+## Imprimir e exportar
+- Clique em **Exportar** e escolha **Excel (.xlsx)** ou **PDF**. Valem a busca, a situação, o vencimento, o cliente, o contrato, o boleto e a ordem da tela, com todas as páginas.
+- A planilha traz número, cliente, contrato/projeto, parcela, emissão, vencimento ("Aguarda: …" na parcela prevista), valor, recebido, saldo, situação, boleto e se veio da implantação. As duas últimas linhas, **Em aberto** e **Vencido**, são iguais ao rodapé da tela. O PDF traz as colunas principais.
+- A lista de **Pagamentos a conferir** não é exportada nesta versão.
+- O limite é de 10.000 linhas no Excel e 2.000 no PDF. Acima disso, o sistema avisa e pede para refinar os filtros (período, situação ou busca).
+- Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+
 ## Perguntas frequentes
 **Quando um título aparece como "Vencido"?** Quando está em aberto e o vencimento é antes de hoje. Vencimento num sábado, domingo ou feriado passa a vencido só no dia seguinte.
 

@@ -33,7 +33,8 @@ public sealed class ExportOptions
 /// filtros) e devolve o download <c>{tela}-{AAAA-MM-DD}.{ext}</c> com os cabeçalhos de download seguro.
 /// </summary>
 public sealed class ListExportService(
-    IEnumerable<ITabularExporter> exporters, IPermissionChecker permissions, IAuditWriter audit, PdfFrameFactory frames, IOptions<ExportOptions> options, TimeProvider clock)
+    IEnumerable<ITabularExporter> exporters, IPermissionChecker permissions, IAuditWriter audit, PdfFrameFactory frames, IOptions<ExportOptions> options, TimeProvider clock,
+    IPdfRenderer renderer)
 {
     public const string TooLargeCode = "export_too_large";
     public const string InvalidFormatCode = "export_format_invalid";
@@ -63,7 +64,19 @@ public sealed class ListExportService(
         ArgumentNullException.ThrowIfNull(spec);
         ArgumentNullException.ThrowIfNull(filters);
         ArgumentNullException.ThrowIfNull(load);
-        var result = await BuildAsync(format, spec, filters, load, cancellationToken);
+        return await ExportAsync(http, format, async (max, ct) => Result<ExportData<T>>.Success(new ExportData<T>(spec, filters, await load(max, ct))), cancellationToken);
+    }
+
+    /// <summary>
+    /// Exportação em que a consulta da tela pode recusar (conta não encontrada, período inválido) e decide colunas, filtros, abas e o PDF
+    /// próprio pelo resultado (EXP-02). O formato é conferido antes da consulta; o teto, a máscara, a auditoria e o download, depois.
+    /// </summary>
+    public async Task<IResult> ExportAsync<T>(HttpContext http, string? format, Func<int, CancellationToken, Task<Result<ExportData<T>>>> load,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(http);
+        ArgumentNullException.ThrowIfNull(load);
+        var result = await BuildAsync(format, load, cancellationToken);
         if (result.IsFailure)
         {
             return result.Error!.ToProblem();
@@ -80,6 +93,13 @@ public sealed class ListExportService(
         ArgumentNullException.ThrowIfNull(spec);
         ArgumentNullException.ThrowIfNull(filters);
         ArgumentNullException.ThrowIfNull(load);
+        return await BuildAsync(format, async (max, ct) => Result<ExportData<T>>.Success(new ExportData<T>(spec, filters, await load(max, ct))), cancellationToken);
+    }
+
+    /// <summary>O arquivo pronto (ou o erro de formato, da consulta e do teto), já auditado; com <see cref="ExportData{T}.Document"/>, o PDF é o próprio da tela.</summary>
+    public async Task<Result<ExportFile>> BuildAsync<T>(string? format, Func<int, CancellationToken, Task<Result<ExportData<T>>>> load, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(load);
         if (ParseFormat(format) is not { } parsed)
         {
             return Error.Validation(InvalidFormatCode, "Escolha o formato: xlsx (Excel) ou pdf.", new Dictionary<string, string[]> { ["format"] = ["Use xlsx ou pdf."] });
@@ -87,7 +107,13 @@ public sealed class ListExportService(
 
         var exporter = exporters.Single(e => e.Format == parsed);
         var limit = options.Value.MaxRows(parsed);
-        var rows = await load(limit, cancellationToken);
+        var loaded = await load(limit, cancellationToken);
+        if (loaded.IsFailure)
+        {
+            return loaded.Error!;
+        }
+
+        var (spec, filters, rows) = loaded.Value;
         if (rows.Total > limit || rows.Items.Count > limit)
         {
             var total = Math.Max(rows.Total, rows.Items.Count);
@@ -102,8 +128,19 @@ public sealed class ListExportService(
 
         bool Allowed(ExportSensitivity s) => allowed.GetValueOrDefault(s);
         var (issuer, at) = await frames.IssuerAsync(cancellationToken);
-        var table = new ExportTable(spec.Title, spec.OutputColumns(parsed, Allowed), spec.Rows(parsed, rows.Items, Allowed), filters, issuer, at);
-        var content = await exporter.ExportAsync(table, cancellationToken);
+        var table = new ExportTable(spec.Title, spec.OutputColumns(parsed, Allowed), spec.Rows(parsed, rows.Items, Allowed), filters, issuer, at) { RowStyles = spec.Styles(rows.Items) };
+        table = loaded.Value.Decorate?.Invoke(table) ?? table;
+        byte[] content;
+        if (parsed == ExportFormat.Pdf && loaded.Value.Document is { } document)
+        {
+            var frame = await frames.CreateAsync(cancellationToken) with { IssuedBy = issuer, IssuedAt = at };
+            content = await renderer.RenderAsync(document(frame, table), cancellationToken);
+        }
+        else
+        {
+            content = await exporter.ExportAsync(table, cancellationToken);
+        }
+
         await audit.RecordExportAsync(spec.Entity, "list", exporter.Extension, table.Rows.Count,
             filters.Where(f => !string.IsNullOrWhiteSpace(f.Value)).ToDictionary(f => f.Label, f => f.Value), cancellationToken);
         return new ExportFile(content, exporter.ContentType, FileName(spec.FileBase, BusinessTime.Today(clock), exporter.Extension));

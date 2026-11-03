@@ -21,6 +21,15 @@ Conferir, lado a lado, o extrato que o banco informou com o que o sistema regist
 - **Desfazer conciliação** solta a linha e as transações, com motivo, sem estornar nada. Um lançamento ou uma baixa feitos pela conciliação só saem pelo estorno no extrato da conta ou no título.
 - **Fechar conciliação** aparece quando a conta está "Conciliada até dd/mm/aaaa": todas as linhas até o dia estão conciliadas ou ignoradas e o saldo do banco no dia é igual ao do sistema.
 
+## Imprimir e exportar
+- Clique em **Exportar** e escolha **Excel (.xlsx)** ou **Relatório de conciliação (PDF)**. Valem a conta e o período da tela.
+- A planilha tem uma aba por bloco: **Conciliados**, **Sugestões** (com motivo e confiança), **Sem par no banco**, **No sistema, não no banco** (com "Há mais de 5 dias") e **Resumo** (saldos do banco e do sistema, diferença, conciliada até e fechada até), além da aba **Filtros**.
+- O relatório em PDF traz o resumo no topo e os blocos em seções. Enquanto o período não estiver fechado, ele sai com a marca **Prévia** em todas as páginas: os números ainda podem mudar.
+- Depois de **Fechar conciliação**, o próximo passo **Baixar relatório de conciliação** baixa o PDF do período fechado.
+- A contraparte sai mascarada como na tela.
+- O limite é de 10.000 linhas no Excel e 2.000 no PDF. Acima disso, o sistema avisa e pede para refinar os filtros (período, situação ou busca).
+- Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+
 ## Perguntas frequentes
 **O que é a confiança?** Alta: o boleto do Inter com o mesmo identificador do banco, ou o mesmo valor e a mesma data sem outra transação igual. Média: mesmo valor com até 3 dias de diferença e o CPF/CNPJ do terceiro ou o número do título ou da OP na descrição. Linha "não verificada pelo banco" (OFX de contingência) nunca tem confiança Alta.
 

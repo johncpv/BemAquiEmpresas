@@ -28,6 +28,15 @@ Ver, mês a mês, quanto a empresa vendeu, quanto custou produzir, quanto gastou
 - **Mudanças retroativas:** o DRE é recalculado a cada abertura, sem fechamento de mês. Se, desde a sua última consulta, alguém lançou, cancelou ou estornou um documento com data já passada, aparece "Mudou desde a sua última consulta". Clique em **Ver o que mudou**. O mês afetado ganha o ícone de histórico.
 - **A classificar:** valores nas contas 1.9 e 3.9 aparecem num aviso, com o link para os títulos. Abra o título e troque a conta.
 
+## Imprimir e exportar
+- Clique em **Exportar**, ao lado do período, e escolha **Excel (.xlsx)** ou **PDF do DRE**. Vale o período da tela (até 24 meses).
+- A planilha mantém a hierarquia: coluna **Código**, coluna **Linha** com recuo por nível, subtotais e resultados em negrito, um mês por coluna (os provisórios com "(provisório)" no cabeçalho), **Total do período**, **% da receita líquida** e **Δ mês anterior** (valor e %). A aba **Avisos** lista as contas a classificar.
+- O PDF sai em paisagem, com resultado negativo em vermelho, a faixa **Provisório** quando houver e a nota "Gerencial, por competência; não substitui a contabilidade."
+- O drill-down (os documentos de cada célula) e o gráfico não vão para o arquivo.
+- A folha sai como na tela: sem a permissão de ver dado sensível do RH, nunca aparece nome nem valor por funcionário.
+- O limite é de 10.000 linhas no Excel e 2.000 no PDF. Acima disso, o sistema avisa e pede para refinar os filtros (período, situação ou busca).
+- Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+
 ## Perguntas frequentes
 **Por que o DRE é diferente do fluxo de caixa?** O fluxo mostra quando o dinheiro entra e sai. O DRE mostra a que mês a venda e o gasto pertencem.
 

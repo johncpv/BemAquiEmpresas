@@ -41,3 +41,8 @@
 - `EndpointAuthorizationTests` já cobre as rotas novas pela varredura; `OpenApiDocumentTests` + `pnpm gen:api` geram `getExportXxxUrl` e `getDownloadXxxPdfUrl`.
 - ClosedXML mantém o arquivo em memória: o teto de 10.000 linhas limita o pico. Acima disso, a evolução é um job Hangfire com aviso no sino (padrão do lote de holerites), com ADR nova.
 - QuestPDF Community continua sob a regra de receita da ADR 0022.
+
+## Adendo (EXP-02, 03/11/2026)
+- `ExportData<T>`: a consulta da tela pode recusar (`Result`: conta não encontrada, período inválido) e decide as colunas pelo resultado (os meses do DRE, o cenário do fluxo). O formato é conferido antes da consulta; teto, máscara, auditoria e download continuam no `ListExportService`.
+- Planilha com várias abas (`ExportSheet`, entre a principal e a "Filtros"), notas da tela (topo do PDF de lista e aba "Filtros") e destaque por linha (`ExportRowStyle`: recuo na coluna marcada com agrupamento, negrito e negativo em vermelho pelo `PdfTheme`). Sem fórmula em nenhuma célula.
+- PDF próprio da tela (`ExportData.Document`) no lugar do PDF de lista, com o mesmo teto e a mesma auditoria: extrato da conta, relatório de conciliação ("Prévia" com o período não fechado) e DRE gerencial. A rota `GET …/pdf` do período é a mesma exportação com o formato PDF.

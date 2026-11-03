@@ -6,9 +6,12 @@ import {
   useListBankAccounts,
 } from '@/api/generated/bemaqui'
 import type { ClosingPreview, ReconDone, ReconHistory, ReconPair, ReconciliationView, ReconUnpairedLine, ReconUnpairedTransaction } from '@/api/generated/model'
-import { ApiError } from '@/api/http'
+import { ApiError, apiDownload } from '@/api/http'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput } from '@/components/form/inputs'
+import { exportDay } from '@/components/ui/export-day'
+import { ExportMenu } from '@/components/ui/export-menu'
+import { reconciliationExportUrl } from '../finance-exports'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { notifySuccess } from '@/components/ui/messages'
 import { Money } from '@/components/ui/money'
@@ -283,10 +286,17 @@ export function ReconciliationPage() {
                 <CloseDialog view={v} onDone={async (until) => {
                   await refresh()
                   const p = nextPeriod(until)
-                  setNext([{ label: `Conciliar a partir de ${formatDate(p.from)}`, onSelect: () => set({ de: p.from, ate: p.to }) }])
+                  setNext([
+                    { label: 'Baixar relatório de conciliação', onSelect: () => void apiDownload(reconciliationExportUrl(v.accountId, { from, to: until })('pdf'), `conciliacao-${exportDay()}.pdf`).catch(() => setError('Não foi possível baixar o relatório. Tente de novo pelo botão Exportar.')) },
+                    { label: `Conciliar a partir de ${formatDate(p.from)}`, onSelect: () => set({ de: p.from, ate: p.to }) },
+                  ])
                 }} />
               ) : null}
               {canApprove && v.reconciledUntil ? <Dica nome="Fechar conciliação" texto={CLOSE_HINT} /> : null}
+              <span className="inline-flex items-start">
+                <ExportMenu fileBase="conciliacao" pdfLabel="Relatório de conciliação (PDF)" empty={nothing && v.done.length === 0} url={reconciliationExportUrl(v.accountId, { from, to })} />
+                {(v.closedUntil ?? '') < to ? <Dica nome="Prévia" texto="Período ainda não fechado: os números podem mudar." /> : null}
+              </span>
             </span>
           </div>
           {next.length ? <NextSteps onDismiss={() => setNext([])} steps={next} /> : null}
