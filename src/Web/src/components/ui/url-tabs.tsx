@@ -1,6 +1,5 @@
 import { type KeyboardEvent, type ReactNode, useRef, useState } from 'react'
 import { useHelpTab } from '@/help/help-context'
-import { useScrollStrip } from '@/hooks/useScrollStrip'
 import { useUrlTab } from './url-tab'
 
 export interface UrlTab {
@@ -19,7 +18,7 @@ export interface UrlTab {
 /**
  * Abas do detalhe (molde "detalhe com abas", FND-09d CA 2 e 10): ligadas à URL e à ajuda da aba (useHelpTab).
  * Uma aba é montada na primeira visita e fica montada depois (não busca dados de aba que ninguém abriu); a aba com
- * keepMounted nasce montada.
+ * keepMounted nasce montada. A faixa quebra linha quando as abas não cabem na coluna (nunca rola escondendo opção).
  */
 /** `help`: a aba vira a "aba" da ajuda (Ajuda/<chave>.md com `aba: <id>`, ADR 0013). */
 export function UrlTabs({ tabs, fallback, label, help = true }: { tabs: UrlTab[]; fallback?: string; label: string; help?: boolean }) {
@@ -28,8 +27,6 @@ export function UrlTabs({ tabs, fallback, label, help = true }: { tabs: UrlTab[]
   const active = tabs.find((t) => t.id === current && !t.disabled) ? current : first
   useHelpTab(help ? active : null)
   const refs = useRef<(HTMLButtonElement | null)[]>([])
-  // Faixa sem barra de rolagem nativa; rola com trackpad, toque ou roda do mouse e esmaece a borda com mais abas.
-  const strip = useScrollStrip<HTMLDivElement>()
   const [visited, setVisited] = useState<Set<string>>(() => new Set([active]))
   if (!visited.has(active)) setVisited(new Set([...visited, active]))
   const enabled = tabs.filter((t) => !t.disabled)
@@ -46,7 +43,8 @@ export function UrlTabs({ tabs, fallback, label, help = true }: { tabs: UrlTab[]
 
   return (
     <div>
-      <div ref={strip} role="tablist" aria-label={label} onKeyDown={move} className="scrollbar-none fade-x flex gap-1 overflow-x-auto border-b border-border">
+      {/* As abas quebram linha quando não cabem: nenhuma fica escondida atrás de uma rolagem sem barra. */}
+      <div role="tablist" aria-label={label} onKeyDown={move} className="flex flex-wrap gap-x-1 border-b border-border">
         {tabs.map((t, i) => (
           <button
             key={t.id}
@@ -60,7 +58,7 @@ export function UrlTabs({ tabs, fallback, label, help = true }: { tabs: UrlTab[]
             disabled={t.disabled}
             title={t.disabled ? t.disabledReason : undefined}
             onClick={() => setCurrent(t.id)}
-            className="-mb-px inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground aria-selected:border-primary aria-selected:text-foreground disabled:opacity-50"
+            className="-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground aria-selected:border-primary aria-selected:text-foreground disabled:opacity-50"
           >
             {t.label}
             {t.errors ? (

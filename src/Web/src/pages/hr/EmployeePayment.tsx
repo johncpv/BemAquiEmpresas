@@ -307,7 +307,7 @@ function AdditionalForm({ employee, payment, canEdit, onSaved, onReload }: { emp
       <FormSection title="Adicionais e vale-transporte" description="O valor do vale-transporte e o desconto saem na folha.">
         <FormError message={error?.message} />
         {error?.code === 'concurrency_conflict' ? <button type="button" onClick={() => void onReload()} className={button}>Recarregar</button> : null}
-        <fieldset disabled={!canEdit} className="grid gap-3 sm:grid-cols-2">
+        <fieldset disabled={!canEdit} className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
           <Field label="Insalubridade">
             {(p) => (
               <select {...p} value={insalubrity} onChange={(e) => setInsalubrity(e.target.value)} className={inputClass}>

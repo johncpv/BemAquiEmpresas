@@ -132,19 +132,17 @@ function RuleForm({ view }: { view: CollectionRuleView }) {
           {steps.length >= view.maxSteps ? <p className="text-xs text-muted-foreground">A régua tem até {view.maxSteps} passos.</p> : null}
         </FormSection>
         <FormSection title="Envio" description="Os lembretes saem pela fila de e-mails e somam no limite diário acima. O que passar do limite sai no próximo dia útil, sem pular o passo.">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Horário de envio" hint="Horário de Brasília, de 07:00 a 20:00." error={error?.fields.sendTime?.[0]}>
-              {(p) => (
-                <select {...p} value={sendTime} onChange={(e) => setSendTime(e.target.value)} className={inputClass + ' tabular-nums sm:max-w-40'}>
-                  {(SEND_TIMES.includes(sendTime) ? SEND_TIMES : [sendTime, ...SEND_TIMES]).map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-              )}
-            </Field>
-            <Field label="Respostas do cliente vão para" error={error?.fields.replyTo?.[0]}
-              hint={view.companyEmail ? `Vazio: ${view.companyEmail} (e-mail da empresa).` : 'Informe o e-mail do financeiro. Sem ele, o cliente não tem a quem responder.'}>
-              {(p) => <input {...p} type="email" maxLength={254} value={replyTo} onChange={(e) => setReplyTo(e.target.value)} placeholder="financeiro@suaempresa.com.br" className={inputClass} />}
-            </Field>
-          </div>
+          <Field label="Horário de envio" hint="Horário de Brasília, de 07:00 a 20:00." error={error?.fields.sendTime?.[0]}>
+            {(p) => (
+              <select {...p} value={sendTime} onChange={(e) => setSendTime(e.target.value)} className={inputClass + ' tabular-nums sm:max-w-40'}>
+                {(SEND_TIMES.includes(sendTime) ? SEND_TIMES : [sendTime, ...SEND_TIMES]).map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            )}
+          </Field>
+          <Field label="Respostas do cliente vão para" error={error?.fields.replyTo?.[0]}
+            hint={view.companyEmail ? `Vazio: ${view.companyEmail} (e-mail da empresa).` : 'Informe o e-mail do financeiro. Sem ele, o cliente não tem a quem responder.'}>
+            {(p) => <input {...p} type="email" maxLength={254} value={replyTo} onChange={(e) => setReplyTo(e.target.value)} placeholder="financeiro@suaempresa.com.br" className={inputClass} />}
+          </Field>
           <label className="flex min-h-11 items-center gap-2 text-sm font-semibold">
             <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="size-4 accent-primary" />
             Régua ligada

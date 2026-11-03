@@ -57,18 +57,16 @@ export function PayableDataForm({ payable, canEdit, onSaved }: { payable: Payabl
       <fieldset disabled={!canEdit} className="space-y-4">
         <FormSection title="Dados do título">
           <Field label="Descrição" required error={errors.description}>{(p) => <input {...p} value={draft.description} maxLength={200} onChange={(e) => set({ description: e.target.value })} className={inputClass} />}</Field>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Conta" required error={errors.accountId}>
-              {(p) => <select {...p} value={draft.accountId} disabled={inOrder} onChange={(e) => { const code = (accounts.data ?? []).find((a) => a.id === e.target.value)?.code; set({ accountId: e.target.value, projectCost: draft.projectCost.project && !draft.projectCost.costType ? { ...draft.projectCost, costType: suggestCostType(code) ?? '' } : draft.projectCost }) }} className={inputClass}>{options.map((a) => <option key={a.id} value={a.id}>{a.code} {a.name}</option>)}</select>}
-            </Field>
-            <Field label="Centro de custo" error={errors.costCenterId}>
-              {(p) => <select {...p} value={draft.costCenterId} disabled={inOrder} onChange={(e) => set({ costCenterId: e.target.value })} className={inputClass}><option value="">Sem centro de custo</option>{(centers.data ?? []).filter((c) => c.isActive || c.id === draft.costCenterId).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>}
-            </Field>
-            <Field label="Valor" required error={errors.amount} hint={inOrder ? 'Em ordem de pagamento: o valor não muda.' : lockedAmount ? 'Gerado por outro módulo: ajuste na origem.' : undefined}>
-              {(p) => <MoneyInput {...p} value={draft.amount} disabled={lockedAmount} onChange={(amount) => set({ amount })} />}
-            </Field>
-            <Field label="Vencimento" required error={errors.dueDate}>{(p) => <DateInput {...p} value={draft.dueDate} onChange={(dueDate) => set({ dueDate })} />}</Field>
-          </div>
+          <Field label="Conta" required error={errors.accountId}>
+            {(p) => <select {...p} value={draft.accountId} disabled={inOrder} onChange={(e) => { const code = (accounts.data ?? []).find((a) => a.id === e.target.value)?.code; set({ accountId: e.target.value, projectCost: draft.projectCost.project && !draft.projectCost.costType ? { ...draft.projectCost, costType: suggestCostType(code) ?? '' } : draft.projectCost }) }} className={inputClass}>{options.map((a) => <option key={a.id} value={a.id}>{a.code} {a.name}</option>)}</select>}
+          </Field>
+          <Field label="Centro de custo" error={errors.costCenterId}>
+            {(p) => <select {...p} value={draft.costCenterId} disabled={inOrder} onChange={(e) => set({ costCenterId: e.target.value })} className={inputClass}><option value="">Sem centro de custo</option>{(centers.data ?? []).filter((c) => c.isActive || c.id === draft.costCenterId).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>}
+          </Field>
+          <Field label="Valor" required error={errors.amount} hint={inOrder ? 'Em ordem de pagamento: o valor não muda.' : lockedAmount ? 'Gerado por outro módulo: ajuste na origem.' : undefined}>
+            {(p) => <MoneyInput {...p} value={draft.amount} disabled={lockedAmount} onChange={(amount) => set({ amount })} />}
+          </Field>
+          <Field label="Vencimento" required error={errors.dueDate}>{(p) => <DateInput {...p} value={draft.dueDate} onChange={(dueDate) => set({ dueDate })} />}</Field>
         </FormSection>
         <FormSection title="Projeto">
           <ProjectCostFields value={draft.projectCost} onChange={(projectCost) => set({ projectCost })} suggested={suggested} errors={errors} />

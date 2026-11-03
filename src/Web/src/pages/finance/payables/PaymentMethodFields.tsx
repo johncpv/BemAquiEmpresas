@@ -22,7 +22,7 @@ export function PaymentMethodFields({ value, onChange, errors, disabled }: Props
     </>
   )
   return (
-    <fieldset disabled={disabled} className="space-y-3">
+    <fieldset disabled={disabled} className="space-y-3 sm:col-span-2">
       <Field label="Forma de pagamento" dica={PAYABLE_DICAS.forma}>
         {(p) => (
           <select {...p} value={value.kind} onChange={(e) => set({ kind: e.target.value as MethodDraft['kind'] })} className={inputClass}>

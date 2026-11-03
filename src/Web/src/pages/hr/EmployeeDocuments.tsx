@@ -58,7 +58,7 @@ function ExtraDocuments({ employee, data, canEdit, onReload }: { employee: Emplo
       <FormSection title="CNH e reservista" description="Dado pessoal protegido pela LGPD. Cada leitura desta aba fica registrada.">
         <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
         {error?.code === 'concurrency_conflict' ? <button type="button" onClick={() => void onReload()} className="min-h-11 rounded-md border border-border px-3 py-2 text-sm font-semibold">Recarregar</button> : null}
-        <fieldset disabled={!canEdit} className="grid gap-3 sm:grid-cols-2">
+        <fieldset disabled={!canEdit} className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
           <Field label="CNH: número" error={field('cnhNumber')}>{(p) => <input {...p} value={cnh} inputMode="numeric" maxLength={11} autoComplete="off" onChange={(e) => setCnh(onlyDigits(e.target.value))} className={inputClass + ' tabular-nums'} />}</Field>
           <Field label="CNH: categoria" error={field('cnhCategory')}>
             {(p) => (

@@ -29,6 +29,7 @@ Ver todas as OS de fabricação abertas por etapa, num quadro que se atualiza so
 - Clique em **{n} atrasadas** ou **{n} em risco** para ver só essas OS.
 - Filtre por projeto, cliente, linha (do centro de trabalho da etapa atual) e roteiro. Os filtros ficam no endereço: dá para mandar o link.
 - **Ver como lista** mostra a mesma informação em tabela.
+- **Tela cheia** (acima das colunas) esconde a barra do topo, o dock e os filtros e usa a tela inteira para as colunas, com a atualização ao vivo; **Esc** ou **Sair da tela cheia** volta. A escolha fica lembrada nesta aba do navegador.
 
 ## Tempo real
 - O chip **Ao vivo** indica que o quadro se atualiza sozinho quando alguém mexe numa OS.

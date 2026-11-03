@@ -37,25 +37,23 @@ export function ProjectEditForm({ project, onSaved }: { project: ProjectDetail; 
       <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
       <FormSection title="Dados do projeto">
         <Field label="Nome" required error={error?.fields.name?.[0]}>{(p) => <input {...p} value={draft.name} maxLength={200} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={inputClass} />}</Field>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Responsável" error={error?.fields.managerUserId?.[0]}>
-            {(p) => (
-              <select {...p} value={draft.managerUserId} onChange={(e) => setDraft({ ...draft, managerUserId: e.target.value })} className={inputClass}>
-                <option value="">Sem responsável</option>
-                {current ? <option value={current.id}>{current.name}</option> : null}
-                {users.map((u) => <option key={u.id} value={u.id}>{u.name || u.email}</option>)}
-              </select>
-            )}
-          </Field>
-          <Field label="Endereço da obra" error={error?.fields.siteAddressId?.[0]}>
-            {(p) => (
-              <select {...p} value={draft.siteAddressId} onChange={(e) => setDraft({ ...draft, siteAddressId: e.target.value })} className={inputClass}>
-                <option value="">Sem endereço de obra</option>
-                {sites.map((a) => <option key={a.id} value={a.id}>{a.street}, {a.number} — {a.city}/{a.state}</option>)}
-              </select>
-            )}
-          </Field>
-        </div>
+        <Field label="Responsável" error={error?.fields.managerUserId?.[0]}>
+          {(p) => (
+            <select {...p} value={draft.managerUserId} onChange={(e) => setDraft({ ...draft, managerUserId: e.target.value })} className={inputClass}>
+              <option value="">Sem responsável</option>
+              {current ? <option value={current.id}>{current.name}</option> : null}
+              {users.map((u) => <option key={u.id} value={u.id}>{u.name || u.email}</option>)}
+            </select>
+          )}
+        </Field>
+        <Field label="Endereço da obra" error={error?.fields.siteAddressId?.[0]}>
+          {(p) => (
+            <select {...p} value={draft.siteAddressId} onChange={(e) => setDraft({ ...draft, siteAddressId: e.target.value })} className={inputClass}>
+              <option value="">Sem endereço de obra</option>
+              {sites.map((a) => <option key={a.id} value={a.id}>{a.street}, {a.number} — {a.city}/{a.state}</option>)}
+            </select>
+          )}
+        </Field>
       </FormSection>
       <div className="flex justify-end"><button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar projeto</button></div>
     </form>
