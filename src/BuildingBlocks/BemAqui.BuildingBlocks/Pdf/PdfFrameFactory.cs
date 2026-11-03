@@ -1,5 +1,6 @@
 using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Identity;
+using BemAqui.SharedKernel;
 
 namespace BemAqui.BuildingBlocks.Pdf;
 
@@ -36,7 +37,7 @@ public sealed class PdfFrameFactory(IPdfCompanySource company, IFileStorage stor
         }
 
         var contact = string.Join(" · ", new[] { info.Phone, info.Email }.Where(x => !string.IsNullOrWhiteSpace(x)));
-        var pdfCompany = new PdfCompany(info.TradeName ?? info.LegalName, info.LegalName, info.Document, info.Address, contact.Length > 0 ? contact : null, logo, info.Complete);
+        var pdfCompany = new PdfCompany(info.TradeName ?? info.LegalName, info.LegalName, info.Document is { Length: > 0 } doc ? BrazilianDocuments.Format(doc) : null,info.Address, contact.Length > 0 ? contact : null, logo, info.Complete);
         var (issuer, at) = await IssuerAsync(cancellationToken);
         return new PdfFrame(pdfCompany, issuer, at);
     }

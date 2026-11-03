@@ -1,3 +1,4 @@
+using BemAqui.Purchasing.Contracts;
 using BemAqui.Purchasing.Domain;
 using BemAqui.SharedKernel;
 
@@ -6,11 +7,12 @@ namespace BemAqui.Purchasing.Application.Documents;
 /// <summary>
 /// O que o PDF do pedido mostra (CMP-03b CA 1 e 9): a empresa, o fornecedor, a condição, a previsão e o local de entrega (o endereço da
 /// empresa, CAD-06), as linhas na unidade do fornecedor e os totais. Não existe campo de custo médio, margem, projeto ou de outro
-/// fornecedor aqui.
+/// fornecedor aqui. A situação decide a marca (EXP-03 CA 5: "Rascunho" antes de aprovado).
 /// </summary>
 public sealed record PurchaseOrderPdfModel(
     PurchaseOrderPdfCompany Company, string Number, DateOnly IssueDate, PurchaseOrderPdfSupplier Supplier, string? PaymentTerm, DateOnly ExpectedDate, string? DeliveryAddress,
-    IReadOnlyList<PurchaseOrderPdfLine> Lines, decimal Subtotal, decimal Freight, decimal IpiPct, decimal IpiAmount, decimal Total, string? Notes);
+    IReadOnlyList<PurchaseOrderPdfLine> Lines, decimal Subtotal, decimal Freight, decimal IpiPct, decimal IpiAmount, decimal Total, string? Notes,
+    PurchaseOrderStatus Status = PurchaseOrderStatus.Approved);
 
 public sealed record PurchaseOrderPdfCompany(string Name, string LegalName, string? Document, string? Address, string? Contact, byte[]? Logo);
 
@@ -45,6 +47,6 @@ public static class PurchaseOrderPdfBuilder
         }).ToList();
         return new PurchaseOrderPdfModel(
             company, order.Number, today, supplier with { Document = BrazilianDocuments.Format(supplier.Document) is { Length: > 0 } doc ? doc : null }, paymentTerm, order.ExpectedDate,
-            company.Address, rows, order.Subtotal, order.Freight, order.IpiPct, order.IpiAmount, order.Total, string.IsNullOrWhiteSpace(order.Notes) ? null : order.Notes.Trim());
+            company.Address, rows, order.Subtotal, order.Freight, order.IpiPct, order.IpiAmount, order.Total, string.IsNullOrWhiteSpace(order.Notes) ? null : order.Notes.Trim(), order.Status);
     }
 }

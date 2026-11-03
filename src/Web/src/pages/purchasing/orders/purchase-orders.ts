@@ -28,6 +28,7 @@ export const DECISION: Record<PurchaseDecision, string> = {
 }
 
 export const ORDER_DICAS = {
+  rascunhoPdf: 'Antes da aprovação, o PDF sai com a marca Rascunho e a faixa "Pedido não aprovado: não envie ao fornecedor.", para conferir. Enviar ao fornecedor só depois de aprovado.',
   referencia: 'Valor de referência é o que decide a alçada: o maior entre o total do pedido e a soma dos pedidos do mesmo fornecedor nos últimos 30 dias (aprovados ou aguardando), incluindo este. Evita dividir uma compra grande em pedidos pequenos.',
   estimado: 'Estimado: o título previsto tem a data calculada pela previsão de entrega mais os dias da parcela. A data e o valor se confirmam no recebimento.',
   comprometido: 'Comprometido é o que já está pedido e aprovado para o projeto, mas ainda não virou custo realizado. O material conta como realizado só quando sai do estoque para a OS.',

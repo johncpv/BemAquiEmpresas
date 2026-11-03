@@ -687,7 +687,7 @@ Pedido do PO de 02/11/2026: todo documento gerado tem PDF para imprimir e as lis
 
 **EXP-02 [ ] Onda 1: exportação do financeiro (extrato, conciliação, ordens, a receber, DRE, fluxo de caixa e inadimplência) e PDF do extrato, da conciliação e do DRE do período (G)** — [story](stories/EXP-02-exportacao-financeiro.md)
 
-**EXP-03 [ ] Onda 1: PDF da cotação e do mapa comparativo, pedido de compra no template com prévia, "Baixar PDF" no orçamento, romaneio e ficha da OS de fabricação (M)** — [story](stories/EXP-03-pdf-compras-orcamento-os-fabricacao.md)
+**EXP-03 [x] Onda 1: PDF da cotação e do mapa comparativo, pedido de compra no template com prévia, "Baixar PDF" no orçamento, romaneio e ficha da OS de fabricação (M)** — Pós-go-live, ordem 3 — `Done` (03/11/2026) — [story](stories/EXP-03-pdf-compras-orcamento-os-fabricacao.md)
 
 **EXP-04 [ ] Onda 2: PDFs do comercial, da produção, das compras e do estoque, Excel das listas operacionais, holerite e boleto à mão (G)** — [story](stories/EXP-04-pdf-comercial-producao-estoque-listas.md)
 

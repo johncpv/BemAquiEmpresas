@@ -24,6 +24,8 @@ public sealed class QuotePdfDocument(QuotePdfModel model) : IDocument
         page.Size(PageSizes.A4);
         page.Margin(32);
         page.DefaultTextStyle(t => t.FontFamily(QuestPdfRenderer.FontFamily).FontSize(9).FontColor("#14202b").EnableFontFeature(FontFeatures.TabularFigures));
+        // EXP-03 CA 8: a marca e a faixa padrão do modelo único (o layout migra para o frame na EXP-05).
+        PdfMarks.Watermark(page, model.Mark);
         page.Header().Element(Header);
         page.Content().PaddingVertical(12).Element(Content);
         page.Footer().AlignCenter().Text(t =>
@@ -75,6 +77,11 @@ public sealed class QuotePdfDocument(QuotePdfModel model) : IDocument
             r.RelativeItem().Text($"Orçamento {model.Number} rev. {model.Revision}").FontSize(14).Bold();
             r.ConstantItem(120).AlignRight().Text($"Data: {model.IssueDate:dd/MM/yyyy}");
         });
+        if (PdfMarks.BandText(model.Mark, model.Notice) is not null)
+        {
+            col.Item().Element(e => PdfMarks.Band(e, model.Mark, model.Notice));
+        }
+
         col.Item().Background("#eef2f6").Padding(8).Column(cust =>
         {
             cust.Item().Text("Cliente: " + model.Customer.Name).SemiBold();

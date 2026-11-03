@@ -12,6 +12,7 @@ import { FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { describeChanges } from '@/components/history/describe-changes'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { FactsBar } from '@/components/ui/facts-bar'
 import { notifySuccess } from '@/components/ui/messages'
 import { NextSteps } from '@/components/ui/next-steps'
@@ -73,8 +74,9 @@ export function ShipmentPage() {
           </span>
         )}
         actions={(
-          <span className="flex flex-wrap gap-2">
-            <button type="button" onClick={pdf} className={secondary}>Baixar PDF</button>
+          <span className="flex flex-wrap items-start gap-2">
+            {/* EXP-03 CA 9: o mesmo PDF, agora com "Imprimir" e os estados do DocumentActions (o layout migra na EXP-05). */}
+            <DocumentActions url={getDownloadShipmentPdfUrl(id)} fileName={`${s.number}.pdf`} />
             {actions.confirm ? <ConfirmShipmentDialog shipment={s} open={confirmOpen} onOpenChange={setConfirmOpen} onDone={async (d) => { setJustSaved(false); setJustShipped(d.status === 'Shipped'); await refresh(d) }} /> : null}
             {actions.confirmStock ? <ConfirmStockDialog shipment={s} onDone={async (d) => { setJustShipped(true); await refresh(d) }} /> : null}
             {actions.cancel ? <ReasonDialog shipment={s} kind="cancel" onDone={refresh} /> : null}

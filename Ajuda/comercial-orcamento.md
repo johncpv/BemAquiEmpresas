@@ -29,6 +29,11 @@ Guardar o cabeçalho do orçamento: contato, endereço da obra, prazo de entrega
 - Sem horas por centro, aparece "Este orçamento não tem horas por centro de trabalho. Informe as horas na composição de custo para simular."
 - Muitas simulações seguidas (mais de 20 por minuto) pedem "Aguarde alguns segundos para simular de novo."
 
+## Imprimir e exportar
+- **Baixar PDF**, no cabeçalho, baixa na hora o PDF desta revisão (`{número}-rev{n}.pdf`), sem guardar no histórico. Para guardar o PDF na aba Documentos ou mandar por e-mail, use **Gerar PDF** e **Enviar por e-mail** lá.
+- **Imprimir** abre o mesmo PDF numa aba nova.
+- O PDF não mostra custo nem margem. Vencido, sai com a faixa "Validade vencida em {data}: reabra com uma nova revisão.". Recusado, sai com a marca **Cancelado** e a faixa "Orçamento recusado". Rascunho, enviado e aprovado saem sem faixa.
+
 ## Perguntas frequentes
 **Posso mudar um orçamento enviado?** Não. Enviado, ele fica só para consulta. Para mudar, crie uma **Nova revisão**. Para mudar só a data, use **Prorrogar validade**.
 

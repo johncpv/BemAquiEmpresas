@@ -53,6 +53,22 @@ public interface IStockReservations
     Task ReleaseForOrderAsync(Guid productionOrderId, CancellationToken cancellationToken = default);
 }
 
+/// <summary>Linha de material da OS como a aba Material mostra (EXP-03 CA 12): item, necessidade, reservado, baixado, falta e locais. Sem custo.</summary>
+public sealed record OrderMaterialItemInfo(
+    string ItemCode, string ItemName, string UnitCode, decimal Required, decimal Reserved, decimal Issued, decimal Shortage, IReadOnlyList<string> Locations);
+
+/// <summary>Material da OS para a ficha em PDF (EXP-03 CA 12): se a BOM está liberada e as linhas da aba Material.</summary>
+public sealed record OrderMaterialInfo(bool BomReleased, IReadOnlyList<OrderMaterialItemInfo> Lines);
+
+/// <summary>
+/// O material da OS da aba Material para outros módulos (EXP-03: a ficha da OS em PDF), pelo mesmo cálculo da tela; null se a OS não
+/// existe ou não é de fabricação. Sem custo.
+/// </summary>
+public interface IOrderMaterial
+{
+    Task<OrderMaterialInfo?> ForOrderAsync(Guid productionOrderId, CancellationToken cancellationToken = default);
+}
+
 /// <summary>
 /// A falta de um item numa OS mudou (EST-02 CA 4, 9 e 11): <c>ShortQty</c> é a falta atual (0 quando zerou). <b>Só aviso</b> para a
 /// CMP-01, que recompõe a solicitação a partir de <see cref="IStockReservations.OpenShortagesAsync"/>, não deste valor. Sem custo.

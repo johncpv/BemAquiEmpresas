@@ -14,6 +14,9 @@ Guardar os desenhos técnicos e os documentos da OS para a fábrica consultar.
 - O arquivo passa pelo antivírus antes de liberar o download. Enquanto isso, aparece **Em verificação**.
 - A lista mostra quem anexou e quando.
 
+## Imprimir e exportar
+- A ficha da OS (**Baixar PDF** no cabeçalho) lista os arquivos desta aba com o nome, o tipo, o tamanho e a data. Os desenhos não vão impressos na ficha: abra-os aqui. Arquivo ainda no antivírus aparece como **Em verificação**.
+
 ## Perguntas frequentes
 **Quem pode anexar?** Quem pode editar na produção. Quem só vê a produção baixa os arquivos.
 

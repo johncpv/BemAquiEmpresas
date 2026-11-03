@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { getGetPurchaseOrderDocumentsQueryKey, getGetPurchaseOrderQueryKey, useGetPurchaseOrder } from '@/api/generated/bemaqui'
+import { getDownloadPurchaseOrderPdfUrl, getGetPurchaseOrderDocumentsQueryKey, getGetPurchaseOrderQueryKey, useGetPurchaseOrder } from '@/api/generated/bemaqui'
 import type { PurchaseOrderDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { FactsBar } from '@/components/ui/facts-bar'
 import { Money } from '@/components/ui/money'
 import { NextSteps, type Step } from '@/components/ui/next-steps'
@@ -11,6 +12,7 @@ import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
 import { UrlTabs } from '@/components/ui/url-tabs'
+import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime } from '@/lib/format'
 import { formatQuantity } from '@/pages/inventory/stock/stock'
 import { useCan } from '@/pages/use-can'
@@ -72,6 +74,14 @@ export function PurchaseOrderPage() {
             {o.selfApproved ? <Tag>Autoaprovado</Tag> : null}
             <Link to={'/app/compras/pedidos' as never} className="font-semibold text-primary">Voltar aos pedidos</Link>
           </p>
+          <div className="flex flex-wrap items-start gap-2">
+          {/* EXP-03 CA 5 e 6: "Baixar PDF" e "Imprimir" no cabeçalho em toda situação; antes de aprovado o PDF sai com a marca Rascunho. */}
+          <span className="flex flex-col items-start gap-1">
+            <DocumentActions url={getDownloadPurchaseOrderPdfUrl(o.id)} fileName={`${o.number}.pdf`} />
+            {o.status === 'Draft' || o.status === 'PendingApproval' ? (
+              <span className="inline-flex items-center text-xs text-muted-foreground">A prévia sai com a marca Rascunho<Dica nome="Rascunho" texto={ORDER_DICAS.rascunhoPdf} /></span>
+            ) : null}
+          </span>
           <OrderActions order={o} set={set} refresh={refresh} onSubmitted={() => { setCreatedShown(false); setSteps([]) }}
             onDispatch={() => setSendOpen(true)}
             onApproved={(last) => setSteps(last
@@ -82,6 +92,7 @@ export function PurchaseOrderPage() {
               ]
               : [{ label: 'Próximo pedido aguardando você', onSelect: go('/app/compras/pedidos', { filtro: 'aguardando-voce' }) }])}
             onClosed={() => setSteps([{ label: 'Ver solicitações', onSelect: go('/app/compras/solicitacoes') }, { label: 'Ver recebimentos', onSelect: go('/app/compras/recebimentos', { aba: 'recebidos' }) }])} />
+          </div>
         </div>
       </PageHeading>
       {shown.length ? <div className="mb-3"><NextSteps steps={shown} onDismiss={() => { setSteps([]); setCreatedShown(false) }} /></div> : null}

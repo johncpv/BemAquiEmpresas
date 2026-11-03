@@ -68,6 +68,7 @@ public static class InventoryInfrastructure
         services.TryAddScoped<ReservationAllocator>();
         services.TryAddScoped<StockReservationService>();
         services.TryAddScoped<IStockReservations>(sp => sp.GetRequiredService<StockReservationService>());
+        services.TryAddScoped<IOrderMaterial>(sp => sp.GetRequiredService<StockReservationService>());
         services.TryAddScoped<IReleasedBomSource, BomsReleasedBomSource>();
         services.TryAddScoped<ReservationConsumers>();
         services.TryAddScoped<ReservationBackfill>();

@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Web;
@@ -35,6 +36,19 @@ internal static partial class ProductionEndpoints
             .RequirePermission("production.create").RequireIdempotencyKey().WithName("GenerateFabricationOrders").Produces<FabricationBatchResult>();
         orders.MapGet("/{id:guid}", async (Guid id, FabricationOrderService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())
             .RequirePermission("production.view").WithName("GetFabricationOrder").Produces<FabricationOrderDetail>();
+        // EXP-03 CA 10 a 15: ficha da OS em PDF (etapas, checklist, materiais, desenhos listados, QR por etapa), sem custo, com a permissão da tela.
+        orders.MapGet("/{id:guid}/pdf", async (Guid id, HttpContext http, ProductionOrderDocumentService service, CancellationToken ct) =>
+            {
+                var result = await service.PdfAsync(id, ct);
+                if (result.IsFailure)
+                {
+                    return result.Error!.ToProblem();
+                }
+
+                AttachmentEndpoints.ApplyDownloadHeaders(http.Response);
+                return Results.File(result.Value.Content, "application/pdf", result.Value.FileName);
+            })
+            .RequirePermission("production.view").WithName("DownloadFabricationOrderPdf").Produces(StatusCodes.Status200OK, contentType: "application/pdf");
         orders.MapPut("/{id:guid}/steps", async (Guid id, FabricationStepsInput input, FabricationOrderService service, CancellationToken ct) => (await service.SaveStepsAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("production.edit").WithName("SaveFabricationOrderSteps").Produces<FabricationOrderDetail>();
         orders.MapGet("/{id:guid}/routings", async (Guid id, FabricationOrderService service, CancellationToken ct) => (await service.RoutingOptionsAsync(id, ct)).ToHttpResult())

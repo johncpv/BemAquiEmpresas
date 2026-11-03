@@ -1,5 +1,12 @@
 import type { StatusTone } from '@/components/ui/status-chip'
 
+/**
+ * Próximo passo "Imprimir a ficha da OS" (EXP-03, propositivo): a OS ainda em produção, com a BOM liberada e o material já reservado (sem
+ * reserva em andamento e com ao menos um item).
+ */
+export const printReady = (status: string, material: { bomReleased: boolean; reconciling: boolean; lines: unknown[] } | undefined) =>
+  (status === 'Open' || status === 'InProgress') && !!material?.bomReleased && !material.reconciling && material.lines.length > 0
+
 /** Situação da OS de fabricação (04-fluxos §1). */
 export const FABRICATION_STATUS: Record<string, { label: string; tone: StatusTone }> = {
   Open: { label: 'Aberta', tone: 'info' },
@@ -61,6 +68,7 @@ export const FABRICATION_SITUATIONS = [
 
 /** Textos das dicas (Telas e estados da PRD-01). */
 export const FABRICATION_DICAS = {
+  qrEtapa: 'Na ficha impressa, cada etapa tem um QR que abre a etapa no app do operador (/fab), para apontar. O QR só leva o endereço: abrir continua pedindo login.',
   horas: 'Horas de trabalho esperadas para uma unidade nesta etapa, copiadas do roteiro. Mudar aqui não muda o roteiro.',
   qualidade: 'Etapa em que a peça é inspecionada. Ao chegar nela, a OS passa para Qualidade.',
   semRoteiro: 'Nenhum roteiro foi sugerido para este item. Escolha o roteiro para a OS ganhar as etapas.',

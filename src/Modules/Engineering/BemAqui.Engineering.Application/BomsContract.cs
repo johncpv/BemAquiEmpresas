@@ -24,6 +24,9 @@ public sealed class BomsContract(IEngineeringDb db) : IBoms
     public Task<bool> IsReleasedAsync(Guid productionOrderId, CancellationToken cancellationToken = default) =>
         db.Boms.AnyAsync(b => b.ProductionOrderId == productionOrderId && b.Status == BomStatus.Released, cancellationToken);
 
+    public Task<bool> HasDraftAsync(Guid productionOrderId, CancellationToken cancellationToken = default) =>
+        db.Boms.AnyAsync(b => b.ProductionOrderId == productionOrderId && b.Status == BomStatus.Draft, cancellationToken);
+
     public async Task<IReadOnlyList<ReleasedBomReference>> ReleasedAsync(int take, CancellationToken cancellationToken = default)
     {
         var limit = Math.Clamp(take, 1, 500);

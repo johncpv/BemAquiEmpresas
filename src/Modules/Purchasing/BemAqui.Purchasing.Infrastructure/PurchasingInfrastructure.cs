@@ -59,6 +59,8 @@ public static class PurchasingInfrastructure
         services.AddAuditableEntity<PurchaseOrderDispatch>("purchasing");
         // Cotação (CMP-02): serviço, auditoria da cotação, dos fornecedores e respostas, das linhas e vencedores, dos vínculos com a SC e dos preços.
         services.TryAddScoped<RfqService>();
+        // EXP-03: pedido de cotação por fornecedor e mapa comparativo em PDF.
+        services.TryAddScoped<BemAqui.Purchasing.Application.Documents.RfqDocumentService>();
         services.AddAuditableEntity<Rfq>("purchasing");
         services.AddAuditableEntity<RfqSupplier>("purchasing");
         services.AddAuditableEntity<RfqLine>("purchasing");

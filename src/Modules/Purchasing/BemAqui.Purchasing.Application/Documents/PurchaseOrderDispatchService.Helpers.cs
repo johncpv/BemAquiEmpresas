@@ -1,6 +1,7 @@
 using System.Globalization;
 using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Email;
+using BemAqui.BuildingBlocks.Pdf;
 using BemAqui.BuildingBlocks.Time;
 using BemAqui.Purchasing.Contracts;
 using BemAqui.Purchasing.Domain;
@@ -71,8 +72,11 @@ public sealed partial class PurchaseOrderDispatchService
         return (to, cc, message, strangers);
     }
 
-    /// <summary>Modelo do PDF (CA 1, 8): limites da ADR 0022 antes de gerar; itens, códigos e unidade do fornecedor, empresa e logo.</summary>
-    private async Task<Result<PurchaseOrderPdfModel>> BuildAsync(PurchaseOrder order, CancellationToken ct)
+    /// <summary>
+    /// Modelo do PDF (CA 1, 8): limites da ADR 0022 antes de gerar; itens, códigos e unidade do fornecedor; a empresa e o logo vêm do frame
+    /// (EXP-03), e o endereço dela é o local de entrega.
+    /// </summary>
+    private async Task<Result<(PdfFrame Frame, PurchaseOrderPdfModel Model)>> BuildAsync(PurchaseOrder order, CancellationToken ct)
     {
         var lines = await db.PurchaseOrderLines.AsNoTracking().Where(l => l.OrderId == order.Id).OrderBy(l => l.Sequence).ToListAsync(ct);
         if (lines.Count > PurchaseOrderRules.PdfMaxLines)
@@ -89,25 +93,15 @@ public sealed partial class PurchaseOrderDispatchService
         var found = (await items.FindAsync(itemIds, ct)).ToDictionary(i => i.Id, i => new PurchaseOrderPdfItem(i.Code, i.Name, i.UnitCode));
         var codes = (await supplierCodes.ForItemsAsync(order.PartyId, itemIds, ct))
             .ToDictionary(c => c.Key, c => new PurchaseOrderPdfSupplierCode(c.Value.SupplierCode, c.Value.SupplierUnit, c.Value.ConversionFactor));
-        var info = await company.GetAsync(ct);
-        byte[]? logo = null;
-        if (info.LogoStoragePath is { } path)
-        {
-            await using var stream = await storage.OpenReadAsync(path, ct);
-            using var buffer = new MemoryStream();
-            await stream.CopyToAsync(buffer, ct);
-            logo = buffer.ToArray();
-        }
-
+        var frame = await frames.CreateAsync(ct);
+        var c = frame.Company;
         var party = await parties.FindAsync(order.PartyId, ct);
         var term = await terms.FindAsync(order.PaymentTermId, ct);
-        var contact = string.Join(" · ", new[] { info.Phone, info.Email }.Where(x => !string.IsNullOrWhiteSpace(x)));
-        return PurchaseOrderPdfBuilder.Build(
-            order, lines, found, codes,
-            new PurchaseOrderPdfCompany(info.TradeName ?? info.LegalName, info.LegalName, info.Document is { } d ? BrazilianDocuments.Format(d) : null, info.Address,
-                contact.Length > 0 ? contact : null, logo),
+        var model = PurchaseOrderPdfBuilder.Build(
+            order, lines, found, codes, new PurchaseOrderPdfCompany(c.Name, c.LegalName, c.Document, c.Address, c.Contact, null),
             new PurchaseOrderPdfSupplier(party?.TradeName ?? party?.LegalName ?? "Fornecedor removido", party?.LegalName ?? "Fornecedor removido", party?.Document), term?.Name,
             BusinessTime.Today(clock));
+        return (frame, model);
     }
 
     /// <summary>

@@ -19,9 +19,14 @@ Ver o pedido inteiro e fazer o próximo passo: enviar para aprovação, aprovar,
 - **Registrar recebimento** abre a entrada do material que chegou. O botão fica desabilitado, com o motivo ao lado, para quem pediu ou aprovou o pedido e enquanto o pedido está em reaprovação.
 - **Corrigir preço** (na linha, permissão Aprovar em Compras) pede o preço novo e o motivo. Ele vale só para o saldo a receber; acima do valor aprovado mais a tolerância, o pedido volta para a aprovação.
 - **Enviar ao fornecedor** aparece no pedido aprovado (e vira o primeiro próximo passo depois da aprovação). Ele manda o PDF do pedido por e-mail ao contato do fornecedor e o pedido passa a **Enviado**. Veja a aba **Documentos**.
-- **Baixar PDF** gera o PDF do pedido na hora, do aprovado em diante, sem mandar nada.
+- **Baixar PDF** gera o PDF do pedido na hora, em qualquer situação, sem mandar nada (antes da aprovação, com a marca **Rascunho**).
 - A faixa **Alterado depois do envio: reenvie ao fornecedor.** aparece quando o pedido mudou depois de enviado. Depois de reaprovado, clique em **Reenviar** na faixa: o fornecedor recebe o PDF novo e a faixa some.
 - **Encerrar saldo do pedido** aparece no pedido parcialmente recebido: o pedido fica recebido com a marca **Encerrado com saldo de {valor}**.
+
+## Imprimir e exportar
+- **Baixar PDF** e **Imprimir** ficam no cabeçalho em toda situação. O PDF é gerado na hora e não fica guardado (o guardado é o do envio ao fornecedor).
+- Em rascunho ou aguardando aprovação, o PDF sai com a marca **Rascunho** e a faixa "Pedido não aprovado: não envie ao fornecedor.", para conferir. Cancelado, sai com a marca **Cancelado**. Do aprovado em diante, sem marca.
+- **Enviar ao fornecedor** continua só no pedido aprovado. O PDF que vai no envio nunca tem marca.
 
 ## Perguntas frequentes
 **Por que não consigo aprovar?** O pedido não está na sua alçada, você já aprovou outro nível dele ou foi você quem pediu. A mensagem na faixa diz qual é o caso.

@@ -1,5 +1,7 @@
 using System.Globalization;
 using BemAqui.BuildingBlocks.Time;
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 
 namespace BemAqui.BuildingBlocks.Pdf;
 
@@ -36,6 +38,12 @@ public static class PdfTheme
     public const string CritSurface = "#fbe3e3";
 
     public const string CritInk = "#8f1d1d";
+
+    /// <summary>Fundo escuro do indicador de etapa (o trilho do app).</summary>
+    public const string Rail = "#1b2733";
+
+    /// <summary>Âmbar do indicador de etapa: a letra da etapa atual e o segmento dela.</summary>
+    public const string Amber = "#f0a500";
 
     public const float Margin = 32;
 
@@ -90,4 +98,42 @@ public static class PdfMarks
         PdfMark.None => string.Empty,
         _ => Label(mark).ToUpper(PdfTheme.PtBr),
     };
+
+    /// <summary>Texto da faixa: a marca e o aviso ("Rascunho · Pedido não aprovado: …"), só um deles, ou null sem nenhum.</summary>
+    public static string? BandText(PdfMark mark, string? notice)
+    {
+        var label = Label(mark);
+        var hasNotice = !string.IsNullOrWhiteSpace(notice);
+        return (label.Length > 0, hasNotice) switch
+        {
+            (true, true) => label + " · " + notice!.Trim(),
+            (true, false) => label,
+            (false, true) => notice!.Trim(),
+            _ => null,
+        };
+    }
+
+    /// <summary>A marca d'água diagonal (nada sem marca). Pública para os layouts que só migram para o frame na EXP-05 (orçamento).</summary>
+    public static void Watermark(PageDescriptor page, PdfMark mark)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        if (mark != PdfMark.None)
+        {
+            page.Foreground().AlignCenter().AlignMiddle().Rotate(-30).Text(Watermark(mark)).FontSize(54).Bold().FontColor(PdfTheme.Watermark);
+        }
+    }
+
+    /// <summary>A faixa da marca e do aviso: vermelha no cancelado, âmbar nas demais; nada sem marca nem aviso.</summary>
+    public static void Band(IContainer container, PdfMark mark, string? notice)
+    {
+        ArgumentNullException.ThrowIfNull(container);
+        if (BandText(mark, notice) is not { } text)
+        {
+            return;
+        }
+
+        var crit = mark == PdfMark.Cancelled;
+        container.Background(crit ? PdfTheme.CritSurface : PdfTheme.WarnSurface).PaddingVertical(3).PaddingHorizontal(6)
+            .Text(text).SemiBold().FontColor(crit ? PdfTheme.CritInk : PdfTheme.WarnInk);
+    }
 }

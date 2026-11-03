@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chooseAll, idsFromSearch, initialSelection, missingForClose, needsReason, responseState, responseTotal, toStockPrice } from './rfqs'
+import { chooseAll, idsFromSearch, initialSelection, missingForClose, needsReason, responseState, responseTotal, rfqRequestFileName, toStockPrice } from './rfqs'
 
 const lines = [
   { id: 'a', itemId: 'i1', itemCode: 'MP-010', quantity: 100, selectedSupplierId: null, cheapestSupplierId: 's2' },
@@ -48,5 +48,12 @@ describe('cotação (CMP-02)', () => {
     expect(responseState({ responded: false, declined: false }).tone).toBe('warn')
     expect(idsFromSearch('a, b,,c')).toEqual(['a', 'b', 'c'])
     expect(idsFromSearch(undefined)).toEqual([])
+  })
+})
+
+describe('PDF da cotação (EXP-03)', () => {
+  it('nome do pedido de cotação com o fornecedor curto, sem acento nem CNPJ (o mesmo do servidor)', () => {
+    expect(rfqRequestFileName('COT-2026-0003', 'Gama Aços Especiais Ltda')).toBe('COT-2026-0003-gama-acos.pdf')
+    expect(rfqRequestFileName('COT-2026-0003', '  ')).toBe('COT-2026-0003.pdf')
   })
 })

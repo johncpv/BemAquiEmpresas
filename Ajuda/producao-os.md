@@ -36,6 +36,15 @@ Ver e ajustar as etapas desta OS antes de a fábrica começar: letra, nome, cent
 - O estorno é recusado se uma série já foi **expedida** no romaneio ("O produto já foi expedido."), se o produto está num romaneio aberto (cancele o romaneio antes) ou se o produto sem série já saiu do estoque.
 - **Concluída antes do controle de estoque:** a OS foi concluída antes de o sistema dar entrada do produto acabado. O produto não entrou no estoque e não tem séries.
 
+## Imprimir e exportar
+- **Baixar PDF** e **Imprimir**, no cabeçalho, geram a **ficha da OS** para levar ao chão de fábrica: número, situação, projeto, cliente, produto, quantidade, data prometida, fim previsto, roteiro, o indicador de etapa e o QR da OS.
+- Na seção **Etapas**, cada etapa vem com a letra, o nome, o centro, as horas padrão, o previsto (ou "Sem previsão" e o motivo), a situação, a marca **Qualidade**, o checklist com uma caixa por item (marcada quando a etapa já foi concluída) e o **QR da etapa**, que abre a etapa no app do operador para apontar. No fim, o campo **Visto do supervisor**.
+- A seção **Materiais** traz o que a aba Material mostra: item, necessidade, unidade, reservado, baixado, falta e local. Sem BOM liberada, aparece "BOM ainda não liberada."; com a BOM em rascunho, "BOM em rascunho: materiais a confirmar.".
+- A seção **Desenhos e documentos** lista os anexos (nome, tipo, tamanho e data); os desenhos não vão impressos na ficha.
+- A ficha **nunca** traz custo, custo-hora, preço nem margem, para ninguém. O QR só leva o endereço: abrir continua pedindo login.
+- Cancelada, a ficha sai com a marca **Cancelado** e o motivo. Aberta sem etapa iniciada, sai com a faixa "Etapas ainda podem mudar.".
+- Com a BOM liberada e o material reservado, o próximo passo é **Imprimir a ficha da OS**.
+
 ## Perguntas frequentes
 **Mudar as etapas aqui muda o roteiro?** Não. A mudança vale só para esta OS. Para mudar o roteiro de todos, edite em Engenharia → Roteiros.
 

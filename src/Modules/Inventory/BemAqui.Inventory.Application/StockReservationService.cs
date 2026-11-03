@@ -21,9 +21,19 @@ namespace BemAqui.Inventory.Application;
 public sealed class StockReservationService(
     IInventoryDb db, ReservationAllocator allocator, IReleasedBomSource boms, IProductionOrders orders, IProjects projects, TenantContextHolder tenant,
     IPurchaseRequests purchaseRequests)
-    : IStockReservations
+    : IStockReservations, IOrderMaterial
 {
     public const string Module = "inventory";
+
+    /// <summary>EXP-03 CA 12: a aba Material para a ficha da OS em PDF, pelo mesmo <see cref="MaterialAsync"/> (locais pelo código).</summary>
+    async Task<OrderMaterialInfo?> IOrderMaterial.ForOrderAsync(Guid productionOrderId, CancellationToken cancellationToken)
+    {
+        var view = await MaterialAsync(productionOrderId, cancellationToken);
+        return view.IsFailure
+            ? null
+            : new OrderMaterialInfo(view.Value.BomReleased, view.Value.Lines.Select(l => new OrderMaterialItemInfo(
+                l.ItemCode, l.ItemName, l.UnitCode, l.Required, l.Reserved, l.Issued, l.Shortage, l.Locations.Select(x => x.LocationCode).Distinct().ToList())).ToList());
+    }
 
     /// <summary>
     /// Reconcilia as reservas da OS a partir da fonte (CA 1 a 9, 12), na transação do chamador (a do consumidor da inbox ou a da

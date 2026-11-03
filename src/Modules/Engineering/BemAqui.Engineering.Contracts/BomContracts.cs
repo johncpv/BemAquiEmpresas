@@ -32,6 +32,9 @@ public interface IBoms
     /// EST-06 (CA 1). Inclui as OS concluídas: "quantos iguais a um já feito".
     /// </summary>
     Task<IReadOnlyList<ReleasedBomReference>> ReleasedAsync(int take, CancellationToken cancellationToken = default);
+
+    /// <summary>A OS tem BOM em rascunho (EXP-03 CA 12: "BOM em rascunho: materiais a confirmar." na ficha da OS).</summary>
+    Task<bool> HasDraftAsync(Guid productionOrderId, CancellationToken cancellationToken = default) => Task.FromResult(false);
 }
 
 /// <summary>Linha do <see cref="BomReleased"/>: só ids e a necessidade na unidade de estoque.</summary>
