@@ -17,6 +17,13 @@ Ver os dados do contrato: cliente, valor, data de assinatura, conta de receita d
 - **Cancelar contrato** (Proprietário): informe o motivo. O projeto é cancelado junto. As parcelas sem baixa são canceladas no financeiro; as que já têm baixa ficam para o financeiro estornar ou manter. Projeto entregue não cancela: use um aditivo.
 - O contrato fica **concluído** sozinho quando o projeto foi entregue e todas as parcelas estão pagas ou canceladas. Se uma baixa for estornada, ele volta a ativo.
 
+## Imprimir e exportar
+- **Baixar PDF** e **Imprimir**, no cabeçalho, geram o **resumo do contrato** para assinar e arquivar: número, situação, cliente (razão social, CNPJ ou CPF e endereço), projeto, orçamento de origem e revisão, data de assinatura, valor original e vigente, data prometida e endereço da obra.
+- Depois vêm os **itens** (descrição, quantidade e preço), os **marcos de pagamento** (marco, %, valor, prazo e a situação da parcela: prevista, em aberto ou paga), os **aditivos aprovados** (número, data, efeito no valor e no prazo) e as assinaturas **Contratante** e **Contratada**.
+- O PDF **nunca** traz custo, composição nem margem, para ninguém. Sem a permissão de ver o financeiro, a parcela aparece só como "Parcela gerada", como na tela.
+- Contrato cancelado sai com a marca **Cancelado** e o motivo. Contrato de implantação sai com a faixa "Contrato em andamento antes do BemAqui" e as parcelas "Recebido antes da implantação". Ativo e concluído saem sem marca.
+- O arquivo se chama `{número do contrato}.pdf`, e todo download fica registrado na auditoria.
+
 ## Perguntas frequentes
 **Por que vejo o CPF ou CNPJ do cliente aqui e não no histórico?** O dado do cliente vem do cadastro na hora de mostrar. O contrato guarda só o id e o nome.
 

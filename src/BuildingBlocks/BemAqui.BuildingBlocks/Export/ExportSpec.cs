@@ -72,23 +72,25 @@ public sealed class ExportSpec<T>(string entity, string fileBase, string title)
     public IReadOnlyList<ExportColumn> OutputColumns(ExportFormat format, Func<ExportSensitivity, bool> allowed)
     {
         ArgumentNullException.ThrowIfNull(allowed);
-        return Of(format).Select(c => new ExportColumn(c.Header, Masked(c, allowed) ? ExportColumnType.Text : c.Type, c.Indented)).ToList();
+        return Of(format, allowed).Select(c => new ExportColumn(c.Header, Masked(c, allowed) ? ExportColumnType.Text : c.Type, c.Indented)).ToList();
     }
 
     /// <summary>
     /// Linhas prontas do formato: cada coluna sensível sem liberação (<paramref name="allowed"/> diz se o usuário tem alguma das ações) troca o
-    /// valor pela máscara; a coluna continua no arquivo, para a planilha ter o mesmo formato para todos.
+    /// valor pela máscara; a coluna continua no arquivo, para a planilha ter o mesmo formato para todos. A coluna com
+    /// <see cref="ExportSensitivity.Omit"/> sem liberação sai do arquivo (EXP-04: custo e margem somem, como na tela).
     /// </summary>
     public IReadOnlyList<IReadOnlyList<object?>> Rows(ExportFormat format, IEnumerable<T> items, Func<ExportSensitivity, bool> allowed)
     {
         ArgumentNullException.ThrowIfNull(items);
         ArgumentNullException.ThrowIfNull(allowed);
-        var columns = Of(format);
+        var columns = Of(format, allowed);
         var masked = columns.Select(c => Masked(c, allowed)).ToArray();
         return items.Select(item => (IReadOnlyList<object?>)columns.Select((c, i) => masked[i] ? c.Sensitivity!.Mask : c.Value(item)).ToArray()).ToList();
     }
 
-    private List<Column> Of(ExportFormat format) => format == ExportFormat.Pdf ? _columns.Where(c => c.InPdf).ToList() : _columns;
+    private List<Column> Of(ExportFormat format, Func<ExportSensitivity, bool> allowed) =>
+        _columns.Where(c => (format != ExportFormat.Pdf || c.InPdf) && !(c.Sensitivity is { Omit: true } s && !allowed(s))).ToList();
 
     private static bool Masked(Column column, Func<ExportSensitivity, bool> allowed) => column.Sensitivity is { } s && !allowed(s);
 

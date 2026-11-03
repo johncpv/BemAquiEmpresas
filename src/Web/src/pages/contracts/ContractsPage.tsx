@@ -1,9 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListContracts } from '@/api/generated/bemaqui'
+import { getExportContractsUrl, useListContracts } from '@/api/generated/bemaqui'
 import type { ContractSummary } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { Money } from '@/components/ui/money'
 import { StatusChip } from '@/components/ui/status-chip'
 import { formatDate } from '@/lib/format'
@@ -16,7 +17,8 @@ const SITUATIONS = [{ value: 'ativo', label: 'Ativos' }, { value: 'concluido', l
 export function ContractsPage() {
   const [search] = useTableSearch()
   const { situacao } = useTableFilters(['situacao'])
-  const query = useListContracts({ q: search.q, situation: situacao || undefined, page: search.page, pageSize: search.pageSize })
+  const filters = { q: search.q, situation: situacao || undefined }
+  const query = useListContracts({ ...filters, page: search.page, pageSize: search.pageSize })
   const columns: ColumnDef<ContractSummary>[] = [
     { id: 'number', header: 'Contrato', cell: ({ row: { original: c } }) => <Link to={'/app/contratos/$id' as never} params={{ id: c.id } as never} className="font-semibold text-primary hover:underline">{c.number}</Link> },
     { id: 'party', header: 'Cliente', cell: ({ row: { original: c } }) => <span>{c.partyName}{c.projectNumber ? <span className="block text-xs text-muted-foreground">{c.projectNumber}</span> : null}</span> },
@@ -30,6 +32,7 @@ export function ContractsPage() {
       <PageHeading title="Comercial: Contratos" description="Cada contrato nasce da aprovação de um orçamento, com a cópia congelada, o projeto e as parcelas a receber." />
       <DataTable label="Contratos" columns={columns} query={query} getRowId={(c) => c.id} searchPlaceholder="Buscar pelo número ou cliente"
         filters={[{ key: 'situacao', label: 'Situação', options: SITUATIONS }]}
+        toolbar={<ExportMenu formats={['xlsx']} fileBase="contratos" empty={query.data?.total === 0} url={(format) => getExportContractsUrl({ ...filters, format })} />}
         empty={{ title: 'Nenhum contrato ainda. Aprove um orçamento enviado para gerar o primeiro.', action: goQuotes }} />
     </>
   )

@@ -1,9 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListRfqs } from '@/api/generated/bemaqui'
+import { getExportRfqsUrl, useListRfqs } from '@/api/generated/bemaqui'
 import type { RfqStatus, RfqSummary } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { StatusChip } from '@/components/ui/status-chip'
 import { formatDateTime } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
@@ -21,7 +22,8 @@ export function RfqsPage() {
   const [search] = useTableSearch()
   const { filtro, situacao } = useTableFilters(['filtro', 'situacao'])
   const show = filtro ?? 'abertas'
-  const list = useListRfqs({ show, status: (situacao || undefined) as RfqStatus | undefined, q: search.q, page: search.page, pageSize: search.pageSize })
+  const filters = { show, status: (situacao || undefined) as RfqStatus | undefined, q: search.q }
+  const list = useListRfqs({ ...filters, page: search.page, pageSize: search.pageSize })
 
   const columns: ColumnDef<RfqSummary>[] = [
     { id: 'number', header: 'Número', cell: ({ row: { original: r } }) => <Link to={'/app/compras/cotacoes/$id' as never} params={{ id: r.id } as never} className="font-semibold tabular-nums text-primary hover:underline">{r.number}</Link> },
@@ -41,6 +43,7 @@ export function RfqsPage() {
       <p className="mb-3 text-sm text-muted-foreground">Mostrando: {showLabel}</p>
       <DataTable label="Cotações" columns={columns} query={list} getRowId={(r) => r.id} searchPlaceholder="Buscar pelo número (COT-…)"
         filters={[{ key: 'filtro', label: 'Mostrar', options: SHOW_OPTIONS }, { key: 'situacao', label: 'Situação', options: STATUS_OPTIONS }]}
+        toolbar={<ExportMenu formats={['xlsx']} fileBase="cotacoes" empty={list.data?.total === 0} url={(format) => getExportRfqsUrl({ ...filters, format })} />}
         expandable={{ label: (r) => `detalhes de ${r.number}`, render: (r) => <p className="text-sm">{r.lineCount} {r.lineCount === 1 ? 'item' : 'itens'} · {r.respondedCount} de {r.supplierCount} fornecedores responderam</p> }}
         empty={{ title: 'Nenhuma cotação aberta.', action: <span className="flex flex-wrap justify-center gap-2">{quote}{typed}</span> }} />
     </>

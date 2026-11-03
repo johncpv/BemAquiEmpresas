@@ -37,6 +37,7 @@ internal static partial class CommercialEndpoints
             .RequirePermission("projects.approve").WithName("CancelContract").Produces<ContractDetail>();
 
         var projects = api.MapGroup("/projects").WithTags("Contratos e projetos").RequireModule("projects");
+        MapContractDocuments(contracts, projects);
         projects.MapGet(string.Empty, async (string? q, string? situation, Guid? partyId, Guid? managerId, int? page, int? pageSize, ProjectService service, CancellationToken ct) =>
                 Results.Ok(await service.ListAsync(q, situation, partyId, managerId, new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)))
             .RequirePermission("projects.view").WithName("ListProjects").Produces<ProjectListPage>();

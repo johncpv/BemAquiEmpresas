@@ -74,3 +74,6 @@ export const BOLETO_DICAS = {
   juros: 'Juros por mês de atraso, proporcionais aos dias (até 1% ao mês). Vem de Configurações → Cobrança.',
   pix: 'Código que o cliente cola no aplicativo do banco para pagar na hora pelo Pix, sem digitar a linha digitável.',
 }
+
+/** Atalho "Baixar boleto" no cabeçalho do título e na linha da lista (EXP-04 CA 19): só com o boleto emitido ou pago. */
+export const hasSlipShortcut = (status: BillingSlipStatus | null | undefined) => status === 'Issued' || status === 'Paid'

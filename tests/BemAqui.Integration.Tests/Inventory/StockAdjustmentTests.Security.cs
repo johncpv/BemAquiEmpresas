@@ -84,7 +84,7 @@ public partial class StockAdjustmentTests
 
         var endpoints = Factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>()
             .Where(e => e.RoutePattern.RawText is { } raw && raw.Contains("/inventory/adjustments", StringComparison.Ordinal)).ToList();
-        endpoints.Should().HaveCount(10, "lista, detalhe, linha, histórico, lançar, editar (409), aprovar, reprovar, cancelar e estornar");
+        endpoints.Should().HaveCount(12, "lista, detalhe, linha, histórico, lançar, editar (409), aprovar, reprovar, cancelar, estornar, PDF e exportação (EXP-04)");
         foreach (var endpoint in endpoints)
         {
             endpoint.Metadata.GetMetadata<RequiresModuleMetadata>()!.ModuleCode.Should().Be("inventory", endpoint.DisplayName);

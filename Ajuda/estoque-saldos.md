@@ -19,6 +19,13 @@ Ver o que existe de cada item em cada local: o físico, o que já está reservad
 - Enquanto a implantação do estoque está aberta, aparecem **Lançar saldo inicial** e **Saldo inicial em lote**. Quem aprova no Estoque conclui a implantação em **Concluir implantação do estoque**.
 - Filtre por local, categoria, tipo e situação. No celular aparecem item, local, disponível e situação; toque na linha para ver o resto.
 
+## Imprimir e exportar
+- Clique em **Exportar** e escolha **Excel (.xlsx)** ou **PDF**. Valem a busca, o local, a categoria, o tipo e a situação da tela, com todas as páginas.
+- A planilha traz código, item, unidade, local, físico, reservado, disponível, mínimo, custo médio, valor (físico × custo médio) e situação, com a linha **Total** do valor no fim. O PDF traz as colunas principais.
+- Custo e valor saem como a tela mostra.
+- O limite é de 10.000 linhas no Excel e 2.000 no PDF. Acima disso, o sistema avisa e pede para refinar os filtros.
+- Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+
 ## Perguntas frequentes
 **Por que meu lançamento foi para aprovação?** Entrada ou saída acima de R$ 1.000,00, ou entrada com custo mais de 20% diferente do custo médio, precisa da aprovação de outra pessoa. O saldo só muda quando ela aprovar.
 

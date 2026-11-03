@@ -28,6 +28,8 @@ public static class CommercialInfrastructure
         // PDF e envio (COM-03): anexos do orçamento por revisão; o PDF gerado sai como anexo do sistema.
         services.TryAddSingleton<BemAqui.BuildingBlocks.Pdf.IPdfRenderer, BemAqui.BuildingBlocks.Pdf.QuestPdfRenderer>();
         services.TryAddScoped<BemAqui.Commercial.Application.Documents.QuoteDocumentService>();
+        services.TryAddScoped<BemAqui.Commercial.Application.Documents.ContractDocumentService>();
+        services.TryAddScoped<BemAqui.Commercial.Application.Exports.CommercialExportService>();
         services.AddAuditableEntity<QuoteDispatch>("quotes");
         // LGPD-01a: onde o titular aparece no Comercial (documentos e envios por e-mail).
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Privacy.IPersonalDataProvider, CommercialPersonalDataProvider>());

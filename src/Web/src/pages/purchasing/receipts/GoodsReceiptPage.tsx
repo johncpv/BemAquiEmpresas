@@ -1,12 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { getGetGoodsReceiptQueryKey, reverseGoodsReceipt, useGetGoodsReceipt, useGetGoodsReceiptHistory, useListGoodsReceiptPayables } from '@/api/generated/bemaqui'
+import { getDownloadGoodsReceiptPdfUrl, getGetGoodsReceiptQueryKey, reverseGoodsReceipt, useGetGoodsReceipt, useGetGoodsReceiptHistory, useListGoodsReceiptPayables } from '@/api/generated/bemaqui'
 import type { GoodsReceiptDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { inputClass } from '@/components/form/form-utils'
 import { describeChanges } from '@/components/history/describe-changes'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { FactsBar } from '@/components/ui/facts-bar'
 import { Money } from '@/components/ui/money'
 import { NextSteps, type Step } from '@/components/ui/next-steps'
@@ -179,9 +180,11 @@ export function GoodsReceiptPage() {
           </>
         }
         actions={
-          <>
+          <div className="flex flex-wrap items-start gap-2">
+            {/* EXP-04 CA 9: comprovante de recebimento (itens, lote, local e assinaturas), sem custo de entrada; estornado sai com Cancelado. */}
+            <DocumentActions url={getDownloadGoodsReceiptPdfUrl(r.id)} fileName={`${r.number}.pdf`} />
             {r.canReverse ? reverse : null}
-          </>
+          </div>
         } />
       {steps.length ? <div className="mb-3"><NextSteps steps={steps} onDismiss={() => setStepsShown(false)} /></div> : null}
       {r.status === 'Reversed'

@@ -1,10 +1,11 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListPurchaseProjectOptions, useListPurchaseRequests, useListPurchaseRequestsByItem } from '@/api/generated/bemaqui'
+import { getExportPurchaseRequestsUrl, useListPurchaseProjectOptions, useListPurchaseRequests, useListPurchaseRequestsByItem } from '@/api/generated/bemaqui'
 import type { PurchaseItemRow, PurchaseRequestOrigin, PurchaseRequestStatus, PurchaseRequestSummary } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
 import { Dica } from '@/help/Dica'
@@ -45,10 +46,11 @@ export function PurchaseRequestsPage() {
   const byItem = visao === 'item'
   const show = filtro ?? (canEdit ? 'aguardando-voce' : 'abertas')
   const projects = useListPurchaseProjectOptions()
-  const list = useListPurchaseRequests({
+  const filters = {
     show, origin: (origem || undefined) as PurchaseRequestOrigin | undefined, status: (situacao || undefined) as PurchaseRequestStatus | undefined, projectId: projeto || undefined,
-    itemId: item || undefined, productionOrderId: os || undefined, q: search.q, page: search.page, pageSize: search.pageSize,
-  }, { query: { enabled: !byItem } })
+    itemId: item || undefined, productionOrderId: os || undefined, q: search.q,
+  }
+  const list = useListPurchaseRequests({ ...filters, page: search.page, pageSize: search.pageSize }, { query: { enabled: !byItem } })
   const items = useListPurchaseRequestsByItem({ q: search.q, projectId: projeto || undefined, page: search.page, pageSize: search.pageSize }, { query: { enabled: byItem } })
   // CMP-02: na visão Por item, o comprador marca os itens e clica "Cotar"; as linhas abertas deles vão para a nova cotação.
   const canQuote = useCan('purchasing.create')
@@ -137,6 +139,7 @@ export function PurchaseRequestsPage() {
             { key: 'projeto', label: 'Projeto', options: (projects.data ?? []).map((p) => ({ value: p.id, label: `${p.number} — ${p.name}` })) },
           ]}
           rowClassName={(r) => (r.status === 'Open' || r.status === 'Quoting' ? rowAccent(r.nearestNeededBy) : undefined)}
+          toolbar={<ExportMenu formats={['xlsx']} fileBase="solicitacoes-de-compra" empty={list.data?.total === 0} url={(format) => getExportPurchaseRequestsUrl({ ...filters, format })} />}
           expandable={{
             label: (r) => `detalhes de ${r.number}`,
             render: (r) => <p className="text-sm">{ORIGIN[r.origin]} · {destination(r.projectNumber, r.projectName)}{r.orderNumber ? ` · ${r.orderNumber}` : ''} · {r.openLineCount} de {r.lineCount} {r.lineCount === 1 ? 'linha aberta' : 'linhas abertas'}</p>,

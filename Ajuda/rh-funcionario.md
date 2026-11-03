@@ -16,6 +16,11 @@ Ver e alterar os dados gerais do funcionário: nome, matrícula, admissão, jorn
 - **Registrar afastamento** (com a permissão Ver dados sensíveis) deixa a situação Afastado do início ao fim previsto. O tipo e o motivo ficam na aba Linha do tempo, onde também dá para editar, encerrar antes e cancelar o afastamento. O tipo e o motivo só aparecem com a permissão Ver dados de saúde; sem ela, só as datas.
 - Em **Usuário do sistema**, **Vincular usuário** liga um login ao funcionário (para o ponto e o apontamento). Exige a permissão de editar usuários.
 
+## Imprimir e exportar
+- Com a permissão **Ver dados sensíveis**, o bloco **Holerites** mostra os 6 últimos holerites do funcionário: competência, tipo (Mensal, Férias, 13º, Rescisão), líquido e a situação da folha. **Baixar holerite** baixa o PDF de cada um; holerite de folha ainda em lançamento sai com a marca d'água de rascunho.
+- **Ver todos** abre as folhas de pagamento. Sem a permissão, o bloco não aparece.
+- Sem holerite ainda, aparece "Nenhum holerite ainda. Os holerites aparecem quando a folha do mês é lançada.". Cada consulta e cada download ficam no histórico de acessos.
+
 ## Perguntas frequentes
 **O que é a matrícula?** Um código do funcionário na empresa, se houver. É opcional e não se repete.
 

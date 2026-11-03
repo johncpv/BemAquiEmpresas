@@ -1,9 +1,10 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListQuoteCosts, useListQuotes } from '@/api/generated/bemaqui'
+import { getExportQuotesUrl, useListQuoteCosts, useListQuotes } from '@/api/generated/bemaqui'
 import type { QuoteSummary } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { Money } from '@/components/ui/money'
 import { StatusChip } from '@/components/ui/status-chip'
 import { useCan } from '@/pages/use-can'
@@ -27,7 +28,8 @@ export function QuotesPage() {
   // Drill-down do funil (COM-08 CA 5): período da revisão 0 e autor vêm na URL.
   const { de, ate, autor } = useSearch({ strict: false }) as { de?: string; ate?: string; autor?: string }
   const fromFunnel = !!(de || ate || autor)
-  const query = useListQuotes({ q: search.q, situation: situacao || undefined, from: de || undefined, to: ate || undefined, authorId: autor || undefined, page: search.page, pageSize: search.pageSize })
+  const filters = { q: search.q, situation: situacao || undefined, from: de || undefined, to: ate || undefined, authorId: autor || undefined }
+  const query = useListQuotes({ ...filters, page: search.page, pageSize: search.pageSize })
   const ids = (query.data?.items ?? []).map((q) => q.id).join(',')
   const costs = useListQuoteCosts({ ids }, { query: { enabled: canCost && ids.length > 0 } })
   const costOf = (id: string) => costs.data?.find((c) => c.id === id)
@@ -63,6 +65,7 @@ export function QuotesPage() {
       ) : null}
       <DataTable label="Orçamentos" columns={columns} query={query} getRowId={(q) => q.id} searchPlaceholder="Buscar pelo número ou cliente"
         filters={[{ key: 'situacao', label: 'Situação', options: SITUATIONS }]}
+        toolbar={<ExportMenu formats={['xlsx']} fileBase="orcamentos" empty={query.data?.total === 0} url={(format) => getExportQuotesUrl({ ...filters, format })} />}
         empty={{ title: 'Crie o primeiro orçamento para um cliente.', action: create }} />
     </>
   )

@@ -5,7 +5,7 @@
 | ID | EXP-04 |
 | Título | PDFs do contrato, do aditivo, da OS de instalação com o termo de aceite técnico em branco, do recebimento de mercadoria, da requisição de material, do ajuste de estoque, da folha de contagem e do resultado do inventário e da não conformidade; exportação xlsx das listas de compras, estoque, comercial e produção; holerite com o rótulo "Baixar holerite" e atalho na ficha do funcionário; boleto no cabeçalho do título e na lista de A receber |
 | Tamanho | G |
-| Status | Ready |
+| Status | Done (03/11/2026) |
 | Requisitos | Pedido do PO de 02/11/2026 (auditoria, seções A, B, D4 "EXP-04" e E) · R-PRJ-3 e R-PRJ-6 (OS de instalação e aceite técnico) · R-CMP-5 (recebimento) · R-EST-6 e R-EST-9 (ajuste e inventário) · R-PRD-1 · R-RH-5 (holerite) · R-COM-3 · PRD §6 LGPD · R-SEC-5 |
 | Dependências | EXP-01 (frame, marcas, `ITabularExporter`, `<DocumentActions>`, `<ExportMenu>`); EXP-03 (`PdfStageIndicator`, `PdfQr`); COM-04a, COM-07, COM-06, CMP-01 a CMP-04, EST-01a, EST-01b, EST-03, EST-05, PRD-01, PRD-05, RH-02b, BNK-01b (telas e consultas entregues) |
 | Bloqueia | — |
@@ -176,3 +176,4 @@ Checklist do SM, 02/11/2026, sobre o pedido do PO do mesmo dia.
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 02/11/2026 | 0.1 | Story detalhada a partir da auditoria de PDF e exportação (onda 2); `Ready` pelo pedido do PO de 02/11/2026 | Claude (SM) |
+| 03/11/2026 | 1.0 | Implementada (`Done`). Decisões do PO aplicadas: exportação sem 2FA, só permissão; recebimento sem custo de entrada; termo de aceite com texto fixo; o PDF não é bloqueado por dado faltante da empresa (ADR 0045 §1). Ajustes: rotas do comercial sem o prefixo `/commercial` (o módulo já usa `/contracts`, `/quotes` e `/projects`); o aditivo mostra a descrição como "Motivo e escopo" (o domínio não guarda itens incluídos e retirados); a lista A receber ganhou a coluna "Boleto" com o atalho (a tabela não tem menu de linha); "Ver todos" do bloco Holerites abre as folhas (a lista de folhas não filtra por funcionário) | Claude (dev) |

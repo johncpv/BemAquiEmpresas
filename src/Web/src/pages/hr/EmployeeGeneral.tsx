@@ -9,6 +9,7 @@ import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
 import { FormLayout } from '@/components/layout/form-layout'
 import { notifySuccess } from '@/components/ui/messages'
 import { EMPLOYEE_DICAS } from './employee'
+import { EmployeePayslips } from './EmployeePayslips'
 import { EmployeeUser } from './EmployeeUser'
 
 /** Dados gerais (CA 7 e 10): só campos não sensíveis; o cargo muda pela ação "Trocar cargo". */
@@ -79,6 +80,7 @@ export function EmployeeGeneral({ employee, canEdit, onSaved, linking, onLinking
         </fieldset>
       </form>
       <EmployeeUser employee={employee} linking={linking} onLinkingChange={onLinkingChange} />
+      <EmployeePayslips employee={employee} />
       </div>
     </FormLayout>
   )

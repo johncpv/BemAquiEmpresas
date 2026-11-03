@@ -92,6 +92,9 @@ public static class InventoryInfrastructure
         services.TryAddScoped<LotService>();
         // Capacidade de produzir (EST-06): só leitura sobre o IBoms, a posição agregada e o saldo a receber das compras; nada gravado.
         services.TryAddScoped<ProductionCapacityService>();
+        // PDFs e exportação das listas do estoque (EXP-04): pelos mesmos detalhes e listas da tela.
+        services.TryAddScoped<BemAqui.Inventory.Application.Documents.InventoryDocumentService>();
+        services.TryAddScoped<BemAqui.Inventory.Application.Documents.InventoryExportService>();
         // Ajuste de estoque (EST-01b): todo ajuste com aprovação por outra pessoa; o efeito é síncrono pelo motor na aprovação.
         services.TryAddScoped<StockAdjustmentService>();
         services.AddAuditableEntity<StockAdjustment>("inventory");

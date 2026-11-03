@@ -2,11 +2,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
-import { completeStockOpening, getGetStockOpeningQueryKey, getListStockBalancesQueryKey, useGetStockOpening, useListItemCategories, useListLocations, useListStockBalances } from '@/api/generated/bemaqui'
+import { completeStockOpening, getExportStockBalancesUrl, getGetStockOpeningQueryKey, getListStockBalancesQueryKey, useGetStockOpening, useListItemCategories, useListLocations, useListStockBalances } from '@/api/generated/bemaqui'
 import type { BalanceRow, ItemType, ManualPostingDetail, ManualPostingKind, StockSituation } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { Money } from '@/components/ui/money'
 import { NextSteps, type Step } from '@/components/ui/next-steps'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -37,7 +38,8 @@ export function BalancesPage() {
   const client = useQueryClient()
   const navigate = useNavigate()
   const canCreate = useCan('inventory.create')
-  const query = useListStockBalances({ q: search.q, locationId: local || undefined, categoryId: categoria || undefined, type: (tipo || undefined) as ItemType | undefined, situation: (situacao || undefined) as StockSituation | undefined, page: search.page, pageSize: search.pageSize })
+  const filters = { q: search.q, locationId: local || undefined, categoryId: categoria || undefined, type: (tipo || undefined) as ItemType | undefined, situation: (situacao || undefined) as StockSituation | undefined }
+  const query = useListStockBalances({ ...filters, page: search.page, pageSize: search.pageSize })
   const opening = useGetStockOpening()
   const locations = useListLocations({ pageSize: 100 })
   const categories = useListItemCategories()
@@ -117,6 +119,7 @@ export function BalancesPage() {
       {steps.length ? <div className="mb-3"><NextSteps steps={steps} onDismiss={() => setSteps([])} /></div> : null}
       {!canCreate ? <p className="mb-3 text-sm text-muted-foreground">Modo leitura: lançar entrada, saída e transferência exige permissão de criar no Estoque.</p> : null}
       <DataTable label="Saldos de estoque" columns={columns} query={query} getRowId={(b) => `${b.itemId}:${b.locationId}`} searchPlaceholder="Buscar pelo código ou nome do item"
+        toolbar={<ExportMenu fileBase="saldos-de-estoque" empty={query.data?.total === 0} url={(format) => getExportStockBalancesUrl({ ...filters, format })} />}
         filters={[
           { key: 'local', label: 'Local', options: (locations.data?.items ?? []).map((l) => ({ value: l.id, label: `${l.code} — ${l.name}` })) },
           { key: 'categoria', label: 'Categoria', options: (categories.data ?? []).map((c) => ({ value: c.id, label: c.name })) },

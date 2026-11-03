@@ -49,6 +49,7 @@ internal static partial class HrEndpoints
         var runs = hr.MapGroup("/payroll-runs");
         MapPayrollRuns(runs);
         MapPayslipDocuments(runs);
+        MapEmployeePayslips(employees);
         MapAccountantExports(hr.MapGroup("/accountant-exports"));
         MapPayrollParallel(hr.MapGroup("/payroll-parallel"));
         MapTimeEntries(hr, employees);

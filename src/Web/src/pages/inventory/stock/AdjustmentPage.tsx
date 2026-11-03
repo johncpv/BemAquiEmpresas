@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
-  approveStockAdjustment, cancelStockAdjustment, getGetStockAdjustmentQueryKey, rejectStockAdjustment, reverseStockAdjustment, useGetStockAdjustment,
+  approveStockAdjustment, cancelStockAdjustment, getDownloadStockAdjustmentPdfUrl, getGetStockAdjustmentQueryKey, rejectStockAdjustment, reverseStockAdjustment, useGetStockAdjustment,
 } from '@/api/generated/bemaqui'
 import type { StockAdjustmentDetail, StockAdjustmentLineView } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
@@ -10,6 +10,7 @@ import { useIdempotencyKey } from '@/api/idempotency'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { FactsBar } from '@/components/ui/facts-bar'
 import { Money } from '@/components/ui/money'
 import { NextSteps, type Step } from '@/components/ui/next-steps'
@@ -128,6 +129,7 @@ export function AdjustmentPage() {
         }
         actions={
           <>
+            <DocumentActions url={getDownloadStockAdjustmentPdfUrl(id)} fileName={`${a.number}.pdf`} />
             {a.canDecide ? (
               <>
                 <ConfirmDialog size="lg" verb="Aprovar ajuste" done="Ajuste aprovado" title={`Aprovar o ${a.number}?`}

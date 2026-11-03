@@ -17,6 +17,9 @@ Ver e corrigir os dados de um título a receber e registrar o que o cliente pago
 - **Cancelar título**: tira o título dos totais em aberto, com o motivo. Nada é apagado.
 - Na aba Dados, corrija a descrição, a conta e o centro de custo e clique em **Salvar título a receber**.
 
+## Imprimir e exportar
+- Com o boleto **emitido** ou **pago**, o cabeçalho do título tem **Baixar boleto**: o mesmo PDF da aba Boleto (`boleto-{número}.pdf`). Boleto cancelado ou expirado não mostra o atalho.
+
 ## Perguntas frequentes
 **Por que o valor não muda?** Título que já teve baixa não troca o valor: estorne as baixas antes. Título de contrato muda pelo contrato ou pelo aditivo.
 

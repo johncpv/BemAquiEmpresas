@@ -1,5 +1,6 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { useListNonConformities } from '@/api/generated/bemaqui'
+import { getExportNonConformitiesUrl, useListNonConformities } from '@/api/generated/bemaqui'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
@@ -82,6 +83,8 @@ export function NonConformitiesPage() {
           </select>
         </label>
         <Dica nome="Não conformidade" texto={QUALITY_DICAS.naoConformidade} />
+        <span className="ml-auto"><ExportMenu formats={['xlsx']} fileBase="nao-conformidades" empty={query.data?.total === 0}
+          url={(format) => getExportNonConformitiesUrl({ filter: all ? 'todas' : undefined, situation: search.situacao || undefined, format })} /></span>
       </div>
       {body}
     </>

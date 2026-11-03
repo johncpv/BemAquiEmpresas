@@ -1,9 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListInstallations } from '@/api/generated/bemaqui'
+import { getExportInstallationOrdersUrl, useListInstallations } from '@/api/generated/bemaqui'
 import type { InstallationSummary } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { StatusChip } from '@/components/ui/status-chip'
 import { formatDate } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
@@ -27,6 +28,7 @@ export function InstallationsPage() {
     <>
       <PageHeading title="Produção: Instalações" description="A instalação é feita pelo instalador terceirizado; o aceite técnico libera a parcela do cliente." />
       <DataTable label="OS de instalação" columns={columns} query={query} getRowId={(o) => o.id}
+        toolbar={<ExportMenu formats={['xlsx']} fileBase="os-de-instalacao" empty={query.data?.total === 0} url={(format) => getExportInstallationOrdersUrl({ situation: situacao || undefined, format })} />}
         filters={[{ key: 'situacao', label: 'Situação', options: INSTALLATION_SITUATIONS }]}
         empty={{ title: 'Crie a OS de instalação a partir do projeto.', action: goProjects }} />
     </>

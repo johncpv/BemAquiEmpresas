@@ -16,6 +16,13 @@ Acompanhar o material que sai do estoque para as OS: as requisições baixadas, 
 - No celular, cada requisição vira um cartão com o número, a OS e a situação. Toque para ver o material, o valor e quem pediu.
 - Situações: **Pedido do operador** (ainda não baixou nada), **Aguardando aprovação** (consumo acima da BOM acima de R$ 1.000,00), **Baixada**, **Recusada** e **Estornada**.
 
+## Imprimir e exportar
+- Clique em **Exportar** e escolha **Excel (.xlsx)**. Valem o "Mostrar" (inclusive **Aguardando você**), a situação e o tipo da tela, com todas as páginas.
+- A planilha traz número, tipo, OS, etapa, projeto, itens, quem pediu, quando e a situação. Não traz valor.
+- A folha de separação de cada requisição sai na tela da requisição (**Baixar PDF**).
+- O limite é de 10.000 linhas no Excel e 2.000 no PDF. Acima disso, o sistema avisa e pede para refinar os filtros.
+- Toda exportação fica registrada na auditoria (quem, quando, formato, quantas linhas e os filtros). Com a lista vazia, **Exportar** fica desabilitado.
+
 ## Perguntas frequentes
 **O pedido do operador já tirou o material do estoque?** Não. O pedido só avisa o almoxarifado. O material sai quando alguém do Estoque confirma o pedido, escolhendo o lote e a quantidade.
 

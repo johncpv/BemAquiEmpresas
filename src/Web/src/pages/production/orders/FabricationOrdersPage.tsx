@@ -2,12 +2,13 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useEffect, useState } from 'react'
-import { generateFabricationOrders, getListFabricationOrdersQueryKey, getListPendingFabricationItemsQueryKey, useListFabricationOrders, useListPendingFabricationItems, useListWorkCenters } from '@/api/generated/bemaqui'
+import { generateFabricationOrders, getExportFabricationOrdersUrl, getListFabricationOrdersQueryKey, getListPendingFabricationItemsQueryKey, useListFabricationOrders, useListPendingFabricationItems, useListWorkCenters } from '@/api/generated/bemaqui'
 import type { FabricationOrderSummary, PendingFabricationItem } from '@/api/generated/model'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { StageIndicator } from '@/components/ui/stage-indicator'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
@@ -52,8 +53,11 @@ function OrdersTable() {
   const waiting = situacao === 'pronta'
   const centers = useListWorkCenters({ pageSize: 100 })
   const lines = [...new Set((centers.data?.items ?? []).map((c) => c.line).filter((l): l is string => !!l))].sort((a, b) => a.localeCompare(b, 'pt-BR'))
-  const query = useListFabricationOrders({
+  const listFilters = {
     situation: situacao && situacao !== 'todas' ? situacao : undefined, line: linha || undefined, late: atraso === '1' ? true : undefined, projectId: projeto || undefined, partyId: cliente || undefined,
+  }
+  const query = useListFabricationOrders({
+    ...listFilters,
     page: search.page, pageSize: search.pageSize,
   })
   const filterBy = (key: 'projeto' | 'cliente', value: string) => void navigate({ to: '.', search: (prev: Record<string, unknown>) => ({ ...prev, [key]: value, page: undefined }) } as never)
@@ -99,6 +103,7 @@ function OrdersTable() {
     <>
       {clear}
       <DataTable label="OS de fabricação" columns={columns} query={query} getRowId={(o) => o.id} searchable={false}
+        toolbar={<ExportMenu formats={['xlsx']} fileBase="os-de-fabricacao" empty={query.data?.total === 0} url={(format) => getExportFabricationOrdersUrl({ ...listFilters, format })} />}
         rowClassName={(o) => (o.delayDays ? 'border-l-4 border-l-crit' : o.risk === 'AtRisk' ? 'border-l-4 border-l-warn' : undefined)}
         filters={[
           { key: 'situacao', label: 'Situação', options: [...(canApprove ? [{ value: 'todas', label: 'Todas' }] : []), ...FABRICATION_SITUATIONS.map((s) => (s.value === 'pronta' && canApprove ? { ...s, label: 'Aguardando você' } : s))] },

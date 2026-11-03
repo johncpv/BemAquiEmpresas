@@ -1,9 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useListMaterialRequisitions, useListRequisitionsToPick } from '@/api/generated/bemaqui'
+import { getExportMaterialRequisitionsUrl, useListMaterialRequisitions, useListRequisitionsToPick } from '@/api/generated/bemaqui'
 import type { MaterialRequisitionKind, MaterialRequisitionStatus, RequisitionSummary } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { Money } from '@/components/ui/money'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -50,10 +51,10 @@ export function RequisitionsPage() {
   const { filtro, situacao, tipo } = useTableFilters(['filtro', 'situacao', 'tipo'])
   const show = filtro ?? 'aguardando-voce'
   const awaiting = show === 'aguardando-voce'
-  const query = useListMaterialRequisitions({
-    awaitingMe: awaiting || undefined, status: awaiting ? undefined : (situacao || undefined) as MaterialRequisitionStatus | undefined,
-    kind: (tipo || undefined) as MaterialRequisitionKind | undefined, page: search.page, pageSize: search.pageSize,
-  })
+  const filters = {
+    awaitingMe: awaiting || undefined, status: awaiting ? undefined : (situacao || undefined) as MaterialRequisitionStatus | undefined, kind: (tipo || undefined) as MaterialRequisitionKind | undefined,
+  }
+  const query = useListMaterialRequisitions({ ...filters, page: search.page, pageSize: search.pageSize })
   const columns: ColumnDef<RequisitionSummary>[] = [
     { id: 'number', header: 'Número', cell: ({ row: { original: r } }) => <Link to={'/app/estoque/requisicoes/$id' as never} params={{ id: r.id } as never} className="font-semibold text-primary hover:underline">{r.number}</Link> },
     { id: 'kind', header: 'Tipo', meta: { secondary: true }, cell: ({ row: { original: r } }) => REQUISITION_KIND[r.kind] },
@@ -69,6 +70,7 @@ export function RequisitionsPage() {
       <ToPick />
       <p className="mb-2 text-sm text-muted-foreground">Mostrando: {SHOW_LABELS[show] ?? SHOW_LABELS.todos}</p>
       <DataTable label="Requisições de material" columns={columns} query={query} searchable={false} getRowId={(r) => r.id}
+        toolbar={<ExportMenu fileBase="requisicoes" formats={['xlsx']} empty={query.data?.total === 0} url={(format) => getExportMaterialRequisitionsUrl({ ...filters, format })} />}
         filters={[
           { key: 'filtro', label: 'Mostrar', options: [{ value: 'aguardando-voce', label: 'Aguardando você' }, { value: 'todos', label: 'Todas as requisições' }] },
           { key: 'situacao', label: 'Situação', options: STATUS_OPTIONS },

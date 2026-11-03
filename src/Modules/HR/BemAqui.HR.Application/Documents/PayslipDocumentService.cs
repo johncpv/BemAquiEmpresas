@@ -62,6 +62,28 @@ public sealed class PayslipDocumentService(
     }
 
     /// <summary>
+    /// Bloco "Holerites" da ficha (EXP-04 CA 18): os <paramref name="take"/> holerites mais recentes do funcionário, em folhas de qualquer
+    /// situação, com <c>hr.view_sensitive</c> na rota. Funcionário de fora do tenant responde 404; o líquido é dado pessoal e a leitura vai
+    /// para a auditoria.
+    /// </summary>
+    public async Task<Result<IReadOnlyList<EmployeePayslip>>> EmployeeAsync(Guid employeeId, int? take, CancellationToken cancellationToken = default)
+    {
+        if (!await db.Employees.AsNoTracking().AnyAsync(e => e.Id == employeeId, cancellationToken))
+        {
+            return Error.NotFound("employee_not_found", "Funcionário não encontrado.");
+        }
+
+        var limit = Math.Clamp(take ?? 6, 1, 60);
+        var list = await (from p in db.Payslips.AsNoTracking()
+                          join r in db.PayrollRuns.AsNoTracking() on p.PayrollRunId equals r.Id
+                          where p.EmployeeId == employeeId
+                          orderby r.Period descending, r.Type
+                          select new EmployeePayslip(p.Id, r.Id, r.Period, r.Type, p.Net, r.Status)).Take(limit).ToListAsync(cancellationToken);
+        await audit.RecordReadAsync(nameof(Payslip) + ".Employee", employeeId.ToString(), cancellationToken);
+        return Result<IReadOnlyList<EmployeePayslip>>.Success(list);
+    }
+
+    /// <summary>
     /// "Meus holerites" (CA 5): só os holerites do funcionário da sessão nas folhas <c>Closed</c> e <c>Paid</c>, do mais recente ao mais
     /// antigo. O líquido é dado pessoal: a leitura vai para a auditoria.
     /// </summary>
