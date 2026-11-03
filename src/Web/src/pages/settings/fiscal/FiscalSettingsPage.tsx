@@ -7,11 +7,12 @@ import {
 } from '@/api/generated/bemaqui'
 import type { FiscalSettingReview, FiscalSettingsSaved, FiscalSettingsValues, FiscalSettingsView } from '@/api/generated/model'
 import { apiDownload, ApiError } from '@/api/http'
-import { Field, FormError } from '@/components/form/form'
+import { Field, FormActions, FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { PercentInput } from '@/components/form/inputs'
 import { TwoFactorCodeField } from '@/components/form/two-factor-code'
 import { RecordHistory } from '@/components/history/RecordHistory'
+import { FormLayout } from '@/components/layout/form-layout'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogMessage } from '@/components/ui/dialog-message'
 import { EnvironmentBanner } from '@/components/ui/environment-banner'
@@ -45,9 +46,7 @@ export function FiscalSettingsPage() {
 
   return (
     <>
-      <PageHeading title="Fiscal">
-        <p className="mt-2 text-muted-foreground">Regime, série, operações, alíquotas e NFS-e das notas da empresa. Os valores já vêm preenchidos; confira cada um com a contadora.</p>
-      </PageHeading>
+      <PageHeading title="Fiscal" description="Regime, série, operações, alíquotas e NFS-e das notas da empresa. Os valores já vêm preenchidos; confira cada um com a contadora." />
       <FiscalNav />
       {query.isPending ? (
         <div className="space-y-3"><Skeleton className="h-10" /><Skeleton className="h-64" /></div>
@@ -74,6 +73,7 @@ function FiscalForm({ view }: { view: FiscalSettingsView }) {
   const canEdit = view.canEdit
   const [values, setValues] = useState<FiscalSettingsValues>({ ...view.values, cnaeMain: formatCnae(view.values.cnaeMain) })
   const [cnaes, setCnaes] = useState(view.values.cnaeSecondary.map(formatCnae).join(', '))
+  const dirty = JSON.stringify(values) !== JSON.stringify({ ...view.values, cnaeMain: formatCnae(view.values.cnaeMain) }) || cnaes !== view.values.cnaeSecondary.map(formatCnae).join(', ')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState<string>()
   const [busy, setBusy] = useState(false)
@@ -166,8 +166,9 @@ function FiscalForm({ view }: { view: FiscalSettingsView }) {
       {notice ? <p role="status" className="rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm font-semibold text-warn-ink">{notice}</p> : null}
       {!canEdit ? <p role="note" className="rounded-md border border-border bg-muted px-3 py-2 text-sm">Modo leitura: só quem edita Configurações altera e confere os valores fiscais.</p> : null}
 
-      <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
-        <details open className="h-fit rounded-md border border-border bg-card p-3 lg:sticky lg:top-4 max-lg:[&:not([open])]:pb-3">
+      {/* Padrão de layout (ADR 0044): o formulário na coluna de 896 px e o índice das seções no painel lateral, a partir de 1280 px. */}
+      <FormLayout asideLabel="Seções da configuração fiscal" aside={
+        <details open className="rounded-md border border-border bg-card p-3 [&:not([open])]:pb-3">
           <summary className="cursor-pointer text-sm font-semibold">Seções</summary>
           <nav aria-label="Seções da configuração fiscal" className="mt-2">
             <ul className="space-y-1 text-sm">
@@ -184,6 +185,7 @@ function FiscalForm({ view }: { view: FiscalSettingsView }) {
           </nav>
           <Link to="/app/configuracoes/fiscal/certificado" className="mt-3 flex min-h-11 items-center px-2 text-sm font-semibold text-primary underline lg:min-h-0">Certificado digital</Link>
         </details>
+      }>
 
         <form onSubmit={(e) => { e.preventDefault(); void save() }} noValidate aria-label="Configuração fiscal" className="min-w-0 space-y-4">
           <FormError message={formError} />
@@ -226,9 +228,9 @@ function FiscalForm({ view }: { view: FiscalSettingsView }) {
               </section>
             ))}
             {canEdit ? (
-              <div className="flex flex-wrap justify-end gap-2">
+              <FormActions sticky dirty={dirty}>
                 <button type="submit" disabled={busy} className={primary}>{busy ? 'Salvando…' : 'Salvar configuração fiscal'}</button>
-              </div>
+              </FormActions>
             ) : null}
           </fieldset>
           {view.id ? (
@@ -238,7 +240,7 @@ function FiscalForm({ view }: { view: FiscalSettingsView }) {
             </details>
           ) : null}
         </form>
-      </div>
+      </FormLayout>
 
       <ConfirmDialog
         open={sectionToConfirm !== null}

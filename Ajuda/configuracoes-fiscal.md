@@ -13,9 +13,9 @@ Tudo já vem **preenchido com os valores propostos** (por exemplo, Lucro Presumi
 
 ## Como usar
 1. Clique em **Baixar para a contadora**: sai um PDF com todos os campos, o valor e a situação, com espaço para a resposta dela.
-2. Ajuste o que a contadora pedir e clique em **Salvar configuração fiscal**. Mudar um valor que já estava conferido volta o selo para "A confirmar".
+2. Ajuste o que a contadora pedir e clique em **Salvar configuração fiscal**, na barra presa no rodapé, logo acima do menu. Mudar um valor que já estava conferido volta o selo para "A confirmar".
 3. Para cada valor que a contadora confirmou, clique em **Marcar como conferido** (ou em **Marcar seção como conferida**, que lista os campos antes de confirmar). O selo passa a mostrar quem conferiu e quando. **Desfazer conferência** volta o selo.
-4. O índice **Seções** mostra quantos campos faltam em cada seção e leva direto ao primeiro pendente.
+4. O índice **Seções**, ao lado do formulário (em tela estreita, depois dele), mostra quantos campos faltam em cada seção e leva direto ao primeiro pendente.
 5. Inscrição estadual, inscrição municipal, endereço e código IBGE vêm de **Configurações → Empresa** (use **Editar dados da empresa**). Sem a inscrição estadual, o código IBGE ou a série, a emissão fica bloqueada e a tela diz o que falta.
 
 ## Homologação e produção

@@ -12,7 +12,7 @@ Define a multa, os juros de mora, o desconto padrão e o envio do boleto com Pix
 Na seção **Régua de cobrança**, configura os lembretes automáticos por e-mail ao cliente, antes e depois do vencimento.
 
 ## Como usar
-- Ajuste os valores e clique em **Salvar cobrança**. A multa vai de 0 a 2,00% e os juros de 0 a 1,00% ao mês.
+- Ajuste os valores e clique em **Salvar cobrança**, na barra presa no rodapé, logo acima do menu, que avisa **Alterações não salvas** enquanto houver algo para salvar. A multa vai de 0 a 2,00% e os juros de 0 a 1,00% ao mês.
 - Os valores com o selo **A confirmar com a contadora** já valem, mas precisam da conferência dela. Depois de conferir, clique em **Marcar como conferido**. Se mudar um valor conferido, o selo volta.
 - **Limite diário de e-mails** soma orçamentos, pedidos de compra, boletos e lembretes da régua. Acima dele, o boleto sai no dia seguinte às 08:00 e o lembrete, no próximo dia útil.
 - **Multa e juros do título vencido** contam do vencimento original do título (padrão) ou do novo vencimento do boleto.
@@ -23,7 +23,7 @@ Na seção **Régua de cobrança**, configura os lembretes automáticos por e-ma
 - O texto é puro: sai como está, sem formatação. Use os **Campos do texto** (clique para colocar no texto): `{empresa}`, `{cliente}`, `{numero}`, `{valor}`, `{vencimento}`, `{linha_digitavel}` e `{dias_de_atraso}`. Outro campo é recusado.
 - Clique em **Ver prévia** para ver o e-mail com um título de exemplo.
 - Escolha o **Horário de envio** (de 07:00 a 20:00, horário de Brasília) e o e-mail que recebe as respostas do cliente. Vazio, vale o e-mail da empresa.
-- Marque **Régua ligada** e clique em **Salvar régua**. A mensagem diz quantos títulos recebem lembrete no próximo dia de envio.
+- Marque **Régua ligada** e clique em **Salvar régua**, na barra presa no rodapé. A mensagem diz quantos títulos recebem lembrete no próximo dia de envio.
 - Para parar a cobrança de um cliente ou de um título (por exemplo, numa negociação), use **Pausar cobrança** no título ou no cadastro do cliente.
 
 ## Perguntas frequentes

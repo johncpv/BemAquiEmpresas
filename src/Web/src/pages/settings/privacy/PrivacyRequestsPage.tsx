@@ -55,12 +55,12 @@ export function PrivacyRequestsPage() {
   )
   return (
     <>
-      <PageHeading title="Privacidade (LGPD)">
-        <p className="mt-2 max-w-3xl text-muted-foreground">
+      <PageHeading title="Privacidade (LGPD)" description={
+        <>
           Registre cada pedido que uma pessoa faz sobre os dados dela e responda dentro do prazo.
           <span className="ml-1 inline-flex align-middle"><Dica nome="Controlador" texto="A empresa é a controladora dos dados pessoais e responde ao titular; o BemAqui é o operador. Por isso só o Proprietário atende os pedidos." /></span>
-        </p>
-      </PageHeading>
+        </>
+      } />
       <div className="space-y-4">
         <div className="flex flex-wrap items-end gap-3">
           <label className="text-sm font-medium">
@@ -132,7 +132,7 @@ function ResponseDaysSection() {
   const settings = useGetPrivacySettings({ query: { retry: false } })
   const [value, setValue] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  if (settings.isPending) return <Skeleton className="h-24 max-w-xl" />
+  if (settings.isPending) return <Skeleton className="h-24 max-w-4xl" />
   if (settings.isError) return <ErrorState title="Não foi possível carregar o prazo de resposta." onRetry={() => void settings.refetch()} />
   const current = value ?? String(settings.data.responseDays)
   const save = async () => {
@@ -148,7 +148,7 @@ function ResponseDaysSection() {
   }
 
   return (
-    <section aria-labelledby="privacy-days" className="max-w-xl space-y-3 rounded-md border border-border bg-card p-5">
+    <section aria-labelledby="privacy-days" className="max-w-4xl space-y-3 rounded-md border border-border bg-card p-5">
       <h2 id="privacy-days" className="flex items-center font-semibold">
         Prazo de resposta
         <Dica nome="Prazo" texto="Dias corridos a partir da data do pedido (fim de semana e feriado contam). A LGPD pede 15 dias para a declaração completa; o jurídico pode ajustar." />

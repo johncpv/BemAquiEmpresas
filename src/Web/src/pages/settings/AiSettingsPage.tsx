@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { getGetAiSettingsQueryKey, removeAiSettings, useGetAiSettings } from '@/api/generated/bemaqui'
 import type { AiSettingsDto } from '@/api/generated/model'
+import { FormLayout } from '@/components/layout/form-layout'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { NextSteps } from '@/components/ui/next-steps'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
@@ -26,22 +27,22 @@ export function AiSettingsPage() {
 
   return (
     <>
-      <PageHeading title="Configurações: Inteligência artificial">
-        <p className="mt-2 text-muted-foreground">O Pergunte ao BemAqui usa este provedor para responder com base só nos textos de ajuda. Nenhum dado da empresa é enviado.</p>
-      </PageHeading>
-      {saved && !editing ? <div className="mb-4 max-w-xl"><NextSteps onDismiss={() => setSaved(false)} steps={[{ label: 'Perguntar ao BemAqui', onSelect: () => help.setOpen(true) }]} /></div> : null}
-      {settings.isPending ? <Skeleton className="h-48 max-w-xl" /> : settings.isError ? <ErrorState onRetry={() => settings.refetch()} /> : editing ? (
+      <PageHeading title="Configurações: Inteligência artificial" description="O Pergunte ao BemAqui usa este provedor para responder com base só nos textos de ajuda. Nenhum dado da empresa é enviado." />
+      {/* Rota form (ADR 0044): a coluna de 896 px, alinhada ao título. */}
+      <FormLayout>
+      {saved && !editing ? <div className="mb-4"><NextSteps onDismiss={() => setSaved(false)} steps={[{ label: 'Perguntar ao BemAqui', onSelect: () => help.setOpen(true) }]} /></div> : null}
+      {settings.isPending ? <Skeleton className="h-48" /> : settings.isError ? <ErrorState onRetry={() => settings.refetch()} /> : editing ? (
         <AiSettingsForm settings={settings.data} onDone={async () => { await refresh(); setEditing(false); setSaved(true) }} onCancel={() => setEditing(false)} />
       ) : settings.data.configured ? (
         <Summary settings={settings.data} onEdit={() => setEditing(true)} onRemoved={refresh} />
       ) : (
         <EmptyState
-          className="max-w-xl"
           title="Nenhum provedor configurado."
           description="O Pergunte ao BemAqui funciona só por busca nos textos de ajuda."
           action={<Can perm="settings.edit"><button type="button" onClick={() => setEditing(true)} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Configurar provedor</button></Can>}
         />
       )}
+      </FormLayout>
     </>
   )
 }
@@ -49,7 +50,7 @@ export function AiSettingsPage() {
 function Summary({ settings, onEdit, onRemoved }: { settings: AiSettingsDto; onEdit: () => void; onRemoved: () => Promise<unknown> }) {
   const provider = settings.providers.find((p) => p.code === settings.provider)
   return (
-    <section aria-label="Provedor configurado" className="max-w-xl space-y-3 rounded-md border border-border bg-card p-5">
+    <section aria-label="Provedor configurado" className="space-y-3 rounded-md border border-border bg-card p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <b className="font-semibold">{provider?.name ?? settings.provider}</b>
         <StatusChip tone="ok">Configurado</StatusChip>

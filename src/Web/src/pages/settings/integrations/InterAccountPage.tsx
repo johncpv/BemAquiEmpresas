@@ -146,9 +146,8 @@ export function InterAccountPage() {
 
   const header = (
     <>
-      <PageHeading title={detail ? `Banco Inter · ${detail.accountName}` : 'Banco Inter'}>
-        <Link to="/app/configuracoes/integracoes/inter" className="mt-2 inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-primary"><ArrowLeft aria-hidden="true" className="size-4" />Contas do Inter</Link>
-      </PageHeading>
+      <PageHeading title={detail ? `Banco Inter · ${detail.accountName}` : 'Banco Inter'}
+        meta={<Link to="/app/configuracoes/integracoes/inter" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-primary"><ArrowLeft aria-hidden="true" className="size-4" />Contas do Inter</Link>} />
       <IntegrationsNav />
     </>
   )

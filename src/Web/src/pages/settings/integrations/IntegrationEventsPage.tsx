@@ -106,9 +106,7 @@ export function IntegrationEventsPage() {
 
   return (
     <>
-      <PageHeading title="Avisos recebidos de sistemas externos">
-        <p className="mt-2 text-muted-foreground">Os avisos que a nota fiscal e o banco mandam ao BemAqui, na ordem em que chegaram. O conteúdo não aparece na lista.</p>
-      </PageHeading>
+      <PageHeading title="Avisos recebidos de sistemas externos" description="Os avisos que a nota fiscal e o banco mandam ao BemAqui, na ordem em que chegaram. O conteúdo não aparece na lista." />
       <IntegrationsNav />
       <div role="group" aria-label="Período" className="mb-3 flex flex-wrap items-end gap-3 text-sm">
         <label className="space-y-1 font-medium">De<DateInput value={de ?? ''} onChange={(v) => setSearch({ de: v || undefined })} /></label>

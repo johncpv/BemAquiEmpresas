@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { getGetFinanceLimitsQueryKey, updateFinanceLimits, useGetFinanceLimits } from '@/api/generated/bemaqui'
 import type { FinanceLimits } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormError, FormGrid, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { MoneyInput, PercentInput } from '@/components/form/inputs'
 import { notifySuccess } from '@/components/ui/messages'
@@ -44,25 +44,26 @@ function LimitsForm({ limits, canEdit }: { limits: FinanceLimits; canEdit: boole
 
   const field = (k: string) => error?.fields[k]?.[0]
   return (
-    <FormSection title="Limites do financeiro" description="Acima destes valores, só quem aprova em Caixa e pagamentos confirma. Datas muito antigas pedem motivo e avisam o Proprietário.">
-      <fieldset disabled={!canEdit} className="space-y-3 sm:col-span-2">
+    <FormSection title="Limites do financeiro" description="Acima destes valores, só quem aprova em Caixa e pagamentos confirma. Datas muito antigas pedem motivo e avisam o Proprietário." grid="none">
+      <fieldset disabled={!canEdit} className="space-y-3">
         <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Desconto: % do saldo" error={field('discountApprovalPct')}>{(p) => <PercentInput {...p} value={pct} onChange={setPct} />}</Field>
-          <Field label="Desconto: valor" error={field('discountApprovalAmount')}>{(p) => <MoneyInput {...p} value={discount} onChange={setDiscount} />}</Field>
-          <Field label="Cancelamento: saldo acima de" error={field('cancelApprovalAmount')}>{(p) => <MoneyInput {...p} value={cancel} onChange={setCancel} />}</Field>
-          <Field label="Data retroativa: dias" error={field('backdateDays')} hint="Baixa com data mais antiga que isso pede motivo.">
+        {/* Grade de 12 trilhas (ADR 0044): valores com 4 trilhas; os dois com texto de ajuda longo, com 6. */}
+        <FormGrid>
+          <Field label="Desconto: % do saldo" size="md" error={field('discountApprovalPct')}>{(p) => <PercentInput {...p} value={pct} onChange={setPct} />}</Field>
+          <Field label="Desconto: valor" size="md" error={field('discountApprovalAmount')}>{(p) => <MoneyInput {...p} value={discount} onChange={setDiscount} />}</Field>
+          <Field label="Cancelamento: saldo acima de" size="md" error={field('cancelApprovalAmount')}>{(p) => <MoneyInput {...p} value={cancel} onChange={setCancel} />}</Field>
+          <Field label="Data retroativa: dias" size="md" error={field('backdateDays')} hint="Baixa com data mais antiga que isso pede motivo.">
             {(p) => <input {...p} inputMode="numeric" maxLength={3} value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} className={inputClass + ' tabular-nums'} />}
           </Field>
-          <Field label="Tolerância no pagamento" error={field('paymentTolerance')} hint="Quanto o pagamento pode passar do aprovado sem nova aprovação.">{(p) => <MoneyInput {...p} value={tolerance} onChange={setTolerance} />}</Field>
-          <Field label="Aviso de transferência acima de" error={field('transferNotifyAmount')} hint="Transferência maior que isso avisa o Proprietário.">{(p) => <MoneyInput {...p} value={notify} onChange={setNotify} />}</Field>
-          <Field label="Limite de inadimplência para ponderar o ajustado" error={field('adjustedDefaultThresholdPct')} hint="No fluxo de caixa ajustado, cliente com inadimplência acima disso entra só com a parte que provavelmente paga (padrão 20,00%).">
+          <Field label="Tolerância no pagamento" size="md" error={field('paymentTolerance')} hint="Quanto o pagamento pode passar do aprovado sem nova aprovação.">{(p) => <MoneyInput {...p} value={tolerance} onChange={setTolerance} />}</Field>
+          <Field label="Aviso de transferência acima de" size="md" error={field('transferNotifyAmount')} hint="Transferência maior que isso avisa o Proprietário.">{(p) => <MoneyInput {...p} value={notify} onChange={setNotify} />}</Field>
+          <Field label="Limite de inadimplência para ponderar o ajustado" size="lg" error={field('adjustedDefaultThresholdPct')} hint="No fluxo de caixa ajustado, cliente com inadimplência acima disso entra só com a parte que provavelmente paga (padrão 20,00%).">
             {(p) => <PercentInput {...p} value={threshold} onChange={setThreshold} />}
           </Field>
-          <Field label="Lançamento sem OP a partir de OFX: acima de" error={field('ofxBankEntryCap')} hint="Na conciliação, lançar tarifa, IOF, juros ou rendimento a partir de uma linha de arquivo OFX acima disso só com quem aprova em Caixa e pagamentos (padrão R$ 500,00).">
+          <Field label="Lançamento sem OP a partir de OFX: acima de" size="lg" error={field('ofxBankEntryCap')} hint="Na conciliação, lançar tarifa, IOF, juros ou rendimento a partir de uma linha de arquivo OFX acima disso só com quem aprova em Caixa e pagamentos (padrão R$ 500,00).">
             {(p) => <MoneyInput {...p} value={ofxCap} onChange={setOfxCap} />}
           </Field>
-        </div>
+        </FormGrid>
         <label className="flex items-start gap-2 text-sm">
           <input type="checkbox" checked={ownApproval} onChange={(e) => setOwnApproval(e.target.checked)} className="mt-0.5 size-4 accent-primary" />
           <span><b>Proprietário aprova a própria ordem</b><span className="block text-xs text-muted-foreground">Com mais de um Proprietário, quem solicitou a ordem também pode aprová-la. A troca avisa todos os Proprietários.</span></span>

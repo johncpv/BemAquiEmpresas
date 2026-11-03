@@ -73,8 +73,8 @@ function DreForm({ view, canEdit }: { view: DreParametersView; canEdit: boolean 
   }
 
   return (
-    <FormSection title="Financeiro: contas do DRE" description={`Onde entram juros, multas e descontos das baixas e como o sinal do contrato entra na receita. ${view.pendingCount > 0 ? `${view.pendingCount} ${view.pendingCount === 1 ? 'valor a confirmar' : 'valores a confirmar'} com a contadora.` : 'Tudo conferido com a contadora.'}`}>
-      <div className="space-y-3 sm:col-span-2">
+    <FormSection title="Financeiro: contas do DRE" description={`Onde entram juros, multas e descontos das baixas e como o sinal do contrato entra na receita. ${view.pendingCount > 0 ? `${view.pendingCount} ${view.pendingCount === 1 ? 'valor a confirmar' : 'valores a confirmar'} com a contadora.` : 'Tudo conferido com a contadora.'}`} grid="none">
+      <div className="space-y-3">
         <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
         {view.items.map((item) => {
           const field = DRE_FIELDS.find((f) => f.key === item.key)

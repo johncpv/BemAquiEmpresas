@@ -29,9 +29,7 @@ export function InterAccountsPage() {
   const items = query.data?.items ?? []
   return (
     <>
-      <PageHeading title="Banco Inter">
-        <p className="mt-2 text-muted-foreground">Ligue cada conta do Inter ao sistema para emitir boletos e ler o extrato sem digitar nada no banco.</p>
-      </PageHeading>
+      <PageHeading title="Banco Inter" description="Ligue cada conta do Inter ao sistema para emitir boletos e ler o extrato sem digitar nada no banco." />
       <IntegrationsNav />
       <EnvironmentBanner service="bank" test={items.some((r) => r.situation === 'Sandbox')} />
       {query.isPending ? (

@@ -7,6 +7,7 @@ import { ApiError } from '@/api/http'
 import { Field } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { TwoFactorCodeField } from '@/components/form/two-factor-code'
+import { FormLayout } from '@/components/layout/form-layout'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogMessage } from '@/components/ui/dialog-message'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
@@ -38,18 +39,21 @@ export function FiscalCertificatePage() {
 
   return (
     <>
-      <PageHeading title="Certificado digital">
-        <p className="mt-2 flex flex-wrap items-center text-muted-foreground">
+      <PageHeading title="Certificado digital" description={
+        <span className="inline-flex flex-wrap items-center">
           O certificado A1 assina as notas. Ele vai direto ao cofre do Emissor Fiscal; o BemAqui guarda só a validade e o titular.
           <Dica nome="Certificado A1" texto={DICAS.a1} />
-        </p>
-      </PageHeading>
+        </span>
+      } />
       <FiscalNav />
-      {query.isPending ? <Skeleton className="h-64 max-w-3xl" /> : query.isError || !query.data ? (
-        <ErrorState className="max-w-3xl" message={query.error instanceof ApiError ? query.error.message : undefined} onRetry={() => void query.refetch()} />
+      {/* Rota form (ADR 0044): a coluna de 896 px, alinhada ao título. */}
+      <FormLayout>
+      {query.isPending ? <Skeleton className="h-64" /> : query.isError || !query.data ? (
+        <ErrorState message={query.error instanceof ApiError ? query.error.message : undefined} onRetry={() => void query.refetch()} />
       ) : (
         <Certificate view={query.data} />
       )}
+      </FormLayout>
     </>
   )
 }
@@ -71,13 +75,13 @@ function Certificate({ view }: { view: FiscalCertificateView }) {
 
   if (!view.integrationReady) {
     return (
-      <EmptyState className="max-w-3xl" title="Emissor Fiscal não conectado." description={view.integrationMessage ?? 'Conecte o Emissor Fiscal antes de enviar o certificado.'}
+      <EmptyState title="Emissor Fiscal não conectado." description={view.integrationMessage ?? 'Conecte o Emissor Fiscal antes de enviar o certificado.'}
         action={<Link to="/app/configuracoes/integracoes/emissor-fiscal" className={primary}>Configurar integração</Link>} />
     )
   }
 
   return (
-    <div className="max-w-3xl space-y-4">
+    <div className="space-y-4">
       {view.changedOutsideAt ? (
         <p role="status" className="rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm font-semibold text-warn-ink">
           O certificado no Emissor Fiscal mudou em <span className="tabular-nums">{formatDateTime(view.changedOutsideAt)}</span>.

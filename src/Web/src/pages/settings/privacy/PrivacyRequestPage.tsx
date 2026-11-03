@@ -96,14 +96,14 @@ export function PrivacyRequestPage() {
 
   return (
     <>
-      <PageHeading title={`Pedido ${r.number}`}>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+      <PageHeading title={`Pedido ${r.number}`} meta={
+        <>
           <StatusChip tone={status.tone}>{status.label}</StatusChip>
           {due ? <StatusChip tone={due.tone}>{due.label}</StatusChip> : null}
           {exported ? <StatusChip tone={exported.tone}>{exported.label}</StatusChip> : null}
           {anonymization ? <StatusChip tone={anonymization.tone}>{anonymization.label}</StatusChip> : null}
-        </div>
-      </PageHeading>
+        </>
+      } />
       {back}
       <div className="mt-3 grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-4">

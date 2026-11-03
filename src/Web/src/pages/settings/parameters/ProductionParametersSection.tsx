@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { getGetProductionParametersQueryKey, updateProductionParameters, useGetProductionParameters } from '@/api/generated/bemaqui'
 import type { ProductionParametersView } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { Field, FormSection } from '@/components/form/form'
+import { Field, FormGrid, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { notifySuccess } from '@/components/ui/messages'
@@ -59,22 +59,27 @@ function ProductionForm({ params, canEdit }: { params: ProductionParametersView;
   }
   const ids = [params.showLaborEntryCostId, params.openLaborAlertHoursId, params.installationDaysId].filter((id): id is string => !!id)
   return (
-    <FormSection title="Produção" description="Como o custo das horas aparece nas OS, quando um apontamento aberto vira alerta e o prazo de instalação da entrega prevista.">
+    <FormSection title="Produção" description="Como o custo das horas aparece nas OS, quando um apontamento aberto vira alerta e o prazo de instalação da entrega prevista." grid="none">
+      <div className="space-y-3">
       <fieldset disabled={!canEdit} className="space-y-3">
-        <Field label="Exibir custo-hora em cada apontamento" dica={SHOW_DICA} hint="O total de mão de obra da OS e do projeto aparece sempre para quem vê custo.">
+        <FormGrid>
+        <Field label="Exibir custo-hora em cada apontamento" size="full" dica={SHOW_DICA} hint="O total de mão de obra da OS e do projeto aparece sempre para quem vê custo.">
           {(p) => <span className="flex items-center gap-2 text-sm"><input {...p} type="checkbox" checked={show} onChange={(e) => setShow(e.target.checked)} className="size-4 accent-primary" /><span aria-hidden="true">{show ? 'Ligado' : 'Desligado'}</span></span>}
         </Field>
-        <Field label="Apontamento aberto vira alerta depois de (horas)" error={invalid ?? fieldErrors.openLaborAlertHours} hint="Usado na tela Apontamentos abertos. Padrão 12 h.">
+        <Field label="Apontamento aberto vira alerta depois de (horas)" size="lg" error={invalid ?? fieldErrors.openLaborAlertHours} hint="Usado na tela Apontamentos abertos. Padrão 12 h.">
           {(p) => <input {...p} inputMode="numeric" maxLength={2} value={hours} onChange={(e) => setHours(e.target.value.replace(/[^0-9]/g, ''))} className={inputClass + ' tabular-nums'} />}
         </Field>
+        </FormGrid>
         <div role="group" aria-label="Prazo de instalação" className="space-y-3 rounded-md border border-border p-3">
           <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
             Entrega prevista dos projetos
             {!savedConfirmed ? <StatusChip tone="warn">{INSTALLATION_PENDING_LABEL}</StatusChip> : null}
           </p>
-          <Field label="Prazo padrão de instalação (dias úteis)" dica={INSTALLATION_DICA} error={daysInvalid ?? fieldErrors.installationDays} hint="Valor sugerido: 5 dias úteis. Confira com o prazo real dos instaladores.">
+          <FormGrid>
+          <Field label="Prazo padrão de instalação (dias úteis)" size="lg" dica={INSTALLATION_DICA} error={daysInvalid ?? fieldErrors.installationDays} hint="Valor sugerido: 5 dias úteis. Confira com o prazo real dos instaladores.">
             {(p) => <input {...p} inputMode="numeric" maxLength={3} value={days} onChange={(e) => setDays(e.target.value.replace(/[^0-9]/g, ''))} className={inputClass + ' tabular-nums'} />}
           </Field>
+          </FormGrid>
           <label className="flex min-h-[44px] items-center gap-2 text-sm">
             <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="size-4 accent-primary" />
             Prazo conferido com a empresa
@@ -91,6 +96,7 @@ function ProductionForm({ params, canEdit }: { params: ProductionParametersView;
           </div>
         </details>
       ) : null}
+      </div>
     </FormSection>
   )
 }

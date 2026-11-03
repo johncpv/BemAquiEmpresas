@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { getListNumberFormatsQueryKey, useListNumberFormats } from '@/api/generated/bemaqui'
 import type { NumberFormatRow } from '@/api/generated/model'
+import { FormLayout } from '@/components/layout/form-layout'
 import { StatusChip } from '@/components/ui/status-chip'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { PageHeading } from '@/shell/PageHeading'
@@ -23,6 +24,8 @@ export function NumberingPage() {
   return (
     <>
       <PageHeading title="Configurações: Numeração" />
+      {/* Rota form (ADR 0044): a tabela na coluna de 896 px, alinhada ao título; a edição abre no painel lateral. */}
+      <FormLayout>
       {query.isPending ? <Skeleton className="h-96" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : (
         <div className="space-y-3">
           {noneIssued ? <p role="status" className="rounded-md border border-border bg-card px-3 py-2 text-sm">Nenhum documento emitido ainda. O primeiro sairá como <b className="tabular-nums">{rows[0].next}</b>.</p> : null}
@@ -58,6 +61,7 @@ export function NumberingPage() {
           </div>
         </div>
       )}
+      </FormLayout>
       {editing ? (
         <NumberingPanel row={editing} canEdit={canEdit} onClose={() => setEditing(null)} onSaved={async () => { setEditing(null); await client.invalidateQueries({ queryKey: getListNumberFormatsQueryKey() }) }} />
       ) : null}

@@ -3,7 +3,7 @@ import { useId, useRef, useState } from 'react'
 import { getGetCollectionRuleQueryKey, previewCollectionReminder, saveCollectionRule, useGetCollectionRule } from '@/api/generated/bemaqui'
 import type { CollectionPreview, CollectionRuleView } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormActions, FormError, FormGridItem, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { notifySuccess } from '@/components/ui/messages'
@@ -108,9 +108,11 @@ function RuleForm({ view }: { view: CollectionRuleView }) {
         </p>
       )}
       {!canEdit ? <p role="note" className="rounded-md border border-border bg-muted px-3 py-2 text-sm">Modo leitura: só quem edita Configurações altera a régua.</p> : null}
-      <fieldset disabled={!canEdit} className="space-y-4">
+      {/* ADR 0044: os passos ocupam a largura da seção (sem a grade antiga, que deixava a lista em meia coluna); o envio na grade de 12. */}
+      <fieldset disabled={!canEdit} className="space-y-5">
         <FormError message={error && Object.keys(error.fields).length === 0 ? error.message : undefined} />
-        <FormSection title="Passos" description="Dias em relação ao vencimento: negativo é antes, 0 é no dia, positivo é depois. Passo em sábado, domingo ou feriado sai no próximo dia útil.">
+        <FormSection title="Passos" description="Dias em relação ao vencimento: negativo é antes, 0 é no dia, positivo é depois. Passo em sábado, domingo ou feriado sai no próximo dia útil." grid="none">
+          <div className="space-y-3">
           <ol aria-label="Linha do tempo da régua" className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
             {timeline(steps).map((s, i) => (
               <li key={s.key} className="flex items-center gap-2 text-sm">
@@ -130,29 +132,31 @@ function RuleForm({ view }: { view: CollectionRuleView }) {
           </ul>
           {canEdit && steps.length < view.maxSteps ? <button type="button" onClick={add} className={button}>Incluir passo</button> : null}
           {steps.length >= view.maxSteps ? <p className="text-xs text-muted-foreground">A régua tem até {view.maxSteps} passos.</p> : null}
+          </div>
         </FormSection>
-        <FormSection title="Envio" description="Os lembretes saem pela fila de e-mails e somam no limite diário acima. O que passar do limite sai no próximo dia útil, sem pular o passo.">
-          <Field label="Horário de envio" hint="Horário de Brasília, de 07:00 a 20:00." error={error?.fields.sendTime?.[0]}>
+        <FormSection title="Envio" description="Os lembretes saem pela fila de e-mails e somam no limite diário acima. O que passar do limite sai no próximo dia útil, sem pular o passo." grid="form">
+          <Field label="Horário de envio" size="sm" hint="Horário de Brasília, de 07:00 a 20:00." error={error?.fields.sendTime?.[0]}>
             {(p) => (
-              <select {...p} value={sendTime} onChange={(e) => setSendTime(e.target.value)} className={inputClass + ' tabular-nums sm:max-w-40'}>
+              <select {...p} value={sendTime} onChange={(e) => setSendTime(e.target.value)} className={inputClass + ' tabular-nums'}>
                 {(SEND_TIMES.includes(sendTime) ? SEND_TIMES : [sendTime, ...SEND_TIMES]).map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             )}
           </Field>
-          <Field label="Respostas do cliente vão para" error={error?.fields.replyTo?.[0]}
+          <Field label="Respostas do cliente vão para" size="lg" error={error?.fields.replyTo?.[0]}
             hint={view.companyEmail ? `Vazio: ${view.companyEmail} (e-mail da empresa).` : 'Informe o e-mail do financeiro. Sem ele, o cliente não tem a quem responder.'}>
             {(p) => <input {...p} type="email" maxLength={254} value={replyTo} onChange={(e) => setReplyTo(e.target.value)} placeholder="financeiro@suaempresa.com.br" className={inputClass} />}
           </Field>
+          <FormGridItem>
           <label className="flex min-h-11 items-center gap-2 text-sm font-semibold">
             <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="size-4 accent-primary" />
             Régua ligada
           </label>
+          </FormGridItem>
         </FormSection>
         {canEdit ? (
-          <div className="flex flex-wrap items-center gap-2">
+          <FormActions sticky status={localError ? <span className="text-crit-ink">Corrija os passos antes de salvar.</span> : null}>
             <button type="button" disabled={busy || !!localError} onClick={() => void save()} className={primary}>Salvar régua</button>
-            {localError ? <span className="text-xs text-crit-ink">Corrija os passos antes de salvar.</span> : null}
-          </div>
+          </FormActions>
         ) : null}
       </fieldset>
       {view.id ? (
