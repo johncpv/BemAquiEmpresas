@@ -74,6 +74,22 @@ public partial class PdfFrameTests
         PdfMarks.Watermark(PdfMark.Draft).Should().Be("RASCUNHO");
     }
 
+    /// <summary>EXP-03: o aviso vai na faixa junto da marca, ou sozinho (sem marca d'água); o QR só aceita URL https absoluta.</summary>
+    [Fact]
+    public async Task Aviso_na_faixa_com_ou_sem_marca_e_QR_so_com_https()
+    {
+        var notice = await RenderAsync(new PdfDocumentHeader("Orçamento", "ORC-1", Notice: "Validade vencida em 01/10/2026: reabra com uma nova revisão."));
+        notice.Should().Contain("Validadevencidaem01/10/2026:reabracomumanovarevisão.").And.NotContain("PRÉVIA").And.NotContain("RASCUNHO").And.NotContain("CANCELADO");
+        (await RenderAsync(new PdfDocumentHeader("Pedido", "PC-1", Mark: PdfMark.Draft, Notice: "Pedido não aprovado: não envie ao fornecedor.")))
+            .Should().Contain("Rascunho·Pedidonãoaprovado:nãoenvieaofornecedor.").And.Contain("RASCUNHO");
+        PdfMarks.BandText(PdfMark.None, "  ").Should().BeNull();
+
+        PdfQr.Svg("https://app.konebras.com.br/fab/etapa/1").Should().StartWith("<svg");
+        var act = () => PdfQr.Svg("http://evil.example/x");
+        act.Should().Throw<ArgumentException>();
+        ((Action)(() => PdfQr.Svg("/fab/etapa/1"))).Should().Throw<ArgumentException>();
+    }
+
     [Fact]
     public async Task Paisagem_quando_pedido()
     {

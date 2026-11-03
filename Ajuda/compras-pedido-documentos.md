@@ -17,6 +17,9 @@ Mandar o pedido aprovado ao fornecedor em PDF, acompanhar cada envio e guardar a
 - **Baixar PDF**, no topo do pedido, gera o PDF na hora sem mandar nada.
 - **Anexar documento** aceita PDF, PNG ou JPG até 10 MB. Quem pode editar o pedido anexa; quem vê o pedido baixa. O arquivo passa por verificação de vírus antes de ficar disponível: enquanto isso, aparece **Em verificação**.
 
+## Imprimir e exportar
+- **Baixar PDF** e **Imprimir** estão no cabeçalho do pedido, em toda situação. Antes da aprovação, a prévia sai com a marca **Rascunho**; o PDF guardado no envio é sempre o do pedido aprovado, sem marca.
+
 ## Perguntas frequentes
 **O que vai no PDF?** Os dados e o logo da empresa, o número e a data, o fornecedor e o CNPJ, a condição de pagamento, a previsão e o local de entrega (o endereço da empresa), os itens com o código e a unidade do fornecedor quando cadastrados, os preços, o frete, o IPI, o total e a observação. Não vai custo médio, margem nem o projeto.
 

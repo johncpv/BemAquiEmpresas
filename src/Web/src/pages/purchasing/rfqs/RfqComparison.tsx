@@ -10,6 +10,7 @@ import { Tag } from '@/components/ui/tag'
 import { Dica } from '@/help/Dica'
 import { formatInstantDate } from '@/lib/format'
 import { formatQuantity } from '@/pages/inventory/stock/stock'
+import { RfqComparisonPdf } from './RfqPdf'
 import { chooseAll, initialSelection, missingForClose, needsReason, REASON_OPTIONS, REASONS, type ReasonDraft, RFQ_DICAS } from './rfqs'
 
 const secondary = 'inline-flex min-h-11 items-center rounded-md border border-border px-3 text-sm font-semibold'
@@ -60,6 +61,11 @@ export function RfqComparison({ rfq, set }: { rfq: RfqDetail; set: (rfq: RfqDeta
 
   return (
     <div className="mt-3 space-y-4">
+      {/* EXP-03 CA 2: o mapa comparativo em PDF também no topo da aba ("Prévia" enquanto aberta). */}
+      <div className="flex flex-wrap items-center gap-2">
+        <RfqComparisonPdf rfq={rfq} />
+        {rfq.status === 'Open' && rfq.suppliers.some((s) => s.responded) ? <span className="inline-flex items-center text-xs text-muted-foreground">Sai como Prévia<Dica nome="Prévia" texto={RFQ_DICAS.previa} /></span> : null}
+      </div>
       <ul aria-label="Resumo por fornecedor" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {responded.map((s) => <SupplierSummary key={s.id} supplier={s} canChoose={canChoose} onChooseAll={() => setSelection((sel) => chooseAll(sel, s))} />)}
       </ul>

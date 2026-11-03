@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using UglyToad.PdfPig;
 
 namespace BemAqui.Integration.Tests.Commercial;
@@ -30,6 +31,38 @@ public partial class QuoteDocumentTests
 
         var documents = await JsonAsync(await owner.GetAsync($"{Base}/{id}/documents"));
         documents.GetProperty("generated").GetArrayLength().Should().Be(1);
+    }
+
+    /// <summary>
+    /// EXP-03 CA 7 e 8: o "Baixar PDF" do cabeçalho (GET) baixa a revisão corrente sem gravar anexo; vencido sai com a faixa da validade,
+    /// recusado com "Cancelado" e "Orçamento recusado", sem custo.
+    /// </summary>
+    [Fact]
+    public async Task Baixar_PDF_nao_grava_anexo_e_marca_vencido_e_recusado()
+    {
+        var owner = await OwnerAsync();
+        var (id, detail) = await QuoteAsync(owner);
+        var response = await owner.GetAsync($"{Base}/{id}/pdf");
+        response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
+        response.Content.Headers.ContentDisposition!.FileName!.Trim('"').Should().Be($"{detail.GetProperty("number").GetString()}-rev0.pdf");
+        string Text(byte[] bytes)
+        {
+            using var document = PdfDocument.Open(bytes);
+            return string.Join(" ", document.GetPages().Select(p => p.Text));
+        }
+
+        var draft = Text(await response.Content.ReadAsByteArrayAsync());
+        draft.Should().Contain("Elevador 6 paradas").And.NotContain("600,00").And.NotContainAny("Validade vencida", "CANCELADO", "Margem");
+        (await JsonAsync(await owner.GetAsync($"{Base}/{id}/documents"))).GetProperty("generated").GetArrayLength().Should().Be(0, "o GET não grava no histórico");
+
+        var validUntil = new DateOnly(2026, 10, 1);
+        await WithDbAsync(db => db.Set<BemAqui.Commercial.Domain.Quote>().Where(q => q.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(q => q.Status, BemAqui.Commercial.Domain.QuoteStatus.Expired).SetProperty(q => q.ValidUntil, validUntil)));
+        Text(await owner.GetByteArrayAsync($"{Base}/{id}/pdf")).Should().Contain("Validade vencida em 01/10/2026: reabra com uma nova revisão.").And.NotContain("CANCELADO");
+
+        await WithDbAsync(db => db.Set<BemAqui.Commercial.Domain.Quote>().Where(q => q.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(q => q.Status, BemAqui.Commercial.Domain.QuoteStatus.Rejected)));
+        Text(await owner.GetByteArrayAsync($"{Base}/{id}/pdf")).Should().Contain("Cancelado · Orçamento recusado").And.Contain("CANCELADO");
     }
 
     [Fact]

@@ -19,17 +19,25 @@ namespace BemAqui.Integration.Tests.Purchasing;
 public class PurchaseOrderDispatchTests(TenancyFixture tenancy) : PurchaseOrderDispatchTestBase(tenancy), IClassFixture<TenancyFixture>
 {
     [Fact]
-    public async Task Baixar_PDF_so_do_aprovado_em_diante_e_sem_custo_nem_projeto()
+    public async Task Baixar_PDF_em_rascunho_com_marca_e_aprovado_sem_marca_sem_custo_nem_projeto()
     {
         var (_, owner) = await ActorAsync("owner");
         var (_, buyer) = await ActorAsync(Buyer);
         var supplier = await SupplierWithContactAsync(owner);
         var item = await ItemAsync();
         var draft = await CreateAsync(buyer, OrderBody(supplier, null, await TermAsync("30/60/90 dias"), (item, 10m, 5m, null)));
-        var refused = await buyer.GetAsync($"{Base}/{Id(draft)}/pdf");
-        refused.StatusCode.Should().Be(HttpStatusCode.Conflict);
-        (await refused.Content.ReadAsStringAsync()).Should().Contain("Aprove o pedido antes de enviar.");
-        (await buyer.GetAsync($"{Base}/{Id(await SubmitAsync(buyer, draft))}/pdf")).StatusCode.Should().Be(HttpStatusCode.Conflict, "aguardando aprovação também não gera");
+        // EXP-03 CA 5: rascunho e aguardando aprovação geram a prévia com "Rascunho" e a faixa; o envio continua recusado.
+        foreach (var order in new[] { draft, await SubmitAsync(buyer, draft) })
+        {
+            var preview = await buyer.GetAsync($"{Base}/{Id(order)}/pdf");
+            preview.StatusCode.Should().Be(HttpStatusCode.OK, await preview.Content.ReadAsStringAsync());
+            using var previewDoc = PdfDocument.Open(await preview.Content.ReadAsByteArrayAsync());
+            string.Join(" ", previewDoc.GetPages().Select(p => p.Text)).Should().Contain("Rascunho").And.Contain("RASCUNHO").And.Contain("Pedido não aprovado: não envie ao fornecedor.");
+        }
+
+        var send = await SendAsync(buyer, draft, Dispatch(draft, "compras@gama.com.br"));
+        send.StatusCode.Should().Be(HttpStatusCode.Conflict, "enviar ao fornecedor continua só do aprovado");
+        (await send.Content.ReadAsStringAsync()).Should().Contain("Aprove o pedido antes de enviar.");
 
         var project = Project();
         var approved = await ApprovedAsync(owner, buyer, supplier, project);
@@ -39,7 +47,7 @@ public class PurchaseOrderDispatchTests(TenancyFixture tenancy) : PurchaseOrderD
         using var document = PdfDocument.Open(await response.Content.ReadAsByteArrayAsync());
         var text = string.Join(" ", document.GetPages().Select(p => p.Text));
         text.Should().Contain(approved.GetProperty("number").GetString()).And.Contain("30/60/90 dias").And.Contain("1.200,00").And.Contain("Entregar no portão 2.");
-        text.Should().NotContain(approved.GetProperty("projectNumber").GetString()!, "o PDF não mostra o projeto (CA 9)").And.NotContainAny("Custo", "Margem", "Projeto");
+        text.Should().NotContain(approved.GetProperty("projectNumber").GetString()!, "o PDF não mostra o projeto (CA 9)").And.NotContainAny("Custo", "Margem", "Projeto", "Rascunho", "RASCUNHO");
         (await WithDbAsync(db => db.Attachments.CountAsync(a => a.OwnerId == Id(approved)))).Should().Be(0, "baixar não guarda arquivo; o PDF guardado é o do envio");
     }
 

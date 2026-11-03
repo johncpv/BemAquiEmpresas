@@ -2,10 +2,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { CalendarClock } from 'lucide-react'
 import { useState } from 'react'
-import { deleteQuote, getGetQuoteCostsQueryKey, getGetQuoteQueryKey, markQuoteSent, useGetQuote, useGetQuoteContract, useGetQuoteCosts } from '@/api/generated/bemaqui'
+import { deleteQuote, getDownloadQuotePdfUrl, getGetQuoteCostsQueryKey, getGetQuoteQueryKey, markQuoteSent, useGetQuote, useGetQuoteContract, useGetQuoteCosts } from '@/api/generated/bemaqui'
 import type { ApprovalResult } from '@/api/generated/model'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { NextSteps } from '@/components/ui/next-steps'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -75,7 +76,9 @@ export function QuotePage() {
       <PageHeading title={`${quote.number}${quote.revision > 0 ? ` rev. ${quote.revision}` : ''} — ${quote.partyName}`}>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <StatusChip tone={QUOTE_STATUS[quote.status]?.tone ?? 'neutral'}>{QUOTE_STATUS[quote.status]?.label ?? quote.status}</StatusChip>
-          <span className="flex flex-wrap gap-2">
+          <span className="flex flex-wrap items-start gap-2">
+            {/* EXP-03 CA 7: baixa direto o PDF desta revisão, gerado na hora e sem gravar no histórico (o "Gerar PDF" da aba Documentos grava). */}
+            <DocumentActions url={getDownloadQuotePdfUrl(id)} fileName={`${quote.number}-rev${quote.revision}.pdf`} />
             {simulable ? (
               <span className="inline-flex items-center">
                 <button type="button" onClick={() => setSimulating(true)} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm font-semibold"><CalendarClock aria-hidden="true" className="size-4" />Simular prazo</button>

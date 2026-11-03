@@ -2,10 +2,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
-  getGetFabricationOrderCompletionQueryKey, getGetFabricationOrderQueryKey, getGetOrderSerialsQueryKey, getListFabricationOrdersQueryKey, getGetOrderMaterialQueryKey, useGetFabricationOrder,
+  getDownloadFabricationOrderPdfUrl, getGetFabricationOrderCompletionQueryKey, getGetFabricationOrderQueryKey, getGetOrderSerialsQueryKey, getListFabricationOrdersQueryKey, getGetOrderMaterialQueryKey, useGetFabricationOrder,
   useGetOrderMaterial,
 } from '@/api/generated/bemaqui'
 import type { OrderCompletionPreview } from '@/api/generated/model'
+import { apiBlobUrl } from '@/api/http'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { FactsBar } from '@/components/ui/facts-bar'
 import { NextSteps } from '@/components/ui/next-steps'
 import { OrderHeader } from '@/components/ui/order-header'
@@ -28,10 +30,25 @@ import { FabricationCostsTab } from './labor-costs'
 import { LaborEntriesTab } from './LaborEntriesTab'
 import { OrderQualityTab } from '../quality/OrderQualityTab'
 import { QUALITY_DICAS } from '../quality/quality'
-import { canChangeSteps, delayLabel, FABRICATION_DICAS, FABRICATION_STATUS, FINISHED_GOODS, hours, needsProduct, quantity } from './fabrication'
+import { canChangeSteps, delayLabel, FABRICATION_DICAS, FABRICATION_STATUS, FINISHED_GOODS, hours, needsProduct, printReady, quantity } from './fabrication'
 import { SerialsTab } from './SerialsTab'
 import { orderEndText, PLANNING_DICAS } from '../planning/planning'
 import { useOrderForecasts } from '../planning/use-forecasts'
+
+/** Abre o PDF numa aba nova para imprimir (a aba abre no clique, antes do servidor, para não cair no bloqueio de pop-up). */
+async function printPdf(url: string) {
+  const tab = window.open('about:blank', '_blank')
+  try {
+    const href = await apiBlobUrl(url)
+    if (tab) {
+      tab.opener = null
+      tab.location.href = href
+    }
+    setTimeout(() => URL.revokeObjectURL(href), 60_000)
+  } catch {
+    tab?.close()
+  }
+}
 
 /**
  * OS de fabricação (PRD-01 CA 10): OrderHeader e FactsBar comuns com a OS de instalação; abas na ordem do padrão 10 (as das
@@ -51,6 +68,7 @@ export function FabricationOrderPage() {
   const canShip = useCan('production.create')
   const [completeOpen, setCompleteOpen] = useState(false)
   const [readyDismissed, setReadyDismissed] = useState(false)
+  const [printDismissed, setPrintDismissed] = useState(false)
   const [choosingProduct, setChoosingProduct] = useState(false)
   const query = useGetFabricationOrder(id)
   const forecast = useOrderForecasts([id]).get(id)
@@ -101,7 +119,12 @@ export function FabricationOrderPage() {
           </span>
         )}
         actions={(
-          <span className="flex flex-wrap gap-2">
+          <span className="flex flex-wrap items-start gap-2">
+            {/* EXP-03 CA 10: a ficha da OS (etapas, checklist, materiais, desenhos listados e QR por etapa), sem custo. */}
+            <span className="inline-flex items-start">
+              <DocumentActions url={getDownloadFabricationOrderPdfUrl(id)} fileName={`${o.number}.pdf`} />
+              <Dica nome="QR da etapa" texto={FABRICATION_DICAS.qrEtapa} />
+            </span>
             <CompleteOrderDialog order={o} open={completeOpen} onOpenChange={setCompleteOpen} onDone={async (preview) => { setCompleted(preview ?? null); await refresh() }} />
             <ReverseCompletionDialog order={o} onDone={async () => { setCompleted(null); await refresh() }} />
             {editable && canEdit ? <ChangeRoutingDialog order={o} onDone={refresh} /> : null}
@@ -114,6 +137,12 @@ export function FabricationOrderPage() {
           { label: 'Ver projeto', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: o.projectId }, search: { aba: 'itens' } } as never) },
           { label: 'Ver OS de fabricação', onSelect: () => void navigate({ to: '/app/producao/os' } as never) },
           { label: 'Ver no Kanban', onSelect: () => void navigate({ to: '/app/producao/kanban', search: o.routingTemplateId ? { roteiro: o.routingTemplateId } : {} } as never) },
+        ]} /></div>
+      ) : null}
+      {/* EXP-03 (propositivo): com a BOM liberada e o material reservado, o próximo passo é levar a ficha para o chão de fábrica. */}
+      {printReady(o.status, material.data) && !justCreated && !printDismissed ? (
+        <div className="mb-4"><NextSteps onDismiss={() => setPrintDismissed(true)} steps={[
+          { label: 'Imprimir a ficha da OS', onSelect: () => void printPdf(getDownloadFabricationOrderPdfUrl(id)) },
         ]} /></div>
       ) : null}
       {/* PRD-06b CA 9 (D4): a última etapa ("Expedição": preparar e embalar) finalizada deixa a OS pronta para concluir; o próximo passo é concluir. */}

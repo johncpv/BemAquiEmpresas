@@ -10,8 +10,11 @@ public sealed record PdfCompany(string Name, string LegalName, string? Document,
 /// <summary>Quem emite e quando (rodapé), mais a empresa: montado pelo <see cref="PdfFrameFactory"/> a cada geração.</summary>
 public sealed record PdfFrame(PdfCompany Company, string IssuedBy, DateTimeOffset IssuedAt);
 
-/// <summary>Faixa de título: tipo do documento, número, data, marca e orientação.</summary>
-public sealed record PdfDocumentHeader(string Title, string? Number = null, DateOnly? Date = null, PdfMark Mark = PdfMark.None, bool Landscape = false);
+/// <summary>
+/// Faixa de título: tipo do documento, número, data, marca e orientação. <paramref name="Notice"/> é o aviso da situação (EXP-03: "Pedido não
+/// aprovado: não envie ao fornecedor.", "Validade vencida em …"): vai na faixa junto da marca, ou sozinho (faixa âmbar, sem marca d'água).
+/// </summary>
+public sealed record PdfDocumentHeader(string Title, string? Number = null, DateOnly? Date = null, PdfMark Mark = PdfMark.None, bool Landscape = false, string? Notice = null);
 
 /// <summary>
 /// Modelo único de PDF (ADR 0045 §1): A4 (paisagem quando pedido), margem 32, Archivo com dígitos tabulares, cabeçalho com logo, razão
@@ -37,11 +40,7 @@ public abstract class PdfDocumentFrame(PdfFrame frame, PdfDocumentHeader header)
         page.Size(Heading.Landscape ? PageSizes.A4.Landscape() : PageSizes.A4);
         page.Margin(PdfTheme.Margin);
         page.DefaultTextStyle(t => t.FontFamily(QuestPdfRenderer.FontFamily).FontSize(PdfTheme.FontSize).FontColor(PdfTheme.Ink).EnableFontFeature(FontFeatures.TabularFigures));
-        if (Heading.Mark != PdfMark.None)
-        {
-            page.Foreground().AlignCenter().AlignMiddle().Rotate(-30).Text(PdfMarks.Watermark(Heading.Mark)).FontSize(54).Bold().FontColor(PdfTheme.Watermark);
-        }
-
+        PdfMarks.Watermark(page, Heading.Mark);
         page.Header().Element(ComposeHeader);
         page.Content().PaddingVertical(10).Element(ComposeContent);
         page.Footer().Element(ComposeFooter);
@@ -98,11 +97,9 @@ public abstract class PdfDocumentFrame(PdfFrame frame, PdfDocumentHeader header)
                 row.ConstantItem(120).AlignRight().AlignBottom().Text("Data: " + PdfTheme.Date(date));
             }
         });
-        if (Heading.Mark != PdfMark.None)
+        if (PdfMarks.BandText(Heading.Mark, Heading.Notice) is not null)
         {
-            var crit = Heading.Mark == PdfMark.Cancelled;
-            col.Item().PaddingTop(4).Background(crit ? PdfTheme.CritSurface : PdfTheme.WarnSurface).PaddingVertical(3).PaddingHorizontal(6)
-                .Text(PdfMarks.Label(Heading.Mark)).SemiBold().FontColor(crit ? PdfTheme.CritInk : PdfTheme.WarnInk);
+            col.Item().PaddingTop(4).Element(e => PdfMarks.Band(e, Heading.Mark, Heading.Notice));
         }
     });
 

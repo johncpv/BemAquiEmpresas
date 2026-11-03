@@ -14,6 +14,7 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime, formatInstantDate, formatMoney } from '@/lib/format'
 import { formatQuantity } from '@/pages/inventory/stock/stock'
+import { RfqSupplierPdf } from './RfqPdf'
 import { AttachProposal } from './RfqTabs'
 import { type QuoteDraft, responseState, responseTotal, RFQ_DICAS } from './rfqs'
 
@@ -189,6 +190,7 @@ function SupplierCard({ rfq, supplier, set, editing, onEdit }: { rfq: RfqDetail;
             </p>
           ) : null}
         </div>
+        {rfq.status === 'Open' && !editing ? <RfqSupplierPdf rfq={rfq} supplier={supplier} /> : null}
         {rfq.canEdit && !editing ? (
           <span className="flex flex-wrap gap-2">
             <button type="button" onClick={() => onEdit(true)} className={primary}>{supplier.responded ? 'Alterar resposta' : 'Registrar resposta'}</button>

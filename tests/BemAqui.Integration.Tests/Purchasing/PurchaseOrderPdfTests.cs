@@ -86,17 +86,54 @@ public class PurchaseOrderPdfTests
         names.Should().NotContain(n => n.Contains("Cost", StringComparison.Ordinal) || n.Contains("Margin", StringComparison.Ordinal) || n.Contains("Project", StringComparison.Ordinal));
     }
 
-    [Fact]
-    public async Task PDF_com_os_dados_do_pedido_so_com_Archivo_e_sem_custo()
+    private static readonly PdfFrame Frame = new(
+        new PdfCompany("Konebras", "Konebras Elevadores Ltda", "12.345.678/0001-90", Company.Address, Company.Contact, null, true), "Ana Compras",
+        new DateTimeOffset(2026, 10, 24, 13, 0, 0, TimeSpan.Zero));
+
+    private static async Task<string> TextAsync(PurchaseOrderPdfModel model)
     {
-        var bytes = await new QuestPdfRenderer().RenderAsync(new PurchaseOrderPdfDocument(Model(Order())));
-        using var document = PdfDocument.Open(bytes);
-        var text = string.Join(" ", document.GetPages().Select(p => p.Text));
-        text.Should().Contain("PC-2026-0007").And.Contain("Gama Aços").And.Contain("11.222.333/0001-81").And.Contain("30/60/90 dias").And.Contain("13/11/2026")
-            .And.Contain("Rua das Indústrias, 100").And.Contain("GA-3MM").And.Contain("Chapa de aço 3 mm").And.Contain("R$ 300,00").And.Contain("1.200,00")
-            .And.Contain("80,00").And.Contain("62,50").And.Contain("1.392,50").And.Contain("Entregar no portão 2.");
-        text.Should().NotContainAny("Custo", "custo médio", "Margem", "Projeto", "PRJ-");
+        using var document = PdfDocument.Open(await new QuestPdfRenderer().RenderAsync(new PurchaseOrderPdfDocument(Frame, model)));
         document.GetPages().SelectMany(p => p.Letters).Select(l => l.FontName).Distinct().Should().OnlyContain(f => f.Contains("Archivo"), "ADR 0022: só a Archivo embutida");
+        return string.Join(" ", document.GetPages().Select(p => p.Text));
+    }
+
+    /// <summary>
+    /// EXP-03 CA 4: o pedido migrado para o frame mantém o conteúdo da CMP-03b, na mesma ordem (fornecedor, condição, previsão, local de
+    /// entrega, linhas, totais, observação); só o cabeçalho e o rodapé passam a ser os do frame. Sem custo, margem nem projeto.
+    /// </summary>
+    [Fact]
+    public async Task PDF_no_frame_com_o_mesmo_conteudo_do_pedido_e_sem_custo()
+    {
+        var text = await TextAsync(Model(Order()));
+        string[] body =
+        [
+            "Fornecedor: Gama Aços", "Razão social: Gama Aços Ltda", "CNPJ/CPF: 11.222.333/0001-81", "Condição de pagamento: 30/60/90 dias", "Previsão de entrega: 13/11/2026",
+            "Local de entrega: Rua das Indústrias, 100", "MP-010", "Forn.: GA-3MM", "Chapa de aço 3 mm", "R$ 300,00", "1.200,00", "MP-020", "Parafuso M8", "Subtotal", "1.250,00",
+            "Frete", "80,00", "IPI (5%)", "62,50", "Total", "1.392,50", "Observações", "Entregar no portão 2.",
+        ];
+        var at = 0;
+        foreach (var piece in body)
+        {
+            var found = text.IndexOf(piece, at, StringComparison.Ordinal);
+            found.Should().BeGreaterThanOrEqualTo(0, $"\"{piece}\" vem depois do anterior, como no layout da CMP-03b");
+            at = found + piece.Length;
+        }
+
+        text.Should().Contain("Pedido de compra").And.Contain("PC-2026-0007").And.Contain("Data: 24/10/2026").And.Contain("Emitido por Ana Compras");
+        text.Should().NotContainAny("Custo", "custo médio", "Margem", "Projeto", "PRJ-", "Rascunho", "RASCUNHO");
+    }
+
+    [Theory]
+    [InlineData(PurchaseOrderStatus.Draft, "Rascunho · Pedido não aprovado: não envie ao fornecedor.")]
+    [InlineData(PurchaseOrderStatus.PendingApproval, "Rascunho · Pedido não aprovado: não envie ao fornecedor.")]
+    [InlineData(PurchaseOrderStatus.Cancelled, "Cancelado")]
+    public async Task Marca_por_situacao(PurchaseOrderStatus status, string band)
+    {
+        var order = Order();
+        order.Status = status;
+        (await TextAsync(Model(order))).Should().Contain(band);
+        PurchaseOrderPdf.Mark(PurchaseOrderStatus.Sent).Should().Be(PdfMark.None);
+        PurchaseOrderPdf.Mark(PurchaseOrderStatus.Received).Should().Be(PdfMark.None);
     }
 
     [Fact]
@@ -106,7 +143,7 @@ public class PurchaseOrderPdfTests
         var many = Enumerable.Range(1, PurchaseOrderRules.PdfMaxLines)
             .Select(i => new PurchaseOrderLine { OrderId = order.Id, Sequence = i, ItemId = Plate, Quantity = 1m, UnitPrice = 1m, LineTotal = 1m }).ToList();
         var model = PurchaseOrderPdfBuilder.Build(order, many, Items, Codes, Company, Supplier, null, Today);
-        var bytes = await new QuestPdfRenderer().RenderAsync(new PurchaseOrderPdfDocument(model));
+        var bytes = await new QuestPdfRenderer().RenderAsync(new PurchaseOrderPdfDocument(Frame, model));
         using var document = PdfDocument.Open(bytes);
         document.NumberOfPages.Should().BeGreaterThan(1);
         document.GetPages().Should().OnlyContain(p => p.Text.Contains("Preço unit."));

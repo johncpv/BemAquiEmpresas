@@ -18,6 +18,11 @@ Ver as respostas lado a lado, escolher o vencedor de cada item e concluir a cota
 - **Concluir cotação** grava os vencedores. Item que ninguém cotou volta para a solicitação. Concluída, o próximo passo é **Gerar pedidos de compra**: um pedido em rascunho por fornecedor vencedor, com a prévia do total de cada um. Depois, **Enviar todos para aprovação** manda cada pedido para a própria alçada e mostra quais foram enviados e quais não, com o motivo.
 - No celular, os cartões vêm primeiro e a tabela rola para o lado, com a coluna do item fixa.
 
+## Imprimir e exportar
+- **Baixar mapa comparativo**, no cabeçalho ou no topo desta aba, gera o mapa em PDF, deitado: os cartões por fornecedor, a tabela item por fornecedor com o preço, o total da linha e o custo com frete e IPI, o **Menor custo** de cada linha em negrito, o vencedor com o motivo, a última compra e as assinaturas de **Comprador** e **Aprovação**.
+- Com a cotação aberta, o mapa sai com a marca **Prévia**: os vencedores ainda não foram gravados e a coluna mostra o **Sugerido** pelo menor custo. Concluída, sai sem marca, com o vencedor. Cancelada, sai com a marca **Cancelado**.
+- O mapa sai depois da primeira resposta. **Imprimir** abre o mesmo PDF numa aba nova.
+
 ## Perguntas frequentes
 **Uma resposta só basta?** Basta. A cotação mostra o aviso **1 cotação** e o pedido gerado leva o mesmo aviso na aprovação, sem bloquear.
 

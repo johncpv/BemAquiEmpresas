@@ -3,6 +3,7 @@ using BemAqui.BuildingBlocks.Email;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Pdf;
+using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Time;
 using BemAqui.Commercial.Domain;
 using BemAqui.Identity.Contracts;
@@ -20,7 +21,7 @@ namespace BemAqui.Commercial.Application.Documents;
 public sealed partial class QuoteDocumentService(
     ICommercialDb db, QuoteService quotes, IParties parties, IItems items, ICompanyIdentity company, IFileStorage storage, IPdfRenderer renderer, AttachmentService attachments,
     IEmailSender email, EmailLogReader emailLogs, EmailDispatchLimiter limiter, ITenantParameters tenantParameters, IUserDirectory users, ICurrentUser currentUser,
-    IEventPublisher events, TimeProvider clock)
+    IEventPublisher events, IAuditWriter audit, TimeProvider clock)
 {
     public const string OwnerType = "Quote";
     public const int MaxItems = 300;
@@ -40,6 +41,24 @@ public sealed partial class QuoteDocumentService(
         var stored = await StoreAsync(built.Value, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return new AttachmentDto(stored.Id, stored.FileName, stored.ContentType, stored.Size, stored.ScanStatus, stored.CreatedAt, Origin: stored.Origin);
+    }
+
+    /// <summary>
+    /// "Baixar PDF" do cabeçalho (EXP-03 CA 7 e 8): o mesmo montador do "Gerar PDF", da revisão corrente, gerado na hora e <b>sem</b> gravar
+    /// anexo; nome <c>{número}-rev{n}.pdf</c>. O download fica na auditoria de exportação.
+    /// </summary>
+    public async Task<Result<(byte[] Content, string FileName)>> PdfAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var built = await BuildAsync(id, cancellationToken);
+        if (built.IsFailure)
+        {
+            return built.Error!;
+        }
+
+        var (quote, model) = built.Value;
+        var bytes = await renderer.RenderAsync(new QuotePdfDocument(model), cancellationToken);
+        await audit.RecordExportAsync(OwnerType, quote.Id.ToString(), "pdf", model.Items.Count, cancellationToken);
+        return (bytes, $"{quote.Number}-rev{quote.Revision}.pdf");
     }
 
     private async Task<Attachment> StoreAsync((Quote Quote, QuotePdfModel Model) built, CancellationToken ct)
@@ -91,7 +110,8 @@ public sealed partial class QuoteDocumentService(
             detail.TotalPrice,
             conditions.Milestones.Select(m => new QuotePdfMilestone(m.Description, m.Percent, m.Amount, When(m))).ToList(),
             detail.ValidUntil, detail.DeliveryDays, detail.Notes);
-        return (quote, model);
+        var (mark, notice) = QuotePdf.Mark(quote.Status, quote.ValidUntil, quote.ExpiredAt);
+        return (quote, model with { Mark = mark, Notice = notice });
     }
 
     private static string When(QuoteMilestoneView m) => m.Trigger == MilestoneTrigger.Date

@@ -34,12 +34,6 @@ public static class PurchaseOrderRules
         PurchaseOrderStatus.Approved, PurchaseOrderStatus.Sent, PurchaseOrderStatus.PartiallyReceived,
     };
 
-    /// <summary>Situações que geram o PDF (CMP-03b CA 1): do aprovado em diante; rascunho, aguardando aprovação e cancelado, não.</summary>
-    public static readonly IReadOnlySet<PurchaseOrderStatus> PdfStatuses = new HashSet<PurchaseOrderStatus>
-    {
-        PurchaseOrderStatus.Approved, PurchaseOrderStatus.Sent, PurchaseOrderStatus.PartiallyReceived, PurchaseOrderStatus.Received,
-    };
-
     /// <summary>Situações que podem ser enviadas ou reenviadas ao fornecedor (CMP-03b CA 2 e 4): o aprovado (inclusive o reaprovado) e o enviado.</summary>
     public static readonly IReadOnlySet<PurchaseOrderStatus> Dispatchable = new HashSet<PurchaseOrderStatus> { PurchaseOrderStatus.Approved, PurchaseOrderStatus.Sent };
 

@@ -33621,6 +33621,101 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getGenerateQuotePdfMutationOptions(options), queryClient);
     }
 
+export const getDownloadQuotePdfUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/quotes/${id}/pdf`
+}
+
+export const downloadQuotePdf = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadQuotePdfUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadQuotePdfQueryKey = (id: string,) => {
+    return [
+    `/api/v1/quotes/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getDownloadQuotePdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadQuotePdf>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadQuotePdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadQuotePdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadQuotePdf>>> = ({ signal }) => downloadQuotePdf(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadQuotePdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadQuotePdfQueryResult = NonNullable<Awaited<ReturnType<typeof downloadQuotePdf>>>
+export type DownloadQuotePdfQueryError = unknown
+
+
+export function useDownloadQuotePdf<TData = Awaited<ReturnType<typeof downloadQuotePdf>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadQuotePdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadQuotePdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadQuotePdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadQuotePdf<TData = Awaited<ReturnType<typeof downloadQuotePdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadQuotePdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadQuotePdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadQuotePdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadQuotePdf<TData = Awaited<ReturnType<typeof downloadQuotePdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadQuotePdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadQuotePdf<TData = Awaited<ReturnType<typeof downloadQuotePdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadQuotePdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadQuotePdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetQuoteSendDraftUrl = (id: string,) => {
 
 
@@ -42069,6 +42164,101 @@ export function useGetFabricationOrder<TData = Awaited<ReturnType<typeof getFabr
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetFabricationOrderQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDownloadFabricationOrderPdfUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/production/production-orders/${id}/pdf`
+}
+
+export const downloadFabricationOrderPdf = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadFabricationOrderPdfUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadFabricationOrderPdfQueryKey = (id: string,) => {
+    return [
+    `/api/v1/production/production-orders/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getDownloadFabricationOrderPdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadFabricationOrderPdf>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadFabricationOrderPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadFabricationOrderPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadFabricationOrderPdf>>> = ({ signal }) => downloadFabricationOrderPdf(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadFabricationOrderPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadFabricationOrderPdfQueryResult = NonNullable<Awaited<ReturnType<typeof downloadFabricationOrderPdf>>>
+export type DownloadFabricationOrderPdfQueryError = unknown
+
+
+export function useDownloadFabricationOrderPdf<TData = Awaited<ReturnType<typeof downloadFabricationOrderPdf>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadFabricationOrderPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadFabricationOrderPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadFabricationOrderPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadFabricationOrderPdf<TData = Awaited<ReturnType<typeof downloadFabricationOrderPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadFabricationOrderPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadFabricationOrderPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadFabricationOrderPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadFabricationOrderPdf<TData = Awaited<ReturnType<typeof downloadFabricationOrderPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadFabricationOrderPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadFabricationOrderPdf<TData = Awaited<ReturnType<typeof downloadFabricationOrderPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadFabricationOrderPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadFabricationOrderPdfQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -63805,6 +63995,204 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getSubmitRfqPurchaseOrdersMutationOptions(options), queryClient);
     }
+
+export const getDownloadRfqRequestPdfUrl = (id: string,
+    supplierId: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/rfqs/${id}/suppliers/${supplierId}/pdf`
+}
+
+export const downloadRfqRequestPdf = async (id: string,
+    supplierId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadRfqRequestPdfUrl(id,supplierId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadRfqRequestPdfQueryKey = (id: string,
+    supplierId: string,) => {
+    return [
+    `/api/v1/purchasing/rfqs/${id}/suppliers/${supplierId}/pdf`
+    ] as const;
+    }
+
+
+export const getDownloadRfqRequestPdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadRfqRequestPdf>>, TError = unknown>(id: string,
+    supplierId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRfqRequestPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadRfqRequestPdfQueryKey(id,supplierId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadRfqRequestPdf>>> = ({ signal }) => downloadRfqRequestPdf(id,supplierId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && supplierId !== null && supplierId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadRfqRequestPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadRfqRequestPdfQueryResult = NonNullable<Awaited<ReturnType<typeof downloadRfqRequestPdf>>>
+export type DownloadRfqRequestPdfQueryError = unknown
+
+
+export function useDownloadRfqRequestPdf<TData = Awaited<ReturnType<typeof downloadRfqRequestPdf>>, TError = unknown>(
+ id: string,
+    supplierId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRfqRequestPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadRfqRequestPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadRfqRequestPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadRfqRequestPdf<TData = Awaited<ReturnType<typeof downloadRfqRequestPdf>>, TError = unknown>(
+ id: string,
+    supplierId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRfqRequestPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadRfqRequestPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadRfqRequestPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadRfqRequestPdf<TData = Awaited<ReturnType<typeof downloadRfqRequestPdf>>, TError = unknown>(
+ id: string,
+    supplierId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRfqRequestPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadRfqRequestPdf<TData = Awaited<ReturnType<typeof downloadRfqRequestPdf>>, TError = unknown>(
+ id: string,
+    supplierId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRfqRequestPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadRfqRequestPdfQueryOptions(id,supplierId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDownloadRfqComparisonPdfUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/purchasing/rfqs/${id}/comparison/pdf`
+}
+
+export const downloadRfqComparisonPdf = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadRfqComparisonPdfUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadRfqComparisonPdfQueryKey = (id: string,) => {
+    return [
+    `/api/v1/purchasing/rfqs/${id}/comparison/pdf`
+    ] as const;
+    }
+
+
+export const getDownloadRfqComparisonPdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadRfqComparisonPdf>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRfqComparisonPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadRfqComparisonPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadRfqComparisonPdf>>> = ({ signal }) => downloadRfqComparisonPdf(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadRfqComparisonPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadRfqComparisonPdfQueryResult = NonNullable<Awaited<ReturnType<typeof downloadRfqComparisonPdf>>>
+export type DownloadRfqComparisonPdfQueryError = unknown
+
+
+export function useDownloadRfqComparisonPdf<TData = Awaited<ReturnType<typeof downloadRfqComparisonPdf>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRfqComparisonPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadRfqComparisonPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadRfqComparisonPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadRfqComparisonPdf<TData = Awaited<ReturnType<typeof downloadRfqComparisonPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRfqComparisonPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadRfqComparisonPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadRfqComparisonPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadRfqComparisonPdf<TData = Awaited<ReturnType<typeof downloadRfqComparisonPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRfqComparisonPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadRfqComparisonPdf<TData = Awaited<ReturnType<typeof downloadRfqComparisonPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadRfqComparisonPdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadRfqComparisonPdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListPurchaseOrdersUrl = (params?: ListPurchaseOrdersParams,) => {
   const normalizedParams = new URLSearchParams();

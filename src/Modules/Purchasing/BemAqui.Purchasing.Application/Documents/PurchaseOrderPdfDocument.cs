@@ -1,87 +1,41 @@
 using System.Globalization;
 using BemAqui.BuildingBlocks.Pdf;
+using BemAqui.Purchasing.Contracts;
 using QuestPDF.Fluent;
-using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
 namespace BemAqui.Purchasing.Application.Documents;
 
 /// <summary>
-/// Layout do pedido de compra (ADR 0022, CMP-03b CA 1): A4, Archivo, números em pt-BR com dígitos tabulares e o cabeçalho da tabela
-/// repetido na quebra. O único arquivo do Purchasing que conhece o QuestPDF.
+/// Layout do pedido de compra no modelo único (ADR 0045 §1, EXP-03 CA 4): o mesmo conteúdo da CMP-03b (fornecedor, condição, previsão, local de
+/// entrega, linhas na unidade do fornecedor, totais e observação), com o cabeçalho, a faixa de título e o rodapé do frame. "Rascunho" antes de
+/// aprovado, "Cancelado" se cancelado (CA 5). Um dos três arquivos do Purchasing que conhecem o QuestPDF (ADR 0022).
 /// </summary>
-public sealed class PurchaseOrderPdfDocument(PurchaseOrderPdfModel model) : IDocument
+public sealed class PurchaseOrderPdfDocument : PdfDocumentFrame
 {
-    private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
+    private static readonly CultureInfo PtBr = PdfTheme.PtBr;
 
     private static readonly string[] Columns = ["#", "Código", "Descrição", "Qtd.", "Un.", "Preço unit.", "Total"];
 
-    private static string Money(decimal v) => v.ToString("C2", PtBr);
+    private readonly PurchaseOrderPdfModel _model;
+
+    public PurchaseOrderPdfDocument(PdfFrame frame, PurchaseOrderPdfModel model)
+        : base(frame, Header(model)) => _model = model;
+
+    private static PdfDocumentHeader Header(PurchaseOrderPdfModel model)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        return new PdfDocumentHeader("Pedido de compra", model.Number, model.IssueDate, PurchaseOrderPdf.Mark(model.Status), Notice: PurchaseOrderPdf.Notice(model.Status));
+    }
 
     /// <summary>Preço unitário com 2 a 4 casas (o preço guardado tem até 6; a unidade do fornecedor pode precisar de mais de 2).</summary>
     private static string Price(decimal v) => "R$ " + Math.Round(v, 4, MidpointRounding.AwayFromZero).ToString("#,##0.00##", PtBr);
 
-    private static string Qty(decimal v) => v.ToString("#,##0.####", PtBr);
-
-    public DocumentMetadata GetMetadata() => new() { Title = $"Pedido de compra {model.Number}", Author = model.Company.Name, Creator = "BemAqui Empresas" };
-
-    public void Compose(IDocumentContainer container) => container.Page(page =>
+    protected override void ComposeContent(IContainer container) => container.Column(col =>
     {
-        page.Size(PageSizes.A4);
-        page.Margin(32);
-        page.DefaultTextStyle(t => t.FontFamily(QuestPdfRenderer.FontFamily).FontSize(9).FontColor("#14202b").EnableFontFeature(FontFeatures.TabularFigures));
-        page.Header().Element(Header);
-        page.Content().PaddingVertical(12).Element(Content);
-        page.Footer().AlignCenter().Text(t =>
-        {
-            t.Span($"Pedido de compra {model.Number}").FontSize(8);
-            t.Span("   Página ").FontSize(8);
-            t.CurrentPageNumber().FontSize(8);
-            t.Span(" de ").FontSize(8);
-            t.TotalPages().FontSize(8);
-        });
-    });
-
-    private void Header(IContainer c) => c.Row(row =>
-    {
-        if (model.Company.Logo is { Length: > 0 } logo)
-        {
-            row.ConstantItem(110).Height(48).Image(logo).FitArea();
-        }
-        else
-        {
-            row.ConstantItem(160).Text(model.Company.Name).FontSize(14).SemiBold();
-        }
-
-        row.RelativeItem().AlignRight().Column(col =>
-        {
-            col.Item().Text(model.Company.LegalName).SemiBold();
-            if (model.Company.Document is { } doc)
-            {
-                col.Item().Text("CNPJ " + doc);
-            }
-
-            if (model.Company.Address is { } address)
-            {
-                col.Item().Text(address);
-            }
-
-            if (model.Company.Contact is { } contact)
-            {
-                col.Item().Text(contact);
-            }
-        });
-    });
-
-    private void Content(IContainer c) => c.Column(col =>
-    {
+        var model = _model;
         col.Spacing(10);
-        col.Item().Row(r =>
-        {
-            r.RelativeItem().Text($"Pedido de compra {model.Number}").FontSize(14).Bold();
-            r.ConstantItem(120).AlignRight().Text($"Data: {model.IssueDate:dd/MM/yyyy}");
-        });
-        col.Item().Background("#eef2f6").Padding(8).Column(info =>
+        col.Item().Background(PdfTheme.Surface).Padding(8).Column(info =>
         {
             info.Item().Text("Fornecedor: " + model.Supplier.Name).SemiBold();
             if (!string.Equals(model.Supplier.LegalName, model.Supplier.Name, StringComparison.Ordinal))
@@ -95,7 +49,7 @@ public sealed class PurchaseOrderPdfDocument(PurchaseOrderPdfModel model) : IDoc
             }
 
             info.Item().Text("Condição de pagamento: " + (model.PaymentTerm ?? "a combinar"));
-            info.Item().Text($"Previsão de entrega: {model.ExpectedDate:dd/MM/yyyy}");
+            info.Item().Text("Previsão de entrega: " + PdfTheme.Date(model.ExpectedDate));
             info.Item().Text("Local de entrega: " + (model.DeliveryAddress ?? "a combinar"));
         });
         col.Item().Element(Lines);
@@ -121,27 +75,28 @@ public sealed class PurchaseOrderPdfDocument(PurchaseOrderPdfModel model) : IDoc
         });
         table.Header(h =>
         {
-            foreach (var title in Columns)
+            for (var i = 0; i < Columns.Length; i++)
             {
-                h.Cell().BorderBottom(1).BorderColor("#9aa7b4").PaddingVertical(4).Text(title).SemiBold();
+                var cell = HeaderCell(h.Cell());
+                (i is 3 or >= 5 ? cell.AlignRight() : cell).Text(Columns[i]).SemiBold();
             }
         });
-        foreach (var l in model.Lines)
+        foreach (var l in _model.Lines)
         {
-            table.Cell().PaddingVertical(3).Text(l.Sequence.ToString(PtBr));
-            table.Cell().PaddingVertical(3).Column(code =>
+            BodyCell(table.Cell()).Text(l.Sequence.ToString(PtBr));
+            BodyCell(table.Cell()).Column(code =>
             {
                 code.Item().Text(l.ItemCode);
                 if (l.SupplierCode is { } supplierCode)
                 {
-                    code.Item().Text("Forn.: " + supplierCode).FontSize(8);
+                    code.Item().Text("Forn.: " + supplierCode).FontSize(PdfTheme.SmallFontSize);
                 }
             });
-            table.Cell().PaddingVertical(3).Text(l.Description);
-            table.Cell().PaddingVertical(3).AlignRight().Text(Qty(l.Quantity));
-            table.Cell().PaddingVertical(3).PaddingLeft(4).Text(l.Unit);
-            table.Cell().PaddingVertical(3).AlignRight().Text(Price(l.UnitPrice));
-            table.Cell().PaddingVertical(3).AlignRight().Text(Money(l.Total));
+            BodyCell(table.Cell()).Text(l.Description);
+            BodyCell(table.Cell()).AlignRight().Text(PdfTheme.Quantity(l.Quantity));
+            BodyCell(table.Cell()).PaddingLeft(4).Text(l.Unit);
+            BodyCell(table.Cell()).AlignRight().Text(Price(l.UnitPrice));
+            BodyCell(table.Cell()).AlignRight().Text(PdfTheme.Money(l.Total));
         }
     });
 
@@ -163,9 +118,25 @@ public sealed class PurchaseOrderPdfDocument(PurchaseOrderPdfModel model) : IDoc
             }
         }
 
-        Row("Subtotal", Money(model.Subtotal));
-        Row("Frete", Money(model.Freight));
-        Row($"IPI ({model.IpiPct.ToString("0.##", PtBr)}%)", Money(model.IpiAmount));
-        Row("Total", Money(model.Total), strong: true);
+        Row("Subtotal", PdfTheme.Money(_model.Subtotal));
+        Row("Frete", PdfTheme.Money(_model.Freight));
+        Row($"IPI ({_model.IpiPct.ToString("0.##", PtBr)}%)", PdfTheme.Money(_model.IpiAmount));
+        Row("Total", PdfTheme.Money(_model.Total), strong: true);
     });
+}
+
+/// <summary>Marca do PDF do pedido por situação (EXP-03 CA 5), sem banco.</summary>
+public static class PurchaseOrderPdf
+{
+    public const string DraftNotice = "Pedido não aprovado: não envie ao fornecedor.";
+
+    /// <summary>Rascunho e aguardando aprovação saem com "Rascunho"; cancelado com "Cancelado"; do aprovado em diante, sem marca.</summary>
+    public static PdfMark Mark(PurchaseOrderStatus status) => status switch
+    {
+        PurchaseOrderStatus.Draft or PurchaseOrderStatus.PendingApproval => PdfMark.Draft,
+        PurchaseOrderStatus.Cancelled => PdfMark.Cancelled,
+        _ => PdfMark.None,
+    };
+
+    public static string? Notice(PurchaseOrderStatus status) => Mark(status) == PdfMark.Draft ? DraftNotice : null;
 }

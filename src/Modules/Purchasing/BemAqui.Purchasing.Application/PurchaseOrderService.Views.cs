@@ -76,7 +76,8 @@ public sealed partial class PurchaseOrderService
             order.Status == PurchaseOrderStatus.Draft && (canCreate || canEdit), canDecide, canEdit && changeable, blocker, order.Version, order.ApprovedTotal, order.ClosedBalanceAmount,
             order.CloseReason, order.ClosedAt, receivedAmount, receiptsCount, canReceive && receiveBlocker is null, canReceive ? receiveBlocker : null,
             canEdit && order.Status == PurchaseOrderStatus.PartiallyReceived, canApprove && PurchaseOrderRules.OpenForReceipt.Contains(order.Status) && !receivedByMe,
-            canEdit && PurchaseOrderRules.Dispatchable.Contains(order.Status), PurchaseOrderRules.PdfStatuses.Contains(order.Status), order.SentAt);
+            // EXP-03 CA 5: o PDF sai em toda situação (com "Rascunho" antes de aprovado).
+            canEdit && PurchaseOrderRules.Dispatchable.Contains(order.Status), true, order.SentAt);
     }
 
     /// <summary>Pode decidir agora? E, quando tem <c>purchasing.approve</c> e não pode, o motivo (CA 9).</summary>

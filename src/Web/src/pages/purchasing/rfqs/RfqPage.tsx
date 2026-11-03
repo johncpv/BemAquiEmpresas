@@ -19,6 +19,8 @@ import { formatDateTime, formatMoney } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
 import { ORDER_STATUS } from '../orders/purchase-orders'
 import { RfqComparison } from './RfqComparison'
+import { downloadRfqRequest } from './rfq-pdf'
+import { RfqComparisonPdf, RfqRequestMenu } from './RfqPdf'
 import { RfqResponses } from './RfqResponses'
 import { RfqDocuments, RfqHistory } from './RfqTabs'
 import { RFQ_DICAS, RFQ_STATUS } from './rfqs'
@@ -109,8 +111,12 @@ export function RfqPage() {
     ? [{ label: 'Gerar pedidos de compra', onSelect: () => setGenerateOpen(true) }]
     : rfq.canSubmitOrders
       ? [{ label: 'Enviar todos para aprovação', onSelect: () => setSubmitOpen(true) }]
-      : rfq.status === 'Open' && criada && responded === 0
-        ? [{ label: 'Registrar a primeira resposta', onSelect: go(`/app/compras/cotacoes/${id}`, { aba: 'respostas' }) }]
+      : rfq.status === 'Open' && responded === 0
+        // EXP-03 (propositivo): sem resposta ainda, o pedido de cotação de cada fornecedor que aguarda, para mandar.
+        ? [
+            ...rfq.suppliers.filter((s) => !s.responded && !s.declined).map((s) => ({ label: `Baixar pedido de cotação: ${s.partyName}`, onSelect: () => void downloadRfqRequest(rfq, s) })),
+            ...(criada ? [{ label: 'Registrar a primeira resposta', onSelect: go(`/app/compras/cotacoes/${id}`, { aba: 'respostas' }) }] : []),
+          ]
         : rfq.status === 'Open' && responded > 0
           ? [{ label: 'Comparar e escolher', onSelect: go(`/app/compras/cotacoes/${id}`, { aba: 'comparativo' }) }]
           : result
@@ -180,7 +186,11 @@ function PageHeadingBlock({ rfq, set }: { rfq: RfqDetail; set: (r: RfqDetail) =>
           <span>{rfq.suppliers.map((s) => s.partyName).join(', ')}</span>
           <Link to={'/app/compras/cotacoes' as never} className="font-semibold text-primary">Voltar às cotações</Link>
         </p>
-        {rfq.canCancel ? <CancelRfq rfq={rfq} set={set} /> : null}
+        <div className="flex flex-wrap items-start gap-2">
+          {rfq.status === 'Open' ? <RfqRequestMenu rfq={rfq} /> : null}
+          <RfqComparisonPdf rfq={rfq} />
+          {rfq.canCancel ? <CancelRfq rfq={rfq} set={set} /> : null}
+        </div>
       </div>
     </PageHeading>
   )

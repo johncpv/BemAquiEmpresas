@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  canCancel, canChangeSteps, canShowComplete, completionImpact, delayLabel, reversalImpact, routingImpact, serialsProblem, stockCompletionImpact, stockReversalImpact, unitCost,
+  canCancel, canChangeSteps, canShowComplete, completionImpact, delayLabel, printReady, reversalImpact, routingImpact, serialsProblem, stockCompletionImpact, stockReversalImpact, unitCost,
 } from './fabrication'
 
 describe('OS de fabricação (PRD-01)', () => {
@@ -86,5 +86,16 @@ describe('Produto acabado na conclusão (PRD-06a2)', () => {
 
   it('custo unitário em 6 casas (CA 2)', () => {
     expect(unitCost(1666.916667)).toBe('R$ 1.666,916667')
+  })
+})
+describe('ficha da OS (EXP-03)', () => {
+  it('"Imprimir a ficha da OS" só em produção, com a BOM liberada e o material reservado', () => {
+    const ready = { bomReleased: true, reconciling: false, lines: [{}] }
+    expect(printReady('Open', ready)).toBe(true)
+    expect(printReady('InProgress', ready)).toBe(true)
+    expect(printReady('Completed', ready)).toBe(false)
+    expect(printReady('Open', { ...ready, reconciling: true })).toBe(false)
+    expect(printReady('Open', { ...ready, bomReleased: false })).toBe(false)
+    expect(printReady('Open', undefined)).toBe(false)
   })
 })

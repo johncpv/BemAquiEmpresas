@@ -35,7 +35,8 @@ export const RFQ_DICAS = {
   umaCotacao: 'Só um fornecedor respondeu a esta cotação.',
   sugerido: 'Sugerido pelo menor custo total da linha: o preço, o IPI e o frete do fornecedor rateado pelo valor dos itens dele. Você pode escolher outro, com o motivo.',
   fornecedoresSugeridos: 'Os últimos fornecedores destes itens, pelo pedido aprovado mais recente de cada um (até 3).',
-  unidadeFornecedor: 'Preço na unidade em que o fornecedor vende (cadastrada no item). O sistema divide pelo fator e grava o preço na unidade de estoque.',
+  previa: 'Enquanto a cotação está aberta, o mapa sai com a marca "Prévia": os vencedores ainda não foram gravados e a coluna mostra o sugerido pelo menor custo. Depois de concluir, sai sem marca, com o vencedor e o motivo.',
+  unidadeFornecedor:'Preço na unidade em que o fornecedor vende (cadastrada no item). O sistema divide pelo fator e grava o preço na unidade de estoque.',
 }
 
 /** Situação da resposta do fornecedor (chip). */
@@ -43,6 +44,17 @@ export function responseState(s: Pick<RfqSupplierView, 'responded' | 'declined'>
   if (s.responded) return { label: 'Respondida', tone: 'ok' }
   if (s.declined) return { label: 'Não cotou', tone: 'neutral' }
   return { label: 'Aguardando resposta', tone: 'warn' }
+}
+
+/**
+ * Nome do pedido de cotação (EXP-03): "{COT}-{fornecedor curto}.pdf", com as duas primeiras palavras do nome, sem acento nem CNPJ (o mesmo
+ * nome que o servidor manda).
+ */
+export function rfqRequestFileName(number: string, supplierName: string): string {
+  const words = supplierName.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean)
+  let slug = words.slice(0, 2).join('-')
+  if (slug.length > 24) slug = slug.slice(0, 24).replace(/-+$/, '')
+  return slug ? `${number}-${slug}.pdf` : `${number}.pdf`
 }
 
 /** Ids da URL ("?sc=a,b,c"). */

@@ -12367,6 +12367,28 @@
             }
           }
         }
+      },
+      "get": {
+        "tags": [
+          "Or\u00E7amentos"
+        ],
+        "operationId": "DownloadQuotePdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/api/v1/quotes/{id}/send-draft": {
@@ -15913,6 +15935,30 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/production/production-orders/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Produ\u00E7\u00E3o"
+        ],
+        "operationId": "DownloadFabricationOrderPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -25131,6 +25177,63 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/rfqs/{id}/suppliers/{supplierId}/pdf": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "DownloadRfqRequestPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/purchasing/rfqs/{id}/comparison/pdf": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "DownloadRfqComparisonPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }

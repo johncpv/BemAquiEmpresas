@@ -19,6 +19,9 @@ Conferir o romaneio, baixar o PDF e confirmar a saída do produto acabado para a
 - **Cancelar romaneio** (rascunho ou aguardando): pede o motivo e libera as séries. **Estornar expedição** (quem aprova na produção): quando o produto não saiu de fato, pede o motivo, devolve o produto ao estoque e as séries voltam a **No estoque**.
 - Depois de expedir, os próximos passos levam à **OS de instalação** do projeto ou a **Registrar entrega**. A NF-e de saída nasce do romaneio expedido, em Fiscal → saída (**A emitir**).
 
+## Imprimir e exportar
+- **Baixar PDF** e **Imprimir** ficam no cabeçalho do romaneio. O PDF é o mesmo de antes; **Imprimir** abre o PDF numa aba nova.
+
 ## Perguntas frequentes
 **Por que não consigo confirmar o estoque geral?** Você montou ou pediu a confirmação deste romaneio, ou não tem a aprovação no Estoque. Peça a outra pessoa do estoque.
 

@@ -45,6 +45,8 @@ public static class ProductionInfrastructure
 
         // OS de fabricação (PRD-01): serviço, contrato IProductionOrders e uso de roteiro e de centro.
         services.TryAddScoped<FabricationOrderService>();
+        // EXP-03: ficha da OS de fabricação em PDF.
+        services.TryAddScoped<ProductionOrderDocumentService>();
         // Produto acabado na conclusão (PRD-06a2): entrada, séries, lotes e reservas pelos contratos do Inventory, na transação da OS.
         services.TryAddScoped<FinishedGoods>();
         services.TryAddScoped<IProductionOrders, ProductionOrdersContract>();

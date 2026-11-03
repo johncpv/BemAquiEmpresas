@@ -16,6 +16,19 @@ internal static partial class CommercialEndpoints
             .RequirePermission("quotes.view").WithName("GetQuoteDocuments").Produces<QuoteDocuments>();
         quotes.MapPost("/{id:guid}/pdf", async (Guid id, QuoteDocumentService service, CancellationToken ct) => (await service.GeneratePdfAsync(id, ct)).ToHttpResult())
             .RequirePermission("quotes.view").WithName("GenerateQuotePdf").Produces<AttachmentDto>();
+        // EXP-03 CA 7: "Baixar PDF" do cabeçalho, da revisão corrente, gerado na hora sem gravar anexo (o POST continua para o histórico).
+        quotes.MapGet("/{id:guid}/pdf", async (Guid id, HttpContext http, QuoteDocumentService service, CancellationToken ct) =>
+            {
+                var result = await service.PdfAsync(id, ct);
+                if (result.IsFailure)
+                {
+                    return result.Error!.ToProblem();
+                }
+
+                AttachmentEndpoints.ApplyDownloadHeaders(http.Response);
+                return Results.File(result.Value.Content, "application/pdf", result.Value.FileName);
+            })
+            .RequirePermission("quotes.view").WithName("DownloadQuotePdf").Produces(StatusCodes.Status200OK, contentType: "application/pdf");
         quotes.MapGet("/{id:guid}/send-draft", async (Guid id, QuoteDocumentService service, CancellationToken ct) => (await service.SendDraftAsync(id, ct)).ToHttpResult())
             .RequirePermission("quotes.edit").WithName("GetQuoteSendDraft").Produces<QuoteSendDraft>();
         quotes.MapPost("/{id:guid}/email", async (Guid id, QuoteSendInput input, QuoteDocumentService service, CancellationToken ct) => (await service.SendAsync(id, input, ct)).ToHttpResult())

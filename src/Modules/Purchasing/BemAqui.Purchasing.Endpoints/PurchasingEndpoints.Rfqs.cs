@@ -1,8 +1,11 @@
+using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Purchasing.Application;
+using BemAqui.Purchasing.Application.Documents;
 using BemAqui.Purchasing.Domain;
+using BemAqui.SharedKernel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -55,5 +58,23 @@ internal static partial class PurchasingEndpoints
             .RequirePermission("purchasing.create").RequireIdempotencyKey().WithName("GenerateRfqPurchaseOrders").Produces<RfqOrdersResult>();
         rfqs.MapPost("/{id:guid}/purchase-orders/submit", async (Guid id, RfqService service, CancellationToken ct) => (await service.SubmitOrdersAsync(id, ct)).ToHttpResult())
             .RequireAnyPermissionOf("purchasing.create", "purchasing.edit").WithName("SubmitRfqPurchaseOrders").Produces<RfqSubmitResult>();
+        // EXP-03 CA 1 a 3: pedido de cotação por fornecedor e mapa comparativo em PDF, com a permissão da tela; o fornecedor é o da cotação da URL.
+        rfqs.MapGet("/{id:guid}/suppliers/{supplierId:guid}/pdf", async (Guid id, Guid supplierId, HttpContext http, RfqDocumentService service, CancellationToken ct) =>
+                Pdf(http, await service.RequestPdfAsync(id, supplierId, ct)))
+            .RequirePermission("purchasing.view").WithName("DownloadRfqRequestPdf").Produces(StatusCodes.Status200OK, contentType: "application/pdf");
+        rfqs.MapGet("/{id:guid}/comparison/pdf", async (Guid id, HttpContext http, RfqDocumentService service, CancellationToken ct) =>
+                Pdf(http, await service.ComparisonPdfAsync(id, ct)))
+            .RequirePermission("purchasing.view").WithName("DownloadRfqComparisonPdf").Produces(StatusCodes.Status200OK, contentType: "application/pdf");
+    }
+
+    private static IResult Pdf(HttpContext http, Result<(byte[] Content, string FileName)> result)
+    {
+        if (result.IsFailure)
+        {
+            return result.Error!.ToProblem();
+        }
+
+        AttachmentEndpoints.ApplyDownloadHeaders(http.Response);
+        return Results.File(result.Value.Content, "application/pdf", result.Value.FileName);
     }
 }

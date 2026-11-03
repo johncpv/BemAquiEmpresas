@@ -15,6 +15,9 @@ Gerar o PDF do orçamento, enviar por e-mail ao cliente e guardar os arquivos do
 - Em **Envios**, veja para quem foi, quando e a situação do e-mail. Se falhar, envie de novo ou baixe o PDF.
 - Em **Anexos**, clique em **Escolher arquivo** ou arraste o arquivo (PDF, imagem, Word, Excel, DWG ou DXF, até 25 MB).
 
+## Imprimir e exportar
+- **Gerar PDF** desta aba grava o PDF no histórico do orçamento (é o que vai por e-mail). O **Baixar PDF** do cabeçalho só baixa, sem guardar.
+
 ## Perguntas frequentes
 **O PDF mostra o custo?** Nunca. O PDF não mostra custo, composição nem margem, para ninguém.
 

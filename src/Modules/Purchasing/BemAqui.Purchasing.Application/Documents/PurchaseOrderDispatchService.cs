@@ -3,6 +3,7 @@ using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Email;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Pdf;
+using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Time;
 using BemAqui.Finance.Contracts;
 using BemAqui.Identity.Contracts;
@@ -23,15 +24,22 @@ namespace BemAqui.Purchasing.Application.Documents;
 /// </summary>
 public sealed partial class PurchaseOrderDispatchService(
     IPurchasingDb db, PurchaseOrderService orders, IItems items, IItemSupplierCodes supplierCodes, IParties parties, IPaymentTerms terms, ICompanyIdentity company,
-    IFileStorage storage, IPdfRenderer renderer, AttachmentService attachments, IEmailSender email, EmailLogReader emailLogs, EmailDispatchLimiter limiter,
-    ITenantParameters tenantParameters, IUserDirectory users, ICurrentUser currentUser, IPermissionChecker permissions, TimeProvider clock)
+    PdfFrameFactory frames, IPdfRenderer renderer, AttachmentService attachments, IEmailSender email, EmailLogReader emailLogs, EmailDispatchLimiter limiter,
+    ITenantParameters tenantParameters, IUserDirectory users, ICurrentUser currentUser, IPermissionChecker permissions, IAuditWriter audit, TimeProvider clock)
 {
     public const string NotApprovedCode = "purchase_order_not_approved";
     public const string NotDispatchableCode = "purchase_order_not_dispatchable";
 
+    /// <summary>Entidade da auditoria de exportação (ADR 0045 §5).</summary>
+    public const string AuditEntity = "PurchaseOrder";
+
     private static Error NotApproved() => Error.Conflict(NotApprovedCode, "Aprove o pedido antes de enviar.");
 
-    /// <summary>"Baixar PDF" (CA 1, 8): do aprovado em diante; 409 antes da aprovação; 422 acima de 300 linhas ou 2.000 caracteres, antes de gerar.</summary>
+    /// <summary>
+    /// "Baixar PDF" (CMP-03b CA 1 e 8; EXP-03 CA 5): em toda situação, gerado na hora e sem guardar; antes de aprovado sai com "Rascunho" e a
+    /// faixa "Pedido não aprovado: não envie ao fornecedor.", cancelado com "Cancelado". 422 acima de 300 linhas ou 2.000 caracteres, antes de
+    /// gerar. Cada download fica na auditoria de exportação.
+    /// </summary>
     public async Task<Result<(byte[] Content, string FileName)>> PdfAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var order = await db.PurchaseOrders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
@@ -40,18 +48,15 @@ public sealed partial class PurchaseOrderDispatchService(
             return PurchaseOrderService.NotFound();
         }
 
-        if (!PurchaseOrderRules.PdfStatuses.Contains(order.Status))
-        {
-            return NotApproved();
-        }
-
         var built = await BuildAsync(order, cancellationToken);
         if (built.IsFailure)
         {
             return built.Error!;
         }
 
-        return (await renderer.RenderAsync(new PurchaseOrderPdfDocument(built.Value), cancellationToken), FileName(order));
+        var bytes = await renderer.RenderAsync(new PurchaseOrderPdfDocument(built.Value.Frame, built.Value.Model), cancellationToken);
+        await audit.RecordExportAsync(AuditEntity, id.ToString(), "pdf", built.Value.Model.Lines.Count, cancellationToken);
+        return (bytes, FileName(order));
     }
 
     /// <summary>Diálogo "Enviar ao fornecedor" (CA 2): o destinatário padrão, o assunto e os e-mails dos contatos do fornecedor.</summary>
@@ -99,7 +104,8 @@ public sealed partial class PurchaseOrderDispatchService(
             return built.Error!;
         }
 
-        var bytes = await renderer.RenderAsync(new PurchaseOrderPdfDocument(built.Value), cancellationToken);
+        // Só sai do aprovado ou enviado (SendErrorAsync): o PDF guardado no envio nunca tem marca.
+        var bytes = await renderer.RenderAsync(new PurchaseOrderPdfDocument(built.Value.Frame, built.Value.Model), cancellationToken);
         var me = currentUser.UserId;
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         if (await limiter.CheckAsync(me, await tenantParameters.EmailDispatchMaxPerUserDayAsync(cancellationToken), cancellationToken) is { } limit)
