@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { updateItem } from '@/api/generated/bemaqui'
 import type { ItemDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { FormError } from '@/components/form/form'
+import { FormActions, FormError } from '@/components/form/form'
+import { FormLayout } from '@/components/layout/form-layout'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
 import { notifySuccess } from '@/components/ui/messages'
 import { draftErrors, fromItem, toInput } from './item-draft'
@@ -33,11 +34,13 @@ export function ItemDataForm({ item, canEdit, onSaved }: { item: ItemDetail; can
   }
 
   return (
-    <form id="dados-item" noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="max-w-3xl space-y-4">
+    <FormLayout>
+    <form id="dados-item" noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="space-y-5">
       <UnsavedChangesGuard when={dirty && canEdit} onSave={save} />
       <FormError message={server ? server.message : undefined} />
       <ItemFields draft={draft} onChange={(d) => { setServer(null); setDraft(d) }} errors={dirty ? errors : {}} readOnly={!canEdit} active={item.isActive} />
-      {canEdit ? <div className="flex justify-end"><button type="submit" disabled={!dirty} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">Salvar item</button></div> : null}
+      {canEdit ? <FormActions sticky dirty={dirty}><button type="submit" disabled={!dirty} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">Salvar item</button></FormActions> : null}
     </form>
+    </FormLayout>
   )
 }

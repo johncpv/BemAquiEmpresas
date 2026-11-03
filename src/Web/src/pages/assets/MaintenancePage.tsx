@@ -34,12 +34,8 @@ export function MaintenancePage() {
 
   return (
     <>
-      <PageHeading title="Patrimônio: Manutenção">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">O que está parado, o que está em andamento e as preventivas que vencem.</p>
-          <Can perm="assets.create"><button type="button" onClick={() => setOpening(true)} className={primary}>Nova OS de manutenção</button></Can>
-        </div>
-      </PageHeading>
+      <PageHeading title="Patrimônio: Manutenção" description="O que está parado, o que está em andamento e as preventivas que vencem."
+        actions={<Can perm="assets.create"><button type="button" onClick={() => setOpening(true)} className={primary}>Nova OS de manutenção</button></Can>} />
       <div role="group" aria-label="Filtros" className="mb-4 grid gap-2 sm:grid-cols-4">
         <label className="space-y-1 text-sm">
           <span className="font-medium">Centro</span>

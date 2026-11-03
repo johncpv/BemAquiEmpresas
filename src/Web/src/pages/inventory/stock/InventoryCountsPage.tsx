@@ -105,12 +105,8 @@ export function InventoryCountsPage() {
   ]
   return (
     <>
-      <PageHeading title="Estoque: Inventários">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="inline-flex items-center text-muted-foreground">Conte um local sem ver o saldo do sistema; a diferença vira um ajuste para aprovação.<Dica nome="Contagem cega" texto={INVENTORY_DICAS.cega} /></p>
-          <Can perm="inventory.adjust">{start(true)}</Can>
-        </div>
-      </PageHeading>
+      <PageHeading title="Estoque: Inventários" description={<>Conte um local sem ver o saldo do sistema; a diferença vira um ajuste para aprovação.<Dica nome="Contagem cega" texto={INVENTORY_DICAS.cega} /></>}
+        actions={<Can perm="inventory.adjust">{start(true)}</Can>} />
       <DataTable label="Inventários" columns={columns} query={query} searchable={false} getRowId={(c) => c.id}
         filters={[{ key: 'situacao', label: 'Situação', options: STATUS_OPTIONS }]}
         rowClassName={(c) => (c.status === 'Counting' ? 'border-l-4 border-l-warn' : undefined)}

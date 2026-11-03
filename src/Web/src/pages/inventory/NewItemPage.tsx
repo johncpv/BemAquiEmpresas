@@ -3,7 +3,8 @@ import { useState } from 'react'
 import { createItem, useGetItem, useListWarrantyDefaults } from '@/api/generated/bemaqui'
 import type { ItemDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
-import { FormError } from '@/components/form/form'
+import { FormActions, FormError } from '@/components/form/form'
+import { FormLayout } from '@/components/layout/form-layout'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { notifySuccess } from '@/components/ui/messages'
@@ -17,7 +18,7 @@ export function NewItemPage() {
   const source = useGetItem(duplicar ?? '', { query: { enabled: !!duplicar } })
   // A garantia padrão precisa estar carregada antes da escolha do tipo, que a usa como sugestão (CA 12).
   const warranties = useListWarrantyDefaults()
-  if ((duplicar && source.isPending) || warranties.isPending) return <Skeleton className="h-96 max-w-3xl" />
+  if ((duplicar && source.isPending) || warranties.isPending) return <Skeleton className="h-96 max-w-4xl" />
   if (warranties.isError) return <ErrorState onRetry={() => warranties.refetch()} />
   if (duplicar && (source.isError || !source.data)) return <ErrorState title="Não foi possível carregar o item a duplicar." onRetry={() => source.refetch()} />
   return <NewItemForm key={duplicar ?? 'novo'} source={duplicar ? source.data : undefined} />
@@ -49,18 +50,18 @@ function NewItemForm({ source }: { source?: ItemDetail }) {
 
   return (
     <>
-      <PageHeading title={source ? `Novo item (cópia de ${source.code})` : 'Novo item'}>
-        <p className="mt-2 text-muted-foreground">Comece pelo tipo: ele sugere o lote, a série e a garantia.</p>
-      </PageHeading>
-      <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="max-w-3xl space-y-4">
+      <PageHeading title={source ? `Novo item (cópia de ${source.code})` : 'Novo item'} description="Comece pelo tipo: ele sugere o lote, a série e a garantia." />
+      <FormLayout>
+      <form noValidate onSubmit={(e) => { e.preventDefault(); void save() }} className="space-y-5">
         <UnsavedChangesGuard when={dirty} onSave={save} />
         <FormError message={server && Object.keys(server.fields).length === 0 ? server.message : undefined} />
         <ItemFields draft={draft} onChange={(d) => { setServer(null); setDraft(d) }} errors={errors} readOnly={false} active />
-        <div className="flex justify-end gap-2">
-          <Link to="/app/estoque/itens" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</Link>
+        <FormActions sticky dirty={dirty}>
+          <Link to="/app/estoque/itens" className="rounded-md border border-border px-3 py-2 text-center text-sm font-semibold">Voltar</Link>
           <button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Salvar item</button>
-        </div>
+        </FormActions>
       </form>
+      </FormLayout>
     </>
   )
 }

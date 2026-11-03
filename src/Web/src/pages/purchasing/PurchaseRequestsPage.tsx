@@ -98,12 +98,8 @@ export function PurchaseRequestsPage() {
   const showLabel = SHOW_OPTIONS.find((o) => o.value === show)?.label ?? 'Todas'
   return (
     <>
-      <PageHeading title="Compras: Solicitações">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="inline-flex items-center text-muted-foreground">O que precisa ser comprado e para quando. A falta da BOM e o estoque mínimo<Dica nome="Estoque mínimo" texto={PURCHASE_DICAS.minimo} /> abrem solicitações sozinhos.</p>
-          {create}
-        </div>
-      </PageHeading>
+      <PageHeading title="Compras: Solicitações" description={<>O que precisa ser comprado e para quando. A falta da BOM e o estoque mínimo<Dica nome="Estoque mínimo" texto={PURCHASE_DICAS.minimo} /> abrem solicitações sozinhos.</>}
+        actions={create} />
       <div role="group" aria-label="Visão da lista" className="mb-3 flex flex-wrap items-center gap-2">
         {views.map((v) => (
           <button key={v.id} type="button" aria-pressed={(v.id === 'item') === byItem}

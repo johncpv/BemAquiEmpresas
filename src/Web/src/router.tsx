@@ -294,47 +294,47 @@ const partyRoute = createRoute({ getParentRoute: () => appRoute, path: 'cadastro
 // Estoque e Produção (CAD-03): locais, centros de trabalho e calendário.
 // Saldos é a aba padrão do Estoque (EST-01a); Movimentos e Lançamentos pendentes completam a "Operação".
 const inventoryRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque', beforeLoad: () => { throw redirect({ to: '/app/estoque/saldos' }) } })
-const balancesRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/saldos', component: gated('inventory', BalancesPage) })
+const balancesRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'estoque/saldos', component: gated('inventory', BalancesPage) })
 const movementsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/movimentos', component: gated('inventory', MovementsPage) })
 const movementRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/movimentos/$id', component: gated('inventory', MovementPage) })
-const manualPostingsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/lancamentos', component: gated('inventory', ManualPostingsPage) })
+const manualPostingsRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'estoque/lancamentos', component: gated('inventory', ManualPostingsPage) })
 const manualPostingRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/lancamentos/$id', component: gated('inventory', ManualPostingPage) })
 // Faltas das OS abertas (EST-02 CA 15), na "Operação" do Estoque; filtros na URL.
 const shortagesRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/faltas', component: gated('inventory', ShortagesPage) })
 // Capacidade de produzir (EST-06), na "Operação" do Estoque: produto, OS e quantidade na URL; nada é gravado.
-const capacityRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/capacidade', component: gated('inventory', CapacityPage) })
+const capacityRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'estoque/capacidade', component: gated('inventory', CapacityPage) })
 // Requisições de material das OS (EST-03), na "Operação" do Estoque: "Aguardando você" é o filtro padrão; o detalhe tem as ações.
 const requisitionsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/requisicoes', component: gated('inventory', RequisitionsPage) })
 const requisitionRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/requisicoes/$id', component: gated('inventory', RequisitionPage) })
 // Compras (CMP-01): Solicitações é a primeira aba; Cotações, Pedidos e Recebimentos entram com a CMP-02, a CMP-03a e a CMP-04.
 const purchasingRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras', beforeLoad: () => { throw redirect({ to: '/app/compras/solicitacoes' }) } })
-const purchaseRequestsRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/solicitacoes', component: gated('purchasing', PurchaseRequestsPage) })
+const purchaseRequestsRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'compras/solicitacoes', component: gated('purchasing', PurchaseRequestsPage) })
 const newPurchaseRequestRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'compras/solicitacoes/nova', component: gated('purchasing', NewPurchaseRequestPage) })
 const purchaseRequestRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/solicitacoes/$id', component: gated('purchasing', PurchaseRequestPage) })
 // Cotações (CMP-02): lista (abertas por padrão), nova (das SC por ?sc= ou com itens digitados) e detalhe com abas na URL.
 const rfqsRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/cotacoes', component: gated('purchasing', RfqsPage) })
-const newRfqRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/cotacoes/nova', component: gated('purchasing', NewRfqPage) })
-const rfqRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/cotacoes/$id', component: gated('purchasing', RfqPage) })
+const newRfqRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'compras/cotacoes/nova', component: gated('purchasing', NewRfqPage) })
+const rfqRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'compras/cotacoes/$id', component: gated('purchasing', RfqPage) })
 // Pedidos de compra (CMP-03a): lista, novo (à mão ou das SC), detalhe com abas na URL e edição.
 const purchaseOrdersRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/pedidos', component: gated('purchasing', PurchaseOrdersPage) })
-const newPurchaseOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/pedidos/novo', component: gated('purchasing', NewPurchaseOrderPage) })
+const newPurchaseOrderRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'compras/pedidos/novo', component: gated('purchasing', NewPurchaseOrderPage) })
 const purchaseOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/pedidos/$id', component: gated('purchasing', PurchaseOrderPage) })
-const editPurchaseOrderRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/pedidos/$id/editar', component: gated('purchasing', EditPurchaseOrderPage) })
+const editPurchaseOrderRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'compras/pedidos/$id/editar', component: gated('purchasing', EditPurchaseOrderPage) })
 // Rastreabilidade (EST-04), na "Operação" do Estoque: busca "Série ou lote"; termo, item e série ou lote na URL.
-const traceabilityRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/rastreabilidade', component: gated('inventory', TraceabilityPage) })
+const traceabilityRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'estoque/rastreabilidade', component: gated('inventory', TraceabilityPage) })
 // Ajustes de estoque (EST-01b), na "Operação" do Estoque: "Aguardando você" é o filtro padrão de quem aprova; abas do detalhe na URL.
 const adjustmentsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/ajustes', component: gated('inventory', AdjustmentsPage) })
 const adjustmentRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/ajustes/$id', component: gated('inventory', AdjustmentPage) })
 // Recebimentos (CMP-04): abre em "A receber"; o detalhe do recebimento e o registro pela página do pedido.
 const goodsReceiptsRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/recebimentos', component: gated('purchasing', GoodsReceiptsPage) })
 const goodsReceiptRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/recebimentos/$id', component: gated('purchasing', GoodsReceiptPage) })
-const newGoodsReceiptRoute = createRoute({ getParentRoute: () => appRoute, path: 'compras/pedidos/$id/recebimento', component: gated('purchasing', NewGoodsReceiptPage) })
+const newGoodsReceiptRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'compras/pedidos/$id/recebimento', component: gated('purchasing', NewGoodsReceiptPage) })
 // Inventários (EST-05), na "Operação" do Estoque: lista e detalhe com abas (Contagem, Divergências, Histórico) na URL.
 const inventoryCountsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/inventarios', component: gated('inventory', InventoryCountsPage) })
-const inventoryCountRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/inventarios/$id', component: gated('inventory', InventoryCountPage) })
+const inventoryCountRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'estoque/inventarios/$id', component: gated('inventory', InventoryCountPage) })
 const locationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/locais', component: gated('inventory', LocationsPage) })
 // Itens, unidades, categorias e garantia padrão (CAD-02a).
-const itemsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/itens', component: gated('inventory', ItemsPage) })
+const itemsRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'estoque/itens', component: gated('inventory', ItemsPage) })
 const newItemRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'estoque/itens/novo', component: gated('inventory', NewItemPage) })
 const itemRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/itens/$id', component: gated('inventory', ItemPage) })
 const unitsRoute = createRoute({ getParentRoute: () => appRoute, path: 'estoque/unidades', component: gated('inventory', UnitsPage) })
@@ -354,19 +354,19 @@ const fabricationOrderRoute = createRoute({ getParentRoute: () => appRoute, path
 // Kanban (PRD-02): colunas pelo código da etapa, filtros na URL e tempo real.
 const kanbanRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'producao/kanban', component: gated('production', KanbanPage) })
 // Painel do supervisor (DSH-03): blocos do quadro, qualidade, faltas, capacidade e indicadores; linha na URL (?linha=).
-const supervisorRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/supervisor', component: gated('production', SupervisorPage), validateSearch: (s: Record<string, unknown>): { linha?: string } => ({ linha: text(s.linha) }) })
+const supervisorRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'producao/supervisor', component: gated('production', SupervisorPage), validateSearch: (s: Record<string, unknown>): { linha?: string } => ({ linha: text(s.linha) }) })
 // Planejamento (PLN-01a): última execução do plano, "Recalcular agora" e OS sem previsão; as abas chegam na PLN-02 a PLN-04.
 const planningRoute = createRoute({ getParentRoute: () => appRoute, staticData: FULL, path: 'producao/planejamento', component: gated('production', PlanningPage) })
 // Apontamentos abertos há muito tempo (PRD-03a CA 22).
 const openLaborRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/apontamentos-abertos', component: gated('production', OpenLaborPage) })
 // Qualidade e não conformidade (PRD-05): fila e inspeção, lista e detalhe da NC (filtros na URL).
 const qualityRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/qualidade', component: gated('production', QualityQueuePage) })
-const qualityStepRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/qualidade/$stepId', component: gated('production', QualityStepPage) })
+const qualityStepRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'producao/qualidade/$stepId', component: gated('production', QualityStepPage) })
 const nonConformitiesRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/nao-conformidades', component: gated('production', NonConformitiesPage) })
 const nonConformityRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/nao-conformidades/$id', component: gated('production', NonConformityPage) })
 // Expedição (PRD-06b): prontos para expedir e romaneios, o novo romaneio (do projeto ou da OS) e o romaneio.
 const shipmentsRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/expedicao', component: gated('production', ShipmentsPage) })
-const newShipmentRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/expedicao/novo', component: gated('production', NewShipmentPage), validateSearch: (s: Record<string, unknown>): { projeto?: string; os?: string } => ({ projeto: text(s.projeto), os: text(s.os) }) })
+const newShipmentRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'producao/expedicao/novo', component: gated('production', NewShipmentPage), validateSearch: (s: Record<string, unknown>): { projeto?: string; os?: string } => ({ projeto: text(s.projeto), os: text(s.os) }) })
 const shipmentRoute = createRoute({ getParentRoute: () => appRoute, path: 'producao/expedicao/$id', component: gated('production', ShipmentPage) })
 // "Operador" no dock leva ao app do operador (PRD-03a CA 27).
 const operatorRoute = createRoute({ getParentRoute: () => appRoute, path: 'operador', beforeLoad: () => { throw redirect({ to: '/fab' }) } })

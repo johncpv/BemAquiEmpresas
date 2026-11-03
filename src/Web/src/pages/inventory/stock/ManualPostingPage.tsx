@@ -47,15 +47,19 @@ export function ManualPostingPage() {
 
   return (
     <>
-      <PageHeading title={`${p.number} — ${KIND[p.kind]}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <StatusChip tone={POSTING_STATUS[p.status].tone}>{POSTING_STATUS[p.status].label}</StatusChip>
-            {p.approvalReason ? <span className="inline-flex items-center"><Tag>{p.approvalReason}</Tag><Dica nome="Aguardando aprovação" texto={DICAS.aprovacao} /></span> : null}
-            {p.selfApproved ? <Tag>Autoaprovado</Tag> : null}
-            <Link to={'/app/estoque/lancamentos' as never} className="font-semibold text-primary">Voltar aos lançamentos</Link>
-          </p>
-          <div className="flex flex-wrap gap-2">
+      <PageHeading title={`${p.number} — ${KIND[p.kind]}`}
+        meta={
+          <>
+            <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <StatusChip tone={POSTING_STATUS[p.status].tone}>{POSTING_STATUS[p.status].label}</StatusChip>
+              {p.approvalReason ? <span className="inline-flex items-center"><Tag>{p.approvalReason}</Tag><Dica nome="Aguardando aprovação" texto={DICAS.aprovacao} /></span> : null}
+              {p.selfApproved ? <Tag>Autoaprovado</Tag> : null}
+              <Link to={'/app/estoque/lancamentos' as never} className="font-semibold text-primary">Voltar aos lançamentos</Link>
+            </p>
+          </>
+        }
+        actions={
+          <>
             {pending && p.canDecide ? (
               <>
                 <ConfirmDialog size="lg" verb="Aprovar lançamento" done="Lançamento aprovado" title={`Aprovar o ${p.number}?`} description="Você decide sobre o que foi enviado: para mudar algo, reprove com o motivo."
@@ -84,9 +88,8 @@ export function ManualPostingPage() {
               <ConfirmDialog verb="Cancelar lançamento" done="Lançamento cancelado" title={`Cancelar o ${p.number}?`} description="O lançamento sai da fila de aprovação e nada muda no saldo."
                 onConfirm={async () => { await cancelManualPosting(id, { version: p.version }); await refresh() }} onReload={refresh} trigger={button('Cancelar lançamento')} />
             ) : null}
-          </div>
-        </div>
-      </PageHeading>
+          </>
+        } />
       {pending && p.decideBlockedReason ? <p role="note" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">{p.decideBlockedReason}</p> : null}
       {steps.length ? <div className="mb-3"><NextSteps steps={steps} onDismiss={() => setSteps([])} /></div> : null}
       <FactsBar label="Fatos do lançamento" facts={[

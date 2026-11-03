@@ -4,7 +4,8 @@ import { listPurchaseItemOptions, listPurchaseProjectOptions, listPurchaseSuppli
 import type { PurchaseItemOption, PurchaseOrderLineInput } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { Combobox, type ComboOption } from '@/components/form/combobox'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormActions, FormError, FormGridItem, FormSection } from '@/components/form/form'
+import { FormLayout } from '@/components/layout/form-layout'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput, DecimalInput, MoneyInput, PercentInput, QuantityInput } from '@/components/form/inputs'
 import { RowsEditor } from '@/components/form/rows-editor'
@@ -165,9 +166,12 @@ export function PurchaseOrderForm({ initial, options: known, reapproval, fromReq
   )
 
   return (
-    <div className="max-w-5xl space-y-6">
-      <FormSection title="Fornecedor e condição" description="O fornecedor precisa ter o papel Fornecedor. A condição vem do cadastro dele.">
-        <Field label="Fornecedor" required error={errors.partyId} dica={draft.partySuggested ? ORDER_DICAS.sugerido : undefined}>
+    // Coluna de formulário (ADR 0044): os itens cabem nos 896 px; os totais seguem presos no rodapé.
+    <FormLayout>
+    <div className="space-y-5">
+      {/* Fornecedor 8 · Condição 4 / Previsão 3 */}
+      <FormSection title="Fornecedor e condição" description="O fornecedor precisa ter o papel Fornecedor. A condição vem do cadastro dele." grid="form">
+        <Field label="Fornecedor" required size="xl" error={errors.partyId} dica={draft.partySuggested ? ORDER_DICAS.sugerido : undefined}>
           {(p) => (
             <span className="flex items-center gap-2">
               <span className="min-w-0 flex-1">
@@ -181,7 +185,7 @@ export function PurchaseOrderForm({ initial, options: known, reapproval, fromReq
             </span>
           )}
         </Field>
-        <Field label="Condição de pagamento" required error={errors.paymentTermId}>
+        <Field label="Condição de pagamento" required size="md" error={errors.paymentTermId}>
           {(p) => (
             <select {...p} value={draft.paymentTermId} onChange={(e) => set({ paymentTermId: e.target.value })} className={inputClass}>
               <option value="">Escolha</option>
@@ -189,13 +193,13 @@ export function PurchaseOrderForm({ initial, options: known, reapproval, fromReq
             </select>
           )}
         </Field>
-        <Field label="Previsão de entrega" required error={errors.expectedDate} hint="As parcelas previstas no caixa contam a partir desta data.">
+        <Field label="Previsão de entrega" required size="sm" error={errors.expectedDate} hint="As parcelas previstas no caixa contam a partir desta data.">
           {(p) => <DateInput {...p} value={draft.expectedDate} onChange={(v) => set({ expectedDate: v })} />}
         </Field>
       </FormSection>
 
-      <FormSection title="Itens" description="Quantidade na unidade de estoque ou noutra com conversão. Preço unitário com até 6 casas.">
-        <div className="sm:col-span-2">
+      <FormSection title="Itens" description="Quantidade na unidade de estoque ou noutra com conversão. Preço unitário com até 6 casas." grid="none">
+        <div>
           <RowsEditor<OrderLine> noun="item" rows={draft.lines} onChange={(lines) => set({ lines })} min={1} max={100}
             newRow={() => ({ item: null, quantity: null, unitId: '', unitPrice: null, priceSuggested: false, priceSource: null, requestLineIds: [], requestNumbers: [] })}
             rowError={(i) => errors[`lines[${i}]`]}
@@ -255,20 +259,22 @@ export function PurchaseOrderForm({ initial, options: known, reapproval, fromReq
         </div>
       </FormSection>
 
-      <FormSection title="Destino, frete e IPI" description="Para um projeto em andamento ou para o estoque geral. Frete e IPI do fornecedor vão nas mesmas parcelas.">
-        {fromRequests ? <p className="text-sm sm:col-span-2">O destino vem das solicitações: o projeto quando todas são do mesmo projeto; senão, o estoque geral.</p> : null}
-        <label className="flex items-center gap-2 text-sm sm:col-span-2">
+      <FormSection title="Destino, frete e IPI" description="Para um projeto em andamento ou para o estoque geral. Frete e IPI do fornecedor vão nas mesmas parcelas." grid="form">
+        {fromRequests ? <FormGridItem><p className="text-sm">O destino vem das solicitações: o projeto quando todas são do mesmo projeto; senão, o estoque geral.</p></FormGridItem> : null}
+        <FormGridItem>
+        <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={draft.general} disabled={fromRequests} onChange={(e) => set({ general: e.target.checked })} className="size-4 accent-primary" />
           Estoque geral (sem projeto)
         </label>
+        </FormGridItem>
         {!draft.general ? (
-          <Field label="Projeto" required error={errors.projectId}>
+          <Field label="Projeto" required size="lg" error={errors.projectId}>
             {(p) => <Combobox {...p} queryKey={['purchase-projects']} search={searchProjects} value={draft.project?.id ?? null} selected={draft.project} placeholder="Projeto em andamento" onChange={(o) => set({ project: o })} disabled={fromRequests} />}
           </Field>
         ) : null}
-        <Field label="Frete" error={errors.freight}>{(p) => <MoneyInput {...p} value={draft.freight} onChange={(v) => set({ freight: v })} />}</Field>
-        <Field label="IPI" error={errors.ipiPct} hint="Percentual sobre o subtotal dos itens.">{(p) => <PercentInput {...p} scale={4} value={draft.ipiPct} onChange={(v) => set({ ipiPct: v })} />}</Field>
-        <Field label="Observação (opcional)" error={errors.notes}>
+        <Field label="Frete" size="sm" error={errors.freight}>{(p) => <MoneyInput {...p} value={draft.freight} onChange={(v) => set({ freight: v })} />}</Field>
+        <Field label="IPI" size="sm" error={errors.ipiPct} hint="Percentual sobre o subtotal dos itens.">{(p) => <PercentInput {...p} scale={4} value={draft.ipiPct} onChange={(v) => set({ ipiPct: v })} />}</Field>
+        <Field label="Observação (opcional)" size="full" error={errors.notes}>
           {(p) => <textarea {...p} value={draft.notes} maxLength={500} rows={2} onChange={(e) => set({ notes: e.target.value })} className={inputClass} />}
         </Field>
       </FormSection>
@@ -286,11 +292,12 @@ export function PurchaseOrderForm({ initial, options: known, reapproval, fromReq
           {failure.paymentOrderId ? <button type="button" onClick={() => void navigate({ to: '/app/financeiro/ordens-de-pagamento/$id', params: { id: failure.paymentOrderId! } } as never)} className="text-sm font-semibold text-primary underline">Ver OP</button> : null}
         </div>
       ) : null}
-      <div className="flex flex-wrap justify-end gap-2">
+      <FormActions>
         <button type="button" onClick={onBack} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</button>
         {saveButton}
-      </div>
+      </FormActions>
       <p className="sr-only" aria-live="polite">{draft.expectedDate && draft.expectedDate < todayIso() ? 'A previsão de entrega já passou.' : ''}</p>
     </div>
+    </FormLayout>
   )
 }

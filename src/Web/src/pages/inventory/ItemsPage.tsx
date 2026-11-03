@@ -42,14 +42,14 @@ export function ItemsPage() {
 
   return (
     <>
-      <PageHeading title="Estoque: Itens">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Matérias-primas, componentes, produtos e serviços.</p>
-          <Can perm="inventory.create">
-            <Link to="/app/estoque/itens/novo" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo item</Link>
-          </Can>
-        </div>
-      </PageHeading>
+      <PageHeading title="Estoque: Itens" description="Matérias-primas, componentes, produtos e serviços."
+        actions={
+          <>
+            <Can perm="inventory.create">
+              <Link to="/app/estoque/itens/novo" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo item</Link>
+            </Can>
+          </>
+        } />
       <DataTable
         label="Itens"
         columns={columns}

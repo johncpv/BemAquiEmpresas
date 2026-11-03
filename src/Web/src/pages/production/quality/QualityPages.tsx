@@ -6,6 +6,7 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime } from '@/lib/format'
 import { useProductionLive } from '@/pages/production/kanban/useBoardLive'
+import { FormLayout } from '@/components/layout/form-layout'
 import { PageHeading } from '@/shell/PageHeading'
 import { QualityInspection } from './QualityInspection'
 import { QUALITY_DICAS, refreshQuality } from './quality'
@@ -88,7 +89,7 @@ export function QualityStepPage() {
   return (
     <>
       <PageHeading title="Produção: Inspeção de qualidade" />
-      <div className="max-w-3xl"><QualityInspection stepId={stepId} queue="/app/producao/qualidade" /></div>
+      <FormLayout><QualityInspection stepId={stepId} queue="/app/producao/qualidade" /></FormLayout>
     </>
   )
 }

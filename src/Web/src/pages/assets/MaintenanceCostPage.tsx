@@ -39,9 +39,7 @@ export function MaintenanceCostPage() {
   const setFilter = (patch: Filters) => { setCell(null); void navigate({ to: '/app/patrimonio/custo', search: { ...search, ...patch } as never, replace: true }) }
 
   const heading = (
-    <PageHeading title="Patrimônio: Custo de manutenção">
-      <p className="mt-1 text-muted-foreground">Quanto cada máquina custa em manutenção, por mês, por bem e por centro de trabalho.</p>
-    </PageHeading>
+    <PageHeading title="Patrimônio: Custo de manutenção" description="Quanto cada máquina custa em manutenção, por mês, por bem e por centro de trabalho." />
   )
   if (!canEdit) {
     return (

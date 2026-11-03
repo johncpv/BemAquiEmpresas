@@ -31,12 +31,8 @@ export function FabricationOrdersPage() {
   const toggle = () => void navigate({ to: '/app/producao/os', search: pending ? {} : { semOs: 1 } } as never)
   return (
     <>
-      <PageHeading title="Produção: OS de fabricação">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Cada equipamento vendido vira uma OS com o roteiro do produto. Ajuste as etapas antes de começar.</p>
-          <button type="button" aria-pressed={pending} onClick={toggle} className={pending ? primary : button}>Itens de projeto sem OS</button>
-        </div>
-      </PageHeading>
+      <PageHeading title="Produção: OS de fabricação" description="Cada equipamento vendido vira uma OS com o roteiro do produto. Ajuste as etapas antes de começar."
+        actions={<button type="button" aria-pressed={pending} onClick={toggle} className={pending ? primary : button}>Itens de projeto sem OS</button>} />
       {pending ? <PendingItems /> : <OrdersTable />}
     </>
   )

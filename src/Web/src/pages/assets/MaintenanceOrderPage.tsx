@@ -25,6 +25,7 @@ import { MAINTENANCE_DICAS, missingText, ORDER_STATUS_LABELS, ORDER_STATUS_TONES
 import { COST_DICAS, formatHours } from './maintenance-cost'
 import { useOrderActions } from './maintenance-hooks'
 import { CostTab, ProtectedCost, ScheduleDialog } from './MaintenanceCost'
+import { FormLayout } from '@/components/layout/form-layout'
 
 const button = 'inline-flex min-h-11 items-center rounded-md border border-border px-3 py-2 text-sm font-semibold'
 const primary = 'inline-flex min-h-11 items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60'
@@ -69,29 +70,32 @@ export function MaintenanceOrderPage() {
 
   return (
     <>
-      <PageHeading title={`${o.number} · ${o.assetName}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-1.5">
+      <PageHeading title={`${o.number} · ${o.assetName}`}
+        meta={
+          <>
             <StatusChip tone={ORDER_STATUS_TONES[o.status]}>{ORDER_STATUS_LABELS[o.status]}</StatusChip>
             <span className="text-sm text-muted-foreground">{ORDER_TYPE_LABELS[o.type]}</span>
             {o.machineStopped && (open || running) ? <StatusChip tone="crit">Máquina parada</StatusChip> : null}
             <Link to="/app/patrimonio/manutencao" className="ml-2 inline-flex min-h-11 items-center text-sm font-semibold text-primary">Voltar à lista</Link>
-          </div>
-          {canEdit && (open || running) ? (
-            <div className="flex flex-wrap items-center gap-2">
-              {open ? <button type="button" onClick={() => setDialog('start')} className={primary}>Iniciar</button> : null}
-              <button type="button" onClick={() => setDialog('schedule')} className={button}>Planejar</button>
-              {running ? (
-                <span className="flex flex-col items-end">
-                  <button type="button" disabled={missing > 0} aria-describedby={missing > 0 ? 'faltam-itens' : undefined} onClick={() => setDialog('complete')} className={primary}>Concluir manutenção</button>
-                  {missingLabel ? <span id="faltam-itens" className="text-xs text-muted-foreground">{missingLabel}</span> : null}
-                </span>
-              ) : null}
-              <button type="button" onClick={() => setDialog('cancel')} className={button + ' text-crit-ink'}>Cancelar OS</button>
-            </div>
-          ) : null}
-        </div>
-      </PageHeading>
+          </>
+        }
+        actions={
+          <>
+            {canEdit && (open || running) ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {open ? <button type="button" onClick={() => setDialog('start')} className={primary}>Iniciar</button> : null}
+                <button type="button" onClick={() => setDialog('schedule')} className={button}>Planejar</button>
+                {running ? (
+                  <span className="flex flex-col items-end">
+                    <button type="button" disabled={missing > 0} aria-describedby={missing > 0 ? 'faltam-itens' : undefined} onClick={() => setDialog('complete')} className={primary}>Concluir manutenção</button>
+                    {missingLabel ? <span id="faltam-itens" className="text-xs text-muted-foreground">{missingLabel}</span> : null}
+                  </span>
+                ) : null}
+                <button type="button" onClick={() => setDialog('cancel')} className={button + ' text-crit-ink'}>Cancelar OS</button>
+              </div>
+            ) : null}
+          </>
+        } />
       {created ? <div className="mb-4"><NextSteps title="OS de manutenção aberta" onDismiss={() => setCreated(false)} steps={createdSteps} /></div> : null}
       {completed ? <div className="mb-4"><NextSteps title="Manutenção concluída" onDismiss={() => setCompleted(false)} steps={doneSteps} /></div> : null}
       <StartDialog order={o} open={dialog === 'start'} onOpenChange={(v) => setDialog(v ? 'start' : null)} onConfirm={actions.start} />
@@ -130,14 +134,16 @@ function OrderSummary({ order: o, canFinance }: { order: MaintenanceOrderDetail;
     ...(o.cancelledAt ? [['Cancelada', formatDateTime(o.cancelledAt)] as [string, ReactNode], ['Motivo', o.cancelReason ?? '—'] as [string, ReactNode]] : []),
   ]
   return (
-    <dl className="max-w-3xl divide-y divide-border rounded-md border border-border bg-card text-sm">
-      {rows.map(([label, value]) => (
-        <div key={label} className="grid gap-1 p-3 sm:grid-cols-[200px_1fr]">
-          <dt className="text-muted-foreground">{label}</dt>
-          <dd className="whitespace-pre-wrap tabular-nums">{value}</dd>
-        </div>
-      ))}
-    </dl>
+    <FormLayout>
+      <dl className="divide-y divide-border rounded-md border border-border bg-card text-sm">
+        {rows.map(([label, value]) => (
+          <div key={label} className="grid gap-1 p-3 sm:grid-cols-[200px_1fr]">
+            <dt className="text-muted-foreground">{label}</dt>
+            <dd className="whitespace-pre-wrap tabular-nums">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </FormLayout>
   )
 }
 
@@ -153,27 +159,29 @@ function ChecklistTab({ order: o, canEdit, onMark }: { order: MaintenanceOrderDe
     try { await onMark(itemId, r) } catch (e) { setError(e instanceof ApiError ? e.message : 'Não foi possível marcar o item.') }
   }
   return (
-    <div className="max-w-3xl space-y-3">
-      {o.status === 'Open' && canEdit ? <p className="text-sm text-muted-foreground">Inicie a OS para marcar o checklist.</p> : null}
-      <FormError message={error} />
-      <ol className="space-y-2">
-        {o.checklist.map((i) => (
-          <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-card p-3 text-sm">
-            <span className="flex-1"><b className="tabular-nums">{i.sequence}.</b> {i.text}
-              {i.result ? <span className="block text-xs text-muted-foreground">{RESULT_LABELS[i.result]}{i.markedByName ? ` · ${i.markedByName}` : ''}{i.markedAt ? ` · ${formatDateTime(i.markedAt)}` : ''}</span> : null}
-            </span>
-            {editable ? (
-              <span className="flex gap-2">
-                {(['Done', 'NotApplicable'] as const).map((r) => (
-                  <button key={r} type="button" aria-pressed={i.result === r} onClick={() => void mark(i.id, i.result === r ? null : r)}
-                    className={`min-h-11 rounded-md border px-3 font-semibold ${i.result === r ? 'border-primary bg-primary text-primary-foreground' : 'border-border'}`}>{RESULT_LABELS[r]}</button>
-                ))}
+    <FormLayout>
+      <div className="space-y-3">
+        {o.status === 'Open' && canEdit ? <p className="text-sm text-muted-foreground">Inicie a OS para marcar o checklist.</p> : null}
+        <FormError message={error} />
+        <ol className="space-y-2">
+          {o.checklist.map((i) => (
+            <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-card p-3 text-sm">
+              <span className="flex-1"><b className="tabular-nums">{i.sequence}.</b> {i.text}
+                {i.result ? <span className="block text-xs text-muted-foreground">{RESULT_LABELS[i.result]}{i.markedByName ? ` · ${i.markedByName}` : ''}{i.markedAt ? ` · ${formatDateTime(i.markedAt)}` : ''}</span> : null}
               </span>
-            ) : i.result ? <StatusChip tone={i.result === 'Done' ? 'ok' : 'neutral'}>{RESULT_LABELS[i.result]}</StatusChip> : <StatusChip tone="warn">Pendente</StatusChip>}
-          </li>
-        ))}
-      </ol>
-    </div>
+              {editable ? (
+                <span className="flex gap-2">
+                  {(['Done', 'NotApplicable'] as const).map((r) => (
+                    <button key={r} type="button" aria-pressed={i.result === r} onClick={() => void mark(i.id, i.result === r ? null : r)}
+                      className={`min-h-11 rounded-md border px-3 font-semibold ${i.result === r ? 'border-primary bg-primary text-primary-foreground' : 'border-border'}`}>{RESULT_LABELS[r]}</button>
+                  ))}
+                </span>
+              ) : i.result ? <StatusChip tone={i.result === 'Done' ? 'ok' : 'neutral'}>{RESULT_LABELS[i.result]}</StatusChip> : <StatusChip tone="warn">Pendente</StatusChip>}
+            </li>
+          ))}
+        </ol>
+      </div>
+    </FormLayout>
   )
 }
 
@@ -183,7 +191,7 @@ export function OrderFiles({ order: o, canEdit }: { order: MaintenanceOrderDetai
   const input = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string>()
   const [sending, setSending] = useState(false)
-  if (files.isPending) return <Skeleton className="h-48 max-w-3xl" />
+  if (files.isPending) return <Skeleton className="h-48 max-w-4xl" />
   if (files.isError || !files.data) return <ErrorState title="Não foi possível carregar os documentos da OS." onRetry={() => files.refetch()} />
   const upload = async (file: File) => {
     setSending(true)
@@ -206,26 +214,28 @@ export function OrderFiles({ order: o, canEdit }: { order: MaintenanceOrderDetai
     </>
   ) : undefined
   return (
-    <div className="max-w-3xl space-y-3">
-      <p className="text-sm text-muted-foreground">Fotos e o relatório do prestador, em PNG, JPG ou PDF até 10 MB. A localização gravada na foto é apagada.</p>
-      <FormError message={error} />
-      {files.data.files.length === 0 ? <EmptyState title="Nenhum documento anexado." description="Anexe a foto do antes e do depois ou o relatório do prestador." action={attach} /> : (
-        <>
-          <ul aria-label="Documentos da OS" className="divide-y divide-border rounded-md border border-border bg-card text-sm">
-            {files.data.files.map((f) => (
-              <li key={f.id} className="flex flex-wrap items-center justify-between gap-2 p-3">
-                <span className="flex flex-wrap items-center gap-2">
-                  <button type="button" disabled={f.scanStatus !== 1} onClick={() => void apiDownload(getDownloadMaintenanceOrderFileUrl(o.id, f.id), f.fileName)} className="min-h-11 break-all font-semibold text-primary hover:underline disabled:text-muted-foreground">{f.fileName}</button>
-                  {f.scanStatus === 1 ? null : <StatusChip tone="info">Em verificação</StatusChip>}
-                </span>
-                <span className="text-xs text-muted-foreground tabular-nums">{formatDateTime(f.createdAt)}</span>
-              </li>
-            ))}
-          </ul>
-          {attach}
-        </>
-      )}
-    </div>
+    <FormLayout>
+      <div className="space-y-3">
+        <p className="text-sm text-muted-foreground">Fotos e o relatório do prestador, em PNG, JPG ou PDF até 10 MB. A localização gravada na foto é apagada.</p>
+        <FormError message={error} />
+        {files.data.files.length === 0 ? <EmptyState title="Nenhum documento anexado." description="Anexe a foto do antes e do depois ou o relatório do prestador." action={attach} /> : (
+          <>
+            <ul aria-label="Documentos da OS" className="divide-y divide-border rounded-md border border-border bg-card text-sm">
+              {files.data.files.map((f) => (
+                <li key={f.id} className="flex flex-wrap items-center justify-between gap-2 p-3">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <button type="button" disabled={f.scanStatus !== 1} onClick={() => void apiDownload(getDownloadMaintenanceOrderFileUrl(o.id, f.id), f.fileName)} className="min-h-11 break-all font-semibold text-primary hover:underline disabled:text-muted-foreground">{f.fileName}</button>
+                    {f.scanStatus === 1 ? null : <StatusChip tone="info">Em verificação</StatusChip>}
+                  </span>
+                  <span className="text-xs text-muted-foreground tabular-nums">{formatDateTime(f.createdAt)}</span>
+                </li>
+              ))}
+            </ul>
+            {attach}
+          </>
+        )}
+      </div>
+    </FormLayout>
   )
 }
 

@@ -69,12 +69,8 @@ export function AdjustmentsPage() {
   ]
   return (
     <>
-      <PageHeading title="Estoque: Ajustes">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="inline-flex items-center text-muted-foreground">Sobras e faltas sem documento de origem, sempre com a aprovação de outra pessoa.<Dica nome="Aprovação do ajuste" texto={ADJUSTMENT_DICAS.aprovacao} /></p>
-          <Can perm="inventory.adjust">{launch(true)}</Can>
-        </div>
-      </PageHeading>
+      <PageHeading title="Estoque: Ajustes" description={<>Sobras e faltas sem documento de origem, sempre com a aprovação de outra pessoa.<Dica nome="Aprovação do ajuste" texto={ADJUSTMENT_DICAS.aprovacao} /></>}
+        actions={<Can perm="inventory.adjust">{launch(true)}</Can>} />
       {steps.length ? <div className="mb-3"><NextSteps steps={steps} onDismiss={() => setSteps([])} /></div> : null}
       <p className="mb-2 text-sm text-muted-foreground">Mostrando: {SHOW_LABELS[show] ?? SHOW_LABELS.todos}</p>
       <DataTable label="Ajustes de estoque" columns={columns} query={query} searchable={false} getRowId={(a) => a.id}

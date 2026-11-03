@@ -20,9 +20,7 @@ export function CalendarPage() {
   const query = useGetDefaultCalendar()
   return (
     <>
-      <PageHeading title="Produção: Calendário">
-        <p className="mt-2 text-muted-foreground">Dias úteis, feriados e paradas que o planejamento usa para calcular os prazos.</p>
-      </PageHeading>
+      <PageHeading title="Produção: Calendário" description="Dias úteis, feriados e paradas que o planejamento usa para calcular os prazos." />
       {query.isPending ? <Skeleton className="h-96" /> : query.isError || !query.data ? <ErrorState onRetry={() => query.refetch()} /> : <CalendarBody calendar={query.data} />}
     </>
   )

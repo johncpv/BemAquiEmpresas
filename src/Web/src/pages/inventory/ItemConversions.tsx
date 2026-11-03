@@ -11,6 +11,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { SidePanel } from '@/components/ui/side-panel'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { notifySuccess } from '@/components/ui/messages'
+import { FormLayout } from '@/components/layout/form-layout'
 
 const qty = (n: number) => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 6 }).format(n)
 const round4 = (n: number) => new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(Math.round(n * 10000) / 10000)
@@ -32,29 +33,31 @@ export function ItemConversions({ item, canEdit, adding, onAddingChange }: { ite
   if (query.isPending) return <Skeleton className="h-40" />
   if (query.isError) return <ErrorState onRetry={() => query.refetch()} />
   return (
-    <div className="max-w-3xl space-y-3">
-      {query.data.length === 0 ? (
-        <EmptyState title="Este item não tem conversões." description="Cadastre se ele é comprado ou consumido em outra unidade." action={newButton} />
-      ) : (
-        <>
-          <div className="flex justify-end">{newButton}</div>
-          <ul className="divide-y divide-border rounded-md border border-border">
-            {query.data.map((c) => (
-              <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
-                <button type="button" onClick={() => setEditing(c)} className="font-semibold tabular-nums text-primary hover:underline">1 {c.fromUnitCode} = {qty(c.factor)} {c.toUnitCode}</button>
-                <span className="text-muted-foreground tabular-nums">{preview(c, item.unitCode)}</span>
-                {canEdit ? (
-                  <ConfirmDialog verb="Remover" done="Removido" destructive title={`Remover a conversão entre ${c.fromUnitCode} e ${c.toUnitCode}?`} description="Os movimentos já lançados não mudam."
-                    onConfirm={async () => { await deleteItemConversion(item.id, c.id); refresh() }}
-                    trigger={<button type="button" className="text-sm font-semibold text-crit-ink">Remover conversão<span className="sr-only"> entre {c.fromUnitCode} e {c.toUnitCode}</span></button>} />
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-      {open ? <ConversionPanel item={item} conversion={editing} canEdit={canEdit} onClose={close} onSaved={() => { refresh(); close() }} /> : null}
-    </div>
+    <FormLayout>
+      <div className="space-y-3">
+        {query.data.length === 0 ? (
+          <EmptyState title="Este item não tem conversões." description="Cadastre se ele é comprado ou consumido em outra unidade." action={newButton} />
+        ) : (
+          <>
+            <div className="flex justify-end">{newButton}</div>
+            <ul className="divide-y divide-border rounded-md border border-border">
+              {query.data.map((c) => (
+                <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
+                  <button type="button" onClick={() => setEditing(c)} className="font-semibold tabular-nums text-primary hover:underline">1 {c.fromUnitCode} = {qty(c.factor)} {c.toUnitCode}</button>
+                  <span className="text-muted-foreground tabular-nums">{preview(c, item.unitCode)}</span>
+                  {canEdit ? (
+                    <ConfirmDialog verb="Remover" done="Removido" destructive title={`Remover a conversão entre ${c.fromUnitCode} e ${c.toUnitCode}?`} description="Os movimentos já lançados não mudam."
+                      onConfirm={async () => { await deleteItemConversion(item.id, c.id); refresh() }}
+                      trigger={<button type="button" className="text-sm font-semibold text-crit-ink">Remover conversão<span className="sr-only"> entre {c.fromUnitCode} e {c.toUnitCode}</span></button>} />
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {open ? <ConversionPanel item={item} conversion={editing} canEdit={canEdit} onClose={close} onSaved={() => { refresh(); close() }} /> : null}
+      </div>
+    </FormLayout>
   )
 }
 

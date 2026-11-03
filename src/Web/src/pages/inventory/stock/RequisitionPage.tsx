@@ -63,15 +63,19 @@ export function RequisitionPage() {
   const status = REQUISITION_STATUS[r.status]
   return (
     <>
-      <PageHeading title={`${r.number} — ${REQUISITION_KIND[r.kind]}${r.orderNumber ? ` da ${r.orderNumber}` : ''}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <StatusChip tone={status.tone}>{status.label}</StatusChip>
-            {r.selfApproved || r.reversalSelfApproved ? <Tag>Autoaprovado</Tag> : null}
-            {r.overBomValue > 0 ? <span className="inline-flex items-center"><Tag>Acima da BOM: <Money value={r.overBomValue} /></Tag><Dica nome="Consumo acima da BOM" texto={REQUISITION_DICAS.consumoAcima} /></span> : null}
-            <Link to={'/app/estoque/requisicoes' as never} className="font-semibold text-primary">Voltar às requisições</Link>
-          </p>
-          <div className="flex flex-wrap gap-2">
+      <PageHeading title={`${r.number} — ${REQUISITION_KIND[r.kind]}${r.orderNumber ? ` da ${r.orderNumber}` : ''}`}
+        meta={
+          <>
+            <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <StatusChip tone={status.tone}>{status.label}</StatusChip>
+              {r.selfApproved || r.reversalSelfApproved ? <Tag>Autoaprovado</Tag> : null}
+              {r.overBomValue > 0 ? <span className="inline-flex items-center"><Tag>Acima da BOM: <Money value={r.overBomValue} /></Tag><Dica nome="Consumo acima da BOM" texto={REQUISITION_DICAS.consumoAcima} /></span> : null}
+              <Link to={'/app/estoque/requisicoes' as never} className="font-semibold text-primary">Voltar às requisições</Link>
+            </p>
+          </>
+        }
+        actions={
+          <>
             {r.canConfirm ? (
               <>
                 {button('Confirmar pedido', true, () => setConfirming(true))}
@@ -112,9 +116,8 @@ export function RequisitionPage() {
                 <textarea id="motivo-estorno" value={text} maxLength={200} rows={2} onChange={(e) => setText(e.target.value)} className={inputClass} />
               </ConfirmDialog>
             ) : null}
-          </div>
-        </div>
-      </PageHeading>
+          </>
+        } />
       {r.status === 'PendingApproval' && r.decideBlockedReason ? <p role="note" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">{r.decideBlockedReason}</p> : null}
       {r.status === 'Completed' && !r.canReverse && r.reverseBlockedReason ? <p role="note" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-sm">{r.reverseBlockedReason}</p> : null}
       {steps.length ? <div className="mb-3"><NextSteps steps={steps} onDismiss={() => setSteps([])} /></div> : null}

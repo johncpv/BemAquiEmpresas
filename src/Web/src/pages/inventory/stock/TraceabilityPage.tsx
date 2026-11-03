@@ -199,9 +199,7 @@ export function TraceabilityPage() {
 
   return (
     <>
-      <PageHeading title="Estoque: Rastreabilidade">
-        <p className="mt-2 text-muted-foreground">De qual lote e fornecedor veio cada equipamento, e em quais equipamentos e clientes cada lote foi parar.</p>
-      </PageHeading>
+      <PageHeading title="Estoque: Rastreabilidade" description="De qual lote e fornecedor veio cada equipamento, e em quais equipamentos e clientes cada lote foi parar." />
       <form role="search" onSubmit={submit} className="mb-4 flex flex-wrap items-end gap-2">
         <label className="grow text-sm font-semibold" htmlFor="trace-term">
           Série ou lote

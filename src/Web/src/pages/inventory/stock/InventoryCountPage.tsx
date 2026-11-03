@@ -93,14 +93,18 @@ export function InventoryCountPage() {
     : [{ label: 'Ver saldos do local', onSelect: () => void navigate({ to: '/app/estoque/saldos' as never, search: { local: detail.locationId } as never }) }])
   return (
     <>
-      <PageHeading title={`${c.number} — inventário de ${c.locationName}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <StatusChip tone={COUNT_STATUS[c.status].tone}>{COUNT_STATUS[c.status].label}</StatusChip>
-            <span>Aberto por {c.openedByName ?? '—'}</span>
-            <Link to={'/app/estoque/inventarios' as never} className="font-semibold text-primary">Voltar aos inventários</Link>
-          </p>
-          <div className="flex flex-wrap gap-2">
+      <PageHeading title={`${c.number} — inventário de ${c.locationName}`}
+        meta={
+          <>
+            <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <StatusChip tone={COUNT_STATUS[c.status].tone}>{COUNT_STATUS[c.status].label}</StatusChip>
+              <span>Aberto por {c.openedByName ?? '—'}</span>
+              <Link to={'/app/estoque/inventarios' as never} className="font-semibold text-primary">Voltar aos inventários</Link>
+            </p>
+          </>
+        }
+        actions={
+          <>
             {c.canCount ? <Link to={'/app/estoque/inventarios/$id/contagem' as never} params={{ id: c.id } as never} className="inline-flex min-h-[44px] items-center rounded-md border border-border px-3 py-2 text-sm font-semibold">Contar no celular</Link> : null}
             {counting && c.canManage ? <CloseDialog count={c} onDone={closed} /> : null}
             {c.canCancel ? (
@@ -115,9 +119,8 @@ export function InventoryCountPage() {
               <ConfirmDialog verb="Reabrir contagem" done="Contagem reaberta" title={`Reabrir a contagem do ${c.number}?`} description="O inventário volta a Em contagem, com as contagens de antes, e o local volta a bloquear ajustes e estornos manuais."
                 onReload={refresh} onConfirm={async () => { await reopenInventoryCount(c.id, { version: c.version }); await refresh() }} trigger={button('Reabrir contagem', true)} />
             ) : null}
-          </div>
-        </div>
-      </PageHeading>
+          </>
+        } />
       {counting ? (
         <p role="note" className="mb-3 rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">
           Inventário {c.number} em contagem neste local: ajustes e estornos manuais em {c.locationName} ficam bloqueados até fechar ou cancelar. Entradas e saídas continuam.

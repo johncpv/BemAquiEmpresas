@@ -179,19 +179,22 @@ export function RfqPage() {
 function PageHeadingBlock({ rfq, set }: { rfq: RfqDetail; set: (r: RfqDetail) => void }) {
   const items = rfq.lines.length ? `${rfq.lines[0].itemCode} ${rfq.lines[0].itemName}${rfq.lines.length > 1 ? ` e mais ${rfq.lines.length - 1}` : ''}` : '—'
   return (
-    <PageHeading title={`${rfq.number} — ${items}`}>
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-        <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <StatusChip tone={RFQ_STATUS[rfq.status].tone}>{RFQ_STATUS[rfq.status].label}</StatusChip>
-          <span>{rfq.suppliers.map((s) => s.partyName).join(', ')}</span>
-          <Link to={'/app/compras/cotacoes' as never} className="font-semibold text-primary">Voltar às cotações</Link>
-        </p>
-        <div className="flex flex-wrap items-start gap-2">
+    <PageHeading title={`${rfq.number} — ${items}`}
+      meta={
+        <>
+          <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <StatusChip tone={RFQ_STATUS[rfq.status].tone}>{RFQ_STATUS[rfq.status].label}</StatusChip>
+            <span>{rfq.suppliers.map((s) => s.partyName).join(', ')}</span>
+            <Link to={'/app/compras/cotacoes' as never} className="font-semibold text-primary">Voltar às cotações</Link>
+          </p>
+        </>
+      }
+      actions={
+        <>
           {rfq.status === 'Open' ? <RfqRequestMenu rfq={rfq} /> : null}
           <RfqComparisonPdf rfq={rfq} />
           {rfq.canCancel ? <CancelRfq rfq={rfq} set={set} /> : null}
-        </div>
-      </div>
-    </PageHeading>
+        </>
+      } />
   )
 }

@@ -4,7 +4,8 @@ import { previewGoodsReceipt, registerGoodsReceipt, useGetGoodsReceiptDefaults }
 import type { GoodsReceiptDefaults, GoodsReceiptInput, GoodsReceiptPreview } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
-import { Field } from '@/components/form/form'
+import { Field, FormActions, FormGrid, FormGridItem } from '@/components/form/form'
+import { FormLayout } from '@/components/layout/form-layout'
 import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Money } from '@/components/ui/money'
@@ -84,7 +85,7 @@ function Impact({ preview, error }: { preview: GoodsReceiptPreview | null; error
 export function NewGoodsReceiptPage() {
   const { id } = useParams({ strict: false }) as { id: string }
   const query = useGetGoodsReceiptDefaults(id)
-  if (query.isPending) return <Skeleton className="h-96 max-w-5xl" />
+  if (query.isPending) return <Skeleton className="h-96 max-w-4xl" />
   if (query.isError || !query.data) {
     const notFound = query.error instanceof ApiError && query.error.status === 404
     return <ErrorState title={notFound ? 'Pedido não encontrado.' : 'Não foi possível abrir o recebimento.'} message={notFound ? 'Ele pode ter sido aberto em outra empresa. Volte aos pedidos.' : 'Verifique a conexão e tente de novo.'} onRetry={notFound ? undefined : () => query.refetch()} />
@@ -158,22 +159,25 @@ function ReceiptForm({ defaults: d, onReload }: { defaults: GoodsReceiptDefaults
   const blocked = d.blocker
   return (
     <>
-      <PageHeading title={`Registrar recebimento — ${d.orderNumber}`}>
-        <p className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground">
-          <span>{d.partyName}{d.projectNumber ? ` · ${d.projectNumber}` : ' · Estoque geral'}</span>
-          <Link to={'/app/compras/pedidos/$id' as never} params={{ id: d.orderId } as never} className="font-semibold text-primary">Voltar ao pedido</Link>
-        </p>
-      </PageHeading>
+      <PageHeading title={`Registrar recebimento — ${d.orderNumber}`}
+        meta={
+          <>
+            <span className="text-muted-foreground">{d.partyName}{d.projectNumber ? ` · ${d.projectNumber}` : ' · Estoque geral'}</span>
+            <Link to={'/app/compras/pedidos/$id' as never} params={{ id: d.orderId } as never} className="font-semibold text-primary">Voltar ao pedido</Link>
+          </>
+        } />
       {blocked ? <p role="note" className="mb-3 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">{blocked}</p> : null}
-      <form className="max-w-5xl space-y-4" onSubmit={(e) => e.preventDefault()}>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Field label="Data de recebimento" required error={errors.receivedOn} hint="Hoje ou antes.">
+      {/* Coluna de formulário (ADR 0044): cada linha do pedido é um cartão com a grade de 12 trilhas. */}
+      <FormLayout>
+      <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+        <FormGrid>
+          <Field label="Data de recebimento" required size="sm" error={errors.receivedOn} hint="Hoje ou antes.">
             {(p) => <input {...p} type="date" max={d.today} value={receivedOn} onChange={(e) => setReceivedOn(e.target.value)} className={inputClass + ' tabular-nums'} />}
           </Field>
-          <p className="self-end text-sm text-muted-foreground sm:col-span-2">
+          <FormGridItem size="xl" className="self-end pb-2 text-sm text-muted-foreground">
             <span className="inline-flex items-center">Tolerância: {d.tolerancePct.toLocaleString('pt-BR')}%<Dica nome="Tolerância" texto={RECEIPT_DICAS.tolerancia} /></span>
-          </p>
-        </div>
+          </FormGridItem>
+        </FormGrid>
         <ul className="space-y-3" aria-label="Itens recebidos">
           {lines.map((l, i) => {
             const source = d.lines[i]
@@ -183,50 +187,57 @@ function ReceiptForm({ defaults: d, onReload }: { defaults: GoodsReceiptDefaults
                   <span><span className="font-mono">{source.itemCode}</span> {source.itemName}</span>
                   <span className="tabular-nums text-muted-foreground">{balanceLabel(source.open, source.unitCode, formatQuantity)} · preço do pedido <Money value={source.unitPrice} /></span>
                 </p>
-                <div className="mt-2 grid gap-3 sm:grid-cols-4">
-                  <Field label={`Recebido (${l.inSupplierUnit ? source.supplierUnit : source.unitCode})`} error={errors[`${i}.quantity`]}
+                <div className="mt-2">
+                <FormGrid>
+                  <Field size="sm" label={`Recebido (${l.inSupplierUnit ? source.supplierUnit : source.unitCode})`} error={errors[`${i}.quantity`]}
                     hint={l.inSupplierUnit && source.supplierFactor ? `= ${formatQuantity(stockQuantity(l))} ${source.unitCode}` : `Até ${formatQuantity(source.maxQuantity)} ${source.unitCode}`}>
                     {(p) => <input {...p} inputMode="decimal" value={l.quantity} disabled={source.open <= 0 && source.maxQuantity <= 0} onChange={(e) => set(i, { quantity: e.target.value.replace(/[^0-9,.]/g, '') })} className={inputClass + ' tabular-nums'} />}
                   </Field>
                   {source.supplierUnit ? (
-                    <label className="flex items-center gap-2 self-center text-sm">
+                    <FormGridItem size="sm" className="self-center">
+                    <label className="flex items-center gap-2 text-sm">
                       <input type="checkbox" checked={l.inSupplierUnit} onChange={(e) => set(i, { inSupplierUnit: e.target.checked })} className="size-4 accent-primary" />
                       Na unidade do fornecedor ({source.supplierUnit})
                     </label>
+                    </FormGridItem>
                   ) : null}
-                  <Field label="Lote" required={source.tracksLot} error={errors[`${i}.lotNumber`]} hint={source.tracksLot ? 'Este item controla lote.' : 'Opcional.'}>
+                  <Field label="Lote" size="sm" required={source.tracksLot} error={errors[`${i}.lotNumber`]} hint={source.tracksLot ? 'Este item controla lote.' : 'Opcional.'}>
                     {(p) => <input {...p} maxLength={60} value={l.lotNumber} onChange={(e) => set(i, { lotNumber: e.target.value })} className={inputClass} />}
                   </Field>
-                  <Field label="Validade do lote" error={errors[`${i}.lotExpiry`]} hint="Opcional.">
+                  <Field label="Validade do lote" size="sm" error={errors[`${i}.lotExpiry`]} hint="Opcional.">
                     {(p) => <input {...p} type="date" value={l.lotExpiry} disabled={!l.lotNumber.trim()} onChange={(e) => set(i, { lotExpiry: e.target.value })} className={inputClass + ' tabular-nums'} />}
                   </Field>
-                  <Field label="Local" error={errors[`${i}.locationId`]}>
+                  <Field label="Local" size="md" error={errors[`${i}.locationId`]}>
                     {(p) => (
                       <select {...p} value={l.locationId} onChange={(e) => set(i, { locationId: e.target.value })} className={inputClass}>
                         {d.locations.map((loc) => <option key={loc.id} value={loc.id}>{loc.code} — {loc.name}</option>)}
                       </select>
                     )}
                   </Field>
+                </FormGrid>
                 </div>
                 {l.locationId === d.defaultLocationId ? <p className="mt-1 text-xs text-muted-foreground"><Tag>Sugerido</Tag> local padrão do estoque</p> : null}
               </li>
             )
           })}
         </ul>
-        <div className="grid gap-3 rounded-md border border-border p-3 sm:grid-cols-3">
-          <Field label="Frete deste recebimento" error={errors.freight} hint={`Até ${freightMax.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}: só baixa.`} dica={RECEIPT_DICAS.rateio}>
+        <div className="rounded-md border border-border p-3">
+        <FormGrid>
+          <Field label="Frete deste recebimento" size="sm" error={errors.freight} hint={`Até ${freightMax.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}: só baixa.`} dica={RECEIPT_DICAS.rateio}>
             {(p) => <input {...p} inputMode="decimal" value={freight ?? toText(freightMax)} onChange={(e) => setFreight(e.target.value.replace(/[^0-9,.]/g, ''))} className={inputClass + ' tabular-nums'} />}
           </Field>
-          <Field label="IPI deste recebimento" error={errors.ipiAmount} hint={`Até ${ipiMax.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}: só baixa.`}>
+          <Field label="IPI deste recebimento" size="sm" error={errors.ipiAmount} hint={`Até ${ipiMax.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}: só baixa.`}>
             {(p) => <input {...p} inputMode="decimal" value={ipi ?? toText(ipiMax)} onChange={(e) => setIpi(e.target.value.replace(/[^0-9,.]/g, ''))} className={inputClass + ' tabular-nums'} />}
           </Field>
-          <p className="self-end text-sm tabular-nums">Itens <Money value={totals.subtotal} /> · total <Money value={Math.round((totals.subtotal + freightValue + ipiValue) * 100) / 100} className="font-semibold" /></p>
+          <FormGridItem size="lg" className="self-end pb-2 text-sm tabular-nums">Itens <Money value={totals.subtotal} /> · total <Money value={Math.round((totals.subtotal + freightValue + ipiValue) * 100) / 100} className="font-semibold" /></FormGridItem>
+        </FormGrid>
         </div>
         <Field label="Observação" hint="Opcional, até 500 caracteres.">
           {(p) => <textarea {...p} rows={2} maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass} />}
         </Field>
         {errors.lines ? <p role="alert" className="text-sm text-crit-ink">{errors.lines}</p> : null}
-        <div className="flex flex-wrap gap-2">
+        <FormActions>
+          <button type="button" onClick={() => void navigate({ to: '/app/compras/pedidos/$id', params: { id: d.orderId } } as never)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</button>
           <ConfirmDialog size="lg" verb="Registrar recebimento" done="Recebimento registrado" title={`Registrar o recebimento do ${d.orderNumber}?`}
             description="Na mesma hora: o material entra no estoque pelo custo de entrada, os títulos a pagar do recebimento nascem em aberto e o previsto do pedido cai para o saldo."
             onOpen={() => void loadPreview()} impact={<Impact preview={preview} error={previewError} />}
@@ -248,9 +259,9 @@ function ReceiptForm({ defaults: d, onReload }: { defaults: GoodsReceiptDefaults
               }
             }}
             trigger={<button type="button" disabled={!!blocked} title={blocked ?? undefined} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">Registrar recebimento</button>} />
-          <button type="button" onClick={() => void navigate({ to: '/app/compras/pedidos/$id', params: { id: d.orderId } } as never)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</button>
-        </div>
+        </FormActions>
       </form>
+      </FormLayout>
     </>
   )
 }

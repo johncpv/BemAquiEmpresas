@@ -1,6 +1,6 @@
 import { useListItemCategories, useListUnits, useListWarrantyDefaults } from '@/api/generated/bemaqui'
 import type { CategoryDetail, ItemType } from '@/api/generated/model'
-import { Field, FormSection } from '@/components/form/form'
+import { Field, FormGridItem, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { CestInput, NcmInput, QuantityInput } from '@/components/form/inputs'
 import { Dica } from '@/help/Dica'
@@ -34,9 +34,10 @@ export function ItemFields({ draft, onChange, errors, readOnly, active }: Props)
   const ncmRequired = active && !!draft.type && requiresNcm(draft.type)
 
   return (
-    <fieldset disabled={readOnly} className="space-y-4">
-      <FormSection title="Identificação">
-        <Field label="Tipo" required error={errors.type} hint="Comanda o NCM obrigatório, o lote, a série e a garantia sugeridos.">
+    <fieldset disabled={readOnly} className="space-y-5">
+      {/* Tipo 4 · Código 3 / Nome 8 · Unidade 4 / Categoria 6 (ADR 0044) */}
+      <FormSection title="Identificação" grid="form">
+        <Field label="Tipo" required size="md" error={errors.type} hint="Comanda o NCM obrigatório, o lote, a série e a garantia sugeridos.">
           {(p) => (
             <select {...p} value={draft.type} onChange={(e) => onChange(withType(draft, e.target.value as ItemType, warranties.data ?? []))} className={inputClass}>
               <option value="">Escolha</option>
@@ -44,13 +45,13 @@ export function ItemFields({ draft, onChange, errors, readOnly, active }: Props)
             </select>
           )}
         </Field>
-        <Field label="Código" required error={errors.code} hint="Digitado. Use o mesmo código do sistema antigo.">
+        <Field label="Código" required size="sm" error={errors.code} hint="Digitado. Use o mesmo código do sistema antigo.">
           {(p) => <input {...p} value={draft.code} maxLength={30} onChange={(e) => set({ code: e.target.value })} className={inputClass + ' font-mono'} />}
         </Field>
-        <Field label="Nome" required error={errors.name}>
+        <Field label="Nome" required size="xl" error={errors.name}>
           {(p) => <input {...p} value={draft.name} maxLength={150} onChange={(e) => set({ name: e.target.value })} className={inputClass} />}
         </Field>
-        <Field label="Unidade de estoque" required error={errors.unitId}>
+        <Field label="Unidade de estoque" required size="md" error={errors.unitId}>
           {(p) => (
             <select {...p} value={draft.unitId} onChange={(e) => set({ unitId: e.target.value })} className={inputClass}>
               <option value="">Escolha</option>
@@ -58,7 +59,7 @@ export function ItemFields({ draft, onChange, errors, readOnly, active }: Props)
             </select>
           )}
         </Field>
-        <Field label="Categoria" error={errors.categoryId}>
+        <Field label="Categoria" size="lg" error={errors.categoryId}>
           {(p) => (
             <select {...p} value={draft.categoryId} onChange={(e) => set({ categoryId: e.target.value })} className={inputClass}>
               <option value="">Sem categoria</option>
@@ -67,14 +68,14 @@ export function ItemFields({ draft, onChange, errors, readOnly, active }: Props)
           )}
         </Field>
       </FormSection>
-      <FormSection title="Fiscal">
-        <Field label="NCM" required={ncmRequired} error={errors.ncm} dica={DICAS.ncm}>
+      <FormSection title="Fiscal" grid="form">
+        <Field label="NCM" size="sm" required={ncmRequired} error={errors.ncm} dica={DICAS.ncm}>
           {(p) => <NcmInput {...p} value={draft.ncm} onChange={(ncm) => set({ ncm })} />}
         </Field>
-        <Field label="CEST" error={errors.cest} dica={DICAS.cest}>
+        <Field label="CEST" size="sm" error={errors.cest} dica={DICAS.cest}>
           {(p) => <CestInput {...p} value={draft.cest} onChange={(cest) => set({ cest })} />}
         </Field>
-        <Field label="Origem" dica={DICAS.origem}>
+        <Field label="Origem" size="lg" dica={DICAS.origem}>
           {(p) => (
             <select {...p} value={draft.origin} onChange={(e) => set({ origin: Number(e.target.value) })} className={inputClass}>
               {ORIGINS.map((o) => <option key={o.code} value={o.code}>{o.label}</option>)}
@@ -82,13 +83,13 @@ export function ItemFields({ draft, onChange, errors, readOnly, active }: Props)
           )}
         </Field>
       </FormSection>
-      <FormSection title="Estoque" description={service ? 'Serviço não tem estoque, lote nem série.' : undefined}>
+      <FormSection title="Estoque" description={service ? 'Serviço não tem estoque, lote nem série.' : undefined} grid="form">
         {service ? null : (
           <>
-            <Field label="Estoque mínimo" error={errors.minStock} hint="Na unidade de estoque. Abaixo dele, o sistema avisa para comprar.">
+            <Field label="Estoque mínimo" size="sm" error={errors.minStock} hint="Na unidade de estoque. Abaixo dele, o sistema avisa para comprar.">
               {(p) => <QuantityInput {...p} value={draft.minStock} onChange={(minStock) => set({ minStock })} />}
             </Field>
-            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            <FormGridItem size="lg" className="flex flex-wrap items-center gap-x-6 gap-y-2 self-end pb-2 text-sm">
               <label className="flex items-center gap-2">
                 <input type="checkbox" className="size-4" checked={draft.tracksLot} onChange={(e) => set({ tracksLot: e.target.checked, touched: { ...draft.touched, lot: true } })} />
                 Controla lote
@@ -99,10 +100,10 @@ export function ItemFields({ draft, onChange, errors, readOnly, active }: Props)
                 Controla número de série
               </label>
               <Dica nome="Controla número de série" texto={DICAS.serie} />
-            </div>
+            </FormGridItem>
           </>
         )}
-        <Field label="Garantia (meses)" error={errors.warranty} dica={DICAS.garantia}>
+        <Field label="Garantia (meses)" size="sm" error={errors.warranty} dica={DICAS.garantia}>
           {(p) => <input {...p} inputMode="numeric" maxLength={3} value={draft.warranty} placeholder="Sem garantia" onChange={(e) => set({ warranty: e.target.value.replace(/\D/g, ''), touched: { ...draft.touched, warranty: true } })} className={inputClass + ' tabular-nums'} />}
         </Field>
       </FormSection>

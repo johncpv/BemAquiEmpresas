@@ -78,9 +78,7 @@ function Received() {
 export function GoodsReceiptsPage() {
   return (
     <>
-      <PageHeading title="Compras: Recebimentos">
-        <p className="mt-2 text-muted-foreground">Dê entrada no material que chegou conferindo com o pedido: o estoque, o custo médio e o título a pagar saem juntos.</p>
-      </PageHeading>
+      <PageHeading title="Compras: Recebimentos" description="Dê entrada no material que chegou conferindo com o pedido: o estoque, o custo médio e o título a pagar saem juntos." />
       <UrlTabs label="Recebimentos" fallback="a-receber" tabs={[
         { id: 'a-receber', label: 'A receber', content: <ToReceive /> },
         { id: 'recebidos', label: 'Recebidos', content: <Received /> },

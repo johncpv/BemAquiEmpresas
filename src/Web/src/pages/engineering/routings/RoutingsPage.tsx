@@ -38,12 +38,8 @@ export function RoutingsPage() {
   const create = <Can perm="engineering.create"><Link to={'/app/engenharia/roteiros/novo' as never} className={newButton}>Novo roteiro</Link></Can>
   return (
     <>
-      <PageHeading title="Roteiros de fabricação">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">O caminho de cada produto na fábrica: etapas, centros e horas padrão.</p>
-          {create}
-        </div>
-      </PageHeading>
+      <PageHeading title="Roteiros de fabricação" description="O caminho de cada produto na fábrica: etapas, centros e horas padrão."
+        actions={create} />
       <DataTable label="Roteiros de fabricação" columns={columns} query={query} getRowId={(r) => r.id} searchPlaceholder="Buscar pelo nome ou tipo"
         filters={[
           { key: 'situacao', label: 'Situação', options: ROUTING_SITUATIONS },

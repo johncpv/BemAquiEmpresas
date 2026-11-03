@@ -65,36 +65,41 @@ export function PurchaseOrderPage() {
 
   return (
     <>
-      <PageHeading title={`${o.number} — ${o.partyName}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-          <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <StatusChip tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</StatusChip>
-            {late ? <StatusChip tone="crit">{late}</StatusChip> : null}
-            <span>{orderDestination(o.projectNumber, o.projectName)}</span>
-            {o.selfApproved ? <Tag>Autoaprovado</Tag> : null}
-            <Link to={'/app/compras/pedidos' as never} className="font-semibold text-primary">Voltar aos pedidos</Link>
-          </p>
-          <div className="flex flex-wrap items-start gap-2">
-          {/* EXP-03 CA 5 e 6: "Baixar PDF" e "Imprimir" no cabeçalho em toda situação; antes de aprovado o PDF sai com a marca Rascunho. */}
-          <span className="flex flex-col items-start gap-1">
-            <DocumentActions url={getDownloadPurchaseOrderPdfUrl(o.id)} fileName={`${o.number}.pdf`} />
-            {o.status === 'Draft' || o.status === 'PendingApproval' ? (
-              <span className="inline-flex items-center text-xs text-muted-foreground">A prévia sai com a marca Rascunho<Dica nome="Rascunho" texto={ORDER_DICAS.rascunhoPdf} /></span>
-            ) : null}
-          </span>
-          <OrderActions order={o} set={set} refresh={refresh} onSubmitted={() => { setCreatedShown(false); setSteps([]) }}
-            onDispatch={() => setSendOpen(true)}
-            onApproved={(last) => setSteps(last
-              ? [
-                ...(canEdit ? [{ label: 'Enviar ao fornecedor', onSelect: () => setSendOpen(true) }] : []),
-                ...(canFinance ? [{ label: 'Ver previsão no fluxo de caixa', onSelect: go('/app/financeiro/fluxo-de-caixa') }] : []),
-                { label: 'Próximo pedido aguardando você', onSelect: go('/app/compras/pedidos', { filtro: 'aguardando-voce' }) },
-              ]
-              : [{ label: 'Próximo pedido aguardando você', onSelect: go('/app/compras/pedidos', { filtro: 'aguardando-voce' }) }])}
-            onClosed={() => setSteps([{ label: 'Ver solicitações', onSelect: go('/app/compras/solicitacoes') }, { label: 'Ver recebimentos', onSelect: go('/app/compras/recebimentos', { aba: 'recebidos' }) }])} />
-          </div>
-        </div>
-      </PageHeading>
+      <PageHeading title={`${o.number} — ${o.partyName}`}
+        meta={
+          <>
+            <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <StatusChip tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</StatusChip>
+              {late ? <StatusChip tone="crit">{late}</StatusChip> : null}
+              <span>{orderDestination(o.projectNumber, o.projectName)}</span>
+              {o.selfApproved ? <Tag>Autoaprovado</Tag> : null}
+              <Link to={'/app/compras/pedidos' as never} className="font-semibold text-primary">Voltar aos pedidos</Link>
+            </p>
+          </>
+        }
+        actions={
+          <>
+            <div className="flex flex-wrap items-start gap-2">
+            {/* EXP-03 CA 5 e 6: "Baixar PDF" e "Imprimir" no cabeçalho em toda situação; antes de aprovado o PDF sai com a marca Rascunho. */}
+            <span className="flex flex-col items-start gap-1">
+              <DocumentActions url={getDownloadPurchaseOrderPdfUrl(o.id)} fileName={`${o.number}.pdf`} />
+              {o.status === 'Draft' || o.status === 'PendingApproval' ? (
+                <span className="inline-flex items-center text-xs text-muted-foreground">A prévia sai com a marca Rascunho<Dica nome="Rascunho" texto={ORDER_DICAS.rascunhoPdf} /></span>
+              ) : null}
+            </span>
+            <OrderActions order={o} set={set} refresh={refresh} onSubmitted={() => { setCreatedShown(false); setSteps([]) }}
+              onDispatch={() => setSendOpen(true)}
+              onApproved={(last) => setSteps(last
+                ? [
+                  ...(canEdit ? [{ label: 'Enviar ao fornecedor', onSelect: () => setSendOpen(true) }] : []),
+                  ...(canFinance ? [{ label: 'Ver previsão no fluxo de caixa', onSelect: go('/app/financeiro/fluxo-de-caixa') }] : []),
+                  { label: 'Próximo pedido aguardando você', onSelect: go('/app/compras/pedidos', { filtro: 'aguardando-voce' }) },
+                ]
+                : [{ label: 'Próximo pedido aguardando você', onSelect: go('/app/compras/pedidos', { filtro: 'aguardando-voce' }) }])}
+              onClosed={() => setSteps([{ label: 'Ver solicitações', onSelect: go('/app/compras/solicitacoes') }, { label: 'Ver recebimentos', onSelect: go('/app/compras/recebimentos', { aba: 'recebidos' }) }])} />
+            </div>
+          </>
+        } />
       {shown.length ? <div className="mb-3"><NextSteps steps={shown} onDismiss={() => { setSteps([]); setCreatedShown(false) }} /></div> : null}
       {createdShown && o.status === 'Draft' && o.canSubmit ? <p role="status" className="mb-3 text-sm">Pedido criado em rascunho. Confira e clique em <b>Enviar para aprovação</b>.</p> : null}
       {o.changedAfterSent && o.status !== 'Cancelled' ? <p role="note" className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">Alterado depois do envio: reenvie ao fornecedor.{o.canDispatch ? <button type="button" onClick={() => setSendOpen(true)} className="font-semibold underline">Reenviar</button> : null}</p> : null}

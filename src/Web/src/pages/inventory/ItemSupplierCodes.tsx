@@ -14,6 +14,7 @@ import { SidePanel } from '@/components/ui/side-panel'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { notifySuccess } from '@/components/ui/messages'
+import { FormLayout } from '@/components/layout/form-layout'
 
 const factorText = (n: number) => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 6 }).format(n)
 const searchSuppliers = async (term: string) => (await listSupplierOptions({ q: term })).map((s) => ({ id: s.id, label: s.name, hint: s.document ?? undefined }))
@@ -30,32 +31,34 @@ export function ItemSupplierCodes({ item, canEdit, adding, onAddingChange }: { i
   if (query.isPending) return <Skeleton className="h-40" />
   if (query.isError) return <ErrorState onRetry={() => query.refetch()} />
   return (
-    <div className="max-w-3xl space-y-3">
-      {query.data.length === 0 ? (
-        <EmptyState title="Nenhum código de fornecedor." description="Ele é preenchido sozinho no primeiro recebimento por nota, ou cadastre agora." action={newButton} />
-      ) : (
-        <>
-          <div className="flex justify-end">{newButton}</div>
-          <ul className="divide-y divide-border rounded-md border border-border">
-            {query.data.map((c) => (
-              <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
-                <span className="flex flex-wrap items-center gap-2">
-                  <button type="button" onClick={() => setEditing(c)} className="font-semibold text-primary hover:underline">{c.partyName}</button>
-                  {c.partyDeleted ? <StatusChip tone="neutral">Fornecedor excluído</StatusChip> : null}
-                </span>
-                <span className="tabular-nums">Código <b className="font-mono">{c.supplierCode}</b>{c.supplierUnit ? ` · 1 ${c.supplierUnit} = ${factorText(c.conversionFactor)} ${item.unitCode}` : ''}</span>
-                {canEdit ? (
-                  <ConfirmDialog verb="Remover" done="Removido" destructive title={`Remover o código ${c.supplierCode} de ${c.partyName}?`} description="A próxima nota desse fornecedor vai pedir o item de novo."
-                    onConfirm={async () => { await deleteItemSupplierCode(item.id, c.id); refresh() }}
-                    trigger={<button type="button" className="text-sm font-semibold text-crit-ink">Remover código do fornecedor<span className="sr-only"> {c.supplierCode}</span></button>} />
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-      {adding || editing ? <SupplierCodePanel item={item} code={editing} canEdit={canEdit} onClose={close} onSaved={() => { refresh(); close() }} /> : null}
-    </div>
+    <FormLayout>
+      <div className="space-y-3">
+        {query.data.length === 0 ? (
+          <EmptyState title="Nenhum código de fornecedor." description="Ele é preenchido sozinho no primeiro recebimento por nota, ou cadastre agora." action={newButton} />
+        ) : (
+          <>
+            <div className="flex justify-end">{newButton}</div>
+            <ul className="divide-y divide-border rounded-md border border-border">
+              {query.data.map((c) => (
+                <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <button type="button" onClick={() => setEditing(c)} className="font-semibold text-primary hover:underline">{c.partyName}</button>
+                    {c.partyDeleted ? <StatusChip tone="neutral">Fornecedor excluído</StatusChip> : null}
+                  </span>
+                  <span className="tabular-nums">Código <b className="font-mono">{c.supplierCode}</b>{c.supplierUnit ? ` · 1 ${c.supplierUnit} = ${factorText(c.conversionFactor)} ${item.unitCode}` : ''}</span>
+                  {canEdit ? (
+                    <ConfirmDialog verb="Remover" done="Removido" destructive title={`Remover o código ${c.supplierCode} de ${c.partyName}?`} description="A próxima nota desse fornecedor vai pedir o item de novo."
+                      onConfirm={async () => { await deleteItemSupplierCode(item.id, c.id); refresh() }}
+                      trigger={<button type="button" className="text-sm font-semibold text-crit-ink">Remover código do fornecedor<span className="sr-only"> {c.supplierCode}</span></button>} />
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {adding || editing ? <SupplierCodePanel item={item} code={editing} canEdit={canEdit} onClose={close} onSaved={() => { refresh(); close() }} /> : null}
+      </div>
+    </FormLayout>
   )
 }
 

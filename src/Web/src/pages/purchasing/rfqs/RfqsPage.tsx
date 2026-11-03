@@ -36,12 +36,8 @@ export function RfqsPage() {
   const showLabel = SHOW_OPTIONS.find((o) => o.value === show)?.label ?? 'Todas'
   return (
     <>
-      <PageHeading title="Compras: Cotações">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Peça preço a mais de um fornecedor, compare lado a lado e gere os pedidos do vencedor.</p>
-          <span className="flex flex-wrap gap-2">{typed}{quote}</span>
-        </div>
-      </PageHeading>
+      <PageHeading title="Compras: Cotações" description="Peça preço a mais de um fornecedor, compare lado a lado e gere os pedidos do vencedor."
+        actions={<>{typed}{quote}</>} />
       <p className="mb-3 text-sm text-muted-foreground">Mostrando: {showLabel}</p>
       <DataTable label="Cotações" columns={columns} query={list} getRowId={(r) => r.id} searchPlaceholder="Buscar pelo número (COT-…)"
         filters={[{ key: 'filtro', label: 'Mostrar', options: SHOW_OPTIONS }, { key: 'situacao', label: 'Situação', options: STATUS_OPTIONS }]}

@@ -66,37 +66,42 @@ export function PurchaseRequestPage() {
 
   return (
     <>
-      <PageHeading title={`${r.number} — ${ORIGIN[r.origin]}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <StatusChip tone={STATUS[r.status].tone}>{STATUS[r.status].label}</StatusChip>
-            <span className="inline-flex items-center"><Tag>{ORIGIN[r.origin]}</Tag>{r.origin === 'BomShortage' ? <Dica nome="Falta da BOM" texto={PURCHASE_DICAS.faltaBom} /> : r.origin === 'MinStock' ? <Dica nome="Estoque mínimo" texto={PURCHASE_DICAS.minimo} /> : null}</span>
-            {nearest && r.status !== 'Cancelled' ? <StatusChip tone={nearest.tone}>{nearest.label}</StatusChip> : null}
-            <Link to={'/app/compras/solicitacoes' as never} className="font-semibold text-primary">Voltar às solicitações</Link>
-          </p>
-          <span className="flex flex-wrap gap-2">
-          {canOrder && r.lines.some((l) => l.status === 'Open') ? (
-            <>
-              <button type="button" onClick={() => quote(r.lines.filter((l) => l.status === 'Open').map((l) => l.id))} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
-                Cotar estes itens
-              </button>
-              <button type="button" onClick={() => order(r.lines.filter((l) => l.status === 'Open').map((l) => l.id))} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">
-                Pedir direto ao último fornecedor
-              </button>
-            </>
-          ) : null}
-          {r.canCancel ? (
-            <ConfirmDialog destructive verb="Cancelar solicitação" done="Solicitação cancelada" title={`Cancelar a ${r.number}?`}
-              description="As linhas em aberto são canceladas. Nada muda no estoque nem no financeiro. Linha automática cancelada não volta sozinha."
-              onOpen={() => setReason('')} preconditions={[{ ok: reason.trim().length > 0, text: 'Motivo escrito.' }]}
-              onConfirm={async () => { set(await cancelPurchaseRequest(id, { reason: reason.trim(), version: r.version })) }} onReload={refresh} trigger={button('Cancelar solicitação')}>
-              <label htmlFor="motivo-sc" className="text-sm font-medium">Motivo</label>
-              <textarea id="motivo-sc" value={reason} maxLength={500} rows={3} onChange={(e) => setReason(e.target.value)} className={inputClass} />
-            </ConfirmDialog>
-          ) : null}
-          </span>
-        </div>
-      </PageHeading>
+      <PageHeading title={`${r.number} — ${ORIGIN[r.origin]}`}
+        meta={
+          <>
+            <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <StatusChip tone={STATUS[r.status].tone}>{STATUS[r.status].label}</StatusChip>
+              <span className="inline-flex items-center"><Tag>{ORIGIN[r.origin]}</Tag>{r.origin === 'BomShortage' ? <Dica nome="Falta da BOM" texto={PURCHASE_DICAS.faltaBom} /> : r.origin === 'MinStock' ? <Dica nome="Estoque mínimo" texto={PURCHASE_DICAS.minimo} /> : null}</span>
+              {nearest && r.status !== 'Cancelled' ? <StatusChip tone={nearest.tone}>{nearest.label}</StatusChip> : null}
+              <Link to={'/app/compras/solicitacoes' as never} className="font-semibold text-primary">Voltar às solicitações</Link>
+            </p>
+          </>
+        }
+        actions={
+          <>
+            <span className="flex flex-wrap gap-2">
+            {canOrder && r.lines.some((l) => l.status === 'Open') ? (
+              <>
+                <button type="button" onClick={() => quote(r.lines.filter((l) => l.status === 'Open').map((l) => l.id))} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
+                  Cotar estes itens
+                </button>
+                <button type="button" onClick={() => order(r.lines.filter((l) => l.status === 'Open').map((l) => l.id))} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">
+                  Pedir direto ao último fornecedor
+                </button>
+              </>
+            ) : null}
+            {r.canCancel ? (
+              <ConfirmDialog destructive verb="Cancelar solicitação" done="Solicitação cancelada" title={`Cancelar a ${r.number}?`}
+                description="As linhas em aberto são canceladas. Nada muda no estoque nem no financeiro. Linha automática cancelada não volta sozinha."
+                onOpen={() => setReason('')} preconditions={[{ ok: reason.trim().length > 0, text: 'Motivo escrito.' }]}
+                onConfirm={async () => { set(await cancelPurchaseRequest(id, { reason: reason.trim(), version: r.version })) }} onReload={refresh} trigger={button('Cancelar solicitação')}>
+                <label htmlFor="motivo-sc" className="text-sm font-medium">Motivo</label>
+                <textarea id="motivo-sc" value={reason} maxLength={500} rows={3} onChange={(e) => setReason(e.target.value)} className={inputClass} />
+              </ConfirmDialog>
+            ) : null}
+            </span>
+          </>
+        } />
       {steps.length ? <div className="mb-3"><NextSteps steps={steps} onDismiss={() => setSteps([])} /></div> : null}
       {warning ? <p role="status" className="mb-3 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">{warning}</p> : null}
       <FactsBar label="Fatos da solicitação" facts={[

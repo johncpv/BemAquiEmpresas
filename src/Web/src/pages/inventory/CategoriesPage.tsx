@@ -25,12 +25,8 @@ export function CategoriesPage() {
 
   return (
     <>
-      <PageHeading title="Estoque: Categorias">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Agrupe os itens para achar e analisar mais rápido, como Chapas › Aço carbono.</p>
-          {newButton}
-        </div>
-      </PageHeading>
+      <PageHeading title="Estoque: Categorias" description="Agrupe os itens para achar e analisar mais rápido, como Chapas › Aço carbono."
+        actions={newButton} />
       {query.isPending ? <Skeleton className="h-64" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : query.data.length === 0 ? (
         <EmptyState title="Nenhuma categoria cadastrada." description="As categorias são opcionais e podem ter subcategorias." action={newButton} />
       ) : (

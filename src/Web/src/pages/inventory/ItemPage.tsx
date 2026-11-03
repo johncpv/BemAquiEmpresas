@@ -56,16 +56,18 @@ export function ItemPage() {
 
   return (
     <>
-      <PageHeading title={`${item.code} — ${item.name}`}>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-1.5">
+      <PageHeading title={`${item.code} — ${item.name}`}
+        meta={
+          <>
             <StatusChip tone={item.isActive ? 'ok' : 'neutral'}>{item.isActive ? 'Ativo' : 'Inativo'}</StatusChip>
             <Tag>{TYPE_LABELS[item.type]}</Tag>
             <ImportedTag source={item.importSource} />
             <span className="text-sm text-muted-foreground">Custo médio: <Money value={item.averageCost} /></span>
             <Link to="/app/estoque/itens" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
-          </div>
-          <div className="flex flex-wrap gap-2">
+          </>
+        }
+        actions={
+          <>
             <Can perm="inventory.create">
               <button type="button" onClick={duplicate} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Duplicar item</button>
             </Can>
@@ -84,9 +86,8 @@ export function ItemPage() {
                 recovery={item.isActive ? { verb: 'Inativar', done: 'Item inativado', when: (code) => code === 'item_in_use', onSelect: () => setActive(false) } : undefined}
                 trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold text-crit-ink">Excluir item</button>} />
             </Can>
-          </div>
-        </div>
-      </PageHeading>
+          </>
+        } />
       <LastPurchase itemId={item.id} />
       {steps && canEdit ? (
         <div className="mb-4">

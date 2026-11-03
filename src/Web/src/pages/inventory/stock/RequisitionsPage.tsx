@@ -65,9 +65,7 @@ export function RequisitionsPage() {
   ]
   return (
     <>
-      <PageHeading title="Estoque: Requisições">
-        <p className="mt-2 inline-flex items-center text-muted-foreground">Material baixado para as OS, pedidos dos operadores e devoluções.<Dica nome="Consumo acima da BOM" texto={REQUISITION_DICAS.consumoAcima} /></p>
-      </PageHeading>
+      <PageHeading title="Estoque: Requisições" description={<>Material baixado para as OS, pedidos dos operadores e devoluções.<Dica nome="Consumo acima da BOM" texto={REQUISITION_DICAS.consumoAcima} /></>} />
       <ToPick />
       <p className="mb-2 text-sm text-muted-foreground">Mostrando: {SHOW_LABELS[show] ?? SHOW_LABELS.todos}</p>
       <DataTable label="Requisições de material" columns={columns} query={query} searchable={false} getRowId={(r) => r.id}

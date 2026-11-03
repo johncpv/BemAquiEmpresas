@@ -5,8 +5,9 @@ import { createShipment, getListReadyToShipQueryKey, getListShipmentsQueryKey, u
 import type { ReadyToShipLine, ShipmentForm } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
-import { FormError } from '@/components/form/form'
+import { FormActions, FormError, FormGridItem, FormSection } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
+import { FormLayout } from '@/components/layout/form-layout'
 import { notifySuccess } from '@/components/ui/messages'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { Tag } from '@/components/ui/tag'
@@ -86,30 +87,35 @@ function ShipmentEditor({ form }: { form: ShipmentForm }) {
 
   return (
     <>
-      <PageHeading title={`Novo romaneio — ${form.projectNumber}`}>
-        <p className="mt-1 flex items-center text-sm text-muted-foreground">{form.partyName} · {form.projectName}<Dica nome="Romaneio" texto={SHIPMENT_DICAS.romaneio} /></p>
-      </PageHeading>
-      <div className="space-y-4">
+      <PageHeading title={`Novo romaneio — ${form.projectNumber}`}
+        meta={<span className="flex items-center text-sm text-muted-foreground">{form.partyName} · {form.projectName}<Dica nome="Romaneio" texto={SHIPMENT_DICAS.romaneio} /></span>} />
+      {/* Padrão de layout (ADR 0044): coluna de 896 px à esquerda e grade de 12 trilhas na entrega. */}
+      <FormLayout>
+      <div className="space-y-5">
         <FormError message={error} />
-        <fieldset className="grid gap-4 rounded-md border border-border bg-card p-4 sm:grid-cols-2">
-          <legend className="px-1 text-sm font-semibold">Entrega e transporte</legend>
-          <label className="space-y-1 text-sm font-medium sm:col-span-2">Endereço de entrega
-            <textarea rows={2} maxLength={500} value={address} onChange={(e) => setAddress(e.target.value)} className={inputClass} />
-            <span className="block text-xs font-normal text-muted-foreground">O da obra do projeto, já preenchido. Edite se a entrega for em outro lugar.</span>
-          </label>
-          <label className="space-y-1 text-sm font-medium">
-            <span className="flex items-center gap-2">Transportadora (opcional){carrier && carrier === form.suggestedCarrierId ? <Tag>Sugerido</Tag> : null}</span>
-            <select value={carrier} onChange={(e) => setCarrier(e.target.value)} className={inputClass}>
-              <option value="">Sem transportadora</option>
-              {form.carriers.map((c) => <option key={c.id} value={c.id}>{c.name}{c.suggested ? ' (última usada com o cliente)' : ''}</option>)}
-            </select>
-          </label>
-          <label className="space-y-1 text-sm font-medium">Data prevista<input type="date" value={planned} onChange={(e) => setPlanned(e.target.value)} className={inputClass} /></label>
-          <label className="space-y-1 text-sm font-medium">Placa (opcional)<input value={plate} maxLength={10} onChange={(e) => setPlate(e.target.value)} className={`${inputClass} uppercase`} /></label>
-          <label className="space-y-1 text-sm font-medium">Motorista (opcional)<input value={driver} maxLength={120} onChange={(e) => setDriver(e.target.value)} className={inputClass} /></label>
-          <label className="space-y-1 text-sm font-medium">Volumes (opcional)<input inputMode="numeric" value={volumes} onChange={(e) => setVolumes(e.target.value.replace(/\D/g, ''))} className={`${inputClass} tabular-nums`} /></label>
-          <label className="space-y-1 text-sm font-medium">Peso bruto em kg (opcional)<input inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value)} className={`${inputClass} tabular-nums`} /></label>
-        </fieldset>
+        {/* Endereço 12 / Transportadora 6 · Data 3 · Placa 3 / Motorista 6 · Volumes 3 · Peso 3 */}
+        <FormSection title="Entrega e transporte" grid="form">
+          <FormGridItem>
+            <label className="block space-y-1 text-sm font-medium">Endereço de entrega
+              <textarea rows={2} maxLength={500} value={address} onChange={(e) => setAddress(e.target.value)} className={inputClass} />
+              <span className="block text-xs font-normal text-muted-foreground">O da obra do projeto, já preenchido. Edite se a entrega for em outro lugar.</span>
+            </label>
+          </FormGridItem>
+          <FormGridItem size="lg">
+            <label className="block space-y-1 text-sm font-medium">
+              <span className="flex items-center gap-2">Transportadora (opcional){carrier && carrier === form.suggestedCarrierId ? <Tag>Sugerido</Tag> : null}</span>
+              <select value={carrier} onChange={(e) => setCarrier(e.target.value)} className={inputClass}>
+                <option value="">Sem transportadora</option>
+                {form.carriers.map((c) => <option key={c.id} value={c.id}>{c.name}{c.suggested ? ' (última usada com o cliente)' : ''}</option>)}
+              </select>
+            </label>
+          </FormGridItem>
+          <FormGridItem size="sm"><label className="block space-y-1 text-sm font-medium">Data prevista<input type="date" value={planned} onChange={(e) => setPlanned(e.target.value)} className={inputClass} /></label></FormGridItem>
+          <FormGridItem size="sm"><label className="block space-y-1 text-sm font-medium">Placa (opcional)<input value={plate} maxLength={10} onChange={(e) => setPlate(e.target.value)} className={`${inputClass} uppercase`} /></label></FormGridItem>
+          <FormGridItem size="lg"><label className="block space-y-1 text-sm font-medium">Motorista (opcional)<input value={driver} maxLength={120} onChange={(e) => setDriver(e.target.value)} className={inputClass} /></label></FormGridItem>
+          <FormGridItem size="sm"><label className="block space-y-1 text-sm font-medium">Volumes (opcional)<input inputMode="numeric" value={volumes} onChange={(e) => setVolumes(e.target.value.replace(/\D/g, ''))} className={`${inputClass} tabular-nums`} /></label></FormGridItem>
+          <FormGridItem size="sm"><label className="block space-y-1 text-sm font-medium">Peso bruto em kg (opcional)<input inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value)} className={`${inputClass} tabular-nums`} /></label></FormGridItem>
+        </FormSection>
 
         <section aria-labelledby="itens-romaneio" className="space-y-2">
           <h2 id="itens-romaneio" className="text-base font-semibold">Itens</h2>
@@ -124,11 +130,12 @@ function ShipmentEditor({ form }: { form: ShipmentForm }) {
         </section>
 
         {problems.length > 0 ? <ul className="list-disc pl-5 text-sm text-muted-foreground">{problems.map((p) => <li key={p}>{p}</li>)}</ul> : null}
-        <div className="flex flex-wrap gap-2">
-          <button type="button" className={primary} disabled={busy || problems.length > 0} onClick={() => void save()}>{busy ? 'Salvando…' : 'Salvar romaneio'}</button>
+        <FormActions>
           <Link to={'/app/producao/expedicao' as never} className={secondary}>Voltar</Link>
-        </div>
+          <button type="button" className={primary} disabled={busy || problems.length > 0} onClick={() => void save()}>{busy ? 'Salvando…' : 'Salvar romaneio'}</button>
+        </FormActions>
       </div>
+      </FormLayout>
     </>
   )
 }

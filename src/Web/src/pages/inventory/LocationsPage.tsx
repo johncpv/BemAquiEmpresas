@@ -34,14 +34,14 @@ export function LocationsPage() {
 
   return (
     <>
-      <PageHeading title="Estoque: Locais">
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Onde o material fica guardado.</p>
-          <Can perm="inventory.create">
-            <button type="button" onClick={() => setEditing({ location: null })} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo local</button>
-          </Can>
-        </div>
-      </PageHeading>
+      <PageHeading title="Estoque: Locais" description="Onde o material fica guardado."
+        actions={
+          <>
+            <Can perm="inventory.create">
+              <button type="button" onClick={() => setEditing({ location: null })} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Novo local</button>
+            </Can>
+          </>
+        } />
       <DataTable label="Locais de estoque" columns={columns} query={query} getRowId={(l) => l.id} inactiveFilter searchPlaceholder="Buscar pelo código ou nome"
         empty={{
           title: 'Cadastre os locais onde o material fica guardado.',

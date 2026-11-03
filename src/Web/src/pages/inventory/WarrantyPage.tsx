@@ -22,9 +22,7 @@ export function WarrantyPage() {
   const [editing, setEditing] = useState<WarrantyDefaultDetail | null>(null)
   return (
     <>
-      <PageHeading title="Estoque: Garantia padrão">
-        <p className="mt-2 text-muted-foreground">Os meses de garantia que cada tipo de item novo já traz. Dá para trocar no item.</p>
-      </PageHeading>
+      <PageHeading title="Estoque: Garantia padrão" description="Os meses de garantia que cada tipo de item novo já traz. Dá para trocar no item." />
       {query.isPending ? <Skeleton className="h-64" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : (
         <div className="overflow-x-auto rounded-md border border-border">
           <table className="w-full text-sm">

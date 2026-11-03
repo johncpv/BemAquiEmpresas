@@ -6,7 +6,8 @@ import type { PurchaseItemOption, RfqDefaults } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { Combobox, type ComboOption } from '@/components/form/combobox'
-import { Field, FormError, FormSection } from '@/components/form/form'
+import { Field, FormActions, FormError, FormGrid, FormSection } from '@/components/form/form'
+import { FormLayout } from '@/components/layout/form-layout'
 import { inputClass } from '@/components/form/form-utils'
 import { QuantityInput } from '@/components/form/inputs'
 import { RowsEditor } from '@/components/form/rows-editor'
@@ -78,9 +79,10 @@ function RfqForm({ defaults, requestLineIds }: { defaults: RfqDefaults; requestL
   }
 
   return (
-    <div className="max-w-5xl space-y-6">
-      <FormSection title="Itens" description={fromRequests ? 'As quantidades das solicitações somadas por item. Cada linha fica ligada às solicitações de origem.' : 'Compra pontual, sem solicitação: digite os itens e as quantidades.'}>
-        <div className="sm:col-span-2">
+    <FormLayout>
+    <div className="space-y-5">
+      <FormSection title="Itens" description={fromRequests ? 'As quantidades das solicitações somadas por item. Cada linha fica ligada às solicitações de origem.' : 'Compra pontual, sem solicitação: digite os itens e as quantidades.'} grid="none">
+        <div>
           {fromRequests ? (
             <ul aria-label="Itens da cotação" className="divide-y divide-border rounded-md border border-border bg-card">
               {defaults.lines.map((l) => (
@@ -128,8 +130,8 @@ function RfqForm({ defaults, requestLineIds }: { defaults: RfqDefaults; requestL
         </div>
       </FormSection>
 
-      <FormSection title="Fornecedores" description="Quem vai receber o pedido de preço. Você liga ou manda e-mail do seu jeito e registra a resposta aqui.">
-        <div className="space-y-2 sm:col-span-2">
+      <FormSection title="Fornecedores" description="Quem vai receber o pedido de preço. Você liga ou manda e-mail do seu jeito e registra a resposta aqui." grid="none">
+        <div className="space-y-2">
           {suppliers.length ? (
             <ul aria-label="Fornecedores da cotação" className="flex flex-wrap gap-2">
               {suppliers.map((s) => (
@@ -143,25 +145,28 @@ function RfqForm({ defaults, requestLineIds }: { defaults: RfqDefaults; requestL
               ))}
             </ul>
           ) : <p className="text-sm text-muted-foreground">Nenhum fornecedor ainda. Inclua pelo menos um.</p>}
-          <Field label="Incluir fornecedor" error={errors.supplierIds}>
+          <FormGrid>
+          <Field label="Incluir fornecedor" size="lg" error={errors.supplierIds}>
             {(p) => <Combobox {...p} queryKey={['rfq-suppliers', suppliers.length]} search={searchSuppliers} value={null} selected={null} placeholder="Nome ou documento"
               onChange={(o) => { if (o) setSuppliers((list) => (list.some((x) => x.id === o.id) ? list : [...list, { id: o.id, label: o.label, suggested: false }])) }} />}
           </Field>
+          </FormGrid>
         </div>
       </FormSection>
 
-      <FormSection title="Observação" description="Opcional: o que o fornecedor precisa saber (prazo desejado, local de entrega).">
-        <Field label="Observação (opcional)" error={errors.notes}>
+      <FormSection title="Observação" description="Opcional: o que o fornecedor precisa saber (prazo desejado, local de entrega)." grid="form">
+        <Field label="Observação (opcional)" size="full" error={errors.notes}>
           {(p) => <textarea {...p} value={notes} maxLength={500} rows={2} onChange={(e) => setNotes(e.target.value)} className={inputClass} />}
         </Field>
       </FormSection>
 
       <FormError message={failure} />
-      <div className="flex flex-wrap justify-end gap-2">
+      <FormActions sticky>
         <button type="button" onClick={() => void navigate({ to: fromRequests ? '/app/compras/solicitacoes' : '/app/compras/cotacoes' } as never)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Voltar</button>
         <button type="button" disabled={sending} onClick={() => void save()} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">{sending ? 'Criando…' : 'Criar cotação'}</button>
-      </div>
+      </FormActions>
     </div>
+    </FormLayout>
   )
 }
 
@@ -175,10 +180,8 @@ export function NewRfqPage() {
   const defaults = useGetRfqDefaults({ requestLineIds: requestLineIds.length ? requestLineIds : undefined })
   return (
     <>
-      <PageHeading title="Nova cotação">
-        <p className="mt-2 text-muted-foreground">Escolha quem vai cotar. Depois registre as respostas, compare e gere os pedidos do vencedor.</p>
-      </PageHeading>
-      {defaults.isPending ? <Skeleton className="h-96 max-w-5xl" /> : defaults.isError || !defaults.data
+      <PageHeading title="Nova cotação" description="Escolha quem vai cotar. Depois registre as respostas, compare e gere os pedidos do vencedor." />
+      {defaults.isPending ? <Skeleton className="h-96 max-w-4xl" /> : defaults.isError || !defaults.data
         ? <ErrorState title="Não foi possível abrir a cotação." message="As solicitações escolhidas podem já estar em cotação, ter virado pedido ou sido canceladas. Volte às solicitações e tente de novo." onRetry={() => defaults.refetch()} />
         : <RfqForm defaults={defaults.data} requestLineIds={requestLineIds} />}
     </>
