@@ -37,7 +37,7 @@ public sealed class PurchaseRequestDocumentService(IPurchasingDb db, PurchaseReq
     }
 
     /// <summary>Cotações (pela ligação linha da cotação × linha da SC) e pedidos (pelas linhas de SC de cada linha do pedido) das linhas.</summary>
-    private async Task<IReadOnlyList<PurchaseRequestPdfLink>> LinksAsync(IReadOnlyList<Guid> lineIds, CancellationToken ct)
+    private async Task<IReadOnlyList<PurchaseRequestPdfLink>> LinksAsync(List<Guid> lineIds, CancellationToken ct)
     {
         if (lineIds.Count == 0)
         {

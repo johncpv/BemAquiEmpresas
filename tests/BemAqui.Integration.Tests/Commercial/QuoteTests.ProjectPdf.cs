@@ -3,7 +3,6 @@ using System.Text.RegularExpressions;
 using BemAqui.BuildingBlocks.Pdf;
 using BemAqui.Commercial.Application.Documents;
 using BemAqui.Commercial.Domain;
-using BemAqui.Identity.Domain;
 using FluentAssertions;
 using UglyToad.PdfPig;
 
@@ -30,7 +29,7 @@ public partial class QuoteTests
     [Fact]
     public async Task Resumo_do_projeto_em_PDF_com_custos_e_financeiro_so_com_a_permissao()
     {
-        var (_, owner) = await ActorAsync(Group.OwnerSeedKey);
+        var (_, owner) = await ActorAsync(BemAqui.Identity.Domain.Group.OwnerSeedKey);
         var (id, quote, _) = await SentQuoteAsync(owner, canary: false);
         var (_, projectId) = await ApproveAsync(owner, id, quote, Today);
         var number = (await JsonAsync(await owner.GetAsync($"/api/v1/projects/{projectId}"))).GetProperty("number").GetString()!;
