@@ -1,8 +1,9 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useListAssetWorkCenterChoices, useListMaintenanceOrders } from '@/api/generated/bemaqui'
+import { getExportMaintenanceOrdersUrl, useListAssetWorkCenterChoices, useListMaintenanceOrders } from '@/api/generated/bemaqui'
 import type { MaintenanceDuePlan } from '@/api/generated/model'
 import { inputClass } from '@/components/form/form-utils'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { formatDate } from '@/lib/format'
@@ -25,17 +26,24 @@ export function MaintenancePage() {
   const navigate = useNavigate()
   const [opening, setOpening] = useState(false)
   const centers = useListAssetWorkCenterChoices()
-  const query = useListMaintenanceOrders({
+  const filters = {
     assetId: search.bem || undefined, workCenterId: search.centro || undefined, type: isOrderType(search.tipo) ? search.tipo : undefined,
     status: isOrderStatus(search.situacao) ? search.situacao : undefined,
-  })
+  }
+  const query = useListMaintenanceOrders(filters)
   const setFilter = (patch: Filters) => void navigate({ to: '/app/patrimonio/manutencao', search: { ...search, ...patch } as never, replace: true })
   const filtered = !!(search.bem || search.centro || search.tipo || search.situacao)
 
   return (
     <>
       <PageHeading title="Patrimônio: Manutenção" description="O que está parado, o que está em andamento e as preventivas que vencem."
-        actions={<Can perm="assets.create"><button type="button" onClick={() => setOpening(true)} className={primary}>Nova OS de manutenção</button></Can>} />
+        actions={
+          <>
+            <ExportMenu formats={['xlsx']} fileBase="manutencao" empty={!!query.data && query.data.orders.length === 0 && query.data.duePlans.length === 0}
+              url={(format) => getExportMaintenanceOrdersUrl({ ...filters, format })} />
+            <Can perm="assets.create"><button type="button" onClick={() => setOpening(true)} className={primary}>Nova OS de manutenção</button></Can>
+          </>
+        } />
       <div role="group" aria-label="Filtros" className="mb-4 grid gap-2 sm:grid-cols-4">
         <label className="space-y-1 text-sm">
           <span className="font-medium">Centro</span>

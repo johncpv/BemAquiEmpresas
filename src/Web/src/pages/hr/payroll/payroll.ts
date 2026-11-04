@@ -141,3 +141,12 @@ export function parseHours(text: string): number | null {
   const minutes = Math.round(Number(t.replace(',', '.')) * 60)
   return minutes > 0 ? minutes : null
 }
+
+/** Tipo no nome do arquivo exportado, como o servidor (EXP-05): "folha-2026-10-mensal-…xlsx", sem nome nem CPF. */
+export function payrollTypeSlug(type: string) {
+  const slugs: Record<string, string> = { Monthly: 'mensal', Advance: 'adiantamento', Vacation: 'ferias', Thirteenth1: '13-1a-parcela', Thirteenth2: '13-2a-parcela', Termination: 'rescisao' }
+  return slugs[type] ?? 'mensal'
+}
+
+/** Nome do PDF da prévia do 13º, como o servidor: "previa-13-2026-1a-parcela.pdf". */
+export const thirteenthPreviewFile = (year: number, type: string) => `previa-13-${year}-${type === 'Thirteenth2' ? 2 : 1}a-parcela.pdf`

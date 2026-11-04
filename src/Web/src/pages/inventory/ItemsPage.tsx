@@ -1,10 +1,11 @@
 import { Link } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Barcode, Layers } from 'lucide-react'
-import { useListItemCategories, useListItems } from '@/api/generated/bemaqui'
+import { getExportItemsUrl, useListItemCategories, useListItems } from '@/api/generated/bemaqui'
 import type { ItemListItem, ItemType } from '@/api/generated/model'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
@@ -18,7 +19,8 @@ export function ItemsPage() {
   const { tipo, categoria, inativos } = useTableFilters(['tipo', 'categoria'])
   const categories = useListItemCategories()
   const type = TYPE_OPTIONS.some((o) => o.value === tipo) ? (tipo as ItemType) : undefined
-  const query = useListItems({ q: search.q, type, categoryId: categoria || undefined, includeInactive: inativos === 'true', page: search.page, pageSize: search.pageSize, sort: search.sort })
+  const filters = { q: search.q, type, categoryId: categoria || undefined, includeInactive: inativos === 'true', sort: search.sort }
+  const query = useListItems({ ...filters, page: search.page, pageSize: search.pageSize })
 
   const columns: ColumnDef<ItemListItem>[] = [
     { id: 'code', header: 'Código', meta: { sortField: 'code' }, cell: ({ row: { original: i } }) => <span className="font-mono">{i.code}</span> },
@@ -57,6 +59,7 @@ export function ItemsPage() {
         getRowId={(i) => i.id}
         rowHref={(i) => `/app/estoque/itens/${i.id}`}
         searchPlaceholder="Buscar pelo código ou nome"
+        toolbar={<ExportMenu formats={['xlsx']} fileBase="itens" empty={query.data?.total === 0} url={(format) => getExportItemsUrl({ ...filters, format })} />}
         filters={[
           { key: 'tipo', label: 'Tipo', options: TYPE_OPTIONS },
           { key: 'categoria', label: 'Categoria', options: (categories.data ?? []).map((c) => ({ value: c.id, label: c.name })) },

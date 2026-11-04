@@ -53,7 +53,7 @@ public sealed class TerminationService(
         }
         else if (item is { Status: TerminationStatus.Calculated, PayrollRunId: { } runId })
         {
-            next.Add(item.IsSimulation ? new PayrollNextStep("Gerar termo para conferência", TermLink(item.Id)) : new PayrollNextStep("Fechar folha de rescisão", PayrollClosingService.RunLink(runId, "fechamento")));
+            next.Add(item.IsSimulation ? new PayrollNextStep("Baixar termo para conferência", TermLink(item.Id)) : new PayrollNextStep("Fechar folha de rescisão", PayrollClosingService.RunLink(runId, "fechamento")));
         }
 
         return new TerminationView(employee.Id, employee.Name, terminated, employee.TerminationDate, item,
@@ -179,14 +179,14 @@ public sealed class TerminationService(
         var summary = (await runs.GetAsync(run.Id, cancellationToken)).Value;
         var item = await ItemAsync(termination, cancellationToken);
         List<PayrollNextStep> next = run.IsSimulation
-            ? [new("Gerar termo para conferência", TermLink(termination.Id)), new("Ver folha de rescisão", PayrollClosingService.RunLink(run.Id, "holerites"))]
-            : [new("Fechar folha de rescisão", PayrollClosingService.RunLink(run.Id, "fechamento")), new("Gerar termo para conferência", TermLink(termination.Id))];
+            ? [new("Baixar termo para conferência", TermLink(termination.Id)), new("Ver folha de rescisão", PayrollClosingService.RunLink(run.Id, "holerites"))]
+            : [new("Fechar folha de rescisão", PayrollClosingService.RunLink(run.Id, "fechamento")), new("Baixar termo para conferência", TermLink(termination.Id))];
         return new TerminationCalculationResult(item, summary, payslip.Id, View(r, result, inputs),
             run.IsSimulation ? "Rescisão calculada em simulação: a rescisão oficial continua a lançada." : "Rescisão calculada.", next);
     }
 
     /// <summary>
-    /// "Gerar termo para conferência" (CA 6 e 7): o PDF pelo <c>IPdfRenderer</c> com as verbas, os descontos e o líquido da folha de rescisão,
+    /// "Baixar termo para conferência" (CA 6 e 7): o PDF pelo <c>IPdfRenderer</c> com as verbas, os descontos e o líquido da folha de rescisão,
     /// a marca de conferência interna e, antes da virada, a de simulação. Com <c>hr.view_sensitive</c>; leitura auditada.
     /// </summary>
     public async Task<Result<PayslipFile>> TermAsync(Guid terminationId, CancellationToken cancellationToken = default)
@@ -210,11 +210,11 @@ public sealed class TerminationService(
                             where e.Id == termination.EmployeeId
                             select new { e.Name, e.Registration, e.AdmissionDate, Position = pos.Name }).FirstAsync(cancellationToken);
         var fine = await FineAsync(runId, cancellationToken) ?? 0m;
-        var model = new TerminationTermModel(await documents.CompanyAsync(cancellationToken), person.Name, person.Registration, person.Position, person.AdmissionDate, termination.TerminationDate,
+        var model = new TerminationTermModel(person.Name, person.Registration, person.Position, person.AdmissionDate, termination.TerminationDate,
             TerminationPolicy.KindLabel(termination.Kind), TerminationPolicy.NoticeLabel(termination.NoticeKind), termination.NoticeDays,
             lines.Select(l => new TerminationTermLine(l.Code, l.Description, l.Reference, l.Type, l.Amount)).ToList(), payslip.Gross, payslip.Deductions, payslip.Net, payslip.FgtsAmount, fine,
-            run.PaymentDate ?? termination.TerminationDate, run.IsSimulation, BusinessTime.Today(clock));
-        var bytes = await renderer.RenderAsync(new TerminationTermPdfDocument(model), cancellationToken);
+            run.PaymentDate ?? termination.TerminationDate, BusinessTime.Today(clock));
+        var bytes = await renderer.RenderAsync(new TerminationTermPdfDocument(await documents.CompanyAsync(cancellationToken), model), cancellationToken);
         await audit.RecordReadAsync(nameof(EmployeeTermination) + ".Term", terminationId.ToString(), cancellationToken);
         return new PayslipFile(new MemoryStream(bytes), $"termo-rescisao-conferencia-{termination.TerminationDate:yyyy-MM-dd}.pdf", PayslipDocumentService.PdfContentType);
     }

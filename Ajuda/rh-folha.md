@@ -18,10 +18,14 @@ Ter a folha do mês no sistema: os proventos e descontos que a contadora calculo
 - Abra a folha para lançar ou importar os valores, informar os encargos da empresa e conferir. Na **folha calculada**, abra e clique em **Calcular** (o ponto do mês precisa estar fechado).
 - A lista marca a calculada com **calculada** e o chip **Simulação**, e a retificação com **retificação**.
 
+## Imprimir e exportar
+- **Exportar → Excel (.xlsx)**, no cabeçalho, baixa a lista das folhas: competência (MM/AAAA), tipo, modo, situação, funcionários e os totais de proventos, descontos e líquido. Sem a permissão Ver dados sensíveis, os totais saem como *** (nenhum valor por pessoa sai daqui).
+- **Prévia do 13º em PDF:** em Nova folha → 13º calculado, **Baixar PDF** ao lado dos avos gera a simulação do ano e da parcela escolhidos, sempre com a marca **Simulação**: por funcionário, matrícula, nome, avos, base, médias, adiantamento abatido e o valor da parcela, com os totais. É calculada na hora pelo mesmo motor da folha, sem gravar nada; sem as tabelas ou as rubricas do 13º, sai só com os avos e o motivo. Só com Ver dados sensíveis. O arquivo se chama previa-13-{ano}-{parcela}.pdf, sem nome nem CPF.
+
 ## Perguntas frequentes
 **Posso criar duas folhas do mesmo tipo no mesmo mês?** Não, no mesmo modo. O sistema avisa "Já existe a folha {tipo} de {mês}." Abra a que já existe. A calculada (simulação) convive com a lançada do mesmo mês, para comparar.
 
-**O que é a simulação?** Até a virada (a conferência paralela de três meses com a contadora), a folha calculada não fecha, não gera título e o holerite sai só como prévia, com a marca "Simulação: não é o holerite oficial". A folha lançada continua a oficial.
+**O que é a simulação?** Até a virada (a conferência paralela de três meses com a contadora), a folha calculada não fecha, não gera título e o holerite sai só como prévia, com a marca "Simulação" (a faixa "Simulação · não é o holerite oficial"). A folha lançada continua a oficial.
 
 **Por que não vejo os valores?** Os valores da folha são dados pessoais (LGPD). Sem a permissão "Ver dados sensíveis" do RH, a lista mostra só a competência, o tipo, a situação e o número de holerites.
 

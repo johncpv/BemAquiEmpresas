@@ -252,7 +252,7 @@ public sealed partial class ShipmentService
 
         await db.SaveChangesAsync(ct);
         var detail = (await GetAsync(shipment.Id, ct)).Value;
-        var pdf = await renderer.RenderAsync(new ShipmentPdfDocument(await PdfModelAsync(detail, ct)), ct);
+        var pdf = await renderer.RenderAsync(new ShipmentPdfDocument(await frames.CreateAsync(ct), await PdfModelAsync(detail, ct)), ct);
         var stored = await attachments.StoreGeneratedAsync(ShipmentRules.AttachmentOwner, shipment.Id, shipment.Number + ".pdf", "application/pdf", pdf, ct);
         shipment.PdfAttachmentId = stored.Id;
         events.Publish(new ShipmentDispatched(shipment.Id, shipment.ProjectId, lines.Select(l => new ShipmentDispatchedLine(

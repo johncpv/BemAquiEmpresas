@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { FileDown, Lock } from 'lucide-react'
 import { useState } from 'react'
 import {
-  closeTimesheetPeriod, generateTimesheetBatch, getDownloadTimesheetBatchUrl, getTimesheetCloseCheck, reopenTimesheetPeriod, useGetTimesheetOverview,
+  closeTimesheetPeriod, generateTimesheetBatch, getDownloadTimesheetBatchUrl, getExportTimesheetOverviewUrl, getTimesheetCloseCheck, reopenTimesheetPeriod, useGetTimesheetOverview,
 } from '@/api/generated/bemaqui'
 import type { TimesheetCloseCheck } from '@/api/generated/model'
 import { ApiError, apiDownload } from '@/api/http'
@@ -11,6 +11,7 @@ import { Field } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog, type Precondition } from '@/components/ui/confirm-dialog'
 import { DialogMessage } from '@/components/ui/dialog-message'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { notifyError, notifySuccess } from '@/components/ui/messages'
 import { NextSteps, type Step } from '@/components/ui/next-steps'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
@@ -159,6 +160,7 @@ export function TimesheetOverviewPage() {
             </span>
           ) : null}
           <span className="ml-auto flex flex-wrap gap-2">
+            {period ? <ExportMenu fileBase={`espelho-${period}`} formats={['xlsx']} empty={!data || data.rows.length === 0} url={(format) => getExportTimesheetOverviewUrl({ period, format })} /> : null}
             {data?.status === 'Closed' ? (
               <button type="button" onClick={() => void downloadAll()} disabled={batching} className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border px-3 text-sm font-semibold">
                 <FileDown aria-hidden="true" className="size-4" />{batching ? 'Gerando…' : 'Baixar espelhos em PDF'}

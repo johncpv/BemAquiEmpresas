@@ -170,3 +170,6 @@ export function outsideRange(salary: string | null, range: { salaryMin: number |
   const value = Number(salary)
   return value < range.salaryMin || value > range.salaryMax ? `Salário fora da faixa do cargo (${formatMoney(range.salaryMin)}–${formatMoney(range.salaryMax)}).` : undefined
 }
+
+/** EXP-05 (Propositivo): no menu "Exportar" de quem não vê os dados sensíveis, o aviso de que CPF e salário saem mascarados. */
+export const EMPLOYEE_EXPORT_NOTE = 'CPF e salário saem mascarados.'

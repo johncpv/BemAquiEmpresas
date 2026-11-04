@@ -15,6 +15,10 @@ Ver, num lugar só, a situação da BOM de cada OS de fabricação em aberto e d
 - O número da OS leva à aba **BOM** da OS, onde a lista de materiais é montada e liberada.
 - **Criar BOM** abre o rascunho vazio da OS. **Liberar BOM sem material** libera a BOM vazia de uma OS que usa só mão de obra, e as etapas seguintes podem começar.
 
+## Imprimir e exportar
+- Na linha da OS com BOM liberada, **Baixar PDF** gera a lista de materiais da revisão vigente, sem custo (a mesma da aba BOM da OS).
+- O rascunho e as revisões anteriores saem pela aba BOM da OS (**Revisões**), com a marca **Rascunho** ou a faixa "Revisão substituída pela {n}".
+
 ## Perguntas frequentes
 **Por que a OS aparece como "Vai parar sem BOM"?** Porque a etapa atual é depois da primeira e a OS não tem BOM liberada. A primeira etapa começa sem BOM; as seguintes, não.
 

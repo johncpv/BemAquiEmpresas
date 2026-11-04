@@ -193,7 +193,7 @@ public class VacationTests(TenancyFixture tenancy) : IClassFixture<TenancyFixtur
         // CA 5: programadas; o próximo passo é o aviso; o espelho mostra "Férias"; o evento sai pelo outbox só com ids e datas.
         var scheduled = await OkAsync(await hr.Client.SendAsync(Post($"/api/v1/hr/employees/{employee}/vacations", new { periodId, startsOn = start, days = 20, soldDays = 10, advance13th = false })), HttpStatusCode.Created);
         scheduled.GetProperty("message").GetString().Should().Be("Férias programadas.");
-        scheduled.GetProperty("nextSteps")[0].GetProperty("label").GetString().Should().Be("Gerar aviso de férias");
+        scheduled.GetProperty("nextSteps")[0].GetProperty("label").GetString().Should().Be("Baixar aviso de férias");
         var schedule = scheduled.GetProperty("schedule");
         var scheduleId = schedule.GetProperty("id").GetGuid();
         var due = DateOnly.Parse(schedule.GetProperty("paymentDueOn").GetString()!, System.Globalization.CultureInfo.InvariantCulture);

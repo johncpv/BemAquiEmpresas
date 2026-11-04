@@ -44,12 +44,12 @@ public class PurchasingRulesTests
         ]);
     }
 
-    /// <summary>CMP-03b, EXP-03 e EXP-04 (ADR 0022): só os layouts do pedido, do pedido de cotação, do mapa comparativo e do recebimento conhecem o QuestPDF no Purchasing.</summary>
+    /// <summary>CMP-03b, EXP-03 e EXP-04 (ADR 0022): só os layouts do pedido, do pedido de cotação, do mapa comparativo, do recebimento e da solicitação (EXP-05) conhecem o QuestPDF no Purchasing.</summary>
     [Fact]
     public void So_os_layouts_referenciam_QuestPDF()
     {
         PurchasingSources().Where(s => s.Text.Contains("QuestPDF", StringComparison.Ordinal)).Select(s => Path.GetFileName(s.File))
-            .Should().BeEquivalentTo("PurchaseOrderPdfDocument.cs", "RfqRequestPdfDocument.cs", "RfqComparisonPdfDocument.cs", "GoodsReceiptPdfDocument.cs");
+            .Should().BeEquivalentTo("PurchaseOrderPdfDocument.cs", "RfqRequestPdfDocument.cs", "RfqComparisonPdfDocument.cs", "GoodsReceiptPdfDocument.cs", "PurchaseRequestPdf.cs");
     }
 
     /// <summary>

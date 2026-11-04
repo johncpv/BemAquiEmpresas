@@ -1,8 +1,9 @@
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useGetDiscountsAndCancellations } from '@/api/generated/bemaqui'
+import { getExportDiscountsAndCancellationsUrl, useGetDiscountsAndCancellations } from '@/api/generated/bemaqui'
 import { Field } from '@/components/form/form'
 import { DateInput } from '@/components/form/inputs'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { Money } from '@/components/ui/money'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
@@ -21,9 +22,15 @@ export function DiscountsReportPage() {
     <>
       <PageHeading title="Descontos e cancelamentos" description="O que deixou de entrar no caixa no período, e quem decidiu."
         meta={<Link to="/app/financeiro/receber" className="text-sm font-semibold text-primary">Voltar a A receber</Link>} />
-      <div className="mb-4 grid max-w-md grid-cols-2 gap-3">
-        <Field label="De">{(p) => <DateInput {...p} value={from} onChange={setFrom} />}</Field>
-        <Field label="Até">{(p) => <DateInput {...p} value={to} onChange={setTo} />}</Field>
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div className="grid w-full max-w-md grid-cols-2 gap-3">
+          <Field label="De">{(p) => <DateInput {...p} value={from} onChange={setFrom} />}</Field>
+          <Field label="Até">{(p) => <DateInput {...p} value={to} onChange={setTo} />}</Field>
+        </div>
+        {/* EXP-05 CA 18: descontos e cancelamentos do período em Excel, com quem fez e os dois totais. */}
+        <ExportMenu formats={['xlsx']} fileBase="descontos-e-cancelamentos"
+          empty={!query.data || (query.data.discounts.length === 0 && query.data.cancellations.length === 0)}
+          url={(format) => getExportDiscountsAndCancellationsUrl({ format, from: from || undefined, to: to || undefined })} />
       </div>
       {query.isPending ? <Skeleton className="h-64" /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : (
         <div className="space-y-6">

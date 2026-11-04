@@ -29,6 +29,11 @@ Ver tudo o que a empresa tem (máquinas, ferramentas, mobiliário, veículos e T
 - Na baixa por **Venda**, informe o valor e, se quiser, o comprador (um cliente do cadastro).
 - Depois de baixar, o próximo passo **Lançar título a receber** abre o título já preenchido. Nada é gravado no Financeiro sem a sua confirmação lá.
 
+## Imprimir e exportar
+- **Exportar → Excel (.xlsx)**, na barra da lista, baixa todos os bens do filtro (não só a página): etiqueta, nome, tipo, série, local, responsável, centro e situação, com a busca, os filtros e a ordem da tela.
+- O **valor de aquisição** só entra na planilha para quem edita o patrimônio. Para os outros, a coluna nem aparece, como na lista.
+- A aba **Filtros** da planilha mostra o que estava filtrado, quem exportou e quando. Cada exportação fica registrada.
+
 ## Perguntas frequentes
 **O que é a etiqueta?** O código do bem, gerado ao salvar. Ele não muda e não é reaproveitado, nem quando o bem é excluído. É ele que vai na etiqueta com QR code.
 

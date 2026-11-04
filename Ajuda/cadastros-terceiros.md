@@ -15,6 +15,10 @@ Reúne num cadastro só os clientes, fornecedores, instaladores e transportadora
 - Clique no nome para abrir o cadastro.
 - Clique em **Novo terceiro** para cadastrar. Se o documento já existir, o sistema avisa e oferece **Adicionar papel**.
 
+## Imprimir e exportar
+- **Exportar → Excel (.xlsx)**, na barra da lista, baixa todos os terceiros do filtro: nome ou razão social, nome fantasia, pessoa (física ou jurídica), CNPJ/CPF, papéis, cidade/UF e situação, com a busca, o papel, os inativos e a ordem da tela.
+- O CPF de pessoa física sai mascarado, como na lista. Os contatos não vão para a planilha: eles ficam na ficha de cada terceiro.
+
 ## Perguntas frequentes
 **Por que o CPF aparece com asteriscos?** Por proteção de dados (LGPD): na lista e na busca o CPF aparece só em parte. Ele aparece completo dentro do cadastro.
 

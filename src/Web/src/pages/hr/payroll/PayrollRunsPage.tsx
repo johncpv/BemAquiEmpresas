@@ -1,13 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { createPayrollRun, getListPayrollRunsQueryKey, recalculatePayrollForecast, useGetPayrollSuggestedPeriod, useListPayrollEligibleEmployees, useListPayrollRuns, useGetThirteenthPreviewSensitive, useListPayrollRunTotalsSensitive } from '@/api/generated/bemaqui'
+import { createPayrollRun, getExportPayrollRunsUrl, getListPayrollRunsQueryKey, recalculatePayrollForecast, useGetPayrollSuggestedPeriod, useListPayrollEligibleEmployees, useListPayrollRuns, useGetThirteenthPreviewSensitive, useListPayrollRunTotalsSensitive } from '@/api/generated/bemaqui'
 import type { PayrollRunMode, PayrollRunSummary, PayrollRunType } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { Field, FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { notifySuccess } from '@/components/ui/messages'
 import { Money } from '@/components/ui/money'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
@@ -49,6 +50,7 @@ export function PayrollRunsPage() {
                 trigger={<button type="button" className="inline-flex min-h-11 items-center rounded-md border border-border px-3 py-2 text-sm font-semibold">Recalcular previsão</button>} />
             ) : null}
             {canForecast ? <Dica nome="Folha prevista" texto={PAYROLL_DICAS.prevista} /> : null}
+            <ExportMenu fileBase="folhas" formats={['xlsx']} empty={query.data?.length === 0} url={(format) => getExportPayrollRunsUrl({ format })} />
             {newButton}
           </>
         } />

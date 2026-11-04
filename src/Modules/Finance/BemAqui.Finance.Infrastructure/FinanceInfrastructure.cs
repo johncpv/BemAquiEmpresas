@@ -87,6 +87,9 @@ public static class FinanceInfrastructure
         services.TryAddScoped<PaymentOrderService>();
         services.TryAddScoped<PaymentOrderDocumentService>();
         services.TryAddScoped<BemAqui.Finance.Application.Exports.FinanceExportService>();
+        // EXP-05: ficha do título a receber e a pagar em PDF.
+        services.TryAddScoped<BemAqui.Finance.Application.Documents.TitleDocumentService>();
+        services.TryAddScoped<BemAqui.Finance.Application.Exports.RegistryExportService>();
         // Minha pauta (DSH-04): OP aguardando, OP para pagar, recebíveis vencidos e títulos a pagar vencendo sem OP.
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, FinanceAgendaSource>());
         // Extrato, transferências e lançamentos sem OP (FIN-04).

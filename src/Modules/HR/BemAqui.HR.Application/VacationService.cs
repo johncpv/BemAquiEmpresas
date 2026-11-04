@@ -70,7 +70,7 @@ public sealed partial class VacationService(
     /// <summary>
     /// "Programar férias" (CA 4 e 5): <c>hr.edit</c> na rota; a validação recusa com 422 o que fere o fracionamento, o abono e o início nos 2
     /// dias antes de feriado ou repouso, com a mensagem e o valor do parâmetro. Programada: o espelho mostra "Férias", o evento sai pelo outbox
-    /// (só ids e datas) e o próximo passo é "Gerar aviso de férias". A capacidade do planejamento não muda (ADR 0029).
+    /// (só ids e datas) e o próximo passo é "Baixar aviso de férias". A capacidade do planejamento não muda (ADR 0029).
     /// </summary>
     public async Task<Result<VacationScheduleResult>> ScheduleAsync(Guid employeeId, VacationScheduleInput input, CancellationToken cancellationToken = default)
     {
@@ -120,7 +120,7 @@ public sealed partial class VacationService(
         var item = (await SchedulesAsync(s => s.Id == schedule.Id, cancellationToken))[0];
         return new VacationScheduleResult(item, check.Warnings,
         [
-            new PayrollNextStep("Gerar aviso de férias", NoticeLink(schedule.Id)),
+            new PayrollNextStep("Baixar aviso de férias", NoticeLink(schedule.Id)),
             new PayrollNextStep("Calcular férias", EmployeeLink(employeeId)),
         ], "Férias programadas.");
     }

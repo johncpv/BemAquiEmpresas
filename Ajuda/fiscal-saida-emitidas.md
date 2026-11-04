@@ -28,6 +28,11 @@ Na situação **A inutilizar** aparecem os números gastos sem nota autorizada (
 - **Homologação**: nota de teste, sem valor fiscal (não conta na receita nem no custo do projeto).
 - **Nenhum número pendente.**: não há número a inutilizar.
 
+## Imprimir e exportar
+- **Exportar → Excel (.xlsx)**, ao lado dos filtros, baixa o **livro simples** das notas do filtro: número, série, chave, emissão, destinatário, CNPJ/CPF, CFOP principal, valor dos produtos, ICMS, IPI, total e situação.
+- A última linha soma só as notas **autorizadas**; rascunhos, rejeitadas, denegadas e canceladas aparecem na lista, mas não entram no total.
+- O CNPJ/CPF do destinatário é o mesmo que a nota mostra a quem vê o fiscal. O XML das notas não vai na planilha: baixe-o em cada nota.
+
 ## Perguntas frequentes
 **Nenhuma nota na lista?** Emita a nota a partir de um romaneio expedido, na aba **A emitir**.
 

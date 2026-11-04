@@ -57,6 +57,9 @@ public static class AssetsInfrastructure
         // (MaintenanceDueRecurringJob) avisa e abre a preventiva; a Minha pauta pelo IAgendaSource; fotos e relatório do prestador no dono
         // MaintenanceOrder (PNG, JPG, PDF até 10 MB, foto sem EXIF/GPS), gravados só pela rota da OS (CA 13).
         services.TryAddScoped<MaintenanceService>();
+        // EXP-05 CA 8 e 17: PDF da OS de manutenção e a exportação de Bens, Manutenção e Custo pela mesma consulta das telas.
+        services.TryAddScoped<MaintenanceOrderDocumentService>();
+        services.TryAddScoped<AssetExportService>();
         services.TryAddScoped<MaintenanceDueNotifier>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IAssetUsageProvider, MaintenanceUsage>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, AssetsAgendaSource>());

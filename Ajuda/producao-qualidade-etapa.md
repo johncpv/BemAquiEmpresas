@@ -20,6 +20,11 @@ Inspecionar a OS na etapa de qualidade: marcar o checklist e aprovar, ou reprova
 - Aprovada na última etapa: quem tem **Aprovar** na Produção vê **Concluir OS**; quem só decide a qualidade vê "A OS está pronta para concluir. O supervisor conclui."
 - Reprovada: a etapa de retorno fica pronta e as seguintes voltam a esperar. Quando o retrabalho chegar de novo, a mesma etapa de qualidade volta com o checklist zerado, numa nova **tentativa**.
 
+## Imprimir e exportar
+- **Baixar PDF** e **Imprimir**, no cabeçalho, geram a inspeção: OS, projeto, produto, etapa, tentativa, inspetor, data, o checklist com o resultado de cada item (Conforme, Não conforme ou Não se aplica, com quem marcou), a decisão e a NC aberta quando reprovada.
+- As fotos da NC saem só listadas (nome e data); abra-as pela NC no sistema.
+- Enquanto a inspeção não é decidida, o PDF sai com a marca **Prévia**.
+
 ## Perguntas frequentes
 **Apareceu "Quem fez uma etapa desta tentativa não aprova a qualidade dela."** Você apontou alguma etapa desde o início da OS ou desde a última reprovação. Outra pessoa com a ação de qualidade aprova; você ainda pode reprovar.
 

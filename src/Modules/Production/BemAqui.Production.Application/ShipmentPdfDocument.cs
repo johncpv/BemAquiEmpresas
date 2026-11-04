@@ -1,89 +1,59 @@
 using System.Globalization;
 using BemAqui.BuildingBlocks.Pdf;
+using BemAqui.Production.Contracts;
 using QuestPDF.Fluent;
-using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
 namespace BemAqui.Production.Application;
 
 /// <summary>
-/// O que o PDF do romaneio mostra (PRD-06b CA 3): empresa, número, data, cliente, endereço de entrega, transporte, itens com quantidade e
-/// séries, volumes e peso e as assinaturas. Não existe campo de valor nem de custo aqui: o romaneio não é documento fiscal.
+/// O que o PDF do romaneio mostra (PRD-06b CA 3): número, data, cliente, endereço de entrega, transporte, itens com quantidade e séries,
+/// volumes e peso e as assinaturas; a empresa vem do frame. Não existe campo de valor nem de custo aqui: o romaneio não é documento fiscal.
+/// A situação decide a marca (EXP-05 CA 20).
 /// </summary>
 public sealed record ShipmentPdfModel(
-    ShipmentPdfCompany Company, string Number, DateOnly Date, string ProjectNumber, string CustomerName, string? CustomerDocument, string DeliveryAddress, string? CarrierName,
-    string? VehiclePlate, string? DriverName, int? Volumes, decimal? GrossWeight, IReadOnlyList<ShipmentPdfItem> Items);
-
-public sealed record ShipmentPdfCompany(string Name, string LegalName, string? Document, string? Address, string? Contact, byte[]? Logo);
+    string Number, DateOnly Date, string ProjectNumber, string CustomerName, string? CustomerDocument, string DeliveryAddress, string? CarrierName,
+    string? VehiclePlate, string? DriverName, int? Volumes, decimal? GrossWeight, IReadOnlyList<ShipmentPdfItem> Items, ShipmentState Status = ShipmentState.Shipped);
 
 public sealed record ShipmentPdfItem(int Sequence, string Code, string Description, decimal Quantity, string Unit, IReadOnlyList<string> SerialNumbers, string? LotNumber);
 
-/// <summary>Layout do romaneio (ADR 0022): A4, Archivo embutida, dígitos tabulares, cabeçalho da tabela repetido na quebra.</summary>
-public sealed class ShipmentPdfDocument(ShipmentPdfModel model) : IDocument
+/// <summary>
+/// Layout do romaneio no modelo único (ADR 0045 §1, EXP-05 CA 19 e 20): o mesmo conteúdo da PRD-06b, com o cabeçalho, a faixa de título e o
+/// rodapé do frame; "não é documento fiscal" fecha o corpo. Rascunho e aguardando o estoque saem com "Rascunho"; cancelado e estornado, com
+/// "Cancelado".
+/// </summary>
+public sealed class ShipmentPdfDocument : PdfDocumentFrame
 {
-    private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
+    public const string NotFiscal = "Romaneio de expedição: não é documento fiscal.";
+
+    private static readonly CultureInfo PtBr = PdfTheme.PtBr;
 
     private static readonly string[] Columns = ["#", "Código", "Descrição e séries", "Qtd.", "Un."];
 
-    public DocumentMetadata GetMetadata() => new() { Title = $"Romaneio {model.Number}", Author = model.Company.Name, Creator = "BemAqui Empresas" };
+    private readonly ShipmentPdfModel _model;
 
-    public void Compose(IDocumentContainer container) => container.Page(page =>
+    public ShipmentPdfDocument(PdfFrame frame, ShipmentPdfModel model)
+        : base(frame, Header(model)) => _model = model;
+
+    private static PdfDocumentHeader Header(ShipmentPdfModel model)
     {
-        page.Size(PageSizes.A4);
-        page.Margin(32);
-        page.DefaultTextStyle(t => t.FontFamily(QuestPdfRenderer.FontFamily).FontSize(9).FontColor("#14202b").EnableFontFeature(FontFeatures.TabularFigures));
-        page.Header().Element(Header);
-        page.Content().PaddingVertical(12).Element(Content);
-        page.Footer().AlignCenter().Text(t =>
-        {
-            t.Span("Romaneio de expedição: não é documento fiscal.").FontSize(8);
-            t.Span("   Página ").FontSize(8);
-            t.CurrentPageNumber().FontSize(8);
-            t.Span(" de ").FontSize(8);
-            t.TotalPages().FontSize(8);
-        });
-    });
+        ArgumentNullException.ThrowIfNull(model);
+        return new PdfDocumentHeader("Romaneio", model.Number, model.Date, Mark(model.Status), Notice: model.Status == ShipmentState.Reversed ? "Romaneio estornado" : null);
+    }
 
-    private void Header(IContainer c) => c.Row(row =>
+    /// <summary>Marca do romaneio pela situação (EXP-05 CA 20).</summary>
+    public static PdfMark Mark(ShipmentState status) => status switch
     {
-        if (model.Company.Logo is { Length: > 0 } logo)
-        {
-            row.ConstantItem(110).Height(48).Image(logo).FitArea();
-        }
-        else
-        {
-            row.ConstantItem(160).Text(model.Company.Name).FontSize(14).SemiBold();
-        }
+        ShipmentState.Draft or ShipmentState.AwaitingStockApproval => PdfMark.Draft,
+        ShipmentState.Cancelled or ShipmentState.Reversed => PdfMark.Cancelled,
+        _ => PdfMark.None,
+    };
 
-        row.RelativeItem().AlignRight().Column(col =>
-        {
-            col.Item().Text(model.Company.LegalName).SemiBold();
-            if (model.Company.Document is { } doc)
-            {
-                col.Item().Text("CNPJ " + doc);
-            }
-
-            if (model.Company.Address is { } address)
-            {
-                col.Item().Text(address);
-            }
-
-            if (model.Company.Contact is { } contact)
-            {
-                col.Item().Text(contact);
-            }
-        });
-    });
-
-    private void Content(IContainer c) => c.Column(col =>
+    protected override void ComposeContent(IContainer container) => container.Column(col =>
     {
+        var model = _model;
         col.Spacing(10);
-        col.Item().Row(r =>
-        {
-            r.RelativeItem().Text($"Romaneio {model.Number}").FontSize(14).Bold();
-            r.ConstantItem(140).AlignRight().Text($"Data: {model.Date:dd/MM/yyyy}");
-        });
-        col.Item().Background("#eef2f6").Padding(8).Column(customer =>
+        col.Item().Background(PdfTheme.Surface).Padding(8).Column(customer =>
         {
             customer.Item().Text("Cliente: " + model.CustomerName).SemiBold();
             if (model.CustomerDocument is { } doc)
@@ -109,12 +79,7 @@ public sealed class ShipmentPdfDocument(ShipmentPdfModel model) : IDocument
             row.RelativeItem().Element(e => Signature(e, "Recebido por (nome, documento e assinatura)"));
         });
         col.Item().Text("Data do recebimento: ____/____/________");
-    });
-
-    private static void Signature(IContainer c, string label) => c.Column(col =>
-    {
-        col.Item().Height(28);
-        col.Item().BorderTop(1).BorderColor("#9aa7b4").PaddingTop(4).Text(label);
+        col.Item().PaddingTop(6).Text(NotFiscal).FontSize(PdfTheme.SmallFontSize).FontColor(PdfTheme.Muted);
     });
 
     private void Items(IContainer c) => c.Table(table =>
@@ -131,28 +96,28 @@ public sealed class ShipmentPdfDocument(ShipmentPdfModel model) : IDocument
         {
             foreach (var title in Columns)
             {
-                h.Cell().BorderBottom(1).BorderColor("#9aa7b4").PaddingVertical(4).Text(title).SemiBold();
+                HeaderCell(h.Cell()).Text(title).SemiBold();
             }
         });
-        foreach (var i in model.Items)
+        foreach (var i in _model.Items)
         {
-            table.Cell().PaddingVertical(3).Text(i.Sequence.ToString(PtBr));
-            table.Cell().PaddingVertical(3).Text(i.Code);
-            table.Cell().PaddingVertical(3).Column(d =>
+            BodyCell(table.Cell()).Text(i.Sequence.ToString(PtBr));
+            BodyCell(table.Cell()).Text(i.Code);
+            BodyCell(table.Cell()).Column(d =>
             {
                 d.Item().Text(i.Description);
                 if (i.SerialNumbers.Count > 0)
                 {
-                    d.Item().Text("Séries: " + string.Join(", ", i.SerialNumbers)).FontSize(8);
+                    d.Item().Text("Séries: " + string.Join(", ", i.SerialNumbers)).FontSize(PdfTheme.SmallFontSize);
                 }
 
                 if (i.LotNumber is { } lot)
                 {
-                    d.Item().Text("Lote: " + lot).FontSize(8);
+                    d.Item().Text("Lote: " + lot).FontSize(PdfTheme.SmallFontSize);
                 }
             });
-            table.Cell().PaddingVertical(3).AlignRight().Text(ShipmentRules.Quantity(i.Quantity));
-            table.Cell().PaddingVertical(3).PaddingLeft(4).Text(i.Unit);
+            BodyCell(table.Cell()).AlignRight().Text(ShipmentRules.Quantity(i.Quantity));
+            BodyCell(table.Cell()).PaddingLeft(4).Text(i.Unit);
         }
     });
 }

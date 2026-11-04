@@ -15,6 +15,10 @@ Ver quanto cada máquina custa em manutenção: por mês, por bem e por centro d
 - Clique num total (do mês, do bem ou do centro) para ver as OS que formam o valor. O total da lista é o mesmo da célula.
 - **Como calculamos** explica de onde vem cada parte; **Atualizado às** diz quando os números foram lidos.
 
+## Imprimir e exportar
+- **Exportar → Excel (.xlsx)**, no cabeçalho, baixa o relatório do período e dos filtros: a aba **Por bem** (centro, preventiva, corretiva, total e número de OS), **Por mês** e **Por centro**, cada uma com o total do período igual ao da tela.
+- Como a tela, a exportação é só para quem edita o patrimônio.
+
 ## Perguntas frequentes
 **Por que aparece "Dados protegidos"?** O custo de manutenção é visto por quem edita o patrimônio. Peça ao administrador a permissão de editar o Patrimônio.
 

@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Parties.Application;
@@ -26,6 +27,18 @@ internal static class PartyEndpoints
         parties.MapGet(string.Empty, async (string? q, PartyRoleKind? role, bool? includeInactive, int? page, int? pageSize, string? sort, PartyService service, CancellationToken ct) =>
                 Results.Ok(await service.ListAsync(new PartyListQuery(q, role, includeInactive == true), new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize, sort).Normalize(), ct)))
             .RequirePermission("parties.view").WithName("ListParties").Produces<PagedList<PartyListItem>>();
+        // EXP-05 CA 18: a lista em Excel com a busca, o papel, os inativos e a ordem da tela; o CPF sai mascarado como na lista.
+        parties.MapGet("/export", (string? format, string? q, PartyRoleKind? role, bool? includeInactive, string? sort, HttpContext http, PartyService service, ListExportService export,
+                CancellationToken ct) =>
+            {
+                var query = new PartyListQuery(q, role, includeInactive == true);
+                return export.ExportAsync(http, format, PartyExports.Spec, PartyExports.Filters(query), async (max, c) =>
+                {
+                    var page = await service.ListAsync(query, new PageRequest(1, Math.Max(1, max), sort), c);
+                    return new ExportRows<PartyListItem>(page.Total, page.Items);
+                }, ct);
+            })
+            .RequirePermission("parties.view").WithName("ExportParties");
         parties.MapGet("/search", async (string? q, PartyService service, CancellationToken ct) => Results.Ok(await service.SearchHitsAsync(q, ct)))
             .RequirePermission("parties.view").WithName("SearchParties").Produces<IReadOnlyList<PartySearchHit>>();
         // Condições ativas para o seletor da aba Dados (CAD-05b CA 16): o Finance responde pelo contrato, sem exigir finance.view.

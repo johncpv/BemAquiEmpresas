@@ -1,7 +1,10 @@
+using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Engineering.Application;
+using BemAqui.Engineering.Application.Documents;
+using BemAqui.SharedKernel;
 using BemAqui.Engineering.Domain;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -48,6 +51,9 @@ internal static class EngineeringEndpoints
             .RequirePermission("engineering.view").WithName("CompareBoms").Produces<BomComparison>();
         boms.MapGet("/{id:guid}", async (Guid id, BomService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())
             .RequirePermission("engineering.view").WithName("GetBom").Produces<BomDetail>();
+        // EXP-05 CA 3: PDF da revisão (Rascunho, Liberada, Substituída), sem custo, com a permissão da tela.
+        boms.MapGet("/{id:guid}/pdf", async (Guid id, HttpContext http, EngineeringDocumentService service, CancellationToken ct) => Pdf(http, await service.BomPdfAsync(id, ct)))
+            .RequirePermission("engineering.view").WithName("DownloadBomPdf").Produces(StatusCodes.Status200OK, contentType: "application/pdf");
         boms.MapGet("/{id:guid}/lines/{lineId:guid}", async (Guid id, Guid lineId, BomService service, CancellationToken ct) => (await service.GetLineAsync(id, lineId, ct)).ToHttpResult())
             .RequirePermission("engineering.view").WithName("GetBomLine").Produces<BomLineView>();
         boms.MapGet("/{id:guid}/release-preview", async (Guid id, BomService service, CancellationToken ct) => (await service.ReleasePreviewAsync(id, ct)).ToHttpResult())
@@ -68,6 +74,17 @@ internal static class EngineeringEndpoints
             .RequirePermission("engineering.delete").WithName("DiscardBom");
     }
 
+    private static IResult Pdf(HttpContext http, Result<(byte[] Content, string FileName)> result)
+    {
+        if (result.IsFailure)
+        {
+            return result.Error!.ToProblem();
+        }
+
+        AttachmentEndpoints.ApplyDownloadHeaders(http.Response);
+        return Results.File(result.Value.Content, "application/pdf", result.Value.FileName);
+    }
+
     private static void MapRoutingTemplates(RouteGroupBuilder routes)
     {
         routes.MapGet(string.Empty, async (string? q, string? situation, string? productType, int? page, int? pageSize, RoutingTemplateService service, CancellationToken ct) =>
@@ -83,6 +100,9 @@ internal static class EngineeringEndpoints
             .RequirePermission("engineering.view").WithName("ListRoutingProductOptions").Produces<IReadOnlyList<RoutingProductOption>>();
         routes.MapGet("/{id:guid}", async (Guid id, RoutingTemplateService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())
             .RequirePermission("engineering.view").WithName("GetRoutingTemplate").Produces<RoutingTemplateDetail>();
+        // EXP-05 CA 4: PDF do roteiro (etapas, checklist e produtos; inativo com a faixa).
+        routes.MapGet("/{id:guid}/pdf", async (Guid id, HttpContext http, EngineeringDocumentService service, CancellationToken ct) => Pdf(http, await service.RoutingPdfAsync(id, ct)))
+            .RequirePermission("engineering.view").WithName("DownloadRoutingTemplatePdf").Produces(StatusCodes.Status200OK, contentType: "application/pdf");
         routes.MapGet("/{id:guid}/duplicate", async (Guid id, RoutingTemplateService service, CancellationToken ct) => (await service.DuplicateAsync(id, ct)).ToHttpResult())
             .RequirePermission("engineering.create").WithName("DuplicateRoutingTemplate").Produces<RoutingTemplateInput>();
         routes.MapGet("/{id:guid}/steps/{stepId:guid}", async (Guid id, Guid stepId, RoutingTemplateService service, CancellationToken ct) => (await service.GetStepAsync(id, stepId, ct)).ToHttpResult())

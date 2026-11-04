@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bomSituationParam, emptyLine, lineProblems, qty, requirement, shortage } from './boms'
+import { bomPdfName, bomSituationParam, emptyLine, lineProblems, qty, requirement, shortage } from './boms'
 
 const units = [{ unitId: 'kg', code: 'KG', isStockUnit: true, toStock: 1 }, { unitId: 'g', code: 'G', isStockUnit: false, toStock: 0.001 }]
 
@@ -34,5 +34,11 @@ describe('BOM da OS (ENG-02)', () => {
     expect(qty(null)).toBe('—')
     expect(bomSituationParam(undefined)).toBe('will_stop')
     expect(bomSituationParam('liberada')).toBe('released')
+  })
+})
+
+describe('PDF da BOM (EXP-05 CA 3)', () => {
+  it('nome do arquivo pela OS e pela revisão', () => {
+    expect(bomPdfName('OS-2026-0007', 2)).toBe('BOM-OS-2026-0007-rev2.pdf')
   })
 })

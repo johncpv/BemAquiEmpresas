@@ -1,5 +1,7 @@
 using BemAqui.BuildingBlocks.Attachments;
+using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Paging;
+using BemAqui.SharedKernel;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Fiscal.Application.Invoices;
@@ -34,6 +36,12 @@ internal static class FiscalOutgoingInvoiceEndpoints
                 Results.Ok(await service.ListAsync(new OutgoingInvoiceQuery(from, to, status, partyId, projectId, type, cancellationRequested),
                     new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)))
             .RequirePermission("fiscal.view").WithName("ListOutgoingInvoices").Produces<OutgoingInvoicePage>();
+        // EXP-05 CA 16: o livro simples das Emitidas em Excel, com os filtros da tela e o total das autorizadas.
+        invoices.MapGet("/export", (string? format, DateOnly? from, DateOnly? to, OutgoingInvoiceStatus? status, Guid? partyId, Guid? projectId, bool? cancellationRequested,
+                BemAqui.Fiscal.Contracts.InvoiceType? type, HttpContext http, OutgoingInvoiceService service, ListExportService export, CancellationToken ct) =>
+                export.ExportAsync(http, format, async (max, c) => Result<ExportData<OutgoingBookRow>>.Success(
+                    await service.BookAsync(new OutgoingInvoiceQuery(from, to, status, partyId, projectId, type, cancellationRequested), max, c)), ct))
+            .RequirePermission("fiscal.view").WithName("ExportOutgoingInvoices");
         invoices.MapGet("/to-issue", async (OutgoingInvoiceService service, CancellationToken ct) => Results.Ok(await service.ToIssueAsync(ct)))
             .RequirePermission("fiscal.create").WithName("ListInvoicesToIssue").Produces<IReadOnlyList<InvoiceQueueRow>>();
         invoices.MapGet("/billing", async (Guid projectId, OutgoingInvoiceService service, CancellationToken ct) => (await service.BillingAsync(projectId, ct)).ToHttpResult())

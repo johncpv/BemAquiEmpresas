@@ -45,6 +45,11 @@ public static class PdfTheme
     /// <summary>Âmbar do indicador de etapa: a letra da etapa atual e o segmento dela.</summary>
     public const string Amber = "#f0a500";
 
+    /// <summary>Etiqueta do patrimônio (EXP-05 CA 21): preto puro e papel branco, para a impressora térmica não meio-tonar o texto.</summary>
+    public const string LabelInk = "#000000";
+
+    public const string Paper = "#ffffff";
+
     public const float Margin = 32;
 
     public const float FontSize = 9;

@@ -17,6 +17,8 @@ public static class DashboardServices
         services.TryAddScoped<DashboardAccess>();
         services.TryAddScoped<OwnerProjectsService>();
         services.TryAddScoped<ProjectResultsService>();
+        // EXP-05: fotografia do painel em PDF (os mesmos cards visíveis).
+        services.TryAddScoped<OwnerDashboardPdfService>();
         services.TryAddScoped<ICashForecastSource, CashForecastSource>(); // FIN-07: ICashForecast
         services.TryAddScoped<IRevenueSource, RevenueSource>(); // FIN-08: IRevenueSummary
         services.TryAddScoped<IDecisionAgenda, DecisionAgenda>(); // DSH-04: IAgendaService (nível 1)

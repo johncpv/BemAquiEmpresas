@@ -64,6 +64,8 @@ public static class PurchasingInfrastructure
         // EXP-04: comprovante de recebimento em PDF e exportação das listas de compras.
         services.TryAddScoped<BemAqui.Purchasing.Application.Documents.GoodsReceiptDocumentService>();
         services.TryAddScoped<BemAqui.Purchasing.Application.Exports.PurchasingExportService>();
+        // EXP-05: PDF da solicitação de compra.
+        services.TryAddScoped<BemAqui.Purchasing.Application.Documents.PurchaseRequestDocumentService>();
         services.AddAuditableEntity<Rfq>("purchasing");
         services.AddAuditableEntity<RfqSupplier>("purchasing");
         services.AddAuditableEntity<RfqLine>("purchasing");

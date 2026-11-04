@@ -16,6 +16,8 @@ interface ExportMenuProps {
   empty?: boolean
   /** Rótulo do item de PDF quando a tela tem documento próprio (ex.: "PDF do extrato"). */
   pdfLabel?: string
+  /** Aviso no topo do menu (EXP-05: "CPF e salário saem mascarados." para quem não vê os dados sensíveis). */
+  note?: string
 }
 
 const LABELS: Record<ExportFormat, string> = { xlsx: 'Excel (.xlsx)', pdf: 'PDF' }
@@ -26,7 +28,7 @@ const EMPTY = 'Nada para exportar com estes filtros.'
  * vem do servidor com a mesma permissão, a máscara e a auditoria da lista. Acima do teto, a mensagem do 422 ("Refine os filtros…") aparece
  * abaixo do botão. Teclado e leitor de tela pelo DropdownMenu do Radix (aria-haspopup, setas, Esc).
  */
-export function ExportMenu({ url, fileBase, formats = ['xlsx', 'pdf'], empty = false, pdfLabel }: ExportMenuProps) {
+export function ExportMenu({ url, fileBase, formats = ['xlsx', 'pdf'], empty = false, pdfLabel, note }: ExportMenuProps) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const errorId = useId()
@@ -56,6 +58,7 @@ export function ExportMenu({ url, fileBase, formats = ['xlsx', 'pdf'], empty = f
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Content align="end" className="z-40 min-w-44 rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-lg">
+            {note ? <Menu.Label className="max-w-56 px-2 py-1.5 text-xs text-muted-foreground">{note}</Menu.Label> : null}
             {formats.map((f) => (
               <Menu.Item key={f} className={item} onSelect={() => void run(f)}>{f === 'pdf' && pdfLabel ? pdfLabel : LABELS[f]}</Menu.Item>
             ))}

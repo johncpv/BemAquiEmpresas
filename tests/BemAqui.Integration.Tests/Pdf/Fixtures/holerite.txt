@@ -1,0 +1,1 @@
+Funcionário:AnaSouzaMatrícula:123CPF:529.***.***-25Cargo:SoldadorCBO:7243-15Admissão:02/01/2020CódigoDescriçãoReferênciaProventosDescontosSALSalário30dias7.654,32HE50Horasextras50%10:00h250,50INSSINSS9%711,23FGTSFGTS(informativa:632,39)8%Totaldeproventos:7.904,82Totaldedescontos:711,23Líquidoareceber:R$7.193,59BasedoINSSBasedoFGTSFGTSdomêsBasedoIRRF7.904,827.904,82632,397.193,59

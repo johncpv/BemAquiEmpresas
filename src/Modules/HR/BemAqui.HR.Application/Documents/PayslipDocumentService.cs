@@ -23,7 +23,7 @@ namespace BemAqui.HR.Application.Documents;
 /// </summary>
 public sealed class PayslipDocumentService(
     IHrDb db,
-    ICompanyIdentity company,
+    PdfFrameFactory frames,
     IFileStorage storage,
     IPdfRenderer renderer,
     AttachmentService attachments,
@@ -268,7 +268,7 @@ public sealed class PayslipDocumentService(
     /// O PDF do holerite: no rascunho, gerado agora com a marca d'água; com a folha fechada, o guardado (limpo na varredura) ou, sem ele,
     /// gerado e guardado como arquivo do sistema. Duas gerações ao mesmo tempo: a segunda entrega o PDF sem guardar (versão do holerite).
     /// </summary>
-    private async Task<Result<(PayslipFile File, Guid? AttachmentId)>> FileAsync(PayrollRun run, Slip slip, PayslipPdfCompany info, CancellationToken ct)
+    private async Task<Result<(PayslipFile File, Guid? AttachmentId)>> FileAsync(PayrollRun run, Slip slip, PdfFrame frame, CancellationToken ct)
     {
         var payslip = slip.Payslip;
         var name = PayslipDocumentRules.FileName(run.Period, slip.Registration, payslip.Id);
@@ -286,10 +286,10 @@ public sealed class PayslipDocumentService(
             return TooManyLines();
         }
 
-        var model = new PayslipPdfModel(info, new PayslipPdfEmployee(slip.Name, slip.Registration, PayslipDocumentRules.MaskCpf(slip.Cpf), slip.Position, slip.Cbo, slip.Admission),
-            run.Period, run.Type, lines, payslip.Gross, payslip.Deductions, payslip.Net, payslip.InssBase, payslip.FgtsBase, payslip.IrrfBase, payslip.FgtsAmount, draft || run.IsSimulation,
-            run.IsSimulation ? PayslipDocumentRules.SimulationWatermark : null);
-        var bytes = await renderer.RenderAsync(new PayslipPdfDocument(model), ct);
+        var model = new PayslipPdfModel(new PayslipPdfEmployee(slip.Name, slip.Registration, PayslipDocumentRules.MaskCpf(slip.Cpf), slip.Position, slip.Cbo, slip.Admission),
+            run.Period, run.Type, lines, payslip.Gross, payslip.Deductions, payslip.Net, payslip.InssBase, payslip.FgtsBase, payslip.IrrfBase, payslip.FgtsAmount,
+            PayslipPdf.Mark(draft, run.IsSimulation), PayslipPdf.Notice(draft, run.IsSimulation));
+        var bytes = await renderer.RenderAsync(new PayslipPdfDocument(frame, model), ct);
         if (draft)
         {
             return (new PayslipFile(new MemoryStream(bytes, writable: false), name, PdfContentType), null);
@@ -338,21 +338,8 @@ public sealed class PayslipDocumentService(
         join pos in db.JobPositions.IgnoreQueryFilters().AsNoTracking() on e.PositionId equals pos.Id
         select new Slip(p, e.Name, e.Registration, e.Cpf, e.AdmissionDate, pos.Name, pos.Cbo);
 
-    /// <summary>A empresa do cabeçalho (também do aviso de férias, FLH-03).</summary>
-    internal async Task<PayslipPdfCompany> CompanyAsync(CancellationToken ct)
-    {
-        var info = await company.GetAsync(ct);
-        byte[]? logo = null;
-        if (info.LogoStoragePath is { } path)
-        {
-            await using var stream = await storage.OpenReadAsync(path, ct);
-            using var buffer = new MemoryStream();
-            await stream.CopyToAsync(buffer, ct);
-            logo = buffer.ToArray();
-        }
-
-        return new PayslipPdfCompany(info.LegalName, info.Document, logo);
-    }
+    /// <summary>O cabeçalho do modelo único (EXP-05): a empresa e quem emite; também do aviso de férias (FLH-03) e do termo de rescisão (FLH-05).</summary>
+    internal Task<PdfFrame> CompanyAsync(CancellationToken ct) => frames.CreateAsync(ct);
 
     private Task RecordReadAsync(Guid payslipId, Guid? attachmentId, CancellationToken ct) =>
         attachmentId is { } id

@@ -12,6 +12,7 @@
 - **Tema** (`PdfTheme`): as únicas cores e medidas dos documentos novos (tinta, secundário, linha, fundo, acento, marca d'água, âmbar e vermelho da faixa) e os formatos pt-BR (`Money`, `Quantity`, `Percent`, `Date`, `DateTime`). Documento novo não escreve cor literal.
 - **Empresa e emissor:** `PdfFrameFactory` monta o `PdfFrame` a cada geração. A empresa vem de `IPdfCompanySource` (BuildingBlocks), implementado pelo Identity sobre o mesmo perfil do `ICompanyIdentity`; o logo é lido do storage. O emissor é o nome do usuário atual (`IUserDirectory`) ou "Sistema" em job.
 - **Dados incompletos:** o frame mostra o que existe (o nome do tenant como fallback). A exigência "Complete os dados da empresa para o PDF" continua só onde o documento sai para o cliente (orçamento, COM-03); documento interno (ordem de pagamento, listas) não é bloqueado.
+- **Decisão do PO (03/11/2026):** nenhum PDF bloqueia quando faltam dados da empresa (nem o orçamento): o frame mostra o que existe e o aviso para completar os dados fica na tela (Configurações → Empresa). Com isso, o CA 17 da EXP-03 e o trecho "dados da empresa incompletos, 422" do CA 1 da EXP-05 foram descartados.
 - **Encaixe:** documento novo nasce no frame. Os 12 layouts antigos **não** migram nesta decisão; migram quando a story tocar neles (pedido de compra e orçamento na EXP-03, os demais na EXP-05), com teste de texto garantindo o mesmo conteúdo.
 
 ### 2. Exportação de tabela (`BuildingBlocks/Export`)

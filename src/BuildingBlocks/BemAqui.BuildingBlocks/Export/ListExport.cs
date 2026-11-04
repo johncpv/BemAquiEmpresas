@@ -37,6 +37,9 @@ public sealed class ListExportService(
     IPdfRenderer renderer)
 {
     public const string TooLargeCode = "export_too_large";
+
+    /// <summary>Chave nos filtros da auditoria quando o arquivo leva dado sensível sem máscara (EXP-05: CPF ou salário completos).</summary>
+    public const string SensitiveKey = "sensitive";
     public const string InvalidFormatCode = "export_format_invalid";
 
     /// <summary>"xlsx" ou "pdf" (sem diferenciar maiúsculas); outro valor ou vazio é inválido.</summary>
@@ -141,8 +144,14 @@ public sealed class ListExportService(
             content = await exporter.ExportAsync(table, cancellationToken);
         }
 
-        await audit.RecordExportAsync(spec.Entity, "list", exporter.Extension, table.Rows.Count,
-            filters.Where(f => !string.IsNullOrWhiteSpace(f.Value)).ToDictionary(f => f.Label, f => f.Value), cancellationToken);
+        var recorded = filters.Where(f => !string.IsNullOrWhiteSpace(f.Value)).ToDictionary(f => f.Label, f => f.Value);
+        if (allowed.Any(a => a.Value && !a.Key.Omit))
+        {
+            // EXP-05: o arquivo levou alguma coluna sensível sem máscara (CPF, salário); a auditoria registra o fato, nunca o conteúdo.
+            recorded[SensitiveKey] = "true";
+        }
+
+        await audit.RecordExportAsync(spec.Entity, "list", exporter.Extension, table.Rows.Count, recorded, cancellationToken);
         return new ExportFile(content, exporter.ContentType, FileName(spec.FileBase, BusinessTime.Today(clock), exporter.Extension));
     }
 

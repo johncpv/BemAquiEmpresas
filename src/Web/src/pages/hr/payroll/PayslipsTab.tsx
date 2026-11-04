@@ -2,9 +2,10 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
-  getGetPayrollRunQueryKey, getGetPayrollReviewSensitiveQueryKey, getGetPayslipNoticesSensitiveQueryKey, getListPayslipsSensitiveQueryKey, useGetPayslipNoticesSensitive, useListPayslipsSensitive,
+  getExportPayslipsSensitiveUrl, getGetPayrollRunQueryKey, getGetPayrollReviewSensitiveQueryKey, getGetPayslipNoticesSensitiveQueryKey, getListPayslipsSensitiveQueryKey, useGetPayslipNoticesSensitive, useListPayslipsSensitive,
 } from '@/api/generated/bemaqui'
 import type { PayrollRunSummary } from '@/api/generated/model'
+import { ExportMenu } from '@/components/ui/export-menu'
 import { Money } from '@/components/ui/money'
 import { NextSteps } from '@/components/ui/next-steps'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
@@ -12,6 +13,7 @@ import { HourBankSection } from './HourBankSection'
 import { ImportDialog } from './ImportDialog'
 import { PayslipPanel } from './PayslipPanel'
 import { BatchButton, BatchReady, NoticeCell, NotifyDialog } from './PayslipNotices'
+import { payrollTypeSlug } from './payroll'
 import { downloadPayslip } from './payslip-downloads'
 
 /**
@@ -51,13 +53,14 @@ export function PayslipsTab({ run, editable, canNotify, importing, onImportingCh
         <div className="flex flex-wrap gap-2">
           {editable && run.mode !== 'Calculated' ? <button type="button" onClick={() => onImportingChange(true)} className="min-h-11 rounded-md border border-border px-3 py-2 text-sm font-semibold">Importar lançamentos</button> : null}
           {rows.length > 0 ? <BatchButton run={run} /> : null}
+          <ExportMenu fileBase={`folha-${run.period.slice(0, 7)}-${payrollTypeSlug(run.type)}`} formats={['xlsx']} empty={rows.length === 0} url={(format) => getExportPayslipsSensitiveUrl(run.id, { format })} />
           {closed && canNotify && rows.length > 0 ? (
             <NotifyDialog run={run} notices={notices.data} onDone={refreshNotices}
               trigger={<button type="button" className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Avisar funcionários</button>} />
           ) : null}
         </div>
       </div>
-      {!closed && rows.length > 0 ? <p className="text-sm text-muted-foreground">{run.isSimulation ? 'Na simulação, o holerite sai só como prévia, com a marca "Simulação: não é o holerite oficial", e nunca vai para o funcionário.' : "Com a folha em lançamento, o holerite sai com a marca d'água “RASCUNHO — folha não fechada”. Avise os funcionários depois de fechar a folha."}</p> : null}
+      {!closed && rows.length > 0 ? <p className="text-sm text-muted-foreground">{run.isSimulation ? 'Na simulação, o holerite sai só como prévia, com a marca "Simulação" e o aviso "não é o holerite oficial", e nunca vai para o funcionário.' : "Com a folha em lançamento, o holerite sai com a marca “Rascunho” e o aviso “folha não fechada”. Avise os funcionários depois de fechar a folha."}</p> : null}
       {run.mode === 'Calculated' && !run.rectifiesRunId ? <HourBankSection run={run} editable={editable} onChanged={refresh} /> : null}
       {closed && notices.isError ? <ErrorState title="Não foi possível carregar a situação dos avisos." onRetry={() => notices.refetch()} /> : null}
       {rows.length === 0 ? (

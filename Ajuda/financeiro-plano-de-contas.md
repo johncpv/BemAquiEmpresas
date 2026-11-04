@@ -15,6 +15,10 @@ Classificar cada receita e despesa da empresa, para o sistema montar a DRE e mos
 - Clique em **Salvar conta contábil**. A conta pai vira sintética, só de soma.
 - As contas 1.9 e 3.9 ("a classificar") servem para o lançamento que ainda não tem conta certa.
 
+## Imprimir e exportar
+- **Exportar** → **Excel (.xlsx)** baixa o plano de contas com o código, a conta (com recuo por nível, como a árvore), a natureza, o grupo do DRE, se é analítica ou sintética e a situação.
+- Vale o filtro da tela: com **Mostrar inativas** marcado, as contas inativas também saem. A exportação fica na auditoria.
+
 ## Perguntas frequentes
 **Qual a diferença entre analítica e sintética?** A analítica recebe lançamentos. A sintética agrupa outras contas e só soma.
 

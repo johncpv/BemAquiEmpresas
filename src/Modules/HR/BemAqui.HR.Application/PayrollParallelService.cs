@@ -29,7 +29,7 @@ public sealed partial class PayrollParallelService(
     HrParametersService parameters,
     AttachmentService attachments,
     IPdfRenderer renderer,
-    ICompanyIdentity company,
+    PdfFrameFactory frames,
     IEventPublisher events,
     INotificationService notifications,
     IUserDirectory users,

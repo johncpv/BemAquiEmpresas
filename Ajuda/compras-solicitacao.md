@@ -18,6 +18,12 @@ Ver o que a solicitação pede, para quando e em que pé está cada item, e ajus
 - **Cotar estes itens** (com a permissão de criar em Compras) abre a nova cotação com as linhas em aberto e os últimos fornecedores desses itens já escolhidos. As linhas passam a **Em cotação**.
 - **Pedir direto ao último fornecedor** (com a permissão de criar em Compras) abre o novo pedido de compra com as linhas em aberto, o fornecedor do último pedido de cada item e o último preço pago. As linhas atendidas passam a **Pedida**.
 
+## Imprimir e exportar
+- **Baixar PDF** e **Imprimir**, no cabeçalho, geram a solicitação: número, situação, origem, destino (projeto ou Estoque geral), OS, quem pediu e quando, a necessidade mais próxima e a observação.
+- Os itens saem com código, descrição, quantidade, unidade, necessidade, OS e a situação de cada linha (aberta, em cotação, pedida ou cancelada).
+- Em **Vínculos**, as cotações e os pedidos que atendem as linhas, com a situação de cada um. A solicitação não tem preço.
+- Cancelada, sai com a marca **Cancelado** e o motivo.
+
 ## Perguntas frequentes
 **A linha da falta mudou sozinha. Por quê?** A falta da OS mudou: chegou material, a BOM foi revista ou a OS foi cancelada. A linha em aberto acompanha a falta. Linha em cotação ou pedido não muda; quem compra recebe o aviso.
 

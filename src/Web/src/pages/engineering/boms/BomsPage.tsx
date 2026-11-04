@@ -2,18 +2,19 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useEffect, useRef } from 'react'
-import { createBom, getListBomsQueryKey, releaseBom, useListBoms } from '@/api/generated/bemaqui'
+import { createBom, getDownloadBomPdfUrl, getListBomsQueryKey, releaseBom, useListBoms } from '@/api/generated/bemaqui'
 import type { BomOrderSummary } from '@/api/generated/model'
 import { IDEMPOTENCY_HEADER } from '@/api/idempotency'
 import { DataTable } from '@/components/data-table/DataTable'
 import { useTableFilters, useTableSearch } from '@/components/data-table/table-search'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { StatusChip } from '@/components/ui/status-chip'
 import { formatInstantDate } from '@/lib/format'
 import { FABRICATION_STATUS } from '@/pages/production/orders/fabrication'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { BOM_SITUATION, BOM_SITUATIONS, bomSituationParam, DEFAULT_BOM_SITUATION, qty } from './boms'
+import { BOM_SITUATION, BOM_SITUATIONS, bomPdfName, bomSituationParam, DEFAULT_BOM_SITUATION, qty } from './boms'
 
 const action = 'rounded-md border border-border bg-card px-2.5 py-1 text-xs font-semibold'
 
@@ -104,6 +105,10 @@ function RowActions({ row: r, canCreate, canApprove, onDone }: { row: BomOrderSu
           }} />
       ) : null}
       {r.situation !== 'None' ? <button type="button" className={action} onClick={openBom}>Abrir BOM</button> : null}
+      {/* EXP-05 CA 3: o PDF da BOM liberada direto da lista (o rascunho sai pela aba BOM da OS). */}
+      {r.releasedBomId && r.releasedRevision !== null && r.releasedRevision !== undefined
+        ? <DocumentActions url={getDownloadBomPdfUrl(r.releasedBomId)} fileName={bomPdfName(r.number, r.releasedRevision)} print={false} />
+        : null}
     </span>
   )
 }

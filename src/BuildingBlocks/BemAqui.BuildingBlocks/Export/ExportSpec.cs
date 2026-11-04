@@ -24,6 +24,18 @@ public sealed class ExportSpec<T>(string entity, string fileBase, string title)
 
     public ExportSpec<T> Text(string header, Func<T, string?> value, ExportSensitivity? sensitivity = null) => Add(header, ExportColumnType.Text, r => value(r), sensitivity);
 
+    /// <summary>
+    /// Texto sensível com a máscara da tela por linha (EXP-05: CPF <c>123.***.***-45</c>, como o holerite) no lugar do <c>***</c> fixo: sem a
+    /// ação, sai <paramref name="masked"/>; com ela, o valor completo.
+    /// </summary>
+    public ExportSpec<T> Text(string header, Func<T, string?> value, ExportSensitivity sensitivity, Func<T, string?> masked)
+    {
+        ArgumentNullException.ThrowIfNull(masked);
+        Add(header, ExportColumnType.Text, r => value(r), sensitivity);
+        _columns[^1] = _columns[^1] with { MaskedValue = r => masked(r) };
+        return this;
+    }
+
     public ExportSpec<T> Money(string header, Func<T, decimal?> value, ExportSensitivity? sensitivity = null) => Add(header, ExportColumnType.Money, r => value(r), sensitivity);
 
     public ExportSpec<T> Quantity(string header, Func<T, decimal?> value, ExportSensitivity? sensitivity = null) => Add(header, ExportColumnType.Quantity, r => value(r), sensitivity);
@@ -86,7 +98,7 @@ public sealed class ExportSpec<T>(string entity, string fileBase, string title)
         ArgumentNullException.ThrowIfNull(allowed);
         var columns = Of(format, allowed);
         var masked = columns.Select(c => Masked(c, allowed)).ToArray();
-        return items.Select(item => (IReadOnlyList<object?>)columns.Select((c, i) => masked[i] ? c.Sensitivity!.Mask : c.Value(item)).ToArray()).ToList();
+        return items.Select(item => (IReadOnlyList<object?>)columns.Select((c, i) => masked[i] ? c.MaskedValue?.Invoke(item) ?? c.Sensitivity!.Mask : c.Value(item)).ToArray()).ToList();
     }
 
     private List<Column> Of(ExportFormat format, Func<ExportSensitivity, bool> allowed) =>
@@ -100,5 +112,9 @@ public sealed class ExportSpec<T>(string entity, string fileBase, string title)
         return this;
     }
 
-    private sealed record Column(string Header, ExportColumnType Type, Func<T, object?> Value, ExportSensitivity? Sensitivity, bool InPdf, bool Indented);
+    private sealed record Column(string Header, ExportColumnType Type, Func<T, object?> Value, ExportSensitivity? Sensitivity, bool InPdf, bool Indented)
+    {
+        /// <summary>Máscara da linha (CPF parcial); sem ela, a máscara fixa da sensibilidade.</summary>
+        public Func<T, object?>? MaskedValue { get; init; }
+    }
 }

@@ -1,11 +1,12 @@
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { type ReactNode, useRef, useState } from 'react'
 import {
-  getDownloadMaintenanceOrderFileUrl,
+  getDownloadMaintenanceOrderFileUrl, getDownloadMaintenanceOrderPdfUrl,
   uploadMaintenanceOrderFile, useGetMaintenanceOrder, useListMaintenanceOrderFiles,
 } from '@/api/generated/bemaqui'
 import type { MaintenanceChecklistResult, MaintenanceOrderDetail } from '@/api/generated/model'
-import { ApiError, apiDownload } from '@/api/http'
+import { ApiError, apiBlobUrl, apiDownload } from '@/api/http'
+import { DocumentActions } from '@/components/ui/document-actions'
 import { Field, FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { MoneyInput, QuantityInput } from '@/components/form/inputs'
@@ -28,6 +29,21 @@ import { CostTab, ProtectedCost, ScheduleDialog } from './MaintenanceCost'
 import { FormLayout } from '@/components/layout/form-layout'
 
 const button = 'inline-flex min-h-11 items-center rounded-md border border-border px-3 py-2 text-sm font-semibold'
+
+/** Abre o PDF numa aba nova para imprimir (a aba abre no clique, para o navegador não bloquear); se falhar, a aba fecha. */
+async function printPdf(url: string) {
+  const tab = window.open('about:blank', '_blank')
+  try {
+    const href = await apiBlobUrl(url)
+    if (tab) {
+      tab.opener = null
+      tab.location.href = href
+    }
+    setTimeout(() => URL.revokeObjectURL(href), 60_000)
+  } catch {
+    tab?.close()
+  }
+}
 const primary = 'inline-flex min-h-11 items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60'
 
 /**
@@ -56,8 +72,11 @@ export function MaintenanceOrderPage() {
   const open = o.status === 'Open'
   const running = o.status === 'InProgress'
   const { missing, text: missingLabel } = missingText(o.checklist)
+  const pdfUrl = getDownloadMaintenanceOrderPdfUrl(o.id)
   const createdSteps = [
     ...(canEdit && open ? [{ label: 'Iniciar agora', onSelect: () => { setCreated(false); setDialog('start') } }] : []),
+    // EXP-05 (propositivo): a OS agendada vai impressa para o executor marcar o checklist e assinar.
+    ...(open ? [{ label: 'Imprimir a OS para o executor', onSelect: () => void printPdf(pdfUrl) }] : []),
     { label: 'Abrir no celular', onSelect: () => void navigate({ to: '/fab/manutencao/$id', params: { id: o.id } }) },
     ...(canEdit ? [{ label: 'Anexar foto', onSelect: () => { setCreated(false); void navigate({ to: '/app/patrimonio/manutencao/$id', params: { id: o.id }, search: { aba: 'documentos' } as never }) } }] : []),
   ]
@@ -81,6 +100,7 @@ export function MaintenanceOrderPage() {
         }
         actions={
           <>
+            <DocumentActions url={pdfUrl} fileName={`${o.number}.pdf`} />
             {canEdit && (open || running) ? (
               <div className="flex flex-wrap items-center gap-2">
                 {open ? <button type="button" onClick={() => setDialog('start')} className={primary}>Iniciar</button> : null}
