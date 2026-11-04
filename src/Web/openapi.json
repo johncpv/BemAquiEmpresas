@@ -3829,6 +3829,56 @@
         }
       }
     },
+    "/api/v1/parties/export": {
+      "get": {
+        "tags": [
+          "Terceiros"
+        ],
+        "operationId": "ExportParties",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PartyRoleKind"
+            }
+          },
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/parties/search": {
       "get": {
         "tags": [
@@ -7303,6 +7353,65 @@
         }
       }
     },
+    "/api/v1/hr/employees/export": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ExportEmployees",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/EmployeeStatus"
+            }
+          },
+          {
+            "name": "positionId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/hr/payroll-items": {
       "get": {
         "tags": [
@@ -9419,6 +9528,89 @@
         }
       }
     },
+    "/api/v1/hr/payroll-runs/export": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ExportPayrollRuns",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/{id}/payslips/sensitive/export": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ExportPayslipsSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll-runs/thirteenth-preview/sensitive/pdf": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DownloadThirteenthPreviewPdf",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PayrollRunType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/hr/accountant-exports": {
       "get": {
         "tags": [
@@ -9981,6 +10173,78 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/timesheets/export": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ExportTimesheetOverview",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/positions/export": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ExportPositions",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -14061,6 +14325,30 @@
         }
       }
     },
+    "/api/v1/projects/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "DownloadProjectSummaryPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/projects/{id}/budget": {
       "get": {
         "tags": [
@@ -14487,6 +14775,30 @@
           "Engenharia"
         ],
         "operationId": "DeleteRoutingTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/routing-templates/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "DownloadRoutingTemplatePdf",
         "parameters": [
           {
             "name": "id",
@@ -15137,6 +15449,30 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/engineering/boms/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Engenharia"
+        ],
+        "operationId": "DownloadBomPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -17913,6 +18249,38 @@
         }
       }
     },
+    "/api/v1/production/quality/{stepId}/pdf": {
+      "get": {
+        "tags": [
+          "Qualidade"
+        ],
+        "operationId": "DownloadQualityInspectionPdf",
+        "parameters": [
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "attempt",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/production/quality/steps/{stepId}": {
       "get": {
         "tags": [
@@ -20522,6 +20890,64 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/items/export": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ExportItems",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ItemType"
+            }
+          },
+          {
+            "name": "categoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -25345,6 +25771,30 @@
         }
       }
     },
+    "/api/v1/purchasing/purchase-requests/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Compras"
+        ],
+        "operationId": "DownloadPurchaseRequestPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/purchasing/purchase-requests/{id}/history": {
       "get": {
         "tags": [
@@ -28907,6 +29357,170 @@
             "in": "query",
             "schema": {
               "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "DownloadReceivablePdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payables/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "DownloadPayablePdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/chart-of-accounts/export": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ExportAccounts",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "inactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/finance/cost-centers/export": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ExportCostCenters",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "inactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/finance/receivables/discounts-and-cancellations/export": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ExportDiscountsAndCancellations",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
             }
           }
         ],
@@ -35080,6 +35694,81 @@
         }
       }
     },
+    "/api/v1/fiscal/outgoing-invoices/export": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ExportOutgoingInvoices",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/OutgoingInvoiceStatus"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "cancellationRequested",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/InvoiceType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/fiscal/outgoing-invoices/to-issue": {
       "get": {
         "tags": [
@@ -36387,6 +37076,35 @@
         }
       }
     },
+    "/api/v1/fiscal/incoming-invoices/export": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "operationId": "ExportIncomingInvoices",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/IncomingInvoiceStatus"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/fiscal/incoming-invoices/import": {
       "post": {
         "tags": [
@@ -37172,6 +37890,87 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/assets/export": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ExportAssets",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/AssetType"
+            }
+          },
+          {
+            "name": "siteId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "responsibleEmployeeId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/AssetStatus"
+            }
+          },
+          {
+            "name": "responsibleTerminated",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -38091,6 +38890,82 @@
         }
       }
     },
+    "/api/v1/assets/maintenance-orders/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "DownloadMaintenanceOrderPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-orders/export": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ExportMaintenanceOrders",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/MaintenanceOrderType"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/MaintenanceOrderStatus"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/assets/maintenance-orders/{id}/start": {
       "post": {
         "tags": [
@@ -38621,6 +39496,58 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/maintenance-costs/export": {
+      "get": {
+        "tags": [
+          "Patrim\u00F4nio"
+        ],
+        "operationId": "ExportMaintenanceCosts",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -39396,6 +40323,19 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/pdf": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "DownloadOwnerDashboardPdf",
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
