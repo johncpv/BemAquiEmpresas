@@ -9,6 +9,7 @@ Material para apresentar o BemAqui Empresas à Konebras Elevadores, montar o ten
 | [`roteiro-apresentacao.md`](roteiro-apresentacao.md) | Roteiro de 35–40 min (e versão de 15 min), ato por ato, com o que clicar e o que falar | Quem apresenta |
 | [`grupos-e-permissoes.md`](grupos-e-permissoes.md) | Grupos recomendados para a Konebras, alçadas e as 3 camadas de acesso em linguagem de cliente. É o slide de "controle gerencial" | Quem apresenta e quem configura os acessos |
 | [`operacao-demo.md`](operacao-demo.md) | Passo a passo para montar o tenant `demo`: cadastros, usuários e a história em andamento, com valores e o estado de cada item no dia | Quem prepara o ambiente |
+| [`operacao-e2e-producao.md`](operacao-e2e-producao.md) | Simulação de ponta a ponta na empresa real, com um usuário por papel, dados marcados DEMO, os prints da apresentação e a limpeza no fim | Quem simula e tira os prints |
 | [`manual-usuario/`](manual-usuario/) | Um manual por papel: rotina do dia, da semana e do mês, com link para a ajuda de cada tela e os 5 erros mais comuns | A equipe da Konebras, depois da apresentação |
 
 ## Ordem de preparação
