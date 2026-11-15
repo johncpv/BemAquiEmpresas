@@ -20,7 +20,7 @@ Como **operador de caixa**, quero **devolver ou trocar um produto a partir do cu
 - No MVP não há documento fiscal; a devolução gera recibo. A NF-e de devolução é da NFCE-03 (QC-15).
 
 ## Critérios de aceite
-1. **Dado** `pos.return` e rede, **quando** abro "Devolução", **então** localizo a venda pelo número do cupom ou pelo CPF do cliente; sem a venda original não há devolução.
+1. **Dado** `pos.return` e rede, **quando** abro "Devolução", **então** localizo a venda pelo número do cupom ou pelo CPF do cliente; sem a venda original não há devolução. **[Segurança]** A busca por CPF vai no **corpo de um POST**, nunca na URL, e o servidor procura pelo índice cego; o CPF não aparece em log de acesso nem em histórico do navegador, e a leitura fica auditada.
 2. **Dado** a venda localizada, **quando** escolho os itens e as quantidades, **então** não posso devolver mais do que foi vendido menos o que já foi devolvido.
 3. **Dado** uma venda fora do prazo de devolução da loja, **quando** tento, **então** vejo "Prazo de devolução encerrado em dd/mm." e só sigo com a aprovação de um supervisor.
 4. **Dado** os itens escolhidos, **quando** informo o destino de cada um, **então** escolho "Volta ao estoque" ou "Avariado (perda)", com motivo.
@@ -41,7 +41,7 @@ Como **operador de caixa**, quero **devolver ou trocar um produto a partir do cu
 
 ## Permissões, eventos e tabelas
 - **Permissões:** `pos.return`.
-- **Endpoints:** `GET /api/v1/sales/lookup` (por número ou CPF; leitura de CPF auditada), `POST /api/v1/sales/returns`, `POST .../{id}/approve`, `GET /api/v1/sales/store-credits/{code}`, `GET /api/v1/sales/returns/export`. Todos na lista do PIN.
+- **Endpoints:** `POST /api/v1/sales/lookup` (número ou CPF no corpo; leitura de CPF auditada), `POST /api/v1/sales/returns`, `POST .../{id}/approve`, `GET /api/v1/sales/store-credits/{code}`, `GET /api/v1/sales/returns/export`. Todos na lista do PIN.
 - **Evento de domínio:** `SaleReturned`.
 - **Tabelas:** `sales.sale_returns`, `sale_return_lines`, `store_credits`.
 - **Auditoria:** devolução, aprovação, emissão e uso de vale.
@@ -62,7 +62,7 @@ Como **operador de caixa**, quero **devolver ou trocar um produto a partir do cu
 
 ## Pontos em aberto
 - PP-22: prazo padrão de devolução (sugestão: 30 dias) e validade padrão do vale.
-- LGPD: a busca por CPF é a segunda finalidade do CPF, além do documento fiscal (PP-26); entra na tabela de retenção.
+- LGPD: localizar devolução é a segunda finalidade do CPF, além do documento fiscal (PP-26); entra na tabela de retenção. Apagado o CPF pela retenção, a venda só é localizada pelo número.
 
 ## Definition of Done
 - [ ] Critérios de aceite atendidos.
@@ -76,3 +76,4 @@ Como **operador de caixa**, quero **devolver ou trocar um produto a partir do cu
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

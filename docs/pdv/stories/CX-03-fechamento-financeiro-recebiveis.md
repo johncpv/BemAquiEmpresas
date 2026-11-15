@@ -8,7 +8,7 @@
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | Objetivo central do produto (visibilidade financeira) · [Rascunho C](../adr/rascunho-C-pagamentos.md) item 8 · [Modelo de dados](../03-modelo-dados.md#6-finance-extensões) · BNK-03b (conciliação existente) |
-| Dependências | CX-02, PAG-01, OFF-02 |
+| Dependências | CX-02, PAG-01, VND-01, OFF-02 |
 | Bloqueia | PDV-06, PDV-07, PDV-10 |
 | Paridade com o mercado | Requisitos mínimos 28 do [benchmark](../00-benchmark-mercado.md#7-matriz-de-paridade-cada-requisito-mínimo-e-a-story-que-o-cobre) |
 | Ordem de execução | 9 (Fase 11) |
@@ -17,21 +17,21 @@
 Como **financeiro**, quero **que o caixa fechado vire lançamento sozinho, com a taxa e a data em que o cartão cai**, para **o fluxo de caixa e o DRE refletirem a loja sem eu digitar nada**.
 
 ## Contexto e referências
-- `IReceivables` hoje só lê, e a origem do título é `Manual`, `Opening` ou `Contract`. Falta o contrato de escrita e a origem de venda.
+- `IReceivables` hoje só lê, e a origem do título é `Manual`, `Opening` ou `Contract`. O contrato de escrita e a origem de venda nascem na VND-01, para o canal sem caixa; esta story acrescenta o agrupamento por sessão de caixa.
 - Um supermercado gera milhares de vendas por dia: o Financeiro recebe **resumos**, não uma linha por venda. O detalhe fica no `Sales`.
 
 ## Critérios de aceite
 ### Lançamentos
-1. **Dado** o evento `CashSessionClosed`, **quando** o consumidor do Financeiro roda, **então** o dinheiro contado fica como saldo da conta Caixa daquele caixa, coerente com a abertura, as sangrias e os suprimentos já transferidos.
+1. **Dado** o evento `CashSessionClosed`, **quando** o consumidor do Financeiro roda, **então** o **recolhimento** vira transferência Caixa do PDV → Cofre, e na conta Caixa daquele caixa fica só o fundo de troco do próximo turno; a soma de abertura, vendas em dinheiro, sangrias, suprimentos, recolhimento e quebra fecha com o saldo da conta.
 2. **Dado** vendas em cartão na sessão, **quando** processo, **então** nasce um título a receber **contra a adquirente** para cada combinação de adquirente, bandeira, forma e data de vencimento, com valor bruto, taxa prevista (a vigente na data da venda) e líquido; o vencimento é a data da venda + N dias da tabela.
 3. **Dado** vendas em crédito parcelado, **quando** processo, **então** há um título por parcela, com a taxa e o prazo daquela parcela.
-4. **Dado** vendas em Pix conferido pelo operador, **quando** processo, **então** entra um lançamento a conciliar na conta de destino da forma, pelo total do dia.
+4. **Dado** vendas em Pix conferido pelo operador, **quando** processo, **então** entra um lançamento a conciliar na conta de destino da forma, com o detalhe por pagamento disponível pelo contrato; o que foi marcado "Não localizado" na CX-02 não entra como recebido: vira quebra da forma Pix.
 5. **Dado** quebra de caixa na sessão, **quando** processo, **então** entra um lançamento na conta "Quebra de caixa", como sobra ou falta, ligado à sessão e ao operador.
 6. **Dado** o mesmo `CashSessionClosed` entregue duas vezes, **quando** processo, **então** nada é duplicado (idempotente por sessão).
 7. **Dado** a sessão reaberta (CX-02 CA 10), **quando** processo a reabertura, **então** os lançamentos do fechamento são estornados; título de adquirente já baixado impede a reabertura, com a mensagem "Este caixa já tem recebimento conciliado. Estorne a baixa antes.".
 
 ### Conciliação e relatórios
-8. **Dado** um título contra a adquirente, **quando** o depósito aparece no extrato, **então** a conciliação bancária existente o casa pelo líquido previsto; a diferença entre bruto e líquido é baixada na conta de taxa de cartão; diferença entre líquido previsto e recebido fica apontada.
+8. **Dado** títulos contra a adquirente, **quando** o depósito aparece no extrato, **então** a conciliação casa **um depósito com vários títulos** (a adquirente deposita um valor só para vários dias, bandeiras e formas), pelo líquido previsto somado; a diferença entre bruto e líquido é baixada na conta de taxa de cartão; diferença entre o previsto e o recebido fica apontada.
 9. **Dado** o fluxo de caixa, **quando** abro, **então** os recebíveis de cartão aparecem na data prevista, pelo líquido.
 10. **Dado** `ISalesRevenue`, **quando** o DRE por competência é montado, **então** a receita de vendas vem por dia e por loja, do `Sales`, sem depender da data do recebimento.
 11. **Dado** um título de adquirente, **quando** abro, **então** vejo o link para a sessão de caixa e, dali, para as vendas que o compõem.
@@ -66,6 +66,7 @@ Como **financeiro**, quero **que o caixa fechado vire lançamento sozinho, com a
 ## Pontos em aberto
 - A conta contábil da taxa de cartão e da quebra de caixa no plano de contas padrão: confirmar com a contadora ("A confirmar", ADR 0042).
 - Dias corridos ou úteis no D+N: é dado da adquirente; a proposta é dias corridos com ajuste para o próximo dia útil.
+- **Conciliação de N títulos para 1 depósito:** conferir se a conciliação existente (BNK-03b) já suporta. Se só casa 1 para 1, esta story inclui a extensão e é reestimada.
 
 ## Definition of Done
 - [ ] Critérios de aceite atendidos.
@@ -79,3 +80,4 @@ Como **financeiro**, quero **que o caixa fechado vire lançamento sozinho, com a
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

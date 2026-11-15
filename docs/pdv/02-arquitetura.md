@@ -21,7 +21,7 @@ Os rascunhos de ADR citam estes achados pelo número.
 | 9 | **O Inter integrado é cobrança v3 (bolepix).** O `IBankBillingProvider` não tem Pix cobrança imediata. A ADR 0032 §4 recusa credencial com escopo de pagamento. mTLS, webhook e reconsulta (ADR 0031) são reaproveitáveis | Porta `IPixChargeProvider` nova e adendo à ADR 0032 |
 | 10 | **Faltam conceitos de varejo.** Não há preço de venda, lista de preços, código de barras, loja, caixa nem recebível de cartão. A ADR 0027 assume um emitente por tenant, igual ao CNPJ do tenant | Módulos novos; filial com CNPJ próprio quebra a ADR 0027 (PP-15) |
 | 11 | **Limite de chamadas ao Emissor:** 4 por segundo por processo, somando todos os tenants (ADR 0027, adendo de 27/10). Do lado do Emissor, 60 por minuto por cliente | Um supermercado no pico chega perto disso sozinho |
-| 12 | **Backup com RPO de 24 h**, por `pg_dump`, numa VPS compartilhada com outros projetos | Não serve ao varejo (INFRA-01) |
+| 12 | **Backup com RPO de 24 h**, por `pg_dump`, numa VPS compartilhada com outros projetos | Não serve ao varejo. O PO decidiu ficar na VPS por enquanto (PP-07): INFRA-02 agora, INFRA-01 condicionada |
 | 13 | **O produto está definido como ERP de indústria sob encomenda** no `CLAUDE.md` e no PRD | PRD atualizado antes das stories (PP-37) |
 
 O que já existe e se reaproveita (conferido):
@@ -29,7 +29,7 @@ O que já existe e se reaproveita (conferido):
 | Já existe | Onde | Uso no PDV |
 |---|---|---|
 | Liberação de módulos por tenant, sem deploy | `TenantModuleService.ApplyPlanAsync` | O perfil de negócio é uma camada fina sobre isso |
-| Multi-local, transferência e reservas no estoque | `Inventory.Contracts/Stock.cs` | CPD → loja; reserva do e-commerce |
+| Multi-local, transferência e reservas no estoque | `Inventory.Contracts/Stock.cs` | Multiloja (depósito → loja, CPD-06); reserva do e-commerce |
 | Conta do tipo `Cash`, transferências bancárias, conciliação (BNK-03b) | Finance | Caixa do PDV; sangria e suprimento; cartão conciliado pelo extrato |
 | Aparelho registrado + PIN de 6 dígitos + `[PinSessionAllowed]` | ADR 0026 | Terminal de caixa, garçom, KDS |
 | Token de quiosque só leitura com SignalR | ADR 0030, `KioskHub` | Painel "Na cozinha / Pedidos prontos" |
@@ -98,7 +98,8 @@ Limites de plataforma a validar no SPK-01: WebUSB, WebSerial e Web Bluetooth só
 - **Máquina de estados única para o pagamento:** `Created → Pending → Captured → (Voided | Refunded)`, mais `Failed` e `Unknown`. `Unknown` existe desde o primeiro dia: é a queda de energia entre autorizar e confirmar no TEF.
 - **Campos de TEF presentes desde já**, vazios no modo manual: parcelas, provedor, adquirente, bandeira, NSU, autorização, `txid`, id fim a fim, tipo de integração, quem confirmou.
 - **Duas portas:** no aparelho, `PaymentTerminal` (`ManualTerminal` agora; `TefTerminal` e `SmartPosTerminal` depois); no servidor, `IPaymentProvider` (`ManualProvider` agora; `InterPixProvider` depois).
-- **Pix dinâmico:** `IPixChargeProvider` no Finance, reaproveitando mTLS, webhook e reconsulta. Só online.
+- **Pix dinâmico:** `IPixChargeProvider` no Finance, sem nada específico de banco: o Inter é o primeiro adaptador e a porta aceita outro PSP. Reaproveita mTLS, webhook e reconsulta. Só online. Antecipado para a Fase 12 (PAG-02).
+- **Dados de cartão:** o sistema nunca guarda número de cartão, CVV nem trilha (regra 14 do PRD).
 - **Split:** partes (por item, igual ou por valor), cada uma com um ou mais pagamentos.
 - **Financeiro por resumo**, no fechamento do turno.
 
@@ -114,7 +115,9 @@ Limites de plataforma a validar no SPK-01: WebUSB, WebSerial e Web Bluetooth só
 - **`IFiscalEmitter` ganha `IssueNfceAsync`, `GetNfceAsync`, `CancelNfceAsync`.** O imposto continua calculado no servidor.
 - **Idempotência** `nfce-{saleId}-{tentativa}` com hash do payload. **Uma série por caixa**, numerada pelo Emissor.
 - **Item apto para o PDV** validado no cadastro, não na venda.
-- **Loja sem internet:** ponto em aberto, com duas recomendações opostas ([PP-01](06-pendencias-riscos.md#pp-01--venda-sem-internet-em-loja-que-emite-nfc-e)).
+- **SEFAZ fora, loja com internet:** o Emissor emite em contingência e devolve XML e QR. Faltava a lacuna correspondente no Emissor: é a 41, e a story dona do estado é a NFCE-08.
+- **Loja sem internet:** decidido pelo PO em 15/11/2026: assinatura na loja, num servidor por loja, com certificado de chave não exportável separado do cofre ([PP-01](06-pendencias-riscos.md#pp-01--venda-sem-internet-em-loja-que-emite-nfc-e)). O agente de assinatura é escopo firme (NFCE-04, sobre a ponte IMP-03). Falta o parecer da contadora por UF.
+- **Data de emissão:** o rascunho diz que a data fiscal é a do servidor. É proposta, não regra: QC-17.
 
 ### F — Escala, multi-loja e hospedagem ([rascunho](adr/rascunho-F-escala-hospedagem.md))
 
@@ -123,23 +126,40 @@ Limites de plataforma a validar no SPK-01: WebUSB, WebSerial e Web Bluetooth só
 - **Sem auditoria por linha de venda:** o registro de eventos é a trilha.
 - **Medir antes de particionar.**
 - **Multi-loja:** estabelecimento (loja) como conceito novo; emitente fiscal por estabelecimento; local de estoque ligado à loja.
-- **Hospedagem:** levar API, PostgreSQL e EmissorFiscal para São Paulo, em VPS dedicada, com WAL contínuo, antes da versão pública.
+- **Hospedagem:** o rascunho recomenda levar API, PostgreSQL e EmissorFiscal para São Paulo, em VPS dedicada, com WAL contínuo. **O PO decidiu em 15/11/2026 ficar na VPS atual por enquanto** (PP-07): a INFRA-01 fica condicionada a gatilhos e a INFRA-02 reduz a perda máxima de dados sem migrar.
 
 ## 4. Onde os insumos discordavam e o que o plano adotou
 
 | Tema | Análise de produto | Análise de arquitetura | Plano |
 |---|---|---|---|
-| Venda sem internet em loja fiscal | (a) cupom agora, NFC-e depois | (d) 4G + (a); a do Emissor recomenda agente com A1 | **Não decidido:** PP-01 |
+| Venda sem internet em loja fiscal | (a) cupom agora, NFC-e depois | (d) 4G + (a); a do Emissor recomenda agente com certificado na loja | **Decidido pelo PO em 15/11/2026: assinatura na loja**, um servidor por loja, com as proteções da PP-01 |
 | Saldo insuficiente na venda | Pendência, sem negativar | Negativo permitido em local de loja | **Não decidido:** PP-02 |
 | Projetos de módulo | `Sales` único, com os códigos `sales` e `pos` | `Sales` + `Pos` | Dois projetos (PP-04) |
 | Preço e código de barras | Módulo `Catalog` próprio | Preço no `Sales`, GTIN no item do Estoque | Módulo `Catalog` (PP-04) |
-| Número da venda | `PDV{nn}-{seq}` | `{loja}-{caixa}-{seq}` | `{loja}-{caixa}-{seq}`, que não colide entre lojas |
+| Número da venda | `PDV{nn}-{seq}` | `{loja}-{caixa}-{seq}` | `{loja}-{caixa}.{época}-{seq}`: não colide entre lojas nem entre o aparelho antigo e o novo do mesmo caixa |
 | Chave de idempotência | `client_sale_id` por venda | Registro de eventos com `event_id` e cadeia de hash | Eventos; o id da venda é gerado no aparelho |
 | Baixa de estoque | Por linha, no `SaleCompleted` | Agregada por item, caixa e janela | Fora do caminho do caixa, por consumidor idempotente; a agregação é confirmada no SPK-03 |
 | Resumo para o financeiro | Um por sessão e forma | Um por dia, adquirente, bandeira, forma e vencimento | No fechamento da sessão, agrupado por adquirente, bandeira, forma e vencimento |
 | Agente local | Fase de supermercado | Padrão no Windows | Fase 12 (IMP-03); sobe para o MVP se o SPK-01 mandar |
 | Nomes | `terminals`, `cash_sessions` | `registers`, `shifts` | `registers` (caixa) e `cash_sessions` (sessão de caixa) |
 | Janela sem sincronizar | Não citava | 72 h | 72 h fica abaixo do piso de mercado: PP-10 |
+
+### 4.1 Fronteira Sales × Pos: quem é dono de quê
+
+A revisão independente apontou que a primeira versão misturava os dois módulos (tabelas `pos.*` servidas por rotas `/sales/*`, e o `Pos` gravando tabelas do `Sales`). Proposta, a fechar na ADR de fronteiras (PP-04):
+
+| Coisa | Dono | Rota | Permissão |
+|---|---|---|---|
+| Venda, linhas, partes, pagamentos, devolução, vale-troca, baixa agregada (`sales.*`) | **Sales** | `/api/v1/sales/…` | `sales.*` na retaguarda; `pos.*` no caixa |
+| Loja, caixa, sessão de caixa, sangria e suprimento, contagem, eventos do aparelho, divergências, modelo de leitura do catálogo, aprovações de supervisor, impressoras (`pos.*`) | **Pos** | `/api/v1/pos/…` (inclusive `/pos/stores`, `/pos/cash-sessions`, `/pos/sync-divergences`, `/pos/supervisor-approvals`) | `pos.*` no caixa; `sales.*` nas telas de retaguarda |
+| Formas de pagamento, taxas, recebíveis | Finance | `/api/v1/finance/…` | `finance.*` |
+
+Três regras:
+1. **O código de módulo é do catálogo de permissões, não do projeto.** `sales` é o módulo de retaguarda da loja e autoriza telas servidas pelos projetos `Sales` e `Pos`; `pos` é a tela dedicada. Já é assim com `restaurant` e `kds`, que saem do mesmo projeto. A rota sempre leva o prefixo do **projeto dono da tabela**.
+2. **O `Pos` não escreve tabela do `Sales`.** Ao receber os eventos de uma venda concluída, ele chama o contrato `ISaleIngestion.IngestAsync` (em `Sales.Contracts`) **dentro da mesma transação**, e o `Sales` grava as próprias tabelas. É o mesmo desenho do `IStockMovements`, que já roda na transação de quem chama. A venda continua atômica com o registro do evento, sem um módulo tocar a tabela do outro.
+3. **Venda de canal sem caixa** (loja virtual, plataforma, OS) entra pelo mesmo `ISaleIngestion`, sem sessão de caixa. Por isso o núcleo do `Sales` nasce na Fase 10 (VND-01) e não depende do `Pos`.
+
+Os rascunhos A e F usavam nomes anteriores (`pos.sales`, `pos.sale_items`, `pos.shifts`, `pos.discount_above_limit`); foram alinhados a esta tabela.
 
 ## 5. Os três spikes
 
@@ -155,17 +175,17 @@ Rodam em paralelo com a Fase 10, uma a duas semanas cada. São os que mais reduz
 
 1. Spikes 1, 2 e 3 (em paralelo).
 2. Fechar os rascunhos A a F e os adendos; atualizar PRD, arquitetura, modelo de dados e backlog principais.
-3. Fundação de dados: perfis, catálogo com códigos de barras e tabela de preço, formas de pagamento, módulos `sales` e `pos` no `ModuleCatalog`, modelo de leitura `pos.catalog_items`.
+3. Fundação de dados: perfis, catálogo com categoria, variação, códigos de barras e tabela de preço, formas de pagamento, **núcleo de vendas sem caixa** (VND-01), módulo `pos` no `ModuleCatalog`, modelo de leitura `pos.catalog_items`.
 4. Identidade: aparelho com tipo e loja, esquema `Device`, lista permitida com teste de arquitetura.
 5. App `/pdv`: build e service worker próprios, `LocalStore`, eventos, fila, sincronização.
 6. Venda de balcão com `ManualTerminal`, recibo não fiscal e `HardwareBridge` (F1, piloto interno).
 7. Sessão de caixa, sangria, fechamento e resumos para o Finance, com taxas e D+N.
 8. Sem rede completo: PIN local, abrir turno, delta de catálogo, Pendências do PDV (F2, primeira versão pública).
-9. Migração de hospedagem e WAL contínuo, **antes** de o item 8 ir a cliente.
+9. Backup mais frequente na VPS atual (INFRA-02), **antes** de o item 8 ir ao piloto. A migração de hospedagem (INFRA-01) só se um gatilho da PP-07 disparar.
 10. Agente Ponte com assistente de impressoras; cozinha por setor.
 11. NFC-e pelo Emissor, cancelamento e devolução (depende do SPK-02 e das lacunas).
 12. Painel do cliente e KDS; mesas, comandas e split por pessoa (online).
-13. Pix dinâmico pelo Inter; TEF pelo agente; SmartPOS pela casca Android.
+13. Pix dinâmico (antecipado: Fase 12, logo depois do MVP); TEF pelo agente; SmartPOS pela casca Android.
 14. Supermercado: carga, balança no caixa, promoções.
 15. E-commerce sobre o `Sales` (trilha paralela, pode começar depois do item 3).
 

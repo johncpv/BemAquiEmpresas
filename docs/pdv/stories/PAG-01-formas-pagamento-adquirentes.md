@@ -6,12 +6,12 @@
 | Título | Formas de pagamento e adquirentes no Financeiro: tipo, conta de destino, adquirente como terceiro, tabela de taxas por bandeira, forma e parcelas, prazo D+N e histórico |
 | Tamanho | M |
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
-| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos e spikes |
+| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (itens 6 e 11) · [Rascunho C](../adr/rascunho-C-pagamentos.md) item 8 · [Modelo de dados](../03-modelo-dados.md#6-finance-extensões) · ADR 0042 |
 | Dependências | — |
 | Bloqueia | PDV-03, CX-03, PERF-04 |
 | Paridade com o mercado | Requisitos mínimos 28 (base) do [benchmark](../00-benchmark-mercado.md#7-matriz-de-paridade-cada-requisito-mínimo-e-a-story-que-o-cobre) |
-| Ordem de execução | 7 (Fase 10) |
+| Ordem de execução | 6 (Fase 10) |
 
 ## User story
 Como **financeiro**, quero **cadastrar as formas de pagamento da loja com a taxa e o prazo de cada maquininha**, para **o fluxo de caixa mostrar quando e quanto eu recebo de verdade**.
@@ -33,6 +33,7 @@ Como **financeiro**, quero **cadastrar as formas de pagamento da loja com a taxa
 ## Regras de negócio e técnicas
 - Taxa `decimal(9,4)`; valores `decimal(18,2)`.
 - A forma guarda o código fiscal do meio de pagamento, usado pela NFC-e na Fase 13.
+- Nenhum campo de forma ou de taxa guarda dado de cartão de cliente (regra 14 do PRD).
 - A forma de pagamento é do Financeiro; o PDV só lê pelo contrato e recebe a lista na sincronização.
 
 ## Permissões, eventos e tabelas
@@ -73,3 +74,4 @@ Como **financeiro**, quero **cadastrar as formas de pagamento da loja com a taxa
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

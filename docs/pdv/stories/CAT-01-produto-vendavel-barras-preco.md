@@ -1,17 +1,17 @@
-# CAT-01 — Módulo Catálogo: produto vendável ligado ao item do estoque, vários códigos de barras por produto, tabela de preço padrão versionada e consulta rápida por código, PLU e busca
+# CAT-01 — Módulo Catálogo: produto vendável ligado ao item do estoque, categoria, variação (grade), vários códigos de barras por produto, tabela de preço padrão versionada e consulta rápida por código, PLU e busca
 
 | Campo | Valor |
 |---|---|
 | ID | CAT-01 |
-| Título | Módulo Catálogo: produto vendável ligado ao item do estoque, vários códigos de barras por produto, tabela de preço padrão versionada e consulta rápida por código, PLU e busca |
+| Título | Módulo Catálogo: produto vendável ligado ao item do estoque, categoria, variação (grade), vários códigos de barras por produto, tabela de preço padrão versionada e consulta rápida por código, PLU e busca |
 | Tamanho | G |
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
-| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos e spikes |
+| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (itens 1 e 4) · [PRD do PDV](../01-PRD.md) seção 4.2 · [Modelo de dados](../03-modelo-dados.md#3-catalog--schema-catalog_products) · ADR 0006 (contratos entre módulos) |
 | Dependências | PERF-01, PERF-03; PP-04 decidida |
-| Bloqueia | CAT-02, PERF-04, PDV-01, OFF-01 |
+| Bloqueia | CAT-02, VND-01, PERF-04, PDV-01, OFF-01, ECM-01 |
 | Paridade com o mercado | Requisitos mínimos 22, 25 (tabela padrão), 33 do [benchmark](../00-benchmark-mercado.md#7-matriz-de-paridade-cada-requisito-mínimo-e-a-story-que-o-cobre) |
-| Ordem de execução | 5 (Fase 10) |
+| Ordem de execução | 4 (Fase 10) |
 
 ## User story
 Como **gerente de loja**, quero **cadastrar o que eu vendo com código de barras e preço**, para **o caixa achar o produto na hora e eu saber a margem de cada um**.
@@ -43,6 +43,11 @@ Como **gerente de loja**, quero **cadastrar o que eu vendo com código de barras
 12. **Dado** `ICatalogLookup`, **quando** consulto por GTIN, por PLU ou por trecho do nome, **então** recebo o produto com o preço vigente da tabela pedida; o GTIN de embalagem devolve também a quantidade.
 13. **Dado** 20 mil produtos, **quando** consulto por GTIN e por trecho do nome, **então** a resposta vem em menos de 50 ms no p95 (teste com `[Trait(LoadTest.Trait, LoadTest.Value)]`).
 
+### Categoria e variação
+14. **Dado** `catalog.create`, **quando** cadastro categorias, **então** cada uma tem nome, categoria pai opcional, ordem e, opcionalmente, margem ou markup padrão; todo produto tem uma categoria (a "Geral" do seed é o padrão); categoria com produto não é excluída, só desativada.
+15. **Dado** um produto com grade (ex.: camiseta em 3 cores e 4 tamanhos), **quando** crio as variações, **então** cada combinação vira um produto com item, código de barras, preço e saldo próprios, ligado ao produto pai; a lista mostra o pai com as variações agrupadas; o caixa e a consulta por código acham a variação.
+16. **Dado** um produto pai, **quando** altero nome, categoria ou foto, **então** as variações herdam; preço pode ser o mesmo para todas ou por variação.
+
 ## Regras de negócio e técnicas
 - O Estoque segue dono de unidade, NCM, custo e saldo. O Catálogo é dono de nome de venda, foto, códigos de barras e preço.
 - Preço `decimal(18,2)`; quantidade da embalagem `decimal(18,4)`.
@@ -53,14 +58,15 @@ Como **gerente de loja**, quero **cadastrar o que eu vendo com código de barras
 - **Permissões:** `catalog.view`, `create`, `edit`, `delete`, `edit_price`, `view_cost` (novas, por seed do `ModuleCatalog`).
 - **Endpoints:** `GET|POST /api/v1/catalog/products`, `GET|PUT|DELETE /api/v1/catalog/products/{id}`, `PUT .../price`, `GET|POST|DELETE .../barcodes`, `GET /api/v1/catalog/products/export`, `GET /api/v1/catalog/price-lists`.
 - **Eventos:** `ProductChanged`, `PriceChanged`.
-- **Tabelas:** `products`, `product_barcodes`, `price_lists`, `price_list_items`; `ItemType.Merchandise` no Estoque (aditivo).
+- **Tabelas:** `categories`, `products` (com `category_id`, `variant_of_product_id` e `variant_attributes`), `product_barcodes`, `price_lists`, `price_list_items`; `ItemType.Merchandise` no Estoque (aditivo).
 - **Auditoria:** produto e preço são `IAuditable`.
 
 ## Telas e estados
 - **Produtos** (`/app/catalogo/produtos`): lista com busca por nome e código, filtros e exportação. Vazio: "Nenhum produto ainda." com "Novo produto" e "Importar planilha".
-- **Produto** (formulário, padrão da ADR 0044): seções Dados, Códigos de barras, Preço. Painel lateral com custo e margem (só com `view_cost`).
+- **Produto** (formulário, padrão da ADR 0044): seções Dados (com a categoria), Variações, Códigos de barras, Preço. Painel lateral com custo e margem (só com `view_cost`).
+- **Categorias** (`/app/catalogo/categorias`): árvore simples. Vazio: só a "Geral".
 - Estados de carregando e de erro em todas.
-- **Ajuda:** `Ajuda/catalogo-produtos.md` e `Ajuda/catalogo-produto.md` (novas). `<Dica>` em "Quantidade da embalagem" e em "PLU".
+- **Ajuda:** `Ajuda/catalogo-produtos.md`, `Ajuda/catalogo-produto.md` e `Ajuda/catalogo-categorias.md` (novas). `<Dica>` em "Quantidade da embalagem", em "PLU" e em "Variação".
 
 ## Plano de testes
 - **Unidade:** dígito verificador de GTIN-8, 12, 13 e 14; cálculo da margem.
@@ -88,3 +94,4 @@ Como **gerente de loja**, quero **cadastrar o que eu vendo com código de barras
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

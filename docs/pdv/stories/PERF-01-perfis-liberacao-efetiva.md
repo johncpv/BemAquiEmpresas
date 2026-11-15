@@ -6,7 +6,7 @@
 | Título | Perfis de negócio no catálogo (`BusinessProfileCatalog`, `tenant_profiles`), liberação efetiva por plano e perfil e o estado "oculto" para módulo fora do perfil |
 | Tamanho | G |
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
-| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos e spikes |
+| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (itens 1, 2 e 3) · [PRD do PDV](../01-PRD.md) seção 3 · ADR 0003 · ADR 0006 · FND-06 (catálogo de módulos e liberação por tenant) |
 | Dependências | PP-03 decidida; FND-06 (existente) |
 | Bloqueia | PERF-02, PERF-03, PERF-04, CAT-01, PDV-01 |
@@ -84,3 +84,4 @@ Como **super admin**, quero **dizer que tipo de negócio cada empresa é**, para
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

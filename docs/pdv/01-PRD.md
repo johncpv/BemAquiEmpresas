@@ -34,14 +34,14 @@ O BemAqui deixa de ser "ERP de fábrica sob encomenda" e passa a ser **gestão c
 | 2 | Supermercado, padaria, restaurante, lanchonete, hamburgueria, trailer, oficina | Segmentos: refinamento do perfil que troca dados iniciais e padrões de tela | Seções 3.1 e 5 |
 | 3 | Perfil fácil de habilitar | Passo "Perfil de negócio" no provisionamento; "Adicionar perfil" em tenant existente; checklist de primeiros passos | Seção 3.4; PERF-02, PERF-04 |
 | 4 | PDV moderno e prático | Dois modos por caixa (toque e teclado/leitor), consulta sempre local, atalhos | Seção 5; PDV-02 |
-| 5 | Offline desde o primeiro release | PDV local-first: grava no aparelho e sincroniza | [Rascunho A](adr/rascunho-A-offline.md); OFF-01 a OFF-03 |
+| 5 | Offline desde o primeiro release | PDV local-first: grava no aparelho e sincroniza. Em loja fiscal, contingência offline de verdade, com assinatura na loja (decisão do PO de 15/11/2026) | [Rascunho A](adr/rascunho-A-offline.md); OFF-01 a OFF-03; NFCE-04 |
 | 6 | Maquininha externa primeiro, integração prevista | Pagamento com tipo de integração e campos de TEF desde o primeiro dia; `ManualTerminal` agora | [Rascunho C](adr/rascunho-C-pagamentos.md); PDV-03, PAG-02 a PAG-04 |
 | 7 | Impressoras com NFC-e ou cupom não fiscal | Cupom não fiscal no MVP; DANFE NFC-e na Fase 13 | [Rascunho B](adr/rascunho-B-impressao-perifericos.md); IMP-01, IMP-02, NFCE-02 |
-| 8 | CPD | Local de estoque "Depósito (CPD)" e transferência para as lojas, sobre o multi-local que já existe | CPD-01 a CPD-05 |
+| 8 | CPD (a retaguarda) | Entrada da nota de compra com precificação no mesmo fluxo, cadastro, preços e promoções, etiquetas e carga de balança, inventário, perdas e conferência dos caixas | Fase 12; CPD-01 a CPD-05 |
 | 9 | Painel "Na cozinha / Pedidos prontos" | Visão nova do quiosque da TV (ADR 0030) | [Rascunho D](adr/rascunho-D-tempo-real-kds-painel.md); KDS-03 |
 | 10 | Mesas e comandas | Módulo Restaurante | MESA-01 a MESA-03 |
 | 11 | Pagamento dividido por pessoa e por forma | "Partes" da venda, cada uma com um ou mais pagamentos | [04-fluxos-estados.md](04-fluxos-estados.md#5-split-de-pagamento); PDV-03, MESA-04 |
-| 12 | Ajustes no EmissorFiscal | 40 lacunas mapeadas, com fases | [07-emissor-fiscal.md](07-emissor-fiscal.md); NFCE-00 |
+| 12 | Ajustes no EmissorFiscal | 41 lacunas mapeadas, com fases; o trabalho pode começar antes do go-live (PP-41) | [07-emissor-fiscal.md](07-emissor-fiscal.md); NFCE-00 |
 | 13 | "Não propor nada menos do que o mercado pratica" | Matriz de paridade: 38 requisitos mínimos, todos com story | [Benchmark, seção 7](00-benchmark-mercado.md#7-matriz-de-paridade-cada-requisito-mínimo-e-a-story-que-o-cobre) |
 
 ## 3. Perfil de negócio
@@ -102,7 +102,7 @@ O provisionamento já roda em menos de 1 minuto, com etapas retomáveis e seeds 
 1. **Super admin** (`ProvisionDialog`): dados da empresa → **perfil de negócio** (cards, multi-seleção) → **segmento** → plano → proprietário. O perfil é aplicado logo depois do `ApplyPlanAsync`; a etapa `Seed` roda os pacotes do perfil.
 2. **Tenant existente:** aba "Perfis" no detalhe do tenant, com "Adicionar perfil" (idempotente). Remover perfil só oculta; nunca apaga dado.
 3. **Proprietário, primeiro login:** checklist "Primeiros passos" no Início, em cinco passos: empresa e regime tributário → importar produtos por planilha → formas de pagamento e taxas → impressora → abrir o caixa e fazer uma venda de teste.
-4. **Pacote do Comércio:** locais "Loja" e "Depósito (CPD)"; contas "Caixa PDV 01" e "Cofre"; formas de pagamento (Dinheiro, Pix, Débito, Crédito à vista, Crédito parcelado, Vale); adquirente "Maquininha" com taxa e prazo zerados e o chip "A confirmar"; tabela de preço "Balcão"; grupos Gerente de loja, Operador de caixa e Estoquista; regras fiscais do Simples Nacional com o chip "A confirmar com a contadora" (ADR 0042). O segmento acrescenta estações de preparo, mesas de exemplo, categorias e unidades.
+4. **Pacote do Comércio:** locais "Loja" e "Depósito"; categorias de exemplo; contas "Caixa PDV 01" e "Cofre"; formas de pagamento (Dinheiro, Pix, Débito, Crédito à vista, Crédito parcelado, Vale); adquirente "Maquininha" com taxa e prazo zerados e o chip "A confirmar"; tabela de preço "Balcão"; grupos Gerente de loja, Operador de caixa e Estoquista; regras fiscais do Simples Nacional com o chip "A confirmar com a contadora" (ADR 0042). O segmento acrescenta estações de preparo, mesas de exemplo, categorias e unidades.
 
 Fora do plano: o cliente criar a própria conta sozinho (PP-27).
 
@@ -130,7 +130,7 @@ Um projeto por módulo em `src/Modules/<M>/`, nas cinco camadas, com schema pró
 | Módulo | Schema | Código(s) no `ModuleCatalog` | Área | Responsabilidade |
 |---|---|---|---|---|
 | **Catalog** | `catalog_products` (o nome evita colisão com o banco `catalog` da plataforma) | `catalog` | Loja | Tudo o que torna um item **vendável**: nome de venda, foto, códigos de barras, tabelas de preço, promoções, complementos, combos, ficha técnica, etiquetas. O Estoque segue dono do item físico (unidade, NCM, custo, saldo) |
-| **Sales** | `sales` | `sales` | Loja | A venda em si: itens, partes, pagamentos, devolução e troca, vale-troca. Serve ao PDV agora e ao restaurante, à oficina e à loja virtual depois |
+| **Sales** | `sales` | `sales` | Loja | A venda em si, **com ou sem caixa**: itens, partes, pagamentos, devolução e troca, vale-troca. O núcleo nasce na Fase 10 (VND-01) e serve ao PDV, ao restaurante, à oficina e à loja virtual |
 | **Pos** | `pos` | `pos` (tela dedicada `/pdv`, como o `shopfloor`) | Telas dedicadas | Lojas, caixas, sessão de caixa, sangria e suprimento, eventos do aparelho, sincronização, impressoras, aprovações de supervisor |
 | **Restaurant** | `restaurant` | `restaurant`, `kds` (tela dedicada) | Loja | Áreas, mesas, comandas, estações de preparo, tíquetes de cozinha, senha do painel, taxa de serviço, couvert |
 | **ServiceOrders** | `service_orders` | `service_orders` | Loja ou Serviços | OS de serviço com veículo ou equipamento, checklist com fotos, mão de obra e peças. Absorve a P-10 do `docs/06` |
@@ -138,7 +138,7 @@ Um projeto por módulo em `src/Modules/<M>/`, nas cinco camadas, com schema pró
 
 **Uma só implementação de pagamento e caixa.** Restaurante, OS de serviço e loja virtual pagam pelo `Sales` (contrato `IOrderPayments`). A comanda, a OS e o pedido online viram uma venda.
 
-**Divisão Sales × Pos.** A análise de produto propunha um projeto só (`Sales`, com os códigos `sales` e `pos`); a de arquitetura, dois. O plano adota dois projetos, porque o e-commerce usa a venda sem usar caixa nem aparelho. A alternativa e a questão do Catálogo como módulo próprio estão na PP-04.
+**Divisão Sales × Pos.** A análise de produto propunha um projeto só (`Sales`, com os códigos `sales` e `pos`); a de arquitetura, dois. O plano adota dois projetos, porque o e-commerce usa a venda sem usar caixa nem aparelho. Quem é dono de cada tabela e de cada endpoint, e como o `Pos` entrega a venda ao `Sales` sem tocar nas tabelas dele, está em [02-arquitetura.md, seção 4.1](02-arquitetura.md#41-fronteira-sales--pos-quem-é-dono-de-quê). A alternativa e a questão do Catálogo como módulo próprio estão na PP-04.
 
 ### 4.3 Contratos e eventos principais
 
@@ -151,6 +151,7 @@ Um projeto por módulo em `src/Modules/<M>/`, nas cinco camadas, com schema pró
 | `ISalesRevenue` | Sales | Receita por dia para o DRE e o Dashboard |
 | `ISaleLookup` | Sales | Localizar venda para devolução, por número ou CPF |
 | `IOrderPayments` | Sales | Pagar comanda, OS ou pedido online |
+| `ISaleIngestion` | Sales | Receber uma venda concluída (do `Pos`, da loja virtual, de uma plataforma) e gravá-la, na transação de quem chama |
 | `IPaymentMethods` | Finance | Formas de pagamento, adquirentes, taxa e prazo |
 | `IPixChargeProvider` | Finance | Pix cobrança imediata (Fase 16), ao lado do `IBankBillingProvider` |
 | `IEstablishments` | A conferir (quem guarda hoje os dados da empresa) | Loja como estabelecimento: CNPJ e IE de filial, emitente, local de estoque e conta padrão (PP-15) |
@@ -169,7 +170,7 @@ Um projeto por módulo em `src/Modules/<M>/`, nas cinco camadas, com schema pró
 
 ## 5. Escopo por segmento
 
-**PDV núcleo (igual para todos):** venda rápida por busca, leitor ou grade de toque; quantidade; desconto por item e no total; cliente opcional e CPF; várias formas de pagamento na mesma venda; troco; venda em espera; caixa completo; cupom não fiscal ou NFC-e; reimpressão; devolução e troca; offline; atalhos de teclado.
+**PDV núcleo (igual para todos):** venda rápida por busca, leitor ou grade de toque por categoria; quantidade; desconto por item e no total; cliente opcional e CPF; várias formas de pagamento na mesma venda; troco; venda em espera; caixa completo; cupom não fiscal ou NFC-e; NF-e modelo 55 para comprador com CNPJ (PDV-14); pré-venda (PDV-15); reimpressão; devolução e troca; offline; atalhos de teclado.
 
 | Segmento | Usa do núcleo | Extensão do segmento | Fase |
 |---|---|---|---|
@@ -197,18 +198,20 @@ Dois modos de tela, escolhidos por caixa:
 6. **Troco só no dinheiro.**
 7. **Pagamento capturado é fato imutável.** Se uma parte do split falha, as partes pagas ficam; nada é desfeito sozinho.
 8. **O supervisor nunca aprova a própria operação.**
-9. **Número da venda `{loja}-{caixa}-{seq}`**, gerado no aparelho, fora do serviço central de numeração. Um caixa tem um aparelho ativo por vez.
-10. **Item só desce para o caixa de loja fiscal se estiver apto** (NCM, CFOP, CSOSN ou CST e CEST conferidos no cadastro). Assim uma venda offline não falha na emissão depois.
+9. **Número da venda `{loja}-{caixa}.{época}-{seq}`**, gerado no aparelho, fora do serviço central de numeração. Um caixa tem um aparelho ativo por vez; a **época** sobe a cada troca de aparelho, para que vendas ainda não enviadas pelo aparelho antigo nunca colidam com as do novo.
+10. **Item só desce para o caixa de loja fiscal se estiver apto.** A lista de campos que tornam um item apto (a análise de arquitetura citou NCM, CFOP, CSOSN ou CST e CEST) **precisa da contadora** antes de virar validação. O objetivo é que uma venda offline não falhe na emissão depois.
 11. **Remover perfil nunca apaga dado.** Só oculta.
 12. **O sistema sugere, não decide** (regra do `CLAUDE.md`): efeito financeiro, fiscal ou de estoque sempre com confirmação.
+13. **Emitir ou não o documento fiscal é escolha e responsabilidade da empresa** (decisão do PO de 15/11/2026). Cada loja opera em "NFC-e" ou em "só cupom não fiscal". O modo não fiscal só é ligado pelo Proprietário, com aceite registrado em auditoria; o comprovante sai com "Não é documento fiscal"; e há relatório de vendas sem documento fiscal por período. O BemAqui não avalia se a empresa é dispensada.
+14. **O sistema nunca guarda número de cartão, código de segurança nem trilha.** Do cartão ficam só bandeira, NSU e código de autorização. Campos livres (NSU, observação) recusam sequência que pareça número de cartão.
 
 ### 6.2 O que funciona sem rede
 
 | Funciona sem rede | Não funciona sem rede |
 |---|---|
-| Vender (catálogo e preço da última sincronização) | NFC-e (ver PP-01) |
+| Vender (catálogo e preço da última sincronização) | NFC-e online. Em loja fiscal sem internet, o agente da loja assina em contingência (NFCE-04, Fase 13); no MVP não há NFC-e |
 | Dinheiro, cartão em maquininha externa, Pix conferido à mão | Pix dinâmico e TEF |
-| Cupom não fiscal na impressora local | Fiado, vale-troca, devolução de venda de outro caixa |
+| Cupom não fiscal na impressora local | Fiado, vale-troca e **toda devolução** (a venda original é conferida no servidor) |
 | Sangria, suprimento e fechamento com conferência cega | Consulta de saldo de outra loja, transferência |
 | Aprovação de supervisor por PIN (marcada como offline) | Cadastro e troca de preço, relatórios |
 | Abrir turno (a partir da primeira versão pública) | Mesas e comandas compartilhadas, KDS e painel em tempo real (PP-23) |
@@ -245,10 +248,11 @@ Ação restrita sem a permissão abre "Chamar supervisor". O supervisor digita o
 | Risco | Controle |
 |---|---|
 | Cancelamento para embolsar dinheiro | Supervisor diferente do operador; motivo obrigatório; relatório por operador; alerta quando passa de X% das vendas do turno |
-| Desconto indevido | Limite % por grupo; acima, PIN; sempre com motivo; relatório "vendas abaixo do custo" |
+| Desconto indevido | Limite % (por grupo ou por loja: PP-38); acima, PIN; sempre com motivo; relatório "vendas abaixo do custo" |
 | Troca de preço | `pos.change_price` separada; preço só da tabela; histórico em `PriceChanged` |
 | Sangria desviada | Comprovante em duas vias; a sangria é transferência com destino (cofre), e o cofre é conferido |
-| Quebra de caixa | Conferência cega; tolerância; aprovação acima; histórico por operador |
+| Quebra de caixa | Conferência cega; tolerância **por forma de pagamento** (sobra em dinheiro não compensa falta em cartão); aprovação acima; histórico por operador |
+| Pix falso (comprovante mostrado na tela do cliente) | Pix conferido pelo operador é marcado e conferido contra o extrato no fechamento; relatório por operador; Pix dinâmico na Fase 12 |
 | Gaveta aberta sem venda | `pos.open_drawer` + registro; contagem por turno no relatório |
 | Venda não registrada | Painel do cliente e cupom sempre impresso ou oferecido; CMV teórico × real |
 | Devolução fictícia | Só com a venda original localizada; prazo; vale-troca em vez de dinheiro por padrão; supervisor |
@@ -265,9 +269,10 @@ A trilha é o registro de eventos do aparelho (imutável) mais o `audit.audit_lo
 |---|---|
 | Desempenho | "Instantâneo" é propriedade do aparelho: leitura do código, busca, gravação e impressão não tocam a rede |
 | Plataformas do caixa | Windows com Chrome ou Edge; Android com Chrome; PWA instalado. iOS fora do caixa (PP-09) |
-| Durabilidade | RPO de 24 h não serve ao varejo: arquivamento contínuo de WAL com restauração a um ponto no tempo (INFRA-01) |
-| Hospedagem | API, PostgreSQL e EmissorFiscal num datacenter em São Paulo, em VPS dedicada, antes da versão pública do PDV (PP-07) |
-| LGPD | CPF do consumidor só para o documento fiscal e para localizar devolução; cifrado no aparelho, marcado `[PersonalData]`, fora de log e outbox; entra na tabela de retenção (ADR 0018 e 0037) |
+| Durabilidade | RPO de 24 h não serve ao varejo. Sem migrar: backup mais frequente na VPS atual, com a perda máxima medida (INFRA-02). Com a migração: arquivamento contínuo de WAL e restauração a um ponto no tempo (INFRA-01) |
+| Hospedagem | **Decisão do PO de 15/11/2026: ficar na VPS atual por enquanto** (PP-07). Por isso tudo o que o caixa precisa roda local e offline, e tabelas públicas ficam embutidas no sistema. A migração para um datacenter em São Paulo (INFRA-01) fica condicionada a quatro gatilhos |
+| LGPD | CPF do consumidor cifrado no aparelho, marcado `[PersonalData]`, fora de log, de URL e do outbox, e **fora do registro imutável de eventos** (fica num registro à parte, apagável). Finalidades, papel de operador e controlador e retenção: PP-26 |
+| Dados de cartão | Regra 14: nada de número de cartão, CVV ou trilha. Na loja virtual, só campos hospedados ou token do gateway |
 | Ajuda | Toda tela nova com `Ajuda/<chave>.md` (regra existente, com teste de cobertura) |
 | Tema | A tela de venda segue os tokens do produto; o painel do cliente é sempre escuro |
 

@@ -2,7 +2,7 @@
 
 > Rascunho de ADR do [plano do PDV](../README.md). "Conferido" é o que foi lido no código ou nas ADRs; "a validar" é conhecimento geral que precisa de spike ou da contadora antes de virar decisão. Os achados citados por número estão em [02-arquitetura.md](../02-arquitetura.md#1-achados-do-código-que-moldam-o-desenho).
 
-- Status: **Proposto (rascunho)**, 15/11/2026. Ainda não numerado em `docs/adr`; vira [rascunho A](rascunho-A-offline.md) ou seguinte quando o PO aprovar ([como os rascunhos viram ADR](README.md)).
+- Status: **Proposto (rascunho)**, 15/11/2026. Ainda não numerado em `docs/adr`; vira ADR 0046 ou seguinte quando o PO aprovar ([como os rascunhos viram ADR](README.md)).
 - Contexto: painel "Na cozinha / Pedidos prontos" e KDS por setor. Ver achados 7 e 8.
 
 ## Decisão proposta
@@ -35,3 +35,4 @@
 - **Stories:** KDS-01, KDS-02 e KDS-03, na Fase 15 ([backlog](../05-backlog.md)).
 - Primeiro nome no painel: [PP-24](../06-pendencias-riscos.md). Restaurante sem rede: PP-23.
 - **Adendo que este rascunho pede:** ADR 0030 (visão "pedidos", escopo por loja, permissão `pos.view` para criar o token).
+- **Revisão de 15/11/2026.** A impressora de rede da cozinha depende da ponte (IMP-03); a KDS-01 passou a listar essa dependência.

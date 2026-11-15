@@ -6,7 +6,7 @@
 | Título | Provisionar com perfil de negócio e segmento, e adicionar ou remover perfil em tenant existente pela aba "Perfis" |
 | Tamanho | M |
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
-| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos e spikes |
+| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (item 3: perfil fácil de habilitar) · [PRD do PDV](../01-PRD.md) seção 3.4 · FND-03a e FND-03b (provisionamento e tela do super admin) |
 | Dependências | PERF-01 |
 | Bloqueia | PERF-04 |
@@ -70,3 +70,4 @@ Como **super admin**, quero **escolher o perfil de negócio ao criar a empresa e
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

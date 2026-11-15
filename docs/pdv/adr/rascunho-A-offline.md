@@ -34,12 +34,12 @@ Limites de plataforma (a validar no spike 1):
 5. **Dinheiro em centavos inteiros no TypeScript.** Ids Guid v7 gerados no aparelho; `crypto.randomUUID` é v4, então precisa de gerador v7.
 6. **Protocolo de subida:** eventos de venda imutáveis, em lote, por `POST /api/v1/pos/sync/events`.
    - Cada evento leva `event_id`, `device_id`, `register_id`, `seq` por caixa, `schema_version`, instante do aparelho e hash do evento anterior. A cadeia de hash denuncia lacuna ou adulteração.
-   - O servidor grava em `pos.device_events` (imutável por trigger, como `stock_movements`) com `ON CONFLICT (event_id) DO NOTHING` e projeta em `pos.sales`.
+   - O servidor grava em `pos.device_events` (imutável por trigger, como `stock_movements`) com `ON CONFLICT (event_id) DO NOTHING` e projeta em `sales.sales`.
    - A resposta confirma até qual `seq` e diz, por evento: aceito, aceito com divergência ou em quarentena.
    - **Venda concluída nunca é recusada.** Conflito vira pendência para conferência humana.
    - O `IdempotencyFilter` continua só para comandos que exigem rede (ex.: criar cobrança Pix).
 7. **Protocolo de descida:** foto inicial mais delta por cursor.
-   - Fonte: um modelo de leitura do próprio módulo (`pos.catalog_items`, com `change_seq`), alimentado por eventos do Inventory. Respeita a regra de não ler tabela de outro módulo.
+   - Fonte: um modelo de leitura do próprio módulo (`pos.catalog_items`, com `change_seq`), alimentado por eventos do Catalog (produto, preço) e do Inventory (item). Respeita a regra de não ler tabela de outro módulo.
    - Coleções: itens, códigos de barras, preços, operadores, formas de pagamento, mesas, impressoras.
 8. **Regras de conflito:**
    - **Estoque:** a venda sempre vale; ver [rascunho F](rascunho-F-escala-hospedagem.md) sobre saldo negativo.
@@ -48,7 +48,7 @@ Limites de plataforma (a validar no spike 1):
    - **Relógio:** o instante do aparelho é informativo; o servidor grava `received_at`. A data fiscal é do servidor.
    - **Mesas e comandas:** são estado compartilhado entre aparelhos. Online, o servidor manda. Sem rede, cada aparelho só acrescenta itens às comandas que ele mesmo abriu; fechar comanda de outro aparelho exige rede.
 9. **Autenticação sem rede** (adendo à 0026):
-   - **Registro do aparelho:** login completo de quem tem `pos.manage_devices`. Generalizar `identity.shopfloor_devices` com `kind` (Fábrica, Caixa, KDS, Estação de impressão), `store_id` e `register_id`. O teto passa a ser por tipo e plano.
+   - **Registro do aparelho:** login completo de quem tem `pos.manage_devices`. Generalizar `identity.shopfloor_devices` com `kind` (Fábrica, Caixa, KDS, Garçom, Estação de impressão), `store_id` e `register_id`. O teto passa a ser por tipo e plano.
    - **Chave do aparelho:** ECDSA não exportável (WebCrypto). O lote de sincronização vai assinado e usa um esquema `Device` próprio, restrito a `/api/v1/pos/sync/*` por atributo e teste de arquitetura, no modelo do `[PinSessionAllowed]`. A sincronização funciona sem operador presente.
    - **Segredo do aparelho:** gira a cada sincronização bem-sucedida, não a cada PIN.
    - **PIN sem rede:** verificador derivado no servidor e baixado só para os operadores da loja, protegido pela chave do aparelho. Bloqueio local por tentativas. **Risco aceito:** 6 dígitos com acesso físico ao aparelho é quebrável. Por isso o que se pode fazer sem rede é limitado.
@@ -79,3 +79,5 @@ Limites de plataforma (a validar no spike 1):
 - **Nomes de tabela:** este rascunho usa `pos.device_events` e `pos.catalog_items`; o [modelo de dados](../03-modelo-dados.md) mantém esses nomes.
 - **Stories:** [OFF-01](../stories/OFF-01-fundacao-offline.md), [OFF-02](../stories/OFF-02-sincronizacao-pendencias.md), [OFF-03](../stories/OFF-03-caixa-supervisor-sem-rede.md) e [PDV-01](../stories/PDV-01-lojas-caixas-aparelho.md).
 - **Adendos que este rascunho pede:** ADR 0026 (aparelho com tipo e loja, PIN sem rede, exceção nomeada para supervisor), ADR 0019 (a sincronização não usa o `IdempotencyFilter`).
+- **Revisão de 15/11/2026.** (1) O número da venda e a chave dos eventos ganham a **época do aparelho** (`{loja}-{caixa}.{época}-{seq}`), para que a troca de aparelho não colida com vendas ainda não enviadas pelo antigo; o aparelho revogado mantém só a subida. (2) O verificador do PIN não pode ser "protegido pela chave do aparelho": a chave ECDSA só assina; é preciso uma chave de cifra não extraível própria. (3) Faltavam limites de valor e de quantidade para aprovação offline e um piso de horário do servidor para a janela. (4) O mesmo PIN valer online e offline é a pendência PP-39. (5) O registro do aparelho exige TOTP recente e avisa o Proprietário. (6) O CPF não entra no evento imutável. Tudo isso está nas stories PDV-01, OFF-02 e OFF-03.
+- "F1" e "F2" deste rascunho são o "piloto interno" e o "MVP" do [README](../README.md#marcos).

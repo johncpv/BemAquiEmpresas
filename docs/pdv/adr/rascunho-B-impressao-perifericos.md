@@ -2,7 +2,7 @@
 
 > Rascunho de ADR do [plano do PDV](../README.md). "Conferido" é o que foi lido no código ou nas ADRs; "a validar" é conhecimento geral que precisa de spike ou da contadora antes de virar decisão. Os achados citados por número estão em [02-arquitetura.md](../02-arquitetura.md#1-achados-do-código-que-moldam-o-desenho).
 
-- Status: **Proposto (rascunho)**, 15/11/2026. Ainda não numerado em `docs/adr`; vira [rascunho A](rascunho-A-offline.md) ou seguinte quando o PO aprovar ([como os rascunhos viram ADR](README.md)).
+- Status: **Proposto (rascunho)**, 15/11/2026. Ainda não numerado em `docs/adr`; vira ADR 0046 ou seguinte quando o PO aprovar ([como os rascunhos viram ADR](README.md)).
 - Contexto: térmica 58/80 mm ESC/POS por USB, rede e Bluetooth; DANFE NFC-e ou recibo; cozinha por setor; gaveta; leitor; balança; configuração simples.
 
 ## Opções
@@ -47,4 +47,4 @@
 ## Notas da consolidação do plano
 - A análise de produto colocava o agente local só na fase de supermercado. Este rascunho o trata como padrão no Windows. O plano adota o meio-termo: o MVP sai com a porta `HardwareBridge` e os adaptadores de navegador ([IMP-01](../stories/IMP-01-cupom-nao-fiscal-impressora.md), [IMP-02](../stories/IMP-02-impressao-direta-escpos-gaveta.md)); a ponte é a IMP-03, na Fase 12. **Se o [SPK-01](../stories/SPK-01-perifericos-hardware-real.md) mostrar que a impressora USB no Windows não funciona de forma simples pelo navegador, a IMP-03 sobe para o MVP.**
 - Decisão do PO sobre aceitar um instalador assinado: [PP-08](../06-pendencias-riscos.md). Lista de hardware homologado: PP-19.
-- O texto do recibo não fiscal aparece nos insumos de duas formas ("SEM VALOR FISCAL" e "Não é documento fiscal"). O texto final é validado com a contadora (QC-13).
+- O texto do recibo não fiscal aparece nos insumos de duas formas ("SEM VALOR FISCAL" e "Não é documento fiscal"). O PO fixou "Não é documento fiscal" em 15/11/2026 (PP-05).

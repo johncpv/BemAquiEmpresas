@@ -32,13 +32,14 @@ Nomes de tabela e coluna em inglês; `tenant` não aparece como coluna porque o 
 |---|---|---|
 | `identity.shopfloor_devices` → aparelhos | + `kind` (`Factory`, `Register`, `Kds`, `Waiter`, `PrintStation`), `store_id`, `register_id`, `public_key` (ECDSA do aparelho), `last_sync_at`, `revoked_at` | Generalização, com backfill `Factory`. O teto passa a ser por tipo e plano. Renomear a tabela é migration com cuidado; a story decide entre renomear e manter o nome (PDV-01) |
 | `identity.users` | + `is_operation_user` (sem e-mail, só entra por PIN em aparelho registrado) | Só se a PP-12 for aprovada |
-| `identity.device_pin_verifiers` (nova) | `device_id`, `user_id`, `verifier` (derivado no servidor, protegido pela chave do aparelho), `issued_at` | Baixado só para os operadores e supervisores da loja do aparelho (OFF-03) |
+| `identity.device_pin_verifiers` (nova) | `device_id`, `user_id`, `verifier` (derivado no servidor), `issued_at`, `offline_limits` | Baixado só para os operadores e supervisores da loja do aparelho. No aparelho fica cifrado com uma **chave de cifra não extraível própria** (AES ou ECDH do WebCrypto); a chave ECDSA do aparelho só assina e não serve para isso (OFF-03) |
 
 ## 3. Catalog — schema `catalog_products`
 
 | Tabela | Campos-chave | Observação |
 |---|---|---|
-| `products` | `id`, `item_id` (Estoque), `sale_name`, `photo_file_id`, `sellable_pos`, `sellable_online`, `is_weighable`, `plu`, `kitchen_station_id`, `prep_minutes`, `fiscal_ready` | Um produto por item. `fiscal_ready` = item apto a descer para caixa de loja fiscal (regra 10 do PRD) |
+| `categories` | `id`, `name`, `parent_id`, `default_margin_percent`, `default_markup_percent`, `sort_order`, `seed_key` | Categoria de produto: organiza a grade do modo Toque, a importação, os relatórios e a margem padrão usada na precificação (CPD-01) |
+| `products` | `id`, `item_id` (Estoque), `category_id`, `sale_name`, `photo_file_id`, `sellable_pos`, `sellable_online`, `is_weighable`, `plu`, `variant_of_product_id`, `variant_attributes` (jsonb: cor, tamanho), `kitchen_station_id`, `prep_minutes`, `fiscal_ready` | Um produto por item. **Variação (grade):** o produto "pai" agrupa; cada variação é um produto com item, código de barras, preço e saldo próprios e `variant_of_product_id` apontando para o pai. `fiscal_ready` = item apto a descer para caixa de loja fiscal (regra 10 do PRD) |
 | `product_barcodes` | `product_id`, `gtin`, `pack_quantity` `decimal(18,4)`, `unit_id` | Vários por produto. `gtin` único no tenant, com dígito verificador validado |
 | `price_lists` | `id`, `name`, `store_id` (nulo = todas), `channel` (`Pos`, `Online`, `Delivery`), `valid_from`, `valid_to`, `version` | Versão incrementada a cada mudança; o aparelho informa a versão em que vendeu |
 | `price_list_items` | `price_list_id`, `product_id`, `price` `decimal(18,2)`, `min_quantity` `decimal(18,4)` | `min_quantity` atende preço de atacado por faixa (Fase 12) |
@@ -52,14 +53,16 @@ Ligações: `products.item_id` → `inventory.items` (por `IItems`); custo para 
 
 ## 4. Pos — schema `pos`
 
+Dono das tabelas abaixo e das rotas `/api/v1/pos/…`. Não escreve tabela do `Sales`: entrega a venda pelo contrato `ISaleIngestion` ([02, seção 4.1](02-arquitetura.md#41-fronteira-sales--pos-quem-é-dono-de-quê)).
+
 | Tabela | Campos-chave | Observação |
 |---|---|---|
-| `stores` | `id`, `code` (curto, entra no número da venda), `name`, `stock_location_id` (Estoque), `default_price_list_id`, `fiscal_mode` (`AlwaysNfce`, `NeverFiscal`, `Ask`), `establishment_id` (nulo enquanto houver um CNPJ só), parâmetros da loja | Parâmetros: tolerância de quebra, teto de dinheiro em caixa, limite de desconto do operador, prazo de devolução, janela máxima sem sincronizar (PP-10, PP-22) |
-| `registers` | `id`, `store_id`, `number`, `cash_account_id` (Finance, tipo `Cash`), `fiscal_series`, `active_device_id`, `last_sale_seq`, `ui_mode` (`Touch`, `Keyboard`) | Um aparelho ativo por caixa. O servidor devolve o `last_sale_seq` ao registrar um aparelho novo |
-| `cash_sessions` | `id`, `register_id`, `operator_user_id`, `status`, `opened_at`, `opening_amount` `decimal(18,2)`, `closed_at`, `expected_total`, `counted_total`, `difference`, `reviewed_by`, `review_reason`, `opened_offline`, `closed_offline` | Uma `Open` por caixa (índice único parcial). Estados em [04](04-fluxos-estados.md#2-caixa-e-turno) |
-| `cash_movements` | `id`, `cash_session_id`, `kind` (`Opening`, `CashOut` sangria, `CashIn` suprimento), `amount` `decimal(18,2)`, `reason`, `counterpart_account_id`, `approved_by`, `finance_transfer_id` | Vira transferência no Finance |
-| `cash_counts` | `cash_session_id`, `payment_method_id`, `counted_amount`, `expected_amount`, `denominations` (jsonb, opcional) | `expected_amount` só é exposto a quem tem `sales.approve` |
-| `device_events` | `event_id` (PK, do aparelho), `device_id`, `register_id`, `seq`, `schema_version`, `type`, `payload` (jsonb), `device_time`, `received_at`, `prev_hash`, `hash`, `outcome` (`Accepted`, `AcceptedWithDivergence`, `Quarantined`) | **Imutável por trigger**, como `stock_movements`. Único por (`register_id`, `seq`). `[NotAudited]`: o próprio registro é a trilha |
+| `stores` | `id`, `code` (curto, entra no número da venda), `name`, `stock_location_id` (Estoque), `default_price_list_id`, `fiscal_mode` (`Nfce`, `NonFiscalOnly`), `non_fiscal_accepted_by`, `non_fiscal_accepted_at`, `establishment_id` (nulo enquanto houver um CNPJ só), parâmetros da loja | Parâmetros: tolerância de quebra por forma, teto de dinheiro em caixa, prazo de devolução, janela máxima sem sincronizar, limites de aprovação offline (PP-10, PP-22, PP-39). O limite de desconto fica aqui ou no grupo, conforme a PP-38. `non_fiscal_accepted_*` guarda o aceite do Proprietário (regra 13 do PRD) |
+| `registers` | `id`, `store_id`, `number`, `cash_account_id` (Finance, tipo `Cash`), `fiscal_series`, `active_device_id`, `device_epoch`, `ui_mode` (`Touch`, `Keyboard`) | Um aparelho ativo por caixa. `device_epoch` sobe a cada troca de aparelho; o `seq` recomeça em 1 em cada época, então nada do aparelho antigo colide com o novo |
+| `cash_sessions` | `id`, `register_id`, `operator_user_id`, `status`, `opened_at`, `opening_amount` `decimal(18,2)`, `closed_at`, `expected_total`, `counted_total`, `difference`, `deposited_amount` (recolhido ao Cofre no fechamento), `reviewed_by`, `review_reason`, `opened_offline`, `closed_offline` | Uma `Open` por caixa (índice único parcial). Estados em [04](04-fluxos-estados.md#2-caixa-e-turno) |
+| `cash_movements` | `id`, `cash_session_id`, `kind` (`Opening`, `CashOut` sangria, `CashIn` suprimento, `Deposit` recolhimento no fechamento), `amount` `decimal(18,2)`, `reason`, `counterpart_account_id`, `approved_by`, `finance_transfer_id` | Vira transferência no Finance |
+| `cash_counts` | `cash_session_id`, `payment_method_id`, `counted_amount`, `expected_amount`, `difference`, `denominations` (jsonb, opcional) | `expected_amount` só é exposto a quem tem `sales.approve`. A tolerância é aplicada por linha (por forma) |
+| `device_events` | `event_id` (PK, do aparelho), `device_id`, `register_id`, `device_epoch`, `seq`, `schema_version`, `type`, `payload` (jsonb, **sem dado pessoal**), `device_time`, `received_at`, `prev_hash`, `hash`, `outcome` (`Accepted`, `AcceptedWithDivergence`, `Quarantined`) | **Imutável por trigger**, como `stock_movements`. Único por (`register_id`, `device_epoch`, `seq`). `[NotAudited]`: o próprio registro é a trilha. O CPF do cliente **não entra no payload**: sobe ao lado do lote e vai para `sales.sale_customer_documents`, que pode ser apagado sem quebrar a cadeia de hash |
 | `sync_divergences` | `id`, `event_id`, `sale_id`, `kind` (preço vencido, relógio, saldo, aparelho revogado, lacuna de sequência), `status` (`Open`, `Resolved`), `resolved_by`, `resolution` | Alimenta a tela "Pendências do PDV" |
 | `catalog_items` | `product_id`, `store_id`, `payload` (nome, GTINs, preço, unidade, pesável, estação), `change_seq`, `deleted` | **Modelo de leitura** do próprio módulo, alimentado por eventos do Catalog e do Inventory. É de onde sai a foto e o delta do aparelho |
 | `supervisor_approvals` | `id`, `action` (código da permissão), `operator_user_id`, `supervisor_user_id`, `reason`, `before`, `after` (jsonb), `sale_id`, `offline`, `created_at` | `supervisor_user_id` ≠ `operator_user_id` (regra + `CHECK`) |
@@ -68,13 +71,16 @@ Ligações: `products.item_id` → `inventory.items` (por `IItems`); custo para 
 
 ## 5. Sales — schema `sales`
 
+Dono das tabelas abaixo e das rotas `/api/v1/sales/…`. O núcleo (as quatro primeiras tabelas e a baixa de estoque) nasce na Fase 10, na VND-01, e não depende de caixa.
+
 | Tabela | Campos-chave | Observação |
 |---|---|---|
-| `sales` | `id` (do aparelho), `number` (`{loja}-{caixa}-{seq}`), `store_id`, `register_id`, `cash_session_id`, `channel` (`Pos`, `Online`, `Delivery`, `Table`, `ServiceOrder`), `status`, `fiscal_status`, `stock_status`, `customer_id` (nulo = consumidor final), `customer_document` (CPF/CNPJ, `[PersonalData]`), `seller_user_id`, `subtotal`, `discount_total`, `service_fee`, `total` (todos `decimal(18,2)`), `price_list_version`, `completed_at_device`, `received_at`, `invoice_id` (Fiscal) | A data fiscal é a do servidor; o instante do aparelho é informativo |
+| `sales` | `id` (do aparelho, no PDV), `number` (`{loja}-{caixa}.{época}-{seq}` no PDV; numeração do canal nos demais), `store_id`, `register_id` (nulo fora do PDV), `cash_session_id` (**nulo em canal sem caixa**), `channel` (`Pos`, `Online`, `Delivery`, `Table`, `ServiceOrder`), `status`, `fiscal_status`, `stock_status`, `customer_id` (nulo = consumidor final), `seller_user_id`, `subtotal`, `discount_total`, `service_fee`, `total` (todos `decimal(18,2)`), `price_list_version`, `completed_at_device`, `received_at`, `invoice_id` (Fiscal) | Qual data vale para o documento fiscal (a da venda ou a da emissão) é pergunta para a contadora: QC-17. O instante do aparelho é sempre guardado |
+| `sale_customer_documents` | `sale_id`, `document_encrypted` (CPF/CNPJ, `[PersonalData]`), `document_blind_index`, `purpose` (fiscal, devolução) | Fora do registro imutável de eventos. Cifrado; apagável pela retenção. A busca por CPF usa o índice cego (HMAC), nunca o CPF em claro |
 | `sale_lines` | `id`, `sale_id`, `product_id`, `item_id`, `description`, `quantity` `decimal(18,4)`, `unit_price` `decimal(18,2)`, `discount` `decimal(18,2)`, `total` `decimal(18,2)`, `unit_cost` `decimal(18,6)`, `modifiers` (jsonb), `note`, `seat` | Preço e desconto gravados na linha; `unit_cost` preenchido na baixa, para a margem |
 | `sale_parts` | `id`, `sale_id`, `label` (pessoa ou assento), `kind` (`Equal`, `Amount`, `Items`), `amount` `decimal(18,2)`, `status` (`Pending`, `Paid`) | Split. Venda sem split tem uma parte só |
 | `sale_part_lines` | `sale_part_id`, `sale_line_id`, `quantity` `decimal(18,4)` | Só no split por itens |
-| `sale_payments` (`tenders`) | `id`, `sale_id`, `sale_part_id`, `payment_method_id` (Finance), `amount` `decimal(18,2)`, `change_amount` `decimal(18,2)`, `status` (`Created`, `Pending`, `Captured`, `Voided`, `Refunded`, `Failed`, `Unknown`), `integration` (`Manual`, `Tef`, `SmartPos`, `PixApi`), `installments`, `provider`, `acquirer_party_id`, `card_brand`, `nsu`, `authorization_code`, `txid`, `end_to_end_id`, `confirmed_by` | Os campos de TEF e Pix existem desde o MVP, vazios no modo manual |
+| `sale_payments` (`tenders`) | `id`, `sale_id`, `sale_part_id`, `payment_method_id` (Finance), `amount` `decimal(18,2)`, `change_amount` `decimal(18,2)`, `status` (`Created`, `Pending`, `Captured`, `Voided`, `Refunded`, `Failed`, `Unknown`), `integration` (`Manual`, `Tef`, `SmartPos`, `PixApi`, `Gateway`), `installments`, `provider`, `acquirer_party_id`, `card_brand`, `nsu`, `authorization_code`, `txid`, `end_to_end_id`, `confirmed_by`, `statement_checked_at` | Os campos de TEF e Pix existem desde o início, vazios no modo manual. **Nunca número de cartão, CVV ou trilha.** `statement_checked_at` marca o Pix conferido pelo operador que já foi conferido contra o extrato |
 | `sale_returns`, `sale_return_lines` | devolução: `sale_id`, `status` (`Requested`, `Approved`, `Completed`), `refund_kind` (`Cash`, `StoreCredit`, `CardReversal`), `exchange_sale_id`, `approved_by`; linha: `sale_line_id`, `quantity`, `restock` (volta ao estoque ou perda) | Troca = devolução + venda nova ligadas |
 | `store_credits` | `id`, `code`, `customer_id`, `amount`, `balance` (`decimal(18,2)`), `expires_at`, `origin_return_id` | Vale-troca (passivo). Não funciona sem rede |
 | `stock_postings` | `id`, `store_id`, `register_id`, `item_id`, `window_start`, `window_end`, `quantity` `decimal(18,4)`, `stock_movement_id`, `status` (`Posted`, `Shortfall`) | Baixa agregada por item, caixa e janela, com rastreio até as vendas (`stock_posting_sales`). A forma final sai do SPK-03 |
@@ -85,7 +91,7 @@ Ligações: `products.item_id` → `inventory.items` (por `IItems`); custo para 
 |---|---|---|
 | `finance.payment_methods` (nova) | `id`, `name`, `kind` (`Cash`, `Pix`, `Debit`, `Credit`, `CreditInstallments`, `Voucher`, `StoreCredit`, `OnAccount` fiado), `destination_account_id`, `acquirer_party_id`, `nfe_payment_code` (o `tPag`), `allows_change`, `active`, `seed_key`, `confirmed_at` | `confirmed_at` nulo = chip "A confirmar" |
 | `finance.acquirer_fees` (nova) | `id`, `acquirer_party_id`, `card_brand`, `payment_method_id`, `installments`, `fee_percent` `decimal(9,4)`, `settlement_days`, `valid_from` | Histórico por vigência; nunca se edita a taxa passada |
-| `finance.receivables` | + origem `Sale` e `CardSettlement`; + `cash_session_id`, `gross_amount`, `expected_fee`, `net_amount` | Título contra a **adquirente** (cartão) ou contra o cliente (fiado). Um por adquirente, bandeira, forma e vencimento, por sessão |
+| `finance.receivables` | + origem `Sale` e `CardSettlement`; + `sale_channel`, `cash_session_id` (**nulo em canal sem caixa**), `settlement_date`, `gross_amount`, `expected_fee`, `net_amount` | Título contra a **adquirente** ou o gateway (cartão) ou contra o cliente (fiado). No PDV, um por adquirente, bandeira, forma e vencimento, por sessão. Em canal sem caixa, o mesmo agrupamento por **dia e canal** (VND-01) |
 | `finance.bank_accounts` | Sem mudança de forma | Contas "Caixa PDV nn" e "Cofre" do tipo `Cash` já são possíveis; conta "Quebra de caixa" entra pelo seed |
 | `finance.pix_charges` (nova, Fase 16) | `id`, `txid`, `amount`, `status`, `sale_payment_id`, `expires_at`, `end_to_end_id` | Atrás do `IPixChargeProvider` |
 
@@ -102,7 +108,7 @@ Ligações: `products.item_id` → `inventory.items` (por `IItems`); custo para 
 
 | Tabela | Mudança | Observação |
 |---|---|---|
-| `fiscal.outgoing_invoices` | + `InvoiceType.NFCe`; + `sale_id`, `register_id`, `emission_type` (normal ou contingência), `qr_code`, `consult_url`, `print_payload` (jsonb do bloco `impressao`) | A numeração e a série são do Emissor |
+| `fiscal.outgoing_invoices` | + `InvoiceType.NFCe`; + `sale_id`, `register_id`, `emission_type` (normal, contingência central, contingência na loja), `contingency_deadline`, `qr_code`, `consult_url`, `print_payload` (jsonb do bloco `impressao`) | A numeração e a série são do Emissor, salvo a série de contingência da loja (NFCE-04). A NF-e modelo 55 do balcão (PDV-14) usa a tabela como já é hoje, com `sale_id` |
 | `fiscal.fiscal_settings` | + CSC e idCSC **não ficam aqui**: ficam no Emissor, por emitente e ambiente (lacuna 8). Aqui só o estado "CSC cadastrado" e a série por caixa | O A1 continua só no cofre do Emissor (ADR 0027) |
 | `fiscal.tax_rules` | + regras do Simples e do MEI por NCM (ST, monofásico) com "A confirmar com a contadora" | Fase 13 |
 
@@ -162,7 +168,9 @@ finance.bank_entries ("Quebra de caixa")                                        
 | De | Para | Como |
 |---|---|---|
 | Venda | Estoque | Evento `SaleCompleted` → consumidor idempotente → `IStockMovements` no local da loja. Nunca na transação do caixa |
-| Sessão de caixa | Financeiro | Evento `CashSessionClosed` → resumos (dinheiro na conta Caixa; cartão em título contra a adquirente; Pix manual no banco; quebra em `bank_entries`). Idempotente por sessão |
+| Sessão de caixa | Financeiro | Evento `CashSessionClosed` → resumos (dinheiro recolhido ao Cofre por transferência, ficando na conta Caixa só o fundo; cartão em título contra a adquirente; Pix manual no banco, a conferir; quebra em `bank_entries`). Idempotente por sessão |
+| Venda de canal sem caixa | Financeiro | Evento `SaleCompleted` → recebível por dia e canal, sem sessão de caixa (VND-01) |
+| PDV | Venda | O `Pos` chama `ISaleIngestion` na transação do lote; não escreve tabela do `Sales` |
 | Sangria e suprimento | Financeiro | Evento `CashMovementRecorded` → `bank_transfers` entre o Caixa do PDV e o Cofre |
 | Venda | Fiscal | Pedido de emissão com `nfce-{saleId}-{tentativa}`; a venda segue com `fiscal_status = Pending` |
 | Fiscal | Venda | `InvoiceAuthorized`, `InvoiceRejected`, `InvoiceCancelled` |

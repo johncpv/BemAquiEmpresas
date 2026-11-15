@@ -6,11 +6,11 @@
 | Título | Pacotes de dados iniciais por perfil e segmento (locais, contas, formas de pagamento, tabela de preço, grupos, regras fiscais "A confirmar") e checklist "Primeiros passos" no Início |
 | Tamanho | M |
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
-| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos e spikes |
+| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (item 3) · [PRD do PDV](../01-PRD.md) seção 3.4 · ADR 0042 (valores pré-configurados "A confirmar") · R-PRP-1 (propositivo) |
 | Dependências | PERF-02, CAT-01, PAG-01 |
 | Bloqueia | PDV-01 (a loja e o caixa do seed) |
-| Ordem de execução | 4 (Fase 10; fecha depois de CAT-01 e PAG-01) |
+| Ordem de execução | 8 (Fase 10) |
 
 ## User story
 Como **dono de um comércio que acabou de entrar**, quero **encontrar o básico já cadastrado e uma lista do que falta**, para **fazer a primeira venda de teste em até 30 minutos**.
@@ -21,7 +21,7 @@ Como **dono de um comércio que acabou de entrar**, quero **encontrar o básico 
 
 ## Critérios de aceite
 ### Pacote do Comércio
-1. **Dado** um tenant com o perfil `retail`, **quando** o seed roda, **então** existem: os locais "Loja" e "Depósito (CPD)"; as contas do tipo Caixa "Caixa PDV 01" e "Cofre" e a conta "Quebra de caixa"; as formas de pagamento Dinheiro, Pix, Débito, Crédito à vista, Crédito parcelado e Vale; o terceiro adquirente "Maquininha" com taxa e prazo zerados; a tabela de preço "Balcão"; os grupos Gerente de loja, Operador de caixa e Estoquista.
+1. **Dado** um tenant com o perfil `retail`, **quando** o seed roda, **então** existem: os locais "Loja" e "Depósito"; as contas do tipo Caixa "Caixa PDV 01" e "Cofre" e a conta "Quebra de caixa"; as formas de pagamento Dinheiro, Pix, Débito, Crédito à vista, Crédito parcelado e Vale; o terceiro adquirente "Maquininha" com taxa e prazo zerados; a tabela de preço "Balcão"; uma categoria "Geral"; os grupos Gerente de loja, Operador de caixa e Estoquista.
 2. **Dado** os valores de taxa, prazo e regra fiscal do seed, **quando** abro as telas, **então** cada um tem o chip "A confirmar" (taxas) ou "A confirmar com a contadora" (regras fiscais do Simples Nacional), com "Marcar como conferido" auditado.
 3. **Dado** o seed rodando duas vezes, ou um perfil adicionado depois, **quando** confiro, **então** nada é duplicado e nenhum valor que o tenant já alterou é sobrescrito.
 4. **Dado** um segmento de alimentação, **quando** o seed roda, **então** acrescenta categorias e unidades do segmento; estações de preparo e mesas de exemplo entram quando o módulo Restaurante existir (Fase 15).
@@ -70,3 +70,4 @@ Como **dono de um comércio que acabou de entrar**, quero **encontrar o básico 
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

@@ -6,7 +6,7 @@
 | Título | Área "Loja" no dock, rótulo de área por perfil ("Retaguarda" no lugar de "Fábrica") e vocabulário por perfil servido no `tenant-context` |
 | Tamanho | M |
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
-| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos e spikes |
+| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (item 3) · [PRD do PDV](../01-PRD.md) seção 3.2 · ADR 0005 (shell, dock e navegação) |
 | Dependências | PERF-01; PP-25 |
 | Bloqueia | CAT-01 (o módulo novo entra na área "Loja") |
@@ -67,3 +67,4 @@ Como **dono de um comércio**, quero **ver "Loja" e "Retaguarda" no menu, e não
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

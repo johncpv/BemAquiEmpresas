@@ -6,7 +6,7 @@
 | Título | Spike: periféricos em hardware real (impressoras USB, rede e Bluetooth, gaveta, leitor e balança) a partir do PWA em Windows e Android, comparando o navegador com um agente mínimo em loopback |
 | Tamanho | M |
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
-| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos e spikes |
+| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (itens 4, 5 e 7) · [Rascunho A](../adr/rascunho-A-offline.md) (onde roda) · [Rascunho B](../adr/rascunho-B-impressao-perifericos.md) |
 | Dependências | Kit de hardware comprado (PP-19) |
 | Bloqueia | IMP-02; a decisão de a IMP-03 (ponte) entrar no MVP; PP-08 e PP-09 |
@@ -58,3 +58,4 @@ Como **arquiteto**, quero **provar em hardware real o que o navegador alcança e
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

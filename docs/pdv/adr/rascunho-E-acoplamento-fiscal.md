@@ -2,7 +2,7 @@
 
 > Rascunho de ADR do [plano do PDV](../README.md). "Conferido" é o que foi lido no código ou nas ADRs; "a validar" é conhecimento geral que precisa de spike ou da contadora antes de virar decisão. Os achados citados por número estão em [02-arquitetura.md](../02-arquitetura.md#1-achados-do-código-que-moldam-o-desenho).
 
-- Status: **Proposto (rascunho)**, 15/11/2026. Ainda não numerado em `docs/adr`; vira [rascunho A](rascunho-A-offline.md) ou seguinte quando o PO aprovar ([como os rascunhos viram ADR](README.md)).
+- Status: **Proposto (rascunho)**, 15/11/2026. Ainda não numerado em `docs/adr`; vira ADR 0046 ou seguinte quando o PO aprovar ([como os rascunhos viram ADR](README.md)).
 - Contexto: o certificado A1 fica só no cofre do Emissor (ADR 0027 §3) e o aparelho não pode tê-lo. Ver achados 1 e 11.
 
 ## Decisão proposta
@@ -53,7 +53,9 @@ Perguntas para a contadora, por UF dos clientes-alvo:
 - Filial com CNPJ próprio exige emitente por loja; hoje é um por tenant ([rascunho F](rascunho-F-escala-hospedagem.md)).
 
 ## Notas da consolidação do plano
-- **Divergência registrada.** A recomendação deste rascunho para a loja sem internet é (d) + (a): 4G de reserva e recibo não fiscal agora com NFC-e na volta da rede. A análise do EmissorFiscal ([07](../07-emissor-fiscal.md), seção 2.6) recomenda o oposto: agente de loja com A1 dedicado, que é a contingência prevista na norma. O plano não escolhe; as duas posições estão na [PP-01](../06-pendencias-riscos.md#pp-01--venda-sem-internet-em-loja-que-emite-nfc-e).
-- As "lacunas novas no EmissorFiscal" do item 3 estão detalhadas (40 lacunas) em [07-emissor-fiscal.md](../07-emissor-fiscal.md).
+- **Divergência registrada.** A recomendação deste rascunho para a loja sem internet é (d) + (a): 4G de reserva e recibo não fiscal agora com NFC-e na volta da rede. A análise do EmissorFiscal ([07](../07-emissor-fiscal.md), seção 2.6) recomenda o oposto: agente de loja com A1 dedicado, que é a contingência prevista na norma. As duas posições estão na [PP-01](../06-pendencias-riscos.md#pp-01--venda-sem-internet-em-loja-que-emite-nfc-e); a decisão do PO está logo abaixo.
+- As "lacunas novas no EmissorFiscal" do item 3 estão detalhadas (41 lacunas) em [07-emissor-fiscal.md](../07-emissor-fiscal.md).
 - **Stories:** NFCE-00 a NFCE-07, na Fase 13.
 - **Adendos que este rascunho pede:** ADR 0027 (NFC-e, série por caixa, emitente por loja) e ADR 0008 (cancelamento no balcão com PIN de supervisor, PP-11).
+- **Decisão do PO em 15/11/2026: opção (c) deste rascunho, o assinador local na loja** (é a opção (b) da PP-01). A recomendação original deste rascunho, (d) + (a), foi vencida: o PO quer contingência offline de verdade. Um servidor de assinatura por loja, chave não exportável, certificado separado do cofre, série própria de contingência com alerta, inventário por loja. A opção (a) fica como modo degradado, desligado por padrão. O "requisito do PO" citado no texto (certificado só no cofre) foi revisto por ele; pede adendo à ADR 0027 §3.
+- **Revisão de 15/11/2026.** (1) O caso "internet ok, SEFAZ fora" não tinha lacuna no Emissor: é a **lacuna 41**, e a story dona do estado `AuthorizedInContingency` é a NFCE-08. (2) "A data fiscal é a do servidor" é proposta: QC-17. (3) A lista de campos do "item apto" precisa da contadora. (4) O tipo de comprovante por loja foi decidido pelo PO: "NFC-e" ou "só cupom não fiscal", por escolha e responsabilidade da empresa, com aceite do Proprietário (PP-05).

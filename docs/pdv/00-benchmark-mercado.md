@@ -77,6 +77,8 @@ Parte do [plano do PDV](README.md). Pesquisa feita em 15/11/2026. As seções 1 
 - **Reforma tributária:** obrigatoriedade de IBS/CBS em NF-e e NFC-e desde **03/08/2026** para o regime normal; **Simples Nacional em janeiro de 2027** (fontes divergem entre 01/01 e 04/01); a rejeição 1115 ainda sem data em produção, mas a obrigação vale. NT 2025.002 já passou por onze versões (v1.51 a mais recente que encontrei). Alíquotas-teste de 2026: CBS 0,9%, IBS 0,1% [V-44][V-45].
 - **Lei da Transparência/IBPT no cupom:** piso [C].
 
+> **Nota da revisão de 15/11/2026.** As datas de IBS/CBS acima estão marcadas [V] porque a fonte foi lida, mas as fontes [V-44] e [V-45] são blogs, não o texto oficial. Nenhuma delas vira regra antes de conferida no Ato Conjunto e na Nota Técnica vigente (QC-04 em [06-pendencias-riscos.md](06-pendencias-riscos.md)).
+
 ---
 
 ## 2. Modelos de preço observados
@@ -212,13 +214,13 @@ Regra do PO: **"não propor nada menos do que o mercado pratica"**. Cada um dos 
 | # | Requisito mínimo | Stories | Fase | Situação | Pendência que condiciona |
 |---|---|---|---|---|---|
 | 1 | PDV que vende sem internet e sincroniza sozinho; meta de 7 dias (Hiper) | OFF-01, OFF-02, OFF-03 | 11 | MVP | PP-10: o rascunho A propõe janela de 72 h, **abaixo** dos 7 dias do piso. A recomendação do plano é parâmetro por loja com teto de 7 dias |
-| 2 | NFC-e com contingência, transmissão automática e cupom não fiscal para MEI | IMP-01 (cupom não fiscal), NFCE-00, NFCE-02, NFCE-04 | 11 e 13 | MVP parcial (cupom não fiscal); NFC-e condicionada | PP-01 (venda sem internet em loja fiscal), PP-05, PP-13 |
+| 2 | NFC-e com contingência, transmissão automática e cupom não fiscal para MEI | IMP-01 (cupom não fiscal), NFCE-00, NFCE-02, NFCE-08 (contingência com a SEFAZ fora), NFCE-04 (sem internet: servidor de assinatura na loja, **épico**) | 11 e 13 | MVP parcial (cupom não fiscal); NFC-e condicionada ao Emissor | PP-01 decidida em 15/11/2026 (assinatura na loja); restam QC-01 e QC-12, por UF |
 | 3 | Campos IBS/CBS emitidos e Simples pronto para janeiro de 2027 | NFCE-05 (e lacuna 29 do [Emissor](07-emissor-fiscal.md)) | 13 | Condicionado | QC-04 (obrigatoriedade e data para Simples e MEI na NFC-e) |
-| 4 | TEF integrado com Pix no mesmo fluxo; Pix QR dinâmico | PAG-02 (Pix dinâmico), PAG-03 (TEF) | 16 | Condicionado | PP-18 (provedor de TEF); adendo à ADR 0032 para escopo de cobrança Pix |
+| 4 | TEF integrado com Pix no mesmo fluxo; Pix QR dinâmico | PAG-02 (Pix dinâmico por qualquer PSP, antecipado para a Fase 12), PAG-03 (TEF) | 12 e 16 | Pix: Fase 12. TEF: condicionado | PP-18 (provedor de TEF); adendo à ADR 0032 para escopo de cobrança Pix |
 | 5 | Abertura, sangria, suprimento e fechamento com conferência cega | CX-01, CX-02, CX-03 | 11 | MVP | PP-22 (valores padrão) |
 | 6 | Senha de supervisor para cancelamento e desconto, com trilha | PDV-04, OFF-03 | 11 | MVP | PP-11 (PIN de supervisor no lugar do TOTP) |
-| 7 | Rodar em SmartPOS Android (Stone, Cielo, PagBank, Getnet) | PAG-04 | 16 | Condicionado | PP-18 (qual fabricante primeiro; homologação com o fornecedor) |
-| 8 | Relatórios por período, canal e unidade; app ou painel do dono | PDV-07 (lista, exportação e cards do Início), PDV-09 (relatórios e painel do dono) | 11 e 12 | MVP parcial | — |
+| 7 | Rodar em SmartPOS Android (Stone, Cielo, PagBank, Getnet) | PAG-04 (**épico**: a casca e um fabricante por vez) | 16 | Condicionado | PP-18 (qual fabricante primeiro; homologação com o fornecedor) |
+| 8 | Relatórios por período, canal e unidade; app ou painel do dono | PDV-07 (lista, exportação e cards do Início), PDV-09 (relatórios e painel do dono), CPD-05 (painel da retaguarda) | 11 e 12 | MVP parcial | PP-42 (acesso por loja) |
 
 ### 7.2 Food service
 
@@ -227,28 +229,28 @@ Regra do PO: **"não propor nada menos do que o mercado pratica"**. Cada um dos 
 | 9 | Mesas e comandas em tempo real, pré-conta, taxa de serviço e couvert | MESA-01, MESA-02, MESA-03 | 15 | Fase 15 | PP-23 (mesas e comandas exigem rede); QC-05 (taxa de serviço e gorjeta) |
 | 10 | Divisão por pessoa, por item e por formas de pagamento diferentes | PDV-03 (várias formas na mesma venda), MESA-04 (por pessoa e por item) | 11 e 15 | MVP parcial | PP-20 (uma NFC-e por venda ou por pagante) |
 | 11 | App do garçom em celular e maquininha | MESA-02 (celular e tablet), PAG-04 (maquininha) | 15 e 16 | Condicionado na parte da maquininha | PP-18 |
-| 12 | Impressão por estação de preparo e KDS com prioridade | KDS-01, KDS-02 | 15 | Fase 15 | PP-08 (impressora de rede da cozinha pede a ponte, IMP-03) |
+| 12 | Impressão por estação de preparo e KDS com prioridade | KDS-01, KDS-02 | 15 | Fase 15 | A impressora de rede da cozinha depende da ponte (IMP-03, Fase 12) e da PP-08 |
 | 13 | Cardápio digital com QR na mesa e site de delivery sem comissão | MESA-05, DLV-02 | 15 | Fase 15 | — |
-| 14 | iFood no gestor de pedidos; 99Food e Keeta via Open Delivery | DLV-04 | 15 | Condicionado | PP-36 (credenciamento nas plataformas) |
+| 14 | iFood no gestor de pedidos; 99Food e Keeta via Open Delivery | DLV-04 (**épico**: iFood e Open Delivery) | 15 | Condicionado | PP-36 (credenciamento nas plataformas) |
 | 15 | Taxa de entrega por bairro ou raio, entregadores com acerto, roteirização | DLV-01, DLV-03 | 15 | Fase 15 | — |
 | 16 | Combos, adicionais, observações, pizza meio a meio, preço por horário | CAT-05 | 15 | Fase 15 | — |
 | 17 | Cupom, fidelidade por pontos e cashback | FID-01, FID-02 | 15 | Fase 15 | — |
 | 18 | Robô de pedidos no WhatsApp | DLV-05 | 15 | Condicionado | PP-36 (provedor e custo; a ADR 0041 já cobre o WhatsApp de aviso) |
 | 19 | Ficha técnica com baixa automática e CMV teórico × real | CAT-06 | 15 | Fase 15 | — |
 | 20 | Totem com pagamento integrado (ao menos como módulo) | PDV-13 | 16 | Condicionado | PP-18 (depende de TEF ou SmartPOS) |
-| 21 | Balança para self-service por quilo | IMP-05 (balança no caixa), MESA-02 (pesar abre a comanda) | 15 e 16 | Fase 16 | PP-19 (modelos e protocolos) |
+| 21 | Balança para self-service por quilo | IMP-05 (balança no caixa e venda por quilo; abre a comanda quando houver o módulo Restaurante) | 16 | Fase 16 | PP-19 (modelos e protocolos) |
 
 ### 7.3 Varejo, mercado e padaria
 
 | # | Requisito mínimo | Stories | Fase | Situação | Pendência que condiciona |
 |---|---|---|---|---|---|
 | 22 | Venda por leitor e teclado com atalhos; busca rápida | PDV-02, PDV-12 (alto volume) | 11 e 16 | MVP | — |
-| 23 | Carga de balança (Toledo, Filizola, Urano) e leitura de etiqueta de peso ou preço | IMP-04 (etiqueta EAN-13), IMP-05 (balança no caixa), IMP-06 (carga de balança) | 16 | Fase 16 | PP-19 |
+| 23 | Carga de balança (Toledo, Filizola, Urano) e leitura de etiqueta de peso ou preço | IMP-04 (etiqueta EAN-13) e IMP-06 (carga de balança), na retaguarda; IMP-05 (balança no caixa) | 12 e 16 | Fase 12 (etiqueta e carga); Fase 16 (balança no caixa) | PP-19 |
 | 24 | Etiquetas de gôndola e de produto | CAT-04 | 12 | Fase 12 | — |
 | 25 | Tabelas de preço varejo e atacado e promoções por regra | CAT-01 (tabela padrão), CAT-03 (tabelas por loja e canal, promoções) | 10 e 12 | MVP parcial | — |
 | 26 | Validade e lote, perdas e inventário | CPD-02, CPD-04 (o lote com validade e o inventário cego já existem no Estoque) | 12 | Fase 12 | PP-28 |
-| 27 | Multiloja com transferência | PDV-01 (lojas), CPD-01 (transferência CPD → loja) | 11 e 12 | MVP parcial | PP-15 (filial com CNPJ próprio) |
-| 28 | Conciliação de cartões ligada ao contas a receber | CX-03 (título contra a adquirente, conciliado pelo extrato), PAG-05 (arquivo ou API da adquirente) | 11 e 16 | MVP parcial | — |
+| 27 | Multiloja com transferência | PDV-01 (lojas), CPD-06 (depósito central e transferência entre lojas) | 11 e 12 | MVP parcial | PP-15 (filial com CNPJ próprio); PP-42 (acesso por loja: sem ela, todo usuário do módulo vê todas as lojas) |
+| 28 | Conciliação de cartões ligada ao contas a receber | CX-03 (título contra a adquirente, conciliado pelo extrato; um depósito para vários títulos), PAG-05 (arquivo ou API da adquirente) | 11 e 16 | MVP parcial | — |
 | 29 | Padaria: encomendas e ordem de produção por receita | CAT-07 (usa a ficha técnica da CAT-06) | 16 | Fase 16 | — |
 
 ### 7.4 Oficina
@@ -266,9 +268,9 @@ Regra do PO: **"não propor nada menos do que o mercado pratica"**. Cada um dos 
 | # | Requisito mínimo | Stories | Fase | Situação | Pendência que condiciona |
 |---|---|---|---|---|---|
 | 35 | Estoque único entre loja física, loja virtual e marketplaces | ECM-02 (reserva no mesmo estoque), ECM-06 | 14 | Fase 14 | — |
-| 36 | Mercado Livre, Shopee, Amazon e Magalu | ECM-06 | 14 | Condicionado | PP-21 (integração direta ou por hub) |
+| 36 | Mercado Livre, Shopee, Amazon e Magalu | ECM-06 (**épico**: um marketplace por vez, ou hub) | 14 | Condicionado | PP-21 (integração direta ou por hub) |
 | 37 | NF-e automática por pedido e frete integrado | ECM-04 | 14 | Fase 14 | — |
-| 38 | Integração com Nuvemshop, Tray e Loja Integrada, não só loja própria | ECM-07 | 14 | Condicionado | PP-21 |
+| 38 | Integração com Nuvemshop, Tray e Loja Integrada, não só loja própria | ECM-07 (**épico**: uma plataforma por vez; a versão reduzida é candidata a primeira entrega do e-commerce) | 14 | Condicionado | PP-21 |
 
 ### 7.6 Resultado
 
@@ -281,7 +283,9 @@ Regra do PO: **"não propor nada menos do que o mercado pratica"**. Cada um dos 
 | Sem story (só pendência) | 0 | — |
 | **Total** | **38** | |
 
-Pendências que condicionam itens do piso: PP-01, PP-05, PP-10, PP-11, PP-13, PP-15, PP-18, PP-19, PP-20, PP-21, PP-22, PP-23, PP-28, PP-36 e as perguntas QC-04, QC-05 e QC-06 da contadora.
+Pendências que condicionam itens do piso: PP-10, PP-11, PP-15, PP-18, PP-19, PP-20, PP-21, PP-22, PP-23, PP-28, PP-36, PP-42 e as perguntas QC-01, QC-04, QC-05, QC-06 e QC-12 da contadora. (PP-01, PP-05 e PP-13 foram decididas pelo PO em 15/11/2026.)
+
+**"Zero itens sem story" é uma contagem nominal** (apontado pela revisão independente de 15/11/2026). Cinco itens do piso estão cobertos por **épicos**, não por stories prontas para executar: 7 (PAG-04, quatro fabricantes), 14 (DLV-04, três plataformas), 36 (ECM-06, quatro marketplaces), 38 (ECM-07, três plataformas) e a parte offline do 2 (NFCE-04). Cada épico vira várias stories G quando a fase abrir, e todos dependem de credenciamento com terceiro. O item 4 ficou menos fraco com o Pix dinâmico antecipado para a Fase 12, mas o TEF continua na Fase 16.
 
 **Leitura honesta:** os 38 itens têm story, mas só 4 ficam completos no MVP. O MVP proposto (balcão com cupom não fiscal) é **menor que o piso de mercado** em três pontos que o lojista percebe no primeiro dia: não emite NFC-e (item 2), não tem TEF nem Pix integrado (item 4) e não roda em maquininha (item 7). Os três dependem de terceiros (EmissorFiscal, SEFAZ, adquirentes) e por isso não cabem no primeiro marco. O plano recomenda tratar o MVP como **piloto com lojista parceiro**, não como lançamento comercial, e só anunciar o produto ao mercado depois da Fase 13 (NFC-e). Essa leitura está registrada como PP-16.
 
@@ -290,7 +294,7 @@ Pendências que condicionam itens do piso: PP-01, PP-05, PP-10, PP-11, PP-13, PP
 | # | Item da seção 5 | Onde entra | Fase |
 |---|---|---|---|
 | 1 | Margem real por venda (custo de compra, impostos e taxa de cartão no fechamento do caixa) | PDV-05 grava o custo da venda; CX-03 leva a taxa da adquirente; PDV-10 mostra a margem no fechamento | 11 e 12 |
-| 2 | Emissor fiscal próprio (emitir offline e com IBS/CBS completo) | NFCE-04 e NFCE-05; lacunas 13 a 16 e 29 do [Emissor](07-emissor-fiscal.md). **Só vira diferencial se a PP-01 for decidida pela opção do agente de loja**; com "cupom agora e NFC-e depois" ficamos iguais à Saipos | 13 |
+| 2 | Emissor fiscal próprio (emitir offline e com IBS/CBS completo) | NFCE-04, NFCE-05 e NFCE-08; lacunas 13 a 16, 29 e 41 do [Emissor](07-emissor-fiscal.md). O PO decidiu em 15/11/2026 emitir offline de verdade, com assinatura na loja (PP-01): este item passa a ser um diferencial sobre a Saipos | 13 |
 | 3 | Lembrete de revisão na oficina | OFI-05 | 17 |
 | 4 | Cotação de compras | Já existe no módulo Compras (solicitação → cotação → pedido). CPD-03 gera a solicitação a partir do giro | 12 |
 | 5 | Um só produto para todos os segmentos | É o desenho do plano: perfis de negócio (PERF-01 a PERF-04) sobre os mesmos módulos | 10 |

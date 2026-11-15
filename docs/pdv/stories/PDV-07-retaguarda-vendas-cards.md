@@ -28,7 +28,7 @@ Como **dono**, quero **ver as vendas do dia, os caixas abertos e o ticket médio
 4. **Dado** uma venda, **quando** abro o detalhe, **então** vejo itens (com preço da tabela e praticado), pagamentos, e a **trilha**: eventos do aparelho em ordem, aprovações de supervisor, sincronização (quando foi feita e quando chegou), estoque (movimento ou divergência), financeiro (sessão de caixa e título) e reimpressões.
 5. **[Segurança]** **Dado** quem não tem `sales.view_cost`, **quando** lista, abre ou exporta vendas, **então** custo e margem não vêm (ausentes, não zerados).
 6. **[Segurança]** **Dado** o CPF do cliente na venda, **quando** aparece em lista ou exportação, **então** vem mascarado; o detalhe mostra inteiro só a quem tem `sales.view`, com a leitura auditada.
-7. **Dado** uma venda de outra loja, **quando** o usuário tem acesso ao módulo, **então** vê (não há restrição por loja no MVP; ver "Pontos em aberto").
+7. **Dado** uma venda de outra loja, **quando** o usuário tem acesso ao módulo, **então** vê: não há restrição por loja no MVP. Isso enfraquece o multiloja e virou a pendência PP-42.
 
 ### Início
 8. **Dado** um tenant com o módulo `sales` e o usuário com `sales.view`, **quando** abro o Início, **então** vejo os cards: "Vendas de hoje" (valor e quantidade, com a comparação com o mesmo dia da semana anterior), "Caixas abertos" (quantos, de quais lojas, há quanto tempo) e "Ticket médio" (hoje e nos últimos 7 dias).
@@ -66,7 +66,7 @@ Como **dono**, quero **ver as vendas do dia, os caixas abertos e o ticket médio
 - Restrição de acesso por loja.
 
 ## Pontos em aberto
-- Usuário que só deve ver a própria loja: não há restrição por loja no modelo de permissões de hoje (`modulo.acao`). Se o piloto pedir, vira pendência nova e ADR.
+- **PP-42:** usuário que só deve ver a própria loja. O modelo de permissões de hoje (`modulo.acao`) não tem escopo por loja; se o piloto pedir, exige ADR.
 
 ## Definition of Done
 - [ ] Critérios de aceite atendidos.
@@ -80,3 +80,4 @@ Como **dono**, quero **ver as vendas do dia, os caixas abertos e o ticket médio
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

@@ -37,7 +37,8 @@ Três eixos paralelos, que **nunca travam a venda**:
 
 Regras:
 - O preço e o desconto ficam gravados na linha. O servidor não recalcula venda sincronizada; só sinaliza divergência.
-- Número `{loja}-{caixa}-{seq}`, gerado no aparelho.
+- Número `{loja}-{caixa}.{época}-{seq}`, gerado no aparelho. A época sobe a cada troca de aparelho do caixa.
+- Venda de canal sem caixa (loja virtual, plataforma, OS) nasce já `Completed`, pelo `ISaleIngestion`, sem sessão de caixa e sem os estados `Open` a `InPayment`.
 - O id da venda é Guid v7 do aparelho; os eventos que a compõem levam `event_id` próprio.
 
 Efeitos:
@@ -63,14 +64,14 @@ Closed ──reabrir, com motivo (só a última sessão do caixa)──► Open
 | De | Para | Gatilho | Quem | Exige |
 |---|---|---|---|---|
 | — | `Open` | "Abrir caixa" | `pos.create` | Nenhuma sessão `Open` no caixa; fundo de troco informado (vem do Cofre, por transferência). Na primeira versão pública, funciona sem rede |
-| `Open` | `Open` | Sangria | `pos.cash_out` ou PIN de supervisor | Valor, motivo; comprovante em duas vias com assinatura de quem retira |
+| `Open` | `Open` | Sangria | `pos.cash_out` ou PIN de supervisor | Valor, motivo; comprovante em duas vias com assinatura de quem retira. **A tela não valida o valor contra o esperado** (isso revelaria o saldo): sangria maior que o dinheiro calculado é aceita e leva o fechamento a `PendingReview` |
 | `Open` | `Open` | Suprimento | `pos.cash_in` ou PIN de supervisor | Valor, motivo; comprovante |
 | `Open` | `Counting` | "Fechar caixa" | Operador da sessão | Nenhuma venda `Open` ou `InPayment`; vendas `Parked` são listadas para descartar ou retomar |
 | `Counting` | `Counted` | "Confirmar contagem" | Operador da sessão | Contado por forma, **sem ver o esperado**. Uma só contagem: recontar exige supervisor |
-| `Counted` | `Closed` | automático | — | Diferença dentro da tolerância da loja |
-| `Counted` | `PendingReview` | automático | — | Diferença acima da tolerância |
+| `Counted` | `Closed` | automático | — | Diferença de **cada forma de pagamento** dentro da tolerância da loja. Sobra em dinheiro não compensa falta em cartão |
+| `Counted` | `PendingReview` | automático | — | Alguma forma acima da tolerância; ou sangria acima do calculado; ou aprovações offline acima do limite da loja (OFF-03) |
 | `PendingReview` | `Closed` | "Aprovar fechamento" | `sales.approve` | Motivo. Quem aprova não é o operador da sessão |
-| `Closed` | `Open` | "Reabrir caixa" | `sales.approve` | Motivo; só a última sessão do caixa; desfaz os lançamentos do fechamento |
+| `Closed` | `Open` | "Reabrir caixa" | `sales.approve`, por **pessoa diferente do operador da sessão** | Motivo; só a última sessão do caixa; desfaz os lançamentos do fechamento; **aviso ao Proprietário** |
 
 Regras:
 - **Sangria sugerida** quando o dinheiro em caixa passa do limite da loja; **obrigatória** acima do teto (a venda em dinheiro seguinte pede a sangria antes).
@@ -83,7 +84,7 @@ Efeitos no Financeiro:
 |---|---|
 | Abertura | Transferência Cofre → Caixa do PDV (fundo de troco) |
 | Sangria / suprimento | Transferência Caixa do PDV ↔ Cofre ou banco (`bank_transfers`) |
-| `Closed` | Dinheiro: saldo na conta Caixa do caixa. Cartão: título contra a adquirente, um por adquirente, bandeira, forma e vencimento, com bruto, taxa prevista e líquido (parcelado: um por parcela). Pix conferido à mão: entrada no banco. Quebra: `bank_entries` na conta "Quebra de caixa". Tudo idempotente por sessão |
+| `Closed` | Dinheiro: o contado menos o fundo de troco do próximo turno é **recolhido ao Cofre** (transferência Caixa do PDV → Cofre); na conta Caixa fica só o fundo. Sem isso o saldo da conta Caixa incharia a cada turno. Cartão: título contra a adquirente, um por adquirente, bandeira, forma e vencimento, com bruto, taxa prevista e líquido (parcelado: um por parcela). Pix conferido à mão: entrada a conferir no banco, casada com o extrato. Quebra: `bank_entries` na conta "Quebra de caixa". Tudo idempotente por sessão |
 
 ## 3. Mesa e comanda (Fase 15)
 
@@ -186,12 +187,12 @@ Pending ──autorizada──► Authorized ──cancelamento no prazo──�
 
 | Situação | O que acontece |
 |---|---|
-| Loja com modo `AlwaysNfce` | Toda venda pede NFC-e. Vender sem ela exige `pos.skip_fiscal` |
-| Loja com modo `Ask` | O operador escolhe por venda. Quando o recibo não fiscal é permitido é pergunta da contadora, não escolha do operador (PP-05, QC-13) |
-| Loja com modo `NeverFiscal` | Recibo não fiscal sempre, com o texto de "sem valor fiscal" |
+| Loja no modo "NFC-e" | Toda venda pede NFC-e. Vender sem ela exige `pos.skip_fiscal`, e a venda entra no relatório de vendas sem documento fiscal |
+| Loja no modo "só cupom não fiscal" | Recibo com "Não é documento fiscal", sempre. O modo só é ligado pelo Proprietário, com aceite registrado em auditoria; a escolha de não emitir é da empresa (regra 13 do PRD; PP-05) |
+| Comprador com CNPJ | "Emitir NF-e" no balcão gera a NF-e modelo 55 pelo fluxo que já existe (PDV-14) |
 | A SEFAZ demora | A venda **não espera** além de um teto (proposta do Emissor: 8 a 10 s; depois, `202`). Segue `Pending` e o cupom sai quando a autorização chegar, ou sai o recibo com a NFC-e por e-mail |
-| Internet ok, SEFAZ fora | O Emissor emite em contingência e devolve XML assinado e QR; o caixa imprime o DANFE de contingência; a transmissão é do Emissor |
-| **Loja sem internet** | **Em aberto: PP-01.** Recibo não fiscal agora e NFC-e depois, ou agente de loja que assina a contingência |
+| Internet ok, SEFAZ fora | O Emissor emite em contingência e devolve XML assinado e QR; o caixa imprime o DANFE de contingência; a venda fica `AuthorizedInContingency` até o Emissor transmitir. Depende da **lacuna 41** do Emissor; a story dona do estado é a NFCE-08. Prazo e aceitação por UF: QC-01 |
+| **Loja sem internet** | Decidido pelo PO em 15/11/2026: **o servidor de assinatura da loja assina a NFC-e em contingência**, o caixa imprime o DANFE e a nota é transmitida quando a rede volta (NFCE-04). Depende de a UF aceitar `tpEmis=9` (QC-01). "Cupom agora, NFC-e depois" fica como modo degradado, desligado por padrão |
 | Rejeição | Vai para a fila de correção da retaguarda; o caixa não trata |
 | Cancelamento | Dentro do prazo legal, com `pos.cancel_sale` e PIN de supervisor (PP-11). Fora do prazo: NF-e de devolução (`NfePurpose.Return` já existe) |
 
@@ -213,7 +214,7 @@ sem resposta ou erro de rede ──► continua Local; reenvio com o mesmo event
 | Gravação | Toda ação grava primeiro no `LocalStore` e entra na fila de saída, com ou sem rede |
 | Lote | `POST /api/v1/pos/sync/events`, assinado com a chave do aparelho (esquema `Device`). Funciona sem operador presente |
 | Idempotência | `ON CONFLICT (event_id) DO NOTHING`. Reenviar não duplica |
-| Sequência | `seq` por caixa + hash do evento anterior. Lacuna ou adulteração é denunciada |
+| Sequência | `seq` por caixa e por **época do aparelho** + hash do evento anterior. Lacuna ou adulteração é denunciada |
 | Resposta | Até qual `seq` foi confirmado e, por evento: aceito, aceito com divergência, em quarentena |
 | **Venda concluída nunca é recusada** | Conflito vira pendência para conferência humana |
 | Descida | Foto inicial + delta por cursor (`change_seq`): itens, códigos de barras, preços, operadores, formas de pagamento, impressoras e, na Fase 15, mesas |
@@ -225,9 +226,10 @@ Regras de conflito:
 | Estoque | A venda sempre vale (PP-02) |
 | Preço | Vale o que o aparelho tinha. O evento leva o preço e a `price_list_version`; o servidor não reprecifica. Versão vencida além do limite vira divergência. Tabela nova entra com `valid_from`, para o aparelho baixar antes |
 | Número da venda | Do aparelho. Um caixa tem um aparelho ativo por vez |
-| Relógio | O instante do aparelho é informativo; o servidor grava `received_at`. A data fiscal é a do servidor. Diferença além da tolerância vira divergência |
-| Aparelho revogado | A revogação só vale no próximo contato. Os eventos de aparelho revogado entram em quarentena; não são descartados |
-| Janela máxima sem sincronizar | Depois dela o aparelho não abre turno. Proposta da arquitetura: 72 h. Piso de mercado: 7 dias. Decisão: PP-10 |
+| Relógio | O servidor grava `received_at` ao lado do instante do aparelho. Diferença além da tolerância vira divergência. Qual das duas datas vale para o documento fiscal é pergunta para a contadora (QC-17); a proposta da arquitetura é a do servidor |
+| Aparelho revogado | A revogação só vale no próximo contato. O aparelho revogado perde a descida e o PIN, mas **mantém a subida**: os eventos que ele ainda tinha entram em quarentena, não são descartados |
+| Troca de aparelho do caixa | O aparelho novo começa uma época nova, com `seq` 1. As vendas não enviadas do antigo sobem depois com a época antiga, sem colidir na chave nem no número |
+| Janela máxima sem sincronizar | Depois dela o aparelho não abre turno. É contada a partir do **último horário recebido do servidor**, que serve de piso: atrasar o relógio do aparelho não a estende. Proposta da arquitetura: 72 h. Piso de mercado: 7 dias. Decisão: PP-10 |
 | Versão do app | O servidor aceita eventos de versões antigas por um prazo definido (`schema_version`). O app só atualiza na troca de turno |
 
 Faixa fixa na tela de venda quando há fila: **"Sem conexão: N vendas a enviar"**, com a idade da mais antiga. Alerta quando a fila envelhece.

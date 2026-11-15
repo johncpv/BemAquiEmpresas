@@ -8,7 +8,7 @@
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | Pedido do PO de 15/11/2026 (item 4) · [Fluxos](../04-fluxos-estados.md#2-caixa-e-turno) · [PRD do PDV](../01-PRD.md) seção 6.5 |
-| Dependências | PDV-01, PDV-02 |
+| Dependências | PDV-01, PDV-02; PP-22 (alerta e teto) |
 | Bloqueia | CX-02, PDV-04 |
 | Paridade com o mercado | Requisitos mínimos 5 do [benchmark](../00-benchmark-mercado.md#7-matriz-de-paridade-cada-requisito-mínimo-e-a-story-que-o-cobre) |
 | Ordem de execução | 5 (Fase 11) |
@@ -24,7 +24,7 @@ Como **operador de caixa**, quero **abrir o caixa com o troco contado e registra
 1. **Dado** um caixa sem sessão aberta e `pos.create`, **quando** aciono "Abrir caixa", **então** informo o fundo de troco (padrão: o da última abertura), confirmo com "Abrir caixa" e a sessão nasce `Open`, com o meu usuário como operador.
 2. **Dado** um caixa com sessão `Open`, **quando** outro operador tenta abrir, **então** recebe "Este caixa já está aberto por Fulano desde 08:02.".
 3. **Dado** nenhuma sessão aberta, **quando** tento lançar item, **então** a venda não começa (PDV-02 CA 17).
-4. **Dado** `pos.cash_out`, **quando** registro uma sangria, **então** informo valor e motivo; o valor não pode passar do dinheiro em caixa calculado; a gaveta abre e sai o comprovante em duas vias, com linha para assinatura de quem retira.
+4. **Dado** `pos.cash_out`, **quando** registro uma sangria, **então** informo valor e motivo; a gaveta abre e sai o comprovante em duas vias, com linha para assinatura de quem retira. **A tela não recusa o valor por ser maior que o dinheiro calculado**, porque a recusa revelaria o saldo e furaria a conferência cega: sangria acima do calculado é aceita, fica marcada e leva o fechamento a `PendingReview`.
 5. **Dado** `pos.cash_in`, **quando** registro um suprimento, **então** informo valor e motivo e sai o comprovante.
 6. **Dado** um operador sem `pos.cash_out` ou `pos.cash_in`, **quando** tenta, **então** vê "Chamar supervisor" (PDV-04); até a PDV-04, recebe "Você não tem permissão para esta ação.".
 7. **Dado** o dinheiro em caixa acima do limite de alerta da loja, **quando** concluo uma venda em dinheiro, **então** vejo o aviso "Dinheiro em caixa acima de R$ X. Faça uma sangria." com o botão "Fazer sangria".
@@ -35,7 +35,7 @@ Como **operador de caixa**, quero **abrir o caixa com o troco contado e registra
 ## Regras de negócio e técnicas
 - Uma sessão `Open` por caixa.
 - Fundo de troco zero é permitido, com confirmação.
-- O "dinheiro em caixa calculado" é usado só para o alerta, o teto e a validação da sangria; nunca é mostrado ao operador.
+- O "dinheiro em caixa calculado" é usado só para o alerta e o teto, que são limites fixos da loja e não revelam o saldo; nunca é mostrado ao operador nem usado para recusar uma sangria.
 - Limite de alerta e teto são parâmetros da loja (PP-22).
 
 ## Permissões, eventos e tabelas
@@ -73,3 +73,4 @@ Como **operador de caixa**, quero **abrir o caixa com o troco contado e registra
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

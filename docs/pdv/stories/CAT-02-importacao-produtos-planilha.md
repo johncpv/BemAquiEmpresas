@@ -6,11 +6,11 @@
 | Título | Importação de produtos por planilha: modelo para baixar, prévia com erros por linha, criação de item, produto, código de barras, preço e saldo inicial opcional, reexecutável sem duplicar |
 | Tamanho | M |
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
-| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos e spikes |
+| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (item 3) · [PRD do PDV](../01-PRD.md) seção 3.4 (passo 2 dos primeiros passos) · ADR 0045 (exportação) |
 | Dependências | CAT-01 |
 | Bloqueia | PERF-04 (passo "Importar produtos") |
-| Ordem de execução | 6 (Fase 10) |
+| Ordem de execução | 5 (Fase 10) |
 
 ## User story
 Como **dono de um comércio**, quero **subir a planilha dos meus produtos**, para **não cadastrar centenas de itens um a um**.
@@ -50,7 +50,8 @@ Como **dono de um comércio**, quero **subir a planilha dos meus produtos**, par
 - **Vitest:** prévia e lista de erros.
 
 ## Fora do escopo
-- Importação pelo XML da nota do fornecedor (CPD-05).
+- Importação pelo XML da nota do fornecedor (CPD-01).
+- Variações pela planilha (a primeira versão importa produto simples; a grade é criada na tela).
 - Fotos em lote.
 
 ## Pontos em aberto
@@ -68,3 +69,4 @@ Como **dono de um comércio**, quero **subir a planilha dos meus produtos**, par
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

@@ -8,7 +8,7 @@
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | [PRD do PDV](../01-PRD.md) seções 6.4 e 6.5 · [Fluxos](../04-fluxos-estados.md#6-cancelamento-devolução-estorno-e-troca) · ADR 0008 e ADR 0026 (exceção a registrar) · PP-11 |
-| Dependências | PDV-03, CX-01; PP-11 decidida |
+| Dependências | PDV-03, CX-01; PP-11 e PP-38 decididas; PP-22 (valores padrão) |
 | Bloqueia | OFF-03 |
 | Paridade com o mercado | Requisitos mínimos 6 do [benchmark](../00-benchmark-mercado.md#7-matriz-de-paridade-cada-requisito-mínimo-e-a-story-que-o-cobre) |
 | Ordem de execução | 11 (Fase 11) |
@@ -22,7 +22,7 @@ Como **dono**, quero **que desconto alto, troca de preço e cancelamento só pas
 
 ## Critérios de aceite
 ### Desconto e preço
-1. **Dado** um item ou o total, **quando** dou desconto em % ou em valor até o limite do meu grupo, **então** ele é aplicado, com motivo obrigatório escolhido de uma lista (com "Outro" e texto).
+1. **Dado** um item ou o total, **quando** dou desconto em % ou em valor até o meu limite (o da loja ou o do meu grupo, conforme a PP-38), **então** ele é aplicado, com motivo obrigatório escolhido de uma lista (com "Outro" e texto).
 2. **Dado** um desconto acima do meu limite e sem `pos.discount`, **quando** tento, **então** vejo "Chamar supervisor" com o resumo (item, de quanto para quanto).
 3. **Dado** `pos.change_price` ou a aprovação de um supervisor, **quando** troco o preço de um item, **então** a linha guarda o preço da tabela e o praticado, com o motivo.
 4. **Dado** um desconto que deixa o item abaixo do custo, **quando** a venda chega ao servidor, **então** entra no relatório "Vendas abaixo do custo" (o custo não desce para o aparelho).
@@ -41,16 +41,16 @@ Como **dono**, quero **que desconto alto, troca de preço e cancelamento só pas
 13. **Dado** `sales.view`, **quando** abro "Aprovações de supervisor", **então** vejo o relatório por operador, por supervisor e por tipo, com exportação; e o indicador "cancelamentos acima de X% das vendas do turno" por caixa.
 
 ## Regras de negócio e técnicas
-- O limite de desconto é por grupo; vale o maior entre os grupos do operador.
+- Onde mora o limite de desconto é a PP-38: por loja (recomendado; parâmetro do `Pos`) ou por grupo (campo no Identity; nesse caso vale o maior entre os grupos do operador). A primeira versão do plano dizia as duas coisas; a story não sai de `Draft` sem a decisão.
 - O supervisor nunca aprova a própria operação.
 - Cancelar item, descontar e cancelar venda entram no `audit.audit_log`, além dos eventos do aparelho.
 - O PIN de supervisor é a exceção nomeada às ADRs 0008 e 0026; o TOTP continua valendo na retaguarda.
 
 ## Permissões, eventos e tabelas
 - **Permissões:** `pos.discount`, `pos.change_price`, `pos.cancel_item`, `pos.cancel_sale`.
-- **Endpoints:** `POST /api/v1/pos/supervisor-approvals` (na lista do PIN); `GET /api/v1/sales/supervisor-approvals`, `GET .../export`; limite de desconto na edição do grupo.
+- **Endpoints:** `POST /api/v1/pos/supervisor-approvals` (na lista do PIN); `GET /api/v1/pos/supervisor-approvals`, `GET .../export` (retaguarda, autorizados com `sales.view`); o limite de desconto na tela da loja ou do grupo, conforme a PP-38.
 - **Eventos do aparelho:** `DiscountApplied`, `PriceOverridden`, `LineRemoved`, `SaleCancelled`, `SupervisorApproved`. **Evento de domínio:** `SaleCancelled`.
-- **Tabelas:** `pos.supervisor_approvals`; `discount_limit_percent` no grupo.
+- **Tabelas:** `pos.supervisor_approvals`; o limite de desconto em `pos.stores` ou no grupo, conforme a PP-38.
 
 ## Telas e estados
 - **Diálogo "Chamar supervisor":** resumo da ação, lista dos supervisores da loja, teclado de PIN. Erro: PIN errado com as tentativas restantes.
@@ -58,7 +58,7 @@ Como **dono**, quero **que desconto alto, troca de preço e cancelamento só pas
 - **Ajuda:** `Ajuda/pdv-supervisor.md` e `Ajuda/loja-aprovacoes.md` (novas).
 
 ## Plano de testes
-- **Unidade:** limite de desconto pela união dos grupos; desconto em % e em valor com centavos.
+- **Unidade:** resolução do limite de desconto (conforme a PP-38); desconto em % e em valor com centavos.
 - **Integração (Testcontainers):** aprovação grava a trilha (CA 10); supervisor igual ao operador é recusado (CA 11); cancelamento ajusta a sessão (CA 7) e dispara estoque e aviso (CA 9).
 - **Vitest:** diálogo do supervisor.
 
@@ -69,7 +69,7 @@ Como **dono**, quero **que desconto alto, troca de preço e cancelamento só pas
 
 ## Pontos em aberto
 - PP-11: sem a exceção, a aprovação teria de ser por TOTP e a story precisa ser redesenhada.
-- PP-22: limite padrão de desconto do operador (sugestão: 5%) e o X% do alerta de cancelamentos.
+- PP-38: onde mora o limite. PP-22: o valor padrão (sugestão: 5%) e o X% do alerta de cancelamentos.
 
 ## Definition of Done
 - [ ] Critérios de aceite atendidos.
@@ -83,3 +83,4 @@ Como **dono**, quero **que desconto alto, troca de preço e cancelamento só pas
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

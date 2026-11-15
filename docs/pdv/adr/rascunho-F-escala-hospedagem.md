@@ -2,7 +2,7 @@
 
 > Rascunho de ADR do [plano do PDV](../README.md). "Conferido" é o que foi lido no código ou nas ADRs; "a validar" é conhecimento geral que precisa de spike ou da contadora antes de virar decisão. Os achados citados por número estão em [02-arquitetura.md](../02-arquitetura.md#1-achados-do-código-que-moldam-o-desenho).
 
-- Status: **Proposto (rascunho)**, 15/11/2026. Ainda não numerado em `docs/adr`; vira [rascunho A](rascunho-A-offline.md) ou seguinte quando o PO aprovar ([como os rascunhos viram ADR](README.md)).
+- Status: **Proposto (rascunho)**, 15/11/2026. Ainda não numerado em `docs/adr`; vira ADR 0046 ou seguinte quando o PO aprovar ([como os rascunhos viram ADR](README.md)).
 - Contexto: várias lojas, vários caixas, volume de supermercado. Ver achados 2, 3, 8, 10, 11 e 12.
 
 ## Decisão proposta
@@ -16,7 +16,7 @@
    - Opção B: manter o `CHECK` e estacionar a falta numa fila de pendência até o ajuste.
    - Recomendo A: o saldo errado fica visível em vez de escondido.
 5. **Sem auditoria por linha de venda.** O log de eventos é a trilha, como já é com `stock_movements` (`[NotAudited]`).
-6. **Medir antes de particionar.** Guid v7 já dá localidade no índice. Particionar por mês `pos.device_events` e `pos.sale_items` só se o teste de carga pedir (o `LoadTest.Trait` já existe).
+6. **Medir antes de particionar.** Guid v7 já dá localidade no índice. Particionar por mês `pos.device_events` e `sales.sale_lines` só se o teste de carga pedir (o `LoadTest.Trait` já existe).
 7. **Conferir o outbox.** Lote de 20 a cada 5 s pode atrasar com volume; não li o processador inteiro.
 
 ### Modelo multi-loja
@@ -24,8 +24,8 @@
 2. **Fiscal:** emitente por estabelecimento. Adendo à ADR 0027 §2, que hoje fixa um emitente igual ao CNPJ do tenant.
 3. **Estoque:** `Location` ganha vínculo opcional com estabelecimento e a marca de saldo negativo. `Item` ganha códigos de barras (vários GTIN por item, com unidade e fator) e marca de pesável.
 4. **Preços:** listas de preço versionadas no módulo `Sales` (lista, item, preço, `valid_from`, versão), atribuídas por loja. Promoções depois.
-5. **Módulos novos no `ModuleCatalog`:** `sales` e `pos`, com área nova no dock (sugestão: "Loja"). Ações específicas: `pos.manage_devices`, `pos.cancel_sale`, `pos.open_drawer`, `pos.discount_above_limit`.
-6. **Caixa e turno:** `pos.registers` (loja, número, série fiscal, aparelho ativo) e `pos.shifts` (abertura, sangrias, fechamento, quebra).
+5. **Módulos novos no `ModuleCatalog`:** `sales` e `pos`, com área nova no dock (sugestão: "Loja"). Ações específicas: `pos.manage_devices`, `pos.cancel_sale`, `pos.open_drawer`, `pos.discount`.
+6. **Caixa e turno:** `pos.registers` (loja, número, série fiscal, aparelho ativo) e `pos.cash_sessions` (abertura, sangrias, fechamento, quebra).
 
 ### Hospedagem
 1. **VPS nos EUA.** Estimo de 110 a 180 ms de ida e volta até o Brasil (a validar; não medi). Efeitos:
@@ -47,3 +47,5 @@
 - **Preços e códigos de barras:** este rascunho os coloca no `Sales` e no `Item` do Estoque; a análise de produto propõe um módulo `Catalog`. O plano adota o módulo próprio e registra a alternativa na PP-04.
 - **Hospedagem:** [INFRA-01](../stories/INFRA-01-hospedagem-brasil-pitr.md) e PP-07.
 - **Adendos que este rascunho pede:** ADR 0023 (venda sem bloqueio), ADR 0027 §2 (emitente por estabelecimento) e a regra de backup do `02-arquitetura` §7.
+- **Decisão do PO em 15/11/2026 sobre a hospedagem: ficar na VPS atual por enquanto** (PP-07). A recomendação deste rascunho (migrar para São Paulo antes da versão pública) não foi adotada agora. A INFRA-01 virou story condicionada a gatilhos, e a INFRA-02 aumenta a frequência do backup sem migrar.
+- **Revisão de 15/11/2026.** Os nomes de tabela e de ação deste rascunho foram alinhados à fronteira `Sales` × `Pos` de [02, seção 4.1](../02-arquitetura.md#41-fronteira-sales--pos-quem-é-dono-de-quê).

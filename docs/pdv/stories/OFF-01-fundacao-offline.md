@@ -8,7 +8,7 @@
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | Pedido do PO de 15/11/2026 (item 5: offline desde o primeiro release) · [Rascunho A](../adr/rascunho-A-offline.md) itens 1 a 5, 7 e 10 · [Fluxos](../04-fluxos-estados.md#8-sincronização-offline) |
-| Dependências | PDV-01, CAT-01, PAG-01; SPK-03 concluído (escolha do armazenamento) |
+| Dependências | PDV-01, CAT-01, PAG-01; SPK-03 concluído (escolha do armazenamento); PP-09 decidida |
 | Bloqueia | PDV-02, OFF-02 |
 | Paridade com o mercado | Requisitos mínimos 1 do [benchmark](../00-benchmark-mercado.md#7-matriz-de-paridade-cada-requisito-mínimo-e-a-story-que-o-cobre) |
 | Ordem de execução | 2 (Fase 11) |
@@ -84,3 +84,4 @@ Como **operador de caixa**, quero **que a tela de venda abra e ache os produtos 
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

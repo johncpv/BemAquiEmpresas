@@ -68,6 +68,8 @@ Do lado do BemAqui Empresas [C]:
 
 ## 2. Lista de lacunas
 
+São 41: as 40 da análise original e a **41**, acrescentada pela revisão independente de 15/11/2026 (seção 2.2).
+
 ### 2.1 Contrato, mapeamento e autorização
 
 | # | O quê | Por quê | Onde | Esf. | Depende de |
@@ -94,6 +96,7 @@ Do lado do BemAqui Empresas [C]:
 | 15 | **Série de contingência por PDV, numerada na borda** | Sem internet não há alocador central. O `tpEmis` entra na chave, e reusar o mesmo número com outro `tpEmis` gera duplicidade [F]. Proposta: série exclusiva de contingência por terminal, em que o agente é o único dono; o Emissor só registra e recusa emissão online nela | `NumberSequence` (marca de série delegada); cadastro de ponto de venda (lacuna 21) | M | 21 |
 | 16 | **Rejeição tardia da nota offline** | A venda já aconteceu e o cliente saiu com o DANFE. Se a SEFAZ rejeitar depois, é preciso corrigir e retransmitir, ou tratar o número. O procedimento é fiscal, não só técnico | Estados novos; webhook `nfce.contingencia.rejeitada`; runbook | M | 13 e contadora |
 | 17 | **EPEC da NFC-e (`tpEmis=4`)** | Só cobre SEFAZ fora do ar com internet funcionando; não resolve PDV sem rede. Lembro de estar disponível em poucas UFs, SP entre elas [F: confirmar]. A DLL tem `ContingenciaEPEC` e `RecepcaoEPEC` | Provider novo | M | Opcional, fase posterior |
+| **41** | **Emissão central em contingência (`tpEmis=9`) quando a loja tem internet e a SEFAZ está fora** (acrescentada pela revisão de 15/11/2026) | A lacuna 12 tira a SVC da NFC-e e encerra a nota sem resposta como não autorizada; as lacunas 13 a 15 tratam de nota assinada **na borda**. Faltava o caso mais comum: o Emissor, que tem o A1 no cofre, assina em contingência, devolve XML e QR ao caixa e transmite depois. Precisa de: série (a normal do caixa ou uma de contingência central, a decidir, porque o `tpEmis` entra na chave [F]); relógio de prazo de transmissão por documento, com alerta (reusa a lacuna 14); cancelamento por substituição da nota normal que ficou sem resposta (lacuna 18); estado e evento próprios (`nfce.contingencia.emitida`); texto de contingência no bloco `impressao`. Se a UF aceita `tpEmis=9` e qual o prazo: [F], QC-01 | `NfeIssuanceService.TentarContingenciaAsync`, `ContingencyPolicy.cs`, `NfeReconciliationService.cs`; resposta do `POST /api/v1/nfce` com `tipoEmissao = 9` | M | 1, 12, 18; contadora (QC-01) |
 
 ### 2.3 Eventos, numeração e impressão
 
@@ -140,13 +143,22 @@ O ponto de partida é técnico: na contingência offline o DANFE precisa do QR C
 | Opção | Como funciona | A favor | Contra e ressalva legal |
 |---|---|---|---|
 | **(a) Fila + recibo "pendente"** | O PDV imprime comprovante não fiscal e enfileira; o Emissor emite como nota normal quando a rede volta | Nada novo no Emissor; o A1 não sai do cofre | **Não é contingência fiscal.** O consumidor sai sem documento fiscal. A nota normal emitida depois leva `dhEmi` da transmissão, não da venda, ou é rejeitada por atraso [F]. Na prática é venda sem documento no ato; o risco de autuação é do cliente. Só com parecer escrito da contadora |
-| **(b) Agente de assinatura na loja** | Um serviço local (por loja, ou por caixa em loja pequena) guarda um certificado, monta, assina e numera a NFC-e `tpEmis=9`, imprime o DANFE de contingência e envia o XML ao Emissor, que transmite e guarda | É a contingência prevista na norma; funciona sem internet; o servidor de loja cobre a queda de link, que é o caso comum | Há certificado fora do cofre. Mitigações: **A1 adicional só para a loja**, revogável sem afetar o central (emitir mais de um A1 por CNPJ é prática comum [F]); importação não exportável no repositório do sistema; série de contingência exclusiva. É software a mais para distribuir e atualizar |
+| **(b) Agente de assinatura na loja** | Um serviço local (por loja, ou por caixa em loja pequena) guarda um certificado, monta, assina e numera a NFC-e `tpEmis=9`, imprime o DANFE de contingência e envia o XML ao Emissor, que transmite e guarda | É a contingência prevista na norma; funciona sem internet; o servidor de loja cobre a queda de link, que é o caso comum | **Há um certificado do CNPJ fora do cofre, e ele não tem alcance limitado** (ver "O risco do certificado na loja", abaixo). É software a mais para distribuir, assinar e atualizar. Depende de a UF aceitar `tpEmis=9` [F] |
 | **(c) EPEC** | Registra um evento resumido na SEFAZ e transmite a nota depois | Sem certificado na borda | **Precisa de internet**, então não atende "PDV offline". Disponível em poucas UFs [F] |
 
-> **Divergência entre as análises.** A recomendação abaixo é a da análise do Emissor. A análise de arquitetura do PDV ([rascunho E](adr/rascunho-E-acoplamento-fiscal.md)) recomenda o contrário: recibo não fiscal agora e NFC-e na volta da rede, com 4G de reserva, e deixa o assinador local como última opção. O plano **não escolhe**: as duas posições estão lado a lado na [PP-01](06-pendencias-riscos.md#pp-01--venda-sem-internet-em-loja-que-emite-nfc-e), que é decisão do PO com parecer da contadora.
+> **Divergência entre as análises.** A recomendação abaixo é a da análise do Emissor. A análise de arquitetura do PDV ([rascunho E](adr/rascunho-E-acoplamento-fiscal.md)) recomenda o contrário: recibo não fiscal agora e NFC-e na volta da rede, com 4G de reserva, e deixa o assinador local como última opção. As duas posições estão lado a lado na [PP-01](06-pendencias-riscos.md#pp-01--venda-sem-internet-em-loja-que-emite-nfc-e).
+
+> **Decidido pelo PO em 15/11/2026: (b).** Contingência offline de verdade, com certificado instalado no computador da loja e as proteções abaixo: **um servidor de assinatura por loja, não por caixa**; chave não exportável; certificado separado do que fica no cofre central, revogável sem parar o resto; série própria de contingência, com alerta de uso fora dela; inventário por loja. A opção (a) fica só como modo degradado, desligado por padrão. Ficam abertas apenas as perguntas à contadora por UF (se a UF aceita `tpEmis=9` e o prazo de transmissão) e a confirmação com a certificadora sobre os tipos de certificado. **As lacunas 13 a 16 e 21 passam a escopo firme.**
 
 **Recomendação desta análise: (b)**, na forma de agente de loja com A1 dedicado, e o Emissor central como receptor, transmissor e guardião (lacunas 13 a 16).
-- A restrição "o PDV não pode guardar o A1" fica atendida no sentido que importa: o A1 do cofre não sai dele, e o que vai para a loja é outro certificado, de alcance e revogação controlados. Isso precisa do aceite explícito do PO.
+- **O risco do certificado na loja (texto corrigido pela revisão de 15/11/2026).** A análise original dizia que o certificado da loja teria "alcance e revogação controlados". Isso não se sustenta: um A1 e-CNPJ **não tem escopo técnico**. Quem copia o arquivo e a senha assina **qualquer** documento em nome do CNPJ (nota de qualquer modelo e série, procuração eletrônica, acesso a portais), não só a série de contingência. Isto é conhecimento geral, **não conferido com uma Autoridade Certificadora**; confirmar se existe tipo de certificado restrito a documento fiscal antes de decidir.
+- Por isso a opção (b) só é aceitável com estas proteções, todas obrigatórias:
+  1. **Chave não exportável:** o certificado é instalado no TPM do equipamento ou no repositório de certificados do Windows com a chave marcada como não exportável. O arquivo `.pfx` e a senha nunca ficam em disco na loja, e o agente nunca os lê.
+  2. **Certificado próprio da loja**, diferente do que está no cofre do Emissor, para que revogar um não derrube o outro [F: emitir mais de um A1 por CNPJ é prática comum; confirmar com a AC].
+  3. **Inventário por loja:** qual certificado (número de série, validade) está em qual equipamento, quem instalou e quando; conferido a cada sincronização do agente.
+  4. **Procedimento e custo de revogação** escritos: quem revoga, em quanto tempo, quanto custa reemitir, e o que a loja faz enquanto isso (cai no modo degradado).
+  5. **Alerta de uso fora da série:** o Emissor avisa quando chega nota assinada por certificado de loja fora da série de contingência reservada àquele ponto de venda, ou de modelo diferente de 65. Isso detecta uso indevido **só do que passa pelo Emissor**; uso do certificado fora do sistema não é detectável.
+- O requisito original do PO ("o PDV não guarda o A1") fica atendido só em parte: o A1 do cofre não sai dele, mas passa a existir **outro certificado do mesmo CNPJ dentro da loja**. Isso precisa do aceite explícito do PO.
 - A opção (a) pode existir como modo degradado, desligado por padrão e habilitado por cliente mediante aceite formal. Não deve ser o desenho da primeira versão.
 - A opção (c) fica para depois, só onde a UF oferecer.
 
@@ -294,21 +306,21 @@ Notas:
 |---|---|---|---|
 | **0. Spike e decisões** | Lacuna 2 (Unimake NFC-e em Linux, QR Code, medição de latência); correção da 25; rótulos da 5; tabela inicial por UF (39) com a contadora | 1 a 1,5 | A pesquisa por UF corre junto com o spike |
 | **1. NFC-e online** | 1, 3, 4, 6, 7, 8, 9, 11, 12, 24, 26, 27, 28, 30, 36, 37 | 4 a 5 | Com duas pessoas: contrato, validador e pagamento de um lado; provider, CSC e QR Code do outro |
-| **2. Eventos e impressão** | 18, 19, 20, 23 | 2 a 3 | Paralela à fase 1 depois da lacuna 1; a impressão só depende da 9 |
-| **3. Contingência offline** | 13, 14, 15, 16, 21, 33, mais o contrato com o agente | 3 a 4 | O agente (BemAqui) anda junto, depois de fechado o contrato da fase 0 |
+| **2. Eventos e impressão** | 18, 19, 20, 23, **41** | 2 a 3 | Paralela à fase 1 depois da lacuna 1; a impressão só depende da 9 |
+| **3. Contingência offline (escopo firme desde 15/11/2026)** | 13, 14, 15, 16, 21, 33, mais o contrato com o agente, o inventário de certificados por loja e o alerta de uso fora da série | 3 a 4 | O agente (BemAqui) anda junto, depois de fechado o contrato da fase 0 |
 | **4. Escala e plataforma** | 10, 31, 32, 34, 35, 38, 22 | 2 a 3 | Independente; a 38 pode começar já |
 | **5. Homologação por UF** | 40 e ajustes da 39; EPEC (17) e 29 conforme confirmação | 2 para SP, depois contínuo | Por cliente-piloto |
 
 Total aproximado: 12 a 16 semanas com uma pessoa, 8 a 10 com duas. É estimativa sem medição; não inclui o agente de loja nem o PDV, nem a espera por credenciamento, CSC e CSRT nas SEFAZ.
 
-Ordem que não pode inverter: fase 0 antes de tudo; lacuna 12 antes de qualquer teste real de NFC-e; lacuna 38 antes do segundo cliente; a fase 3 não começa sem a decisão 1 abaixo.
+Ordem que não pode inverter: fase 0 antes de tudo; lacuna 12 antes de qualquer teste real de NFC-e; lacuna 38 antes do segundo cliente; a fase 3 dependia da decisão 1 abaixo, que o PO tomou em 15/11/2026 (assinatura na loja): ela passa a escopo firme e pode começar assim que a fase 0 fechar o contrato com o agente de loja, em paralelo com as fases 1 e 2.
 
 ### 4.2 Decisões para o PO
 
 As decisões abaixo estão consolidadas, com as do produto e da arquitetura, em [06-pendencias-riscos.md](06-pendencias-riscos.md) (PP-01, PP-09, PP-13 a PP-15 e PP-29 a PP-33). A lista original fica aqui para rastreio.
 
-1. **Arquitetura offline**: aceitar a opção (b), com A1 dedicado na loja? Se não, aceitar o risco fiscal da opção (a), por escrito?
-2. **Agente por loja ou por caixa**, e em que plataformas o PDV roda (Windows, Android, navegador). Navegador puro não assina offline.
+1. **Arquitetura offline**: aceitar a opção (b), com A1 dedicado na loja? Se não, aceitar o risco fiscal da opção (a), por escrito? **Decidido em 15/11/2026: (b), com um servidor de assinatura por loja.**
+2. **Agente por loja ou por caixa** (**decidido em 15/11/2026: por loja**), e em que plataformas o PDV roda (Windows, Android, navegador). Navegador puro não assina offline.
 3. **Caminho da venda**: PDV → BemAqui → Emissor (dois saltos, como na ADR 0027) ou PDV → Emissor direto com chave por loja. Define latência e ponto de falha.
 4. **Meta de latência e volume**: tempo máximo no caixa, vendas por minuto no pico, número de lojas no primeiro ano. Sem isso a fase 4 é chute.
 5. **UFs do primeiro lançamento**, em ordem. Cada UF custa pesquisa, credenciamento e piloto.
@@ -321,7 +333,7 @@ As decisões abaixo estão consolidadas, com as do produto e da arquitetura, em 
 
 ### 4.3 Perguntas para a contadora
 
-Consolidadas em [06-pendencias-riscos.md](06-pendencias-riscos.md), seção "Perguntas para a contadora" (QC-01 a QC-16).
+Consolidadas em [06-pendencias-riscos.md](06-pendencias-riscos.md), seção "Perguntas para a contadora" (QC-01 a QC-17).
 
 1. Por UF de interesse: prazo de cancelamento da NFC-e, se aceita contingência offline (`tpEmis=9`), prazo de transmissão e se exige duas vias.
 2. SP: situação e datas da troca do SAT pela NFC-e, e a contingência aceita lá.

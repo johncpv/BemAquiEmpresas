@@ -6,7 +6,7 @@
 | Título | Spike: NFC-e modelo 65 de ponta a ponta em homologação pelo EmissorFiscal, com CSC e QR Code, série por caixa, contingência com a SEFAZ fora e medição de latência da VPS atual e de São Paulo |
 | Tamanho | M |
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
-| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos e spikes |
+| Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (itens 7 e 12) · [Rascunho E](../adr/rascunho-E-acoplamento-fiscal.md) · [07-emissor-fiscal.md](../07-emissor-fiscal.md) lacuna 2 e fase 0 |
 | Dependências | CSC e idCSC de homologação do emitente de teste (tenant `demo`, ADR 0027 §6); acesso ao repositório do EmissorFiscal |
 | Bloqueia | NFCE-00; INFRA-01 (dados de latência); PP-14, PP-31, PP-33 |
@@ -29,11 +29,13 @@ Como **arquiteto**, quero **autorizar uma NFC-e em homologação pelo EmissorFis
 5. **Dado** a emissão normal, **quando** meço 30 emissões a partir da VPS atual e 30 a partir de uma máquina em São Paulo, **então** o relatório traz p50 e p95 por etapa (montagem, assinatura, transmissão, resposta) nos dois lugares.
 6. **Dado** a VPS atual, **quando** transmito para a SEFAZ de SP, **então** fica registrado se há alguma restrição a IP de fora do país.
 7. **Dado** uma nota autorizada, **quando** cancelo dentro e fora do prazo, **então** ficam registrados o prazo aplicado em SP e a rejeição fora dele.
-8. **Dado** tudo acima, **então** o relatório fecha com: (a) a biblioteca atende ou não, e o que falta; (b) esforço revisto das fases 1 e 2 do Emissor; (c) recomendação sobre a hospedagem; (d) as perguntas QC-01 a QC-16 entregues à contadora, com o que o spike já respondeu.
+8. **Dado** tudo acima, **então** o relatório fecha com: (a) a biblioteca atende ou não, e o que falta; (b) esforço revisto das fases 1 e 2 do Emissor; (c) recomendação sobre a hospedagem; (d) as perguntas QC-01 a QC-17 entregues à contadora, com o que o spike já respondeu.
 
 ## Regras
 - Só ambiente de homologação. Nenhuma nota com valor fiscal.
-- O spike não decide a PP-01 (venda sem internet); só informa o que é tecnicamente possível com o certificado no servidor.
+- Este spike roda no repositório do EmissorFiscal e **pode começar antes do go-live da Konebras** (exceção aprovada pelo PO em 15/11/2026, PP-41).
+- O critério 4 é a prova da **lacuna 41** (contingência central com a SEFAZ fora): o resultado dele define a série a usar e o tamanho da story NFCE-08.
+- A PP-01 foi decidida pelo PO em 15/11/2026 (assinatura na loja). Este spike não constrói o servidor de assinatura da loja: prova a contingência com o certificado no servidor (lacuna 41) e levanta, por UF, o que a contadora precisa responder (QC-01 e QC-12).
 - As duas correções da NF-e de hoje (lacunas 25 e 5) não esperam o spike.
 
 ## Entregáveis
@@ -58,3 +60,4 @@ Como **arquiteto**, quero **autorizar uma NFC-e em homologação pelo EmissorFis
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

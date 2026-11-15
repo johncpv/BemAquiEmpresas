@@ -2,7 +2,7 @@
 
 > Rascunho de ADR do [plano do PDV](../README.md). "Conferido" é o que foi lido no código ou nas ADRs; "a validar" é conhecimento geral que precisa de spike ou da contadora antes de virar decisão. Os achados citados por número estão em [02-arquitetura.md](../02-arquitetura.md#1-achados-do-código-que-moldam-o-desenho).
 
-- Status: **Proposto (rascunho)**, 15/11/2026. Ainda não numerado em `docs/adr`; vira [rascunho A](rascunho-A-offline.md) ou seguinte quando o PO aprovar ([como os rascunhos viram ADR](README.md)).
+- Status: **Proposto (rascunho)**, 15/11/2026. Ainda não numerado em `docs/adr`; vira ADR 0046 ou seguinte quando o PO aprovar ([como os rascunhos viram ADR](README.md)).
 - Contexto: começar com maquininha externa, sem retrabalho para TEF, SmartPOS e Pix dinâmico. Divisão por pessoa. Ver achado 9. O Finance não tem recebível de cartão; `SettlementSource` é só `Manual` ou `Bank`.
 
 ## Decisão proposta
@@ -40,3 +40,4 @@
 - **Stories:** [PAG-01](../stories/PAG-01-formas-pagamento-adquirentes.md) e [PDV-03](../stories/PDV-03-pagamento-varias-formas.md) no MVP; PAG-02 a PAG-07 na Fase 16.
 - **Adendo que este rascunho pede:** ADR 0032 §4 (aceitar escopo de cobrança Pix).
 - Perguntas legais: QC-03 (maquininha não integrada por UF) e QC-05 (taxa de serviço e gorjeta).
+- **Revisão de 15/11/2026.** (1) **O sistema nunca guarda número de cartão, código de segurança nem trilha**; do cartão ficam bandeira, NSU e autorização, e os campos livres recusam sequência que pareça número de cartão. Na loja virtual, só campos hospedados ou token do gateway. (2) O Pix dinâmico foi **antecipado para a Fase 12** (PAG-02) e a porta `IPixChargeProvider` não é do Inter: outro PSP entra como adaptador. (3) O Pix "atestado pelo operador" é conferido contra o extrato no fechamento (CX-02). (4) Venda de canal sem caixa gera recebível por dia e canal (VND-01).

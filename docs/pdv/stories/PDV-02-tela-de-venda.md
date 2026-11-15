@@ -8,7 +8,7 @@
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | Pedido do PO de 15/11/2026 (item 4: PDV moderno e prático) · [PRD do PDV](../01-PRD.md) seções 1.2 e 5 · [Fluxos](../04-fluxos-estados.md#1-venda) · [Rascunho B](../adr/rascunho-B-impressao-perifericos.md) item 7 (leitor) |
-| Dependências | OFF-01 |
+| Dependências | OFF-01; PP-26 (CPF na venda) |
 | Bloqueia | PDV-03, CX-01 |
 | Paridade com o mercado | Requisitos mínimos 22 do [benchmark](../00-benchmark-mercado.md#7-matriz-de-paridade-cada-requisito-mínimo-e-a-story-que-o-cobre) |
 | Ordem de execução | 3 (Fase 11) |
@@ -35,13 +35,13 @@ Como **operador de caixa**, quero **lançar os itens tão rápido quanto bipo ou
 
 ### Editar a venda
 9. **Dado** uma linha, **quando** altero a quantidade, **então** o total recalcula na hora; produto pesável aceita 3 casas; produto por unidade não aceita fração.
-10. **Dado** uma linha, **quando** removo com a venda ainda aberta, **então** a ação exige `pos.cancel_item` ou PIN de supervisor (PDV-04); até a PDV-04 ficar pronta, só quem tem a permissão remove.
+10. **Dado** o **último item lançado**, **quando** o removo logo em seguida (bipei errado), **então** ele sai sem supervisor, e a remoção fica registrada. **Dado** qualquer outra linha, **quando** removo, **então** a ação exige `pos.cancel_item` ou PIN de supervisor (PDV-04). A loja pode desligar a remoção livre do último item.
 11. **Dado** uma linha, **quando** adiciono observação, **então** ela fica gravada e sai no cupom.
 12. **Dado** uma venda com itens, **quando** uso "Deixar em espera", **então** ela vai para a lista de vendas em espera do caixa e uma nova começa; "Retomar" a traz de volta; fechar o caixa com venda em espera pede para retomar ou descartar.
 13. **Dado** uma venda com itens, **quando** uso "Descartar venda", **então** preciso informar o motivo, e o descarte fica registrado.
 
 ### Cliente
-14. **Dado** "Cliente", **quando** informo um CPF ou CNPJ, **então** o dígito é validado na hora; o documento fica na venda, cifrado no aparelho; não é obrigatório.
+14. **Dado** "Cliente", **quando** informo um CPF ou CNPJ, **então** o dígito é validado na hora; o documento fica cifrado no aparelho, **fora dos eventos da venda** (num registro à parte, que sobe ao lado do lote e pode ser apagado); não é obrigatório.
 15. **Dado** rede, **quando** busco um cliente cadastrado, **então** posso ligá-lo à venda; sem rede, a busca fica desabilitada com "Disponível com internet." e o CPF avulso continua funcionando.
 
 ### Geral
@@ -90,3 +90,4 @@ Como **operador de caixa**, quero **lançar os itens tão rápido quanto bipo ou
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

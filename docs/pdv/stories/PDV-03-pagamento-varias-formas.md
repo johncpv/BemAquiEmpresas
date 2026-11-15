@@ -8,7 +8,7 @@
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | Pedido do PO de 15/11/2026 (itens 6 e 11) · [Rascunho C](../adr/rascunho-C-pagamentos.md) itens 1 a 4, 6 e 7 · [Fluxos](../04-fluxos-estados.md#5-split-de-pagamento) |
-| Dependências | PDV-02, PAG-01 |
+| Dependências | PDV-02, PAG-01, VND-01 |
 | Bloqueia | CX-02, IMP-01, OFF-02, PDV-04 |
 | Paridade com o mercado | Requisitos mínimos 10 (formas diferentes na mesma venda) do [benchmark](../00-benchmark-mercado.md#7-matriz-de-paridade-cada-requisito-mínimo-e-a-story-que-o-cobre) |
 | Ordem de execução | 4 (Fase 11) |
@@ -24,8 +24,8 @@ Como **operador de caixa**, quero **receber parte em dinheiro e parte no cartão
 1. **Dado** uma venda com itens, **quando** aciono "Pagar", **então** a venda passa a `InPayment` e vejo o total, as formas de pagamento da loja e o valor que falta.
 2. **Dado** a forma Dinheiro, **quando** informo o valor recebido maior que o que falta, **então** vejo o troco em destaque e o pagamento é gravado com o valor da venda e o troco à parte; há botões de valor rápido (exato e as notas acima).
 3. **Dado** uma forma que não é dinheiro, **quando** informo valor maior que o que falta, **então** recebo "Só o dinheiro dá troco." e o valor é limitado ao que falta.
-4. **Dado** uma forma de cartão, **quando** confirmo, **então** escolho a bandeira (lista da forma) e as parcelas, quando houver; o NSU é opcional; o pagamento nasce `Captured`, com `integration = Manual` e "atestado pelo operador".
-5. **Dado** a forma Pix sem integração, **quando** confirmo, **então** o pagamento nasce `Captured`, marcado "Pix conferido pelo operador".
+4. **Dado** uma forma de cartão, **quando** confirmo, **então** escolho a bandeira (lista da forma) e as parcelas, quando houver; o NSU é opcional; o pagamento nasce `Captured`, com `integration = Manual` e "atestado pelo operador". **[Segurança]** A tela nunca pede número de cartão, validade ou código de segurança, e os campos NSU e observação recusam sequência que pareça número de cartão ("Não digite o número do cartão.").
+5. **Dado** a forma Pix sem integração, **quando** confirmo, **então** o pagamento nasce `Captured`, marcado "Pix conferido pelo operador" e **pendente de conferência contra o extrato**; a tela lembra "Confira o recebimento no aplicativo do banco, não na tela do cliente."; esses pagamentos são listados um a um no fechamento (CX-02) e no relatório por operador.
 6. **Dado** dois ou mais pagamentos, **quando** a soma dos capturados é igual ao total, **então** a venda passa a `Completed`, recebe o número `{loja}-{caixa}-{seq}` e a tela oferece "Imprimir cupom" e "Nova venda".
 7. **Dado** um pagamento capturado e saldo a pagar, **quando** confiro, **então** a venda está `PartiallyPaid`; "Voltar aos itens" fica bloqueado e o pagamento capturado só sai por estorno com supervisor (PDV-04).
 8. **Dado** `InPayment` sem nenhum pagamento capturado, **quando** uso "Voltar aos itens", **então** a venda volta a `Open`.
@@ -75,3 +75,4 @@ Como **operador de caixa**, quero **receber parte em dinheiro e parte no cartão
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |

@@ -8,7 +8,7 @@
 | Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | [PRD do PDV](../01-PRD.md) regra 1 · [Rascunho F](../adr/rascunho-F-escala-hospedagem.md) itens 2 a 4 · ADR 0023 (motor de estoque) · **[PP-02](../06-pendencias-riscos.md#pp-02--venda-com-saldo-insuficiente)** |
-| Dependências | OFF-02; **PP-02 decidida**; SPK-03 (baixa agregada ou por venda) |
+| Dependências | OFF-02, VND-01; **PP-02 decidida**; SPK-03 (baixa agregada ou por venda) |
 | Bloqueia | PDV-06, PDV-07, PDV-10 |
 | Ordem de execução | 10 (Fase 11) |
 
@@ -17,6 +17,7 @@ Como **dono**, quero **que o estoque baixe a cada venda sem nunca travar o caixa
 
 ## Contexto e referências
 - O motor de estoque é síncrono, exige transação e proíbe saldo negativo (`CHECK quantity_on_hand >= 0`, 409 `insufficient_stock`). Cada movimento pega um número `MOV`, e a linha do item guarda o custo médio.
+- A VND-01 já entrega a baixa de estoque da venda para o canal sem caixa, onde há reserva antes e a regra de saldo nunca negativo continua valendo. Esta story trata do **PDV**, onde a mercadoria já saiu da loja quando a venda chega ao servidor.
 - **As análises discordam sobre o que fazer com a falta de saldo.** Os critérios abaixo valem nas duas opções; os CA 6A e 6B são alternativos, conforme a PP-02.
 
 ## Critérios de aceite
@@ -57,7 +58,7 @@ Como **dono**, quero **que o estoque baixe a cada venda sem nunca travar o caixa
 
 ## Fora do escopo
 - Ficha técnica baixando insumos (CAT-06).
-- Transferência CPD → loja (CPD-01).
+- Transferência do depósito para a loja (CPD-06).
 - Reserva para o e-commerce (ECM-02).
 
 ## Pontos em aberto
@@ -76,3 +77,4 @@ Como **dono**, quero **que o estoque baixe a cada venda sem nunca travar o caixa
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
+| 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
