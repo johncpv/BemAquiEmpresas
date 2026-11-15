@@ -38,9 +38,9 @@ Para corrigir um dado simples sem cancelar (ex.: volumes, peso, um texto das inf
 ## Situações
 - **Rejeitada**: o motivo e a ação sugerida aparecem em destaque. Use **Corrigir e emitir de novo**: a nota volta a rascunho com os dados; o número gasto vai para "Números a inutilizar".
 - **Denegada**: a SEFAZ denegou por irregularidade do destinatário. Fale com a contadora; a nota não volta.
-- **Autorizada**: o XML e o DANFE ficam em Documentos e vão para o e-mail de cobrança do cliente (se "Enviar ao cliente" estiver marcado).
+- **Autorizada**: **Baixar DANFE** e **Baixar XML** aparecem no topo da nota, ao lado das outras ações, e **Baixar DANFE** também nos próximos passos. Os arquivos ficam ainda na aba Documentos e vão para o e-mail de cobrança do cliente (se "Enviar ao cliente" estiver marcado).
 - **Fora do prazo de cancelamento. A devolução fica com a contadora.**: passado o prazo, a nota não é mais cancelada; a saída é a nota de devolução, que a contadora emite.
-- **Cancelada**: os próximos passos oferecem **Emitir nova NF-e do romaneio** e **Estornar expedição**.
+- **Cancelada**: no topo ficam **Baixar DANFE cancelado** (com a marca CANCELADA) e **Baixar XML**. Os próximos passos oferecem **Emitir nova NF-e do romaneio** e **Estornar expedição**.
 
 ## Perguntas frequentes
 **Posso digitar o imposto?** Não. Os tributos saem da regra fiscal. Mude a regra do item (entre as ativas que valem) ou a quantidade, o valor e o desconto, e o cálculo refaz na hora.
@@ -50,6 +50,8 @@ Para corrigir um dado simples sem cancelar (ex.: volumes, peso, um texto das inf
 **Por que o travessão virou hífen?** A SEFAZ só aceita letras, números e a pontuação comum (os acentos do português valem). Travessão, aspas curvas, reticências e marcadores viram o equivalente do teclado, e emoji sai, para a nota não ser rejeitada.
 
 **Descartar apaga?** Não. O rascunho descartado sai da fila e fica registrado, sem número. Nota com número só é cancelada ou inutilizada, e nunca apagada.
+
+**Onde baixo o DANFE e o XML?** No topo da nota autorizada: **Baixar DANFE** e **Baixar XML**. A aba Documentos tem todos os arquivos, inclusive o DANFE original da cancelada, e o reenvio ao cliente.
 
 **Cancelar devolve o estoque?** Não. O estoque saiu no romaneio. Se o equipamento voltar, estorne a expedição no romaneio depois de cancelar a nota.
 

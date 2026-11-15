@@ -10,7 +10,7 @@ modulo: fiscal
 Baixar o XML e o PDF da NFS-e e reenviar ao cliente. Na nota emitida pelo Emissor Fiscal, os arquivos são os da prefeitura; na registrada do portal, é o arquivo que você anexou.
 
 ## Como usar
-1. Clique em **Baixar XML** ou **Baixar PDF**.
+1. Clique em **Baixar XML** ou **Baixar PDF**. Os dois botões também ficam no topo da nota, em qualquer aba.
 2. Para mandar de novo ao cliente, clique em **Reenviar ao cliente**: vai para o e-mail de cobrança, com a cópia do rascunho.
 
 ## Perguntas frequentes
