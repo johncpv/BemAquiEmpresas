@@ -64,7 +64,7 @@ public sealed partial class ProjectService
         }).ToList(), page.Page, page.PageSize, total);
     }
 
-    /// <summary>Margem orçada dos projetos da página (CA 1), com <c>projects.view_cost</c>.</summary>
+    /// <summary>Margem orçada dos projetos da página (CA 1), com <c>projects.view_cost</c>; sem orçamento de custo, null (não é 100%).</summary>
     public async Task<Result<IReadOnlyList<ProjectMargin>>> MarginsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
     {
         if (!await permissions.HasPermissionAsync("projects", "view_cost", cancellationToken))
@@ -76,7 +76,7 @@ public sealed partial class ProjectService
             .ToListAsync(cancellationToken);
         var budgets = await db.ProjectBudgets.AsNoTracking().Where(b => ids.Contains(b.ProjectId)).GroupBy(b => b.ProjectId)
             .Select(g => new { g.Key, Total = g.Sum(b => b.BudgetedAmount) }).ToDictionaryAsync(g => g.Key, g => g.Total, cancellationToken);
-        return rows.Select(r => new ProjectMargin(r.Id, r.TotalValue == 0 ? null : Math.Round((r.TotalValue - budgets.GetValueOrDefault(r.Id)) / r.TotalValue * 100, 1, MidpointRounding.AwayFromZero))).ToList();
+        return rows.Select(r => new ProjectMargin(r.Id, r.TotalValue == 0 || budgets.GetValueOrDefault(r.Id) == 0 ? null : Math.Round((r.TotalValue - budgets.GetValueOrDefault(r.Id)) / r.TotalValue * 100, 1, MidpointRounding.AwayFromZero))).ToList();
     }
 
     /// <summary>% recebido do contratado (CA 1), com <c>finance.view</c>.</summary>

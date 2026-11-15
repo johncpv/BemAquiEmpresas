@@ -73,6 +73,14 @@ jobs:
             filter: >-
               --filter-namespace "BemAqui.Integration.Tests.Inventory*"
               --filter-namespace "BemAqui.Integration.Tests.Purchasing*"
+          # RH e Fiscal + Patrimônio saíram do "resto": sozinhos eram metade dos testes dele, e o bloco passava de 20 min com os hosts de
+          # teste disputando a CPU do runner (os testes com janela de tempo falhavam um por rodada).
+          - name: rh
+            filter: --filter-namespace "BemAqui.Integration.Tests.HR*"
+          - name: fiscal
+            filter: >-
+              --filter-namespace "BemAqui.Integration.Tests.Fiscal*"
+              --filter-namespace "BemAqui.Integration.Tests.Assets*"
           - name: resto
             vuln: true
             filter: >-
@@ -84,6 +92,9 @@ jobs:
               --filter-not-namespace "BemAqui.Integration.Tests.Engineering*"
               --filter-not-namespace "BemAqui.Integration.Tests.Inventory*"
               --filter-not-namespace "BemAqui.Integration.Tests.Purchasing*"
+              --filter-not-namespace "BemAqui.Integration.Tests.HR*"
+              --filter-not-namespace "BemAqui.Integration.Tests.Fiscal*"
+              --filter-not-namespace "BemAqui.Integration.Tests.Assets*"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0

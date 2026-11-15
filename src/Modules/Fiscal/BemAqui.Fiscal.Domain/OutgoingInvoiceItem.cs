@@ -228,7 +228,18 @@ public static class NfeTextRules
     public const int District = 60;
     public const int City = 60;
 
-    /// <summary>Sem caracteres de controle e com os espaços normalizados (um só, sem nas pontas); vazio vira nulo.</summary>
+    /// <summary>
+    /// Padrão do <c>TString</c> do esquema da NF-e (<c>[!-ÿ]{1}[ -ÿ]*[!-ÿ]{1}|[!-ÿ]{1}</c>): só o Latin-1 imprimível, sem espaço nas pontas.
+    /// A SEFAZ rejeita (215) o XML com qualquer caractere fora dele, como o travessão "—".
+    /// </summary>
+    public const string SchemaPattern = "^(?:[!-ÿ][ -ÿ]*[!-ÿ]|[!-ÿ])$";
+
+    /// <summary>
+    /// Texto livre pronto para a NF-e (e a NFS-e): tipografia trocada pelo equivalente do teclado (travessão e meia-risca viram "-", aspas
+    /// curvas viram retas, reticências viram "...", marcadores viram "-"), letra acentuada fora do Latin-1 perde o acento, controle e quebra
+    /// de linha viram espaço, os espaços ficam um só e sem nas pontas, e o que ainda sobrar fora do <see cref="SchemaPattern"/> sai. Os
+    /// acentos do português (ã, ç, é…) ficam. Vazio vira nulo.
+    /// </summary>
     public static string? Clean(string? value)
     {
         if (value is null)
@@ -240,9 +251,20 @@ public static class NfeTextRules
         var space = false;
         foreach (var c in value.Normalize(NormalizationForm.FormC))
         {
+            if (c == '\u00AD')
+            {
+                continue; // hífen invisível
+            }
+
             if (char.IsWhiteSpace(c) || char.IsControl(c) || CharUnicodeInfo.GetUnicodeCategory(c) is UnicodeCategory.Format or UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator)
             {
                 space = builder.Length > 0;
+                continue;
+            }
+
+            var mapped = Allowed(c);
+            if (mapped.Length == 0)
+            {
                 continue;
             }
 
@@ -252,10 +274,58 @@ public static class NfeTextRules
                 space = false;
             }
 
-            builder.Append(c);
+            builder.Append(mapped);
         }
 
         return builder.Length == 0 ? null : builder.ToString();
+    }
+
+    /// <summary>O caractere no Latin-1 imprimível: ele mesmo, o equivalente do teclado, a letra sem o acento ou nada.</summary>
+    private static string Allowed(char c)
+    {
+        if (c is >= '!' and <= 'ÿ')
+        {
+            return c.ToString();
+        }
+
+        if (char.IsSurrogate(c))
+        {
+            return string.Empty; // emoji e afins: fora do Latin-1 e sem equivalente
+        }
+
+        switch (c)
+        {
+            case '\u2010' or '\u2011' or '\u2012' or '\u2013' or '\u2014' or '\u2015' or '\u2212' or '\u2043':
+            case '\u2022' or '\u2023' or '\u2219' or '\u25AA' or '\u25AB' or '\u25E6' or '\u25CF':
+                return "-";
+            case '\u201C' or '\u201D' or '\u201E' or '\u201F' or '\u2033':
+                return "\"";
+            case '\u2018' or '\u2019' or '\u201A' or '\u201B' or '\u2032':
+                return "'";
+            case '\u2039':
+                return "<";
+            case '\u203A':
+                return ">";
+            case '\u2026':
+                return "...";
+            case '\u20AC':
+                return "EUR";
+            case '\u2122':
+                return "TM";
+        }
+
+        // Letra com acento fora do Latin-1: a base, se couber ("ő" vira "o"); o que não se decompõe ("ł", "☃") sai.
+        var decomposed = c.ToString().Normalize(NormalizationForm.FormD);
+        var basis = new StringBuilder();
+        foreach (var d in decomposed)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(d) != UnicodeCategory.NonSpacingMark && d is >= '!' and <= 'ÿ')
+            {
+                basis.Append(d);
+            }
+        }
+
+        return basis.ToString();
     }
 
     /// <summary>O texto cabe no limite? (contado depois do saneamento).</summary>

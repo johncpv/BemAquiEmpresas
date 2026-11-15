@@ -71,7 +71,8 @@ public sealed partial class ProjectMarginService
             return filtered.Error!;
         }
 
-        var entries = filtered.Value
+        // Só os projetos do consolidado (sem orçamento de custo fica fora): o total continua igual ao da célula.
+        var entries = filtered.Value.Where(p => !p.Result.NoCostBudget)
             .Select(p => (p.Head, Line: p.Figures.Lines.Single(l => l.CostType == costType)))
             .Select(p => (p.Head, Amount: col switch { ProjectCostColumn.Budgeted => p.Line.Budgeted, ProjectCostColumn.Realized => p.Line.Realized, _ => p.Line.Committed }))
             .Where(p => p.Amount != 0)

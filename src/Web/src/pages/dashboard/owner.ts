@@ -1,4 +1,4 @@
-import type { ActiveProjectItem, ProductionWeekItem, ProjectResultLine } from '@/api/generated/model'
+import type { ActiveProjectItem, MarginOverview, ProductionWeekItem, ProjectResultLine } from '@/api/generated/model'
 import { formatDate } from '@/lib/format'
 import { monthLabel, monthLong } from '@/pages/finance/dre/dre'
 
@@ -11,6 +11,23 @@ export const RESULTS_ROUTE = '/app/painel/resultado-por-projeto'
 /** Drill-down da margem realizada: o Orçado × realizado com os entregues e encerrados no ano. */
 export function finishedMarginHref(year: number) {
   return { to: '/app/projetos/margens', search: { situacao: 'concluido', entregueDe: `${year}-01-01`, entregueAte: `${year}-12-31` } }
+}
+
+/**
+ * Alerta do card Margem para os projetos em andamento sem orçamento de custo (fora da margem): o texto e para onde leva o "Completar o
+ * orçamento" (um só: a aba Custos dele; vários: o Orçado × realizado com o filtro). `onlyAlert`: todos estão assim, o card não mostra percentual.
+ */
+export function unbudgetedAlert(card: Pick<MarginOverview, 'activeCount' | 'unbudgetedCount' | 'unbudgeted'>) {
+  const count = card.unbudgetedCount
+  if (count <= 0) return null
+  const one = count === 1 ? card.unbudgeted[0] : undefined
+  return {
+    text: `${count} ${count === 1 ? 'projeto' : 'projetos'} sem orçamento de custo: a margem não é confiável.`,
+    onlyAlert: count >= card.activeCount,
+    link: one
+      ? { to: '/app/projetos/$id', params: { id: one.projectId }, search: { aba: 'custos' }, label: `Completar o orçamento de ${one.number}` }
+      : { to: '/app/projetos/margens', params: undefined, search: { semOrcamento: 'true' }, label: 'Completar o orçamento' },
+  }
 }
 
 /** Entrega na tabela (CA 1): "Atrasado n dias" (crítico), "+n dias" (risco, previsão depois do prometido) ou "No prazo". */

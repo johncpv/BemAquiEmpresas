@@ -1,9 +1,10 @@
 import { QueryClientProvider, useQueryClient } from '@tanstack/react-query'
 import { type ReactNode, useEffect, useMemo, useSyncExternalStore } from 'react'
-import { getGetMyPermissionsQueryKey, refreshSession, saveMyPreferences, useGetMyPreferences } from '@/api/generated/bemaqui'
+import { getGetMyPermissionsQueryKey, saveMyPreferences, useGetMyPreferences } from '@/api/generated/bemaqui'
+import { renewSession } from '@/api/http'
 import { apiNotificationsSource } from '@/api/notifications-source'
 import { queryClient } from '@/api/query-client'
-import { getAccessToken, isPinSession, onSessionChange, setAccessToken, setPermVersionListener } from '@/api/session'
+import { getAccessToken, isPinSession, onSessionChange, setPermVersionListener } from '@/api/session'
 import { StepUpHost } from '@/components/ui/step-up-dialog'
 import { NotificationsContext } from '@/shell/notifications'
 import { isThemePreference } from '@/theme/theme'
@@ -22,7 +23,8 @@ function SessionBridge({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Retoma a sessão pelo cookie de refresh (HttpOnly) ao abrir o app; sem cookie, segue sem sessão.
-    if (!getAccessToken() && !window.location.pathname.startsWith('/plataforma')) refreshSession().then((r) => setAccessToken(r.accessToken), () => {})
+    // Mesma promessa do guarda de rota (renewSession): uma carga de página faz um único POST /auth/refresh.
+    if (!getAccessToken() && !window.location.pathname.startsWith('/plataforma')) void renewSession()
   }, [])
 
   useEffect(() => {

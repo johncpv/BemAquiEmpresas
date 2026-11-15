@@ -26,4 +26,5 @@ export interface ProjectCostView {
   taxGuides: number;
   nonConformityCount: number;
   nonConformityCost: number;
+  noCostBudget?: boolean;
 }

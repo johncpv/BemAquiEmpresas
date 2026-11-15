@@ -10,7 +10,7 @@ modulo: fiscal
 Conferir e emitir a NF-e do equipamento expedido: destinatário, operação, transporte, informações complementares e os totais. Tudo vem preenchido do romaneio, do projeto e da regra fiscal. Depois de autorizada, é aqui que a nota é cancelada, corrigida por carta de correção ou tem o cancelamento pedido.
 
 ## Como usar
-1. Confira o destinatário (vem do cadastro do cliente). Para corrigir documento, IE ou endereço, corrija no cadastro do cliente e descarte e refaça o rascunho.
+1. Confira o destinatário (vem do cadastro do cliente). Para corrigir documento, IE ou endereço (com o código IBGE), corrija no cadastro do cliente e volte aqui: **Salvar rascunho** traz o cadastro atualizado, sem descartar a nota.
 2. Ajuste frete, outras despesas, as informações complementares e o envio ao cliente, e clique em **Salvar rascunho**.
 3. Clique em **Pré-visualizar** para ver o DANFE com a faixa "Prévia, sem valor fiscal" (não gasta número).
 4. Clique em **Emitir NF-e**. O diálogo mostra o destinatário, os itens, os totais, os impostos, o que entra no custo do projeto e o ambiente. Se faltar algo (integração, configuração, certificado, regra, endereço com IBGE), o diálogo lista cada item com o link para resolver.
@@ -38,16 +38,20 @@ Para corrigir um dado simples sem cancelar (ex.: volumes, peso, um texto das inf
 ## Situações
 - **Rejeitada**: o motivo e a ação sugerida aparecem em destaque. Use **Corrigir e emitir de novo**: a nota volta a rascunho com os dados; o número gasto vai para "Números a inutilizar".
 - **Denegada**: a SEFAZ denegou por irregularidade do destinatário. Fale com a contadora; a nota não volta.
-- **Autorizada**: o XML e o DANFE ficam em Documentos e vão para o e-mail de cobrança do cliente (se "Enviar ao cliente" estiver marcado).
+- **Autorizada**: **Baixar DANFE** e **Baixar XML** aparecem no topo da nota, ao lado das outras ações, e **Baixar DANFE** também nos próximos passos. Os arquivos ficam ainda na aba Documentos e vão para o e-mail de cobrança do cliente (se "Enviar ao cliente" estiver marcado).
 - **Fora do prazo de cancelamento. A devolução fica com a contadora.**: passado o prazo, a nota não é mais cancelada; a saída é a nota de devolução, que a contadora emite.
-- **Cancelada**: os próximos passos oferecem **Emitir nova NF-e do romaneio** e **Estornar expedição**.
+- **Cancelada**: no topo ficam **Baixar DANFE cancelado** (com a marca CANCELADA) e **Baixar XML**. Os próximos passos oferecem **Emitir nova NF-e do romaneio** e **Estornar expedição**.
 
 ## Perguntas frequentes
 **Posso digitar o imposto?** Não. Os tributos saem da regra fiscal. Mude a regra do item (entre as ativas que valem) ou a quantidade, o valor e o desconto, e o cálculo refaz na hora.
 
 **A nota cria título a receber?** Não. A parcela do contrato é só cobrança; a receita conta pela data da nota.
 
+**Por que o travessão virou hífen?** A SEFAZ só aceita letras, números e a pontuação comum (os acentos do português valem). Travessão, aspas curvas, reticências e marcadores viram o equivalente do teclado, e emoji sai, para a nota não ser rejeitada.
+
 **Descartar apaga?** Não. O rascunho descartado sai da fila e fica registrado, sem número. Nota com número só é cancelada ou inutilizada, e nunca apagada.
+
+**Onde baixo o DANFE e o XML?** No topo da nota autorizada: **Baixar DANFE** e **Baixar XML**. A aba Documentos tem todos os arquivos, inclusive o DANFE original da cancelada, e o reenvio ao cliente.
 
 **Cancelar devolve o estoque?** Não. O estoque saiu no romaneio. Se o equipamento voltar, estorne a expedição no romaneio depois de cancelar a nota.
 

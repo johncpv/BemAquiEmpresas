@@ -34,7 +34,7 @@ export function RevenueTargetsSection({ canEdit }: { canEdit: boolean }) {
   return (
     <div id={TARGETS_ANCHOR} ref={ref} className="scroll-mt-20">
       <fieldset className="rounded-md border border-border bg-card p-4">
-        <legend className="float-left mb-1 w-full text-[15px] font-semibold">Metas de faturamento</legend>
+        <legend className="float-left mb-1 w-full text-[17px] font-semibold">Metas de faturamento</legend>
         <p className="clear-left mb-3 text-xs text-muted-foreground">A meta de cada mês aparece no Painel do proprietário, com o medidor e os dias úteis que faltam.</p>
         <label className="clear-left mb-3 flex items-center gap-2 text-sm font-medium">Ano
           <select value={year} onChange={(e) => setYear(Number(e.target.value))} className={inputClass + ' w-28'}>

@@ -58,17 +58,17 @@ public partial class AssetTests(TenancyFixture tenancy) : IClassFixture<TenancyF
             Task.FromResult<IReadOnlyList<IncomingInvoiceSummary>>(ids.Where(Invoices.ContainsKey).Select(id => Invoices[id]).ToList());
     }
 
-    private readonly Messaging.CapturingJobClient _jobs = new();
+    /// <summary>Um por classe, como o host: os testes contam os jobs a partir do que já havia.</summary>
+    private Messaging.CapturingJobClient Jobs => tenancy.State<Messaging.CapturingJobClient>();
 
-    private WebApplicationFactory<Program>? _factory;
-
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.UseSetting("Agenda:SourceTimeoutMs", "5000").ConfigureTestServices(s =>
+    /// <summary>Um host para a classe inteira (os serviços de teste não guardam estado do teste).</summary>
+    private WebApplicationFactory<Program> Factory => tenancy.Shared(nameof(AssetTests), b => b.UseSetting("Agenda:SourceTimeoutMs", "5000").ConfigureTestServices(s =>
     {
         s.AddScoped<IAssetUsageProvider, FakeUsage>();
         s.AddScoped<IIncomingInvoices, FakeInvoices>();
         s.AddSingleton<IVirusScanner>(new FakeScanner());
         s.RemoveAll<Hangfire.IBackgroundJobClient>();
-        s.AddSingleton<Hangfire.IBackgroundJobClient>(_jobs);
+        s.AddSingleton<Hangfire.IBackgroundJobClient>(Jobs);
     }));
 
     private static async Task<JsonElement> JsonAsync(HttpResponseMessage response) => await response.Content.ReadFromJsonAsync<JsonElement>();

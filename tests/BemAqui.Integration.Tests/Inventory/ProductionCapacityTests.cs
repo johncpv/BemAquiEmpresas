@@ -43,7 +43,7 @@ public class ProductionCapacityTests(TenancyFixture tenancy) : IClassFixture<Ten
 
     private WebApplicationFactory<Program>? _factory;
 
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s =>
+    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b.ConfigureTestServices(s =>
     {
         s.AddScoped<IBoms, FakeBoms>();
         s.AddScoped<IProductionOrders, FakeOrders>();

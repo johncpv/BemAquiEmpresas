@@ -42,7 +42,7 @@ public partial class DreTests(TenancyFixture tenancy) : IClassFixture<TenancyFix
 
     private WebApplicationFactory<Program>? _factory;
 
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddScoped<IProjectShipments, FakeShipments>()));
+    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b.ConfigureTestServices(s => s.AddScoped<IProjectShipments, FakeShipments>()));
 
     private static async Task<JsonElement> JsonAsync(HttpResponseMessage response) => await response.Content.ReadFromJsonAsync<JsonElement>();
 

@@ -24,4 +24,5 @@ export interface ShipmentNext {
   invoiceLabel?: string | null;
   /** @nullable */
   invoiceStatus?: string | null;
+  installationPending?: boolean;
 }

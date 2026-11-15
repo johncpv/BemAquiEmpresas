@@ -13,6 +13,7 @@ public static class PartiesInfrastructure
     public static IServiceCollection AddPartiesInfrastructure(this IServiceCollection services)
     {
         services.TryAddSingleton(TimeProvider.System);
+        services.TryAddScoped<PartyAddressIbge>();
         services.TryAddScoped<PartyService>();
         services.TryAddScoped<IParties, PartiesContract>();
         services.TryAddScoped<IPartyImport, PartyImport>();

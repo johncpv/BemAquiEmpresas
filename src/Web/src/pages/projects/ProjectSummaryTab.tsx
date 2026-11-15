@@ -50,7 +50,7 @@ export function ProjectSummaryTab({ project, onSaved, onCosts }: { project: Proj
         ) : null}
         {canCost && cost ? (
           <>
-            <div><dt className="text-xs text-muted-foreground">Margem orçada</dt><dd className="tabular-nums">{pct(cost.budgetedMarginPct)}</dd></div>
+            <div><dt className="text-xs text-muted-foreground">Margem orçada</dt><dd className="tabular-nums">{cost.noCostBudget ? <button type="button" onClick={onCosts} className="font-semibold text-warn-ink underline">Sem orçamento de custo</button> : pct(cost.budgetedMarginPct)}</dd></div>
             <div><dt className="flex items-center text-xs text-muted-foreground">Margem projetada<Dica nome="Margem projetada" texto={PROJECT_DICAS.margemProjetada} /></dt><dd className="tabular-nums">{pct(cost.projectedMarginPct)}</dd></div>
           </>
         ) : null}

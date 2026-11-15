@@ -46,7 +46,7 @@ public abstract partial class FabricationTestBase(TenancyFixture tenancy) : IDis
     /// Os testes da PRD-01 a PRD-06a1 andam as etapas sem BOM (Marco 3.1): aqui vale o <see cref="NoBomGate"/>. O bloqueio real da ENG-02
     /// (<see cref="EngineeringBomGate"/>) é testado em <c>FabricationTests.Bom</c>, com <see cref="BomFactory"/>.
     /// </summary>
-    protected WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b
+    protected WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b
         .UseSetting("Storage:Root", _storage)
         .UseSetting("Attachments:MaxUploadsPerHour", "30")
         .ConfigureTestServices(s =>

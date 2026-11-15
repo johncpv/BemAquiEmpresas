@@ -43,7 +43,7 @@ public partial class PayrollCalculationTests(TenancyFixture tenancy) : IClassFix
     private readonly MemorySink _sink = new();
     private WebApplicationFactory<Program>? _factory;
 
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s =>
+    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b.ConfigureTestServices(s =>
     {
         s.AddSingleton<ILogEventSink>(_sink);
         s.RemoveAll<IBackgroundJobClient>();

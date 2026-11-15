@@ -38,5 +38,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Email/Templates/*.liquid" />
+    <EmbeddedResource Include="Lookups/ibge-municipios.csv" />
   </ItemGroup>
 </Project>

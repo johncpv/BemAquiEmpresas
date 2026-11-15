@@ -129,14 +129,101 @@ public sealed class TenancyFixture : IAsyncLifetime
 
     public Task<NpgsqlConnection> AdminAsync() => OpenAsync(_postgres.ConnectionString);
 
+    private readonly Lock _derivedGate = new();
+    private readonly List<WebApplicationFactory<Program>> _derived = [];
+    private readonly List<Task> _stopping = [];
+
+    /// <summary>
+    /// Host derivado do <see cref="Factory"/> (ou de <paramref name="from"/>) com serviços do teste. O <c>WithWebHostBuilder</c> de uma factory
+    /// já derivada não registra a filha para o descarte: o host ficava vivo até o fim do processo, com o outbox, o LISTEN do catálogo e a
+    /// revalidação das TVs rodando contra um container já removido. Aqui todos param antes do container. O host vive até o fim da classe
+    /// porque há classe que guarda o cliente do primeiro teste num campo estático (as regras de alçada de compras, por exemplo).
+    /// </summary>
+    public WebApplicationFactory<Program> Derive(Action<IWebHostBuilder> configure, WebApplicationFactory<Program>? from = null)
+    {
+        lock (_derivedGate)
+        {
+            var factory = (from ?? Factory).WithWebHostBuilder(configure);
+            _derived.Add(factory);
+            return factory;
+        }
+    }
+
+    private readonly Dictionary<string, object> _shared = [];
+
+    /// <summary>
+    /// Um host derivado por classe de teste (e não por teste), guardado pela chave. Subir um host custa segundos de CPU: no primeiro request
+    /// ele monta os mais de mil endpoints (a Minimal API compila um delegate por rota). Com um host por teste, a classe gastava quase todo
+    /// o tempo nisso e roubava CPU dos testes com janela de tempo que rodavam em paralelo. O que o host recebe do teste vem do
+    /// <see cref="State{T}"/>, que também é um por classe.
+    /// </summary>
+    public WebApplicationFactory<Program> Shared(string key, Action<IWebHostBuilder> configure)
+    {
+        lock (_derivedGate)
+        {
+            if (!_shared.TryGetValue("host:" + key, out var factory))
+            {
+                factory = Factory.WithWebHostBuilder(configure);
+                _shared["host:" + key] = factory;
+            }
+
+            return (WebApplicationFactory<Program>)factory;
+        }
+    }
+
+    /// <summary>Objeto do teste que vive com o host compartilhado (ex.: o cliente de jobs que captura): um por fixture e tipo.</summary>
+    public T State<T>()
+        where T : class, new()
+    {
+        lock (_derivedGate)
+        {
+            if (!_shared.TryGetValue("state:" + typeof(T).FullName, out var state))
+            {
+                state = new T();
+                _shared["state:" + typeof(T).FullName] = state;
+            }
+
+            return (T)state;
+        }
+    }
+
+    private static Task StopQuietlyAsync(WebApplicationFactory<Program> factory) => Task.Run(async () =>
+    {
+        try
+        {
+            await factory.DisposeAsync();
+        }
+#pragma warning disable CA1031 // parada de host de teste: o erro não é do teste seguinte
+        catch (Exception)
+#pragma warning restore CA1031
+        {
+        }
+    });
+
     public async ValueTask DisposeAsync()
     {
-        if (Factory is not null)
+        try
         {
-            await Factory.DisposeAsync();
-        }
+            Task[] stopping;
+            lock (_derivedGate)
+            {
+                _stopping.AddRange(_derived.Select(StopQuietlyAsync));
+                _stopping.AddRange(_shared.Values.OfType<WebApplicationFactory<Program>>().Select(StopQuietlyAsync));
+                _derived.Clear();
+                _shared.Clear();
+                stopping = [.. _stopping];
+            }
 
-        await _postgres.DisposeAsync();
+            await Task.WhenAll(stopping);
+            if (Factory is not null)
+            {
+                await Factory.DisposeAsync();
+            }
+        }
+        finally
+        {
+            await _postgres.DisposeAsync();
+        }
     }
 
     private static async Task<NpgsqlConnection> OpenAsync(string connectionString)

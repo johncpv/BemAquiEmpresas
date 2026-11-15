@@ -27,7 +27,7 @@ export function ShopfloorLayout() {
   useEffect(() => registerFloorServiceWorker(), [])
   return (
     <FloorHelp>
-      <main id="conteudo" className="min-h-dvh bg-background pb-8 text-[18px] text-foreground">
+      <main id="conteudo" data-surface="floor" className="min-h-dvh bg-background pb-8 text-[18px] text-foreground">
         {timeClock ? (
           <ReleasedGate code="hr">
             <FloorMessages />

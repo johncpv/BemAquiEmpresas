@@ -134,16 +134,19 @@ export function NfsePage() {
       ) : null}
       {warnings.length > 0 ? <ul role="status" className="mb-4 space-y-1 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">{warnings.map((w) => <li key={w}>{w}</li>)}</ul> : null}
       {v.issWarning && warnings.length === 0 ? <p role="note" className="mb-4 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">{v.issWarning}</p> : null}
-      {v.status === 'Authorized' && v.projectId ? (
+      {v.status === 'Authorized' ? (
         <div className="mb-4"><NextSteps title="Próximos passos" onDismiss={() => undefined} steps={[
-          { label: 'Ver projeto', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: v.projectId! }, search: { aba: 'resumo' } } as never) },
+          ...(v.actions.canDownload && v.pdfAttachmentId ? [{ label: 'Baixar PDF', onSelect: () => void downloadNfseFile(v, false).then(setError) }] : []),
+          ...(v.projectId ? [{ label: 'Ver projeto', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: v.projectId! }, search: { aba: 'resumo' } } as never) }] : []),
           { label: 'Ver a fila A emitir', onSelect: () => void navigate({ to: '/app/fiscal/saida' } as never) },
         ]} /></div>
       ) : null}
       {v.calculationError && v.actions.canEdit ? <p role="note" className="mb-4 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">{v.calculationError}</p> : null}
       {error ? <p role="alert" className="mb-4 rounded-md border border-crit-soft bg-crit-soft px-3 py-2 text-sm text-crit-ink">{error}</p> : null}
       {v.portalNotice ? <PortalArea invoice={v} onRegistered={async (next, w) => { setWarnings(w); await refresh(next) }} /> : null}
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2 empty:hidden">
+        {v.actions.canDownload && v.pdfAttachmentId ? <button type="button" onClick={() => { setError(null); void downloadNfseFile(v, false).then(setError) }} className={secondary}>Baixar PDF</button> : null}
+        {v.actions.canDownload && v.xmlAttachmentId ? <button type="button" onClick={() => { setError(null); void downloadNfseFile(v, true).then(setError) }} className={secondary}>Baixar XML</button> : null}
         {v.actions.canEdit ? <button type="button" disabled={saving} onClick={() => void save()} className={secondary}>{saving ? 'Salvando…' : 'Salvar rascunho'}</button> : null}
         {v.actions.canIssue ? <IssueDialog invoice={v} onDone={refresh} /> : null}
         {v.actions.canDiscard ? (
@@ -181,7 +184,7 @@ function NfseData({ invoice: v, draft, setDraft, errors }: { invoice: NfseView; 
         <p className="tabular-nums">{r.document ?? 'Sem documento'}</p>
         <p>{[r.street, r.number, r.complement].filter(Boolean).join(', ')} — {r.district} — {r.cityName}/{r.state} — CEP {r.postalCode}</p>
         <p className="text-muted-foreground">E-mail de cobrança: {r.email ?? 'não informado'}</p>
-        {v.partyId ? <Link to={'/app/terceiros/$id' as never} params={{ id: v.partyId } as never} className="mt-1 inline-block font-semibold text-primary hover:underline">Corrigir no cadastro do cliente</Link> : null}
+        {v.partyId ? <Link to="/app/cadastros/terceiros/$id" params={{ id: v.partyId }} className="mt-1 inline-block font-semibold text-primary hover:underline">Corrigir no cadastro do cliente</Link> : null}
       </section>
       <section aria-labelledby="servico" className="grid gap-2 rounded-md border border-border bg-card p-3 text-sm sm:grid-cols-2">
         <h2 id="servico" className="font-semibold sm:col-span-2">Serviço</h2>
@@ -346,17 +349,22 @@ function CancellationDialog({ invoice: v, onDone }: { invoice: NfseView; onDone:
   )
 }
 
+/** Baixa o XML ou o PDF da NFS-e (topo, próximos passos e aba Documentos). Devolve a mensagem de erro, ou null quando baixou. */
+async function downloadNfseFile(v: NfseView, xml: boolean): Promise<string | null> {
+  try {
+    await apiDownload(xml ? getDownloadOutgoingInvoiceXmlUrl(v.id) : getDownloadOutgoingInvoiceDanfeUrl(v.id), `nfse-${v.number ?? v.id}.${xml ? 'xml' : 'pdf'}`)
+    return null
+  } catch (e) {
+    return e instanceof ApiError ? e.message : 'Não foi possível baixar.'
+  }
+}
+
 function NfseDocuments({ invoice: v, onDone }: { invoice: NfseView; onDone: (next?: NfseView) => Promise<void> }) {
   const [error, setError] = useState<string | null>(null)
   if (!v.actions.canDownload) return <EmptyState title="Sem documentos ainda." description="O XML e o PDF da NFS-e ficam aqui depois da autorização ou do registro da nota da prefeitura." />
-  const name = `nfse-${v.number ?? v.id}`
   const download = async (xml: boolean) => {
     setError(null)
-    try {
-      await apiDownload(xml ? getDownloadOutgoingInvoiceXmlUrl(v.id) : getDownloadOutgoingInvoiceDanfeUrl(v.id), `${name}.${xml ? 'xml' : 'pdf'}`)
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Não foi possível baixar.')
-    }
+    setError(await downloadNfseFile(v, xml))
   }
   return (
     <div className="space-y-3">

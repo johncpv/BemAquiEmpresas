@@ -31,7 +31,7 @@ public sealed partial class OutgoingInvoiceService(
     IBusinessCalendar calendar, BemAqui.BuildingBlocks.Notifications.INotificationService notifications, TimeProvider clock)
 {
     public const string ShipmentLink = "/app/producao/expedicao/";
-    public const string PartyLink = "/app/terceiros/";
+    public const string PartyLink = "/app/cadastros/terceiros/";
     public const int QueueLimit = 500;
     public const string QueueLink = "/app/fiscal/saida";
 
@@ -117,6 +117,8 @@ public sealed partial class OutgoingInvoiceService(
     internal static async Task FillRecipientAsync(IParties parties, OutgoingInvoice invoice, Guid partyId, CancellationToken ct)
     {
         var party = await parties.FiscalInfoAsync(partyId, ct);
+        // Endereço sem o código IBGE (importado do Dolibarr, criado pela API): o cadastro resolve pelo município e grava antes de ler.
+        await parties.FillIbgeCodesAsync(partyId, ct);
         var addresses = await parties.AddressesAsync(partyId, ct);
         var address = addresses.Where(a => a.Kind == AddressKind.Billing).OrderByDescending(a => a.IbgeCode != null).FirstOrDefault()
             ?? addresses.Where(a => a.Kind != AddressKind.Site).OrderByDescending(a => a.IbgeCode != null).FirstOrDefault()

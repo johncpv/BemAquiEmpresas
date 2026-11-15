@@ -41,7 +41,7 @@ public partial class StockAdjustmentTests(TenancyFixture tenancy) : IClassFixtur
 
     private WebApplicationFactory<Program>? _factory;
 
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s =>
+    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b.ConfigureTestServices(s =>
     {
         s.AddScoped<ILocationCountLock, FakeCountLock>();
         s.AddScoped<IProductionOrders, FakeOrders>();

@@ -46,7 +46,7 @@ public sealed class OutgoingNfePayloads(IFiscalDb db, IFiscalSettings settings, 
         var nfeItems = ordered.Select(Item).ToList();
         var complementary = OutgoingInvoiceRules.ComplementaryForEmitter(invoice.AdditionalInformation, ordered.Select(i => (i.Sequence, i.AdditionalInfo)), invoice.Volumes,
             invoice.GrossWeight, invoice.VolumeSpecies, carrierName);
-        return new NfeIssueRequest(issuerDocument, series, (invoice.NatureOfOperation ?? "Venda de produção do estabelecimento").ToUpperInvariant(), NfeOperationType.Outbound, NfePurpose.Normal,
+        return new NfeIssueRequest(issuerDocument, series, NfeTextRules.Clean((invoice.NatureOfOperation ?? "Venda de produção do estabelecimento").ToUpperInvariant()) ?? "VENDA", NfeOperationType.Outbound, NfePurpose.Normal,
             invoice.FinalConsumer, NfePresence.InPersonOutside, Enum.IsDefined((NfeFreightMode)invoice.FreightMode) ? (NfeFreightMode)invoice.FreightMode : NfeFreightMode.Issuer, recipient, nfeItems,
             [new NfePayment(NfePaymentMethod.NoPayment, 0m)], complementary);
     }

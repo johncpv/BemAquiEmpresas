@@ -204,6 +204,25 @@ public class FiscalRulesTests
     }
 
     [Theory]
+    [InlineData(NfePresence.InPerson, 0)]
+    [InlineData(NfePresence.InPersonOutside, 0)]
+    [InlineData(NfePresence.Internet, 0)]
+    [InlineData(NfePresence.NotApplicable, null)]
+    public void Indicador_do_intermediador_vai_como_sem_intermediador_quando_a_SEFAZ_exige(NfePresence presence, int? expected)
+    {
+        var json = JsonDocument.Parse(JsonSerializer.Serialize(EmissorFiscalMapping.ToEmissor(NfePayload.Normalize(Sample() with { Presence = presence })), EmissorFiscalHttpEmitter.Json)).RootElement;
+
+        if (expected is null)
+        {
+            json.TryGetProperty("indicadorIntermediador", out _).Should().BeFalse("com indPres 0 o indIntermed não pode ir (NT 2020.006)");
+        }
+        else
+        {
+            json.GetProperty("indicadorIntermediador").GetInt32().Should().Be(expected.Value, "sem ele a SEFAZ rejeita com 434");
+        }
+    }
+
+    [Theory]
     [InlineData(0, FiscalDocumentStatus.Received)]
     [InlineData(1, FiscalDocumentStatus.Processing)]
     [InlineData(2, FiscalDocumentStatus.Authorized)]

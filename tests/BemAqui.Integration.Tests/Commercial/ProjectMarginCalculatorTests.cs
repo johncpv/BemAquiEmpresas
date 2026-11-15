@@ -130,6 +130,25 @@ public class ProjectMarginCalculatorTests
         all.Revenue.Should().Be(1_000_000m);
     }
 
+    /// <summary>Projeto com receita e sem custo orçado: a margem orçada não é 100%, e ele não entra no consolidado (produção, 15/11/2026).</summary>
+    [Fact]
+    public void Sem_orcamento_de_custo_nao_tem_margem_orcada_e_fica_fora_do_consolidado()
+    {
+        var budgeted = ProjectMarginCalculator.Compute(100_000m, Budget((CostType.Material, 60_000m)), [Pay(CostType.Material, confirmed: 10_000m)], []);
+        var unbudgeted = ProjectMarginCalculator.Compute(521_200m, Budget(), [Pay(CostType.Material, confirmed: 6_775.60m)], []);
+        (unbudgeted.NoCostBudget, unbudgeted.BudgetedMarginPct, unbudgeted.MarginDeviationPp).Should().Be((true, null, null), "sem orçado não há margem orçada nem desvio");
+        unbudgeted.ProjectedMarginPct.Should().Be(98.7m, "a projetada continua sendo a conta, mas sinalizada");
+        budgeted.NoCostBudget.Should().BeFalse();
+        ProjectMarginCalculator.Compute(0m, Budget(), [], []).NoCostBudget.Should().BeFalse("sem receita já é o caso \"Sem receita contratada\"");
+
+        var all = ProjectMarginCalculator.Consolidate([budgeted, unbudgeted]);
+        (all.Revenue, all.Total.Budgeted, all.Total.Realized, all.BudgetedMarginPct, all.ProjectedMarginPct, all.NoCostBudget)
+            .Should().Be((100_000m, 60_000m, 10_000m, 40m, 40m, false), "só o projeto com orçamento entra nas somas");
+
+        var none = ProjectMarginCalculator.Consolidate([unbudgeted]);
+        (none.Revenue, none.BudgetedMarginPct, none.ProjectedMarginPct, none.MarginDeviationPp).Should().Be((0m, null, null, null), "todos sem orçamento: nenhum percentual");
+    }
+
     [Fact]
     public void Dataset_fixo_dos_4_projetos_confere_com_a_planilha()
     {

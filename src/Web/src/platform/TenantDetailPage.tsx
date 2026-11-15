@@ -72,7 +72,7 @@ export function TenantDetailPage() {
           </section>
           <section aria-labelledby="etapas" className="space-y-3 rounded-md border border-border bg-card p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 id="etapas" className="text-[15px] font-semibold">Provisionamento</h2>
+              <h2 id="etapas" className="text-[17px] font-semibold">Provisionamento</h2>
               <StageIndicator stages={steps.map((s) => STEP_LABEL[s] ?? s)} current={tenant.status === 'Provisioning' ? current : steps.length - 1} />
             </div>
             <ol className="space-y-1 text-sm">

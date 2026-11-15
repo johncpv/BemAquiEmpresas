@@ -50,7 +50,7 @@ export function AssetMaintenance({ asset, highlightPlan, startOrder, fromFloor }
       {disposed ? <p className="text-sm text-muted-foreground">Bem baixado: os planos ficam inativos e não abrem OS. Reative o bem para voltar a cuidar da manutenção.</p> : null}
       {actions}
       <section aria-labelledby="planos-titulo" className="space-y-3">
-        <h2 id="planos-titulo" className="text-[15px] font-semibold">Planos preventivos</h2>
+        <h2 id="planos-titulo" className="text-[17px] font-semibold">Planos preventivos</h2>
         {lastReading ? (
           <p className="inline-flex items-center text-sm text-muted-foreground">
             Horímetro: <b className="ml-1 tabular-nums text-foreground">{formatMeter(lastReading.value)}</b>&nbsp;em {formatDate(lastReading.readOn)}
@@ -71,7 +71,7 @@ export function AssetMaintenance({ asset, highlightPlan, startOrder, fromFloor }
         )}
       </section>
       <section aria-labelledby="os-titulo" className="space-y-3">
-        <h2 id="os-titulo" className="text-[15px] font-semibold">OS de manutenção</h2>
+        <h2 id="os-titulo" className="text-[17px] font-semibold">OS de manutenção</h2>
         {orders.length === 0 ? <EmptyState title="Nenhuma OS de manutenção deste bem." description="A corretiva se abre quando algo quebra; a preventiva, pelo plano." />
           : <ol className="space-y-3">{orders.map((o) => <OrderCard key={o.id} order={o} />)}</ol>}
       </section>

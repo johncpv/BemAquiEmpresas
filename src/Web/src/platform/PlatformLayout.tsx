@@ -13,7 +13,7 @@ export function PlatformLayout() {
       <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
           <span aria-hidden="true" className="grid size-[30px] place-items-center rounded-[7px] bg-rail font-display text-sm font-extrabold text-signal font-widest">B</span>
-          <b className="font-display text-[15px] font-bold font-wider">BemAqui Plataforma</b>
+          <b className="font-display text-[17px] font-bold font-wider">BemAqui Plataforma</b>
           <nav aria-label="Plataforma" className="flex gap-1 border-l border-border pl-3">
             <Link to="/plataforma/tenants" className={link} activeProps={{ 'aria-current': 'page' }}>Tenants</Link>
             <a href="/hangfire" className={link}>Jobs</a>

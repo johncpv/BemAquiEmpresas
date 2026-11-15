@@ -41,11 +41,13 @@ public sealed partial class ProjectService(
         var (fabricationOrders, openFabricationOrders) = await FabricationOrdersAsync(project.Id, cancellationToken);
         // PLN-01b CA 8: "Entrega prevista" lida de commercial.project_forecasts (a coluna projects.forecast_date fica sem uso, ADR 0029).
         var forecast = (await ForecastViewsAsync([(project.Id, project.Status, project.PromisedDate)], cancellationToken))[project.Id];
+        // COM-04b CA 10: com instalação, "Registrar entrega" sai da tela e o próximo passo é a OS de instalação.
+        var (hasInstallation, _) = await InstallationAsync(project.Id, cancellationToken);
         return new ProjectDetail(
             project.Id, project.Number, project.Name, project.Status, project.PartyId, party is null ? string.Empty : party.TradeName ?? party.LegalName, project.ContractId, contractNumber,
             project.SiteAddressId, site is null ? null : $"{site.Street}, {site.Number} — {site.City}/{site.State}", project.PromisedDate, forecast.ForecastDate, project.Priority,
             project.ManagerUserId, manager, project.CreatedAt, items, project.Version, project.FabricatedOn, project.DeliveredOn, project.DeliveredManually, hasFabrication,
-            contract.Status.ToString(), contract.IsOnboarding, project.FabricatedByOrders, fabricationOrders, openFabricationOrders, forecast);
+            contract.Status.ToString(), contract.IsOnboarding, project.FabricatedByOrders, fabricationOrders, openFabricationOrders, forecast, hasInstallation);
     }
 
     public async Task<Result<IReadOnlyList<ProjectBudgetLine>>> BudgetAsync(Guid id, CancellationToken cancellationToken = default)

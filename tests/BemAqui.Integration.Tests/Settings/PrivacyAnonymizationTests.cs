@@ -47,7 +47,7 @@ public partial class PrivacyAnonymizationTests(TenancyFixture tenancy) : IClassF
 
     private WebApplicationFactory<Program> Factory => _factory ??= Build(_ => { });
 
-    private WebApplicationFactory<Program> Build(Action<IServiceCollection> extra) => tenancy.Factory.WithWebHostBuilder(b => b
+    private WebApplicationFactory<Program> Build(Action<IServiceCollection> extra) => tenancy.Derive(b => b
         .UseSetting("Storage:Root", _storage)
         .ConfigureTestServices(s =>
         {

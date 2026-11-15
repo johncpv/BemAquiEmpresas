@@ -2,12 +2,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import {
-  discardOutgoingInvoice, getCheckOutgoingInvoiceIssueQueryKey, getDownloadCancelledOutgoingInvoiceDanfeUrl, getDownloadOutgoingInvoiceDanfeUrl, getDownloadOutgoingInvoiceXmlUrl, getGetOutgoingInvoiceQueryKey,
+  discardOutgoingInvoice, getCheckOutgoingInvoiceIssueQueryKey, getGetOutgoingInvoiceQueryKey,
   getListInvoicesToIssueQueryKey, getListOutgoingInvoicesQueryKey, getPreviewOutgoingInvoiceUrl, issueOutgoingInvoice, reopenOutgoingInvoice, resendOutgoingInvoice,
   updateOutgoingInvoice, useCheckOutgoingInvoiceIssue, useGetOutgoingInvoice, useGetOutgoingInvoiceHistory, useListInstallationsToInvoice,
 } from '@/api/generated/bemaqui'
 import type { OutgoingInvoiceItemView, OutgoingInvoiceView } from '@/api/generated/model'
-import { ApiError, apiBlobUrl, apiDownload } from '@/api/http'
+import { ApiError, apiBlobUrl } from '@/api/http'
 import { inputClass } from '@/components/form/form-utils'
 import { describeChanges } from '@/components/history/describe-changes'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -24,6 +24,8 @@ import { cn } from '@/lib/utils'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { useStartNfse } from './use-start-nfse'
+import { downloadInvoiceFile, type InvoiceFile } from './invoice-downloads'
+import { InvoiceDownloadButtons } from './InvoiceDownloads'
 import { INVOICE_DICAS, INVOICE_STATUS, INVOICE_TEXTS, invoiceLabel, isSlow, quantity } from './outgoing-invoices'
 import { InvoiceEventActions, InvoiceEventsTab } from './OutgoingInvoiceEvents'
 import { OPERATION_LABEL, RECIPIENT_LABEL, TAX_LABEL } from './tax-rules'
@@ -150,17 +152,20 @@ export function OutgoingInvoicePage() {
         <p role="alert" className="mb-4 flex items-center rounded-md border border-l-4 border-crit-soft border-l-crit bg-crit-soft px-3 py-2 text-sm font-semibold text-crit-ink">{v.guidance}<Dica nome="Denegada" texto={INVOICE_DICAS.denegada} /></p>
       ) : null}
       <InvoiceEventActions invoice={v} onDone={refresh} now={now} />
-      {v.status === 'Authorized' && v.projectId ? (
+      {v.status === 'Authorized' ? (
         <div className="mb-4"><NextSteps title="Próximos passos" onDismiss={() => undefined} steps={[
-          { label: 'Ver projeto', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: v.projectId! }, search: { aba: 'resumo' } } as never) },
-          { label: 'Ver a fila A emitir', onSelect: () => void navigate({ to: '/app/fiscal/saida' } as never) },
-          ...(installations.data ?? []).filter((i) => i.projectId === v.projectId).slice(0, 1)
+          ...(v.actions.canDownload && v.danfeAttachmentId ? [{ label: 'Baixar DANFE', onSelect: () => void downloadInvoiceFile(v, 'danfe').then(setError) }] : []),
+          // A faixa mostra até 3 passos: a NFS-e da instalação vem antes da fila para não ficar de fora.
+          ...(installations.data ?? []).filter((i) => !!v.projectId && i.projectId === v.projectId).slice(0, 1)
             .map((i) => ({ label: 'Emitir NFS-e da instalação', onSelect: () => void nfse.start(i.installationOrderId, i.projectId) })),
+          ...(v.projectId ? [{ label: 'Ver projeto', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: v.projectId! }, search: { aba: 'resumo' } } as never) }] : []),
+          { label: 'Ver a fila A emitir', onSelect: () => void navigate({ to: '/app/fiscal/saida' } as never) },
         ]} /></div>
       ) : null}
       {v.calculationError && v.actions.canEdit ? <p role="note" className="mb-4 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">{v.calculationError}</p> : null}
       {error ? <p role="alert" className="mb-4 rounded-md border border-crit-soft bg-crit-soft px-3 py-2 text-sm text-crit-ink">{error}</p> : null}
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2 empty:hidden">
+        <InvoiceDownloadButtons invoice={v} className={secondary} onError={setError} />
         {v.actions.canEdit ? <button type="button" disabled={saving} onClick={() => void save()} className={secondary}>{saving ? 'Salvando…' : 'Salvar rascunho'}</button> : null}
         {v.actions.canPreview ? <button type="button" onClick={() => void preview()} className={secondary}>Pré-visualizar</button> : null}
         {v.actions.canIssue ? <IssueDialog invoice={v} onDone={refresh} /> : null}
@@ -210,7 +215,7 @@ function InvoiceData({ invoice: v, draft, setDraft, errors }: { invoice: Outgoin
         <p>{[r.street, r.number, r.complement].filter(Boolean).join(', ')} — {r.district} — {r.cityName}/{r.state} — CEP {r.postalCode} · IBGE {r.cityCode ?? '—'}</p>
         <p className="text-muted-foreground">E-mail de cobrança: {r.email ?? 'não informado'}</p>
         {errors['recipient.name'] ? <p role="alert" className="text-xs font-medium text-crit-ink">{errors['recipient.name']}</p> : null}
-        {v.partyId ? <Link to={'/app/terceiros/$id' as never} params={{ id: v.partyId } as never} className="mt-1 inline-block font-semibold text-primary hover:underline">Corrigir no cadastro do cliente</Link> : null}
+        {v.partyId ? <Link to="/app/cadastros/terceiros/$id" params={{ id: v.partyId }} className="mt-1 inline-block font-semibold text-primary hover:underline">Corrigir no cadastro do cliente</Link> : null}
       </section>
       <section aria-labelledby="transporte" className="grid gap-3 rounded-md border border-border bg-card p-3 sm:grid-cols-2">
         <h2 id="transporte" className="font-semibold sm:col-span-2">Transporte e valores</h2>
@@ -354,15 +359,9 @@ function IssueDialog({ invoice: v, onDone }: { invoice: OutgoingInvoiceView; onD
 function InvoiceDocuments({ invoice: v, onDone }: { invoice: OutgoingInvoiceView; onDone: (next?: OutgoingInvoiceView) => Promise<void> }) {
   const [error, setError] = useState<string | null>(null)
   if (!v.actions.canDownload) return <EmptyState title="Sem documentos ainda." description="O XML e o DANFE ficam aqui depois da autorização da SEFAZ." />
-  const name = v.accessKey ?? v.id
-  const download = async (kind: 'xml' | 'danfe' | 'cancelada') => {
+  const download = async (kind: InvoiceFile) => {
     setError(null)
-    try {
-      const url = kind === 'xml' ? getDownloadOutgoingInvoiceXmlUrl(v.id) : kind === 'danfe' ? getDownloadOutgoingInvoiceDanfeUrl(v.id) : getDownloadCancelledOutgoingInvoiceDanfeUrl(v.id)
-      await apiDownload(url, `${name}-${kind === 'xml' ? 'nfe.xml' : kind === 'danfe' ? 'danfe.pdf' : 'danfe-cancelada.pdf'}`)
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Não foi possível baixar.')
-    }
+    setError(await downloadInvoiceFile(v, kind))
   }
   return (
     <div className="space-y-3">

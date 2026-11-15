@@ -11,6 +11,7 @@ Ver, projeto a projeto e no total, quanto foi orçado, quanto já foi gasto de v
 
 ## Como usar
 - No topo fica o **consolidado** dos projetos do filtro: receita contratada, orçado, realizado, projetado e a **margem orçada → projetada**. As margens do total são ponderadas pela receita: somamos as receitas e os custos de todos os projetos (Σ ÷ Σ), sem fazer média simples das margens.
+- Projeto **sem orçamento de custo** (receita contratada e nenhum custo orçado) fica **fora do consolidado** e da tabela por natureza. O aviso no topo diz quantos são e traz o link de cada um; **Só sem orçamento de custo** filtra a lista por eles. Na lista, eles levam o chip **Sem orçamento de custo** no lugar da margem orçada, não têm desvio e ficam no fim da ordem pelo desvio.
 - **Por natureza** mostra o gráfico "Orçado × projetado por natureza" (orçado em coluna vazada, projetado em coluna cheia, com o valor em cada coluna) e a tabela com orçado, realizado, comprometido, projetado e desvio. **Ver os valores em tabela** abre os números do gráfico.
 - Clique em um valor de **Orçado**, **Realizado** ou **Comprometido** para abrir o painel com os projetos que somam esse valor. Na aba Custos de cada projeto, o mesmo clique mostra os lançamentos.
 - A lista vem do **pior para o melhor desvio** da margem (projetada menos orçada, em pontos percentuais). Clique no cabeçalho para ordenar pelo número, pela receita ou pela margem projetada.
@@ -26,5 +27,7 @@ Ver, projeto a projeto e no total, quanto foi orçado, quanto já foi gasto de v
 **Como é o imposto projetado?** Até a primeira nota fiscal do projeto, é o imposto do orçamento aprovado (marca **Imposto orçado**). Com nota, é o imposto das notas mais o orçado da parte da receita ainda não faturada.
 
 **A guia de imposto entra?** Não. DARF, GARE e DAS são da empresa: entram no DRE, não no projeto.
+
+**O que é "Sem orçamento de custo"?** O projeto tem receita contratada, mas nenhum custo orçado em nenhuma natureza. Sem o orçado não existe margem orçada nem desvio: mostrar 100% faria um projeto sem orçamento parecer um ótimo negócio. Por isso ele fica fora da margem do painel e do consolidado do Orçado × realizado, e aparece contado à parte. O custo orçado vem da composição de custo do orçamento aprovado (custo por natureza em cada item); confira o orçamento de origem pelo contrato.
 
 **Por que não vejo este relatório?** Custo e margem são sigilo comercial: só quem tem a permissão **Ver custo e margem** do projeto vê a tela e o item no menu.

@@ -10,7 +10,7 @@ modulo: fiscal
 Baixar o XML autorizado e o DANFE em PDF da nota e reenviar os dois ao cliente.
 
 ## Como usar
-1. Com a nota autorizada, use **Baixar XML** e **Baixar DANFE**.
+1. Com a nota autorizada, use **Baixar XML** e **Baixar DANFE**. Os dois botões também ficam no topo da nota, em qualquer aba.
 2. Para mandar de novo ao cliente, clique em **Reenviar XML e DANFE**. O e-mail vai para o e-mail de cobrança do cliente, com a cópia informada nos dados da nota.
 
 ## Situações

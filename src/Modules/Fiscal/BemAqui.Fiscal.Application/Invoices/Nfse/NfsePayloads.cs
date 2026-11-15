@@ -57,7 +57,7 @@ public sealed class NfsePayloads(IFiscalDb db)
         var issBase = lines.Where(t => t.Code == TaxCodes.Iss).Sum(t => t.Base);
         var ibs = service.IbsCbsCst is { Length: > 0 } cst ? new NfseIbsCbs(cst, service.IbsCbsClassification ?? "000001", NfseRules.IbsCbsOperationCode) : null;
         return new NfseIssueRequest(issuerDocument, NfseRules.Series, OutgoingNfePayloads.Recipient(invoice),
-            new NfseService(service.ServiceItem, service.MunicipalCode ?? string.Empty, service.Ctn ?? string.Empty, service.Nbs ?? string.Empty, service.Description,
+            new NfseService(service.ServiceItem, service.MunicipalCode ?? string.Empty, service.Ctn ?? string.Empty, service.Nbs ?? string.Empty, NfeTextRules.Clean(service.Description) ?? string.Empty,
                 service.ServiceCityCode ?? string.Empty, NfePayload.Money(invoice.TotalAmount), NfePayload.Money(issBase), NfePayload.Rate(service.IssRate), NfePayload.Money(service.IssAmount),
                 service.IssWithheld, NfePayload.Money(service.NetAmount), null, ibs),
             null, linkedAccessKey);

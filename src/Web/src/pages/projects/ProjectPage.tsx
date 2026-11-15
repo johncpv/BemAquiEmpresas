@@ -43,7 +43,9 @@ export function ProjectPage() {
   // PRD-06a1 CA 9 (ponto 81): com OS de fabricação, a fabricação é concluída pelas OS e o registro manual some.
   const byOrders = (p.fabricationOrders ?? 0) > 0
   const canFabricate = active && canEdit && inProduction && !byOrders
-  const canDeliver = active && canApprove && (p.status === 'Fabricated' || (inProduction && !p.hasFabricationMilestone))
+  // COM-04b CA 10: "Registrar entrega" é só para venda sem instalação; com instalação, a entrega e o aceite técnico vêm da OS.
+  const installationPending = active && !!p.hasInstallation && (inProduction || p.status === 'Fabricated')
+  const canDeliver = active && canApprove && !p.hasInstallation && (p.status === 'Fabricated' || (inProduction && !p.hasFabricationMilestone))
   const refresh = async () => {
     await client.invalidateQueries({ queryKey: getGetProjectQueryKey(id) })
     await client.invalidateQueries({ queryKey: getGetContractQueryKey(p.contractId) })
@@ -76,6 +78,12 @@ export function ProjectPage() {
           <Link to={'/app/producao/os' as never} search={{ projeto: p.id } as never} className="font-semibold text-primary hover:underline">Ver as OS</Link>
         </p>
       ) : null}
+      {installationPending ? (
+        <p role="note" className="mb-3 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+          <span>Este projeto tem instalação: a entrega e o aceite técnico vêm da OS de instalação.</span>
+          <Link to={'/app/projetos/$id' as never} params={{ id: p.id } as never} search={{ aba: 'itens' } as never} className="font-semibold text-primary hover:underline">Abrir OS de instalação</Link>
+        </p>
+      ) : null}
       {p.fabricatedOn || p.deliveredOn ? (
         <p className="mb-3 text-sm text-muted-foreground">
           {p.fabricatedOn ? `Fabricação concluída em ${formatDate(p.fabricatedOn)}${p.fabricatedByOrders ? ' pelas OS' : ''}. ` : ''}
@@ -88,7 +96,7 @@ export function ProjectPage() {
         // PLN-03 CA 11: com OS de fabricação e production.view (a aba some sem a permissão).
         ...(canProduction && byOrders ? [{ id: 'cronograma', label: 'Cronograma', content: <ProjectGanttTab projectId={id} /> }] : []),
         ...(canFinance ? [{ id: 'financeiro', label: 'Financeiro', content: <ProjectFinancialTab projectId={id} /> }] : []),
-        ...(canCost ? [{ id: 'custos', label: 'Custos', content: <ProjectCostsTab projectId={id} /> }] : []),
+        ...(canCost ? [{ id: 'custos', label: 'Custos', content: <ProjectCostsTab projectId={id} contractId={p.contractId} /> }] : []),
         { id: 'documentos', label: 'Documentos', content: <ProjectDocumentsTab projectId={id} contractId={p.contractId} /> },
         { id: 'linha-do-tempo', label: 'Linha do tempo', content: <ProjectTimelineTab projectId={id} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Project" id={id} /> },

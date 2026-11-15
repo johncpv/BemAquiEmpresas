@@ -185,7 +185,7 @@ internal sealed class MaintenanceOrderCostConfiguration : IEntityTypeConfigurati
         b.HasOne<MaintenanceOrder>().WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => e.OrderId).HasDatabaseName("ix_maintenance_order_costs_order_id");
         b.HasIndex(e => e.EmployeeId).HasFilter("employee_id IS NOT NULL").HasDatabaseName("ix_maintenance_order_costs_employee_id");
-        b.HasIndex(e => e.PayableId).IsUnique().HasFilter("payable_id IS NOT NULL").HasDatabaseName("ux_maintenance_order_costs_payable_id");
+        b.HasIndex(e => e.PayableId).IsUnique().HasFilter("payable_id IS NOT NULL").HasDatabaseName(BemAqui.Assets.Application.MaintenanceService.CostPayableIndex);
     }
 }
 

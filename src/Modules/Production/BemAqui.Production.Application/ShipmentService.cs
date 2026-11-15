@@ -102,8 +102,10 @@ public sealed partial class ShipmentService(
         var (canStock, stockBlocker) = await StockDecisionAsync(shipment, cancellationToken);
         var status = project?.Status ?? string.Empty;
         var invoice = shipment.Status == ShipmentState.Shipped ? await invoices.ActiveForShipmentAsync(shipment.Id, cancellationToken) : null;
+        // COM-04b CA 10: venda com instalação (orçado de Instalação) ainda sem OS: o próximo passo é abrir a OS, nunca a entrega manual.
+        var installationPending = installation is null && await projects.BudgetedAsync(shipment.ProjectId, SharedKernel.CostType.Installation, cancellationToken) is > 0m;
         var next = new ShipmentNext(canConfirm, confirmBlocker, canStock, stockBlocker, installation?.Id, installation?.Number, status is "Delivered" or "Closed", status,
-            invoice?.Id, invoice?.Label, invoice?.Status);
+            invoice?.Id, invoice?.Label, invoice?.Status, installationPending);
         return new ShipmentDetail(
             shipment.Id, shipment.Number, shipment.Status, shipment.ProjectId, project?.Number ?? string.Empty, project?.Name ?? string.Empty, shipment.PartyId, Name(party),
             shipment.DeliveryAddress, shipment.CarrierPartyId, carrier is null ? null : Name(carrier), shipment.VehiclePlate, shipment.DriverName, shipment.Volumes, shipment.GrossWeight,

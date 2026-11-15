@@ -77,4 +77,20 @@ public sealed partial class ProjectService
             .Where(o => o.Type == ProductionOrderKind.Fabrication && o.Status != ProductionOrderState.Cancelled).ToList();
         return (orders.Count, orders.Count(o => o.Status != ProductionOrderState.Completed));
     }
+
+    public const string InstallationPendingMessage =
+        "Este projeto tem instalação: a entrega e o aceite técnico vêm da OS de instalação. Abra a OS de instalação.";
+
+    /// <summary>
+    /// Instalação do projeto (COM-04b CA 10, COM-06): o projeto tem instalação quando o orçado de Instalação é maior que zero ou há OS de
+    /// instalação não cancelada; <c>Open</c> conta as OS abertas ou em andamento.
+    /// </summary>
+    private async Task<(bool Has, int Open)> InstallationAsync(Guid projectId, CancellationToken ct)
+    {
+        var orders = (await installations.ByProjectAsync(projectId, ct)).Where(o => o.Status != InstallationState.Cancelled).ToList();
+        var open = orders.Count(o => o.Status is InstallationState.Open or InstallationState.InProgress);
+        var has = orders.Count > 0
+            || await db.ProjectBudgets.AnyAsync(b => b.ProjectId == projectId && b.CostType == CostType.Installation && b.BudgetedAmount > 0m, ct);
+        return (has, open);
+    }
 }

@@ -13986,6 +13986,13 @@
             }
           },
           {
+            "name": "noCostBudget",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "name": "sort",
             "in": "query",
             "schema": {
@@ -14090,6 +14097,13 @@
             "schema": {
               "type": "string",
               "format": "date"
+            }
+          },
+          {
+            "name": "noCostBudget",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -41640,6 +41654,10 @@
               "number"
             ],
             "format": "double"
+          },
+          "noCostBudget": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -69076,7 +69094,9 @@
           "finishedBudgetedMarginPct",
           "finishedDeviationPp",
           "worst",
-          "updatedAt"
+          "updatedAt",
+          "unbudgetedCount",
+          "unbudgeted"
         ],
         "type": "object",
         "properties": {
@@ -69147,6 +69167,16 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "unbudgetedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unbudgeted": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarginUnbudgetedRow"
+            }
           }
         }
       },
@@ -69206,6 +69236,26 @@
                 "$ref": "#/components/schemas/CostType"
               }
             ]
+          }
+        }
+      },
+      "MarginUnbudgetedRow": {
+        "required": [
+          "projectId",
+          "number",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
           }
         }
       },
@@ -84354,6 +84404,10 @@
           "nonConformityCost": {
             "type": "number",
             "format": "double"
+          },
+          "noCostBudget": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -84523,6 +84577,10 @@
                 "$ref": "#/components/schemas/ProjectForecastView"
               }
             ]
+          },
+          "hasInstallation": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -85000,6 +85058,10 @@
           "taxGuides": {
             "type": "number",
             "format": "double"
+          },
+          "noCostBudget": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -85113,7 +85175,9 @@
         "required": [
           "projectCount",
           "figures",
-          "worstCostType"
+          "worstCostType",
+          "unbudgetedCount",
+          "unbudgeted"
         ],
         "type": "object",
         "properties": {
@@ -85133,6 +85197,16 @@
                 "$ref": "#/components/schemas/CostType"
               }
             ]
+          },
+          "unbudgetedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unbudgeted": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectMarginUnbudgeted"
+            }
           }
         }
       },
@@ -85188,6 +85262,31 @@
                 "$ref": "#/components/schemas/CostType"
               }
             ]
+          }
+        }
+      },
+      "ProjectMarginUnbudgeted": {
+        "required": [
+          "id",
+          "number",
+          "name",
+          "revenue"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "revenue": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -96944,6 +97043,10 @@
               "null",
               "string"
             ]
+          },
+          "installationPending": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
