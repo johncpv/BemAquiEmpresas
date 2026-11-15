@@ -39,13 +39,20 @@ public sealed partial class UserService(
     {
         var users = await db.Users.AsNoTracking().OrderBy(u => u.Name).ThenBy(u => u.Email).ToListAsync(cancellationToken);
         var memberships = await db.UserGroups.Join(db.Groups, ug => ug.GroupId, g => g.Id, (ug, g) => new { ug.UserId, g.Id, g.Name, g.IsActive }).ToListAsync(cancellationToken);
-        var open = (await db.UserInvites.Where(i => i.AcceptedAt == null && i.CanceledAt == null).Select(i => i.UserId).ToListAsync(cancellationToken)).ToHashSet();
+        var openInvites = await db.UserInvites.Where(i => i.AcceptedAt == null && i.CanceledAt == null).Select(i => new { i.UserId, i.GroupIds }).ToListAsync(cancellationToken);
+        var open = openInvites.Select(i => i.UserId).ToHashSet();
+        var invitedGroups = openInvites.SelectMany(i => i.GroupIds.Select(g => (i.UserId, GroupId: g))).ToList();
+        var groupNames = invitedGroups.Count == 0 ? new Dictionary<Guid, string>()
+            : await db.Groups.Where(g => g.IsActive).ToDictionaryAsync(g => g.Id, g => g.Name, cancellationToken);
         var linked = users.Where(u => u.EmployeeId is not null).Select(u => u.EmployeeId!.Value).ToList();
         var staff = linked.Count == 0 ? new Dictionary<Guid, EmployeeSummary>() : (await employees.FindAsync(linked, cancellationToken)).ToDictionary(e => e.Id);
         var rows = new List<UserRow>(users.Count);
         foreach (var user in users)
         {
-            var chips = memberships.Where(m => m.UserId == user.Id && m.IsActive).Select(m => new GroupChip(m.Id, m.Name)).ToList();
+            // Convite pendente: os grupos do convite só viram vínculo no aceite, mas já aparecem (e podem ser editados) na lista.
+            var chips = memberships.Where(m => m.UserId == user.Id && m.IsActive).Select(m => new GroupChip(m.Id, m.Name))
+                .Concat(invitedGroups.Where(i => i.UserId == user.Id && groupNames.ContainsKey(i.GroupId)).Select(i => new GroupChip(i.GroupId, groupNames[i.GroupId])))
+                .DistinctBy(c => c.Id).ToList();
             var tfa = user.TotpEnabled ? "active" : user.Status == UserStatus.Active && await twoFactor.IsRequiredAsync(user, cancellationToken) ? "required_pending" : "pending";
             var employee = user.EmployeeId is { } employeeId ? staff.GetValueOrDefault(employeeId) : null;
             rows.Add(new UserRow(user.Id, user.Name, user.Email, chips, tfa, user.LastLoginAt, user.Status.ToString(), open.Contains(user.Id), user.AnonymizedAt, user.AnonymizationRequest,
