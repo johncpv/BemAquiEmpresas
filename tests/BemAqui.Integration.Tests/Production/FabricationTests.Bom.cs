@@ -26,7 +26,7 @@ public abstract partial class FabricationTestBase
     private WebApplicationFactory<Program>? _bomFactory;
 
     /// <summary>Mesma composição da classe com o bloqueio real da ENG-02 (as outras partes desta classe usam o NoBomGate).</summary>
-    protected WebApplicationFactory<Program> BomFactory => _bomFactory ??= Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddScoped<IBomGate, EngineeringBomGate>()));
+    protected WebApplicationFactory<Program> BomFactory => _bomFactory ??= Tenancy.Derive(b => b.ConfigureTestServices(s => s.AddScoped<IBomGate, EngineeringBomGate>()), Factory);
 
     /// <summary>O mesmo usuário (token) num cliente do <see cref="BomFactory"/>.</summary>
     protected HttpClient WithBomGate(HttpClient client)

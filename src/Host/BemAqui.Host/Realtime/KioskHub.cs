@@ -97,10 +97,10 @@ public sealed record KioskEndedMessage(string Reason, string CompanyName);
 /// Mensagens de controle da TV (CA 4, 14 e 15): configuração nova ao grupo da tela; no fim da sessão, <c>KioskRevoked</c> e as conexões
 /// da tela fechadas logo depois (o atraso curto deixa a mensagem sair; se ela se perder, a reconexão recebe 401 com o motivo).
 /// </summary>
-public sealed class SignalRKioskRealtime(IHubContext<KioskHub> hub, KioskConnectionRegistry registry) : IKioskRealtime
+public sealed class SignalRKioskRealtime(IHubContext<KioskHub> hub, KioskConnectionRegistry registry, Microsoft.Extensions.Options.IOptions<KioskRealtimeOptions> options) : IKioskRealtime
 {
-    // Com long polling, o aviso só chega na próxima busca da TV; 2 s dão folga para ele sair antes de a conexão fechar.
-    public static readonly TimeSpan CloseDelay = TimeSpan.FromSeconds(2);
+    // Com long polling, o aviso só chega na próxima busca da TV; 2 s (Kiosk:CloseDelaySeconds) dão folga para ele sair antes de a conexão fechar.
+    private TimeSpan CloseDelay => TimeSpan.FromSeconds(Math.Max(0, options.Value.CloseDelaySeconds));
 
     public Task ConfigChangedAsync(Guid tenantId, Guid kioskId, CancellationToken cancellationToken = default) =>
         hub.Clients.Group(KioskHub.ScreenGroup(tenantId, kioskId)).SendAsync(KioskHub.KioskConfigChanged, cancellationToken);
@@ -132,6 +132,9 @@ public sealed class KioskRealtimeOptions
 
     /// <summary>Revalidação das conexões abertas do hub (ADR 0030 §2): a cada 30 s.</summary>
     public int RevalidateSeconds { get; set; } = 30;
+
+    /// <summary>Espera entre o <c>KioskRevoked</c> e o fechamento da conexão, para o aviso sair antes (2 s).</summary>
+    public int CloseDelaySeconds { get; set; } = 2;
 }
 
 /// <summary>

@@ -47,7 +47,7 @@ public partial class PurchaseRequestTests(TenancyFixture tenancy) : IClassFixtur
 
     private WebApplicationFactory<Program>? _factory;
 
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s =>
+    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b.ConfigureTestServices(s =>
     {
         s.AddScoped<IProjects, FakeProjects>();
         s.AddScoped<IProductionOrders, FakeOrders>();

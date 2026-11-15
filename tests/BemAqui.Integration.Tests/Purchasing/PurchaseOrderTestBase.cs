@@ -41,7 +41,7 @@ public abstract class PurchaseOrderTestBase(TenancyFixture tenancy)
 
     protected TenancyFixture Tenancy => tenancy;
 
-    protected WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(Configure));
+    protected WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b.ConfigureTestServices(Configure));
 
     protected static DateOnly Today => BemAqui.BuildingBlocks.Time.BusinessTime.Today(TimeProvider.System);
 

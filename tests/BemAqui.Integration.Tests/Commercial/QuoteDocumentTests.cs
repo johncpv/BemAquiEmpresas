@@ -32,7 +32,7 @@ public partial class QuoteDocumentTests(TenancyFixture tenancy) : IClassFixture<
     private readonly string _storage = Path.Combine(Path.GetTempPath(), "bqe-com03-" + Guid.NewGuid().ToString("N"));
     private WebApplicationFactory<Program>? _factory;
 
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b
+    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b
         .UseSetting("Storage:Root", _storage)
         .ConfigureTestServices(s => { s.AddSingleton<IVirusScanner>(_scanner); s.AddSingleton<IEmailTransport>(_transport); }));
 

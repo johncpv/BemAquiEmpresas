@@ -37,7 +37,7 @@ public class PayrollParallelTests(TenancyFixture tenancy) : IClassFixture<Tenanc
 
     private WebApplicationFactory<Program>? _factory;
 
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddSingleton<IVirusScanner>(new FakeScanner())));
+    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b.ConfigureTestServices(s => s.AddSingleton<IVirusScanner>(new FakeScanner())));
 
     public void Dispose()
     {

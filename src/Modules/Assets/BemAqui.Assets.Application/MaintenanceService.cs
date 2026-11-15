@@ -42,6 +42,7 @@ public sealed partial class MaintenanceService(
 {
     public const string DocType = "MAN";
     public const string DueIndex = "ux_maintenance_orders_plan_due_key";
+    public const string CostPayableIndex = "ux_maintenance_order_costs_payable_id";
     public const string AttachmentOwner = "MaintenanceOrder";
     public const string OrderLink = "/app/patrimonio/manutencao/";
     public const string PlanNotFoundCode = "maintenance_plan_not_found";

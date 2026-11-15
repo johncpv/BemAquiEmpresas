@@ -61,7 +61,7 @@ public partial class DreTests
         provisional.GetProperty("months").EnumerateArray().Should().OnlyContain(m => m.GetProperty("isProvisional").GetBoolean());
 
         // CA 4: com a regra pela nota registrada e a data de corte em 01/03/2019, os meses antes continuam pelo título.
-        var withInvoices = tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s =>
+        var withInvoices = tenancy.Derive(b => b.ConfigureTestServices(s =>
         {
             s.AddScoped<IProjectShipments, FakeShipments>();
             // A regra real pela nota (FIS-03a) sai: o teste fixa a dele, com a nota de 1.000 em cada mês depois do corte.

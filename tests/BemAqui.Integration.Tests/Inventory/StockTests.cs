@@ -35,7 +35,7 @@ public partial class StockTests(TenancyFixture tenancy) : IClassFixture<TenancyF
 
     private WebApplicationFactory<Program>? _factory;
 
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddScoped<IProjects, FakeProjects>()));
+    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b.ConfigureTestServices(s => s.AddScoped<IProjects, FakeProjects>()));
 
     private static DateOnly Today => BusinessTime.Today(TimeProvider.System);
 
