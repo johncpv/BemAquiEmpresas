@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { cancelEmployeeLeave, changeEmployeePosition, changeEmployeeSalary, endEmployeeLeave, getPositionSalary, registerEmployeeLeave, terminateEmployee, updateEmployeeLeave, useListPositions } from '@/api/generated/bemaqui'
-import type { EmployeeDetail, LeaveDetail } from '@/api/generated/model'
+import type { EmployeeDetail, EmployeeTerminationDone, LeaveDetail } from '@/api/generated/model'
 import { Field } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput, MoneyInput } from '@/components/form/inputs'
@@ -86,12 +86,15 @@ export function PositionDialog({ employee, onDone }: { employee: EmployeeDetail;
   )
 }
 
-/** Registrar desligamento (CA 17): a data precisa ser igual ou depois da admissão; nada é apagado. */
-export function TerminationDialog({ employee, onDone, open, onOpenChange }: { employee: EmployeeDetail; onDone: (e: EmployeeDetail) => void; open?: boolean; onOpenChange?: (o: boolean) => void }) {
+/**
+ * Registrar desligamento (CA 17): a data precisa ser igual ou depois da admissão; nada é apagado. USR-01: o login vinculado é desativado
+ * junto (o último membro do Proprietário fica ativo), e a conclusão diz o que aconteceu.
+ */
+export function TerminationDialog({ employee, onDone, open, onOpenChange }: { employee: EmployeeDetail; onDone: (done: EmployeeTerminationDone) => void; open?: boolean; onOpenChange?: (o: boolean) => void }) {
   const [date, setDate] = useState(todayIso())
   return (
     <ConfirmDialog verb="Registrar desligamento" done="Desligamento registrado" title={`Registrar o desligamento de ${employee.name}?`}
-      description="A situação passa a Desligado e ele some dos seletores. Nada é apagado; o usuário vinculado continua ativo até você desativar." onOpen={() => setDate(todayIso())}
+      description="A situação passa a Desligado e ele some dos seletores. Nada é apagado. Se ele tiver login no sistema, o login é desativado na hora." onOpen={() => setDate(todayIso())}
       open={open} onOpenChange={onOpenChange}
       onConfirm={async () => onDone(await terminateEmployee(employee.id, { terminationDate: filled(date, 'Informe a data do desligamento.') }))}
       trigger={open === undefined ? <button type="button" className={button}>Registrar desligamento</button> : undefined}>

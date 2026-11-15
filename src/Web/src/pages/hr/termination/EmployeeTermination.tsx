@@ -2,7 +2,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
-  calculateTermination, cancelTermination, getDownloadTerminationTermUrl, getGetEmployeeQueryKey, getGetEmployeeTerminationQueryKey, simulateTermination, useGetEmployeeTermination,
+  calculateTermination, cancelTermination, getDownloadTerminationTermUrl, getGetEmployeeQueryKey, getGetEmployeeTerminationQueryKey, getGetEmployeeUserQueryKey, reactivateUser,
+  simulateTermination, useGetEmployeeTermination, useGetEmployeeUser,
 } from '@/api/generated/bemaqui'
 import type { EmployeeDetail, TerminationItem, TerminationResultView, TerminationView } from '@/api/generated/model'
 import { apiDownload, ApiError } from '@/api/http'
@@ -167,9 +168,26 @@ function TerminationForm({ data, calculate, onResult }: { data: TerminationView;
 }
 
 /** A rescisão calculada (CA 7, 8 e 10): a situação, a simulação, o prazo e as ações (termo, folha e estorno do desligamento). */
-function TerminationCard({ t, employeeId, canEdit }: { t: TerminationItem; employeeId: string; canEdit: boolean }) {
+/**
+ * USR-01 CA 12: o estorno não reativa o login sozinho. Com o login desativado e identity.edit, a conclusão oferece "Reativar o login".
+ */
+function TerminationCard({ t, employeeId, canEdit, onCancelled }: { t: TerminationItem; employeeId: string; canEdit: boolean; onCancelled: (steps: Step[]) => void }) {
   const client = useQueryClient()
   const [reason, setReason] = useState('')
+  const canUsers = useCan('identity.edit')
+  const linked = useGetEmployeeUser(employeeId)
+  const reactivateStep = (): Step[] => {
+    const user = linked.data?.user
+    if (!canUsers || user?.status !== 'Inactive') return []
+    return [{
+      label: `Reativar o login de ${user.name}`,
+      onSelect: () => {
+        void reactivateUser(user.userId)
+          .then(async () => { notifySuccess('Login reativado'); onCancelled([]); await client.invalidateQueries({ queryKey: getGetEmployeeUserQueryKey(employeeId) }) })
+          .catch((e: unknown) => notifyError(e instanceof Error ? e.message : 'Não foi possível reativar o login.'))
+      },
+    }]
+  }
   return (
     <section aria-labelledby="rescisao-situacao" className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-card p-3">
       <div>
@@ -187,6 +205,7 @@ function TerminationCard({ t, employeeId, canEdit }: { t: TerminationItem; emplo
             onConfirm={async () => {
               if (reason.trim().length < 5) throw new DialogMessage('Informe o motivo do estorno, de 5 a 200 caracteres.')
               await cancelTermination(t.id, { reason: reason.trim(), version: t.version })
+              onCancelled(reactivateStep())
               await client.invalidateQueries({ queryKey: getGetEmployeeTerminationQueryKey(employeeId) })
               await client.invalidateQueries({ queryKey: getGetEmployeeQueryKey(employeeId) })
             }}
@@ -213,7 +232,7 @@ export function EmployeeTermination({ employee, canEdit }: { employee: EmployeeD
   return (
     <div className="max-w-4xl space-y-5">
       {steps.length > 0 ? <NextSteps steps={steps} onDismiss={() => setSteps([])} /> : null}
-      {t ? <TerminationCard t={t} employeeId={employee.id} canEdit={canEdit} /> : null}
+      {t ? <TerminationCard t={t} employeeId={employee.id} canEdit={canEdit} onCancelled={setSteps} /> : null}
       <section aria-labelledby="rescisao-form" className="space-y-2">
         <h2 id="rescisao-form" className="text-lg font-bold">{data.terminated ? 'Calcular rescisão' : 'Simular rescisão'}</h2>
         <p className="text-sm text-muted-foreground">

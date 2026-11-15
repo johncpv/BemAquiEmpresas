@@ -1,6 +1,7 @@
 using System.Globalization;
 using BemAqui.HR.Contracts;
 using BemAqui.HR.Domain;
+using BemAqui.Identity.Contracts;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
@@ -88,8 +89,11 @@ public sealed partial class EmployeeService
         return (await DetailsAsync([employee], cancellationToken))[0];
     }
 
-    /// <summary>Desligamento (CA 17): situação Desligado, nada apagado; o usuário vinculado não é desativado aqui.</summary>
-    public async Task<Result<EmployeeDetail>> TerminateAsync(Guid id, TerminationInput input, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Desligamento (CA 17): situação Desligado, nada apagado. Gravado o desligamento, o login vinculado é desativado pelo Identity (USR-01
+    /// CA 9 a 12, <see cref="IUserEmployeeLink.DeactivateForTerminationAsync"/>); a conclusão traz o que aconteceu com o login.
+    /// </summary>
+    public async Task<Result<EmployeeTerminationDone>> TerminateAsync(Guid id, TerminationInput input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         var employee = await db.Employees.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
@@ -107,7 +111,8 @@ public sealed partial class EmployeeService
         employee.Status = EmployeeStatus.Terminated;
         events.Publish(new EmployeeTerminated(employee.Id, input.TerminationDate));
         await db.SaveChangesAsync(cancellationToken);
-        return (await DetailsAsync([employee], cancellationToken))[0];
+        var login = await links.DeactivateForTerminationAsync(employee.Id, cancellationToken);
+        return new EmployeeTerminationDone((await DetailsAsync([employee], cancellationToken))[0], login);
     }
 
     private void AddSalary(Employee employee, decimal salary, DateOnly effective, string reason)

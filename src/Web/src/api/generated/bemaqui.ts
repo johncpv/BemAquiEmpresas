@@ -248,6 +248,7 @@ import type {
   EmployeePayslip,
   EmployeePersonalInput,
   EmployeeSensitiveDetail,
+  EmployeeTerminationDone,
   EmployeeVacations,
   ExportAccountsParams,
   ExportAgingByProjectParams,
@@ -441,6 +442,7 @@ import type {
   InventoryCountingLine,
   InventoryCountingView,
   InventoryDivergences,
+  InvitableEmployee,
   InviteAcceptedResponse,
   InviteInfo,
   InviteTokenRequest,
@@ -16723,7 +16725,7 @@ export const getTerminateEmployeeUrl = (id: string,) => {
 }
 
 export const terminateEmployee = async (id: string,
-    terminationInput: TerminationInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDetail> => {
+    terminationInput: TerminationInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeTerminationDone> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -16739,7 +16741,7 @@ export const terminateEmployee = async (id: string,
     }
     return headers;
   };
-return apiFetch<EmployeeDetail>(getTerminateEmployeeUrl(id),
+return apiFetch<EmployeeTerminationDone>(getTerminateEmployeeUrl(id),
   {
     ...options,
     method: 'POST',
@@ -16880,6 +16882,101 @@ export function useGetEmployeeTermination<TData = Awaited<ReturnType<typeof getE
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetEmployeeTerminationQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListInvitableEmployeesUrl = () => {
+
+
+
+
+  return `/api/v1/hr/employees/invitable`
+}
+
+export const listInvitableEmployees = async ( options?: Parameters<typeof apiFetch>[1]): Promise<InvitableEmployee[]> => {
+
+  return apiFetch<InvitableEmployee[]>(getListInvitableEmployeesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListInvitableEmployeesQueryKey = () => {
+    return [
+    `/api/v1/hr/employees/invitable`
+    ] as const;
+    }
+
+
+export const getListInvitableEmployeesQueryOptions = <TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListInvitableEmployeesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInvitableEmployees>>> = ({ signal }) => listInvitableEmployees({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListInvitableEmployeesQueryResult = NonNullable<Awaited<ReturnType<typeof listInvitableEmployees>>>
+export type ListInvitableEmployeesQueryError = unknown
+
+
+export function useListInvitableEmployees<TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listInvitableEmployees>>,
+          TError,
+          Awaited<ReturnType<typeof listInvitableEmployees>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListInvitableEmployees<TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listInvitableEmployees>>,
+          TError,
+          Awaited<ReturnType<typeof listInvitableEmployees>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListInvitableEmployees<TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListInvitableEmployees<TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListInvitableEmployeesQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

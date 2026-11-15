@@ -5721,7 +5721,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EmployeeDetail"
+                  "$ref": "#/components/schemas/EmployeeTerminationDone"
                 }
               }
             }
@@ -5751,6 +5751,29 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TerminationView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/invitable": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListInvitableEmployees",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InvitableEmployee"
+                  }
                 }
               }
             }
@@ -55021,6 +55044,21 @@
           "OnLeave"
         ]
       },
+      "EmployeeTerminationDone": {
+        "required": [
+          "employee",
+          "login"
+        ],
+        "type": "object",
+        "properties": {
+          "employee": {
+            "$ref": "#/components/schemas/EmployeeDetail"
+          },
+          "login": {
+            "$ref": "#/components/schemas/TerminationLogin"
+          }
+        }
+      },
       "EmployeeVacations": {
         "required": [
           "employeeId",
@@ -63354,6 +63392,36 @@
           }
         }
       },
+      "InvitableEmployee": {
+        "required": [
+          "id",
+          "name",
+          "registration",
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "registration": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "InviteAcceptedResponse": {
         "required": [
           "email",
@@ -63469,6 +63537,13 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          "employeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -66612,6 +66687,10 @@
           },
           "email": {
             "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "default": "Active"
           }
         }
       },
@@ -101740,6 +101819,48 @@
           }
         }
       },
+      "TerminationLogin": {
+        "required": [
+          "outcome",
+          "userId",
+          "userName",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/TerminationLoginOutcome"
+          },
+          "userId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "userName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "TerminationLoginOutcome": {
+        "enum": [
+          "NoUser",
+          "Deactivated",
+          "AlreadyInactive",
+          "KeptLastOwner",
+          "KeptOwner"
+        ]
+      },
       "TerminationNoticeKind": {
         "enum": [
           "Worked",
@@ -104800,6 +104921,23 @@
               "null",
               "string"
             ]
+          },
+          "employeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "employeeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "employeeTerminated": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
