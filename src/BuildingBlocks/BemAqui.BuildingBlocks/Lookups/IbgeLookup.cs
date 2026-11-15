@@ -1,13 +1,11 @@
+using System.Collections.Frozen;
 using System.Text;
-using System.Text.Json;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 
 namespace BemAqui.BuildingBlocks.Lookups;
 
 /// <summary>
 /// Código IBGE do município (7 dígitos) pelo nome e pela UF, para o endereço que chegou sem ele (importação, API, digitado): a NF-e
-/// exige o código. Sem resposta do provedor ou sem município com esse nome na UF, devolve null e quem chamou segue sem o código.
+/// exige o código. Sem município com esse nome na UF, devolve null e quem chamou segue sem o código.
 /// </summary>
 public interface IIbgeLookup
 {
@@ -15,14 +13,23 @@ public interface IIbgeLookup
 }
 
 /// <summary>
-/// Lista de municípios da UF pela BrasilAPI (<c>/api/ibge/municipios/v1/{uf}</c>), em cache em memória pelos dias da consulta pública
-/// (dado público, sem dado pessoal). A comparação ignora acento, caixa, hífen, apóstrofo e espaços repetidos.
+/// Tabela oficial de municípios do IBGE embutida no assembly (<c>Lookups/ibge-municipios.csv</c>, linhas <c>UF;código;nome</c>): a
+/// consulta não sai do processo. A API do IBGE e o <c>/api/ibge</c> da BrasilAPI não respondem a servidor fora do Brasil (o da
+/// produção fica nos EUA), e a tabela muda raramente (município novo é raro): atualizar o arquivo quando o IBGE publicar mudança.
+/// A comparação ignora acento, caixa, hífen, apóstrofo e espaços repetidos.
 /// </summary>
-public sealed class BrasilApiIbgeLookup(PublicDataHttp http, IMemoryCache cache, IOptions<LookupOptions> options) : IIbgeLookup
+public sealed class EmbeddedIbgeLookup : IIbgeLookup
 {
-    public const string Integration = BrasilApiCepLookup.Integration;
+    private const string Resource = "BemAqui.BuildingBlocks.Lookups.ibge-municipios.csv";
 
-    public async Task<string?> FindAsync(string? state, string? city, CancellationToken cancellationToken = default)
+    private static readonly Lazy<FrozenDictionary<string, string>> Cities = new(Load);
+
+    /// <summary>Quantos municípios a tabela embutida tem (o teste confere que o arquivo veio inteiro).</summary>
+    public static int Count => Cities.Value.Count;
+
+    public Task<string?> FindAsync(string? state, string? city, CancellationToken cancellationToken = default) => Task.FromResult(Find(state, city));
+
+    public static string? Find(string? state, string? city)
     {
         var uf = (state ?? string.Empty).Trim().ToUpperInvariant();
         if (uf.Length != 2 || !uf.All(char.IsAsciiLetterUpper) || string.IsNullOrWhiteSpace(city))
@@ -30,30 +37,7 @@ public sealed class BrasilApiIbgeLookup(PublicDataHttp http, IMemoryCache cache,
             return null;
         }
 
-        if (!cache.TryGetValue("ibge:" + uf, out Dictionary<string, string>? cities) || cities is null)
-        {
-            var (status, json) = await http.GetAsync("api/ibge/municipios/v1/" + uf, Integration, cancellationToken);
-            using (json)
-            {
-                if (status != LookupStatus.Found || json?.RootElement.ValueKind != JsonValueKind.Array)
-                {
-                    return null;
-                }
-
-                cities = new Dictionary<string, string>(StringComparer.Ordinal);
-                foreach (var item in json.RootElement.EnumerateArray())
-                {
-                    if (PublicJson.Text(item, "nome") is { } name && PublicJson.Text(item, "codigo_ibge") is { Length: 7 } code && code.All(char.IsAsciiDigit))
-                    {
-                        cities[CityKey(name)] = code;
-                    }
-                }
-
-                cache.Set("ibge:" + uf, cities, TimeSpan.FromDays(options.Value.CacheDays));
-            }
-        }
-
-        return cities.GetValueOrDefault(CityKey(city));
+        return Cities.Value.GetValueOrDefault(uf + ":" + CityKey(city));
     }
 
     /// <summary>
@@ -77,5 +61,23 @@ public sealed class BrasilApiIbgeLookup(PublicDataHttp http, IMemoryCache cache,
         }
 
         return key.ToString().TrimEnd();
+    }
+
+    private static FrozenDictionary<string, string> Load()
+    {
+        using var stream = typeof(EmbeddedIbgeLookup).Assembly.GetManifestResourceStream(Resource)
+            ?? throw new InvalidOperationException("Tabela de municípios do IBGE não encontrada no assembly.");
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+        var cities = new Dictionary<string, string>(6000, StringComparer.Ordinal);
+        while (reader.ReadLine() is { } line)
+        {
+            var parts = line.Split(';', 3);
+            if (parts.Length == 3 && parts[1].Length == 7)
+            {
+                cities[parts[0] + ":" + CityKey(parts[2])] = parts[1];
+            }
+        }
+
+        return cities.ToFrozenDictionary(StringComparer.Ordinal);
     }
 }

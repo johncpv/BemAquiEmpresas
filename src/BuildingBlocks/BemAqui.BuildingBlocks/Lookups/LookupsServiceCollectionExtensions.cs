@@ -16,7 +16,7 @@ public static class LookupsServiceCollectionExtensions
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton<LookupGuard>();
         services.TryAddScoped<PublicDataHttp>();
-        services.TryAddScoped<IIbgeLookup, BrasilApiIbgeLookup>();
+        services.TryAddSingleton<IIbgeLookup, EmbeddedIbgeLookup>();
         services.TryAddScoped<ICepLookup, BrasilApiCepLookup>();
         services.AddHttpClient(PublicDataHttp.ClientName)
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, AutomaticDecompression = DecompressionMethods.All })
