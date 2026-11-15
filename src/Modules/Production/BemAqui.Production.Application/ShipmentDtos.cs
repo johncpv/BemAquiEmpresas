@@ -31,7 +31,7 @@ public sealed record ShipmentLineView(
 /// </summary>
 public sealed record ShipmentNext(
     bool CanConfirm, string? ConfirmBlocker, bool CanConfirmStock, string? ConfirmStockBlocker, Guid? InstallationOrderId, string? InstallationOrderNumber, bool ProjectDelivered,
-    string ProjectStatus, Guid? InvoiceId = null, string? InvoiceLabel = null, string? InvoiceStatus = null);
+    string ProjectStatus, Guid? InvoiceId = null, string? InvoiceLabel = null, string? InvoiceStatus = null, bool InstallationPending = false);
 
 /// <summary>Romaneio (CA 1 a 17): cabeçalho, entrega, transporte (placa e motorista só aqui, nunca na lista), linhas, quem montou e quem confirmou.</summary>
 public sealed record ShipmentDetail(

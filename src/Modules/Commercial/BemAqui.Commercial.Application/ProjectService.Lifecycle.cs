@@ -44,8 +44,9 @@ public sealed partial class ProjectService
     }
 
     /// <summary>
-    /// Registrar entrega (COM-04b CA 10, D15): venda sem instalação. Exige a fabricação registrada quando o contrato tem
-    /// marco de fabricação; publica a entrega e o aceite técnico com a mesma data.
+    /// Registrar entrega (COM-04b CA 10, D15): venda sem instalação. Projeto com instalação (orçado de Instalação maior que zero ou OS de
+    /// instalação não cancelada) é recusado com 409: a entrega e o aceite técnico vêm da OS (COM-06). Exige a fabricação registrada quando
+    /// o contrato tem marco de fabricação; publica a entrega e o aceite técnico com a mesma data.
     /// </summary>
     public async Task<Result<ProjectDetail>> RegisterDeliveryAsync(Guid id, ProjectEventInput input, CancellationToken cancellationToken = default)
     {
@@ -63,9 +64,16 @@ public sealed partial class ProjectService
         }
 
         // D15: com OS de instalação aberta, a entrega vem do aceite técnico (COM-04b CA 10, COM-06).
-        if ((await installations.ByProjectAsync(project.Id, cancellationToken)).Any(o => o.Status is Production.Contracts.InstallationState.Open or Production.Contracts.InstallationState.InProgress))
+        var installation = await InstallationAsync(project.Id, cancellationToken);
+        if (installation.Open > 0)
         {
             return Error.Conflict("installation_open", "Há OS de instalação aberta: a entrega é registrada pelo aceite técnico.");
+        }
+
+        // Venda com instalação ainda sem OS: a entrega manual pularia o aceite técnico e a OS de instalação não abriria mais.
+        if (installation.Has)
+        {
+            return Error.Conflict("installation_pending", InstallationPendingMessage);
         }
 
         var needsFabrication = project.Status != ProjectStatus.Fabricated
