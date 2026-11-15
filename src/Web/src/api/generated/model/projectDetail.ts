@@ -47,4 +47,5 @@ export interface ProjectDetail {
   fabricationOrders?: number;
   openFabricationOrders?: number;
   forecast?: null | ProjectForecastView;
+  hasInstallation?: boolean;
 }

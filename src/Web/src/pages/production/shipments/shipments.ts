@@ -105,10 +105,12 @@ export function impactLines(impact: ShipmentImpact): string[] {
  * Próximos passos do romaneio expedido (CA 8): com OS de instalação, "Ver OS de instalação"; sem ela e com projects.approve, "Registrar
  * entrega"; "Ver projeto" sempre. A NF-e aparece à parte, como "disponível na Fase 5".
  */
-export function shippedNext(s: Pick<ShipmentDetail, 'next' | 'status'>, canApproveProjects: boolean): ('instalacao' | 'entrega' | 'projeto')[] {
+export function shippedNext(s: Pick<ShipmentDetail, 'next' | 'status'>, canApproveProjects: boolean): ('instalacao' | 'abrir-instalacao' | 'entrega' | 'projeto')[] {
   if (s.status !== 'Shipped') return []
-  const steps: ('instalacao' | 'entrega' | 'projeto')[] = []
+  const steps: ('instalacao' | 'abrir-instalacao' | 'entrega' | 'projeto')[] = []
   if (s.next.installationOrderId) steps.push('instalacao')
+  // COM-04b CA 10: venda com instalação ainda sem OS: o próximo passo é abrir a OS, nunca a entrega manual.
+  else if (s.next.installationPending) { if (!s.next.projectDelivered) steps.push('abrir-instalacao') }
   else if (canApproveProjects && !s.next.projectDelivered) steps.push('entrega')
   steps.push('projeto')
   return steps

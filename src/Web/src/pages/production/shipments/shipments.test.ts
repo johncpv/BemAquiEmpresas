@@ -70,6 +70,8 @@ describe('romaneio (PRD-06b)', () => {
     expect(shippedNext(base as Pick<ShipmentDetail, 'next' | 'status'>, true)).toEqual(['entrega', 'projeto'])
     expect(shippedNext(base as Pick<ShipmentDetail, 'next' | 'status'>, false)).toEqual(['projeto'])
     expect(shippedNext({ ...base, next: { ...base.next, installationOrderId: 'os9' } } as Pick<ShipmentDetail, 'next' | 'status'>, true)).toEqual(['instalacao', 'projeto'])
+    // Venda com instalação sem OS: abrir a OS, nunca a entrega manual.
+    expect(shippedNext({ ...base, next: { ...base.next, installationPending: true } } as Pick<ShipmentDetail, 'next' | 'status'>, true)).toEqual(['abrir-instalacao', 'projeto'])
     expect(shippedNext({ ...base, status: 'Draft' } as Pick<ShipmentDetail, 'next' | 'status'>, true)).toEqual([])
   })
 })

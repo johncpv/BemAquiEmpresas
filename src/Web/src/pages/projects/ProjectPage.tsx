@@ -43,7 +43,9 @@ export function ProjectPage() {
   // PRD-06a1 CA 9 (ponto 81): com OS de fabricação, a fabricação é concluída pelas OS e o registro manual some.
   const byOrders = (p.fabricationOrders ?? 0) > 0
   const canFabricate = active && canEdit && inProduction && !byOrders
-  const canDeliver = active && canApprove && (p.status === 'Fabricated' || (inProduction && !p.hasFabricationMilestone))
+  // COM-04b CA 10: "Registrar entrega" é só para venda sem instalação; com instalação, a entrega e o aceite técnico vêm da OS.
+  const installationPending = active && !!p.hasInstallation && (inProduction || p.status === 'Fabricated')
+  const canDeliver = active && canApprove && !p.hasInstallation && (p.status === 'Fabricated' || (inProduction && !p.hasFabricationMilestone))
   const refresh = async () => {
     await client.invalidateQueries({ queryKey: getGetProjectQueryKey(id) })
     await client.invalidateQueries({ queryKey: getGetContractQueryKey(p.contractId) })
@@ -74,6 +76,12 @@ export function ProjectPage() {
         <p role="note" className="mb-3 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
           <span>A fabricação deste projeto é concluída pelas OS ({p.openFabricationOrders} {p.openFabricationOrders === 1 ? 'aberta' : 'abertas'}).</span>
           <Link to={'/app/producao/os' as never} search={{ projeto: p.id } as never} className="font-semibold text-primary hover:underline">Ver as OS</Link>
+        </p>
+      ) : null}
+      {installationPending ? (
+        <p role="note" className="mb-3 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+          <span>Este projeto tem instalação: a entrega e o aceite técnico vêm da OS de instalação.</span>
+          <Link to={'/app/projetos/$id' as never} params={{ id: p.id } as never} search={{ aba: 'itens' } as never} className="font-semibold text-primary hover:underline">Abrir OS de instalação</Link>
         </p>
       ) : null}
       {p.fabricatedOn || p.deliveredOn ? (

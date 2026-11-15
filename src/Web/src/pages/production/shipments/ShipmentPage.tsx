@@ -94,6 +94,8 @@ export function ShipmentPage() {
         <div className="mb-4 space-y-1">
           <NextSteps onDismiss={() => setJustShipped(false)} steps={next.map((step) => step === 'instalacao'
             ? { label: 'Ver OS de instalação', onSelect: () => void navigate({ to: '/app/producao/instalacoes/$id', params: { id: s.next.installationOrderId! } } as never) }
+            : step === 'abrir-instalacao'
+              ? { label: 'Abrir OS de instalação', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: s.projectId }, search: { aba: 'itens' } } as never) }
             : step === 'entrega'
               ? { label: 'Registrar entrega', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: s.projectId }, search: { aba: 'resumo' } } as never) }
               : { label: 'Ver projeto', onSelect: () => void navigate({ to: '/app/projetos/$id', params: { id: s.projectId }, search: { aba: 'linha-do-tempo' } } as never) })} />

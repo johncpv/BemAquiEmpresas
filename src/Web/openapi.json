@@ -84523,6 +84523,10 @@
                 "$ref": "#/components/schemas/ProjectForecastView"
               }
             ]
+          },
+          "hasInstallation": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -96944,6 +96948,10 @@
               "null",
               "string"
             ]
+          },
+          "installationPending": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
