@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore;
 namespace BemAqui.Parties.Application;
 
 /// <summary>Implementação do <see cref="IParties"/> (CA 21): a porta dos outros módulos para os terceiros.</summary>
-public sealed class PartiesContract(IPartiesDb db) : IParties
+public sealed class PartiesContract(IPartiesDb db, PartyAddressIbge ibge) : IParties
 {
+    public Task<int> FillIbgeCodesAsync(Guid id, CancellationToken cancellationToken = default) => ibge.FillPartyAsync(id, cancellationToken);
+
     public async Task<PartySummary?> FindAsync(Guid id, CancellationToken cancellationToken = default) =>
         await db.Parties.IgnoreQueryFilters().AsNoTracking().Where(p => p.Id == id)
             .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(r => r.Role).ToList(), p.IsActive, p.IsDeleted, p.DefaultPaymentTermId, p.CreatedAt))

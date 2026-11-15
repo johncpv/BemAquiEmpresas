@@ -18,10 +18,10 @@ public interface ICepLookup
 }
 
 /// <summary>
-/// CEP pela BrasilAPI (<c>/api/cep/v2</c>), com o código IBGE pelo município (<c>/api/ibge/municipios/v1/{uf}</c>). Dado público,
+/// CEP pela BrasilAPI (<c>/api/cep/v2</c>), com o código IBGE pelo município (<see cref="IIbgeLookup"/>). Dado público,
 /// sem dado pessoal: cache em memória por 30 dias.
 /// </summary>
-public sealed partial class BrasilApiCepLookup(PublicDataHttp http, IMemoryCache cache, IOptions<LookupOptions> options) : ICepLookup
+public sealed partial class BrasilApiCepLookup(PublicDataHttp http, IMemoryCache cache, IOptions<LookupOptions> options, IIbgeLookup ibge) : ICepLookup
 {
     public const string Integration = "cep:brasilapi";
 
@@ -57,49 +57,13 @@ public sealed partial class BrasilApiCepLookup(PublicDataHttp http, IMemoryCache
             var root = json.RootElement;
             var state = (Text(root, "state") ?? string.Empty).ToUpperInvariant();
             var city = Text(root, "city")!;
-            var address = new AddressData(digits, Text(root, "street"), Text(root, "neighborhood"), city, state.Length == 2 ? state : string.Empty, await IbgeAsync(state, city, cancellationToken));
+            var address = new AddressData(digits, Text(root, "street"), Text(root, "neighborhood"), city, state.Length == 2 ? state : string.Empty, await ibge.FindAsync(state, city, cancellationToken));
             cache.Set("cep:" + digits, address, TimeSpan.FromDays(options.Value.CacheDays));
             return address;
         }
     }
 
-    /// <summary>Código IBGE do município pelo nome, na lista da UF (em cache); sem resposta, fica vazio e o usuário preenche.</summary>
-    private async Task<string?> IbgeAsync(string state, string city, CancellationToken ct)
-    {
-        if (state.Length != 2 || !state.All(char.IsAsciiLetterUpper))
-        {
-            return null;
-        }
-
-        if (!cache.TryGetValue("ibge:" + state, out Dictionary<string, string>? cities) || cities is null)
-        {
-            var (status, json) = await http.GetAsync("api/ibge/municipios/v1/" + state, Integration, ct);
-            using (json)
-            {
-                if (status != LookupStatus.Found || json?.RootElement.ValueKind != JsonValueKind.Array)
-                {
-                    return null;
-                }
-
-                cities = new Dictionary<string, string>(StringComparer.Ordinal);
-                foreach (var item in json.RootElement.EnumerateArray())
-                {
-                    if (Text(item, "nome") is { } name && Text(item, "codigo_ibge") is { Length: 7 } code && code.All(char.IsAsciiDigit))
-                    {
-                        cities[Key(name)] = code;
-                    }
-                }
-
-                cache.Set("ibge:" + state, cities, TimeSpan.FromDays(options.Value.CacheDays));
-            }
-        }
-
-        return cities.GetValueOrDefault(Key(city));
-    }
-
     internal static string? Text(JsonElement element, string property) => PublicJson.Text(element, property);
-
-    private static string Key(string name) => PublicJson.Fold(name);
 }
 
 /// <summary>Leitura defensiva da resposta pública (CAD-01b CA 13): só os campos esperados, como texto curto.</summary>

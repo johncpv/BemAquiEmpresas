@@ -166,6 +166,8 @@ public sealed partial class PartyService
     /// <summary>Grava e, se houver novo padrão, troca em dois passos: desmarca os outros, depois marca o novo.</summary>
     private async Task SaveDefaultAsync(Guid partyId, AddressKind kind, PartyAddress? newDefault, CancellationToken cancellationToken)
     {
+        // Código IBGE pelo município quando veio sem ele, antes da transação (a consulta pública não segura a transação aberta).
+        await ibge.FillTrackedAsync(cancellationToken);
         await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
         if (newDefault is not null)
         {

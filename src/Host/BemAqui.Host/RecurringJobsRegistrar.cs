@@ -15,6 +15,11 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
             MigrationStagingRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.Parties.Application.CnpjLookupPurgeRecurringJob>(BemAqui.Parties.Application.CnpjLookupPurgeRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Parties.Application.CnpjLookupPurgeRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // Código IBGE dos endereços que ficaram sem ele (importação, API): dispara na subida (depois do deploy) e repete de madrugada;
+        // só toca o que continua vazio, então depois da primeira execução quase não faz nada.
+        recurring.AddOrUpdate<BemAqui.Parties.Application.PartyIbgeBackfillRecurringJob>(BemAqui.Parties.Application.PartyIbgeBackfillRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Parties.Application.PartyIbgeBackfillRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        recurring.Trigger(BemAqui.Parties.Application.PartyIbgeBackfillRecurringJob.Id);
         recurring.AddOrUpdate<BemAqui.Finance.Application.RecurringPayablesRecurringJob>(BemAqui.Finance.Application.RecurringPayablesRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Finance.Application.RecurringPayablesRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         // Vencimento do certificado do Inter (BNK-01a CA 15): 08:00 de São Paulo, um job por tenant.
