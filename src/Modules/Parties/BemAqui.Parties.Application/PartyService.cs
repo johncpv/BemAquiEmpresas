@@ -10,7 +10,7 @@ namespace BemAqui.Parties.Application;
 /// Cadastro de terceiros (CAD-01a): um cadastro só por documento, com papéis, endereços e contatos. O documento é
 /// opcional; quando existe, é válido e único entre os não excluídos (índice único parcial, CA 5).
 /// </summary>
-public sealed partial class PartyService(IPartiesDb db, IEnumerable<IPartyUsageProvider> usages, BemAqui.Finance.Contracts.IPaymentTerms paymentTerms, TimeProvider clock)
+public sealed partial class PartyService(IPartiesDb db, IEnumerable<IPartyUsageProvider> usages, BemAqui.Finance.Contracts.IPaymentTerms paymentTerms, TimeProvider clock, PartyAddressIbge ibge)
 {
     public const string DocumentIndex = "ix_parties_document_unique";
     public const string ExistsCode = "party_exists";
@@ -124,6 +124,7 @@ public sealed partial class PartyService(IPartiesDb db, IEnumerable<IPartyUsageP
 
     private async Task<Result<PartyDetail>> SaveAsync(Guid id, string? document, CancellationToken cancellationToken)
     {
+        await ibge.FillTrackedAsync(cancellationToken);
         try
         {
             await db.SaveChangesAsync(cancellationToken);

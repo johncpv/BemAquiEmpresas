@@ -67,6 +67,7 @@ public sealed partial class PartyService
         }
 
         AddAddressIfNew(party, data.BillingAddress);
+        await ibge.FillTrackedAsync(cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return new ImportWrite(party.Id, await PartyXminAsync(party.Id, cancellationToken) ?? 0);
     }

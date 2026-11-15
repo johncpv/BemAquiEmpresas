@@ -79,6 +79,12 @@ public interface IParties
     Task<IReadOnlyList<PartyAddressInfo>> AddressesAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Endereços do terceiro com município e UF e sem o código IBGE recebem o código pelo nome do município e ficam gravados no cadastro
+    /// (rascunho da NF-e). Sem resposta do provedor, nada muda. Devolve quantos foram preenchidos.
+    /// </summary>
+    Task<int> FillIbgeCodesAsync(Guid id, CancellationToken cancellationToken = default) => Task.FromResult(0);
+
+    /// <summary>
     /// Dados fiscais do terceiro para o destinatário da nota (FIS-03a CA 1): tipo, documento, razão social, IE, e-mail e telefone do
     /// cadastro. Dado pessoal: só para montar o documento fiscal, nunca para evento ou log.
     /// </summary>
