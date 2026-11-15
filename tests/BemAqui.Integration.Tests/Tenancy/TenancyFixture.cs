@@ -132,26 +132,17 @@ public sealed class TenancyFixture : IAsyncLifetime
     private readonly Lock _derivedGate = new();
     private readonly List<WebApplicationFactory<Program>> _derived = [];
     private readonly List<Task> _stopping = [];
-    private string? _derivedFor;
 
     /// <summary>
     /// Host derivado do <see cref="Factory"/> (ou de <paramref name="from"/>) com serviços do teste. O <c>WithWebHostBuilder</c> de uma factory
     /// já derivada não registra a filha para o descarte: o host ficava vivo até o fim do processo, com o outbox, o LISTEN do catálogo e a
-    /// revalidação das TVs rodando contra um container já removido. Aqui o host do teste anterior para quando o teste seguinte pede o dele
-    /// (os testes da classe rodam em série), e todos param antes do container.
+    /// revalidação das TVs rodando contra um container já removido. Aqui todos param antes do container. O host vive até o fim da classe
+    /// porque há classe que guarda o cliente do primeiro teste num campo estático (as regras de alçada de compras, por exemplo).
     /// </summary>
     public WebApplicationFactory<Program> Derive(Action<IWebHostBuilder> configure, WebApplicationFactory<Program>? from = null)
     {
-        var test = TestContext.Current.Test?.UniqueID;
         lock (_derivedGate)
         {
-            if (test != _derivedFor)
-            {
-                _stopping.AddRange(_derived.Select(StopQuietlyAsync));
-                _derived.Clear();
-                _derivedFor = test;
-            }
-
             var factory = (from ?? Factory).WithWebHostBuilder(configure);
             _derived.Add(factory);
             return factory;
