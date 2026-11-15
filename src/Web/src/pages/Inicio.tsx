@@ -4,11 +4,12 @@ import { useCallback, useState } from 'react'
 import { useNavigation } from '@/navigation/navigation-context'
 import { PageHeading } from '@/shell/PageHeading'
 import { MinhaPauta } from './inicio/MinhaPauta'
+import { canIn } from './use-can'
 
 const NEXT_STEPS = [
-  { module: 'acessos', tab: 'usuarios', icon: UserPlus, title: 'Convidar a equipe', text: 'Cada pessoa entra com o próprio acesso e só vê o que o grupo dela permite.' },
-  { module: 'acessos', tab: 'grupos', icon: KeyRound, title: 'Revisar os grupos', text: 'Os 8 grupos iniciais já vêm com permissões padrão. Ajuste ao jeito da empresa.' },
-  { module: 'configuracoes', tab: 'seguranca', icon: ShieldCheck, title: 'Proteger as contas', text: 'Ative a verificação em duas etapas e, se quiser, exija para todos.' },
+  { perm: 'identity.create', module: 'acessos', tab: 'usuarios', icon: UserPlus, title: 'Convidar a equipe', text: 'Cada pessoa entra com o próprio acesso e só vê o que o grupo dela permite.' },
+  { perm: 'identity.edit', module: 'acessos', tab: 'grupos', icon: KeyRound, title: 'Revisar os grupos', text: 'Os 8 grupos iniciais já vêm com permissões padrão. Ajuste ao jeito da empresa.' },
+  { perm: 'settings.edit', module: 'configuracoes', tab: 'seguranca', icon: ShieldCheck, title: 'Proteger as contas', text: 'Ative a verificação em duas etapas e, se quiser, exija para todos.' },
 ] as const
 
 /**
@@ -29,22 +30,7 @@ export function Inicio() {
 
       <MinhaPauta onCount={onCount} />
 
-      <section aria-labelledby="proximos" className="mb-8">
-        <h2 id="proximos" className="mb-3 text-[15px] font-semibold">Próximos passos</h2>
-        <ul className="grid gap-3 sm:grid-cols-3">
-          {NEXT_STEPS.map((s) => (
-            <li key={s.tab}>
-              <Link to="/app/$module/$tab" params={{ module: s.module, tab: s.tab }} className="flex h-full gap-3 rounded-md border border-border bg-card p-4 hover:border-primary">
-                <s.icon aria-hidden="true" className="mt-0.5 size-5 flex-none text-primary" />
-                <span>
-                  <b className="block font-semibold">{s.title}</b>
-                  <span className="text-sm text-muted-foreground">{s.text}</span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <ProximosPassos />
 
       <section aria-labelledby="atalhos">
         <h2 id="atalhos" className="mb-3 text-[15px] font-semibold">Seus módulos</h2>
@@ -60,5 +46,33 @@ export function Inicio() {
         </ul>
       </section>
     </>
+  )
+}
+
+/**
+ * Próximos passos de implantação (ADR 0010 item 9): convidar, revisar grupos e exigir 2FA são ações de quem administra os acessos. Cada
+ * cartão aparece só com a permissão da ação que ele abre; sem nenhum, a seção some (operação DEMO 15/11: operador e Financeiro viam os três).
+ */
+export function ProximosPassos() {
+  const { all } = useNavigation()
+  const steps = NEXT_STEPS.filter((s) => canIn(all, s.perm))
+  if (steps.length === 0) return null
+  return (
+    <section aria-labelledby="proximos" className="mb-8">
+      <h2 id="proximos" className="mb-3 text-[15px] font-semibold">Próximos passos</h2>
+      <ul className="grid gap-3 sm:grid-cols-3">
+        {steps.map((s) => (
+          <li key={s.tab}>
+            <Link to="/app/$module/$tab" params={{ module: s.module, tab: s.tab }} className="flex h-full gap-3 rounded-md border border-border bg-card p-4 hover:border-primary">
+              <s.icon aria-hidden="true" className="mt-0.5 size-5 flex-none text-primary" />
+              <span>
+                <b className="block font-semibold">{s.title}</b>
+                <span className="text-sm text-muted-foreground">{s.text}</span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
