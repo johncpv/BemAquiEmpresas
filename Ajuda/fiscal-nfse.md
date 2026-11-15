@@ -13,7 +13,7 @@ Faturar o serviço de instalação quando o cliente aceita a entrega técnica. A
 1. Confira o tomador, o serviço e o ISS. Endereço do tomador errado? Corrija no cadastro do cliente e salve o rascunho de novo: ele traz o cadastro atualizado. Ajuste a discriminação, se precisar, e o envio ao cliente, e clique em **Salvar rascunho**. O imposto nunca é digitado: ele sai da regra fiscal.
 2. **Com o Emissor Fiscal emitindo a NFS-e do município**: clique em **Emitir NFS-e**. O diálogo mostra o tomador, o valor, o ISS, o que entra no custo do projeto, o ambiente e o que falta resolver. Depois do envio, a tela mostra "NFS-e enviada. Aguardando a prefeitura…" e confere sozinha; nunca emita de novo enquanto processa.
 3. **Processo provisório pelo portal da prefeitura** (enquanto o Emissor Fiscal não emite a NFS-e de Caçapava): siga a seção abaixo.
-4. Autorizada ou registrada, a nota fica em Documentos e vai para o e-mail de cobrança do cliente (se "Enviar ao cliente" estiver marcado).
+4. Autorizada ou registrada, **Baixar PDF** e **Baixar XML** aparecem no topo da nota (na autorizada, **Baixar PDF** também nos próximos passos). Os arquivos ficam ainda em Documentos e vão para o e-mail de cobrança do cliente (se "Enviar ao cliente" estiver marcado).
 
 ## Processo provisório pelo portal da prefeitura
 Até o Emissor Fiscal emitir a NFS-e de Caçapava, a nota é emitida no portal da prefeitura e registrada aqui:
