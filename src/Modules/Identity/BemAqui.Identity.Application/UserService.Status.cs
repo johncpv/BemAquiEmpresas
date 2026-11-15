@@ -108,6 +108,13 @@ public sealed partial class UserService
 
         db.UserGroups.RemoveRange(removed);
         db.UserGroups.AddRange(added.Select(g => new UserGroup { UserId = userId, GroupId = g }));
+        // Convite pendente: a edição vale como escolha final. Os grupos do convite saem para o aceite não duplicar o vínculo
+        // nem devolver um grupo retirado aqui.
+        foreach (var invite in await db.UserInvites.Where(i => i.UserId == userId && i.AcceptedAt == null && i.CanceledAt == null).ToListAsync(cancellationToken))
+        {
+            invite.GroupIds = [];
+        }
+
         Audit(userId, "GroupsChanged", actorId, new { before = current.Select(c => c.GroupId), after = wanted });
         await db.SaveChangesAsync(cancellationToken);
         await permissions.BumpAsync([userId], cancellationToken);

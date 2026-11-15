@@ -44,6 +44,27 @@ public partial class AuthTests
     }
 
     [Fact]
+    public async Task Editar_grupos_antes_do_aceite_vale_e_o_aceite_nao_quebra_nem_devolve_grupo_retirado()
+    {
+        var owner = await ActorAsync(Group.OwnerSeedKey);
+        var email = NewEmail();
+        var commercial = await GroupIdAsync("commercial");
+        var finance = await GroupIdAsync("finance");
+        var userId = await CreatedIdAsync(await owner.Client.PostAsJsonAsync("/api/v1/identity/users/invite", new { name = "Duda", email, groupIds = new[] { commercial } }));
+
+        var row = (await JsonAsync(await owner.Client.GetAsync("/api/v1/identity/users"))).EnumerateArray().Single(u => u.GetProperty("id").GetGuid() == userId);
+        row.GetProperty("groups").EnumerateArray().Select(g => g.GetProperty("id").GetGuid()).Should().Equal(commercial);
+
+        (await owner.Client.PutAsJsonAsync($"/api/v1/identity/users/{userId}/groups", new { groupIds = new[] { finance } })).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        var token = TokenOf((await LinksSentAsync(email, "invite"))[0]);
+        (await PostAsync("/api/v1/auth/invites/accept", new { token, password = TenancyFixture.DefaultPassword })).StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await using var scope = await TenantAScopeAsync();
+        (await scope.ServiceProvider.GetRequiredService<IIdentityDb>().UserGroups.Where(ug => ug.UserId == userId).Select(ug => ug.GroupId).ToListAsync())
+            .Should().Equal(finance);
+    }
+
+    [Fact]
     public async Task Reenviar_troca_o_link_e_cancelar_invalida()
     {
         var owner = await ActorAsync(Group.OwnerSeedKey);

@@ -72,7 +72,8 @@ public sealed class Invites(IIdentityDb db, IPasswordHasher<User> hasher, IEmail
         }
 
         // Grupos do convite: a delegação é conferida de novo no aceite; grupo que o autor não pode mais conceder fica de fora.
-        foreach (var groupId in invite.GroupIds.Distinct())
+        var memberOf = await db.UserGroups.Where(ug => ug.UserId == user.Id).Select(ug => ug.GroupId).ToListAsync(cancellationToken);
+        foreach (var groupId in invite.GroupIds.Distinct().Except(memberOf))
         {
             if (invite.InvitedBy is { } inviter && await groups.GroupGrantDeniedAsync(inviter, [groupId], cancellationToken) is null)
             {
