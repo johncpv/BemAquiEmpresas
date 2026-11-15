@@ -43,6 +43,13 @@ public sealed partial class OutgoingInvoiceService
             errors["freight"] = ["Frete e outras despesas sem sinal negativo."];
         }
 
+        if (invoice.PartyId is { } partyId)
+        {
+            // O destinatário corrigido no cadastro (endereço, IBGE, IE) entra no rascunho ao salvar, sem descartar a nota. Só rascunho
+            // (LoadDraftAsync): a nota enviada ou autorizada guarda o destinatário que foi à SEFAZ.
+            await FillRecipientAsync(parties, invoice, partyId, cancellationToken);
+        }
+
         var candidates = await calculator.CandidatesAsync(cancellationToken);
         var recipient = new TaxRecipient((invoice.RecipientState ?? string.Empty).ToUpperInvariant(), invoice.RecipientType, invoice.RecipientType != RecipientType.Contributor);
         for (var index = 0; index < items.Count; index++)

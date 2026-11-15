@@ -31,7 +31,7 @@ public sealed partial class OutgoingInvoiceService(
     IBusinessCalendar calendar, BemAqui.BuildingBlocks.Notifications.INotificationService notifications, TimeProvider clock)
 {
     public const string ShipmentLink = "/app/producao/expedicao/";
-    public const string PartyLink = "/app/terceiros/";
+    public const string PartyLink = "/app/cadastros/terceiros/";
     public const int QueueLimit = 500;
     public const string QueueLink = "/app/fiscal/saida";
 

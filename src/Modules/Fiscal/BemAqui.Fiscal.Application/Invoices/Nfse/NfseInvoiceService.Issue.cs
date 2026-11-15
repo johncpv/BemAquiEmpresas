@@ -47,6 +47,12 @@ public sealed partial class NfseInvoiceService
 
         invoice.SendToCustomer = request.SendToCustomer;
         invoice.EmailCc = cc.Length == 0 ? null : string.Join(", ", cc);
+        if (invoice.PartyId is { } partyId)
+        {
+            // O tomador corrigido no cadastro entra no rascunho ao salvar (só rascunho; a nota emitida guarda o que foi enviado).
+            await OutgoingInvoiceService.FillRecipientAsync(parties, invoice, partyId, cancellationToken);
+        }
+
         await RecalculateAsync(invoice, items, null, description!, cancellationToken);
         invoice.UpdatedAt = clock.GetUtcNow();
         invoice.UpdatedBy = currentUser.UserId;

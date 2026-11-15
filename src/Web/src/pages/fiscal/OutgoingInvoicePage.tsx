@@ -210,7 +210,7 @@ function InvoiceData({ invoice: v, draft, setDraft, errors }: { invoice: Outgoin
         <p>{[r.street, r.number, r.complement].filter(Boolean).join(', ')} — {r.district} — {r.cityName}/{r.state} — CEP {r.postalCode} · IBGE {r.cityCode ?? '—'}</p>
         <p className="text-muted-foreground">E-mail de cobrança: {r.email ?? 'não informado'}</p>
         {errors['recipient.name'] ? <p role="alert" className="text-xs font-medium text-crit-ink">{errors['recipient.name']}</p> : null}
-        {v.partyId ? <Link to={'/app/terceiros/$id' as never} params={{ id: v.partyId } as never} className="mt-1 inline-block font-semibold text-primary hover:underline">Corrigir no cadastro do cliente</Link> : null}
+        {v.partyId ? <Link to="/app/cadastros/terceiros/$id" params={{ id: v.partyId }} className="mt-1 inline-block font-semibold text-primary hover:underline">Corrigir no cadastro do cliente</Link> : null}
       </section>
       <section aria-labelledby="transporte" className="grid gap-3 rounded-md border border-border bg-card p-3 sm:grid-cols-2">
         <h2 id="transporte" className="font-semibold sm:col-span-2">Transporte e valores</h2>
