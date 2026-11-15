@@ -216,7 +216,7 @@ public sealed class ProjectSummaryPdfDocument : PdfDocumentFrame
         });
         col.Item().PaddingTop(4).Text(string.Join(" · ", new[]
         {
-            "Margem orçada " + Pct(costs.BudgetedMarginPct), "realizada " + Pct(costs.RealizedMarginPct), "projetada " + Pct(costs.ProjectedMarginPct),
+            costs.NoCostBudget ? "Sem orçamento de custo (margem orçada não calculada)" : "Margem orçada " + Pct(costs.BudgetedMarginPct), "realizada " + Pct(costs.RealizedMarginPct), "projetada " + Pct(costs.ProjectedMarginPct),
         }));
     });
 

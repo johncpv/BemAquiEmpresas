@@ -22,7 +22,7 @@ Acompanhar o que a fábrica vai entregar do contrato. O projeto nasce na aprova�
 - **Em risco:** a entrega prevista passou da prometida, mesmo que por um dia (não há tolerância). O chip **Em risco** fica âmbar, o aviso no topo diz quantos dias vai atrasar e leva às OS do projeto. **Atrasado** (vermelho) é quando a data prometida já passou e o projeto não foi entregue.
 - **Sem previsão:** a entrega prevista fica vazia quando alguma OS não tem data no plano. O motivo diz o que falta, com o botão que resolve: **Escolher roteiro** (OS sem roteiro), **Informar centro** (etapa sem centro de trabalho), **Revisar calendário** (centro sem capacidade) ou **Gerar OS** (projeto sem OS de fabricação).
 - Depois de **Fabricado**, a entrega prevista fica como estava e o risco passa a ser da instalação: vale o fim digitado na OS de instalação ("Pelo fim da instalação").
-- O **Resumo** mostra o contratado, a entrega prometida, o contrato e o orçamento de origem. Quem vê o financeiro vê também o recebido e o que falta receber; quem vê custo, a margem orçada e a projetada.
+- O **Resumo** mostra o contratado, a entrega prometida, o contrato e o orçamento de origem. Quem vê o financeiro vê também o recebido e o que falta receber; quem vê custo, a margem orçada e a projetada (ou **Sem orçamento de custo**, que leva à aba Custos, quando o projeto não tem custo orçado).
 - Quem pode editar muda o nome, o responsável e o endereço da obra e clica em **Salvar projeto**. A data prometida e o valor só mudam por aditivo.
 
 ## Imprimir e exportar

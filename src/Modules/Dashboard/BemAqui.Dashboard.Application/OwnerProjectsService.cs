@@ -49,7 +49,8 @@ public sealed class OwnerProjectsService(
                 f.RealizedMarginPct, f.BudgetedMarginPct, f.RealizedMarginPct is { } r && f.BudgetedMarginPct is { } b ? r - b : null,
                 active.Value.Worst.Select(w => new MarginProjectRow(w.Project.Id, w.Project.Number, w.Project.Name, w.Project.PartyName, w.Figures.BudgetedMarginPct,
                     w.Figures.ProjectedMarginPct, w.Figures.MarginDeviationPp, w.WorstCostType)).ToList(),
-                clock.GetUtcNow());
+                clock.GetUtcNow(), active.Value.Portfolio.UnbudgetedCount,
+                active.Value.Portfolio.Unbudgeted.Select(u => new MarginUnbudgetedRow(u.Id, u.Number, u.Name)).ToList());
         }, cancellationToken);
     }
 
@@ -80,7 +81,7 @@ public sealed class OwnerProjectsService(
 
         var byId = rows.Value.ToDictionary(r => r.Project.Id);
         return Result<IReadOnlyList<ActiveProjectMarginRow>>.Success(ids.Where(byId.ContainsKey).Select(id => byId[id])
-            .Select(r => new ActiveProjectMarginRow(r.Project.Id, r.Figures.BudgetedMarginPct, r.Figures.ProjectedMarginPct, r.Figures.MarginDeviationPp)).ToList());
+            .Select(r => new ActiveProjectMarginRow(r.Project.Id, r.Figures.BudgetedMarginPct, r.Figures.ProjectedMarginPct, r.Figures.MarginDeviationPp, r.Figures.NoCostBudget)).ToList());
     }
 
     /// <summary>Coluna "Recebido" dos projetos do card (com <c>finance.view</c>): recebido em lote e o % do contratado.</summary>

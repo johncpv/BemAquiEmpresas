@@ -22,10 +22,12 @@ public sealed record ProjectMarginLine(
 /// Números de um projeto ou do consolidado (DSH-02 CA 1, 6 e 10), só com <c>projects.view_cost</c>: as naturezas, o total, a receita
 /// contratada (contrato + aditivos aprovados) e as margens orçada, realizada e projetada (valor e %, 4 casas; receita 0 → null), o desvio da
 /// margem em pontos percentuais, a base do imposto projetado e as guias de imposto com o projeto (fora do custo, CA 3).
+/// <c>NoCostBudget</c>: projeto com receita e sem custo orçado ("Sem orçamento de custo"); a margem orçada e o desvio vêm null.
 /// </summary>
 public sealed record ProjectMarginFigures(
     IReadOnlyList<ProjectMarginLine> Lines, ProjectMarginLine Total, decimal Revenue, decimal BudgetedMargin, decimal? BudgetedMarginPct, decimal RealizedMargin,
-    decimal? RealizedMarginPct, decimal ProjectedMargin, decimal? ProjectedMarginPct, decimal? MarginDeviationPp, ProjectTaxBasis TaxBasis, decimal TaxGuides);
+    decimal? RealizedMarginPct, decimal ProjectedMargin, decimal? ProjectedMarginPct, decimal? MarginDeviationPp, ProjectTaxBasis TaxBasis, decimal TaxGuides,
+    bool NoCostBudget = false);
 
 /// <summary>Projeto no relatório, sem custo (DSH-02 CA 9 e 19): número, nome, cliente, situação, responsável e assinatura.</summary>
 public sealed record ProjectMarginHeader(
@@ -37,18 +39,29 @@ public sealed record ProjectMarginHeader(
 /// </summary>
 public sealed record ProjectMarginRow(ProjectMarginHeader Project, ProjectMarginFigures Figures, CostType? WorstCostType);
 
-/// <summary>Consolidado dos projetos filtrados (DSH-02 CA 10): quantos, os números somados e a natureza que mais desviou.</summary>
-public sealed record ProjectMarginPortfolio(int ProjectCount, ProjectMarginFigures Figures, CostType? WorstCostType);
+/// <summary>Projeto sem orçamento de custo, fora do consolidado: o bastante para levar a ele (número, nome e a receita contratada).</summary>
+public sealed record ProjectMarginUnbudgeted(Guid Id, string Number, string Name, decimal Revenue);
+
+/// <summary>
+/// Consolidado dos projetos filtrados (DSH-02 CA 10): quantos (<c>ProjectCount</c>, todos os do filtro), os números somados e a natureza que
+/// mais desviou. Os projetos sem orçamento de custo ficam fora das somas e das margens e vêm à parte: <c>UnbudgetedCount</c> e a lista (até
+/// <see cref="UnbudgetedListLimit"/>, pelo número).
+/// </summary>
+public sealed record ProjectMarginPortfolio(
+    int ProjectCount, ProjectMarginFigures Figures, CostType? WorstCostType, int UnbudgetedCount, IReadOnlyList<ProjectMarginUnbudgeted> Unbudgeted)
+{
+    public const int UnbudgetedListLimit = 50;
+}
 
 /// <summary>
 /// Filtro do relatório (DSH-02 CA 9 e 11): situação (<c>andamento</c>, o padrão: <c>Planned</c>, <c>InProgress</c>, <c>Fabricated</c>,
 /// <c>Installing</c>; <c>entregue</c>, <c>encerrado</c>, <c>concluido</c> = entregues e encerrados, <c>cancelado</c>, <c>todos</c>), cliente,
-/// responsável, período de assinatura, "Só com margem abaixo da orçada" e o período da entrega (DSH-01b: os encerrados no ano do card Margem;
-/// sem data de entrega, vale a do encerramento).
+/// responsável, período de assinatura, "Só com margem abaixo da orçada", o período da entrega (DSH-01b: os encerrados no ano do card Margem;
+/// sem data de entrega, vale a do encerramento) e "Só sem orçamento de custo" (o alerta do card Margem leva a ele).
 /// </summary>
 public sealed record ProjectMarginFilter(
     string? Situation = null, Guid? PartyId = null, Guid? ManagerId = null, DateOnly? SignedFrom = null, DateOnly? SignedTo = null, bool BelowBudgetOnly = false,
-    DateOnly? DeliveredFrom = null, DateOnly? DeliveredTo = null);
+    DateOnly? DeliveredFrom = null, DateOnly? DeliveredTo = null, bool NoCostBudgetOnly = false);
 
 /// <summary>Consolidado e os piores projetos pelo desvio da margem (DSH-01b, card Margem), de um cálculo só: o mesmo do relatório com o filtro.</summary>
 public sealed record ProjectMarginSummary(ProjectMarginPortfolio Portfolio, IReadOnlyList<ProjectMarginRow> Worst);

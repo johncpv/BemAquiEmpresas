@@ -27,7 +27,7 @@ public sealed record ActiveProjectReceivedItem(Guid ProjectId, decimal Received,
 
 /// <summary>Coluna "Margem" da tabela (com <c>projects.view_cost</c>): orçada → projetada (com custos reais) e o desvio em pp.</summary>
 [CostDto]
-public sealed record ActiveProjectMarginRow(Guid ProjectId, decimal? BudgetedMarginPct, decimal? ProjectedMarginPct, decimal? DeviationPp);
+public sealed record ActiveProjectMarginRow(Guid ProjectId, decimal? BudgetedMarginPct, decimal? ProjectedMarginPct, decimal? DeviationPp, bool NoCostBudget = false);
 
 /// <summary>
 /// Carteira (CA 3): a produzir = Σ receita contratada dos projetos <c>Planned</c> e <c>InProgress</c>; a faturar (só com <c>finance.view</c>) =
@@ -62,12 +62,18 @@ public sealed record DeliveriesCard(
 public sealed record MarginProjectRow(
     Guid ProjectId, string Number, string Name, string PartyName, decimal? BudgetedMarginPct, decimal? ProjectedMarginPct, decimal? DeviationPp, CostType? WorstCostType);
 
+/// <summary>Projeto em andamento sem orçamento de custo, fora da margem do card: o alerta leva a ele ("Completar o orçamento").</summary>
+[CostDto]
+public sealed record MarginUnbudgetedRow(Guid ProjectId, string Number, string Name);
+
 /// <summary>
 /// Margem (CA 1 e 2), só com <c>projects.view_cost</c>: projetada (com custos reais) dos projetos em andamento e realizada dos entregues ou
 /// encerrados no ano, ponderadas pela receita (os números do relatório "Orçado × realizado" com o filtro), a orçada como contexto, a diferença
-/// em pp e os 5 piores pelo desvio.
+/// em pp e os 5 piores pelo desvio. Os em andamento sem orçamento de custo ficam fora da margem e vêm à parte (<c>UnbudgetedCount</c> e a lista);
+/// se todos estão assim, as margens vêm null.
 /// </summary>
 [CostDto]
 public sealed record MarginOverview(
     int Year, int ActiveCount, decimal ActiveRevenue, decimal? ProjectedMarginPct, decimal? BudgetedMarginPct, decimal? DeviationPp, int FinishedCount,
-    decimal? FinishedRealizedMarginPct, decimal? FinishedBudgetedMarginPct, decimal? FinishedDeviationPp, IReadOnlyList<MarginProjectRow> Worst, DateTimeOffset UpdatedAt);
+    decimal? FinishedRealizedMarginPct, decimal? FinishedBudgetedMarginPct, decimal? FinishedDeviationPp, IReadOnlyList<MarginProjectRow> Worst, DateTimeOffset UpdatedAt,
+    int UnbudgetedCount, IReadOnlyList<MarginUnbudgetedRow> Unbudgeted);

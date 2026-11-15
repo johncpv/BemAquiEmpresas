@@ -18,14 +18,15 @@ internal static partial class CommercialEndpoints
     private static void MapMargins(RouteGroupBuilder projects)
     {
         projects.MapGet("/margins/ranking", async (
-                    string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget, DateOnly? deliveredFrom, DateOnly? deliveredTo, string? sort, int? page, int? pageSize,
-                    ProjectMarginService service, CancellationToken ct) =>
-                (await service.RankingAsync(Filter(situation, partyId, managerId, signedFrom, signedTo, belowBudget, deliveredFrom, deliveredTo), sort,
+                    string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget, DateOnly? deliveredFrom, DateOnly? deliveredTo, bool? noCostBudget, string? sort, int? page,
+                    int? pageSize, ProjectMarginService service, CancellationToken ct) =>
+                (await service.RankingAsync(Filter(situation, partyId, managerId, signedFrom, signedTo, belowBudget, deliveredFrom, deliveredTo, noCostBudget), sort,
                     new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)).ToHttpResult())
             .RequirePermission("projects.view_cost").WithName("ListProjectMarginRanking").Produces<ProjectMarginRanking>();
         projects.MapGet("/margins/portfolio", async (
-                    string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget, DateOnly? deliveredFrom, DateOnly? deliveredTo, ProjectMarginService service, CancellationToken ct) =>
-                (await service.PortfolioAsync(Filter(situation, partyId, managerId, signedFrom, signedTo, belowBudget, deliveredFrom, deliveredTo), ct)).ToHttpResult())
+                    string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget, DateOnly? deliveredFrom, DateOnly? deliveredTo, bool? noCostBudget,
+                    ProjectMarginService service, CancellationToken ct) =>
+                (await service.PortfolioAsync(Filter(situation, partyId, managerId, signedFrom, signedTo, belowBudget, deliveredFrom, deliveredTo, noCostBudget), ct)).ToHttpResult())
             .RequirePermission("projects.view_cost").WithName("GetProjectMarginPortfolio").Produces<ProjectMarginPortfolio>();
         projects.MapGet("/margins/entries", async (
                     string costType, string? column, string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget, DateOnly? deliveredFrom, DateOnly? deliveredTo,
@@ -42,8 +43,9 @@ internal static partial class CommercialEndpoints
     }
 
     private static ProjectMarginFilter Filter(
-        string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget, DateOnly? deliveredFrom = null, DateOnly? deliveredTo = null) =>
-        new(string.IsNullOrWhiteSpace(situation) ? null : situation, partyId, managerId, signedFrom, signedTo, belowBudget ?? false, deliveredFrom, deliveredTo);
+        string? situation, Guid? partyId, Guid? managerId, DateOnly? signedFrom, DateOnly? signedTo, bool? belowBudget, DateOnly? deliveredFrom = null, DateOnly? deliveredTo = null,
+        bool? noCostBudget = null) =>
+        new(string.IsNullOrWhiteSpace(situation) ? null : situation, partyId, managerId, signedFrom, signedTo, belowBudget ?? false, deliveredFrom, deliveredTo, noCostBudget ?? false);
 
     private static CostType? ParseCostType(string value) =>
         Enum.TryParse<CostType>(value, ignoreCase: true, out var type) && Enum.IsDefined(type) && !int.TryParse(value, out _) ? type : null;

@@ -58,6 +58,12 @@ export function marginContext(f: Pick<ProjectMarginFigures, 'budgetedMarginPct' 
   return `${pp(f.marginDeviationPp)} ${f.marginDeviationPp < 0 ? 'abaixo' : 'acima'} dos ${pct1(f.budgetedMarginPct)} orçados`
 }
 
+/** Projeto com receita e sem custo orçado: a margem orçada não é 100%, é desconhecida (chip e textos da regra). */
+export const NO_COST_BUDGET = 'Sem orçamento de custo'
+
+/** "1 projeto sem orçamento de custo" / "3 projetos sem orçamento de custo". */
+export const unbudgetedLabel = (count: number) => `${count} ${count === 1 ? 'projeto' : 'projetos'} sem orçamento de custo`
+
 /** Resumo textual do gráfico (CA 17): a natureza que mais desviou acima do orçado. */
 export function worstSummary(f: Pick<ProjectMarginFigures, 'lines'>) {
   const worst = [...f.lines].filter((l) => l.deviation > 0).sort((a, b) => b.deviation - a.deviation)[0]
@@ -75,5 +81,6 @@ export const MARGIN_DICAS = {
   margemProjetada: 'Receita contratada (contrato mais aditivos aprovados) menos o custo projetado, sobre a receita. No total, somamos as receitas e os custos de todos os projetos (média ponderada pela receita).',
   impostoOrcado: 'Ainda não há nota fiscal do projeto: o imposto projetado é o do orçamento aprovado. Com a primeira nota, a parte faturada passa a usar o imposto da nota.',
   pp: 'Pontos percentuais: a diferença entre duas margens. Margem de 20% contra 23% orçados é 3 pp abaixo.',
-  comoCalculamos: 'Somamos o orçado, o realizado e o projetado de cada projeto filtrado. As margens do total são ponderadas pela receita: (Σ receita − Σ projetado) ÷ Σ receita.',
+  comoCalculamos: 'Somamos o orçado, o realizado e o projetado de cada projeto filtrado. As margens do total são ponderadas pela receita: (Σ receita − Σ projetado) ÷ Σ receita. Projeto sem orçamento de custo fica fora da soma.',
+  semOrcamento: 'O projeto tem receita contratada e nenhum custo orçado. Sem o orçado não existe margem orçada nem desvio (não é 100%), e o projeto fica fora da margem do conjunto. O custo orçado vem da composição de custo do orçamento aprovado.',
 }

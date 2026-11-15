@@ -11,6 +11,7 @@ Comparar o que o orçamento aprovado previu gastar com o que já foi gasto, o qu
 
 ## Como usar
 - No topo ficam a receita contratada (contrato mais aditivos aprovados), a margem orçada, a margem realizada (receita menos o que já foi gasto) e a **margem orçada → projetada**, com a diferença em pontos percentuais (pp).
+- Se o projeto não tem nenhum custo orçado, a margem orçada vira **Sem orçamento de custo**, a projetada aparece sozinha (só com o custo já lançado) e um aviso no topo leva ao contrato e ao orçamento de origem.
 - Cada natureza (material, mão de obra, instalação, frete, impostos e outros) mostra **Orçado**, **Realizado**, **Comprometido**, **Projetado** e **Desvio**. No celular, **Comprometido** e **Desvio** ficam em **Comprometido e desvio**, dentro do cartão.
 - Clique em um valor de **Orçado**, **Realizado** ou **Comprometido** para abrir o painel com os lançamentos que somam esse valor: baixa para OS, devolução, apontamento, correção de apontamento, título a pagar, título de compra, imposto da nota ou estorno de imposto, com o documento, a data e o valor com sinal. O documento tem link quando você tem acesso ao módulo dele (Estoque, Produção, Financeiro, Compras, Fiscal). No orçado, o painel mostra o orçamento do contrato e cada aditivo aprovado.
 - **Realizado:** o que já foi gasto. Entram os títulos a pagar **confirmados** com o projeto (instalador, frete, outros e material entregue direto na obra), as **horas apontadas** na produção (horas × custo-hora do cargo), o **material baixado** para as OS pelas requisições, menos as devoluções, e o **imposto das notas** autorizadas do projeto. Material comprado para o projeto só conta como realizado quando é baixado para a OS.
@@ -32,5 +33,7 @@ Comparar o que o orçamento aprovado previu gastar com o que já foi gasto, o qu
 **De onde vem o custo das horas?** De cada apontamento fechado: horas líquidas (sem as pausas) × custo-hora do cargo de quem trabalhou, gravado no fechamento. No painel, as horas aparecem por OS e centro de trabalho; o nome de quem trabalhou e o custo-hora individual só aparecem para quem tem **Ver dados sensíveis** do RH (para os demais, o bloco **Dados protegidos**).
 
 **Por que a guia de imposto não entra?** DARF, GARE e DAS são impostos da empresa, não de um projeto: entram no DRE.
+
+**O que é "Sem orçamento de custo"?** O projeto tem receita contratada, mas nenhum custo orçado em nenhuma natureza. Sem o orçado não existe margem orçada nem desvio: mostrar 100% faria um projeto sem orçamento parecer um ótimo negócio. Por isso ele fica fora da margem do painel e do consolidado do Orçado × realizado, e aparece contado à parte. O custo orçado vem da composição de custo do orçamento aprovado (custo por natureza em cada item); confira o orçamento de origem pelo contrato.
 
 **Por que não vejo esta aba?** O orçado é sigilo comercial. Só quem tem a permissão **Ver custo e margem** do projeto vê.

@@ -14,4 +14,5 @@ signedTo?: string;
 belowBudget?: boolean;
 deliveredFrom?: string;
 deliveredTo?: string;
+noCostBudget?: boolean;
 };

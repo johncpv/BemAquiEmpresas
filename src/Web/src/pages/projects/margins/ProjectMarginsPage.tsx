@@ -20,7 +20,7 @@ import { PageHeading } from '@/shell/PageHeading'
 import { PROJECT_LETTERS, PROJECT_STAGES, projectStage } from '../../contracts/contracts'
 import { CostEntriesPanel, type CostCell } from './CostEntriesPanel'
 import { CostLinesTable } from './CostLinesTable'
-import { costLabel, marginChip, marginContext, MARGIN_DICAS, pct1, pp, shortMoney, worstSummary } from './margins'
+import { costLabel, marginChip, marginContext, MARGIN_DICAS, NO_COST_BUDGET, pct1, pp, shortMoney, unbudgetedLabel, worstSummary } from './margins'
 
 const SITUATIONS = [
   { value: '', label: 'Em andamento' },
@@ -31,7 +31,7 @@ const SITUATIONS = [
   { value: 'todos', label: 'Todos' },
 ]
 
-const FILTER_KEYS = ['situacao', 'cliente', 'clienteNome', 'responsavel', 'responsavelNome', 'assinadoDe', 'assinadoAte', 'abaixo', 'entregueDe', 'entregueAte'] as const
+const FILTER_KEYS = ['situacao', 'cliente', 'clienteNome', 'responsavel', 'responsavelNome', 'assinadoDe', 'assinadoAte', 'abaixo', 'entregueDe', 'entregueAte', 'semOrcamento'] as const
 type Filters = Partial<Record<(typeof FILTER_KEYS)[number], string>>
 
 function useFilters(): [Filters, (patch: Filters) => void] {
@@ -62,7 +62,7 @@ export function ProjectMarginsPage() {
   const params: GetProjectMarginPortfolioParams = {
     situation: filters.situacao || undefined, partyId: filters.cliente || undefined, managerId: filters.responsavel || undefined,
     signedFrom: filters.assinadoDe || undefined, signedTo: filters.assinadoAte || undefined, belowBudget: filters.abaixo === 'true' || undefined,
-    deliveredFrom: filters.entregueDe || undefined, deliveredTo: filters.entregueAte || undefined,
+    deliveredFrom: filters.entregueDe || undefined, deliveredTo: filters.entregueAte || undefined, noCostBudget: filters.semOrcamento === 'true' || undefined,
   }
   const portfolio = useGetProjectMarginPortfolio(params, { query: { enabled: canCost } })
   const ranking = useListProjectMarginRanking({ ...params, sort: search.sort, page: search.page, pageSize: search.pageSize }, { query: { enabled: canCost } })
@@ -74,6 +74,10 @@ export function ProjectMarginsPage() {
   const goQuotes = <Link to={'/app/orcamentos' as never} search={{ situacao: 'enviado' } as never} className="inline-flex min-h-[44px] items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground sm:min-h-0">Ver orçamentos enviados</Link>
   const clearButton = <button type="button" onClick={clear} className="inline-flex min-h-[44px] items-center rounded-md border border-border px-3 py-2 text-sm font-semibold sm:min-h-0">Limpar filtros</button>
   const empty = portfolio.data?.projectCount === 0
+  // Sem orçamento de custo: fora do consolidado, listados à parte; se todos estão assim, não há número para mostrar.
+  const unbudgetedCount = portfolio.data?.unbudgetedCount ?? 0
+  const unbudgeted = portfolio.data?.unbudgeted ?? []
+  const budgetedCount = (portfolio.data?.projectCount ?? 0) - unbudgetedCount
   const toNature = () => document.getElementById('por-natureza')?.focus()
 
   const columns: ColumnDef<ProjectMarginRow>[] = [
@@ -95,7 +99,14 @@ export function ProjectMarginsPage() {
     { id: 'projected', header: 'Projetado', meta: { numeric: true, secondary: true }, cell: ({ row: { original: r } }) => <Money value={r.figures.total.projected} cents={false} /> },
     {
       id: 'margin', header: 'Margem orçada → projetada', meta: { numeric: true, sortField: 'projectedMargin' },
-      cell: ({ row: { original: r } }) => <span className="tabular-nums">{pct1(r.figures.budgetedMarginPct)} → <b>{pct1(r.figures.projectedMarginPct)}</b></span>,
+      cell: ({ row: { original: r } }) => (r.figures.noCostBudget ? (
+        <span className="inline-flex flex-col items-end gap-1">
+          <Link to={'/app/projetos/$id' as never} params={{ id: r.project.id } as never} search={{ aba: 'custos' } as never} aria-label={`${NO_COST_BUDGET}: ver custos de ${r.project.number}`}>
+            <StatusChip tone="warn">{NO_COST_BUDGET}</StatusChip>
+          </Link>
+          <span className="text-xs tabular-nums text-muted-foreground">projetada {pct1(r.figures.projectedMarginPct)}</span>
+        </span>
+      ) : <span className="tabular-nums">{pct1(r.figures.budgetedMarginPct)} → <b>{pct1(r.figures.projectedMarginPct)}</b></span>),
     },
     {
       id: 'deviation', header: 'Desvio', meta: { numeric: true, sortField: 'deviation' }, cell: ({ row: { original: r } }) => {
@@ -135,6 +146,10 @@ export function ProjectMarginsPage() {
           <input type="checkbox" checked={filters.abaixo === 'true'} onChange={(e) => setFilters({ abaixo: e.target.checked ? 'true' : undefined })} className="size-4 accent-primary" />
           Só com margem abaixo da orçada
         </label>
+        <label className="inline-flex min-h-[44px] items-center gap-2 sm:min-h-0">
+          <input type="checkbox" checked={filters.semOrcamento === 'true'} onChange={(e) => setFilters({ semOrcamento: e.target.checked ? 'true' : undefined })} className="size-4 accent-primary" />
+          Só sem orçamento de custo
+        </label>
         {filters.cliente ? (
           <button type="button" onClick={() => setFilters({ cliente: undefined, clienteNome: undefined })} className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-border px-3 text-xs sm:min-h-0 sm:py-1">
             Cliente: {filters.clienteNome || 'selecionado'} <X aria-hidden="true" className="size-3" /><span className="sr-only">(tirar filtro)</span>
@@ -157,9 +172,18 @@ export function ProjectMarginsPage() {
         <DashboardCard title="Consolidado" subtitle="Projetos do filtro, com as margens ponderadas pela receita." howWeCalculate={MARGIN_DICAS.comoCalculamos} updatedAt={portfolio.dataUpdatedAt}
           onOrigin={toNature} query={portfolio}
           empty={{ when: empty, title: filtered ? 'Nenhum projeto para os filtros.' : 'Nenhum projeto em andamento. Os projetos nascem quando um orçamento é aprovado.', action: filtered ? clearButton : goQuotes }}>
-          {f ? (
+          {unbudgetedCount > 0 ? (
+            <p role="note" className="mb-3 rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">
+              {unbudgetedLabel(unbudgetedCount)}, fora do consolidado: a margem não é confiável sem o custo orçado.<Dica nome={NO_COST_BUDGET} texto={MARGIN_DICAS.semOrcamento} />{' '}
+              {unbudgeted.slice(0, 5).map((u, i) => (
+                <span key={u.id}>{i > 0 ? ', ' : ''}<Link to={'/app/projetos/$id' as never} params={{ id: u.id } as never} search={{ aba: 'custos' } as never} className="font-semibold underline" title={u.name}>{u.number}</Link></span>
+              ))}
+              {unbudgetedCount > 5 && filters.semOrcamento !== 'true' ? <>{' '}<button type="button" onClick={() => setFilters({ semOrcamento: 'true' })} className="font-semibold underline">ver todos</button></> : null}
+            </p>
+          ) : null}
+          {f && budgetedCount > 0 ? (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-5">
-              <Kpi label="Receita contratada" value={<Money value={f.revenue} cents={false} />} context={`${portfolio.data?.projectCount} projetos`} />
+              <Kpi label="Receita contratada" value={<Money value={f.revenue} cents={false} />} context={budgetedCount === 1 ? '1 projeto' : `${budgetedCount} projetos`} />
               <Kpi label="Orçado" value={<Money value={f.total.budgeted} cents={false} />} onClick={toNature} actionLabel="ver por natureza" />
               <Kpi label="Realizado" value={<Money value={f.total.realized} cents={false} />} context={`Comprometido ${formatMoney(f.total.committed, false)}`} onClick={toNature} actionLabel="ver por natureza" />
               <Kpi label="Projetado" value={<Money value={f.total.projected} cents={false} />} context={f.total.deviation > 0 ? `${formatMoney(f.total.deviation, false)} acima do orçado` : 'Dentro do orçado'} onClick={toNature} actionLabel="ver por natureza" />
@@ -171,7 +195,7 @@ export function ProjectMarginsPage() {
           ) : null}
         </DashboardCard>
 
-        {f && !empty ? (
+        {f && budgetedCount > 0 ? (
           <section id="por-natureza" tabIndex={-1} aria-label="Por natureza" className="space-y-3 rounded-md border border-border bg-card p-4 outline-none">
             <h2 className="inline-flex items-center text-base font-semibold">Por natureza<Dica nome="Por natureza" texto="Clique em orçado, realizado ou comprometido para ver os projetos que somam o valor." /></h2>
             <ColumnChart title="Orçado × projetado por natureza" xKey="nature" xLabel="Natureza" summary={worstSummary(f)} format={(v) => formatMoney(v)} labelFormat={shortMoney}
@@ -184,7 +208,7 @@ export function ProjectMarginsPage() {
 
         {!empty ? (
           <DataTable label="Projetos do pior para o melhor desvio" columns={columns} query={ranking} getRowId={(r) => r.project.id} searchable={false}
-            rowClassName={(r) => (marginChip(r.figures)?.tone === 'crit' ? 'border-l-4 border-l-crit' : marginChip(r.figures) ? 'border-l-4 border-l-warn' : undefined)}
+            rowClassName={(r) => (marginChip(r.figures)?.tone === 'crit' ? 'border-l-4 border-l-crit' : marginChip(r.figures) || r.figures.noCostBudget ? 'border-l-4 border-l-warn' : undefined)}
             expandable={{
               label: (r) => `Valores de ${r.project.number}`,
               render: (r) => (

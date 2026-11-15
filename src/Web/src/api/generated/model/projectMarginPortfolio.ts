@@ -6,9 +6,12 @@
  */
 import type { CostType } from './costType';
 import type { ProjectMarginFigures } from './projectMarginFigures';
+import type { ProjectMarginUnbudgeted } from './projectMarginUnbudgeted';
 
 export interface ProjectMarginPortfolio {
   projectCount: number;
   figures: ProjectMarginFigures;
   worstCostType: null | CostType;
+  unbudgetedCount: number;
+  unbudgeted: ProjectMarginUnbudgeted[];
 }

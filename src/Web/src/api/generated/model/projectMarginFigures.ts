@@ -24,4 +24,5 @@ export interface ProjectMarginFigures {
   marginDeviationPp: number | null;
   taxBasis: ProjectTaxBasis;
   taxGuides: number;
+  noCostBudget?: boolean;
 }

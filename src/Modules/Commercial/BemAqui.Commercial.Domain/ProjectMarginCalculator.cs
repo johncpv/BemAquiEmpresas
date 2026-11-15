@@ -33,11 +33,12 @@ public sealed record MarginLine(CostType CostType, decimal Budgeted, decimal Rea
 /// <summary>
 /// Resultado do cálculo de um projeto ou do consolidado (DSH-02 CA 1, 5, 6 e 10): as naturezas, o total, a receita contratada e as margens
 /// orçada, realizada e projetada (valor e %; receita 0 → % null), o desvio da margem em pontos percentuais (projetada − orçada), a base do
-/// imposto projetado e o valor das guias de imposto com o projeto (fora do custo, CA 3).
+/// imposto projetado e o valor das guias de imposto com o projeto (fora do custo, CA 3). <c>NoCostBudget</c>: receita sem nenhum custo orçado
+/// ("Sem orçamento de custo"); a margem orçada (seria 100%) e o desvio ficam null e o projeto não entra no consolidado.
 /// </summary>
 public sealed record MarginResult(
     IReadOnlyList<MarginLine> Lines, MarginLine Total, decimal Revenue, decimal BudgetedMargin, decimal? BudgetedMarginPct, decimal RealizedMargin, decimal? RealizedMarginPct,
-    decimal ProjectedMargin, decimal? ProjectedMarginPct, decimal? MarginDeviationPp, TaxProjectionBasis TaxBasis, decimal TaxGuides);
+    decimal ProjectedMargin, decimal? ProjectedMarginPct, decimal? MarginDeviationPp, TaxProjectionBasis TaxBasis, decimal TaxGuides, bool NoCostBudget = false);
 
 /// <summary>
 /// Um cálculo só de orçado × realizado e margem (DSH-02 CA 1 a 6; ADR 0025 §1 e adendo D8; 04-fluxos §3.3), usado pela aba Custos do
@@ -50,6 +51,8 @@ public sealed record MarginResult(
 /// <item><b>Projetado</b> = realizado + max(orçado − realizado, comprometido); em <b>Impostos</b>, sem nota, o imposto orçado; com nota,
 /// imposto das notas + orçado × (1 − faturado ÷ receita).</item>
 /// <item><b>Desvio</b> = projetado − orçado; margens orçada, realizada e projetada sobre a receita contratada.</item>
+/// <item><b>Sem orçamento de custo</b> (receita &gt; 0 e orçado total 0): a margem orçada não é 100%, é desconhecida (null), o desvio também, e o
+/// projeto fica fora do consolidado (<see cref="Consolidate"/>), contado à parte.</item>
 /// </list>
 /// Somas em <c>decimal</c>, arredondamento só no imposto projetado (2 casas) e nos percentuais (4 casas, <c>numeric(9,4)</c>).
 /// </summary>
@@ -142,12 +145,13 @@ public static class ProjectMarginCalculator
 
     /// <summary>
     /// Consolidado de vários projetos (DSH-02 CA 10; adendo D8): soma por natureza e margens <b>ponderadas pela receita</b> (Σ ÷ Σ), nunca
-    /// a média simples das margens. A base do imposto é "das notas" se algum projeto já tem nota.
+    /// a média simples das margens. A base do imposto é "das notas" se algum projeto já tem nota. Projeto sem orçamento de custo
+    /// (<see cref="MarginResult.NoCostBudget"/>) não entra em soma nenhuma: a receita dele sem custo orçado inflaria a margem do conjunto.
     /// </summary>
     public static MarginResult Consolidate(IEnumerable<MarginResult> projects)
     {
         ArgumentNullException.ThrowIfNull(projects);
-        var list = projects.ToList();
+        var list = projects.Where(p => !p.NoCostBudget).ToList();
         var lines = CostTypes.Select(type =>
         {
             var mine = list.Select(p => p.Lines.First(l => l.CostType == type)).ToList();
@@ -169,10 +173,12 @@ public static class ProjectMarginCalculator
         var projected = lines.Sum(l => l.Projected);
         var total = new MarginLine(CostType.Other, budgeted, realized, lines.Sum(l => l.Committed), projected, projected - budgeted, Pct(projected - budgeted, budgeted),
             lines.Any(l => l.IncludesBackfill));
-        var budgetedPct = Pct(revenue - budgeted, revenue);
+        // Receita sem nenhum custo orçado: a margem orçada seria 100%, o que é falta de orçamento, não um bom negócio.
+        var noCostBudget = revenue > 0 && budgeted == 0;
+        var budgetedPct = noCostBudget ? null : Pct(revenue - budgeted, revenue);
         var projectedPct = Pct(revenue - projected, revenue);
         return new MarginResult(lines, total, revenue, revenue - budgeted, budgetedPct, revenue - realized, Pct(revenue - realized, revenue), revenue - projected, projectedPct,
-            budgetedPct is { } b && projectedPct is { } p ? p - b : null, basis, taxGuides);
+            budgetedPct is { } b && projectedPct is { } p ? p - b : null, basis, taxGuides, noCostBudget);
     }
 
     private static MarginLine Line(CostType type, decimal budgeted, decimal realized, decimal committed, bool backfill)

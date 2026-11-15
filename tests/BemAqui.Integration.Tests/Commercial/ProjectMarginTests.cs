@@ -152,7 +152,40 @@ public class ProjectMarginTests(TenancyFixture tenancy) : IClassFixture<TenancyF
         sp.GetRequiredService<BemAqui.BuildingBlocks.Tenancy.ITenantContext>(), sp.GetRequiredService<BemAqui.BuildingBlocks.Tenancy.ITenantScopeFactory>());
 
     private static ProjectMarginFigures FiguresOf(ProjectCostView v) => new(
-        v.Lines, v.Total, v.Revenue, v.BudgetedMargin, v.BudgetedMarginPct, v.RealizedMargin, v.RealizedMarginPct, v.ProjectedMargin, v.ProjectedMarginPct, v.MarginDeviationPp, v.TaxBasis, v.TaxGuides);
+        v.Lines, v.Total, v.Revenue, v.BudgetedMargin, v.BudgetedMarginPct, v.RealizedMargin, v.RealizedMarginPct, v.ProjectedMargin, v.ProjectedMarginPct, v.MarginDeviationPp, v.TaxBasis, v.TaxGuides,
+        v.NoCostBudget);
+
+    /// <summary>Projeto sem orçamento de custo: fora do consolidado e do drill-down, contado e listado à parte, no fim do ranking e sem desvio.</summary>
+    [Fact]
+    public async Task Sem_orcamento_de_custo_fica_fora_do_consolidado_e_vem_a_parte()
+    {
+        var (party, ids) = await SeedDatasetAsync();
+        var unbudgeted = ids["P4 guia e nota"];
+        await WithDbAsync(async db => await db.ProjectBudgets.Where(b => b.ProjectId == unbudgeted).ExecuteDeleteAsync());
+        var owner = await ActorAsync(Group.OwnerSeedKey);
+
+        var portfolio = await ReadAsync<ProjectMarginPortfolio>(await owner.GetAsync($"/api/v1/projects/margins/portfolio?partyId={party}"));
+        (portfolio.ProjectCount, portfolio.UnbudgetedCount).Should().Be((4, 1));
+        portfolio.Unbudgeted.Should().ContainSingle().Which.Should().Match<ProjectMarginUnbudgeted>(u => u.Id == unbudgeted && u.Revenue == 40_000m);
+        (portfolio.Figures.Revenue, portfolio.Figures.Total.Budgeted).Should().Be((210_000m, 79_000m), "só os três com orçamento (P1 com o aditivo)");
+        portfolio.Figures.NoCostBudget.Should().BeFalse();
+
+        var ranking = await ReadAsync<ProjectMarginRanking>(await owner.GetAsync($"/api/v1/projects/margins/ranking?partyId={party}"));
+        var last = ranking.Items[^1];
+        (last.Project.Id, last.Figures.NoCostBudget, last.Figures.BudgetedMarginPct, last.Figures.MarginDeviationPp).Should().Be((unbudgeted, true, null, null));
+        ranking.Items.Take(3).Should().OnlyContain(r => !r.Figures.NoCostBudget);
+
+        var only = await ReadAsync<ProjectMarginRanking>(await owner.GetAsync($"/api/v1/projects/margins/ranking?partyId={party}&noCostBudget=true"));
+        only.Items.Select(r => r.Project.Id).Should().Equal(unbudgeted);
+        var onlyPortfolio = await ReadAsync<ProjectMarginPortfolio>(await owner.GetAsync($"/api/v1/projects/margins/portfolio?partyId={party}&noCostBudget=true"));
+        (onlyPortfolio.ProjectCount, onlyPortfolio.UnbudgetedCount, onlyPortfolio.Figures.BudgetedMarginPct, onlyPortfolio.Figures.ProjectedMarginPct).Should().Be((1, 1, null, null), "todos sem orçamento: sem percentual");
+
+        var material = portfolio.Figures.Lines.Single(l => l.CostType == CostType.Material);
+        var byProject = await ReadAsync<ProjectCostEntries>(await owner.GetAsync($"/api/v1/projects/margins/entries?partyId={party}&costType=Material&column=realized"));
+        (byProject.Total, byProject.Entries.Count).Should().Be((material.Realized, 2), "o drill-down soma os mesmos projetos da célula");
+
+        (await ReadAsync<ProjectCostView>(await owner.GetAsync($"/api/v1/projects/{unbudgeted}/costs"))).NoCostBudget.Should().BeTrue();
+    }
 
     [Fact]
     public async Task Dataset_fixo_bate_centavo_a_centavo_nas_tres_saidas()
