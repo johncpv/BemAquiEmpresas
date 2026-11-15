@@ -14,6 +14,7 @@ signedTo?: string;
 belowBudget?: boolean;
 deliveredFrom?: string;
 deliveredTo?: string;
+noCostBudget?: boolean;
 sort?: string;
 page?: number;
 pageSize?: number;

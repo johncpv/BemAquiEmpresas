@@ -25,7 +25,8 @@ public sealed record ProjectSummaryPdfMilestone(int Sequence, string Description
 public sealed record ProjectSummaryPdfCostLine(string Nature, decimal Budgeted, decimal Realized, decimal Projected, decimal Deviation);
 
 public sealed record ProjectSummaryPdfCosts(
-    IReadOnlyList<ProjectSummaryPdfCostLine> Lines, ProjectSummaryPdfCostLine Total, decimal? BudgetedMarginPct, decimal? RealizedMarginPct, decimal? ProjectedMarginPct);
+    IReadOnlyList<ProjectSummaryPdfCostLine> Lines, ProjectSummaryPdfCostLine Total, decimal? BudgetedMarginPct, decimal? RealizedMarginPct, decimal? ProjectedMarginPct,
+    bool NoCostBudget = false);
 
 public sealed record ProjectSummaryPdfFinance(decimal ToReceive, decimal Received, decimal ReceivedPct);
 
@@ -105,7 +106,7 @@ public static class ProjectSummaryPdf
         ArgumentNullException.ThrowIfNull(view);
         static ProjectSummaryPdfCostLine Line(ProjectMarginLine l, string label) => new(label, l.Budgeted, l.Realized, l.Projected, l.Deviation);
         return new ProjectSummaryPdfCosts(view.Lines.Select(l => Line(l, CostLabel(l.CostType))).ToList(), Line(view.Total, "Total"), view.BudgetedMarginPct, view.RealizedMarginPct,
-            view.ProjectedMarginPct);
+            view.ProjectedMarginPct, view.NoCostBudget);
     }
 
     /// <summary>% recebido do contratado (como a coluna da lista, 1 casa); contrato zerado, 0.</summary>

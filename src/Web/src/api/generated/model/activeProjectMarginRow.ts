@@ -13,4 +13,5 @@ export interface ActiveProjectMarginRow {
   projectedMarginPct: number | null;
   /** @nullable */
   deviationPp: number | null;
+  noCostBudget?: boolean;
 }

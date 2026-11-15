@@ -40,7 +40,7 @@ public sealed record ProjectFinancial(
 public sealed record ProjectCostView(
     IReadOnlyList<ProjectMarginLine> Lines, ProjectMarginLine Total, decimal Revenue, decimal? BudgetedMarginPct, decimal? ProjectedMarginPct, decimal BudgetedMargin,
     decimal RealizedMargin, decimal? RealizedMarginPct, decimal ProjectedMargin, decimal? MarginDeviationPp, ProjectTaxBasis TaxBasis, decimal TaxGuides, int NonConformityCount,
-    decimal NonConformityCost);
+    decimal NonConformityCost, bool NoCostBudget = false);
 
 /// <summary>Título a pagar com o projeto, como o cálculo do custo enxerga (somado pelo Finance, nunca copiado).</summary>
 public sealed record CostPayable(CostType? CostType, DocumentOrigin Origin, PayableStatus Status, decimal Amount);
@@ -99,7 +99,7 @@ public static class ProjectCosts
         return new ProjectMarginFigures(
             result.Lines.Select(Line).ToList(), Line(result.Total), result.Revenue, result.BudgetedMargin, result.BudgetedMarginPct, result.RealizedMargin, result.RealizedMarginPct,
             result.ProjectedMargin, result.ProjectedMarginPct, result.MarginDeviationPp, result.TaxBasis == TaxProjectionBasis.Invoices ? ProjectTaxBasis.Invoices : ProjectTaxBasis.Budgeted,
-            result.TaxGuides);
+            result.TaxGuides, result.NoCostBudget);
     }
 
     /// <summary>Natureza que mais desviou acima do orçado (o chip "Margem abaixo" leva a ela); null sem desvio positivo.</summary>

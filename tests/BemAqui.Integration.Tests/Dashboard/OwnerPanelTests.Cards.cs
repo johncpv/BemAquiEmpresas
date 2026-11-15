@@ -42,7 +42,9 @@ public partial class OwnerPanelTests
 
         var ranking = await OkAsync(owner, "/api/v1/projects/margins/ranking?situation=andamento&pageSize=5");
         card.GetProperty("worst").EnumerateArray().Select(w => w.GetProperty("projectId").GetGuid())
-            .Should().Equal(ranking.GetProperty("items").EnumerateArray().Select(r => r.GetProperty("project").GetProperty("id").GetGuid()), "os 5 piores na ordem do relatório");
+            .Should().Equal(ranking.GetProperty("items").EnumerateArray().Where(r => !r.GetProperty("figures").GetProperty("noCostBudget").GetBoolean())
+                .Select(r => r.GetProperty("project").GetProperty("id").GetGuid()), "os 5 piores na ordem do relatório (sem orçamento de custo não entra nos piores)");
+        card.GetProperty("unbudgetedCount").GetInt32().Should().Be(active.GetProperty("unbudgetedCount").GetInt32());
 
         // F1 sozinho: (80.000 − 45.000,50) ÷ 80.000 = 43,7494% realizada.
         var only = await OkAsync(owner, $"/api/v1/projects/margins/portfolio?situation=concluido&deliveredFrom={year}-01-15&deliveredTo={year}-01-15");

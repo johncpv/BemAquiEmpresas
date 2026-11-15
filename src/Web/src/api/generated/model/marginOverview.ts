@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { MarginProjectRow } from './marginProjectRow';
+import type { MarginUnbudgetedRow } from './marginUnbudgetedRow';
 
 export interface MarginOverview {
   year: number;
@@ -25,4 +26,6 @@ export interface MarginOverview {
   finishedDeviationPp: number | null;
   worst: MarginProjectRow[];
   updatedAt: string;
+  unbudgetedCount: number;
+  unbudgeted: MarginUnbudgetedRow[];
 }

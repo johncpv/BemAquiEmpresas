@@ -1,4 +1,4 @@
-import { useSearch } from '@tanstack/react-router'
+import { Link, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useGetProjectCosts } from '@/api/generated/bemaqui'
 import { Money } from '@/components/ui/money'
@@ -7,14 +7,14 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { CostEntriesPanel, type CostCell } from './margins/CostEntriesPanel'
 import { CostLinesTable } from './margins/CostLinesTable'
-import { marginChip, MARGIN_DICAS, pct1, pp } from './margins/margins'
+import { marginChip, MARGIN_DICAS, NO_COST_BUDGET, pct1, pp } from './margins/margins'
 
 /**
  * Custos (COM-05 CA 8, 9; PRD-04 CA 9 e 13; DSH-02 CA 1 a 6, 12, 13 e 15): orçado, realizado, comprometido, projetado e desvio por natureza,
  * pelo mesmo cálculo do relatório "Orçado × realizado"; orçado, realizado e comprometido abrem o drill-down. A natureza em ?natureza= fica
  * destacada (o chip "Margem abaixo" do relatório leva a ela). Só com projects.view_cost.
  */
-export function ProjectCostsTab({ projectId }: { projectId: string }) {
+export function ProjectCostsTab({ projectId, contractId }: { projectId: string; contractId?: string }) {
   const query = useGetProjectCosts(projectId)
   const search = useSearch({ strict: false }) as Record<string, unknown>
   const [cell, setCell] = useState<CostCell | null>(null)
@@ -25,13 +25,23 @@ export function ProjectCostsTab({ projectId }: { projectId: string }) {
   const highlight = typeof search.natureza === 'string' ? search.natureza : undefined
   return (
     <div className="space-y-3 text-sm">
+      {c.noCostBudget ? (
+        <p role="note" className="rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-warn-ink">
+          Este projeto não tem orçamento de custo: a margem orçada e o desvio não são calculados, e ele fica fora da margem do painel e do Orçado × realizado.
+          O custo orçado vem da composição de custo do orçamento aprovado.{' '}
+          {contractId ? <Link to={'/app/contratos/$id' as never} params={{ id: contractId } as never} className="inline-flex min-h-[44px] items-center font-semibold underline sm:min-h-0">Ver o contrato e o orçamento de origem</Link> : null}
+        </p>
+      ) : null}
       <dl className="grid grid-cols-2 gap-3 rounded-md border border-border bg-card p-3 sm:grid-cols-4">
         <div><dt className="text-xs text-muted-foreground">Receita contratada</dt><dd><Money value={c.revenue} className="font-semibold" /></dd></div>
-        <div><dt className="text-xs text-muted-foreground">Margem orçada</dt><dd className="tabular-nums">{pct1(c.budgetedMarginPct)}</dd></div>
+        <div><dt className="inline-flex items-center text-xs text-muted-foreground">Margem orçada{c.noCostBudget ? <Dica nome={NO_COST_BUDGET} texto={MARGIN_DICAS.semOrcamento} /> : null}</dt>
+          <dd className="tabular-nums">{c.noCostBudget ? <StatusChip tone="warn">{NO_COST_BUDGET}</StatusChip> : pct1(c.budgetedMarginPct)}</dd></div>
         <div><dt className="inline-flex items-center text-xs text-muted-foreground">Margem realizada<Dica nome="Margem realizada" texto="Receita contratada menos o que já foi gasto. Ainda não é o resultado: falta o que vai ser gasto." /></dt><dd><Money value={c.realizedMargin} /></dd></div>
         <div>
           <dt className="inline-flex items-center text-xs text-muted-foreground">Margem projetada<Dica nome="Margem projetada" texto={MARGIN_DICAS.margemProjetada} /></dt>
-          <dd className="tabular-nums">{pct1(c.budgetedMarginPct)} → <b>{pct1(c.projectedMarginPct)}</b> <span className="text-xs text-muted-foreground">({pp(c.marginDeviationPp)}<Dica nome="pp" texto={MARGIN_DICAS.pp} />)</span></dd>
+          {c.noCostBudget
+            ? <dd className="tabular-nums"><b>{pct1(c.projectedMarginPct)}</b> <span className="text-xs text-muted-foreground">(só com o custo já lançado)</span></dd>
+            : <dd className="tabular-nums">{pct1(c.budgetedMarginPct)} → <b>{pct1(c.projectedMarginPct)}</b> <span className="text-xs text-muted-foreground">({pp(c.marginDeviationPp)}<Dica nome="pp" texto={MARGIN_DICAS.pp} />)</span></dd>}
           {chip ? <dd className="mt-1"><StatusChip tone={chip.tone}>{chip.text}</StatusChip></dd> : null}
         </div>
       </dl>

@@ -78,6 +78,15 @@ public static class OwnerDashboardPdf
     public const string RevenueTitle = "Faturamento";
     public const string OverdueTitle = "A receber vencido";
     public const string MarginTitle = "Margem";
+
+    /// <summary>Nota do card Margem: os projetos em andamento sem orçamento de custo, fora da margem (os números, até 5).</summary>
+    public static string UnbudgetedNote(MarginOverview margin)
+    {
+        ArgumentNullException.ThrowIfNull(margin);
+        var numbers = string.Join(", ", margin.Unbudgeted.Take(5).Select(u => u.Number)) + (margin.UnbudgetedCount > 5 ? " e outros" : string.Empty);
+        var head = margin.UnbudgetedCount == 1 ? "1 projeto em andamento sem orçamento de custo, fora da margem" : margin.UnbudgetedCount.ToString(PdfTheme.PtBr) + " projetos em andamento sem orçamento de custo, fora da margem";
+        return head + ": " + numbers + ".";
+    }
     public const string DecisionsTitle = "Aguardando sua decisão";
     public const string ActiveTitle = "Projetos em andamento";
     public const string ProductionTitle = "Produção";
@@ -190,6 +199,11 @@ public sealed class OwnerDashboardPdfDocument : PdfDocumentFrame
                 ["Em andamento", m.ActiveCount.ToString(PdfTheme.PtBr), OwnerDashboardPdf.Percent(m.BudgetedMarginPct), OwnerDashboardPdf.Percent(m.ProjectedMarginPct), Pp(m.DeviationPp)],
                 [$"Entregues em {m.Year}", m.FinishedCount.ToString(PdfTheme.PtBr), OwnerDashboardPdf.Percent(m.FinishedBudgetedMarginPct), OwnerDashboardPdf.Percent(m.FinishedRealizedMarginPct), Pp(m.FinishedDeviationPp)],
             ]));
+            if (m.UnbudgetedCount > 0)
+            {
+                col.Item().PaddingTop(2).Text(OwnerDashboardPdf.UnbudgetedNote(m)).FontSize(8);
+            }
+
             if (m.Worst.Count > 0)
             {
                 col.Item().Element(c => Table(c, ["Piores pelo desvio", "Cliente", "Orçada", "Projetada", "Desvio (pp)"],

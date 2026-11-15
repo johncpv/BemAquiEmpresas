@@ -13,12 +13,12 @@ import { Dica } from '@/help/Dica'
 import { formatDate, formatMoney } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { PROJECT_LETTERS, PROJECT_STAGES, projectStage } from '@/pages/contracts/contracts'
-import { costLabel, marginContext, pct1, pp } from '@/pages/projects/margins/margins'
+import { costLabel, MARGIN_DICAS, marginContext, NO_COST_BUDGET, pct1, pp } from '@/pages/projects/margins/margins'
 import { useCan } from '@/pages/use-can'
 import { PanelCard, primaryAction } from './cards'
 import { useGo } from './use-go'
 import { HOW, plural } from './dashboard'
-import { deliveryOf, finishedMarginHref, occupancyPoints, PROJECTS_ORIGIN, RESULTS_ROUTE } from './owner'
+import { deliveryOf, finishedMarginHref, occupancyPoints, PROJECTS_ORIGIN, RESULTS_ROUTE, unbudgetedAlert } from './owner'
 
 const quotesSent = <Link to={'/app/orcamentos' as never} search={{ situacao: 'enviado' } as never} className={primaryAction}>Ver orçamentos enviados</Link>
 const noActive = { title: 'Nenhum projeto em andamento.', description: 'Os projetos nascem quando um orçamento é aprovado.', action: quotesSent }
@@ -34,13 +34,21 @@ export function MarginKpi({ className }: { className?: string }) {
   return (
     <PanelCard code="margin" title="Margem dos projetos" howWeCalculate={HOW.margin} origin="/app/projetos/margens" query={query} className={className}
       empty={(card) => (card.activeCount === 0 && card.finishedCount === 0 ? noActive : null)}>
-      {(card) => (
+      {(card) => {
+        const alert = unbudgetedAlert(card)
+        return (
         <div className="space-y-2">
-          <Kpi label="Margem projetada (com custos reais)" value={pct1(card.projectedMarginPct)} onClick={() => go('/app/projetos/margens')} actionLabel="Margem projetada: ver o Orçado × realizado"
+          {alert?.onlyAlert ? null : <Kpi label="Margem projetada (com custos reais)" value={pct1(card.projectedMarginPct)} onClick={() => go('/app/projetos/margens')} actionLabel="Margem projetada: ver o Orçado × realizado"
             context={marginContext({ budgetedMarginPct: card.budgetedMarginPct, marginDeviationPp: card.deviationPp })}
             meter={typeof card.budgetedMarginPct === 'number' && typeof card.projectedMarginPct === 'number' && card.budgetedMarginPct > 0
               ? { value: Math.max(0, card.projectedMarginPct), max: card.budgetedMarginPct, label: `Margem projetada de ${pct1(card.projectedMarginPct)} sobre ${pct1(card.budgetedMarginPct)} orçados`, tone: (card.deviationPp ?? 0) < 0 ? 'warn' : 'ok' }
-              : undefined} />
+              : undefined} />}
+          {alert ? (
+            <p role="note" className="rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">
+              {alert.text}<Dica nome={NO_COST_BUDGET} texto={MARGIN_DICAS.semOrcamento} />{' '}
+              <Link to={alert.link.to as never} params={alert.link.params as never} search={alert.link.search as never} aria-label={alert.link.label} className="inline-flex min-h-[44px] items-center font-semibold underline sm:min-h-0">Completar o orçamento</Link>
+            </p>
+          ) : null}
           <p className="inline-flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
             <Dica nome="Margem projetada (com custos reais)" texto={HOW.margin} />
             <Link to={finishedMarginHref(card.year).to as never} search={finishedMarginHref(card.year).search as never} className="font-semibold text-primary hover:underline">
@@ -67,7 +75,8 @@ export function MarginKpi({ className }: { className?: string }) {
           ) : null}
           {canResults ? <Link to={RESULTS_ROUTE as never} className="inline-flex min-h-[44px] items-center text-sm font-semibold text-primary hover:underline sm:min-h-0">Resultado por projeto</Link> : null}
         </div>
-      )}
+        )
+      }}
     </PanelCard>
   )
 }
@@ -105,7 +114,7 @@ export function ActiveProjectsPanel({ className }: { className?: string }) {
     return (
       <dl className="grid grid-cols-2 gap-2 text-xs">
         <div><dt className="text-muted-foreground">Contratado</dt><dd><Money value={item.contractedAmount} cents={false} /></dd></div>
-        {canCost ? <div><dt className="text-muted-foreground">Margem</dt><dd className="tabular-nums">{m ? `${pct1(m.budgetedMarginPct)} → ${pct1(m.projectedMarginPct)}` : '—'}</dd></div> : null}
+        {canCost ? <div><dt className="text-muted-foreground">Margem</dt><dd className="tabular-nums">{m?.noCostBudget ? NO_COST_BUDGET : m ? `${pct1(m.budgetedMarginPct)} → ${pct1(m.projectedMarginPct)}` : '—'}</dd></div> : null}
         {canFinance ? <div><dt className="text-muted-foreground">Recebido</dt><dd className="tabular-nums">{r ? pct1(r.receivedPct) : '—'}</dd></div> : null}
       </dl>
     )
@@ -145,7 +154,7 @@ export function ActiveProjectsPanel({ className }: { className?: string }) {
                     <td className="py-2 pr-2">{stage < 0 ? <StatusChip tone="neutral">Cancelado</StatusChip> : <StageIndicator stages={PROJECT_STAGES} letters={PROJECT_LETTERS} current={stage} />}</td>
                     <td className="py-2 pr-2"><Delivery item={item} /></td>
                     <td className="hidden py-2 pr-2 text-right sm:table-cell"><Money value={item.contractedAmount} cents={false} /></td>
-                    {canCost ? <td className="hidden py-2 pr-2 text-right tabular-nums sm:table-cell">{m ? <>{pct1(m.budgetedMarginPct)} → <b className={(m.deviationPp ?? 0) < 0 ? 'text-warn-ink' : undefined}>{pct1(m.projectedMarginPct)}</b></> : '—'}</td> : null}
+                    {canCost ? <td className="hidden py-2 pr-2 text-right tabular-nums sm:table-cell">{m?.noCostBudget ? <span className="text-warn-ink">{NO_COST_BUDGET}</span> : m ? <>{pct1(m.budgetedMarginPct)} → <b className={(m.deviationPp ?? 0) < 0 ? 'text-warn-ink' : undefined}>{pct1(m.projectedMarginPct)}</b></> : '—'}</td> : null}
                     {canFinance ? <td className="hidden py-2 text-right tabular-nums sm:table-cell">{r ? pct1(r.receivedPct) : '—'}</td> : null}
                   </tr>
                 )

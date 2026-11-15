@@ -45,7 +45,7 @@ public sealed partial class ProjectMarginService(
         var nc = await productionCosts.NonConformitiesAsync(id, cancellationToken);
         return new ProjectCostView(
             f.Lines, f.Total, f.Revenue, f.BudgetedMarginPct, f.ProjectedMarginPct, f.BudgetedMargin, f.RealizedMargin, f.RealizedMarginPct, f.ProjectedMargin, f.MarginDeviationPp, f.TaxBasis,
-            f.TaxGuides, nc.Count, nc.EstimatedCost);
+            f.TaxGuides, nc.Count, nc.EstimatedCost, f.NoCostBudget);
     }
 
     /// <summary>Lista ranqueada (CA 9 e 11): calcula todos os filtrados (agregação no banco) e resolve nomes só da página.</summary>
@@ -90,8 +90,17 @@ public sealed partial class ProjectMarginService(
             return filtered.Error!;
         }
 
-        var figures = ProjectCosts.Figures(ProjectMarginCalculator.Consolidate(filtered.Value.Select(c => c.Result)));
-        return new ProjectMarginPortfolio(filtered.Value.Count, figures, ProjectCosts.Worst(figures));
+        return Portfolio(filtered.Value);
+    }
+
+    /// <summary>O consolidado só dos projetos com orçamento de custo; os sem orçamento vêm contados e listados à parte (pelo número).</summary>
+    private static ProjectMarginPortfolio Portfolio(List<ComputedProject> projects)
+    {
+        var figures = ProjectCosts.Figures(ProjectMarginCalculator.Consolidate(projects.Select(c => c.Result)));
+        var unbudgeted = projects.Where(c => c.Result.NoCostBudget).OrderBy(c => c.Head.Number, StringComparer.Ordinal).ToList();
+        return new ProjectMarginPortfolio(
+            projects.Count, figures, ProjectCosts.Worst(figures), unbudgeted.Count,
+            unbudgeted.Take(ProjectMarginPortfolio.UnbudgetedListLimit).Select(c => new ProjectMarginUnbudgeted(c.Head.Id, c.Head.Number, c.Head.Name, c.Result.Revenue)).ToList());
     }
 
     /// <summary>Consolidado e os piores pelo desvio (DSH-01b, card Margem): o mesmo cálculo e a mesma ordem padrão do relatório, numa leitura só.</summary>
@@ -109,9 +118,9 @@ public sealed partial class ProjectMarginService(
             return filtered.Error!;
         }
 
-        var figures = ProjectCosts.Figures(ProjectMarginCalculator.Consolidate(filtered.Value.Select(c => c.Result)));
-        var rows = await RowsAsync(Sort(filtered.Value, "deviation").Take(Math.Clamp(worst, 0, 50)).ToList(), cancellationToken);
-        return new ProjectMarginSummary(new ProjectMarginPortfolio(filtered.Value.Count, figures, ProjectCosts.Worst(figures)), rows);
+        // Sem orçamento de custo não tem desvio: não entra nos piores (vem à parte, no consolidado).
+        var rows = await RowsAsync(Sort(filtered.Value.Where(c => !c.Result.NoCostBudget), "deviation").Take(Math.Clamp(worst, 0, 50)).ToList(), cancellationToken);
+        return new ProjectMarginSummary(Portfolio(filtered.Value), rows);
     }
 
     public async Task<Result<ProjectMarginRow>> ForProjectAsync(Guid projectId, CancellationToken cancellationToken = default)
@@ -207,6 +216,11 @@ public sealed partial class ProjectMarginService(
         }
 
         var computed = await ComputeAsync(projects, ct);
+        if (filter.NoCostBudgetOnly)
+        {
+            computed = computed.Where(c => c.Result.NoCostBudget).ToList();
+        }
+
         return filter.BelowBudgetOnly ? computed.Where(c => c.Result.MarginDeviationPp < 0).ToList() : computed;
     }
 
@@ -285,7 +299,7 @@ public sealed partial class ProjectMarginService(
         "-revenue" => rows.OrderByDescending(r => r.Result.Revenue).ThenBy(r => r.Head.Number, StringComparer.Ordinal),
         "projectedMargin" => rows.OrderBy(r => r.Result.ProjectedMarginPct is null).ThenBy(r => r.Result.ProjectedMarginPct).ThenBy(r => r.Head.Number, StringComparer.Ordinal),
         "-projectedMargin" => rows.OrderBy(r => r.Result.ProjectedMarginPct is null).ThenByDescending(r => r.Result.ProjectedMarginPct).ThenBy(r => r.Head.Number, StringComparer.Ordinal),
-        // Ranking do PRD §5.14: piores primeiro (desvio da margem mais negativo); sem receita no fim.
+        // Ranking do PRD §5.14: piores primeiro (desvio da margem mais negativo); sem receita e sem orçamento de custo (desvio null) no fim.
         _ => rows.OrderBy(r => r.Result.MarginDeviationPp is null).ThenBy(r => r.Result.MarginDeviationPp).ThenBy(r => r.Head.Number, StringComparer.Ordinal),
     };
 
