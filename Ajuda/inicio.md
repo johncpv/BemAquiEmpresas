@@ -7,7 +7,7 @@ modulo:
 ---
 
 ## Para que serve
-É a primeira tela depois de entrar, para todo mundo. No alto fica a **Minha pauta**: o que depende de você hoje, numa lista só, na ordem do que mais destrava o trabalho dos outros. Abaixo ficam os próximos passos para colocar a empresa para funcionar e os atalhos para os módulos a que você tem acesso.
+É a primeira tela depois de entrar, para todo mundo. No alto fica a **Minha pauta**: o que depende de você hoje, numa lista só, na ordem do que mais destrava o trabalho dos outros. Abaixo ficam os próximos passos para colocar a empresa para funcionar (só para quem administra os acessos) e os atalhos para os módulos a que você tem acesso.
 
 ## Como usar
 - **Minha pauta:** cada cartão é um tipo de pendência, com a quantidade ("3 ordens de pagamento aguardam você"), o porquê numa linha (o total e o vencimento mais próximo) e até 5 itens. O botão de cada item já abre o documento na ação que resolve: "Aprovar", "Pagar", "Decidir qualidade", "Prorrogar validade", "Gerar solicitação", "Gerar OP". "Ver todos" abre a lista filtrada. No celular, cada cartão mostra os 3 primeiros.
@@ -15,7 +15,7 @@ modulo:
 - **Os três níveis:** primeiro **Destrava outra pessoa ou dinheiro** (aprovações, decisões e pagamentos que alguém espera, com a faixa âmbar), depois **Já passou do prazo** (vencidos e atrasados, com a faixa vermelha) e por fim **Vence em breve**. Dentro de cada nível vem antes o que vence primeiro e, no empate, o de maior valor.
 - **Autoinspeção:** na qualidade, quem fez uma etapa da tentativa não decide. Se não houver outro aprovador disponível, a OS aparece para você com a marca "Autoinspeção", e a decisão fica registrada assim.
 - **Atualização:** a pauta é recalculada a cada minuto e quando você volta para esta aba. A quantidade total aparece no título da aba do navegador, por exemplo "(4) Início".
-- **Próximos passos:** convide a equipe, revise os grupos de acesso e ative a verificação em duas etapas. Cada cartão leva direto à tela certa.
+- **Próximos passos:** para quem administra os acessos: convidar a equipe (quem pode criar usuários), revisar os grupos de acesso (quem pode editar grupos) e exigir a verificação em duas etapas (quem pode editar as configurações). Cada cartão leva direto à tela certa. Sem nenhuma dessas permissões, a seção não aparece; a sua própria verificação em duas etapas fica no menu do usuário, em "Verificação em duas etapas".
 - **Seus módulos:** atalhos para os módulos liberados para a empresa e habilitados nos seus grupos.
 - **Dock (barra inferior):** as 7 áreas do sistema. Clique numa área para ver os módulos dela. No celular, toque na área e escolha o módulo na lista que sobe da borda.
 - **Busca (Ctrl K):** digite o nome de uma tela ou módulo e tecle Enter. As telas usadas por último aparecem primeiro.
