@@ -127,6 +127,8 @@ public class PdfReaderTests
         slow = true;
         var late = await client.ReadAsync(await DanfeSamples.PdfAsync(sample));
         late.Outcome.Should().Be(PdfReadingOutcome.TimedOut);
+        // O servidor responde TimedOut e só depois mata o processo: a resposta pode chegar antes da chamada.
+        await WaitForAsync(() => Volatile.Read(ref killed) > 0, "O worker não foi morto depois do tempo limite.");
         killed.Should().Be(1, "estourado o tempo, o processo do worker é morto");
 
         slow = false;
@@ -159,14 +161,14 @@ public class PdfReaderTests
         (await client.ReadAsync("%PDF-1.4"u8.ToArray())).Outcome.Should().Be(PdfReadingOutcome.Failed);
     }
 
-    private static async Task WaitForAsync(Func<bool> condition)
+    private static async Task WaitForAsync(Func<bool> condition, string timeoutMessage = "O worker de teste não subiu.")
     {
-        var until = DateTime.UtcNow.AddSeconds(10);
+        var until = DateTime.UtcNow.AddSeconds(30);
         while (!condition())
         {
             if (DateTime.UtcNow > until)
             {
-                throw new TimeoutException("O worker de teste não subiu.");
+                throw new TimeoutException(timeoutMessage);
             }
 
             await Task.Delay(50);

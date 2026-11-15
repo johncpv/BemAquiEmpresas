@@ -63,7 +63,7 @@ public partial class LookupTests(TenancyFixture tenancy) : IClassFixture<Tenancy
 
     private WebApplicationFactory<Program> Factory => _factory ??= Build(_api, circuitFailures: 1000);
 
-    private WebApplicationFactory<Program> Build(FakeBrasilApi api, int circuitFailures) => tenancy.Factory.WithWebHostBuilder(b => b
+    private WebApplicationFactory<Program> Build(FakeBrasilApi api, int circuitFailures) => tenancy.Derive(b => b
         .UseSetting("Lookups:CircuitFailures", circuitFailures.ToString(System.Globalization.CultureInfo.InvariantCulture))
         .ConfigureTestServices(s => s.AddHttpClient(PublicDataHttp.ClientName).ConfigurePrimaryHttpMessageHandler(() => api)));
 

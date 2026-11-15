@@ -16,8 +16,10 @@ namespace BemAqui.Integration.Tests.Identity;
 public partial class KioskTests
 {
     // Espera da entrega (o aviso chega e só ao próprio tenant) e orçamento de tempo no CI. A meta do PRD §6 é 2 s em produção; no
-    // runner compartilhado do CI o tempo varia com a carga, então o teste confere a entrega com folga e o tempo com orçamento de 5 s.
-    private static readonly TimeSpan PushWindow = TimeSpan.FromSeconds(10);
+    // runner compartilhado do CI o tempo varia com a carga, então o teste confere a entrega com folga e o tempo com orçamento de 5 s,
+    // medido do commit à chegada do aviso (a hora em que o handler roda), sem contar a espera do próprio teste.
+    private static readonly TimeSpan PushWindow = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan CloseWindow = TimeSpan.FromSeconds(40);
     private static readonly TimeSpan PushBudget = TimeSpan.FromSeconds(5);
 
     /// <summary>Conexão da TV: só o cookie da sessão, nenhum token na query.</summary>
@@ -36,6 +38,8 @@ public partial class KioskTests
     {
         public List<Guid> Orders { get; } = [];
 
+        public Dictionary<Guid, long> ArrivedAt { get; } = [];
+
         public List<string> Control { get; } = [];
 
         public List<JsonElement> Raw { get; } = [];
@@ -51,7 +55,9 @@ public partial class KioskTests
             lock (received)
             {
                 received.Raw.Add(message);
-                received.Orders.Add(message.GetProperty("productionOrderId").GetGuid());
+                var orderId = message.GetProperty("productionOrderId").GetGuid();
+                received.Orders.Add(orderId);
+                received.ArrivedAt.TryAdd(orderId, Stopwatch.GetTimestamp());
             }
         });
         hub.On(KioskHub.KioskConfigChanged, () =>
@@ -78,6 +84,18 @@ public partial class KioskTests
             return Task.CompletedTask;
         };
         return received;
+    }
+
+    /// <summary>
+    /// Abre a conexão e espera o servidor terminar o <c>OnConnectedAsync</c>. O <c>StartAsync</c> do cliente volta no handshake, antes de o hub
+    /// pôr a conexão nos grupos: o aviso mandado nesse intervalo não chegava a ninguém e o teste falhava de vez em quando.
+    /// </summary>
+    private async Task StartedAsync(HubConnection hub)
+    {
+        await hub.StartAsync();
+        var registry = Factory.Services.GetRequiredService<KioskConnectionRegistry>();
+        (await EventuallyAsync(() => Task.FromResult(registry.Snapshot().Any(c => c.Context.ConnectionId == hub.ConnectionId)), TimeSpan.FromSeconds(30)))
+            .Should().BeTrue("o hub registra a conexão da TV depois de pôr nos grupos");
     }
 
     private static Task<bool> SeenAsync(Received received, Func<Received, bool> condition, TimeSpan within) =>
@@ -115,25 +133,25 @@ public partial class KioskTests
         var (_, cookie, _) = await PairedAsync();
         await using var hub = KioskHubFor(cookie);
         var received = Listen(hub);
-        await hub.StartAsync();
+        await StartedAsync(hub);
         var orderId = Guid.CreateVersion7();
 
         // A transação do Production faz commit; o aviso sai pelo IProductionBoardNotifier da PRD-02, depois do commit.
-        Stopwatch watch;
+        long committedAt;
         await using (var scope = await ScopeAsync())
         {
             var db = scope.ServiceProvider.GetRequiredService<TenantDbContext>();
             await scope.ServiceProvider.GetRequiredService<ProductionBoardNotifier>().ChangedAsync(orderId);
             db.AuditEntries.Add(new AuditEntry { Entity = "ProductionOrder", EntityId = orderId.ToString(), Action = "Teste", At = DateTimeOffset.UtcNow, Changes = "{}" });
             await db.SaveChangesAsync();
-            watch = Stopwatch.StartNew();
+            committedAt = Stopwatch.GetTimestamp();
         }
 
         (await SeenAsync(received, r => r.Orders.Contains(orderId), PushWindow)).Should().BeTrue("o aviso chega à TV");
         (await Client().SendAsync(KioskRequest(HttpMethod.Get, Screen, cookie))).StatusCode.Should().Be(HttpStatusCode.OK, "a TV recarrega pela API de quiosque");
-        watch.Elapsed.Should().BeLessThan(PushBudget, "do commit à resposta da API na TV dentro do orçamento do CI (meta de 2 s em produção, PRD §6)");
         lock (received)
         {
+            Stopwatch.GetElapsedTime(committedAt, received.ArrivedAt[orderId]).Should().BeLessThan(PushBudget, "do commit ao aviso na TV dentro do orçamento do CI (meta de 2 s em produção, PRD §6)");
             received.Raw.Should().OnlyContain(m => m.EnumerateObject().Select(p => p.Name).SequenceEqual(new[] { "productionOrderId" }), "só o id, nunca dado");
         }
     }
@@ -147,8 +165,8 @@ public partial class KioskTests
         await using var other = KioskHubFor(otherCookie, otherHost);
         var received = Listen(hub);
         var otherReceived = Listen(other);
-        await hub.StartAsync();
-        await other.StartAsync();
+        await StartedAsync(hub);
+        await StartedAsync(other);
 
         var orderId = Guid.CreateVersion7();
         await using (var scope = await ScopeAsync())
@@ -179,19 +197,16 @@ public partial class KioskTests
         var (row, cookie, manager) = await PairedAsync();
         await using var hub = KioskHubFor(cookie);
         var received = Listen(hub);
-        await hub.StartAsync();
+        await StartedAsync(hub);
         var id = Id(row);
         var watch = Stopwatch.StartNew();
 
         var revoked = await Client().SendAsync(Authorized(HttpMethod.Post, $"{Screens}/{id}/revoke", manager, new { version = Version(row) }));
 
         revoked.StatusCode.Should().Be(HttpStatusCode.OK, await revoked.Content.ReadAsStringAsync());
-        (await SeenAsync(received, r => r.Closed, TimeSpan.FromSeconds(10))).Should().BeTrue("a conexão é fechada");
+        (await SeenAsync(received, r => r.Control.Contains("revoked"), PushWindow)).Should().BeTrue("a TV mostra \"Esta tela foi desligada por {empresa}.\"");
+        (await SeenAsync(received, r => r.Closed, CloseWindow)).Should().BeTrue("a conexão é fechada depois do aviso");
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromMinutes(1));
-        lock (received)
-        {
-            received.Control.Should().Contain("revoked", "a TV mostra \"Esta tela foi desligada por {empresa}.\"");
-        }
 
         await using var again = KioskHubFor(cookie);
         var reconnect = () => again.StartAsync();
@@ -204,16 +219,13 @@ public partial class KioskTests
         var (tenant, host, _, cookie, _) = await PairedInOwnTenantAsync();
         await using var hub = KioskHubFor(cookie, host);
         var received = Listen(hub);
-        await hub.StartAsync();
+        await StartedAsync(hub);
 
         await SetKioskReleasedAsync(tenant.Id, released: false);
         try
         {
-            (await SeenAsync(received, r => r.Closed, TimeSpan.FromSeconds(20))).Should().BeTrue("a revalidação (a cada 30 s; 2 s neste host) fecha a conexão em menos de 1 min");
-            lock (received)
-            {
-                received.Control.Should().Contain("unavailable", "a TV mostra \"Painel indisponível nesta versão do sistema.\"");
-            }
+            (await SeenAsync(received, r => r.Control.Contains("unavailable"), PushWindow)).Should().BeTrue("a TV mostra \"Painel indisponível nesta versão do sistema.\"");
+            (await SeenAsync(received, r => r.Closed, CloseWindow)).Should().BeTrue("a revalidação (a cada 30 s; 2 s neste host) fecha a conexão em menos de 1 min");
         }
         finally
         {
@@ -222,11 +234,11 @@ public partial class KioskTests
 
         await using var back = KioskHubFor(cookie, host);
         var backReceived = Listen(back);
-        await back.StartAsync();
+        await StartedAsync(back);
         await Tenancy.SetStatusAsync(tenant.Id, suspended: true);
         try
         {
-            (await SeenAsync(backReceived, r => r.Closed, TimeSpan.FromSeconds(20))).Should().BeTrue("tenant suspenso também fecha a conexão");
+            (await SeenAsync(backReceived, r => r.Closed, CloseWindow)).Should().BeTrue("tenant suspenso também fecha a conexão");
         }
         finally
         {

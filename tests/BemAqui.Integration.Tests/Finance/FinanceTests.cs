@@ -31,7 +31,7 @@ public partial class FinanceTests(TenancyFixture tenancy) : IClassFixture<Tenanc
 
     private WebApplicationFactory<Program>? _factory;
 
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddScoped<IBankAccountUsageProvider, FakeMovement>()));
+    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b.ConfigureTestServices(s => s.AddScoped<IBankAccountUsageProvider, FakeMovement>()));
 
     private static async Task<JsonElement> JsonAsync(HttpResponseMessage response) => await response.Content.ReadFromJsonAsync<JsonElement>();
 

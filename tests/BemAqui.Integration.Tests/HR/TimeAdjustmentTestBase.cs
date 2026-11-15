@@ -44,7 +44,7 @@ public abstract class TimeAdjustmentTestBase(TenancyFixture tenancy) : IDisposab
     /// <summary>A RH-01c usa a trava real (os espelhos fechados); a RH-01b, a simulada.</summary>
     protected virtual bool FakePeriods => true;
 
-    protected WebApplicationFactory<Program> Factory => _factory ??= Tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s =>
+    protected WebApplicationFactory<Program> Factory => _factory ??= Tenancy.Derive(b => b.ConfigureTestServices(s =>
     {
         s.AddSingleton<ILogEventSink>(_sink);
         if (FakePeriods)

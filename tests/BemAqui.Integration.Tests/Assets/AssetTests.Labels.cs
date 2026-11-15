@@ -153,11 +153,11 @@ public partial class AssetTests
         sheetPages.Should().Be(1, "30 etiquetas de 50 × 25 cabem numa folha (3 × 10)");
         sheetWidth.Should().BeApproximately(210 * PointsPerMm, 0.5);
 
-        var before = _jobs.Created.Count;
+        var before = Jobs.Created.Count;
         var queued = await JsonAsync(await supervisor.PostAsJsonAsync(Labels, new { allFromFilter = true, filter = new { q = prefix }, layout = "Label" }));
         queued.GetProperty("queued").GetBoolean().Should().BeTrue();
         queued.GetProperty("count").GetInt32().Should().Be(52, "todos do filtro");
-        var job = _jobs.Created.Skip(before).Single(j => j.Job.Type == typeof(AssetLabelBatchJob)).Job;
+        var job = Jobs.Created.Skip(before).Single(j => j.Job.Type == typeof(AssetLabelBatchJob)).Job;
         job.Args[0].Should().Be(tenancy.TenantA.Id, "job com tenantId (§4.3)");
         var args = (AssetLabelBatchArgs)job.Args[1];
         args.AssetIds.Should().BeEquivalentTo(ids, "só os ids nos argumentos");

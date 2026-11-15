@@ -40,6 +40,9 @@ public sealed class KioskFixture : IAsyncLifetime
         {
             b.UseSetting("ReverseProxy:KnownProxies:0", ProxyIp);
             b.UseSetting("Kiosk:RevalidateSeconds", "2");
+            // O aviso de fim da sessão sai e a conexão fecha depois desta espera (2 s em produção). Com a suíte em paralelo, a busca do long
+            // polling pode levar mais que isso e o aviso se perdia com a conexão já fechada: aqui a espera é folgada e o teste confere a ordem.
+            b.UseSetting("Kiosk:CloseDelaySeconds", "6");
             b.ConfigureTestServices(s => s.AddSingleton<IStartupFilter>(new SocketIpFilter(IPAddress.Parse(ProxyIp))));
         });
         _ = Factory.Server;

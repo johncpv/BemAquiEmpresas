@@ -1,6 +1,8 @@
 using BemAqui.Assets.Contracts;
 using BemAqui.Assets.Domain;
+using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.BuildingBlocks.Time;
+using BemAqui.BuildingBlocks.Web;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
@@ -281,7 +283,17 @@ public sealed partial class MaintenanceService
 
         await ReleaseAssetAsync(asset!, order, cancellationToken);
         events.Publish(new MaintenanceOrderCompleted(order.Id, order.AssetId, asset!.WorkCenterId, order.MachineStopped, order.ScheduledOn));
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (DbErrors.IsUniqueViolation(ex, CostPayableIndex))
+        {
+            // CA 13: outra conclusão da mesma OS gravou primeiro a linha de custo do título. É o mesmo conflito da versão antiga (409), só
+            // que o índice único responde antes da conferência da versão quando o INSERT sai na frente do UPDATE da OS.
+            return Error.Conflict(ConcurrencyExceptionHandler.Code, "OS de manutenção mudou desde que você abriu. Recarregue.");
+        }
+
         await transaction.CommitAsync(cancellationToken);
         return await DetailAsync(order, cancellationToken);
     }

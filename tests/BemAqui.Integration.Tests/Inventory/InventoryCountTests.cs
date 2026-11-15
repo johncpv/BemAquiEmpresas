@@ -39,7 +39,7 @@ public partial class InventoryCountTests(TenancyFixture tenancy) : IClassFixture
 
     private WebApplicationFactory<Program>? _factory;
 
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s =>
+    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b.ConfigureTestServices(s =>
     {
         s.AddScoped<IProductionOrders, FakeOrders>();
         s.AddScoped<IReleasedBomSource, FakeBoms>();

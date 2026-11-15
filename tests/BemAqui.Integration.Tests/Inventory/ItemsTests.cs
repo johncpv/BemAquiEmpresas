@@ -36,7 +36,7 @@ public partial class ItemsTests(TenancyFixture tenancy) : IClassFixture<TenancyF
 
     private WebApplicationFactory<Program>? _factory;
 
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddScoped<IItemUsageProvider, FakeUsage>()));
+    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b.ConfigureTestServices(s => s.AddScoped<IItemUsageProvider, FakeUsage>()));
 
     private static string Code(string prefix) => prefix + "-" + Guid.NewGuid().ToString("N")[..6].ToUpperInvariant();
 
