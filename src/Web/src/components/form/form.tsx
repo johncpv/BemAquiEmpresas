@@ -97,7 +97,7 @@ export function FormSection({ title, description, grid = 'legacy', children }: {
   return (
     <fieldset data-grid={grid} className={cn('rounded-md border border-border bg-card', legacy ? 'p-4' : 'p-4 sm:p-5')}>
       {/* float: a legenda fica dentro do cartão, como título, em vez de cortar a borda. */}
-      <legend className="float-left mb-1 w-full text-[15px] font-semibold">{title}</legend>
+      <legend className="float-left mb-1 w-full text-[17px] font-semibold">{title}</legend>
       {description ? <p className={cn('clear-left text-xs text-muted-foreground', legacy ? 'mb-3' : 'mb-4 max-w-prose')}>{description}</p> : null}
       {legacy ? <div className="clear-left grid gap-3 pt-1 sm:grid-cols-2"><InFormGrid.Provider value={false}>{children}</InFormGrid.Provider></div>
         : <div className="clear-left pt-1">{grid === 'form' ? <FormGrid>{children}</FormGrid> : children}</div>}

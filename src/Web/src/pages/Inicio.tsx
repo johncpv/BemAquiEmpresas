@@ -33,7 +33,7 @@ export function Inicio() {
       <ProximosPassos />
 
       <section aria-labelledby="atalhos">
-        <h2 id="atalhos" className="mb-3 text-[15px] font-semibold">Seus módulos</h2>
+        <h2 id="atalhos" className="mb-3 text-[17px] font-semibold">Seus módulos</h2>
         <ul className="flex flex-wrap gap-2">
           {modules.map((m) => (
             <li key={m.code}>
@@ -59,7 +59,7 @@ export function ProximosPassos() {
   if (steps.length === 0) return null
   return (
     <section aria-labelledby="proximos" className="mb-8">
-      <h2 id="proximos" className="mb-3 text-[15px] font-semibold">Próximos passos</h2>
+      <h2 id="proximos" className="mb-3 text-[17px] font-semibold">Próximos passos</h2>
       <ul className="grid gap-3 sm:grid-cols-3">
         {steps.map((s) => (
           <li key={s.tab}>

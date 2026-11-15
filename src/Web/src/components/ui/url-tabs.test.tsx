@@ -83,3 +83,18 @@ describe('faixa da barra do topo: aba ativa à vista', () => {
     expect(revealed).toBe(true)
   })
 })
+
+describe('UrlTabs: ícone da aba (pedido do PO, 15/11/2026)', () => {
+  it('o ícone vem do vocabulário pelo id, é decorativo e não muda o nome da aba; null tira o ícone', async () => {
+    const withIcons: UrlTab[] = [
+      { id: 'historico', label: 'Histórico de alterações', content: null },
+      { id: 'documentos', label: 'Documentos', icon: null, content: null },
+      { id: 'sem-icone', label: 'Outra', content: null },
+    ]
+    renderWithRouter(() => <UrlTabs tabs={withIcons} label="Registro" />)
+    const history = await screen.findByRole('tab', { name: 'Histórico de alterações' })
+    expect(history.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true')
+    expect(screen.getByRole('tab', { name: 'Documentos' }).querySelector('svg')).toBeNull()
+    expect(screen.getByRole('tab', { name: 'Outra' }).querySelector('svg')).toBeNull()
+  })
+})

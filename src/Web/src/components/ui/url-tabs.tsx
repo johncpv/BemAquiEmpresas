@@ -1,10 +1,14 @@
+import type { LucideIcon } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useRef, useState } from 'react'
 import { useHelpTab } from '@/help/help-context'
+import { TAB_ICONS } from '@/navigation/tab-icons'
 import { useUrlTab } from './url-tab'
 
 export interface UrlTab {
   id: string
   label: string
+  /** Ícone decorativo antes do texto. Sem ele, vale o do vocabulário (TAB_ICONS, pelo id); null tira o ícone. */
+  icon?: LucideIcon | null
   /** Campos inválidos nesta aba (FND-09d CA 10). */
   errors?: number
   disabled?: boolean
@@ -60,9 +64,10 @@ export function UrlTabs({ tabs, fallback, label, help = true }: { tabs: UrlTab[]
             onClick={() => setCurrent(t.id)}
             className="-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground aria-selected:border-primary aria-selected:text-foreground disabled:opacity-50"
           >
+            <TabIcon tab={t} />
             {t.label}
             {t.errors ? (
-              <span className="rounded-full bg-crit px-1.5 text-[10px] font-bold text-critical-foreground tabular-nums">
+              <span className="rounded-full bg-crit px-1.5 text-[11px] font-bold text-critical-foreground tabular-nums">
                 {t.errors}
                 <span className="sr-only"> {t.errors === 1 ? 'erro' : 'erros'}</span>
               </span>
@@ -77,4 +82,10 @@ export function UrlTabs({ tabs, fallback, label, help = true }: { tabs: UrlTab[]
       ))}
     </div>
   )
+}
+
+/** Ícone da aba: o do vocabulário (TAB_ICONS) ou o da própria aba. Decorativo, no tamanho e na cor do texto. */
+function TabIcon({ tab }: { tab: UrlTab }) {
+  const Icon = tab.icon === undefined ? TAB_ICONS[tab.id] : tab.icon
+  return Icon ? <Icon aria-hidden="true" className="size-[1.1em] shrink-0" strokeWidth={1.8} /> : null
 }

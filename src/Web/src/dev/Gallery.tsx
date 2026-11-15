@@ -22,7 +22,7 @@ export default function Gallery() {
       </header>
 
       <section aria-labelledby="tokens" className="space-y-3">
-        <h2 id="tokens" className="text-[15px] font-semibold">Tokens</h2>
+        <h2 id="tokens" className="text-[17px] font-semibold">Tokens</h2>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {SWATCHES.map((token) => (
             <div key={token} className="overflow-hidden rounded-md border border-border bg-card">
@@ -34,7 +34,7 @@ export default function Gallery() {
       </section>
 
       <section aria-labelledby="chips" className="space-y-3">
-        <h2 id="chips" className="text-[15px] font-semibold">Estados</h2>
+        <h2 id="chips" className="text-[17px] font-semibold">Estados</h2>
         <div className="flex flex-wrap gap-2">
           <StatusChip tone="ok">Em dia</StatusChip>
           <StatusChip tone="warn">Em risco</StatusChip>
@@ -50,7 +50,7 @@ export default function Gallery() {
       </section>
 
       <section aria-labelledby="etapas" className="space-y-3">
-        <h2 id="etapas" className="text-[15px] font-semibold">Indicador de etapa</h2>
+        <h2 id="etapas" className="text-[17px] font-semibold">Indicador de etapa</h2>
         <div className="flex flex-wrap gap-6">
           {DEFAULT_STAGES.map((stage, i) => (
             <StageIndicator key={stage} stages={DEFAULT_STAGES} letters={DEFAULT_LETTERS} current={i} />
@@ -63,7 +63,7 @@ export default function Gallery() {
       </section>
 
       <section aria-labelledby="numeros" className="space-y-3">
-        <h2 id="numeros" className="text-[15px] font-semibold">Números</h2>
+        <h2 id="numeros" className="text-[17px] font-semibold">Números</h2>
         <p className="font-display text-[28px] font-bold font-wide">
           <Money value={1234567.5} />
         </p>
@@ -73,17 +73,17 @@ export default function Gallery() {
       </section>
 
       <section aria-labelledby="tabela" className="space-y-3">
-        <h2 id="tabela" className="text-[15px] font-semibold">Tabela</h2>
+        <h2 id="tabela" className="text-[17px] font-semibold">Tabela</h2>
         <GalleryTable />
       </section>
 
       <section aria-labelledby="formulario" className="space-y-3">
-        <h2 id="formulario" className="text-[15px] font-semibold">Formulário</h2>
+        <h2 id="formulario" className="text-[17px] font-semibold">Formulário</h2>
         <GalleryForm />
       </section>
 
       <section aria-labelledby="vazio-erro" className="space-y-3">
-        <h2 id="vazio-erro" className="text-[15px] font-semibold">Vazio, erro e confirmação</h2>
+        <h2 id="vazio-erro" className="text-[17px] font-semibold">Vazio, erro e confirmação</h2>
         <GalleryStates />
       </section>
 
