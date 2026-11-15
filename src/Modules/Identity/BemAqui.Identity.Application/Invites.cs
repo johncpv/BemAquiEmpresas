@@ -88,15 +88,17 @@ public sealed class Invites(IIdentityDb db, IPasswordHasher<User> hasher, IEmail
 
     /// <summary>
     /// Garante o usuário (status Convidado) e um convite pendente. Idempotente: rodar de novo não duplica.
-    /// Usuário já ativo não recebe convite. O token só nasce no envio.
+    /// Usuário já ativo não recebe convite. O token só nasce no envio. <paramref name="employeeId"/> (USR-01) liga o usuário novo ao
+    /// funcionário já na criação, o que reserva o funcionário (índice único de <c>employee_id</c>); quem chama já conferiu a permissão.
     /// </summary>
-    public async Task<Guid?> EnsureInviteAsync(string emailAddress, bool isOwner, Guid? invitedBy, IReadOnlyCollection<Guid>? groupIds = null, string? name = null, CancellationToken cancellationToken = default)
+    public async Task<Guid?> EnsureInviteAsync(string emailAddress, bool isOwner, Guid? invitedBy, IReadOnlyCollection<Guid>? groupIds = null, string? name = null, Guid? employeeId = null, CancellationToken cancellationToken = default)
     {
         var normalized = User.Normalize(emailAddress);
         var user = await db.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalized, cancellationToken);
         if (user is null)
         {
             user = User.Invite(emailAddress, name);
+            user.EmployeeId = employeeId;
             db.Users.Add(user);
         }
         else if (user.Status != UserStatus.Invited)

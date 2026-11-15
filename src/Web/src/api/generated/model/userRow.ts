@@ -20,4 +20,9 @@ export interface UserRow {
   anonymizedAt?: string | null;
   /** @nullable */
   anonymizationRequest?: string | null;
+  /** @nullable */
+  employeeId?: string | null;
+  /** @nullable */
+  employeeName?: string | null;
+  employeeTerminated?: boolean;
 }

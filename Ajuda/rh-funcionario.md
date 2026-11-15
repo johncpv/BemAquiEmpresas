@@ -12,9 +12,9 @@ Ver e alterar os dados gerais do funcionário: nome, matrícula, admissão, jorn
 ## Como usar
 - Altere o que precisar e clique em **Salvar dados gerais**. O botão fica preso no rodapé, logo acima do menu, e avisa **Alterações não salvas** enquanto houver algo para salvar.
 - Para mudar o cargo, use **Trocar cargo** no topo, à direita do nome: a troca entra na linha do tempo, com a vigência e o motivo.
-- **Registrar desligamento** muda a situação para Desligado. Nada é apagado.
+- **Registrar desligamento** muda a situação para Desligado. Nada é apagado. Se o funcionário tiver login no sistema, o login é desativado na hora e a conclusão avisa: "O login de Fulano foi desativado.". A exceção é o grupo Proprietário: o último membro ativo nunca é desativado, e só quem é do Proprietário desativa outro Proprietário; nesses casos a conclusão explica e leva a Usuários.
 - **Registrar afastamento** (com a permissão Ver dados sensíveis) deixa a situação Afastado do início ao fim previsto. O tipo e o motivo ficam na aba Linha do tempo, onde também dá para editar, encerrar antes e cancelar o afastamento. O tipo e o motivo só aparecem com a permissão Ver dados de saúde; sem ela, só as datas.
-- Em **Usuário do sistema**, **Vincular usuário** liga um login ao funcionário (para o ponto e o apontamento). Exige a permissão de editar usuários.
+- Em **Usuário do sistema**, **Convidar como usuário** abre o convite em Sistema → Usuários já com este funcionário escolhido (exige editar funcionários e convidar usuários). **Vincular usuário** liga um login que já existe ao funcionário (para o ponto e o apontamento). Exige a permissão de editar usuários. Um convite ainda não aceito aparece com "Convite pendente"; um login desativado, com "Login desativado".
 
 ## Imprimir e exportar
 - Com a permissão **Ver dados sensíveis**, o bloco **Holerites** mostra os 6 últimos holerites do funcionário: competência, tipo (Mensal, Férias, 13º, Rescisão), líquido e a situação da folha. **Baixar holerite** baixa o PDF de cada um; holerite de folha ainda em lançamento sai com a marca d'água de rascunho.
@@ -25,6 +25,8 @@ Ver e alterar os dados gerais do funcionário: nome, matrícula, admissão, jorn
 **O que é a matrícula?** Um código do funcionário na empresa, se houver. É opcional e não se repete.
 
 **Vincular o usuário muda as permissões dele?** Não. O vínculo só diz que aquele login é deste funcionário. Grupos e permissões continuam em Sistema → Usuários.
+
+**O funcionário desligado volta e o login?** O estorno do desligamento (aba Rescisão) não reativa o login sozinho: a conclusão oferece **Reativar o login**.
 
 **Por que não consigo excluir?** Funcionário com linha do tempo, apontamento ou usuário vinculado não é excluído. Registre o desligamento.
 

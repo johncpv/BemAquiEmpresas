@@ -1,8 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { deactivateUser, deleteEmployee, getGetEmployeeQueryKey, getGetEmployeeTerminationQueryKey, getGetEmployeeTimelineQueryKey, getGetEmployeeUserQueryKey, getListEmployeeLeavesSensitiveQueryKey, useGetEmployee, useGetEmployeeBankStatus, useGetEmployeeUser } from '@/api/generated/bemaqui'
-import type { EmployeeDetail } from '@/api/generated/model'
+import { deleteEmployee, getGetEmployeeQueryKey, getGetEmployeeTerminationQueryKey, getGetEmployeeTimelineQueryKey, getGetEmployeeUserQueryKey, getListEmployeeLeavesSensitiveQueryKey, useGetEmployee, useGetEmployeeBankStatus, useGetEmployeeUser } from '@/api/generated/bemaqui'
+import type { EmployeeDetail, TerminationLogin } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { AnonymizedBand } from '@/components/ui/anonymized-band'
@@ -11,7 +11,6 @@ import { NextSteps } from '@/components/ui/next-steps'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
-import { notifySuccess } from '@/components/ui/messages'
 import { useUrlTab } from '@/components/ui/url-tab'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { Can } from '@/pages/ModuleGate'
@@ -52,6 +51,7 @@ export function EmployeePage() {
   const [linking, setLinking] = useState(false)
   const [terminating, setTerminating] = useState(false)
   const [leaving, setLeaving] = useState(false)
+  const [login, setLogin] = useState<TerminationLogin | null>(null)
 
   if (query.isPending) return <div className="space-y-3"><Skeleton className="h-10 w-2/3" /><Skeleton className="h-96" /></div>
   if (query.isError || !query.data) {
@@ -75,13 +75,12 @@ export function EmployeePage() {
     ...(canEdit && canSensitive ? [{ label: 'Completar dados pessoais', onSelect: () => setTab('pessoais') }] : []),
     ...(canEdit && canUsers && !user ? [{ label: 'Vincular usuário', onSelect: () => { setTab('geral'); setLinking(true) } }] : []),
   ]
-  // FLH-05: depois do desligamento, o próximo passo é calcular a rescisão.
+  // FLH-05: depois do desligamento, o próximo passo é calcular a rescisão. USR-01: o login já foi desativado no desligamento; quando o
+  // Proprietário segurou o login, o passo leva a Usuários.
+  const kept = login?.outcome === 'KeptLastOwner' || login?.outcome === 'KeptOwner'
   const terminatedSteps = [
     ...(canSensitive ? [{ label: 'Calcular rescisão', onSelect: () => { setTab('rescisao'); setSteps(null); void client.invalidateQueries({ queryKey: getGetEmployeeTerminationQueryKey(id) }) } }] : []),
-    ...(canUsers && user ? [{
-      label: `Desativar o usuário ${user.name}`,
-      onSelect: async () => { await deactivateUser(user.userId); notifySuccess('Usuário desativado'); setSteps(null); void client.invalidateQueries({ queryKey: getGetEmployeeUserQueryKey(id) }) },
-    }] : []),
+    ...(canUsers && kept ? [{ label: 'Abrir Usuários', onSelect: () => { void navigate({ to: '/app/acessos/usuarios' }) } }] : []),
   ]
   const leaveSteps = [{ label: 'Ver na linha do tempo', onSelect: () => { setTab('linha-do-tempo'); setSteps(null) } }]
   // CAD-04c2: depois do primeiro dependente, o próximo passo é a conta para pagamento.
@@ -123,7 +122,11 @@ export function EmployeePage() {
         <LeaveDialog employee={employee} canHealth={canHealth} open={leaving} onOpenChange={setLeaving} onReload={() => query.refetch()}
           onDone={(e) => { setEmployee(e); void client.invalidateQueries({ queryKey: getListEmployeeLeavesSensitiveQueryKey(id) }); setSteps('leave') }} />
       ) : null}
-      <TerminationDialog employee={employee} open={terminating} onOpenChange={setTerminating} onDone={(e) => { setEmployee(e); setSteps('terminated') }} />
+      <TerminationDialog employee={employee} open={terminating} onOpenChange={setTerminating}
+        onDone={(done) => { setEmployee(done.employee); setLogin(done.login); setSteps('terminated'); void client.invalidateQueries({ queryKey: getGetEmployeeUserQueryKey(id) }) }} />
+      {steps === 'terminated' && login?.message ? (
+        <p role="status" className={`mb-2 rounded-md border px-3 py-2 text-sm ${kept ? 'border-warn-soft bg-warn-soft text-warn-ink' : 'border-ok-soft bg-ok-soft text-ok-ink'}`}>{login.message}</p>
+      ) : null}
       {shown.length > 0 ? <div className="mb-4"><NextSteps onDismiss={() => setSteps(null)} steps={shown} /></div> : null}
       <UrlTabs label="Seções do funcionário" fallback="geral" tabs={[
         { id: 'geral', label: 'Dados gerais', keepMounted: true, content: <EmployeeGeneral key={employee.id + employee.positionId} employee={employee} canEdit={canEdit} onSaved={setEmployee} linking={linking} onLinkingChange={setLinking} /> },

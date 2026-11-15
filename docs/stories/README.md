@@ -1013,3 +1013,14 @@ Total: 5 stories (M: 3 · G: 2): EXP-01 `InProgress`; EXP-02 a EXP-05 `Ready`.
 4. **Conteúdo:** a exportação usa o mesmo serviço da tela, sem paginação e com os mesmos filtros; a contagem e os totais do arquivo são os da tela. Documento impresso para o chão de fábrica, almoxarifado ou fornecedor nunca leva custo.
 5. **Testes:** integração do endpoint e do conteúdo (xlsx lido com ClosedXML, PDF com texto extraído na imagem Alpine); Vitest do botão na tela; E2E com download só em 1 ou 2 fluxos-chave por story. Acesso por rota fica com a varredura (`EndpointAuthorizationTests`).
 6. **Ajuda:** toda tela que ganha botão ganha a seção "Imprimir e exportar" na `Ajuda/<chave>.md` do mesmo commit (o teste de cobertura não detecta seção faltando: item do DoD).
+
+---
+
+# Pós-go-live: usuários e funcionários
+
+Decisões do PO de 14/11/2026: o desligamento do funcionário desativa o login vinculado automaticamente; o vínculo usuário ↔ funcionário continua opcional (usuário externo, ex.: a contadora).
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 | USR-01 | Usuário ↔ funcionário: convite com funcionário, "Convidar como usuário" na ficha, coluna e filtros na lista de usuários e desligamento que desativa o login | M | Done | Decisões do PO de 14/11/2026, FND-06c, CAD-04b CA 17 a 20, R-SEC-5, R-PRP-2 | FND-06c, CAD-04b, FLH-05 | [USR-01](USR-01-usuario-funcionario.md) |

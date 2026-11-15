@@ -77,8 +77,8 @@ export function NotifyDialog({ run, notices, onlyChanged = false, open, onOpenCh
   const navigate = useNavigate()
   const idempotency = useIdempotencyKey()
   const n = notices ? (onlyChanged ? notices.changed : notices.pending) : 0
-  const invite = (name: string, email?: string | null) => {
-    saveInviteSuggestion(name, email)
+  const invite = (name: string, email?: string | null, employeeId?: string) => {
+    saveInviteSuggestion(name, email, employeeId)
     void navigate({ to: '/app/acessos/usuarios', search: { convidar: '1' } as never })
   }
 
@@ -103,7 +103,7 @@ export function NotifyDialog({ run, notices, onlyChanged = false, open, onOpenCh
                 {notices.withoutUser.map((p) => (
                   <li key={p.employeeId} className="flex flex-wrap items-center justify-between gap-2">
                     <span>{p.name}{p.registration ? ` · ${p.registration}` : ''}</span>
-                    <button type="button" className="min-h-11 font-semibold text-primary underline sm:min-h-0" onClick={() => invite(p.name, p.suggestedEmail)}>Convidar usuário</button>
+                    <button type="button" className="min-h-11 font-semibold text-primary underline sm:min-h-0" onClick={() => invite(p.name, p.suggestedEmail, p.employeeId)}>Convidar usuário</button>
                   </li>
                 ))}
               </ul>

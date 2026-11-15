@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { getGetEmployeeUserQueryKey, getListLinkableUsersQueryKey, linkEmployeeUser, unlinkEmployeeUser, useGetEmployeeUser, useListLinkableUsers } from '@/api/generated/bemaqui'
 import type { EmployeeDetail } from '@/api/generated/model'
@@ -7,15 +8,25 @@ import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogMessage } from '@/components/ui/dialog-message'
 import { Skeleton } from '@/components/ui/states'
+import { StatusChip } from '@/components/ui/status-chip'
+import { saveInviteSuggestion } from '@/pages/hr/payroll/payslip-notices'
 import { useCan } from '@/pages/use-can'
 
 interface Props { employee: EmployeeDetail; linking?: boolean; onLinkingChange?: (open: boolean) => void }
 
-/** Usuário do sistema ligado ao funcionário (CA 19 e 20): vincular e desvincular exigem hr.edit e identity.edit. */
+const LOGIN_STATUS = { Invited: ['warn', 'Convite pendente'], Inactive: ['crit', 'Login desativado'] } as const
+
+/**
+ * Usuário do sistema ligado ao funcionário (CA 19 e 20): vincular e desvincular exigem hr.edit e identity.edit. USR-01 CA 5: sem usuário,
+ * "Convidar como usuário" (hr.edit e identity.create) abre o convite em Usuários já com o funcionário escolhido.
+ */
 export function EmployeeUser({ employee, linking, onLinkingChange }: Props) {
   const client = useQueryClient()
+  const navigate = useNavigate()
   const canEditHr = useCan('hr.edit')
   const canEditUsers = useCan('identity.edit')
+  const canCreateUsers = useCan('identity.create')
+  const canInvite = canEditHr && canCreateUsers && employee.status !== 'Terminated'
   const canLink = canEditHr && canEditUsers
   const linked = useGetEmployeeUser(employee.id)
   const [own, setOwn] = useState(false)
@@ -28,11 +39,17 @@ export function EmployeeUser({ employee, linking, onLinkingChange }: Props) {
 
   if (linked.isPending) return <Skeleton className="h-20" />
   const user = linked.data?.user ?? null
+  const loginStatus = user ? LOGIN_STATUS[user.status as keyof typeof LOGIN_STATUS] : undefined
+  const invite = () => {
+    saveInviteSuggestion(employee.name, null, employee.id)
+    void navigate({ to: '/app/acessos/usuarios' })
+  }
+
   return (
-    <FormSection title="Usuário do sistema" description="O vínculo liga o login ao funcionário (ponto, apontamento). Não muda grupo nem permissão." grid="none">
+    <FormSection title="Usuário do sistema" description="O vínculo liga o login ao funcionário (ponto, apontamento). Não muda grupo nem permissão. Ao registrar o desligamento, o login é desativado." grid="none">
       {user ? (
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-          <span><b>{user.name}</b> <span className="text-muted-foreground">{user.email}</span></span>
+          <span className="inline-flex flex-wrap items-center gap-2"><b>{user.name}</b> <span className="text-muted-foreground">{user.email}</span>{loginStatus ? <StatusChip tone={loginStatus[0]}>{loginStatus[1]}</StatusChip> : null}</span>
           {canLink ? (
             <ConfirmDialog verb="Desvincular" done="Usuário desvinculado" title={`Desvincular o usuário ${user.name}?`} description="O login continua ativo, só deixa de ser deste funcionário."
               onConfirm={async () => { await unlinkEmployeeUser(employee.id); await refresh() }}
@@ -42,12 +59,15 @@ export function EmployeeUser({ employee, linking, onLinkingChange }: Props) {
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
           <span className="text-muted-foreground">Nenhum usuário vinculado.</span>
-          {canLink ? (
-            <>
-              <button type="button" onClick={() => setOpen(true)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Vincular usuário</button>
-              <LinkDialog employee={employee} open={open} onOpenChange={setOpen} onDone={refresh} />
-            </>
-          ) : null}
+          <span className="flex flex-wrap gap-2">
+            {canInvite ? <button type="button" onClick={invite} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Convidar como usuário</button> : null}
+            {canLink ? (
+              <>
+                <button type="button" onClick={() => setOpen(true)} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Vincular usuário</button>
+                <LinkDialog employee={employee} open={open} onOpenChange={setOpen} onDone={refresh} />
+              </>
+            ) : null}
+          </span>
         </div>
       )}
     </FormSection>

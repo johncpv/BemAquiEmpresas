@@ -34,9 +34,10 @@ export const plural = (n: number, one: string, many: string) => `${n} ${n === 1 
 /** Sugestão do convite (CA 7, propositivo): guardada só na sessão do navegador, nunca na URL. */
 export const INVITE_SUGGESTION_KEY = 'bq-convite-sugerido'
 
-export function saveInviteSuggestion(name: string, email: string | null | undefined) {
+/** USR-01: o funcionário também vai na sugestão; o convite abre com ele escolhido (o vínculo nasce com o usuário convidado). */
+export function saveInviteSuggestion(name: string, email: string | null | undefined, employeeId?: string) {
   try {
-    sessionStorage.setItem(INVITE_SUGGESTION_KEY, JSON.stringify({ name, email: email ?? '' }))
+    sessionStorage.setItem(INVITE_SUGGESTION_KEY, JSON.stringify({ name, email: email ?? '', employeeId }))
   } catch {
     // sem armazenamento: o convite abre vazio
   }
@@ -51,12 +52,13 @@ export function clearInviteSuggestion() {
 }
 
 /** Lê sem apagar (o inicializador do estado roda duas vezes no modo estrito); quem abre o convite limpa depois. */
-export function peekInviteSuggestion(): { name: string; email: string } | null {
+export function peekInviteSuggestion(): { name: string; email: string; employeeId?: string } | null {
   try {
     const raw = sessionStorage.getItem(INVITE_SUGGESTION_KEY)
     if (!raw) return null
-    const v = JSON.parse(raw) as { name?: unknown; email?: unknown }
-    return typeof v.name === 'string' ? { name: v.name, email: typeof v.email === 'string' ? v.email : '' } : null
+    const v = JSON.parse(raw) as { name?: unknown; email?: unknown; employeeId?: unknown }
+    if (typeof v.name !== 'string') return null
+    return { name: v.name, email: typeof v.email === 'string' ? v.email : '', ...(typeof v.employeeId === 'string' && v.employeeId ? { employeeId: v.employeeId } : {}) }
   } catch {
     return null
   }

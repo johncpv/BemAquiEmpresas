@@ -10,4 +10,6 @@ export interface InviteUserRequest {
   email: string;
   /** @nullable */
   groupIds: string[] | null;
+  /** @nullable */
+  employeeId?: string | null;
 }

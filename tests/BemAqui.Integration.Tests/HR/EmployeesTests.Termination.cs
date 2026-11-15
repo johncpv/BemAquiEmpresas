@@ -20,7 +20,7 @@ public partial class EmployeesTests
         (await owner.DeleteAsync($"/api/v1/hr/positions/{position}")).StatusCode.Should().Be(HttpStatusCode.Conflict, "cargo com funcionário ativo não é excluído");
 
         (await owner.PostAsJsonAsync($"/api/v1/hr/employees/{used}/termination", new { terminationDate = "2020-01-01" })).StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity, "antes da admissão");
-        var terminated = await JsonAsync(await owner.PostAsJsonAsync($"/api/v1/hr/employees/{used}/termination", new { terminationDate = "2026-09-30" }));
+        var terminated = (await JsonAsync(await owner.PostAsJsonAsync($"/api/v1/hr/employees/{used}/termination", new { terminationDate = "2026-09-30" }))).GetProperty("employee");
         terminated.GetProperty("status").GetString().Should().Be("Terminated");
         terminated.GetProperty("terminationDate").GetString().Should().Be("2026-09-30");
         (await owner.GetStringAsync("/api/v1/hr/employees?status=Terminated&q=Carlos")).Should().Contain("Carlos Desligado");

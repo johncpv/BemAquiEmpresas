@@ -9,4 +9,5 @@ export interface LinkableUser {
   userId: string;
   name: string;
   email: string;
+  status?: string;
 }

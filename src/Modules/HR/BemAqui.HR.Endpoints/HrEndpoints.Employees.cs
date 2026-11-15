@@ -39,7 +39,10 @@ internal static partial class HrEndpoints
         employees.MapPost("/{id:guid}/position", async (Guid id, PositionChangeInput input, EmployeeService service, CancellationToken ct) => (await service.ChangePositionAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("ChangeEmployeePosition").Produces<EmployeeDetail>();
         employees.MapPost("/{id:guid}/termination", async (Guid id, TerminationInput input, EmployeeService service, CancellationToken ct) => (await service.TerminateAsync(id, input, ct)).ToHttpResult())
-            .RequirePermission("hr.edit").WithName("TerminateEmployee").Produces<EmployeeDetail>();
+            .RequirePermission("hr.edit").WithName("TerminateEmployee").Produces<EmployeeTerminationDone>();
+        // USR-01 CA 1: o campo "Funcionário" do convite (hr.edit na rota, identity.create no serviço).
+        employees.MapGet("/invitable", async (EmployeeService service, CancellationToken ct) => (await service.InvitableAsync(ct)).ToHttpResult())
+            .RequirePermission("hr.edit").WithName("ListInvitableEmployees").Produces<IReadOnlyList<InvitableEmployee>>();
         // Afastamentos (CAD-04c1): registrar exige hr.edit e, no serviço, hr.view_sensitive; tipo, datas e motivo só pela rota /sensitive.
         employees.MapPost("/{id:guid}/leaves", async (Guid id, LeaveInput input, EmployeeService service, CancellationToken ct) => (await service.RegisterLeaveAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("RegisterEmployeeLeave").Produces<EmployeeDetail>();

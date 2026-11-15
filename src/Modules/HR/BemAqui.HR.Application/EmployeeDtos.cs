@@ -122,3 +122,12 @@ public sealed record TimelineEntry(Guid Id, EmployeeHistoryKind Kind, DateOnly E
 
 /// <summary>Usuário vinculado ao funcionário, ou null (CA 19).</summary>
 public sealed record LinkedUserView(BemAqui.Identity.Contracts.LinkableUser? User);
+
+/// <summary>Desligamento registrado (CA 17) e o que aconteceu com o login vinculado (USR-01 CA 9 a 12).</summary>
+public sealed record EmployeeTerminationDone(EmployeeDetail Employee, BemAqui.Identity.Contracts.TerminationLogin Login);
+
+/// <summary>
+/// Funcionário ativo ainda sem usuário, para o convite (USR-01 CA 1). O e-mail pessoal só vem com <c>hr.view_sensitive</c> (dado pessoal);
+/// sem ele, quem convida digita o e-mail.
+/// </summary>
+public sealed record InvitableEmployee(Guid Id, string Name, string? Registration, string? Email);

@@ -699,5 +699,15 @@ Pedido do PO de 02/11/2026: todo documento gerado tem PDF para imprimir e as lis
 
 ---
 
+## Pós-go-live: usuários e funcionários
+
+Decisões do PO de 14/11/2026: o desligamento desativa o login vinculado; o vínculo continua opcional (usuário externo). [Detalhe no README](stories/README.md#pós-go-live-usuários-e-funcionários).
+
+**USR-01 [x] Usuário ↔ funcionário: convite com funcionário, "Convidar como usuário" na ficha, coluna e filtros na lista de usuários e desligamento que desativa o login (M)** — Pós-go-live, ordem 1 — `Done` (14/11/2026) — [story](stories/USR-01-usuario-funcionario.md)
+- Requisitos: decisões do PO de 14/11/2026, FND-06c, CAD-04b CA 17 a 20, R-SEC-5, R-PRP-2, ADR 0006, ADR 0008.
+- CA: campo opcional "Funcionário" no convite (só com `hr.edit`; ativos sem usuário; preenche nome e, com `hr.view_sensitive`, o e-mail; o vínculo nasce com o usuário convidado e reserva o funcionário; 409 `employee_already_linked`); "Convidar como usuário" na ficha; coluna "Funcionário" ("Externo" sem vínculo, link para a ficha com `hr.view`) e filtro "Mostrar: Sem funcionário / Sem grupo"; o desligamento registrado desativa o login pelo caminho do "Desativar" (sessões caem, PIN sem efeito, auditoria `DeactivatedByTermination`), mantém o Proprietário pelas regras do grupo e a conclusão diz "O login de Fulano foi desativado."; o estorno do desligamento não reativa sozinho e oferece "Reativar o login".
+
+---
+
 ## Fase 9 — Evolução
 Ponto como registro oficial (REP-P / Portaria 671; P-26, depois do MVP) · Depreciação · Retalhos de corte · Etapas terceirizadas · SSO · Contratos de manutenção recorrente (se validado).

@@ -1,6 +1,8 @@
 using System.Text.Json;
+using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
+using BemAqui.HR.Contracts;
 using BemAqui.Identity.Domain;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
@@ -9,10 +11,16 @@ namespace BemAqui.Identity.Application;
 
 public sealed record GroupChip(Guid Id, string Name);
 
-/// <summary>Linha da aba Usuários (protótipo): grupos, 2FA (<c>active</c>, <c>pending</c>, <c>required_pending</c>), último acesso e situação.</summary>
-public sealed record UserRow(Guid Id, string Name, string Email, IReadOnlyList<GroupChip> Groups, string TwoFactor, DateTimeOffset? LastLoginAt, string Status, bool InviteOpen, DateTimeOffset? AnonymizedAt = null, string? AnonymizationRequest = null);
+/// <summary>
+/// Linha da aba Usuários (protótipo): grupos, 2FA (<c>active</c>, <c>pending</c>, <c>required_pending</c>), último acesso e situação. O
+/// funcionário vinculado (USR-01 CA 6) vem com o nome e se está desligado; sem vínculo, o usuário é externo (ex.: a contadora).
+/// </summary>
+public sealed record UserRow(
+    Guid Id, string Name, string Email, IReadOnlyList<GroupChip> Groups, string TwoFactor, DateTimeOffset? LastLoginAt, string Status, bool InviteOpen,
+    DateTimeOffset? AnonymizedAt = null, string? AnonymizationRequest = null, Guid? EmployeeId = null, string? EmployeeName = null, bool EmployeeTerminated = false);
 
-public sealed record InviteUserRequest(string Name, string Email, IReadOnlyList<Guid>? GroupIds);
+/// <summary>Convite (FND-06c); <c>EmployeeId</c> opcional liga o usuário ao funcionário já na criação (USR-01 CA 1 a 4).</summary>
+public sealed record InviteUserRequest(string Name, string Email, IReadOnlyList<Guid>? GroupIds, Guid? EmployeeId = null);
 
 public sealed record UserInvited(Guid Id, string Email);
 
@@ -20,27 +28,37 @@ public sealed record UserInvited(Guid Id, string Email);
 /// Usuários do tenant (FND-06c): convite com grupos sob a delegação da ADR 0008, reenvio e cancelamento, desativar sem
 /// apagar histórico e reativar. Toda mudança sobe a versão de permissões do usuário (vale no próximo request).
 /// </summary>
-public sealed partial class UserService(IIdentityDb db, Invites invites, GroupService groups, UserLifecycle lifecycle, IPermissionService permissions, TwoFactorRequirement twoFactor, TimeProvider clock)
+public sealed partial class UserService(
+    IIdentityDb db, Invites invites, GroupService groups, UserLifecycle lifecycle, IPermissionService permissions, TwoFactorRequirement twoFactor,
+    IPermissionChecker checker, IEmployees employees, TimeProvider clock)
 {
     public const string OwnerNeedsActiveMember = "O grupo Proprietário precisa ter ao menos um membro ativo.";
+    public const string EmployeeAlreadyLinkedMessage = "Este funcionário já tem um usuário vinculado. Desvincule antes.";
 
     public async Task<IReadOnlyList<UserRow>> ListAsync(CancellationToken cancellationToken = default)
     {
         var users = await db.Users.AsNoTracking().OrderBy(u => u.Name).ThenBy(u => u.Email).ToListAsync(cancellationToken);
         var memberships = await db.UserGroups.Join(db.Groups, ug => ug.GroupId, g => g.Id, (ug, g) => new { ug.UserId, g.Id, g.Name, g.IsActive }).ToListAsync(cancellationToken);
         var open = (await db.UserInvites.Where(i => i.AcceptedAt == null && i.CanceledAt == null).Select(i => i.UserId).ToListAsync(cancellationToken)).ToHashSet();
+        var linked = users.Where(u => u.EmployeeId is not null).Select(u => u.EmployeeId!.Value).ToList();
+        var staff = linked.Count == 0 ? new Dictionary<Guid, EmployeeSummary>() : (await employees.FindAsync(linked, cancellationToken)).ToDictionary(e => e.Id);
         var rows = new List<UserRow>(users.Count);
         foreach (var user in users)
         {
             var chips = memberships.Where(m => m.UserId == user.Id && m.IsActive).Select(m => new GroupChip(m.Id, m.Name)).ToList();
             var tfa = user.TotpEnabled ? "active" : user.Status == UserStatus.Active && await twoFactor.IsRequiredAsync(user, cancellationToken) ? "required_pending" : "pending";
-            rows.Add(new UserRow(user.Id, user.Name, user.Email, chips, tfa, user.LastLoginAt, user.Status.ToString(), open.Contains(user.Id), user.AnonymizedAt, user.AnonymizationRequest));
+            var employee = user.EmployeeId is { } employeeId ? staff.GetValueOrDefault(employeeId) : null;
+            rows.Add(new UserRow(user.Id, user.Name, user.Email, chips, tfa, user.LastLoginAt, user.Status.ToString(), open.Contains(user.Id), user.AnonymizedAt, user.AnonymizationRequest,
+                user.EmployeeId, employee?.Name, employee is { Status: EmployeeSituation.Terminated }));
         }
 
         return rows;
     }
 
-    /// <summary>"Enviar convite" (CA 5, 6, 8): e-mail já cadastrado é informado; grupos passam pela delegação.</summary>
+    /// <summary>
+    /// "Enviar convite" (CA 5, 6, 8): e-mail já cadastrado é informado; grupos passam pela delegação. Com funcionário (USR-01 CA 1 a 4): exige
+    /// também <c>hr.edit</c>, o funcionário ativo e sem usuário; o vínculo nasce com o usuário convidado e reserva o funcionário.
+    /// </summary>
     public async Task<Result<UserInvited>> InviteAsync(InviteUserRequest request, Guid actorId, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -65,9 +83,24 @@ public sealed partial class UserService(IIdentityDb db, Invites invites, GroupSe
             return denied;
         }
 
-        var id = await invites.EnsureInviteAsync(email, isOwner: false, invitedBy: actorId, groupIds, request.Name.Trim(), cancellationToken);
+        if (request.EmployeeId is { } employeeId && await EmployeeLinkErrorAsync(employeeId, cancellationToken) is { } invalid)
+        {
+            return invalid;
+        }
+
+        Guid? id;
+        try
+        {
+            id = await invites.EnsureInviteAsync(email, isOwner: false, invitedBy: actorId, groupIds, request.Name.Trim(), request.EmployeeId, cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Corrida com outro vínculo do mesmo funcionário: o índice único de employee_id decide.
+            return Error.Conflict("employee_already_linked", EmployeeAlreadyLinkedMessage);
+        }
+
         await invites.SendAsync(email, await NameOfAsync(actorId, cancellationToken), cancellationToken);
-        Audit(id!.Value, "UserInvited", actorId, new { email, groups = groupIds });
+        Audit(id!.Value, "UserInvited", actorId, new { email, groups = groupIds, employeeId = request.EmployeeId });
         await db.SaveChangesAsync(cancellationToken);
         return new UserInvited(id.Value, email);
     }
@@ -105,6 +138,25 @@ public sealed partial class UserService(IIdentityDb db, Invites invites, GroupSe
         Audit(userId, "InviteCanceled", actorId, new { });
         await db.SaveChangesAsync(cancellationToken);
         return Result.Success();
+    }
+
+    /// <summary>USR-01 CA 2 a 4: vincular no convite exige <c>hr.edit</c> (como na ficha), funcionário ativo e ainda sem usuário.</summary>
+    private async Task<Error?> EmployeeLinkErrorAsync(Guid employeeId, CancellationToken cancellationToken)
+    {
+        if (!await checker.HasPermissionAsync("hr", "edit", cancellationToken))
+        {
+            return Error.Forbidden(Error.Codes.Forbidden, "Vincular o convite a um funcionário exige também editar funcionários (RH).");
+        }
+
+        var found = await employees.FindAsync([employeeId], cancellationToken);
+        if (found.Count == 0 || !found[0].IsActive)
+        {
+            return Error.Validation(Error.Codes.Validation, "Escolha um funcionário ativo da lista.", new Dictionary<string, string[]> { ["employeeId"] = ["Escolha um funcionário ativo da lista."] });
+        }
+
+        return await db.Users.AnyAsync(u => u.EmployeeId == employeeId, cancellationToken)
+            ? Error.Conflict("employee_already_linked", EmployeeAlreadyLinkedMessage)
+            : null;
     }
 
     private async Task<string?> NameOfAsync(Guid userId, CancellationToken cancellationToken) =>
