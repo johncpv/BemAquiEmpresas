@@ -42,6 +42,13 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
 
     public DbSet<WebhookCredential> WebhookCredentials => Set<WebhookCredential>();
 
+    /// <summary>Todo <see cref="DateTimeOffset"/> vai ao banco em UTC, venha com o offset que vier (<see cref="UtcDateTimeOffsetConverter"/>).</summary>
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        UtcDateTimeOffsetConverter.Apply(configurationBuilder);
+        base.ConfigureConventions(configurationBuilder);
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
