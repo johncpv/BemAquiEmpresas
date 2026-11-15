@@ -11,7 +11,6 @@ import { ThemeProvider } from '@/theme/ThemeProvider'
 
 vi.mock('@/api/generated/bemaqui', async (original) => ({
   ...(await original<typeof import('@/api/generated/bemaqui')>()),
-  refreshSession: vi.fn(),
   login: vi.fn(),
   verifyTwoFactor: vi.fn(),
   inspectInvite: vi.fn(),
@@ -32,16 +31,21 @@ function renderAt(path: string) {
   return router
 }
 
+/** Sem cookie de refresh: o POST /auth/refresh responde 422 auth.session_expired (sem nova tentativa). */
+const noSession = () =>
+  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ code: 'auth.session_expired' }), { status: 422, headers: { 'Content-Type': 'application/json' } })))
+
 const fill = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } })
 
 describe('telas de autenticação (FND-04, FND-05)', () => {
   afterEach(() => {
     vi.clearAllMocks()
+    vi.unstubAllGlobals()
     setAccessToken(null)
   })
 
   it('sem sessão, /app vai para o login guardando a rota', async () => {
-    vi.mocked(api.refreshSession).mockRejectedValue(new ApiError(422, {}))
+    noSession()
     const router = renderAt('/app/financeiro')
     await screen.findByRole('heading', { name: 'Entrar' })
     expect(router.state.location.pathname).toBe('/entrar')
@@ -49,7 +53,7 @@ describe('telas de autenticação (FND-04, FND-05)', () => {
   })
 
   it('erro de login mostra a mensagem uniforme do servidor', async () => {
-    vi.mocked(api.refreshSession).mockRejectedValue(new ApiError(422, {}))
+    noSession()
     vi.mocked(api.login).mockRejectedValue(new ApiError(422, { detail: 'E-mail ou senha inválidos.', code: 'auth.invalid_credentials' }))
     renderAt('/entrar')
     await screen.findByLabelText('E-mail')
@@ -79,7 +83,7 @@ describe('telas de autenticação (FND-04, FND-05)', () => {
   })
 
   it('login vindo do tablet da fábrica (aparelho=1) pede sessão sem refresh e marca a sessão como do tablet (PRD-03b CA 6)', async () => {
-    vi.mocked(api.refreshSession).mockRejectedValue(new ApiError(422, {}))
+    noSession()
     vi.mocked(api.login).mockResolvedValue({ accessToken: 'tok-tablet', expiresAt: '2026-10-18T10:15:00Z', twoFactor: null })
     renderAt('/entrar?volta=%2Fapp%2Fconta&aparelho=1')
     expect(await screen.findByRole('heading', { name: 'Entrar no tablet da fábrica' })).toBeDefined()
@@ -92,7 +96,7 @@ describe('telas de autenticação (FND-04, FND-05)', () => {
   })
 
   it('sem sessão, o /fab vai para a entrada do tablet, não para o login do backoffice (PRD-03b)', async () => {
-    vi.mocked(api.refreshSession).mockRejectedValue(new ApiError(422, {}))
+    noSession()
     const router = renderAt('/fab')
     await waitFor(() => expect(router.state.location.pathname).toBe('/fab/entrar'))
   })
