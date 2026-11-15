@@ -21,19 +21,45 @@ export class ApiError extends Error {
 const REFRESH = '/api/v1/auth/refresh'
 let refreshing: Promise<boolean> | null = null
 
-/** Um único refresh por vez, mesmo com várias chamadas recebendo 401 juntas (FND-09c CA 3). */
-function refreshSession(): Promise<boolean> {
-  refreshing ??= fetch(REFRESH, { method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF': '1' } })
-    .then(async (r) => {
-      if (!r.ok) return false
-      const body = (await r.json()) as { accessToken?: string }
-      setAccessToken(body.accessToken ?? null)
-      return !!body.accessToken
-    })
-    .catch(() => false)
-    .finally(() => {
-      refreshing = null
-    })
+/** Falha passageira do refresh (rede, 408, 429 do limite de /api/v1/auth, 5xx): a sessão pode estar boa, vale tentar de novo. */
+const transient = (status: number) => status === 408 || status === 429 || status >= 500
+
+/** Espera antes da segunda tentativa: o Retry-After do 429, no máximo 3 s; sem ele, 1 s. */
+function retryDelay(response: Response | null): number {
+  const seconds = Number(response?.headers.get('Retry-After'))
+  return Number.isFinite(seconds) && seconds > 0 ? Math.min(seconds, 3) * 1000 : 1000
+}
+
+async function postRefresh(): Promise<Response | null> {
+  try {
+    return await fetch(REFRESH, { method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF': '1' } })
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Renova a sessão pelo cookie de refresh (HttpOnly). Uma única ida por vez para o app inteiro (FND-09c CA 3): o guarda de rota, a
+ * retomada ao abrir a página e o 401 de qualquer chamada esperam a mesma promessa. Antes eram três chamadores com travas
+ * separadas, e cada carga de página fazia dois POST /auth/refresh, gastando em dobro o limite de /api/v1/auth (20 por minuto por
+ * IP e tenant); o 429 levava ao login com a sessão válida. Falha passageira tenta de novo uma vez; a recusa do servidor
+ * (422 auth.session_expired) não.
+ */
+export function renewSession(): Promise<boolean> {
+  refreshing ??= (async () => {
+    let response = await postRefresh()
+    if (!response || transient(response.status)) {
+      await new Promise((resolve) => setTimeout(resolve, retryDelay(response)))
+      response = await postRefresh()
+    }
+
+    if (!response?.ok) return false
+    const body = (await response.json().catch(() => ({}))) as { accessToken?: string }
+    setAccessToken(body.accessToken ?? null)
+    return !!body.accessToken
+  })().finally(() => {
+    refreshing = null
+  })
   return refreshing
 }
 
@@ -83,7 +109,7 @@ async function exchange(url: string, options: RequestInit): Promise<{ response: 
   if (response.status === 401 && url.startsWith(PLATFORM) && !url.startsWith(PLATFORM + 'auth/')) {
     redirectToLogin('/plataforma/entrar')
   } else if (response.status === 401 && !url.startsWith('/api/v1/auth/') && !url.startsWith(PLATFORM) && !isKioskUrl(url)) {
-    if (await refreshSession()) {
+    if (await renewSession()) {
       response = await send(url, options)
     }
 
@@ -123,7 +149,7 @@ export default apiFetch
 /** Baixa um arquivo autenticado (ex.: comprovante da OP) e oferece para salvar com o nome dado. */
 export async function apiDownload(url: string, fileName: string): Promise<void> {
   let response = await send(url, {})
-  if (response.status === 401 && (await refreshSession())) response = await send(url, {})
+  if (response.status === 401 && (await renewSession())) response = await send(url, {})
   if (!response.ok) {
     const text = await response.text()
     throw new ApiError(response.status, (text ? JSON.parse(text) : {}) as ConstructorParameters<typeof ApiError>[1])
@@ -140,7 +166,7 @@ export async function apiDownload(url: string, fileName: string): Promise<void> 
 /** Arquivo autenticado como endereço local (blob:) para abrir na tela, ex.: desenho da OS no app do operador (PRD-03a CA 6). */
 export async function apiBlobUrl(url: string): Promise<string> {
   let response = await send(url, {})
-  if (response.status === 401 && (await refreshSession())) response = await send(url, {})
+  if (response.status === 401 && (await renewSession())) response = await send(url, {})
   if (!response.ok) {
     const text = await response.text()
     throw new ApiError(response.status, (text ? JSON.parse(text) : {}) as ConstructorParameters<typeof ApiError>[1])
