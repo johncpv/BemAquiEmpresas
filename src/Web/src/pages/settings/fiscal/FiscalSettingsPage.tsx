@@ -191,7 +191,7 @@ function FiscalForm({ view }: { view: FiscalSettingsView }) {
           <FormError message={formError} />
           <section id="secao-empresa" aria-labelledby="t-empresa" className="rounded-md border border-border bg-card p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 id="t-empresa" className="text-[15px] font-semibold">Empresa</h2>
+              <h2 id="t-empresa" className="text-[17px] font-semibold">Empresa</h2>
               <Link to="/app/configuracoes/empresa" className="text-sm font-semibold text-primary underline">Editar dados da empresa</Link>
             </div>
             <p className="mb-2 text-xs text-muted-foreground">Vem de Configurações → Empresa. O Fiscal lê daqui, sem copiar.</p>
@@ -209,7 +209,7 @@ function FiscalForm({ view }: { view: FiscalSettingsView }) {
             {view.sections.map((section) => (
               <section key={section.code} id={'secao-' + section.code} aria-labelledby={'t-' + section.code} className="min-w-0 rounded-md border border-border bg-card p-4">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h2 id={'t-' + section.code} className="text-[15px] font-semibold">{section.title}</h2>
+                  <h2 id={'t-' + section.code} className="text-[17px] font-semibold">{section.title}</h2>
                   {canEdit && section.pending > 0 ? (
                     <button type="button" onClick={() => setSectionToConfirm(section.code)} className={secondary}>Marcar seção como conferida</button>
                   ) : null}

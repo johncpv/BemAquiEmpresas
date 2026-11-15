@@ -151,9 +151,9 @@ export function CapacityBlock({ line, overview, className }: BlockProps) {
                   const week = c.weeks[i]
                   return (
                     <div key={cell.weekStart} data-band={cell.band} className="min-w-0 rounded bg-muted/50 px-1 py-1 text-center">
-                      <span className="block text-[11px] text-muted-foreground">{week ? weekLabel(week.isoWeek) : formatDate(cell.weekStart).slice(0, 5)}</span>
+                      <span className="block text-xs text-muted-foreground">{week ? weekLabel(week.isoWeek) : formatDate(cell.weekStart).slice(0, 5)}</span>
                       <span className="block text-sm font-semibold tabular-nums">{loadPercent(cell.percent)}</span>
-                      {chip ? <span className={cn('block truncate text-[11px] font-semibold', chip.tone === 'crit' ? 'text-crit-ink' : chip.tone === 'warn' ? 'text-warn-ink' : 'text-info-ink')}>{chip.label}</span> : null}
+                      {chip ? <span className={cn('block truncate text-xs font-semibold', chip.tone === 'crit' ? 'text-crit-ink' : chip.tone === 'warn' ? 'text-warn-ink' : 'text-info-ink')}>{chip.label}</span> : null}
                     </div>
                   )
                 })}

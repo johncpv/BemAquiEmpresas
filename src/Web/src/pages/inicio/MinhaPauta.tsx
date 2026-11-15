@@ -93,7 +93,7 @@ export function MinhaPauta({ onCount }: { onCount: (total: number) => void }) {
 
   return (
     <section aria-labelledby="pauta" className="mb-8">
-      <h2 id="pauta" className="mb-3 text-[15px] font-semibold">Minha pauta</h2>
+      <h2 id="pauta" className="mb-3 text-[17px] font-semibold">Minha pauta</h2>
       {query.isPending ? (
         <div className="grid gap-3 md:grid-cols-3" aria-busy="true" aria-label="Carregando a pauta">
           {[0, 1, 2].map((k) => <Skeleton key={k} className="h-40" />)}

@@ -170,7 +170,7 @@ function RuleDetail({ view }: { view: TaxRuleView }) {
 function Section({ title, dica, dicaName, children }: { title: string; dica?: string; dicaName?: string; children: ReactNode }) {
   return (
     <section className="min-w-0 rounded-md border border-border bg-card p-4">
-      <h2 className="mb-3 flex items-center text-[15px] font-semibold">{title}{dica ? <Dica nome={dicaName ?? title} texto={dica} /> : null}</h2>
+      <h2 className="mb-3 flex items-center text-[17px] font-semibold">{title}{dica ? <Dica nome={dicaName ?? title} texto={dica} /> : null}</h2>
       <div className="grid gap-4 sm:grid-cols-2">{children}</div>
     </section>
   )

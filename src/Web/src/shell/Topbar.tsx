@@ -32,10 +32,10 @@ export function Topbar({ area, module, tab, onSearch, onHelp }: TopbarProps) {
       <div className="flex items-center gap-3 px-4 py-3 sm:gap-3.5 sm:px-6">
         <Link to="/app" className="flex items-center gap-2.5">
           <TenantMark name={tenantName} logoUrl={tenantLogo} />
-          <b className={mobile ? 'sr-only' : 'font-display text-[15px] font-bold font-wider'}>{tenantName}</b>
+          <b className={mobile ? 'sr-only' : 'font-display text-[17px] font-bold font-wider'}>{tenantName}</b>
         </Link>
 
-        <nav aria-label="Trilha" className="min-w-0 truncate border-l border-border pl-3.5 text-[13px] text-muted-foreground">
+        <nav aria-label="Trilha" className="min-w-0 truncate border-l border-border pl-3.5 text-sm text-muted-foreground">
           {area ? <span>{area.name}</span> : <b className="font-semibold text-foreground">Início</b>}
           {module ? <> › <b className="font-semibold text-foreground">{module.name}</b></> : null}
           {tab ? <> › {tab.label}</> : null}
@@ -50,7 +50,7 @@ export function Topbar({ area, module, tab, onSearch, onHelp }: TopbarProps) {
             <button type="button" onClick={onSearch} className="flex w-[min(320px,40vw)] items-center gap-2 rounded-sm border border-border bg-card px-2.5 py-[7px] text-muted-foreground">
               <Search aria-hidden="true" className="size-4" strokeWidth={1.7} />
               <span className="flex-1 text-left text-sm">Buscar tela ou módulo</span>
-              <kbd className="rounded border border-border px-1.5 text-[11px]">Ctrl K</kbd>
+              <kbd className="rounded border border-border px-1.5 text-xs">Ctrl K</kbd>
             </button>
           )}
           <button type="button" className={iconButton} onClick={onHelp} aria-label="Ajuda desta tela">
@@ -96,8 +96,9 @@ function ModuleTabs({ module, current }: { module: NavModule; current?: string }
             to="/app/$module/$tab"
             params={{ module: module.slug, tab: t.slug }}
             aria-current={t.slug === current ? 'page' : undefined}
-            className="shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 pb-2 pt-1 text-sm font-medium text-muted-foreground hover:text-foreground aria-[current=page]:border-signal aria-[current=page]:text-foreground"
+            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent px-3 pb-2 pt-1 text-sm font-medium text-muted-foreground hover:text-foreground aria-[current=page]:border-signal aria-[current=page]:text-foreground"
           >
+            {t.icon ? <t.icon aria-hidden="true" className="size-[1.1em] shrink-0" strokeWidth={1.8} /> : null}
             {t.label}
           </Link>
         ))
@@ -105,7 +106,7 @@ function ModuleTabs({ module, current }: { module: NavModule; current?: string }
           <div key={`${i}-${g.label ?? ''}`} role={g.label ? 'group' : undefined} aria-label={g.label} className="flex shrink-0 items-end">
             {i > 0 ? <span aria-hidden="true" className="mx-2 mb-2.5 h-4 w-px shrink-0 bg-border" /> : null}
             {g.label ? (
-              <span aria-hidden="true" className="shrink-0 whitespace-nowrap pb-2.5 pl-1 pr-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <span aria-hidden="true" className="shrink-0 whitespace-nowrap pb-2.5 pl-1 pr-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {g.label}
               </span>
             ) : null}

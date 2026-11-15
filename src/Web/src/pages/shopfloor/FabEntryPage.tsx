@@ -83,7 +83,7 @@ export function FabEntryPage() {
   }
 
   return (
-    <main id="conteudo" className="min-h-dvh bg-background pb-8 text-[18px] text-foreground">
+    <main id="conteudo" data-surface="floor" className="min-h-dvh bg-background pb-8 text-[18px] text-foreground">
       {header}
       <FloorMessages />
       <div className="mx-auto max-w-3xl space-y-4 p-4">

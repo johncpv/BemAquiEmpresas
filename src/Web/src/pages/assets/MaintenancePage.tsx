@@ -81,13 +81,13 @@ export function MaintenancePage() {
           ) : (
             <div className="space-y-6">
               <section aria-labelledby="os-abertas" className="space-y-3">
-                <h2 id="os-abertas" className="text-[15px] font-semibold">OS de manutenção</h2>
+                <h2 id="os-abertas" className="text-[17px] font-semibold">OS de manutenção</h2>
                 {query.data.orders.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma OS com estes filtros.</p>
                   : <ol className="grid gap-3 lg:grid-cols-2">{query.data.orders.map((o) => <OrderCard key={o.id} order={o} showAsset />)}</ol>}
               </section>
               {query.data.duePlans.length ? (
                 <section aria-labelledby="preventivas" className="space-y-3">
-                  <h2 id="preventivas" className="text-[15px] font-semibold">Preventivas vencidas e a vencer em 30 dias</h2>
+                  <h2 id="preventivas" className="text-[17px] font-semibold">Preventivas vencidas e a vencer em 30 dias</h2>
                   <ol className="grid gap-3 lg:grid-cols-2">{query.data.duePlans.map((p) => <DuePlanCard key={p.id} plan={p} />)}</ol>
                 </section>
               ) : null}

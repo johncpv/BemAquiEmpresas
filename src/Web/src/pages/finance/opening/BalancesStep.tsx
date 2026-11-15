@@ -45,7 +45,7 @@ export function BalancesStep({ status, refresh, onNext }: StepProps) {
 
   return (
     <section aria-labelledby="saldos-titulo" className="max-w-4xl space-y-3">
-      <h2 id="saldos-titulo" className="flex items-center text-[15px] font-semibold">Saldo no fim do dia {formatDate(status.cutoverDate ?? '')}<Dica nome="Saldo no fim do dia" texto={OPENING_DICAS.fimDoDia} /></h2>
+      <h2 id="saldos-titulo" className="flex items-center text-[17px] font-semibold">Saldo no fim do dia {formatDate(status.cutoverDate ?? '')}<Dica nome="Saldo no fim do dia" texto={OPENING_DICAS.fimDoDia} /></h2>
       <FormError message={error} />
       <div className="overflow-x-auto rounded-md border border-border bg-card">
         <table className="w-full text-sm" aria-label="Saldos das contas">

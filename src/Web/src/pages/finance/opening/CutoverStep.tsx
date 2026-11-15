@@ -22,7 +22,7 @@ export function CutoverStep({ status, refresh, onNext }: StepProps) {
 
   return (
     <section aria-labelledby="corte-titulo" className="max-w-4xl space-y-3 rounded-md border border-border bg-card p-4 sm:p-5">
-      <h2 id="corte-titulo" className="text-[15px] font-semibold">Data de corte</h2>
+      <h2 id="corte-titulo" className="text-[17px] font-semibold">Data de corte</h2>
       {!canApprove ? <p role="note" className="rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">Quem define a data de corte é o Proprietário.</p> : null}
       {locked && !status.completedAt ? <p role="note" className="text-sm text-muted-foreground">A data de corte não muda depois do primeiro movimento.</p> : null}
       <FormGrid>

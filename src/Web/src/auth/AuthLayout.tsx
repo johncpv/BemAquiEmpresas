@@ -12,7 +12,7 @@ export function AuthLayout({ title, children }: { title: string; children: React
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4 py-10">
       <div className="flex items-center gap-2.5">
         <TenantMark name={name} logoUrl={tenant.data?.logoUrl} />
-        <b className="font-display text-[15px] font-bold font-wider">{name}</b>
+        <b className="font-display text-[17px] font-bold font-wider">{name}</b>
       </div>
       <div className="w-full max-w-sm"><MessageRegion /></div>
       <main id="conteudo" className="w-full max-w-sm rounded-md border border-border bg-card p-6 shadow-sm">

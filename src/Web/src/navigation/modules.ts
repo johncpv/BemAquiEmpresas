@@ -1,6 +1,12 @@
 import {
-  Boxes, Briefcase, Contact, DraftingCompass, Factory, FileText, FolderKanban, HardHat, Home, Landmark, LayoutDashboard,
-  type LucideIcon, MonitorPlay, MonitorSmartphone, Receipt, Settings, Settings2, ShieldCheck, ShoppingCart, Tag, Users, Wallet,
+  ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Award, BadgeCheck, BookText, Boxes, Briefcase, Building, Building2, Calculator,
+  CalendarClock, CalendarDays, CalendarX, ChartGantt, ChartLine, ChartPie, CheckCheck, ClipboardCheck, ClipboardList, Clock, Cog, Coins,
+  Contact, CreditCard, DraftingCompass, Eye, EyeOff, Factory, FileChartColumn, FileCog, FileInput, FileOutput, FilePlus, FileSpreadsheet,
+  FileText, Filter, FolderKanban, FolderTree, Gauge, Hammer, HandCoins, HardHat, Hash, Home, Hourglass, Import, Landmark, LayoutDashboard,
+  List, ListTree, Lock, type LucideIcon, MapPin, MessagesSquare, MonitorPlay, MonitorSmartphone, Network, OctagonAlert,
+  PackageCheck, PackageMinus, PackageX, Plug, Receipt, Repeat, Rocket, Route, Ruler, Scale, ScanSearch, Settings, Settings2, ShieldCheck,
+  ShieldPlus, ShoppingCart, SlidersHorizontal, Sparkles, SquareKanban, SquarePen, Table, Tag, Tags, Tally5, Target, Timer, TreePalm, Truck,
+  UserCog, Users, UsersRound, Wallet, Warehouse, Wrench,
 } from 'lucide-react'
 
 /** As 7 áreas do dock, na ordem do CLAUDE.md (ADR 0005 D8). */
@@ -25,6 +31,8 @@ export const AREAS: readonly Area[] = [
 export interface Tab {
   slug: string
   label: string
+  /** Ícone decorativo antes do texto (mesmo vocabulário das abas das páginas, navigation/tab-icons.ts). */
+  icon?: LucideIcon
   /** Grupo da aba quando o módulo agrupa as sub-telas (Financeiro, FND-09e CA 12). */
   group?: string
   /** Ação do módulo exigida para a aba aparecer no menu e na busca (ex.: "view_cost" em "Orçado × realizado", DSH-02 CA 19). */
@@ -58,54 +66,54 @@ const STOCK_SETUP = 'Cadastros'
 
 export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   dashboard: { slug: 'painel', icon: LayoutDashboard },
-  quotes: { slug: 'orcamentos', icon: FileText, tabs: [{ slug: 'funil', label: 'Funil' }] },
+  quotes: { slug: 'orcamentos', icon: FileText, tabs: [{ slug: 'funil', label: 'Funil', icon: Filter }] },
   // DSH-02: "Orçado × realizado" (/app/projetos/margens), só com projects.view_cost.
-  projects: { slug: 'projetos', aliases: ['contratos'], icon: FolderKanban, tabs: [{ slug: 'margens', label: 'Orçado × realizado', action: 'view_cost' }] },
-  parties: { slug: 'cadastros', icon: Contact, tabs: [{ slug: 'terceiros', label: 'Terceiros' }] },
-  engineering: { slug: 'engenharia', icon: DraftingCompass, tabs: [{ slug: 'roteiros', label: 'Roteiros' }, { slug: 'boms', label: 'BOMs' }] },
-  production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'os', label: 'OS de fabricação' }, { slug: 'kanban', label: 'Kanban' }, { slug: 'planejamento', label: 'Planejamento' }, { slug: 'qualidade', label: 'Qualidade' }, { slug: 'nao-conformidades', label: 'Não conformidades' }, { slug: 'apontamentos-abertos', label: 'Apontamentos abertos' }, { slug: 'expedicao', label: 'Expedição' }, { slug: 'instalacoes', label: 'Instalações' }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho' }, { slug: 'calendario', label: 'Calendário' }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação' }, { slug: 'supervisor', label: 'Painel do supervisor', firstFor: ['approve', 'approve_quality'] }] },
+  projects: { slug: 'projetos', aliases: ['contratos'], icon: FolderKanban, tabs: [{ slug: 'margens', label: 'Orçado × realizado', icon: Target, action: 'view_cost' }] },
+  parties: { slug: 'cadastros', icon: Contact, tabs: [{ slug: 'terceiros', label: 'Terceiros', icon: Contact }] },
+  engineering: { slug: 'engenharia', icon: DraftingCompass, tabs: [{ slug: 'roteiros', label: 'Roteiros', icon: Route }, { slug: 'boms', label: 'BOMs', icon: Network }] },
+  production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'os', label: 'OS de fabricação', icon: ClipboardList }, { slug: 'kanban', label: 'Kanban', icon: SquareKanban }, { slug: 'planejamento', label: 'Planejamento', icon: ChartGantt }, { slug: 'qualidade', label: 'Qualidade', icon: BadgeCheck }, { slug: 'nao-conformidades', label: 'Não conformidades', icon: OctagonAlert }, { slug: 'apontamentos-abertos', label: 'Apontamentos abertos', icon: Timer }, { slug: 'expedicao', label: 'Expedição', icon: Truck }, { slug: 'instalacoes', label: 'Instalações', icon: Hammer }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho', icon: Cog }, { slug: 'calendario', label: 'Calendário', icon: CalendarDays }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação', icon: FileCog }, { slug: 'supervisor', label: 'Painel do supervisor', icon: Eye, firstFor: ['approve', 'approve_quality'] }] },
   inventory: { slug: 'estoque', icon: Boxes, tabs: [
-    { slug: 'saldos', label: 'Saldos', group: STOCK_OPERATION },
-    { slug: 'movimentos', label: 'Movimentos', group: STOCK_OPERATION },
-    { slug: 'lancamentos', label: 'Lançamentos pendentes', group: STOCK_OPERATION },
-    { slug: 'ajustes', label: 'Ajustes', group: STOCK_OPERATION },
-    { slug: 'inventarios', label: 'Inventários', group: STOCK_OPERATION },
-    { slug: 'faltas', label: 'Faltas', group: STOCK_OPERATION },
-    { slug: 'capacidade', label: 'Capacidade de produzir', group: STOCK_OPERATION },
-    { slug: 'requisicoes', label: 'Requisições', group: STOCK_OPERATION },
-    { slug: 'rastreabilidade', label: 'Rastreabilidade', group: STOCK_OPERATION },
-    { slug: 'itens', label: 'Itens', group: STOCK_SETUP },
-    { slug: 'locais', label: 'Locais', group: STOCK_SETUP },
-    { slug: 'unidades', label: 'Unidades', group: STOCK_SETUP },
-    { slug: 'categorias', label: 'Categorias', group: STOCK_SETUP },
-    { slug: 'garantia', label: 'Garantia padrão', group: STOCK_SETUP },
+    { slug: 'saldos', label: 'Saldos', icon: Warehouse, group: STOCK_OPERATION },
+    { slug: 'movimentos', label: 'Movimentos', icon: ArrowLeftRight, group: STOCK_OPERATION },
+    { slug: 'lancamentos', label: 'Lançamentos pendentes', icon: Hourglass, group: STOCK_OPERATION },
+    { slug: 'ajustes', label: 'Ajustes', icon: SquarePen, group: STOCK_OPERATION },
+    { slug: 'inventarios', label: 'Inventários', icon: Tally5, group: STOCK_OPERATION },
+    { slug: 'faltas', label: 'Faltas', icon: PackageX, group: STOCK_OPERATION },
+    { slug: 'capacidade', label: 'Capacidade de produzir', icon: Gauge, group: STOCK_OPERATION },
+    { slug: 'requisicoes', label: 'Requisições', icon: PackageMinus, group: STOCK_OPERATION },
+    { slug: 'rastreabilidade', label: 'Rastreabilidade', icon: ScanSearch, group: STOCK_OPERATION },
+    { slug: 'itens', label: 'Itens', icon: List, group: STOCK_SETUP },
+    { slug: 'locais', label: 'Locais', icon: MapPin, group: STOCK_SETUP },
+    { slug: 'unidades', label: 'Unidades', icon: Ruler, group: STOCK_SETUP },
+    { slug: 'categorias', label: 'Categorias', icon: FolderTree, group: STOCK_SETUP },
+    { slug: 'garantia', label: 'Garantia padrão', icon: ShieldPlus, group: STOCK_SETUP },
   ] },
-  purchasing: { slug: 'compras', icon: ShoppingCart, tabs: [{ slug: 'solicitacoes', label: 'Solicitações' }, { slug: 'cotacoes', label: 'Cotações' }, { slug: 'pedidos', label: 'Pedidos' }, { slug: 'recebimentos', label: 'Recebimentos' }] },
+  purchasing: { slug: 'compras', icon: ShoppingCart, tabs: [{ slug: 'solicitacoes', label: 'Solicitações', icon: FilePlus }, { slug: 'cotacoes', label: 'Cotações', icon: MessagesSquare }, { slug: 'pedidos', label: 'Pedidos', icon: ShoppingCart }, { slug: 'recebimentos', label: 'Recebimentos', icon: PackageCheck }] },
   // PAT-01a: bens e locais do patrimônio (área Fábrica); PAT-03a: manutenção e o custo dela.
-  assets: { slug: 'patrimonio', icon: Tag, tabs: [{ slug: 'bens', label: 'Bens' }, { slug: 'manutencao', label: 'Manutenção' }, { slug: 'custo', label: 'Custo de manutenção' }, { slug: 'locais', label: 'Locais' }] },
+  assets: { slug: 'patrimonio', icon: Tag, tabs: [{ slug: 'bens', label: 'Bens', icon: Tag }, { slug: 'manutencao', label: 'Manutenção', icon: Wrench }, { slug: 'custo', label: 'Custo de manutenção', icon: Calculator }, { slug: 'locais', label: 'Locais', icon: MapPin }] },
   finance: { slug: 'financeiro', icon: Wallet, tabs: [
-    { slug: 'receber', label: 'A receber', group: CASH },
-    { slug: 'pagar', label: 'A pagar', group: CASH },
-    { slug: 'fluxo-de-caixa', label: 'Fluxo de caixa', group: CASH },
-    { slug: 'dre', label: 'DRE', group: CASH },
-    { slug: 'inadimplencia', label: 'Inadimplência', group: CASH },
-    { slug: 'ordens-de-pagamento', label: 'Ordens de pagamento', group: CASH },
-    { slug: 'contas', label: 'Contas e caixas', group: CASH },
-    { slug: 'conciliacao', label: 'Conciliação', group: CASH },
-    { slug: 'plano-de-contas', label: 'Plano de contas', group: SETUP },
-    { slug: 'centros-de-custo', label: 'Centros de custo', group: SETUP },
-    { slug: 'condicoes-de-pagamento', label: 'Condições de pagamento', group: SETUP },
-    { slug: 'recorrentes', label: 'Recorrentes', group: SETUP },
-    { slug: 'alcadas', label: 'Alçadas', group: SETUP },
-    { slug: 'implantacao', label: 'Implantação financeira', group: SETUP },
+    { slug: 'receber', label: 'A receber', icon: ArrowDownLeft, group: CASH },
+    { slug: 'pagar', label: 'A pagar', icon: ArrowUpRight, group: CASH },
+    { slug: 'fluxo-de-caixa', label: 'Fluxo de caixa', icon: ChartLine, group: CASH },
+    { slug: 'dre', label: 'DRE', icon: FileChartColumn, group: CASH },
+    { slug: 'inadimplencia', label: 'Inadimplência', icon: CalendarX, group: CASH },
+    { slug: 'ordens-de-pagamento', label: 'Ordens de pagamento', icon: HandCoins, group: CASH },
+    { slug: 'contas', label: 'Contas e caixas', icon: Landmark, group: CASH },
+    { slug: 'conciliacao', label: 'Conciliação', icon: CheckCheck, group: CASH },
+    { slug: 'plano-de-contas', label: 'Plano de contas', icon: ListTree, group: SETUP },
+    { slug: 'centros-de-custo', label: 'Centros de custo', icon: ChartPie, group: SETUP },
+    { slug: 'condicoes-de-pagamento', label: 'Condições de pagamento', icon: CreditCard, group: SETUP },
+    { slug: 'recorrentes', label: 'Recorrentes', icon: Repeat, group: SETUP },
+    { slug: 'alcadas', label: 'Alçadas', icon: Scale, group: SETUP },
+    { slug: 'implantacao', label: 'Implantação financeira', icon: Rocket, group: SETUP },
   ] },
   // FIS-02b: Regras fiscais no grupo "Configuração fiscal" (a NF-e de saída entra com a FIS-03a). FIS-04a: Notas de entrada.
-  fiscal: { slug: 'fiscal', icon: Receipt, tabs: [{ slug: 'entrada', label: 'Notas de entrada' }, { slug: 'regras', label: 'Regras fiscais', group: 'Configuração fiscal' }] },
-  hr: { slug: 'rh', icon: Users, tabs: [{ slug: 'funcionarios', label: 'Funcionários' }, { slug: 'cargos', label: 'Cargos' }, { slug: 'jornadas', label: 'Jornadas' }, { slug: 'sindicatos', label: 'Sindicatos' }, { slug: 'ponto', label: 'Ponto' }, { slug: 'ferias', label: 'Férias' }, { slug: 'folha', label: 'Folha' }, { slug: 'rubricas', label: 'Rubricas' }, { slug: 'tabelas-folha', label: 'Tabelas da folha' }, { slug: 'conferencia-folha', label: 'Conferência da folha' }, { slug: 'exportar-contadora', label: 'Exportar para a contadora', action: 'view_sensitive' }] },
+  fiscal: { slug: 'fiscal', icon: Receipt, tabs: [{ slug: 'entrada', label: 'Notas de entrada', icon: FileInput }, { slug: 'regras', label: 'Regras fiscais', icon: BookText, group: 'Configuração fiscal' }] },
+  hr: { slug: 'rh', icon: Users, tabs: [{ slug: 'funcionarios', label: 'Funcionários', icon: Users }, { slug: 'cargos', label: 'Cargos', icon: Award }, { slug: 'jornadas', label: 'Jornadas', icon: CalendarClock }, { slug: 'sindicatos', label: 'Sindicatos', icon: Building2 }, { slug: 'ponto', label: 'Ponto', icon: Clock }, { slug: 'ferias', label: 'Férias', icon: TreePalm }, { slug: 'folha', label: 'Folha', icon: FileSpreadsheet }, { slug: 'rubricas', label: 'Rubricas', icon: Tags }, { slug: 'tabelas-folha', label: 'Tabelas da folha', icon: Table }, { slug: 'conferencia-folha', label: 'Conferência da folha', icon: ClipboardCheck }, { slug: 'exportar-contadora', label: 'Exportar para a contadora', icon: FileOutput, action: 'view_sensitive' }] },
   kiosk: { slug: 'painel-tv', icon: MonitorPlay },
   shopfloor: { slug: 'operador', icon: HardHat, href: '/fab' },
-  identity: { slug: 'acessos', icon: ShieldCheck, tabs: [{ slug: 'usuarios', label: 'Usuários' }, { slug: 'grupos', label: 'Grupos' }] },
-  settings: { slug: 'configuracoes', icon: Settings, tabs: [{ slug: 'empresa', label: 'Empresa' }, { slug: 'numeracao', label: 'Numeração' }, { slug: 'parametros', label: 'Parâmetros' }, { slug: 'seguranca', label: 'Segurança' }, { slug: 'ia', label: 'Inteligência artificial' }, { slug: 'importacao', label: 'Importação do Dolibarr' }, { slug: 'integracoes', label: 'Integrações', requiresAny: ['finance.view', 'fiscal.view'] }, { slug: 'cobranca', label: 'Cobrança', requiresAny: ['finance.view', 'settings.view'] }, { slug: 'fiscal', label: 'Fiscal', requiresAny: ['fiscal.view', 'settings.view'] }, { slug: 'privacidade', label: 'Privacidade (LGPD)', ownerOnly: true }] },
+  identity: { slug: 'acessos', icon: ShieldCheck, tabs: [{ slug: 'usuarios', label: 'Usuários', icon: UserCog }, { slug: 'grupos', label: 'Grupos', icon: UsersRound }] },
+  settings: { slug: 'configuracoes', icon: Settings, tabs: [{ slug: 'empresa', label: 'Empresa', icon: Building }, { slug: 'numeracao', label: 'Numeração', icon: Hash }, { slug: 'parametros', label: 'Parâmetros', icon: SlidersHorizontal }, { slug: 'seguranca', label: 'Segurança', icon: Lock }, { slug: 'ia', label: 'Inteligência artificial', icon: Sparkles }, { slug: 'importacao', label: 'Importação do Dolibarr', icon: Import }, { slug: 'integracoes', label: 'Integrações', icon: Plug, requiresAny: ['finance.view', 'fiscal.view'] }, { slug: 'cobranca', label: 'Cobrança', icon: Coins, requiresAny: ['finance.view', 'settings.view'] }, { slug: 'fiscal', label: 'Fiscal', icon: Receipt, requiresAny: ['fiscal.view', 'settings.view'] }, { slug: 'privacidade', label: 'Privacidade (LGPD)', icon: EyeOff, ownerOnly: true }] },
 }
 
 /** Mesmo formato de MyModule em GET /api/v1/me/permissions (FND-06c/06d). */

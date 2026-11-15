@@ -46,7 +46,7 @@ export function ReconciliationStep({ status, refresh, onCompleted }: StepProps) 
   return (
     <section aria-labelledby="conferencia-titulo" className="max-w-4xl space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="conferencia-titulo" className="text-[15px] font-semibold">Saldo do sistema = saldo do banco</h2>
+        <h2 id="conferencia-titulo" className="text-[17px] font-semibold">Saldo do sistema = saldo do banco</h2>
         <button type="button" onClick={download} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Baixar conferência (CSV)</button>
       </div>
       <div className="overflow-x-auto rounded-md border border-border bg-card">

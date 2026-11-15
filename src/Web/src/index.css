@@ -47,6 +47,20 @@
   --font-display: "Archivo Variable", "Arial Narrow", system-ui, sans-serif;
 }
 
+/*
+ * Escala de leitura (pedido do PO, 15/11/2026: "escrita maior" para todos). A raiz segue em 14px, então espaçamentos e
+ * alvos de toque não mudam; só a letra sobe um degrau. Antes, com a raiz em 14px, text-xs/sm/base/lg davam 10,5/12,25/14/15,75px.
+ * As telas dedicadas (/fab e Painel da TV) têm layout próprio e voltam à escala antiga (bloco [data-surface] abaixo).
+ */
+@theme {
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+}
+
 /* Larguras da Archivo (protótipo): expandida em títulos e números, normal no texto. */
 @utility font-wide {
   font-stretch: 112%;
@@ -107,8 +121,25 @@
     background: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
+    /* A raiz fica em 14px (1rem = 14px: espaçamentos, larguras e alvos de toque); o texto corrido do body sobe para 16px. */
     font-size: 14px;
     line-height: 1.45;
+  }
+
+  body {
+    font-size: var(--text-base);
+  }
+
+  /* Telas dedicadas: a escala de antes (raiz em 14px), sem a letra maior do backoffice. */
+  [data-surface="tv"],
+  [data-surface="floor"] {
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    font-size: 14px;
   }
 
   h1,

@@ -8,7 +8,7 @@ import { useNavigation } from '@/navigation/navigation-context'
 import { AreaMenu } from './AreaMenu'
 
 const item =
-  'relative flex min-w-[68px] flex-col items-center justify-center gap-1 rounded-[11px] px-2 pb-[7px] pt-2 text-[11.5px] font-semibold whitespace-nowrap text-rail-dim hover:bg-rail-hi hover:text-rail-ink focus-visible:outline-rail-ring data-[active=true]:bg-rail-hi data-[active=true]:text-rail-ink'
+  'relative flex min-w-[68px] flex-col items-center justify-center gap-1 rounded-[11px] px-2 pb-[7px] pt-2 text-[12.5px] font-semibold whitespace-nowrap text-rail-dim hover:bg-rail-hi hover:text-rail-ink focus-visible:outline-rail-ring data-[active=true]:bg-rail-hi data-[active=true]:text-rail-ink'
 
 /** Repassa ref e props: é o Trigger (asChild) do Popover e do Dialog do Radix. */
 function AreaButton({ area, active, ...props }: { area: NavArea; active: boolean } & ComponentPropsWithRef<'button'>) {
