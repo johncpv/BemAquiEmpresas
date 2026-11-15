@@ -181,7 +181,7 @@ function NfseData({ invoice: v, draft, setDraft, errors }: { invoice: NfseView; 
         <p className="tabular-nums">{r.document ?? 'Sem documento'}</p>
         <p>{[r.street, r.number, r.complement].filter(Boolean).join(', ')} — {r.district} — {r.cityName}/{r.state} — CEP {r.postalCode}</p>
         <p className="text-muted-foreground">E-mail de cobrança: {r.email ?? 'não informado'}</p>
-        {v.partyId ? <Link to={'/app/terceiros/$id' as never} params={{ id: v.partyId } as never} className="mt-1 inline-block font-semibold text-primary hover:underline">Corrigir no cadastro do cliente</Link> : null}
+        {v.partyId ? <Link to="/app/cadastros/terceiros/$id" params={{ id: v.partyId }} className="mt-1 inline-block font-semibold text-primary hover:underline">Corrigir no cadastro do cliente</Link> : null}
       </section>
       <section aria-labelledby="servico" className="grid gap-2 rounded-md border border-border bg-card p-3 text-sm sm:grid-cols-2">
         <h2 id="servico" className="font-semibold sm:col-span-2">Serviço</h2>

@@ -93,7 +93,7 @@ public class OutgoingInvoiceRulesTests
         items[0].IpiRate = null;
         OutgoingInvoiceCalculator.Recalculate(invoice, items, Candidates());
         invoice.CalculationError.Should().Contain("alíquota do IPI na TIPI");
-        OutgoingInvoiceRules.InvoicePreconditions(invoice, items, "/app/terceiros/x").Single(p => p.Key == "calculation").Ok.Should().BeFalse();
+        OutgoingInvoiceRules.InvoicePreconditions(invoice, items, OutgoingInvoiceService.PartyLink + "x").Single(p => p.Key == "calculation").Ok.Should().BeFalse();
 
         items[0].IpiRate = 5m;
         OutgoingInvoiceCalculator.Recalculate(invoice, items, Candidates(requireConfirmed: true));
@@ -113,7 +113,7 @@ public class OutgoingInvoiceRulesTests
     [Fact]
     public void Saneamento_tira_controle_normaliza_espacos_e_recusa_pelo_limite_do_esquema()
     {
-        NfeTextRules.Clean("  Elevador\t\tde\u0007 carga\r\n2 paradas​ ").Should().Be("Elevador de carga 2 paradas");
+        NfeTextRules.Clean("  Elevador\t\tde\u0007 carga\r\n2 paradas\u200B ").Should().Be("Elevador de carga 2 paradas");
         NfeTextRules.Clean(" \t ").Should().BeNull();
         var (invoice, items) = Draft();
         items[0].Description = new string('x', 121);
@@ -127,14 +127,56 @@ public class OutgoingInvoiceRulesTests
         OutgoingInvoiceRules.TextErrors(invoice, items, new string('c', 5001)).Should().ContainKey("additionalInformation");
     }
 
+    [Theory]
+    [InlineData("Rua das Palmeiras, 450 — Vila Antônio Augusto — Caçapava/SP", "Rua das Palmeiras, 450 - Vila Antônio Augusto - Caçapava/SP")]
+    [InlineData("Peça “especial” d’água – lote 2…", "Peça \"especial\" d'água - lote 2...")]
+    [InlineData("• Cabine\u00A0inox ✓", "- Cabine inox")]
+    [InlineData("Ação ç é ã õ ü Ç ÿ º ª ° ½", "Ação ç é ã õ ü Ç ÿ º ª ° ½")]
+    [InlineData("Łódź Gdańsk", "ódz Gdansk")]
+    [InlineData("Elevador\u00ADmonta\u200Bcarga", "Elevadormonta carga")]
+    [InlineData("😀", null)]
+    public void Saneamento_leva_o_texto_ao_padrao_da_NF_e_e_mantem_os_acentos_do_portugues(string value, string? expected)
+    {
+        var clean = NfeTextRules.Clean(value);
+
+        clean.Should().Be(expected);
+        if (clean is not null)
+        {
+            clean.Should().MatchRegex(NfeTextRules.SchemaPattern, "fora dele a SEFAZ rejeita com 215");
+        }
+    }
+
+    [Fact]
+    public void Informacoes_complementares_com_o_endereco_da_obra_passam_no_padrao_da_NF_e()
+    {
+        // O endereço do romaneio vem com travessões (ShipmentRules.FormatAddress); a SEFAZ rejeitou com 215 em 15/11.
+        var site = OutgoingInvoiceRules.SiteInfo("Rua das Palmeiras, 450 — Vila Antônio Augusto — Caçapava/SP");
+        var (invoice, items) = Draft();
+        invoice.AdditionalInformation = site;
+        items[0].AdditionalInfo = OutgoingInvoiceRules.SerialsInfo(["DEMO-KB6-2026-00001"]);
+        invoice.Volumes = 6;
+        invoice.GrossWeight = 1850m;
+        invoice.NatureOfOperation = "Venda de produção – estabelecimento";
+
+        var request = OutgoingNfePayloads.Build(invoice, items, "47225005000186", 1, "Transportes “Rápido”");
+
+        request.AdditionalInformation.Should().Be("Endereço da obra: Rua das Palmeiras, 450 - Vila Antônio Augusto - Caçapava/SP | Item 1: Séries: DEMO-KB6-2026-00001 | "
+            + "Transporte: transportadora Transportes \"Rápido\", 6 volumes, peso bruto 1850 kg.");
+        request.AdditionalInformation.Should().MatchRegex(NfeTextRules.SchemaPattern);
+        request.OperationNature.Should().Be("VENDA DE PRODUÇÃO - ESTABELECIMENTO").And.MatchRegex(NfeTextRules.SchemaPattern);
+    }
+
+    [Fact]
+    public void Link_do_cadastro_do_cliente_e_a_rota_do_front() => OutgoingInvoiceService.PartyLink.Should().Be("/app/cadastros/terceiros/");
+
     [Fact]
     public void Pre_condicoes_da_nota_cobram_documento_e_IBGE_do_cliente()
     {
         var (invoice, items) = Draft();
         invoice.RecipientDocument = null;
         invoice.RecipientCityCode = "35503";
-        var list = OutgoingInvoiceRules.InvoicePreconditions(invoice, items, "/app/terceiros/1");
-        list.Single(p => p.Key == "recipientDocument").Should().Match<IssuePrecondition>(p => !p.Ok && p.Link == "/app/terceiros/1");
+        var list = OutgoingInvoiceRules.InvoicePreconditions(invoice, items, "/app/cadastros/terceiros/1");
+        list.Single(p => p.Key == "recipientDocument").Should().Match<IssuePrecondition>(p => !p.Ok && p.Link == "/app/cadastros/terceiros/1");
         list.Single(p => p.Key == "recipientAddress").Ok.Should().BeFalse();
     }
 

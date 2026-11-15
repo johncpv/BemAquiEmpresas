@@ -385,6 +385,40 @@ public partial class FiscalTests
     }
 
     [Fact]
+    public async Task Salvar_o_rascunho_traz_o_endereco_corrigido_no_cadastro_do_cliente()
+    {
+        await ReadyToIssueAsync();
+        var (_, owner) = await OwnerAsync();
+        var sale = await SaleAsync();
+        await SetBillingIbgeAsync(sale.Party, null, "Cidade Sem Cadastro"); // nome que nenhuma busca de IBGE resolve
+        var created = await Ok(await owner.SendAsync(CreateInvoice(sale.Shipment)), HttpStatusCode.Created);
+        var id = created.GetProperty("id").GetGuid();
+        created.GetProperty("additionalInformation").GetString().Should().Be("Endereço da obra: Rua da Obra, 100 - Centro - Caçapava/SP", "o travessão está fora do padrão da NF-e (215)");
+
+        var check = await Ok(await owner.GetAsync($"{Invoices}/{id}/issue-check"));
+        var address = check.GetProperty("preconditions").EnumerateArray().Single(p => p.GetProperty("key").GetString() == "recipientAddress");
+        address.GetProperty("ok").GetBoolean().Should().BeFalse();
+        address.GetProperty("link").GetString().Should().Be($"/app/cadastros/terceiros/{sale.Party}", "a rota do cadastro do cliente no front");
+
+        await SetBillingIbgeAsync(sale.Party, "3550308", "São Paulo");
+        var saved = await Ok(await owner.PutAsJsonAsync($"{Invoices}/{id}", Edit(created)));
+        saved.GetProperty("recipient").GetProperty("cityCode").GetString().Should().Be("3550308");
+        check = await Ok(await owner.GetAsync($"{Invoices}/{id}/issue-check"));
+        check.GetProperty("preconditions").EnumerateArray().Single(p => p.GetProperty("key").GetString() == "recipientAddress").GetProperty("ok").GetBoolean()
+            .Should().BeTrue("salvar o rascunho relê o destinatário do cadastro, sem descartar a nota");
+    }
+
+    private async Task SetBillingIbgeAsync(Guid partyId, string? ibge, string city)
+    {
+        await using var scope = await fixture.ScopeAsync(fixture.Tenancy.TenantA);
+        var db = scope.ServiceProvider.GetRequiredService<TenantDbContext>();
+        var address = await db.Set<PartyAddress>().SingleAsync(a => a.PartyId == partyId);
+        address.IbgeCode = ibge;
+        address.City = city;
+        await db.SaveChangesAsync();
+    }
+
+    [Fact]
     public async Task Duas_emissoes_simultaneas_do_mesmo_rascunho_so_uma_vai_a_SEFAZ()
     {
         await ReadyToIssueAsync();

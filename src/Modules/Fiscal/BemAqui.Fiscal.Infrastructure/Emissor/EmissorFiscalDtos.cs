@@ -21,7 +21,8 @@ internal sealed record EfNfeRequest(
     string? InformacoesComplementares,
     string? InformacoesFisco,
     IReadOnlyList<string> NotasReferenciadas,
-    DateTimeOffset? DataEmissao);
+    DateTimeOffset? DataEmissao,
+    int? IndicadorIntermediador = null);
 
 internal sealed record EfDestinatario(string? Cnpj, string? Cpf, string RazaoSocial, int IndicadorInscricaoEstadual, string? InscricaoEstadual, string? Email, EfEndereco Endereco);
 
@@ -139,7 +140,16 @@ internal static class EmissorFiscalMapping
         r.AdditionalInformation,
         r.TaxAuthorityInformation,
         r.ReferencedAccessKeys ?? [],
-        r.IssuedAt);
+        r.IssuedAt,
+        Intermediary(r.Presence));
+
+    /// <summary>
+    /// <c>indIntermed</c> (NT 2020.006): obrigatório com <c>indPres</c> 1, 2, 3, 4 ou 9 (sem ele a SEFAZ rejeita com 434) e proibido com 0 ou 5.
+    /// O BemAqui vende direto, sem marketplace: 0, "operação sem intermediador". Sem valor, o campo não vai no JSON. O Emissor ainda precisa
+    /// ler o campo e levá-lo ao <c>ide/indIntermed</c> do XML.
+    /// </summary>
+    public static int? Intermediary(NfePresence presence) =>
+        presence is NfePresence.InPerson or NfePresence.Internet or NfePresence.Phone or NfePresence.HomeDelivery or NfePresence.InPersonOutside ? 0 : null;
 
     public static EfDestinatario ToEmissor(NfeRecipient d) => new(d.Cnpj, d.Cpf, d.Name, (int)d.StateRegistrationIndicator, d.StateRegistration, d.Email,
         new EfEndereco(d.Address.Street, d.Address.Number, d.Address.Complement, d.Address.District, d.Address.CityCode, d.Address.CityName, d.Address.State, d.Address.PostalCode, d.Address.Phone));
