@@ -28,6 +28,13 @@ export async function mockApi(page: Page, overrides: Record<string, Handler> = {
     'GET /api/v1/settings/ia': (r) => json(r, aiSettings()),
     'GET /api/v1/audit/*/*': (r) => json(r, { items: [], page: 1, pageSize: 20, total: 0 }),
     // "Última compra" na página do item (CMP-04 CA 15): por padrão o item ainda não foi comprado.
+    // Seções que entraram depois em telas já cobertas: a resposta vazia válida de cada uma. Sem isto o "{}" genérico derruba a tela inteira
+    // (lista que não é lista), e o spec da tela falha por causa de uma seção que ele nem testa.
+    'GET /api/v1/hr/employees/invitable': (r) => json(r, []),
+    'GET /api/v1/hr/employees/*/payslips': (r) => json(r, []),
+    'GET /api/v1/finance/parties/*/collection': (r) => json(r, { ruleActive: false, sentThisMonth: 0, notices: [], activePause: null, pauses: [], canEdit: false }),
+    'GET /api/v1/settings/billing/collection-rule': (r) => json(r, { id: null, isActive: false, sendTime: '09:00', steps: [], replyTo: null, companyEmail: null, placeholders: [], maxSteps: 5, nextRunCount: 0, nextRunDate: '2026-01-01', canEdit: true, version: 0 }),
+    'GET /api/v1/assets/parameters': (r) => json(r, { labelWidthMm: 50, labelHeightMm: 25, labelSizeId: null, maintenance: [], accounts: [], costCenters: [], pendingCount: 0 }),
     'GET /api/v1/purchasing/items/*/last-purchase': (r) => json(r, { status: 404, code: 'last_purchase_not_found', title: 'Este item ainda não foi comprado.' }, 404),
   }
   const handlers = { ...defaults, ...overrides }
