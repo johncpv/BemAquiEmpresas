@@ -12,7 +12,7 @@ namespace BemAqui.BuildingBlocks.Web;
 public sealed record RequiresModuleMetadata(string ModuleCode);
 
 /// <summary>Módulo do catálogo como o front vê: para o menu (FND-06d) e a tela "não liberada".</summary>
-public sealed record ModuleSummary(string Code, string Name, string Area, int Order, string Description, bool Released);
+public sealed record ModuleSummary(string Code, string Name, string Area, int Order, string Description, bool Released, bool Hidden);
 
 public static class ModuleEndpoints
 {
@@ -106,7 +106,7 @@ public static class ModuleEndpoints
     {
         api.MapGet("/modules", (TenantContextHolder tenant) => Results.Ok(ModuleCatalog.All
                 .OrderBy(m => Array.IndexOf(ModuleAreas.All, m.Area)).ThenBy(m => m.Order)
-                .Select(m => new ModuleSummary(m.Code, m.Name, m.Area, m.Order, m.Description, tenant.Resolved?.IsReleased(m.Code) == true))))
+                .Select(m => new ModuleSummary(m.Code, m.Name, m.Area, m.Order, m.Description, tenant.Resolved?.IsReleased(m.Code) == true, tenant.Resolved?.IsHidden(m.Code) == true))))
             .WithName("ListModules").Produces<IEnumerable<ModuleSummary>>()
             .WithTags("Módulos");
         return api;

@@ -41,3 +41,23 @@ describe('Painel do supervisor no menu da Produção (DSH-03)', () => {
     expect(tabs.at(-1)).toBe('supervisor')
   })
 })
+
+describe('perfil de negócio: liberado, cadeado e oculto (PERF-01, ADR 0046)', () => {
+  const nav = buildNavigation([
+    m('finance', 'Financeiro', true, true),
+    m('fiscal', 'Financeiro', false, false),
+    { ...m('production', 'Fábrica', false, false), hidden: true },
+    { ...m('engineering', 'Fábrica', true, true), hidden: false },
+  ])
+  const visible = nav.areas.flatMap((a) => a.modules).map((x) => x.code)
+
+  it('liberado aparece, no perfil e fora do plano fica com cadeado, fora do perfil some do menu e da busca', () => {
+    expect(visible).toEqual(expect.arrayContaining(['finance', 'fiscal', 'engineering']))
+    expect(visible).not.toContain('production')
+  })
+
+  it('oculto continua conhecido pela rota e cai na tela de não liberado (CA 9)', () => {
+    const production = nav.all.find((x) => x.code === 'production')!
+    expect(production.locked).toBe(true)
+  })
+})

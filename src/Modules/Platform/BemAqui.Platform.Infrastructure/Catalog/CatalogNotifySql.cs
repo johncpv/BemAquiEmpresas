@@ -39,6 +39,33 @@ public static class CatalogNotifySql
         + "INSERT INTO catalog.tenant_modules (id, tenant_id, module_code, enabled, is_exception, released_at, updated_at) "
         + "SELECT gen_random_uuid(), t.id, pm.module_code, true, false, now(), now() FROM catalog.tenants t JOIN catalog.plan_modules pm ON pm.plan_id = t.plan_id ON CONFLICT DO NOTHING;";
 
+
+    /// <summary>Perfis de negócio (PERF-01, ADR 0046): aplicar ou remover perfil também invalida o cache do tenant (oculto muda).</summary>
+    public const string InstallProfiles = """
+        DROP TRIGGER IF EXISTS tenant_profiles_changed ON catalog.tenant_profiles;
+        CREATE TRIGGER tenant_profiles_changed AFTER INSERT OR UPDATE OR DELETE ON catalog.tenant_profiles
+            FOR EACH STATEMENT EXECUTE FUNCTION catalog.notify_tenant_changed();
+        """;
+
+    public const string UninstallProfiles = "DROP TRIGGER IF EXISTS tenant_profiles_changed ON catalog.tenant_profiles;";
+
+    /// <summary>
+    /// Backfill da PERF-01 (CA 4): todo tenant sem perfil ativo recebe <c>factory</c>, com <c>applied_by</c> nulo (o sistema) e a
+    /// auditoria do sistema. Não toca <c>tenant_modules</c>: o perfil Fábrica lista todos os módulos de hoje, então a liberação
+    /// herdada não muda (regressão da Konebras, CA 11). Idempotente.
+    /// </summary>
+    public const string BackfillFactoryProfile = """
+        INSERT INTO audit.audit_log (id, entity, entity_id, action, user_id, at, origin, changes)
+        SELECT gen_random_uuid(), 'TenantProfile', t.id::text || ':factory', 'ProfileApplied', NULL, now(), 'Sistema · migration PERF-01 (ADR 0046)', '{"profile":"factory","segment":null}'::jsonb
+        FROM catalog.tenants t
+        WHERE NOT EXISTS (SELECT 1 FROM catalog.tenant_profiles p WHERE p.tenant_id = t.id AND p.removed_at IS NULL);
+
+        INSERT INTO catalog.tenant_profiles (id, tenant_id, profile_code, segment, applied_at, applied_by, removed_at, removed_by)
+        SELECT gen_random_uuid(), t.id, 'factory', NULL, now(), NULL, NULL, NULL
+        FROM catalog.tenants t
+        WHERE NOT EXISTS (SELECT 1 FROM catalog.tenant_profiles p WHERE p.tenant_id = t.id AND p.removed_at IS NULL);
+        """;
+
     public const string UninstallModules = """
         DROP TRIGGER IF EXISTS plan_modules_changed ON catalog.plan_modules;
         DROP TRIGGER IF EXISTS tenant_modules_changed ON catalog.tenant_modules;

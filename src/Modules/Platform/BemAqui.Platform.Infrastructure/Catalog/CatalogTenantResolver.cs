@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using BemAqui.BuildingBlocks.Modules;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.Platform.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -93,9 +94,12 @@ public sealed class CatalogTenantResolver(IServiceScopeFactory scopes, TimeProvi
             _ => TenantStatus.Provisioning,
         };
         var released = await db.TenantModules.AsNoTracking().Where(m => m.TenantId == tenant.Id && m.Enabled).Select(m => m.ModuleCode).ToListAsync(cancellationToken);
+        var profiles = await db.TenantProfiles.AsNoTracking().Where(p => p.TenantId == tenant.Id && p.RemovedAt == null).Select(p => p.ProfileCode).ToListAsync(cancellationToken);
+        var releasedSet = released.ToHashSet(StringComparer.Ordinal);
         return new ResolvedTenant(new TenantInfo(tenant.Id, tenant.Key, status), tenant.LegalName, tenant.TradeName, primary, tenant.ConnectionSecret, tenant.SchemaVersion)
         {
-            ReleasedModules = released.ToHashSet(StringComparer.Ordinal),
+            ReleasedModules = releasedSet,
+            HiddenModules = BusinessProfileCatalog.Hidden(profiles, releasedSet), // ADR 0046: fora de todo perfil e não liberado
             BankProductionAllowed = tenant.BankProductionAllowed,
         };
     }
