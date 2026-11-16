@@ -4,7 +4,7 @@
 |---|---|
 | Versão | 0.1 — 15/11/2026 |
 | PO | John |
-| Status | **Plano proposto em 15/11/2026; construção depois do go-live da Konebras; ADRs em rascunho até o PO aprovar** |
+| Status | **Plano aprovado; construção iniciada em 16/11/2026 na `main`, com os módulos novos desligados para a Konebras (PP-41 revista); ADRs em rascunho até os spikes e as stories que as escrevem** |
 | Origem | Pedido do PO de 15/11/2026 |
 | O que é | Só planejamento. Nenhum código de produto foi alterado |
 

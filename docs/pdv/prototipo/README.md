@@ -4,6 +4,7 @@ Dois protótipos navegáveis, em HTML puro. Abra o arquivo no navegador. Os prod
 
 | Arquivo | Origem | O que mostra |
 |---|---|---|
+| [pdv-unificado.html](pdv-unificado.html) | **Referência de tela (16/11/2026)** | O visual das quatro telas do PO com as funções do plano: perfil do negócio (7 ramos), barra de status (online/offline, caixa, NFC-e ou cupom não fiscal), pagamento com divisão (por igual, cada um paga o seu), Pix e TEF simulados, cozinha e painel do cliente, retaguarda com precificação, caixa com conferência cega, PIN de supervisor (1234), balança e celular. Abre no navegador; dados de exemplo |
 | [prototipo-por-tipo-de-comercio.html](prototipo-por-tipo-de-comercio.html) | Plano (15/11/2026) | Um PDV que muda conforme o tipo de comércio (balcão, mercado, padaria, lanchonete, restaurante, oficina), com as abas Venda, Pedidos (cozinha e painel do cliente), Retaguarda (nota de entrada e precificação) e Caixa (sangria e conferência cega); venda sem internet; NFC-e ou cupom não fiscal; divisão da conta |
 | [telas-por-modo-de-venda.html](telas-por-modo-de-venda.html) | Trazido pelo PO (15/11/2026) | Quatro telas de venda, uma por modo: Caixa Rápido (teclado e leitor), Balcão Touch (toque), Mesas e Delivery, Oficina / OS |
 
