@@ -78,7 +78,7 @@ Como **dono de um trailer ou de uma loja com internet ruim**, quero **abrir, ope
 
 ## Pontos em aberto
 - **PP-10:** 72 h, 7 dias ou parâmetro por loja. O piso de mercado é 7 dias.
-- PP-11: PIN de supervisor. **PP-39:** o mesmo PIN ou um código separado para aprovar sem rede.
+- PP-11: PIN de supervisor. **PP-39 (decidida em 15/11/2026):** operador com o mesmo PIN; supervisor com código de aprovação offline separado.
 - Valores padrão dos limites offline (PP-22).
 
 ## Definition of Done

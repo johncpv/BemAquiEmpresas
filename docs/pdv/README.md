@@ -53,6 +53,7 @@ Onde cada pedido é atendido: [01-PRD.md](01-PRD.md), seção 2.
 | [06-pendencias-riscos.md](06-pendencias-riscos.md) | Perguntas ao PO em primeiro lugar, decisões (PP-01 a PP-42), perguntas para a contadora (QC-01 a QC-17) e riscos |
 | [07-emissor-fiscal.md](07-emissor-fiscal.md) | As 41 lacunas do EmissorFiscal para a NFC-e, o contrato da API, fases e homologação |
 | [adr/](adr/README.md) | Seis rascunhos de ADR (A a F), ainda não numerados |
+| [prototipo/](prototipo/README.md) | Dois protótipos navegáveis em HTML: o do plano (por tipo de comércio, com offline, cozinha, retaguarda e caixa) e as quatro telas por modo de venda trazidas pelo PO |
 | [stories/](stories/README.md) | Stories detalhadas das Fases 10 e 11 e as quatro primeiras do e-commerce (32 stories) |
 
 ## 4. Como ler
@@ -130,6 +131,9 @@ Uma revisão independente leu os 43 arquivos da primeira versão e deu o veredit
 | Venda sem internet em loja fiscal | **Contingência offline de verdade, com assinatura na loja.** Certificado no computador da loja: um servidor por loja, chave não exportável, certificado separado do cofre, série própria com alerta, inventário. "Cupom agora, NFC-e depois" só como modo degradado, desligado por padrão | PP-01; rascunho E; 07, seção 2.6; NFCE-04 |
 | Cupom fiscal × não fiscal | **As duas opções existem; a escolha é configurável por tenant**, para qualquer empresa. O Proprietário liga com aceite registrado; o comprovante diz "Não é documento fiscal"; há relatório de vendas sem documento fiscal | PP-05, PP-35; IMP-01 |
 | "CPD" é depósito ou retaguarda? | **Retaguarda** (Centro de Processamento de Dados no sentido do varejo) | PP-40; Fase 12 reescrita; CPD-01 |
+| Limite de desconto | **Por loja**, com o grupo dando só a permissão | PP-38; PDV-04 |
+| PIN sem rede | **Operador com o mesmo PIN; supervisor com código de aprovação offline separado** | PP-39; OFF-03 |
+| Cupom fiscal ou não fiscal: por empresa ou por loja | **Padrão da empresa, com exceção por loja** | PP-05; `stores.fiscal_mode` |
 | Hospedagem | **Ficar na VPS atual por enquanto**, com consequências aceitas, mitigações e gatilhos para reabrir | PP-07; INFRA-01 condicionada; INFRA-02 |
 
 Continuam abertas, fora do PO: as perguntas à contadora por UF (QC-01 e QC-12 seguram a assinatura na loja) e a consulta à certificadora. Com o PO: as pendências da [seção 2 do 06](06-pendencias-riscos.md#2-decisões-que-destravam-as-fases-10-e-11), a começar pela PP-02.

@@ -37,15 +37,15 @@ A primeira versão falava em "sete decisões". A revisão mostrou que eram mais:
 | PP-25 | Vocabulário por perfil | Teto de cerca de 30 termos | PERF-03 |
 | PP-26 | CPF do consumidor, finalidades e LGPD | Ver a pendência | PDV-02, PDV-06, OFF-02 |
 | PP-35 | Lojista piloto de balcão | Não abrir a Fase 11 sem ele | Fase 11 |
-| PP-38 | Limite de desconto: por grupo ou por loja | Por loja | PDV-04 |
-| PP-39 | PIN offline igual ao online ou separado | Separado para supervisor | OFF-03 |
 
 **Decidido em 15/11/2026 (John):**
 
 | # | Decisão | O que ficou |
 |---|---|---|
 | PP-01 | Venda sem internet em loja fiscal | Assinatura na loja, com as proteções. Não travava as Fases 10 e 11; destrava a NFCE-04 e a fase 3 do Emissor |
-| PP-05 | Cupom fiscal × não fiscal | As duas opções existem; configurável por tenant, com aceite do Proprietário |
+| PP-05 | Cupom fiscal × não fiscal | As duas opções existem; configurável por tenant, com aceite do Proprietário. O padrão é da empresa e cada loja pode ter exceção (`stores.fiscal_mode`) |
+| PP-38 | Limite de desconto | **Por loja** (parâmetro do `Pos`); o grupo dá só a permissão `pos.discount`. Aceita faixa por papel dentro da loja |
+| PP-39 | PIN sem rede | **Operador usa o mesmo PIN; supervisor usa um código de aprovação offline separado** |
 | PP-07 | Onde hospedar | Ficar na VPS atual. A INFRA-01 saiu do caminho do MVP |
 | PP-13 | Dono e início do EmissorFiscal | O PO, em outra frente, antes do go-live. Falta só o caminho da E14 |
 | PP-16 | Ordem das trilhas | Balcão primeiro |
@@ -172,8 +172,8 @@ A story [PDV-05](stories/PDV-05-baixa-estoque-sem-bloquear.md) está escrita par
 | PP-35 | Lojista piloto | — | Não abrir a Fase 11 sem um lojista parceiro de balcão para teste em campo. Pela decisão da PP-05, o piloto não precisa ser MEI nem dispensado: basta o Proprietário ligar o modo "só cupom não fiscal" com o aceite registrado. Recomendação que continua valendo: orientar o lojista a consultar a contadora dele antes, e preferir quem tenha emissor próprio em paralelo durante o piloto. **A UF segue aberta** (PP-06) | Fase 11 | |
 | PP-36 | Integrações de food com terceiros | iFood, 99Food e Keeta (Open Delivery), robô de WhatsApp, totem | Só com cliente de alimentação pedindo. Credenciamento e custo a levantar. Sem isso os itens 14, 18 e 20 do piso não fecham | DLV-04, DLV-05, PDV-13 | |
 | PP-37 | PRD e `CLAUDE.md` | — | Atualizar os dois antes das stories: o produto deixa de ser só "ERP de indústria sob encomenda" | Todas | |
-| PP-38 | Limite de desconto: onde mora | (a) por grupo de usuários (um campo no grupo, no Identity); (b) por loja (parâmetro do `Pos`), com o grupo dando só a permissão `pos.discount` | (b). O limite é regra de PDV e não deveria virar campo do Identity; a primeira versão do plano dizia as duas coisas em lugares diferentes. Se o lojista precisar de limites diferentes por papel, (b) aceita uma faixa por papel dentro da loja | PDV-04 | |
-| PP-39 | PIN offline: o mesmo PIN do online ou um separado | (a) o mesmo PIN, com limites de valor e de quantidade para aprovações offline; (b) um código de aprovação offline separado para supervisor; (c) operador com o mesmo PIN e supervisor com código separado | (c). O PIN de 6 dígitos guardado no aparelho é quebrável com acesso físico; se for o mesmo do online, quebrar o de um supervisor rende uma credencial de aprovação que vale com rede. Com código separado, o estrago fica nos limites offline. Nas três opções valem os limites e a revisão na sincronização | OFF-03 | |
+| PP-38 | Limite de desconto: onde mora | (a) por grupo de usuários (um campo no grupo, no Identity); (b) por loja (parâmetro do `Pos`), com o grupo dando só a permissão `pos.discount` | (b). O limite é regra de PDV e não deveria virar campo do Identity; a primeira versão do plano dizia as duas coisas em lugares diferentes. Se o lojista precisar de limites diferentes por papel, (b) aceita uma faixa por papel dentro da loja | PDV-04 | **Decidida em 15/11/2026: (b)** |
+| PP-39 | PIN offline: o mesmo PIN do online ou um separado | (a) o mesmo PIN, com limites de valor e de quantidade para aprovações offline; (b) um código de aprovação offline separado para supervisor; (c) operador com o mesmo PIN e supervisor com código separado | (c). O PIN de 6 dígitos guardado no aparelho é quebrável com acesso físico; se for o mesmo do online, quebrar o de um supervisor rende uma credencial de aprovação que vale com rede. Com código separado, o estrago fica nos limites offline. Nas três opções valem os limites e a revisão na sincronização | OFF-03 | **Decidida em 15/11/2026: (c)** |
 | PP-40 | Sentido de "CPD" | (a) central de distribuição que abastece as lojas; (b) retaguarda do varejo | — | Fase 12 | 15/11/2026 (John): **(b). CPD é o Centro de Processamento de Dados no sentido do varejo: a retaguarda**, onde se faz o controle geral (lançar as notas de entrada, precificar, cadastrar, entre outras). Não é centro de distribuição. O depósito central e a transferência entre lojas continuam como capacidade de multiloja (CPD-06) |
 | PP-41 | Exceção à regra "construção depois do go-live" | (a) nenhuma; (b) só o EmissorFiscal; (c) também os spikes deste repositório | — | SPK-02, NFCE-00 | 15/11/2026 (John): **(b). O trabalho no EmissorFiscal pode começar antes do go-live da Konebras**, em outra frente. Para este repositório a regra continua: construção depois do go-live, SPK-01 e SPK-03 incluídos, salvo nova exceção |
 | PP-42 | Acesso por loja | (a) quem tem o módulo vê todas as lojas, como hoje; (b) restringir usuário a lojas | Decidir com o piloto. O modelo de permissões é `modulo.acao`, sem escopo por loja; (b) pede ADR. Sem ela, um gerente vê as vendas e os caixas das outras lojas, o que enfraquece o item 27 do piso (multiloja) | PDV-07, CPD-05 | |

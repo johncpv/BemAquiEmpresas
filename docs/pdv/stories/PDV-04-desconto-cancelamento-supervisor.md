@@ -41,7 +41,7 @@ Como **dono**, quero **que desconto alto, troca de preço e cancelamento só pas
 13. **Dado** `sales.view`, **quando** abro "Aprovações de supervisor", **então** vejo o relatório por operador, por supervisor e por tipo, com exportação; e o indicador "cancelamentos acima de X% das vendas do turno" por caixa.
 
 ## Regras de negócio e técnicas
-- Onde mora o limite de desconto é a PP-38: por loja (recomendado; parâmetro do `Pos`) ou por grupo (campo no Identity; nesse caso vale o maior entre os grupos do operador). A primeira versão do plano dizia as duas coisas; a story não sai de `Draft` sem a decisão.
+- Onde mora o limite de desconto é a PP-38: por loja (recomendado; parâmetro do `Pos`) ou por grupo (campo no Identity; nesse caso vale o maior entre os grupos do operador). A primeira versão do plano dizia as duas coisas; a story não sai de `Draft` sem a decisão. **Decidida em 15/11/2026: por loja.**
 - O supervisor nunca aprova a própria operação.
 - Cancelar item, descontar e cancelar venda entram no `audit.audit_log`, além dos eventos do aparelho.
 - O PIN de supervisor é a exceção nomeada às ADRs 0008 e 0026; o TOTP continua valendo na retaguarda.
