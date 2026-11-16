@@ -43,7 +43,7 @@ Legenda das ações: V = `view` (Ver), C = `create` (Criar), E = `edit` (Editar)
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `dashboard` | tudo | V | V | — | — | — | — | — | — | — | — |
 | `quotes` | tudo | V, A, `view_cost` | V, `view_cost` | V, C, E, `view_cost` | — | — | — | — | — | — | — |
-| `projects` | tudo | V, A, `view_cost` | V, `view_cost` | V, `view_cost` | V, E | V | — | V | — | — | — |
+| `projects` | tudo | V, A, `view_cost`, `edit_budget` | V, `view_cost` | V, `view_cost` | V, E | V | — | V | — | — | — |
 | `parties` | tudo | V | V, C, E | V, C, E | V | — | — | V, C, E | V, C, E | — | V |
 | `engineering` | tudo | V | — | — | V, C, E, X, A | V | — | — | — | — | — |
 | `production` | tudo | V | — | — | V, C, E | V, C, E, A, `approve_quality` | — | V | V | — | — |

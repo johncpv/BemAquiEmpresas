@@ -21,4 +21,5 @@ export const ProjectCostEntryKind = {
   Contract: 'Contract',
   Amendment: 'Amendment',
   Project: 'Project',
+  BudgetRevision: 'BudgetRevision',
 } as const;

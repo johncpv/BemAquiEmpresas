@@ -41,6 +41,8 @@ public static class CommercialInfrastructure
         services.TryAddScoped<QuoteApprovalService>();
         services.TryAddScoped<ContractService>();
         services.TryAddScoped<ProjectService>();
+        // COM-09: edição direta do custo orçado, com motivo e trilha.
+        services.TryAddScoped<ProjectBudgetService>();
         // Orçado × realizado e margem (DSH-02): um cálculo só para a aba Custos, o relatório e o painel do dono.
         services.TryAddScoped<ProjectMarginService>();
         services.TryAddScoped<IProjectMargins>(sp => sp.GetRequiredService<ProjectMarginService>());
@@ -69,6 +71,7 @@ public static class CommercialInfrastructure
         services.AddAuditableEntity<Project>("projects");
         services.AddAuditableEntity<ProjectItem>("projects");
         services.AddAuditableEntity<ProjectBudget>("projects", "view_cost");
+        services.AddAuditableEntity<ProjectBudgetRevision>("projects", "view_cost");
         services.AddAuditableEntity<ContractAmendment>("projects");
         services.AddAuditableEntity<ContractAmendmentMilestone>("projects");
         services.AddAuditableEntity<ContractAmendmentReduction>("projects");

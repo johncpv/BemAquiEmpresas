@@ -97,6 +97,21 @@ internal sealed class ProjectBudgetConfiguration : IEntityTypeConfiguration<Proj
     }
 }
 
+/// <summary>Edições diretas do custo orçado (COM-09): consulta pelo projeto, da mais recente à mais antiga.</summary>
+internal sealed class ProjectBudgetRevisionConfiguration : IEntityTypeConfiguration<ProjectBudgetRevision>
+{
+    public void Configure(EntityTypeBuilder<ProjectBudgetRevision> b)
+    {
+        b.ToTable("project_budget_revisions", CommercialSchema.Name);
+        b.Property(e => e.CostType).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.PreviousAmount).HasPrecision(18, 2);
+        b.Property(e => e.NewAmount).HasPrecision(18, 2);
+        b.Property(e => e.Reason).HasMaxLength(ProjectBudgetRevision.ReasonMaxLength);
+        b.HasOne<Project>().WithMany().HasForeignKey(e => e.ProjectId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.ProjectId, e.ChangedAt });
+    }
+}
+
 /// <summary>Razão de diferenças (ADR 0025 §2, PRD-04 CA 7): único por <c>(source, source_id, seq)</c>; consulta por projeto e natureza.</summary>
 internal sealed class ProjectCostConfiguration : IEntityTypeConfiguration<ProjectCost>
 {

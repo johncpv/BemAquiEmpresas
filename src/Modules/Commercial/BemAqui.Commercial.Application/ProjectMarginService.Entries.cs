@@ -124,14 +124,21 @@ public sealed partial class ProjectMarginService
             .Select(a => (a.Id, a.Number, a.ApprovedAt, Delta: AmendmentService.Deltas(a.BudgetDeltas).GetValueOrDefault(costType)))
             .Where(a => a.Delta != 0)
             .ToList();
+        // COM-09: cada edição direta do orçado entra pela diferença (novo − anterior), com o motivo; o orçamento do contrato fica com o resto.
+        var revisions = (await db.ProjectBudgetRevisions.AsNoTracking().Where(r => r.ProjectId == head.Id && r.CostType == costType).OrderBy(r => r.ChangedAt)
+                .Select(r => new { r.ChangedAt, r.Reason, Delta = r.NewAmount - r.PreviousAmount }).ToListAsync(ct))
+            .Where(r => r.Delta != 0)
+            .ToList();
         var entries = new List<ProjectCostEntry>
         {
-            new(ProjectCostEntryKind.Contract, $"Orçamento do contrato {contractNumber}", head.SignedAt, budgeted - amendments.Sum(a => a.Delta), null,
+            new(ProjectCostEntryKind.Contract, $"Orçamento do contrato {contractNumber}", head.SignedAt, budgeted - amendments.Sum(a => a.Delta) - revisions.Sum(r => r.Delta), null,
                 links.Projects ? $"/app/contratos/{head.ContractId}" : null),
         };
         entries.AddRange(amendments.Select(a => new ProjectCostEntry(
             ProjectCostEntryKind.Amendment, string.Create(CultureInfo.InvariantCulture, $"Aditivo {a.Number} do contrato {contractNumber}"),
             a.ApprovedAt is { } at ? DateOnly.FromDateTime(at.UtcDateTime) : null, a.Delta, null, links.Projects ? $"/app/contratos/{head.ContractId}/aditivos/{a.Id}" : null)));
+        entries.AddRange(revisions.Select(r => new ProjectCostEntry(
+            ProjectCostEntryKind.BudgetRevision, $"Custo orçado editado: {r.Reason}", DateOnly.FromDateTime(BemAqui.BuildingBlocks.Time.BusinessTime.ToBusiness(r.ChangedAt).DateTime), r.Delta, null, null)));
         return new ProjectCostEntries(costType, ProjectCostColumn.Budgeted, budgeted, entries, null, null);
     }
 

@@ -27,6 +27,7 @@ export const ENTRY_KIND: Record<ProjectCostEntryKind, string> = {
   Contract: 'Orçamento do contrato',
   Amendment: 'Aditivo',
   Project: 'Projeto',
+  BudgetRevision: 'Edição do custo orçado',
 }
 
 export const COLUMN_LABEL = { budgeted: 'Orçado', realized: 'Realizado', committed: 'Comprometido' } as const

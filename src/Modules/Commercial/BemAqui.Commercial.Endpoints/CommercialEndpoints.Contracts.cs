@@ -71,6 +71,11 @@ internal static partial class CommercialEndpoints
             .RequirePermission("projects.view").WithName("DownloadProjectSummaryPdf").Produces(StatusCodes.Status200OK, contentType: "application/pdf");
         projects.MapGet("/{id:guid}/budget", async (Guid id, ProjectService service, CancellationToken ct) => (await service.BudgetAsync(id, ct)).ToHttpResult())
             .RequirePermission("projects.view_cost").WithName("GetProjectBudget").Produces<IReadOnlyList<ProjectBudgetLine>>();
+        // COM-09: edição direta do custo orçado (ação própria; o serviço exige também projects.view_cost) e o histórico das edições.
+        projects.MapPut("/{id:guid}/budget", async (Guid id, ProjectBudgetEditInput input, ProjectBudgetService service, CancellationToken ct) => (await service.EditAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("projects.edit_budget").WithName("EditProjectBudget").Produces<IReadOnlyList<ProjectBudgetLine>>();
+        projects.MapGet("/{id:guid}/budget/revisions", async (Guid id, ProjectBudgetService service, CancellationToken ct) => (await service.RevisionsAsync(id, ct)).ToHttpResult())
+            .RequirePermission("projects.view_cost").WithName("ListProjectBudgetRevisions").Produces<IReadOnlyList<ProjectBudgetRevisionView>>();
         projects.MapPost("/{id:guid}/fabrication", async (Guid id, ProjectEventInput input, ProjectService service, CancellationToken ct) => (await service.RegisterFabricationAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("projects.edit").WithName("RegisterProjectFabrication").Produces<ProjectDetail>();
         projects.MapPost("/{id:guid}/delivery", async (Guid id, ProjectEventInput input, ProjectService service, CancellationToken ct) => (await service.RegisterDeliveryAsync(id, input, ct)).ToHttpResult())

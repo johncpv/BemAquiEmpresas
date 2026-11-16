@@ -836,7 +836,9 @@ import type {
   ProductionParametersInput,
   ProductionParametersView,
   ProjectBillingView,
+  ProjectBudgetEditInput,
   ProjectBudgetLine,
+  ProjectBudgetRevisionView,
   ProjectCostEntries,
   ProjectCostView,
   ProjectDetail,
@@ -38522,6 +38524,184 @@ export function useGetProjectBudget<TData = Awaited<ReturnType<typeof getProject
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetProjectBudgetQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getEditProjectBudgetUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/projects/${id}/budget`
+}
+
+export const editProjectBudget = async (id: string,
+    projectBudgetEditInput: ProjectBudgetEditInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectBudgetLine[]> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ProjectBudgetLine[]>(getEditProjectBudgetUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(projectBudgetEditInput)
+  }
+);}
+
+
+
+
+
+export const getEditProjectBudgetMutationKey = () => ['editProjectBudget'] as const;
+
+export const getEditProjectBudgetMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof editProjectBudget>>, TError,EditProjectBudgetMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof editProjectBudget>>, TError,EditProjectBudgetMutationVariables, TContext> => {
+
+const mutationKey = getEditProjectBudgetMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof editProjectBudget>>, EditProjectBudgetMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  editProjectBudget(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EditProjectBudgetMutationResult = NonNullable<Awaited<ReturnType<typeof editProjectBudget>>>
+    export type EditProjectBudgetMutationBody = ProjectBudgetEditInput
+    export type EditProjectBudgetMutationError = unknown
+    export type EditProjectBudgetMutationVariables = {id: string;data: ProjectBudgetEditInput}
+
+    export const useEditProjectBudget = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof editProjectBudget>>, TError,EditProjectBudgetMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof editProjectBudget>>,
+        TError,
+        EditProjectBudgetMutationVariables,
+        TContext
+      > => {
+      return useMutation(getEditProjectBudgetMutationOptions(options), queryClient);
+    }
+
+export const getListProjectBudgetRevisionsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/projects/${id}/budget/revisions`
+}
+
+export const listProjectBudgetRevisions = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectBudgetRevisionView[]> => {
+
+  return apiFetch<ProjectBudgetRevisionView[]>(getListProjectBudgetRevisionsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListProjectBudgetRevisionsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/projects/${id}/budget/revisions`
+    ] as const;
+    }
+
+
+export const getListProjectBudgetRevisionsQueryOptions = <TData = Awaited<ReturnType<typeof listProjectBudgetRevisions>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProjectBudgetRevisions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListProjectBudgetRevisionsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listProjectBudgetRevisions>>> = ({ signal }) => listProjectBudgetRevisions(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listProjectBudgetRevisions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListProjectBudgetRevisionsQueryResult = NonNullable<Awaited<ReturnType<typeof listProjectBudgetRevisions>>>
+export type ListProjectBudgetRevisionsQueryError = unknown
+
+
+export function useListProjectBudgetRevisions<TData = Awaited<ReturnType<typeof listProjectBudgetRevisions>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProjectBudgetRevisions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listProjectBudgetRevisions>>,
+          TError,
+          Awaited<ReturnType<typeof listProjectBudgetRevisions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListProjectBudgetRevisions<TData = Awaited<ReturnType<typeof listProjectBudgetRevisions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProjectBudgetRevisions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listProjectBudgetRevisions>>,
+          TError,
+          Awaited<ReturnType<typeof listProjectBudgetRevisions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListProjectBudgetRevisions<TData = Awaited<ReturnType<typeof listProjectBudgetRevisions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProjectBudgetRevisions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListProjectBudgetRevisions<TData = Awaited<ReturnType<typeof listProjectBudgetRevisions>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listProjectBudgetRevisions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListProjectBudgetRevisionsQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -72,7 +72,12 @@ public static partial class ModuleCatalog
         new("quotes", "Orçamentos", ModuleAreas.Commercial, 2, 20, "Orçamentos com custo e margem, até virar contrato.", CrudApprove,
             [new("view_cost", "Ver custo e margem", "Ver custo e margem do orçamento: composição, custo unitário, markup e margem (sigilo comercial, D7).")], "gerar o contrato"),
         new("projects", "Projetos", ModuleAreas.Commercial, 2, 30, "Contratos e projetos, com etapas e aditivos.", CrudApprove,
-            [new("view_cost", "Ver custo e margem", "Ver orçado, custo lançado e margem do projeto (sigilo comercial, D7).")], "aditivos de contrato"),
+            [
+                new("view_cost", "Ver custo e margem", "Ver orçado, custo lançado e margem do projeto (sigilo comercial, D7)."),
+                // COM-09 (PO 15/11/2026, ADR 0003 adendo de 15/11/2026): edição direta do orçado, separada de editar o projeto e de aprovar aditivo.
+                // Nenhum seed patch a concede: nasce só com o Proprietário, e o tenant concede a quem também tem "Ver custo e margem".
+                new("edit_budget", "Editar custo orçado", "Editar custo orçado: informar ou corrigir o custo orçado do projeto por natureza, com motivo. Muda a margem orçada; exige também Ver custo e margem."),
+            ], "aditivos de contrato"),
         new("parties", "Cadastros", ModuleAreas.Commercial, 1, 40, "Clientes, fornecedores e instaladores.", Crud, []),
         new("engineering", "Engenharia", ModuleAreas.Factory, 3, 50, "Estrutura de produto (BOM) e roteiros de fabricação.", CrudApprove, [], "liberar a BOM"),
         // PRD-05 (D6, ADR 0003 adendo de 21/10/2026): a decisão de qualidade sai da production.approve para a ação específica,

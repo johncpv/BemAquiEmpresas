@@ -19,7 +19,7 @@ public enum ProjectCostColumn
 /// <summary>
 /// Tipo de origem de um lançamento do drill-down (DSH-02 CA 13 e 15): baixa para OS, devolução, apontamento, correção de apontamento, título a
 /// pagar, título de compra, a dedução das baixas no comprometido de material, imposto da nota, estorno de imposto, orçamento do contrato,
-/// aditivo e, no consolidado, o projeto.
+/// aditivo, edição direta do custo orçado (COM-09) e, no consolidado, o projeto.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<ProjectCostEntryKind>))]
 public enum ProjectCostEntryKind
@@ -36,6 +36,7 @@ public enum ProjectCostEntryKind
     Contract,
     Amendment,
     Project,
+    BudgetRevision,
 }
 
 /// <summary>

@@ -709,5 +709,15 @@ Decisões do PO de 14/11/2026: o desligamento desativa o login vinculado; o vín
 
 ---
 
+## Pós-go-live: custo orçado do projeto
+
+Decisão do PO de 15/11/2026: edição direta do custo orçado no projeto, protegida por permissão e com auditoria, sem fluxo de aprovação. [Detalhe no README](stories/README.md#pós-go-live-custo-orçado-do-projeto).
+
+**COM-09 [x] Editar o custo orçado do projeto: por natureza, com permissão própria, motivo, versão e histórico (P)** — Pós-go-live, ordem 1 — `Done` (15/11/2026) — [story](stories/COM-09-editar-custo-orcado.md)
+- Requisitos: decisão do PO de 15/11/2026, DSH-02 ("Sem orçamento de custo"), R-SEC-5, D7, ADR 0003, ADR 0019.
+- CA: "Editar custo orçado" na aba Custos só com `projects.edit_budget` (ação nova, só o Proprietário por padrão) e `projects.view_cost`; diálogo com as seis naturezas, motivo obrigatório e o impacto (total e margem orçada antes e depois); só as naturezas alteradas mudam e os números valem na hora; projeto encerrado ou cancelado recusa com 409; versão antiga dá 409 `concurrency_conflict`; "Edições do custo orçado" mostra quem, quando, o motivo, o valor anterior e o novo, e o drill-down do Orçado fecha com cada edição pela diferença.
+
+---
+
 ## Fase 9 — Evolução
 Ponto como registro oficial (REP-P / Portaria 671; P-26, depois do MVP) · Depreciação · Retalhos de corte · Etapas terceirizadas · SSO · Contratos de manutenção recorrente (se validado).
