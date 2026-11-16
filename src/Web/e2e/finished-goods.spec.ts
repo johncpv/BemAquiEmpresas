@@ -146,7 +146,8 @@ test.describe('Produto acabado na conclusão da OS (PRD-06a2)', () => {
     await page.goto('/app/producao/os/of1')
     await expect(page.getByRole('button', { name: 'Concluir OS' }).first()).toBeDisabled()
     await expect(page.getByText('Escolha o item de estoque do produto antes de concluir.')).toBeVisible()
-    await page.getByRole('button', { name: 'Escolher item do produto' }).click()
+    // O atalho aparece no aviso do topo e ao lado do "Concluir OS" desabilitado; o teste usa o do aviso.
+    await page.getByRole('note').filter({ hasText: 'Antes de concluir a OS' }).getByRole('button', { name: 'Escolher item do produto' }).click()
     const dialog = page.getByRole('alertdialog')
     await dialog.getByLabel(/ELV-9 — Elevador 9 paradas/).check()
     await dialog.getByRole('button', { name: 'Escolher item' }).click()
