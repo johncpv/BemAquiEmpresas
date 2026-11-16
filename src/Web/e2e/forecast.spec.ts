@@ -64,8 +64,7 @@ function forecastApi() {
 }
 
 test.describe('Entrega prevista e risco (PLN-01b)', () => {
-  test('apontamento acima do padrão muda a entrega prevista e o projeto fica Em risco', async ({ page }, info) => {
-    const mobile = info.project.name === 'celular'
+  test('apontamento acima do padrão muda a entrega prevista e o projeto fica Em risco', async ({ page }) => {
     const { api, sent } = forecastApi()
     await mockApi(page, api)
 
@@ -88,6 +87,14 @@ test.describe('Entrega prevista e risco (PLN-01b)', () => {
     await expect(page.locator('main').getByText('Em risco', { exact: true })).toBeVisible()
     await expect(page.getByText('Vai atrasar 7 dias: previsão 05/12/2026, prometido ao cliente 28/11/2026.')).toBeVisible()
     await expect(page.getByRole('link', { name: 'Ver as OS do projeto' })).toHaveAttribute('href', /\/app\/producao\/os\?projeto=p1/)
+  })
+
+  // Separado do anterior: cada página é uma carga inteira no servidor de desenvolvimento, e as quatro juntas encostavam no limite de 30 s.
+  test('lista de projetos: a prevista e a folga abaixo da prometida e o chip Em risco', async ({ page }, info) => {
+    const mobile = info.project.name === 'celular'
+    const { api, setForecast } = forecastApi()
+    setForecast(forecast({ forecastDate: '2026-12-05', fabricationEnd: '2026-11-28', slackDays: -7, risk: 'AtRisk' }))
+    await mockApi(page, api)
 
     // Lista: a prevista e a folga abaixo da prometida (sem coluna nova a 400 px) e o chip âmbar.
     await page.goto('/app/projetos')
