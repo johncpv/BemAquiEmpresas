@@ -165,7 +165,8 @@ export function TreeTable<T extends TreeNode>({
           <input type="search" value={term} onChange={(e) => setTerm(e.target.value)} placeholder={`Buscar em ${label.toLowerCase()}`} aria-label={`Buscar em ${label.toLowerCase()}`} className="w-full bg-transparent px-1 py-1 text-sm outline-none" />
         </div>
       ) : null}
-      <div className={cellNavigation || stickyLabel ? 'overflow-x-auto' : undefined}>
+      {/* Sempre rola de lado: a 400 px a tabela com o texto maior passa da tela e alargaria a página inteira. */}
+      <div className="overflow-x-auto">
         <table role="treegrid" aria-label={label} aria-rowcount={cellNavigation ? rows.length + 1 : undefined} aria-colcount={cellNavigation ? lastCol + 1 : undefined} className="w-full border-collapse text-sm">
           <thead className="border-b border-border text-xs text-muted-foreground">
             <tr aria-rowindex={cellNavigation ? 1 : undefined}>

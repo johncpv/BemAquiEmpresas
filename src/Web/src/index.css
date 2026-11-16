@@ -107,6 +107,13 @@
 }
 
 @layer base {
+  /* Quem rola de lado prende o que é absoluto dentro dele (o texto sr-only das dicas e dos cabeçalhos). Sem isto, numa tabela mais
+     larga que a tela ele escapa do recorte e alarga a página a 400 px: os diálogos em tela cheia saem do lugar e o toque cai
+     no elemento errado. :where() não pesa: fixed, sticky e absolute das classes continuam valendo. */
+  :where(.overflow-x-auto, .overflow-auto) {
+    position: relative;
+  }
+
   /* Foco e rolagem nunca escondidos sob a topbar fixa e o dock (WCAG 2.4.11). */
   /* --dock-offset: altura do dock com a margem de baixo; a barra de ações fixa (FormActions) fica logo acima dele. */
   html {
