@@ -9,7 +9,9 @@ As Fases 10 e 11 e as quatro primeiras stories do e-commerce têm arquivo em [`s
 
 ## Regra do go-live
 
-**A construção começa depois do fechamento do go-live da Konebras** (GOL-01b está `InProgress`). É a regra do PO e vale para todo o código deste repositório, spikes incluídos.
+**Revista em 16/11/2026 (John, PP-41):** a construção começa já, **na `main`**, sem branch longa: uma story por PR, com CI e revisão, como no resto do repositório. Os módulos novos entram **desligados por tenant** (a Konebras não vê nada), o banco muda só por acréscimo (esquemas novos) e toda migração passa pelo dump antes do deploy. **Correção do go-live da Konebras tem prioridade** sobre qualquer story do PDV e não espera nada do PDV.
+
+_Regra anterior (15/11/2026), mantida para histórico:_ a construção começava depois do fechamento do go-live da Konebras.
 
 | O que | Pode começar antes do go-live? | Base |
 |---|---|---|
