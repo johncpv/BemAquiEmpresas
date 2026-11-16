@@ -133,6 +133,12 @@ public sealed class Project : Entity, IAuditable, IConcurrencyVersioned
 
     public DateTimeOffset? ClosedAt { get; set; }
 
+    /// <summary>
+    /// Última edição direta do custo orçado (COM-09): gravada no projeto para a edição conferir e mudar a versão do documento; o que mudou,
+    /// quem e o motivo ficam em <see cref="ProjectBudgetRevision"/>.
+    /// </summary>
+    public DateTimeOffset? BudgetRevisedAt { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public uint Version { get; set; }
@@ -166,4 +172,31 @@ public sealed class ProjectBudget : Entity, IAuditable
 
     [ProtectedSecret]
     public decimal BudgetedAmount { get; set; }
+}
+
+/// <summary>
+/// Edição direta do custo orçado (<c>commercial.project_budget_revisions</c>, COM-09): uma linha por natureza alterada, com o valor
+/// anterior, o novo, o motivo, quem e quando. Só inclusão: a linha nunca é alterada nem apagada. É a trilha com os valores, porque a
+/// auditoria geral registra o orçado só como "alterado" (sigilo comercial, D7); leitura só com <c>projects.view_cost</c>.
+/// </summary>
+public sealed class ProjectBudgetRevision : Entity, IAuditable
+{
+    public const int ReasonMaxLength = 500;
+
+    public Guid ProjectId { get; init; }
+
+    public CostType CostType { get; init; }
+
+    [ProtectedSecret]
+    public decimal PreviousAmount { get; init; }
+
+    [ProtectedSecret]
+    public decimal NewAmount { get; init; }
+
+    /// <summary>Motivo da edição, obrigatório, até 500 caracteres.</summary>
+    public string Reason { get; init; } = string.Empty;
+
+    public DateTimeOffset ChangedAt { get; init; }
+
+    public Guid? ChangedBy { get; init; }
 }

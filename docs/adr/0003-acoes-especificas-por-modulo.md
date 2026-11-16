@@ -28,3 +28,8 @@
 - **Módulo `portal`** (D16) no `ModuleCatalog`: "Portal do cliente", área Comercial, ações `view`, `create` (convidar acesso), `edit` e `delete`, sem ação específica; seed patch `portal-permissions` para o Comercial (`portal.view`, `portal.create`, `portal.edit`). Detalhes na ADR 0040.
 - **Ações do `assets`** (Patrimônio): continuam as padrão já no catálogo, `view`, `create`, `edit` e `delete`, **sem `approve`** e sem ação específica. Custo da manutenção e valor de aquisição ficam visíveis com `assets.edit` (não com `projects.view_cost`). Seed patch `assets-permissions`: Supervisão de produção com `assets.view`, `assets.create` e `assets.edit`; Almoxarifado com `assets.view`; `assets.delete` só com o Proprietário (ADR 0038 §6).
 - Cada ação entra no `ModuleCatalog` na story que a usa primeiro (FIS-02a, PNL-01a, RH-01b, POR-01a, PAT-01a); a concessão segue a delegação da ADR 0008.
+
+## Adendo 15/11/2026 (decisão do PO: edição direta do custo orçado)
+- **`projects.edit_budget`** (ação específica, segregação de função): "Editar custo orçado: informar ou corrigir o custo orçado do projeto por natureza, com motivo." Separa quem muda a base da margem orçada de quem edita o projeto (`projects.edit`, que a Engenharia tem sem ver custo) e de quem aprova aditivo (`projects.approve`). A edição exige também `projects.view_cost`, conferida no serviço.
+- **Sem seed patch:** nasce só com o Proprietário, o único grupo do seed que aprova contrato; o tenant concede a quem também vê custo (recomendado: Diretoria / Gerência). A concessão segue a delegação da ADR 0008; a ação não entrou na lista das reservadas ao Proprietário (ponto em aberto da COM-09).
+- Entrou no `ModuleCatalog` na COM-09, que a usa.

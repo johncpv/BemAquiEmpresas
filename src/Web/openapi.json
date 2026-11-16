@@ -14418,6 +14418,82 @@
             }
           }
         }
+      },
+      "put": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "EditProjectBudget",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectBudgetEditInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectBudgetLine"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/budget/revisions": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "ListProjectBudgetRevisions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectBudgetRevisionView"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/projects/{id}/fabrication": {
@@ -84193,6 +84269,51 @@
           }
         }
       },
+      "ProjectBudgetEditInput": {
+        "required": [
+          "lines",
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ProjectBudgetEditLine"
+            }
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ProjectBudgetEditLine": {
+        "required": [
+          "costType",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "costType": {
+            "$ref": "#/components/schemas/CostType"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "ProjectBudgetLine": {
         "required": [
           "costType",
@@ -84206,6 +84327,65 @@
           "budgetedAmount": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "ProjectBudgetRevisionLine": {
+        "required": [
+          "costType",
+          "previousAmount",
+          "newAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "costType": {
+            "$ref": "#/components/schemas/CostType"
+          },
+          "previousAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "newAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ProjectBudgetRevisionView": {
+        "required": [
+          "changedAt",
+          "changedBy",
+          "changedByName",
+          "reason",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "changedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "changedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "changedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectBudgetRevisionLine"
+            }
           }
         }
       },
@@ -84315,7 +84495,8 @@
           "InvoiceTaxReversal",
           "Contract",
           "Amendment",
-          "Project"
+          "Project",
+          "BudgetRevision"
         ]
       },
       "ProjectCostView": {

@@ -1024,3 +1024,14 @@ Decisões do PO de 14/11/2026: o desligamento do funcionário desativa o login v
 | Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
 |---|---|---|---|---|---|---|---|
 | 1 | USR-01 | Usuário ↔ funcionário: convite com funcionário, "Convidar como usuário" na ficha, coluna e filtros na lista de usuários e desligamento que desativa o login | M | Done | Decisões do PO de 14/11/2026, FND-06c, CAD-04b CA 17 a 20, R-SEC-5, R-PRP-2 | FND-06c, CAD-04b, FLH-05 | [USR-01](USR-01-usuario-funcionario.md) |
+
+---
+
+# Pós-go-live: custo orçado do projeto
+
+Decisão do PO de 15/11/2026: o custo orçado do projeto é informado ou corrigido por edição direta no projeto, com permissão própria e auditoria, sem fluxo de aprovação.
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 | COM-09 | Editar o custo orçado do projeto: por natureza, com permissão própria, motivo, versão e histórico | P | Done | Decisão do PO de 15/11/2026, DSH-02, R-SEC-5, D7 | COM-04a, COM-05, COM-07, DSH-02 | [COM-09](COM-09-editar-custo-orcado.md) |

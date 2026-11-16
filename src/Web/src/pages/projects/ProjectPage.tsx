@@ -96,7 +96,7 @@ export function ProjectPage() {
         // PLN-03 CA 11: com OS de fabricação e production.view (a aba some sem a permissão).
         ...(canProduction && byOrders ? [{ id: 'cronograma', label: 'Cronograma', content: <ProjectGanttTab projectId={id} /> }] : []),
         ...(canFinance ? [{ id: 'financeiro', label: 'Financeiro', content: <ProjectFinancialTab projectId={id} /> }] : []),
-        ...(canCost ? [{ id: 'custos', label: 'Custos', content: <ProjectCostsTab projectId={id} contractId={p.contractId} /> }] : []),
+        ...(canCost ? [{ id: 'custos', label: 'Custos', content: <ProjectCostsTab projectId={id} contractId={p.contractId} project={p} /> }] : []),
         { id: 'documentos', label: 'Documentos', content: <ProjectDocumentsTab projectId={id} contractId={p.contractId} /> },
         { id: 'linha-do-tempo', label: 'Linha do tempo', content: <ProjectTimelineTab projectId={id} /> },
         { id: 'historico', label: 'Histórico de alterações', content: <RecordHistory entity="Project" id={id} /> },

@@ -1800,6 +1800,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTimeOffset?>("BudgetRevisedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("budget_revised_at");
+
                     b.Property<DateTimeOffset?>("ClosedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("closed_at");
@@ -1922,6 +1926,56 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_project_budget_project_id_cost_type");
 
                     b.ToTable("project_budget", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectBudgetRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("ChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("changed_at");
+
+                    b.Property<Guid?>("ChangedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("changed_by");
+
+                    b.Property<string>("CostType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("cost_type");
+
+                    b.Property<decimal>("NewAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("new_amount");
+
+                    b.Property<decimal>("PreviousAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("previous_amount");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("reason");
+
+                    b.HasKey("Id")
+                        .HasName("pk_project_budget_revisions");
+
+                    b.HasIndex("ProjectId", "ChangedAt")
+                        .HasDatabaseName("ix_project_budget_revisions_project_id_changed_at");
+
+                    b.ToTable("project_budget_revisions", "commercial");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectCost", b =>
@@ -6918,20 +6972,6 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<int>("Series")
                         .HasColumnType("integer")
                         .HasColumnName("series");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)")
-                        .HasDefaultValue("Pending")
-                        .HasColumnName("status");
-
-                    b.Property<uint>("Version")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -17610,6 +17650,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_budget_projects_project_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectBudgetRevision", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_project_budget_revisions_projects_project_id");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectCost", b =>
