@@ -38,6 +38,12 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
     /// <summary>Auditoria das alterações do catálogo (ex.: suspensão de tenant), imutável como a dos tenants.</summary>
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        BuildingBlocks.Persistence.UtcDateTimeOffsetConverter.Apply(configurationBuilder);
+        base.ConfigureConventions(configurationBuilder);
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);

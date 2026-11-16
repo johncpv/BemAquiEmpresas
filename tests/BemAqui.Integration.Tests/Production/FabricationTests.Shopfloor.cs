@@ -547,6 +547,25 @@ public partial class FabricationShopfloorTests
         var history = await OkAsync(await supervisor.GetAsync($"{Base}/{orders[0]}/history"));
         history.GetRawText().Should().Contain(nameof(LaborEntry), "CA 31: a correção entra no histórico da OS com antes e depois");
     }
+
+    [Fact]
+    public async Task Apontamento_com_horario_em_fuso_de_Brasilia_grava_o_mesmo_instante_em_UTC()
+    {
+        var (_, mine, _, _, orders) = await ShopfloorDatasetAsync();
+        var (_, employee, _, _) = await OperatorAsync(mine);
+        var (_, supervisor) = await ActorAsync("production:view,edit,approve;shopfloor:view,create");
+        var step = await StepIdAsync(orders[0], 1);
+        var utc = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.AddHours(-3).ToUnixTimeSeconds());
+        var local = utc.ToOffset(TimeSpan.FromHours(-3));
+
+        await OkAsync(await supervisor.SendAsync(Post($"{Base}/{orders[0]}/labor-entries",
+            new { employeeId = employee, stepId = step, startedAt = local, endedAt = local.AddHours(1), pauses = Array.Empty<object>(), notes = (string?)null })));
+
+        var entry = (await EntriesAsync(step)).Single();
+        entry.StartedAt.Should().Be(utc);
+        entry.StartedAt.Offset.Should().Be(TimeSpan.Zero);
+        entry.EndedAt.Should().Be(utc.AddHours(1));
+    }
     [Fact]
     public async Task Quem_apontou_nao_corrige_salvo_sem_outro_aprovador_elegivel()
     {
