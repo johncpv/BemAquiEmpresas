@@ -150,7 +150,7 @@ O que pode correr em paralelo:
 - Depende de: CAT-01.
 - CA: modelo xlsx para baixar; prévia com erros por linha; cria item + produto + categoria + código de barras + preço + saldo inicial opcional; reexecutável sem duplicar; relatório final.
 
-**PAG-01 [ ] Formas de pagamento e adquirentes, com taxa e prazo D+N (M)** — ordem 6 — [story](stories/PAG-01-formas-pagamento-adquirentes.md)
+**PAG-01 [x] Formas de pagamento e adquirentes, com taxa e prazo D+N (M)** — ordem 6 — [story](stories/PAG-01-formas-pagamento-adquirentes.md)
 - Depende de: —
 - Paridade: 28 (base).
 - CA: `finance.payment_methods` e tabela de taxas por adquirente, bandeira, forma e parcelas; adquirente é terceiro; `IPaymentMethods` em `Finance.Contracts`; valores do seed com o chip "A confirmar"; histórico de alteração de taxa.

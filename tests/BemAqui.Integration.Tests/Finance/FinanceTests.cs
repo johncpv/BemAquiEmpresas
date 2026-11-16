@@ -29,9 +29,21 @@ public partial class FinanceTests(TenancyFixture tenancy) : IClassFixture<Tenanc
         public Task<bool> HasMovementAsync(Guid accountId, CancellationToken cancellationToken = default) => Task.FromResult(Moved.ContainsKey(accountId));
     }
 
+    /// <summary>Formas "usadas em venda" para o CA 6 da PAG-01 (o provedor real vem na VND-01).</summary>
+    private static readonly ConcurrentDictionary<Guid, bool> SoldWith = new();
+
+    private sealed class FakeSale : BemAqui.Finance.Contracts.IPaymentMethodUsageProvider
+    {
+        public Task<string?> UsageAsync(Guid paymentMethodId, CancellationToken cancellationToken = default) => Task.FromResult(SoldWith.ContainsKey(paymentMethodId) ? "vendas" : null);
+    }
+
     private WebApplicationFactory<Program>? _factory;
 
-    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b.ConfigureTestServices(s => s.AddScoped<IBankAccountUsageProvider, FakeMovement>()));
+    private WebApplicationFactory<Program> Factory => _factory ??= tenancy.Derive(b => b.ConfigureTestServices(s =>
+    {
+        s.AddScoped<IBankAccountUsageProvider, FakeMovement>();
+        s.AddScoped<BemAqui.Finance.Contracts.IPaymentMethodUsageProvider, FakeSale>();
+    }));
 
     private static async Task<JsonElement> JsonAsync(HttpResponseMessage response) => await response.Content.ReadFromJsonAsync<JsonElement>();
 

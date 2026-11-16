@@ -103,6 +103,8 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'plano-de-contas', label: 'Plano de contas', icon: ListTree, group: SETUP },
     { slug: 'centros-de-custo', label: 'Centros de custo', icon: ChartPie, group: SETUP },
     { slug: 'condicoes-de-pagamento', label: 'Condições de pagamento', icon: CreditCard, group: SETUP },
+    // PAG-01: formas de pagamento da venda (dinheiro, Pix, cartões) com a taxa e o prazo da maquininha.
+    { slug: 'formas-de-pagamento', label: 'Formas de pagamento', icon: Wallet, group: SETUP },
     { slug: 'recorrentes', label: 'Recorrentes', icon: Repeat, group: SETUP },
     { slug: 'alcadas', label: 'Alçadas', icon: Scale, group: SETUP },
     { slug: 'implantacao', label: 'Implantação financeira', icon: Rocket, group: SETUP },

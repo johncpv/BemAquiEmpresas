@@ -19,7 +19,7 @@ const schema = z.object({
   document: z.string(),
   legalName: z.string().trim().min(2, 'Informe o nome ou a razão social.').max(200, 'Use até 200 caracteres.'),
   tradeName: z.string().max(200, 'Use até 200 caracteres.'),
-  roles: z.array(z.enum(['Customer', 'Supplier', 'Installer', 'Carrier'])).min(1, 'O terceiro precisa de ao menos um papel.'),
+  roles: z.array(z.enum(['Customer', 'Supplier', 'Installer', 'Carrier', 'Acquirer'])).min(1, 'O terceiro precisa de ao menos um papel.'),
   stateRegistration: z.string().refine((v) => v === '' || /^(ISENTO|\d{2,14})$/i.test(v.trim()), 'Informe só os dígitos da inscrição estadual, ou ISENTO.'),
   municipalRegistration: z.string().max(20, 'Use até 20 caracteres.'),
   taxRegime: z.enum(['NotInformed', 'SimplesNacional', 'Mei', 'LucroPresumido', 'LucroReal', 'Exempt']),

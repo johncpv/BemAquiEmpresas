@@ -93,6 +93,8 @@ public static class HostEvents
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderApproved>()
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderPaid>()
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderLevelReleased>()
+            // PAG-01: a forma de pagamento mudou; o que desce para os caixas é refeito (consumidor na OFF-02).
+            .AddEvent<BemAqui.Finance.Contracts.PaymentMethodChanged>()
             // RH-02c (ADR 0036 §4): o fechamento cria os títulos na própria transação; os eventos da folha são só aviso e projeção, e a folha
             // fica paga (ou volta a fechada no estorno) pela fonte, no consumidor da OP.
             .AddEvent<BemAqui.HR.Contracts.PayrollClosed>()

@@ -221,6 +221,7 @@ public sealed class PartiesPersonalDataProvider(IPartiesDb db, TimeProvider cloc
         PartyRoleKind.Customer => "Cliente",
         PartyRoleKind.Supplier => "Fornecedor",
         PartyRoleKind.Installer => "Instalador",
+        PartyRoleKind.Acquirer => "Adquirente",
         _ => "Transportadora",
     };
 }

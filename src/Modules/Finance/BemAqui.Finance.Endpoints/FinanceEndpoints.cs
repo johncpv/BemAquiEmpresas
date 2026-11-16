@@ -26,6 +26,7 @@ internal static partial class FinanceEndpoints
         finance.MapGet("/banks", () => Results.Ok(Banks.All)).RequirePermission("finance.view").WithName("ListBanks").Produces<IReadOnlyList<BankInfo>>();
         MapBankAccounts(finance.MapGroup("/bank-accounts"));
         MapPaymentTerms(finance.MapGroup("/payment-terms"));
+        MapPaymentMethods(finance.MapGroup("/payment-methods"));
         MapChartOfAccounts(finance.MapGroup("/chart-of-accounts"));
         MapCostCenters(finance.MapGroup("/cost-centers"));
         MapReceivables(finance.MapGroup("/receivables"));

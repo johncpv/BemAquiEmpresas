@@ -5,7 +5,7 @@
 | ID | PAG-01 |
 | Título | Formas de pagamento e adquirentes no Financeiro: tipo, conta de destino, adquirente como terceiro, tabela de taxas por bandeira, forma e parcelas, prazo D+N e histórico |
 | Tamanho | M |
-| Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
+| Status | Done (16/11/2026; branch `feat/pag-01-formas-pagamento`) |
 | Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (itens 6 e 11) · [Rascunho C](../adr/rascunho-C-pagamentos.md) item 8 · [Modelo de dados](../03-modelo-dados.md#6-finance-extensões) · ADR 0042 |
 | Dependências | — |
@@ -62,16 +62,31 @@ Como **financeiro**, quero **cadastrar as formas de pagamento da loja com a taxa
 ## Pontos em aberto
 - QC-03: em algumas UFs o grupo de cartão da NFC-e pede o CNPJ da credenciadora; o cadastro da adquirente como terceiro já guarda o CNPJ.
 
+## Implementação (16/11/2026)
+
+**Revisão contra o código antes de codar:**
+- O Financeiro já tinha **condições de pagamento** (`finance.payment_terms`, parcelas de um título) e um enum `PaymentMethodKind` (Pix, boleto, TED: como um título a pagar é pago). Nenhum dos dois é a forma de pagamento da venda: a forma nova usa `PaymentMethodType` e o DTO de entrada é `PaymentMethodRequest`, para não colidir com o `PaymentMethodInput` das contas a pagar.
+- O terceiro **não tinha o papel Adquirente** (só Cliente, Fornecedor, Instalador e Transportadora). Entrou `PartyRoleKind.Acquirer` ("Adquirente"); o papel é texto em `parties.party_roles`, sem migração. A Konebras passa a ver a opção "Adquirente" nos papéis de Terceiros, sem efeito no que já existe.
+- O Financeiro não acessa o `NfePaymentMethod` do Fiscal (isolamento de módulos): a forma guarda o `tPag` como texto de 2 dígitos, validado contra a lista da SEFAZ, sugerido pelo tipo.
+- O CA 4 pede "as formas do seed": **não há seed automático**. Semear em todo tenant colocaria cinco formas "A confirmar" e uma conta "Caixa da loja" na Konebras. As formas sugeridas (Dinheiro, Pix, Débito, Crédito à vista e Crédito parcelado) nascem só por ação: o botão "Usar as formas mais comuns" do estado vazio (`POST /payment-methods/suggested`, `finance.create`) e, na PERF-04, o seed do perfil Comércio chamando o mesmo serviço. Idempotente pela `seed_key`.
+- As sugeridas não têm adquirente nem taxa: "taxa e prazo zerados" é a ausência de taxa (o contrato devolve a forma sem taxas e a venda entra pelo valor cheio). "Marcar como conferido" (`finance.edit`) exige a adquirente nos cartões. Forma digitada pelo usuário já nasce conferida.
+- O CA 6 depende da venda (VND-01): a regra existe pela porta `IPaymentMethodUsageProvider`, que a VND-01 implementa; sem uso, a exclusão é lógica (soft delete).
+
+**Desenho:** `finance.payment_methods` (nome, tipo, conta de destino com FK, adquirente, `nfe_payment_code`, `allows_change`, `is_active`, `seed_key`, `confirmed_at`/`confirmed_by`, soft delete) e `finance.acquirer_fees` (forma, adquirente, bandeira, "a partir de N parcelas", taxa `numeric(9,4)`, prazo D+N, `valid_from`, `valid_to` exclusivo, quem e quando). Taxa nova encerra a vigente da mesma adquirente, bandeira e parcelas; com taxa vigente, a nova começa a partir de hoje e depois do início dela. Escolha da taxa numa venda: bandeira exata, senão "Qualquer bandeira"; das parcelas, a faixa mais alta que cabe. Evento `PaymentMethodChanged` (sem consumidor até a OFF-02). Ambas `IAuditable`. Terceiro usado como adquirente não é excluído ("formas de pagamento"). Migração `PaymentMethodsPag01`, só acréscimo.
+
+**Fora desta story (registrado):** Pix com taxa de adquirente (Pix aceita só conta de destino); agenda de recebimento por parcela no crédito parcelado (o prazo é o da venda; o recebível por parcela é da CX-03); conta de destino excluída depois de ligada à forma não é bloqueada (a exclusão de conta é lógica).
+
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade e de integração (Testcontainers) passando; Vitest no front.
-- [ ] Migration criada; permissões só do `ModuleCatalog`.
-- [ ] Telas com estados de carregando, vazio e erro; ajuda escrita ou atualizada em `Ajuda/` no mesmo commit.
-- [ ] Padrões e próximo passo propositivos avaliados; auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR.
+- [x] Critérios de aceite atendidos (CA 6 pela porta de uso, ligada na VND-01).
+- [x] Testes de integração (Testcontainers) passando; Vitest no front.
+- [x] Migration criada; nenhuma permissão nova.
+- [x] Telas com estados de carregando, vazio e erro; ajuda escrita em `Ajuda/` no mesmo commit.
+- [x] Padrões e próximo passo propositivos avaliados; auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados; story marcada no backlog. Sem ADR nova (segue as ADRs 0016 e 0042).
 
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
+| 16/11/2026 | 1.0 | Implementada: revisão contra o código, desenho e decisões na seção "Implementação". | Claude (dev) |
