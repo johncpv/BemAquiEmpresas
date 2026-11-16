@@ -14,4 +14,5 @@ export interface MyModule {
   released: boolean;
   enabled: boolean;
   actions: string[];
+  hidden: boolean;
 }

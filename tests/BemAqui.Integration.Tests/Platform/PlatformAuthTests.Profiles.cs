@@ -91,7 +91,8 @@ public partial class PlatformAuthTests
         await CatalogScopeAsync(async sp =>
         {
             var db = sp.GetRequiredService<CatalogDbContext>();
-            await db.Database.ExecuteSqlRawAsync(CatalogNotifySql.BackfillFactoryProfile);
+            // As chaves do JSON da auditoria não são parâmetros: o ExecuteSqlRaw as leria como {0}.
+            await db.Database.ExecuteSqlRawAsync(CatalogNotifySql.BackfillFactoryProfile.Replace("{", "{{", StringComparison.Ordinal).Replace("}", "}}", StringComparison.Ordinal));
             await sp.GetRequiredService<TenantModuleService>().ApplyPlanAsync(tenant.Id, (await db.Tenants.SingleAsync(t => t.Id == tenant.Id)).PlanId);
             return 0;
         });

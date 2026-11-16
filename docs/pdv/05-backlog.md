@@ -131,7 +131,7 @@ O que pode correr em paralelo:
 - Paridade: prepara 1, 22.
 - CA: busca em 50 mil itens medida em tablet barato e PC antigo; lote com 20 caixas simulados sem duplicar; queda de energia e aba fechada no meio da venda sem perda; IndexedDB ou SQLite-WASM decidido.
 
-**PERF-01 [ ] Perfis de negócio no catálogo e liberação efetiva (G)** — ordem 1 — [story](stories/PERF-01-perfis-liberacao-efetiva.md)
+**PERF-01 [x] Perfis de negócio no catálogo e liberação efetiva (G)** — ordem 1 — [story](stories/PERF-01-perfis-liberacao-efetiva.md)
 - Depende de: PP-03.
 - CA: `BusinessProfileCatalog` com 4 perfis e 7 segmentos; `tenant_profiles` com backfill `factory`; liberado = (plano E perfil) OU exceção; módulo fora do perfil vem `hidden` em `/me/permissions` e some do menu e da busca; rota direta responde 403 `module_not_released`; navegação da Konebras idêntica (teste de regressão); ADR dos perfis.
 
