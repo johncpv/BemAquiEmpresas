@@ -22,6 +22,9 @@ async function startChromium(dir) {
   const s = await browser.newBrowserCDPSession();
   const info = await s.send('SystemInfo.getProcessInfo');
   const pid = info.processInfo.find((p) => p.type === 'browser').id;
+  // depois de uma queda o Chromium pode restaurar a aba do caixa, que pega o Web Lock e volta a vender;
+  // o roteiro fecha as abas restauradas para abrir a sua própria página de verificação
+  for (const pg of context.pages()) if (pg.url().includes('/pos.html')) await pg.close({ runBeforeUnload: false }).catch(() => {});
   return { child: { pid }, browser, context };
 }
 
@@ -160,7 +163,8 @@ try {
     await page.close({ runBeforeUnload: false });
     await sleep(300);
     const t0 = Date.now();
-    const took = await second.evaluate(() => window.retryLock());
+    let took = false;
+    for (let i = 0; i < 20 && !took; i++) { took = await second.evaluate(() => window.retryLock()); if (!took) await sleep(250); }
     V.webLocks = { secondTab: secondLock, message: secondText, afterFirstClosed: took ? 'owner' : 'busy', takeoverMs: Date.now() - t0 };
 
     // 3. esvazia a fila sem perder respostas e confere no servidor
