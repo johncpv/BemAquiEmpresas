@@ -1,5 +1,5 @@
 {
-  "when": "2026-11-16T12:07:29.984Z",
+  "when": "2026-11-17T13:50:42.992Z",
   "machine": {
     "cpu": "Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz",
     "cores": 8,
@@ -19,7 +19,7 @@
     "movNumberWrites": 12000,
     "hottestItemRowWrites": 994,
     "totalQtyBaixada": 24006,
-    "ms": 43260
+    "ms": 144073
   },
   "aggItemCaixaWindow": {
     "label": "agg-caixa",
@@ -28,7 +28,7 @@
     "movNumberWrites": 11734,
     "hottestItemRowWrites": 806,
     "totalQtyBaixada": 24006,
-    "ms": 28797
+    "ms": 61388
   },
   "aggItemWindow": {
     "label": "agg-loja",
@@ -37,7 +37,7 @@
     "movNumberWrites": 9988,
     "hottestItemRowWrites": 96,
     "totalQtyBaixada": 24006,
-    "ms": 1126
+    "ms": 6314
   },
   "sameTotal": true
 }

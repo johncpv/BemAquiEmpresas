@@ -82,7 +82,29 @@ Ver `results/bench-cdp.json` e `results/bench-cdp2.json`. {{CDP}}
 
 ## 5. Robustez (CA 4 e 5)
 
-{{CRASH}}
+`run-crash.mjs`: o caixa simulado vende sem parar (um item a cada 25 ms, carrinho gravado a cada item) e sincroniza com 30% de respostas perdidas. Em momento aleatório (1,5 a 4 s), o roteiro **mata o navegador inteiro** (`taskkill /F /T` no processo principal do Chromium, que leva junto o processo de armazenamento) ou **fecha a aba** sem `beforeunload`. Depois reabre e confere, contra o que a tela já tinha confirmado antes da queda:
+
+- nenhuma venda concluída sumiu (`seq` local ≥ último `seq` confirmado);
+- a fila tem `seq` 1..N sem buraco e sem repetição, e o número de vendas bate com ela;
+- o carrinho da venda em andamento voltou com pelo menos os itens já confirmados (ou a venda já tinha sido concluída);
+- no fim, a fila esvazia e o servidor tem exatamente N eventos daquele caixa, cadeia de hash íntegra.
+
+| Variante | Navegador morto | Aba fechada | Perda ou duplicação | Reabrir depois do kill (página nova até o caixa pronto) | Reabrir depois de fechar a aba |
+|---|---|---|---|---|---|
+| `idb-chunks`, `durability: strict` | 5 de 5 ok | 3 de 3 ok | nenhuma (55 vendas, servidor = 55) | 2,9 a 18 s | 0,3 a 1,3 s |
+| `idb-chunks`, `durability: relaxed` | 5 de 5 ok | 3 de 3 ok | nenhuma (190 vendas, servidor = 190) | 2,2 a 27 s | 0,3 a 0,5 s |
+| `sqlite`, `synchronous=FULL` | 5 de 5 ok | 3 de 3 ok | nenhuma (53 vendas, servidor = 53) | 2,5 a 9,8 s | 0,7 a 1,3 s |
+
+No servidor, 136 reenvios foram descartados e 298 eventos aceitos, sem quebra de cadeia. Uma rodada anterior, com o Chromium lançado à mão, também passou 5 de 5 quedas e 3 de 3 abas fechadas.
+
+**Web Locks (CA 5):** nas três variantes, a segunda aba do mesmo caixa ficou sem escrever e mostrou "O caixa já está aberto em outra janela."; quando a primeira fechou, a segunda assumiu em 17 a 177 ms.
+
+**Achados:**
+
+1. **O IndexedDB pode falhar ao abrir logo depois de o navegador morrer.** Numa das 15 quedas, a primeira abertura deu `UnknownError: Internal error opening backing store for indexedDB.open`; recarregar a página resolveu em ~2 s, sem perda. O app tem de tentar de novo antes de mostrar erro, e nunca apagar o banco por causa disso.
+2. **Com o Chromium lançado sem os argumentos do Playwright**, a gravação inicial do catálogo falhou algumas vezes com `QuotaExceededError` e não se recuperou recarregando a página. Não se repetiu com o Chromium lançado pelo Playwright. Não deu para isolar a causa no prazo; fica registrado como risco a conferir no aparelho real.
+3. **O Chromium restaura a aba do caixa depois de uma queda** e ela pega o Web Lock e volta a vender. É o comportamento que queremos; o roteiro só fecha a aba restaurada para abrir a sua página de verificação.
+4. "Reabrir depois do kill" inclui subir o Chromium de novo, que se recupera da queda; por isso a faixa é larga e não serve para comparar tecnologias.
 
 ## 6. Lote com 20 caixas (CA 6)
 
@@ -107,7 +129,19 @@ Ver `results/bench-cdp.json` e `results/bench-cdp2.json`. {{CDP}}
 
 ## 7. Baixa de estoque: por venda ou agregada (CA 7)
 
-{{STOCK}}
+`run-stock.mjs`: as mesmas 4.000 vendas (20 caixas × 200, 3 linhas cada, 12.000 linhas, 2.000 itens com venda concentrada em poucos itens) espalhadas num dia de loja de 8 h. Cada unidade de baixa é uma transação: numera o movimento numa linha única (`MOV`), grava o movimento e atualiza o saldo do item. Banco: `node:sqlite` com fsync; em PostgreSQL, cada gravação na mesma linha é uma espera de lock.
+
+| Forma | Transações | Movimentos (= gravações na linha `MOV`) | Gravações na linha do item mais vendido | Tempo total | Total baixado |
+|---|---|---|---|---|---|
+| Por venda | 4.000 | 12.000 | 994 | 144 s | 24.006 |
+| Agregada por item, caixa e janela de 5 min | 1.920 | 11.734 | 806 | 61 s | 24.006 |
+| Agregada por item e janela de 5 min (loja inteira) | 96 | 9.988 | 96 | 6,3 s | 24.006 |
+
+O tempo é quase todo fsync por transação (a máquina estava com outras cargas; a primeira rodada, também com carga, deu 43 / 29 / 1,1 s). Leitura:
+
+- **Agregar por item, caixa e janela quase não ajuda**: um caixa faz uma venda a cada ~2,4 min, então a janela de 5 min raramente junta o mesmo item duas vezes no mesmo caixa.
+- **Agregar por loja e janela** corta as transações em 42 vezes e as gravações na linha do item mais vendido em 10 vezes, mas a baixa deixa de apontar para a venda (o estorno "pelo documento de origem" da PDV-05 fica mais difícil).
+- Em volume absoluto, 12.000 movimentos por dia por loja é pouco para o PostgreSQL. A disputa só pesa com muitas lojas no mesmo banco.
 
 ## 8. Decisão
 
@@ -115,7 +149,7 @@ Ver `results/bench-cdp.json` e `results/bench-cdp2.json`. {{CDP}}
 |---|---|
 | (a) IndexedDB ou SQLite-WASM | **IndexedDB com Dexie**, atrás da porta `LocalStore`. O catálogo vai **em blocos** (~1.000 itens por registro) e é indexado em memória (`Map` por código, lista de nomes para trecho). Venda, carrinho, fila e metadados ficam um registro por linha, com `durability: 'strict'` em tudo que é dinheiro (carrinho, venda concluída, fila) |
 | (b) Protocolo de sincronização | **Confirmado**, com os dois ajustes da seção 6 |
-| (c) Baixa agregada ou por venda no MVP | {{STOCKDEC}} |
+| (c) Baixa agregada ou por venda no MVP | **Por venda**, fora do caminho do caixa (como já diz a PDV-05), com **um commit por lote de sincronização** e não por venda. A agregação por item, caixa e janela proposta não reduz quase nada; se o volume pedir no futuro, agregar por item e janela na loja inteira, guardando a lista de vendas de origem |
 | (d) Estimativa de OFF-01 a OFF-03 | Ver seção 10 |
 
 **Por que não SQLite-WASM:**
@@ -133,7 +167,7 @@ Ver `results/bench-cdp.json` e `results/bench-cdp2.json`. {{CDP}}
 |---|---|---|
 | Catálogo inteiro na memória | {{HEAP}} | Medir no tablet real (SPK-01); se o catálogo de algum cliente passar de ~200 mil itens, rever (aí o FTS5 do SQLite volta a ser candidato, atrás da mesma porta `LocalStore`) |
 | `persist()` negado | Negado em todas as rodadas (headless, sem PWA instalado). No Chrome, sem persistência o navegador pode apagar os dados **sob pressão de disco** (não por tempo) | Instalar o PWA (o Chrome concede `persist()` a app instalado, a validar no SPK-01), aviso do OFF-01 CA 5, fila curta (sincroniza logo) e contador de vendas não enviadas |
-| Falha ao abrir o IndexedDB logo depois de o navegador morrer | {{QUOTA}} | O app deve tratar erro na abertura do armazenamento: tentar de novo e só então mostrar erro; nunca descartar o banco |
+| Falha ao abrir o IndexedDB logo depois de o navegador morrer | Uma vez em 15 quedas (`UnknownError … backing store`), resolvida recarregando. Com o Chromium lançado à mão, `QuotaExceededError` na gravação inicial, sem recuperação; não se repetiu com o Chromium do Playwright | O app deve tratar erro na abertura do armazenamento: tentar de novo e só então mostrar erro; nunca descartar o banco |
 | fsync lento em eMMC | 14 a 18 ms por gravação em SSD NVMe; em eMMC barato pode ser bem mais | Medir no aparelho (SPK-01). Se passar do orçamento de 100 ms, gravar o carrinho com `relaxed` e só a venda concluída com `strict` (o carrinho perdido num corte de energia é refeito pelo operador; a venda concluída não pode sumir) |
 | Várias abas do mesmo caixa | Web Locks funcionou: a segunda aba vê "O caixa já está aberto em outra janela." e assume em ~0,1 s quando a primeira fecha | Já está no OFF-01 CA 6 |
 | Corte de energia | Não simulado (ver seção 11) | SPK-01 |
