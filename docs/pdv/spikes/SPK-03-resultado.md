@@ -4,7 +4,7 @@
 
 ## 1. Resposta em uma frase
 
-**IndexedDB (Dexie), com o catálogo guardado em blocos e consultado em memória, e não SQLite-WASM**: com 50 mil itens, essa forma carrega a foto em 0,4 s (1,9 s na pior simulação de máquina fraca), acha o código de barras em menos de 0,1 ms e reabre o caixa em 0,2 a 0,6 s, enquanto o SQLite-WASM em OPFS levou de 1,5 a 7,5 s só para abrir no Windows e não ganhou em nada que o caixa usa.
+**IndexedDB (Dexie), com o catálogo guardado em blocos e consultado em memória, e não SQLite-WASM**: com 50 mil itens, essa forma carrega a foto em 0,4 s (até 2 s nas simulações de máquina fraca), acha o código de barras em menos de 0,1 ms e reabre o caixa em 0,2 a 0,6 s, enquanto o SQLite-WASM em OPFS levou de 1,5 a 7,5 s só para abrir no Windows e não ganhou em nada que o caixa usa.
 
 ## 2. Ambiente e o que é simulação
 
@@ -69,7 +69,19 @@ Valores p50 / p95. Catálogo de 50 mil itens (foto de 6,3 MB em JSON, 1,1 MB com
 
 ### 4.3 Throttling do CDP (pedido original; só a thread da página)
 
-Ver `results/bench-cdp.json` e `results/bench-cdp2.json`. {{CDP}}
+Rodada de 17/11 (`results/bench-cdp2.json`), **com a máquina carregada por outras sessões**: o fsync dobrou e o SQLite levou 17 s na carga que antes levou 5,7 s. Vale para ver o efeito da CPU na thread da página, não para comparar com as tabelas acima. A calibração confirma: o laço na página ficou 7x a 9x mais lento; no worker, igual (0,21 a 0,28 s em todas as taxas).
+
+| Medida | `idb-chunks` 1x / 4x / 6x | `idb-lean` 1x / 4x / 6x | `sqlite` 1x / 4x / 6x (worker sem throttling) |
+|---|---|---|---|
+| Carga inicial (foto) | 0,42 / 1,7 / 2,0 s | 39 / 41 / 38 s | 17 / 18 / 17 s |
+| Código de barras (p95) | 0,0 / 0,2 / 0,0 ms | 0,4 / 2,6 / 11 ms | 7,0 / 8,4 / 3,0 ms |
+| Nome, pior p95 (memória ou FTS5) | 3,1 / 22 / 28 ms | 6,0 / 53 / 52 ms | 1,0 / 2,9 / 9,5 ms |
+| Item na venda com fsync (p95) | 23 / 35 / 105 ms | 2,7 s (pico de disco) / 54 / 60 ms | 29 / 37 / 44 ms |
+| Delta de 500 | 6,1 / 6,1 / 6,2 s | 0,41 / 0,62 / 0,70 s | 28 / 30 / 28 s |
+| Reabrir até a 1ª busca, com índice em memória | 0,12 / 1,1 / 1,7 s | 0,40 / 1,3 / 1,6 s | 0,29 / 1,1 / 0,25 s |
+| Heap JS da página com o catálogo | 22 / 19 / 19 MB | 22 / 22 / 19 MB | 3 MB (o worker não entra na conta) |
+
+O delta do `idb-chunks` subiu de 0,3 s para 6 s nesta rodada: as 500 mudanças caem em todos os 50 blocos, então o delta regrava o catálogo inteiro (6 MB com fsync), e o disco estava disputado. Ver riscos.
 
 ### 4.4 Leitura dos números
 
@@ -77,7 +89,7 @@ Ver `results/bench-cdp.json` e `results/bench-cdp2.json`. {{CDP}}
 - **O que decide é a carga e a reabertura, não a busca.** Um registro por item no IndexedDB custa de 16 a 133 s para gravar 50 mil itens; em blocos, menos de 2 s. O SQLite fica no meio na carga, mas paga de 1,5 a 7,5 s para abrir, toda vez que o caixa recarrega: é o `installOpfsSAHPoolVfs` abrindo os `SyncAccessHandle` do OPFS. A sonda crua (`public/opfs-probe-worker.js`) mostrou de 85 a 170 ms **por arquivo** para abrir um handle nesta máquina Windows.
 - **O fsync custa o mesmo nas duas tecnologias** (14 a 18 ms por gravação na máquina normal). É o disco, não a biblioteca.
 - **Busca por trecho no meio do nome** só fica rápida com memória (todas as IDB) ou com FTS5 (SQLite). Varrer o IndexedDB com cursor passa de 170 ms já na máquina normal.
-- **Memória:** {{HEAP}}
+- **Memória:** com os 50 mil itens em memória, o heap JS da página ficou em 19 a 22 MB (`idb-chunks` e `idb-lean`), contra 3 MB da página no SQLite (cujo worker não foi medido). Cabe com folga num tablet de 2 GB, mas precisa ser confirmado no aparelho.
 - **`persist()` foi negado em todas as rodadas** (Chromium headless, sem instalar o PWA). Ver CA 3.
 
 ## 5. Robustez (CA 4 e 5)
@@ -165,10 +177,11 @@ O tempo é quase todo fsync por transação (a máquina estava com outras cargas
 
 | Risco | O que foi visto | Mitigação |
 |---|---|---|
-| Catálogo inteiro na memória | {{HEAP}} | Medir no tablet real (SPK-01); se o catálogo de algum cliente passar de ~200 mil itens, rever (aí o FTS5 do SQLite volta a ser candidato, atrás da mesma porta `LocalStore`) |
+| Catálogo inteiro na memória | 19 a 22 MB de heap para 50 mil itens | Medir no tablet real (SPK-01); se o catálogo de algum cliente passar de ~200 mil itens, rever (aí o FTS5 do SQLite volta a ser candidato, atrás da mesma porta `LocalStore`) |
 | `persist()` negado | Negado em todas as rodadas (headless, sem PWA instalado). No Chrome, sem persistência o navegador pode apagar os dados **sob pressão de disco** (não por tempo) | Instalar o PWA (o Chrome concede `persist()` a app instalado, a validar no SPK-01), aviso do OFF-01 CA 5, fila curta (sincroniza logo) e contador de vendas não enviadas |
 | Falha ao abrir o IndexedDB logo depois de o navegador morrer | Uma vez em 15 quedas (`UnknownError … backing store`), resolvida recarregando. Com o Chromium lançado à mão, `QuotaExceededError` na gravação inicial, sem recuperação; não se repetiu com o Chromium do Playwright | O app deve tratar erro na abertura do armazenamento: tentar de novo e só então mostrar erro; nunca descartar o banco |
 | fsync lento em eMMC | 14 a 18 ms por gravação em SSD NVMe; em eMMC barato pode ser bem mais | Medir no aparelho (SPK-01). Se passar do orçamento de 100 ms, gravar o carrinho com `relaxed` e só a venda concluída com `strict` (o carrinho perdido num corte de energia é refeito pelo operador; a venda concluída não pode sumir) |
+| Delta regrava blocos inteiros | 500 mudanças espalhadas tocam os 50 blocos: o delta regrava o catálogo todo (0,3 s com disco livre, 6 s com disco disputado). Não trava a venda, mas gasta disco | Gravar o delta como registros à parte (sobreposição sobre os blocos) e compactar na troca de turno; ou blocos menores. Decidir no OFF-01 |
 | Várias abas do mesmo caixa | Web Locks funcionou: a segunda aba vê "O caixa já está aberto em outra janela." e assume em ~0,1 s quando a primeira fecha | Já está no OFF-01 CA 6 |
 | Corte de energia | Não simulado (ver seção 11) | SPK-01 |
 
