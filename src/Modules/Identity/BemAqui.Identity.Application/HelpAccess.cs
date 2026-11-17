@@ -10,7 +10,8 @@ namespace BemAqui.Identity.Application;
 
 /// <summary>
 /// Ajuda filtrada pela permissão efetiva (FND-14 CA 2 e 3, R-AJD-6): geral (sem módulo) para todos; de módulo, só se o
-/// módulo estiver liberado e habilitado para o usuário. Ajudas da plataforma não aparecem nos hosts de tenant.
+/// módulo estiver liberado e habilitado para o usuário. Ajudas da plataforma não aparecem nos hosts de tenant. Os termos marcados
+/// com <c>{{chave|Padrão}}</c> saem como o tenant os vê (PERF-03 CA 7): o painel, a busca e o Pergunte ao BemAqui leem daqui.
 /// </summary>
 public sealed class HelpAccess(HelpCatalog catalog, IPermissionService permissions, TenantContextHolder tenant, IIdentityDb db, TimeProvider clock)
 {
@@ -19,7 +20,7 @@ public sealed class HelpAccess(HelpCatalog catalog, IPermissionService permissio
     public async Task<IReadOnlyList<HelpDocument>> IndexAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var effective = await permissions.GetAsync(userId, cancellationToken);
-        return catalog.Documents.Where(d => Check(d, effective) is null).ToList();
+        return catalog.Documents.Where(d => Check(d, effective) is null).Select(Localize).ToList();
     }
 
     public async Task<Result<HelpDocument>> GetAsync(Guid userId, string key, CancellationToken cancellationToken = default)
@@ -31,7 +32,7 @@ public sealed class HelpAccess(HelpCatalog catalog, IPermissionService permissio
         }
 
         var denied = Check(document, await permissions.GetAsync(userId, cancellationToken));
-        return denied is null ? document : denied;
+        return denied is null ? Localize(document) : denied;
     }
 
     /// <summary>Ajudas já vistas (CA 6): ficam no perfil, então valem em qualquer dispositivo.</summary>
@@ -48,6 +49,16 @@ public sealed class HelpAccess(HelpCatalog catalog, IPermissionService permissio
 
         db.UserPreferences.Add(new UserPreference { UserId = userId, Key = SeenPrefix + key, Value = clock.GetUtcNow().ToString("O"), UpdatedAt = clock.GetUtcNow() });
         await db.SaveChangesAsync(cancellationToken);
+    }
+
+    private HelpDocument Localize(HelpDocument document)
+    {
+        var vocabulary = tenant.Resolved?.Vocabulary ?? new Dictionary<string, string>(StringComparer.Ordinal);
+        return document with
+        {
+            Title = BusinessVocabulary.Apply(document.Title, vocabulary),
+            Sections = document.Sections.Select(s => new HelpSection(BusinessVocabulary.Apply(s.Title, vocabulary), BusinessVocabulary.Apply(s.Body, vocabulary))).ToList(),
+        };
     }
 
     private static bool IsPlatform(HelpDocument document) => document.Module == "plataforma";

@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
+using BemAqui.BuildingBlocks.Modules;
 
 namespace BemAqui.BuildingBlocks.Help;
 
@@ -105,6 +106,8 @@ public sealed partial class HelpCatalog
 
         Flush();
         problems.AddRange(RequiredSections.Where(r => !sections.Any(s => s.Title == r && s.Body.Length > 0)).Select(r => "seção '" + r + "' faltando ou vazia"));
+        // PERF-03: marca de vocabulário com chave fora do BusinessVocabulary não sobe (o termo nunca sairia trocado).
+        problems.AddRange(BusinessVocabulary.UnknownKeys(text).Select(k => "termo de vocabulário desconhecido '" + k + "'"));
         if (problems.Count > 0)
         {
             throw new InvalidOperationException($"Ajuda '{key}' inválida: {string.Join("; ", problems)}.");
