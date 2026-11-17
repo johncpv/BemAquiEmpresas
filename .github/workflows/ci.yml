@@ -148,6 +148,9 @@ jobs:
         run: |
           pnpm exec playwright install --with-deps chromium
           pnpm e2e
+      # Exceções em src/Web/package.json (pnpm.auditConfig.ignoreGhsas), aprovadas pelo PO:
+      # GHSA-fc5q-39xc-vjpf (picomatch, ReDoS), 17/11/2026: só ferramentas de build (vite, rollup, orval) e sem versão
+      # corrigida. Tirar a exceção quando sair a correção.
       - name: Auditoria de dependências (alta/crítica falham)
         run: pnpm audit --audit-level high
 

@@ -12,9 +12,10 @@ import { PageHeading } from '@/shell/PageHeading'
 import { STEP_LABEL, TENANT_STATUS, type TenantStatusName } from './status'
 import { TenantActions } from './TenantActions'
 import { TenantModulesTab } from './TenantModulesTab'
+import { TenantProfilesTab } from './TenantProfilesTab'
 
 /**
- * Detalhe do tenant (FND-03b CA 2, 4 a 6): progresso por etapa (consulta a cada 3 s enquanto provisiona), ações e a aba
+ * Detalhe do tenant (FND-03b CA 2, 4 a 6): progresso por etapa (consulta a cada 3 s enquanto provisiona), ações, a aba "Perfis" (PERF-02) e a aba
  * "Módulos" (FND-06). Ao concluir o provisionamento, oferece liberar módulos (próximo passo).
  */
 export function TenantDetailPage() {
@@ -45,7 +46,7 @@ export function TenantDetailPage() {
   const current = Math.max(0, steps.findIndex((s) => last(s)?.status !== 'Succeeded'))
   const failed = log.length > 0 && log[log.length - 1].status === 'Failed'
   const [tone, label] = TENANT_STATUS[tenant.status as TenantStatusName] ?? TENANT_STATUS.Active
-  const stepChip = (s?: string) => (s === 'Succeeded' ? (['ok', 'Concluída'] as const) : s === 'Failed' ? (['crit', 'Falhou'] as const) : s ? (['info', 'Em andamento'] as const) : (['info', 'Aguardando'] as const))
+  const stepChip = (s?: string) => (s === 'Succeeded' ? (['ok', 'Concluída'] as const) : s === 'Failed' ? (['crit', 'Falhou'] as const) : s ? (['info', 'Em andamento'] as const) : tenant.status === 'Provisioning' ? (['info', 'Aguardando'] as const) : (['neutral', 'Sem registro'] as const))
 
   return (
     <>
@@ -56,13 +57,13 @@ export function TenantDetailPage() {
       </PageHeading>
       {provisioned ? <div className="mb-4"><NextSteps onDismiss={() => setProvisioned(false)} steps={[{ label: 'Liberar módulos', onSelect: () => { setProvisioned(false); tab('modulos') } }]} /></div> : null}
       <nav aria-label="Seções do tenant" className="mb-4 flex gap-1 border-b border-border">
-        {[['geral', 'Visão geral'], ['modulos', 'Módulos']].map(([id, text]) => (
+        {[['geral', 'Visão geral'], ['perfis', 'Perfis'], ['modulos', 'Módulos']].map(([id, text]) => (
           <button key={id} type="button" onClick={() => tab(id)} aria-current={(aba ?? 'geral') === id ? 'page' : undefined} className="border-b-2 border-transparent px-3 pb-2 text-sm font-medium text-muted-foreground aria-[current=page]:border-signal aria-[current=page]:text-foreground">
             {text}
           </button>
         ))}
       </nav>
-      {aba === 'modulos' ? <TenantModulesTab tenantId={tenant.id} /> : (
+      {aba === 'modulos' ? <TenantModulesTab tenantId={tenant.id} /> : aba === 'perfis' ? <TenantProfilesTab tenantId={tenant.id} /> : (
         <div className="space-y-4">
           <section className="grid gap-3 rounded-md border border-border bg-card p-4 text-sm sm:grid-cols-4">
             <p><span className="block text-xs text-muted-foreground">Plano</span>{tenant.plan ?? '—'}</p>
@@ -83,7 +84,7 @@ export function TenantDetailPage() {
                   <li key={s} className="flex flex-wrap items-center gap-2">
                     <StatusChip tone={chipTone}>{chipLabel}</StatusChip>
                     <span>{STEP_LABEL[s] ?? s}</span>
-                    {entry?.status === 'Failed' && entry.message ? <span className="text-xs text-crit-ink">{entry.message}</span> : null}
+                    {entry?.message ? <span className={entry.status === 'Failed' ? 'text-xs text-crit-ink' : 'text-xs text-muted-foreground'}>{entry.message}</span> : null}
                   </li>
                 )
               })}

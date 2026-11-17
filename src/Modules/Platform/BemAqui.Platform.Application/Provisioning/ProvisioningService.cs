@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using BemAqui.BuildingBlocks.Modules;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Tenancy;
+using BemAqui.Platform.Application.Modules;
 using BemAqui.Platform.Contracts;
 using BemAqui.Platform.Domain;
 using BemAqui.SharedKernel;
@@ -12,7 +13,7 @@ using BemAqui.SharedKernel;
 namespace BemAqui.Platform.Application.Provisioning;
 
 /// <summary>
-/// Provisiona um tenant em etapas idempotentes e retomáveis (FND-03a): Register, CreateRole, CreateDatabase,
+/// Provisiona um tenant em etapas idempotentes e retomáveis (FND-03a e PERF-02): Register, Profile, CreateRole, CreateDatabase,
 /// Migrate, Seed, CreateOwner, SendInvite e Activate. Cada etapa registra Started, Succeeded ou Failed. Na
 /// retomada, as etapas já concluídas são puladas. A senha do role nunca sai do processo em texto.
 /// </summary>
@@ -24,7 +25,7 @@ public sealed partial class ProvisioningService(
     ITenantResolver resolver,
     IEnumerable<ITenantSeeder> seeders,
     ITenantOwnerOnboarding onboarding,
-    BemAqui.Platform.Application.Modules.TenantModuleService modules,
+    TenantModuleService modules,
     ISecretProtector protector,
     TimeProvider clock)
 {
@@ -89,9 +90,9 @@ public sealed partial class ProvisioningService(
             await catalog.LogAsync(tenant.Id, step, ProvisioningStatus.Started, null, cancellationToken);
             try
             {
-                await RunStepAsync(step, tenant, request, connection, cancellationToken);
-                await catalog.LogAsync(tenant.Id, step, ProvisioningStatus.Succeeded, null, cancellationToken);
-                steps.Add(new ProvisioningStepResult(step, "Concluída", Stopwatch.GetElapsedTime(started), null));
+                var done = await RunStepAsync(step, tenant, request, connection, cancellationToken);
+                await catalog.LogAsync(tenant.Id, step, ProvisioningStatus.Succeeded, done, cancellationToken);
+                steps.Add(new ProvisioningStepResult(step, "Concluída", Stopwatch.GetElapsedTime(started), done));
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -121,23 +122,42 @@ public sealed partial class ProvisioningService(
         tenant.PlanId = await catalog.EnsurePlanAsync(request.Plan, cancellationToken);
         tenant.Domains.Add(new TenantDomain { TenantId = id, Host = host, IsPrimary = true });
         await catalog.AddTenantAsync(tenant, cancellationToken);
-        // FND-06 CA 7 e PERF-01 (ADR 0046): o tenant nasce com o perfil Fábrica (o único vendido até a PERF-02 trazer a escolha no
-        // provisionamento) e herda os módulos do plano filtrados pelo perfil. Aplicar o perfil já roda o ApplyPlanAsync.
-        var profile = await modules.ApplyProfileAsync(id, BusinessProfileCatalog.Factory, null, null, cancellationToken);
-        if (profile.IsFailure)
-        {
-            throw new InvalidOperationException(profile.Error!.Message);
-        }
         await catalog.LogAsync(id, ProvisioningSteps.Register, ProvisioningStatus.Succeeded, null, cancellationToken);
         resolver.Invalidate();
         return tenant;
     }
 
-    private async Task RunStepAsync(string step, Tenant tenant, ProvisionRequest request, string connection, CancellationToken cancellationToken)
+    /// <summary>
+    /// Perfil de negócio (PERF-02 CA 4 e 5; FND-06 CA 7): aplica os perfis escolhidos, e com eles o plano, que o
+    /// <see cref="BemAqui.Platform.Application.Modules.TenantModuleService.ApplyProfileAsync"/> recalcula logo depois de gravar o perfil.
+    /// Sem escolha, Fábrica (o comportamento de antes). Idempotente: na retomada, um perfil já gravado não é aplicado de novo, e uma
+    /// retomada sem a escolha em mãos mantém o que já existe (ou Fábrica, se nada foi gravado).
+    /// </summary>
+    private async Task<string> ApplyProfilesAsync(Tenant tenant, ProvisionRequest request, CancellationToken cancellationToken)
+    {
+        var existing = await modules.GetProfilesAsync(tenant.Id, cancellationToken);
+        IReadOnlyList<ProfileChoice> choices = request.Profiles is { Count: > 0 } chosen
+            ? chosen
+            : existing.Count > 0 ? existing.Select(p => new ProfileChoice(p.Code, p.Segment)).ToList() : [new ProfileChoice(BusinessProfileCatalog.Factory, null)];
+        foreach (var choice in choices)
+        {
+            var applied = await modules.ApplyProfileAsync(tenant.Id, choice.Code, choice.Segment, request.RequestedBy, cancellationToken: cancellationToken);
+            if (applied.IsFailure)
+            {
+                throw new InvalidOperationException(applied.Error!.Message);
+            }
+        }
+
+        return "Perfil aplicado: " + string.Join(", ", choices.Select(c => TenantModuleService.Label(c.Code, c.Segment))) + ".";
+    }
+
+    private async Task<string?> RunStepAsync(string step, Tenant tenant, ProvisionRequest request, string connection, CancellationToken cancellationToken)
     {
         var info = new TenantInfo(tenant.Id, tenant.Key, TenantStatus.Provisioning);
         switch (step)
         {
+            case ProvisioningSteps.Profile:
+                return await ApplyProfilesAsync(tenant, request, cancellationToken);
             case ProvisioningSteps.CreateRole:
                 await admin.EnsureRoleAsync(tenant.DbName, connection, cancellationToken);
                 break;
@@ -181,6 +201,8 @@ public sealed partial class ProvisioningService(
                 resolver.Invalidate();
                 break;
         }
+
+        return null;
     }
 
     private static string? Validate(ProvisionRequest request, string host)
@@ -208,6 +230,11 @@ public sealed partial class ProvisioningService(
         if (string.IsNullOrWhiteSpace(request.OwnerEmail) || !MailAddress.TryCreate(request.OwnerEmail, out _))
         {
             return "Informe um e-mail válido para o proprietário (--owner-email).";
+        }
+
+        if (request.Profiles?.FirstOrDefault(p => p.Code is null || !BusinessProfileCatalog.IsKnown(p.Code, p.Segment)) is { } unknown)
+        {
+            return "Perfil de negócio ou segmento desconhecido: " + unknown.Code + (unknown.Segment is null ? string.Empty : "/" + unknown.Segment) + ".";
         }
 
         if (request.Document is { } document && document.Count(char.IsDigit) is not (11 or 14))

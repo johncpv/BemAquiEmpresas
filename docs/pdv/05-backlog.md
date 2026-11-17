@@ -136,7 +136,7 @@ O que pode correr em paralelo:
 - Depende de: PP-03.
 - CA: `BusinessProfileCatalog` com 4 perfis e 7 segmentos; `tenant_profiles` com backfill `factory`; liberado = (plano E perfil) OU exceção; módulo fora do perfil vem `hidden` em `/me/permissions` e some do menu e da busca; rota direta responde 403 `module_not_released`; navegação da Konebras idêntica (teste de regressão); ADR dos perfis.
 
-**PERF-02 [ ] Provisionar com perfil e adicionar perfil a tenant existente (M)** — ordem 2 — [story](stories/PERF-02-provisionar-com-perfil.md)
+**PERF-02 [x] Provisionar com perfil e adicionar perfil a tenant existente (M)** — ordem 2 — [story](stories/PERF-02-provisionar-com-perfil.md)
 - Depende de: PERF-01.
 - CA: passos "Perfil de negócio" e "Segmento" no `ProvisionDialog`; aba Perfis no tenant; adicionar é idempotente e não toca em exceção; remover só oculta; provisionamento continua abaixo de 1 min.
 
