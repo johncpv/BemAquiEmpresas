@@ -3,7 +3,8 @@ import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Markdown } from '@/help/markdown'
 import { NavigationContext } from './navigation-context'
-import { Term, applyTerms } from './vocabulary'
+import { Term } from './Term'
+import { applyTerms } from './vocabulary'
 
 const RETAIL = { 'area.factory': 'Retaguarda' }
 

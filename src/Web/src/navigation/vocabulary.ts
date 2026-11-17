@@ -1,4 +1,4 @@
-import { useContext, type ReactNode } from 'react'
+import { useContext } from 'react'
 import { NavigationContext } from './navigation-context'
 
 /** Termos do tenant por chave (PERF-03, ADR 0046 §6): só o que difere do padrão; a Konebras (fábrica) recebe vazio. */
@@ -33,9 +33,4 @@ export function useTerm(): (key: string, standard: string) => string {
 export function useAreaLabel(): (area: string) => string {
   const labels = useContext(NavigationContext)?.areaLabels ?? EMPTY
   return (area) => labels[area] ?? area
-}
-
-/** Componente de texto: <Term k="area.factory">Fábrica</Term>. Chave desconhecida mantém o termo padrão (CA 4). */
-export function Term({ k, children }: { k: string; children: string }): ReactNode {
-  return useTerm()(k, children)
 }

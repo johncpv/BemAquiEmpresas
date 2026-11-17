@@ -11,7 +11,7 @@ export interface NavigationValue {
   /** Membro do grupo Proprietário (abas só dele, ex.: Privacidade, LGPD-01a CA 2). */
   isOwner: boolean
   retry: () => void
-  /** Termos do tenant (PERF-03): só o que difere do padrão. Use useTerm / <Term>, de navigation/vocabulary. */
+  /** Termos do tenant (PERF-03): só o que difere do padrão. Use useTerm (navigation/vocabulary) ou <Term> (navigation/Term). */
   vocabulary: Vocabulary
   /** Área do dock (texto do ModuleAreas) → rótulo do tenant. */
   areaLabels: Readonly<Record<string, string>>
