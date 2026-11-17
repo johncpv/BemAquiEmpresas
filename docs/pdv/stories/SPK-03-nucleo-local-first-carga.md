@@ -5,7 +5,7 @@
 | ID | SPK-03 |
 | Título | Spike: núcleo local-first sob carga (IndexedDB com 50 mil itens em aparelho fraco, registro de eventos e fila, lote com 20 caixas simulados, baixa agregada de estoque, queda de energia no meio da venda) |
 | Tamanho | M |
-| Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
+| Status | Executado com ressalvas (16 e 17/11/2026): respondido por simulação; falta a medição em aparelho real e o corte de energia, que vão com o SPK-01. [Resultado](../spikes/SPK-03-resultado.md) |
 | Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (itens 4 e 5) · [Rascunho A](../adr/rascunho-A-offline.md) · [Rascunho F](../adr/rascunho-F-escala-hospedagem.md) |
 | Dependências | Um tablet Android de entrada e um PC antigo para teste |
@@ -36,7 +36,7 @@ Como **arquiteto**, quero **medir o núcleo local-first em aparelho fraco e sob 
 - Os números são medidos, com o modelo do aparelho e a versão do navegador anotados.
 
 ## Entregáveis
-- Relatório em `docs/revisoes/`.
+- Relatório em [`docs/pdv/spikes/SPK-03-resultado.md`](../spikes/SPK-03-resultado.md) (em vez de `docs/revisoes/`, a pedido, junto do plano do PDV).
 - Rascunhos A e F corrigidos.
 - Tamanho das stories OFF-01 a OFF-03 reestimado no backlog.
 
@@ -48,13 +48,14 @@ Como **arquiteto**, quero **medir o núcleo local-first em aparelho fraco e sob 
 - Nenhum que bloqueie o spike.
 
 ## Definition of Done
-- [ ] Todas as perguntas respondidas com evidência, ou marcadas "não respondida", com o motivo.
-- [ ] Relatório publicado em `docs/revisoes/`.
-- [ ] Rascunhos de ADR e backlog corrigidos com o que foi medido.
-- [ ] Código do spike fora da `main` de produto.
+- [x] Todas as perguntas respondidas com evidência, ou marcadas "não respondida", com o motivo (aparelho real e corte de energia: não respondidas, ver seção 11 do resultado).
+- [x] Relatório publicado em `docs/pdv/spikes/`.
+- [x] Rascunho A e backlog corrigidos com o que foi medido (o rascunho F não muda: a carga do servidor medida foi pequena).
+- [x] Código do spike fora do código de produto (`spikes/spk-03-local-first/`, fora de `src/` e do build).
 
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
+| 17/11/2026 | 0.3 | Spike executado: IndexedDB (Dexie) com catálogo em blocos e índice em memória; protocolo confirmado com dois ajustes; medições por simulação de CPU (CDP e Job Object). Aparelho real e corte de energia ficam para o SPK-01. | Claude (spike) |

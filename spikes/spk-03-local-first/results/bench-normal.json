@@ -1,0 +1,383 @@
+{
+  "when": "2026-11-16T12:44:23.698Z",
+  "machine": {
+    "cpu": "Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz",
+    "cores": 8,
+    "ramGb": 16,
+    "os": "Windows_NT 10.0.26200",
+    "node": "v24.14.0"
+  },
+  "n": 50000,
+  "sqlite": {
+    "journal": "wal",
+    "sync": "normal",
+    "locking": "exclusive"
+  },
+  "runs": [
+    {
+      "rate": 1,
+      "label": "normal",
+      "tech": "idb",
+      "wallSec": 74.656,
+      "calib": {
+        "mainMs": 471.410000000149,
+        "workerMs": 658.230000000447
+      },
+      "persist": {
+        "before": false,
+        "granted": false,
+        "after": false
+      },
+      "browserVersion": "156.0.8078.4",
+      "disk": {
+        "indexedDb": 15374321,
+        "fileSystem": 0
+      },
+      "n": 50000,
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+      "openMs": 327.9000000022352,
+      "snapshot": {
+        "totalMs": 31282.289999999106,
+        "fetchParseMs": 949.9600000008941,
+        "insertMs": 30332.379999998957,
+        "rawBytes": 6654721,
+        "gzBytes": 1152970
+      },
+      "count": 50000,
+      "sizeAfterSnapshot": {
+        "usage": 19839086,
+        "details": {
+          "indexedDB": 19839086
+        }
+      },
+      "barcode": {
+        "n": 117,
+        "p50": 0.65,
+        "p95": 1.9,
+        "max": 4.71,
+        "avgHits": 0.9
+      },
+      "search": {
+        "prefix_index": {
+          "n": 117,
+          "p50": 10.01,
+          "p95": 217.52,
+          "max": 281.17,
+          "avgHits": 45.5
+        },
+        "middle_scan": {
+          "n": 117,
+          "p50": 66.32,
+          "p95": 178.88,
+          "max": 210.82,
+          "avgHits": 50
+        },
+        "prefix_mem": {
+          "n": 117,
+          "p50": 5.45,
+          "p95": 12.33,
+          "max": 15.26,
+          "avgHits": 46.8
+        },
+        "middle_mem": {
+          "n": 117,
+          "p50": 4.45,
+          "p95": 10.54,
+          "max": 29.33,
+          "avgHits": 50
+        }
+      },
+      "memIndexBuildMs": 1084.059999998659,
+      "sale_relaxed": {
+        "addItem": {
+          "n": 297,
+          "p50": 1.75,
+          "p95": 4.7,
+          "max": 9.22
+        },
+        "complete": {
+          "n": 99,
+          "p50": 4.58,
+          "p95": 9.27,
+          "max": 11.32
+        }
+      },
+      "sale_strict": {
+        "addItem": {
+          "n": 297,
+          "p50": 15.49,
+          "p95": 38.9,
+          "max": 57.49
+        },
+        "complete": {
+          "n": 99,
+          "p50": 15.77,
+          "p95": 38.48,
+          "max": 353.14
+        }
+      },
+      "delta": {
+        "totalMs": 547.0049999989569,
+        "fetchParseMs": 233.69999999925494,
+        "applyMs": 313.3100000023842,
+        "rawBytes": 73445,
+        "gzBytes": 12921
+      },
+      "countAfterDelta": 49950,
+      "deltaCheck": {
+        "removedBarcodeFound": false
+      },
+      "reopenToFirstLookupMs": 3.905000001192093,
+      "reopenMemIndexMs": 1419.539999999106,
+      "sizeFinal": {
+        "usage": 15374321,
+        "details": {
+          "indexedDB": 15374321
+        }
+      }
+    },
+    {
+      "rate": 1,
+      "label": "normal",
+      "tech": "idb-lean",
+      "wallSec": 39.8,
+      "calib": {
+        "mainMs": 428.82499999925494,
+        "workerMs": 428.2450000010431
+      },
+      "persist": {
+        "before": false,
+        "granted": false,
+        "after": false
+      },
+      "browserVersion": "156.0.8078.4",
+      "disk": {
+        "indexedDb": 8715511,
+        "fileSystem": 0
+      },
+      "n": 50000,
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+      "openMs": 384.6299999989569,
+      "snapshot": {
+        "totalMs": 16502.55999999866,
+        "fetchParseMs": 172.64000000059605,
+        "insertMs": 16329.939999997616,
+        "rawBytes": 6654721,
+        "gzBytes": 1152970
+      },
+      "count": 50000,
+      "sizeAfterSnapshot": {
+        "usage": 7861593,
+        "details": {
+          "indexedDB": 7861593
+        }
+      },
+      "barcode": {
+        "n": 117,
+        "p50": 0.53,
+        "p95": 1.2,
+        "max": 6.66,
+        "avgHits": 0.9
+      },
+      "search": {
+        "prefix_mem": {
+          "n": 117,
+          "p50": 6.27,
+          "p95": 20.11,
+          "max": 43.4,
+          "avgHits": 46.8
+        },
+        "middle_mem": {
+          "n": 117,
+          "p50": 3.84,
+          "p95": 6.46,
+          "max": 8.95,
+          "avgHits": 50
+        }
+      },
+      "memIndexBuildMs": 1079.6749999970198,
+      "sale_relaxed": {
+        "addItem": {
+          "n": 297,
+          "p50": 2.74,
+          "p95": 19.24,
+          "max": 46.38
+        },
+        "complete": {
+          "n": 99,
+          "p50": 6.16,
+          "p95": 19.09,
+          "max": 41.8
+        }
+      },
+      "sale_strict": {
+        "addItem": {
+          "n": 297,
+          "p50": 15,
+          "p95": 47.71,
+          "max": 303.54
+        },
+        "complete": {
+          "n": 99,
+          "p50": 17.81,
+          "p95": 53.27,
+          "max": 286.27
+        }
+      },
+      "delta": {
+        "totalMs": 518.984999999404,
+        "fetchParseMs": 9.445000000298023,
+        "applyMs": 509.55000000074506,
+        "rawBytes": 73445,
+        "gzBytes": 12921
+      },
+      "countAfterDelta": 49950,
+      "deltaCheck": {
+        "removedBarcodeFound": false
+      },
+      "reopenToFirstLookupMs": 1.3149999976158142,
+      "reopenMemIndexMs": 529.0300000011921,
+      "sizeFinal": {
+        "usage": 8678520,
+        "details": {
+          "indexedDB": 8678520
+        }
+      }
+    },
+    {
+      "rate": 1,
+      "label": "normal",
+      "tech": "sqlite",
+      "wallSec": 33.475,
+      "calib": {
+        "mainMs": 408.5249999985099,
+        "workerMs": 413.16499999910593
+      },
+      "persist": {
+        "before": false,
+        "granted": false,
+        "after": false
+      },
+      "browserVersion": "156.0.8078.4",
+      "disk": {
+        "indexedDb": 0,
+        "fileSystem": 16886883
+      },
+      "n": 50000,
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+      "openMs": 1608.5400000028312,
+      "engine": {
+        "version": "3.54.1",
+        "wasmInitMs": 540.75,
+        "poolInstallMs": 509.429999999702,
+        "openMs": 1497.410000000149,
+        "journal": "wal",
+        "locking": "exclusive",
+        "synchronous": 1
+      },
+      "snapshot": {
+        "totalMs": 5733.835000000894,
+        "count": 50000,
+        "fetchMs": 76.53500000014901,
+        "parseMs": 120.82999999821186,
+        "insertMs": 4947.734999999404,
+        "ftsMs": 586.445000000298,
+        "rawBytes": 6654721,
+        "gzBytes": 1152970
+      },
+      "count": 50000,
+      "sizeAfterSnapshot": {
+        "usage": 37750084,
+        "details": {
+          "fileSystem": 37750084
+        }
+      },
+      "sqliteDbBytes": 14622720,
+      "barcode": {
+        "n": 117,
+        "p50": 0.41,
+        "p95": 7.5,
+        "max": 9.79,
+        "avgHits": 0.9
+      },
+      "search": {
+        "prefix_like": {
+          "n": 117,
+          "p50": 3.92,
+          "p95": 39.95,
+          "max": 49.39,
+          "avgHits": 45.5
+        },
+        "middle_scan": {
+          "n": 117,
+          "p50": 2.2,
+          "p95": 3.64,
+          "max": 4.93,
+          "avgHits": 50
+        },
+        "prefix_fts": {
+          "n": 117,
+          "p50": 1.71,
+          "p95": 2.52,
+          "max": 4.37,
+          "avgHits": 46.8
+        },
+        "middle_fts": {
+          "n": 117,
+          "p50": 1.64,
+          "p95": 2.44,
+          "max": 5.67,
+          "avgHits": 50
+        }
+      },
+      "sale_sync_normal": {
+        "addItem": {
+          "n": 297,
+          "p50": 1.05,
+          "p95": 2.4,
+          "max": 4.98
+        },
+        "complete": {
+          "n": 99,
+          "p50": 1.93,
+          "p95": 3.19,
+          "max": 464.23
+        }
+      },
+      "sale_sync_full": {
+        "addItem": {
+          "n": 297,
+          "p50": 13.88,
+          "p95": 27.43,
+          "max": 542.1
+        },
+        "complete": {
+          "n": 99,
+          "p50": 17.95,
+          "p95": 38.38,
+          "max": 188.46
+        }
+      },
+      "delta": {
+        "totalMs": 2387.724999997765,
+        "changes": 500,
+        "fetchMs": 10.054999999701977,
+        "applyMs": 2377.030000001192,
+        "gzBytes": 12921,
+        "rawBytes": 73445
+      },
+      "countAfterDelta": 49950,
+      "deltaCheck": {
+        "removedBarcodeFound": false
+      },
+      "reopenToFirstLookupMs": 633.390000000596,
+      "sizeFinal": {
+        "usage": 22107460,
+        "details": {
+          "fileSystem": 22107460
+        }
+      },
+      "sqliteDbBytesFinal": 16859136
+    }
+  ]
+}

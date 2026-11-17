@@ -1,0 +1,126 @@
+{
+  "when": "2026-11-16T13:15:16.267Z",
+  "machine": {
+    "cpu": "Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz",
+    "cores": 8,
+    "ramGb": 16,
+    "os": "Windows_NT 10.0.26200",
+    "node": "v24.14.0"
+  },
+  "n": 50000,
+  "sqlite": {
+    "journal": "wal",
+    "sync": "normal",
+    "locking": "exclusive"
+  },
+  "runs": [
+    {
+      "rate": 1,
+      "label": "normal",
+      "tech": "idb-chunks",
+      "wallSec": 21.449,
+      "calib": {
+        "mainMs": 315.69999999925494,
+        "workerMs": 297.6200000010431
+      },
+      "persist": {
+        "before": false,
+        "granted": false,
+        "after": false
+      },
+      "browserVersion": "156.0.8078.4",
+      "disk": {
+        "indexedDb": 6649892,
+        "fileSystem": 0
+      },
+      "n": 50000,
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+      "openMs": 575.3799999989569,
+      "snapshot": {
+        "totalMs": 384.60499999672174,
+        "fetchParseMs": 115.42999999970198,
+        "insertMs": 269.19999999925494,
+        "rawBytes": 6654721,
+        "gzBytes": 1152970
+      },
+      "count": 50000,
+      "sizeAfterSnapshot": {
+        "usage": 131272,
+        "details": {
+          "indexedDB": 131272
+        }
+      },
+      "barcode": {
+        "n": 117,
+        "p50": 0,
+        "p95": 0.01,
+        "max": 0.01,
+        "avgHits": 0.9
+      },
+      "search": {
+        "prefix_mem": {
+          "n": 117,
+          "p50": 0.25,
+          "p95": 5.48,
+          "max": 6.82,
+          "avgHits": 46.8
+        },
+        "middle_mem": {
+          "n": 117,
+          "p50": 0.18,
+          "p95": 0.52,
+          "max": 0.64,
+          "avgHits": 50
+        }
+      },
+      "memIndexBuildMs": 2.6349999979138374,
+      "sale_relaxed": {
+        "addItem": {
+          "n": 297,
+          "p50": 0.98,
+          "p95": 2.15,
+          "max": 7.69
+        },
+        "complete": {
+          "n": 99,
+          "p50": 3.77,
+          "p95": 9.19,
+          "max": 73.17
+        }
+      },
+      "sale_strict": {
+        "addItem": {
+          "n": 297,
+          "p50": 13.94,
+          "p95": 27.03,
+          "max": 437.68
+        },
+        "complete": {
+          "n": 99,
+          "p50": 17.88,
+          "p95": 41.61,
+          "max": 314.18
+        }
+      },
+      "delta": {
+        "totalMs": 292.42500000074506,
+        "fetchParseMs": 5.864999998360872,
+        "applyMs": 286.5649999976158,
+        "rawBytes": 73445,
+        "gzBytes": 12921
+      },
+      "countAfterDelta": 49950,
+      "deltaCheck": {
+        "removedBarcodeFound": false
+      },
+      "reopenToFirstLookupMs": 210.32499999925494,
+      "reopenMemIndexMs": 5.755000002682209,
+      "sizeFinal": {
+        "usage": 6646851,
+        "details": {
+          "indexedDB": 6646851
+        }
+      }
+    }
+  ]
+}

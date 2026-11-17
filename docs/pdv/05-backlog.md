@@ -130,6 +130,7 @@ O que pode correr em paralelo:
 - Depende de: —
 - Paridade: prepara 1, 22.
 - CA: busca em 50 mil itens medida em tablet barato e PC antigo; lote com 20 caixas simulados sem duplicar; queda de energia e aba fechada no meio da venda sem perda; IndexedDB ou SQLite-WASM decidido.
+- **Executado em 16 e 17/11/2026, com ressalvas** ([resultado](spikes/SPK-03-resultado.md)): IndexedDB (Dexie) com catálogo em blocos e índice em memória; 20 caixas × 200 vendas com 30% de reenvio sem duplicar nem perder; navegador morto e aba fechada sem perda. **Falta para marcar:** a busca foi medida em máquina fraca **simulada** (CDP e Job Object), não em tablet nem PC antigo reais, e o corte de energia não foi feito; os dois vão com o SPK-01.
 
 **PERF-01 [x] Perfis de negócio no catálogo e liberação efetiva (G)** — ordem 1 — [story](stories/PERF-01-perfis-liberacao-efetiva.md)
 - Depende de: PP-03.
@@ -595,5 +596,5 @@ Semanas de calendário. "Construção" é código neste repositório. "Externo" 
 Leituras:
 - A versão anterior falava em "produto vendável em 3 a 4 meses" e "conjunto em 6 a 9 meses" sem dizer que isso supunha duas frentes. Com uma frente só, o conjunto leva **8 a 13 meses**.
 - O cenário 2 supõe que o PO consegue revisar duas frentes de construção **e** tocar o Emissor ao mesmo tempo. Ele é o dono do Emissor (PP-13). Se a frente do Emissor disputar o tempo dele com a revisão das stories, o caminho crítico volta a ser o Emissor.
-- A estimativa de produto para o offline e a de arquitetura (5 a 8 semanas-pessoa só para a segunda etapa) continuam sem fechar. O SPK-03 existe para tirar essa dúvida antes de assumir data (RP-23).
+- A estimativa de produto para o offline e a de arquitetura (5 a 8 semanas-pessoa só para a segunda etapa) continuam sem fechar. O SPK-03 existe para tirar essa dúvida antes de assumir data (RP-23). **SPK-03 (17/11/2026):** o armazenamento local deixou de ser risco (OFF-01 continua G, sem reestimar) e o protocolo de subida foi confirmado (OFF-02 continua G). A segunda etapa de 5 a 8 semanas-pessoa é quase toda OFF-03 (PIN, turno e supervisor sem rede), que o spike não mediu; por isso a faixa da Fase 11 fica igual e só a confiança no offline sobe de média-baixa para média ([resultado, seção 10](spikes/SPK-03-resultado.md#10-o-que-muda-no-rascunho-a-e-na-estimativa)).
 - Integrações com terceiros (TEF, iFood, marketplaces) podem passar de qualquer faixa acima.
