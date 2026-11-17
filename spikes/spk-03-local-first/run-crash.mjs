@@ -1,10 +1,9 @@
 // CA 4 e 5: navegador morto (taskkill /F no processo inteiro) e aba fechada no meio da venda; duas abas no mesmo caixa.
 // Corte de energia do aparelho NÃO é simulado aqui (ver relatório): matar o processo não descarta o cache do sistema operacional.
-import { spawn, execSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { chromium } from 'playwright-core';
-import { startServer, tempProfile, BASE, writeResult, machineInfo } from './lib/harness.mjs';
+import { startServer, tempProfile, BASE, writeResult, machineInfo, launch } from './lib/harness.mjs';
 
 const arg = (k, d) => (process.argv.find((a) => a.startsWith(`--${k}=`)) || '').split('=')[1] || d;
 const VARIANTS = arg('variants', 'idb-chunks:strict,idb-chunks:relaxed,sqlite:full,sqlite:normal').split(',');
@@ -12,19 +11,18 @@ const KILLS = Number(arg('kills', '6'));
 const CLOSES = Number(arg('closes', '3'));
 const N = Number(arg('n', '5000'));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-let port = 9400 + Math.floor(Math.random() * 500);
 
+// Chromium do Playwright com o perfil persistente; o pid do processo principal vem do CDP (SystemInfo),
+// para o taskkill /F /T derrubar o navegador inteiro (inclusive o processo de armazenamento).
+// (Na primeira versão o Chromium era lançado à mão; sem os argumentos do Playwright, a gravação inicial
+// no IndexedDB falhava às vezes com QuotaExceededError e o roteiro travava.)
 async function startChromium(dir) {
-  const p = ++port;
-  const child = spawn(chromium.executablePath(), [
-    '--headless=new', `--user-data-dir=${dir}`, `--remote-debugging-port=${p}`, '--no-first-run', '--no-default-browser-check', 'about:blank',
-  ], { stdio: 'ignore' });
-  let browser;
-  for (let i = 0; i < 300 && !browser; i++) {
-    try { browser = await chromium.connectOverCDP(`http://127.0.0.1:${p}`); } catch { await sleep(200); }
-  }
-  if (!browser) throw new Error('não conectou no Chromium');
-  return { child, browser, context: browser.contexts()[0] };
+  const context = await launch(dir);
+  const browser = context.browser();
+  const s = await browser.newBrowserCDPSession();
+  const info = await s.send('SystemInfo.getProcessInfo');
+  const pid = info.processInfo.find((p) => p.type === 'browser').id;
+  return { child: { pid }, browser, context };
 }
 
 async function gotoRetry(page, u) {
