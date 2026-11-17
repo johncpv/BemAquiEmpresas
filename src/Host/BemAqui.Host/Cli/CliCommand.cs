@@ -35,6 +35,7 @@ public static class CliCommand
         new BemAqui.HR.Endpoints.HRModule(),
         new BemAqui.Fiscal.Endpoints.FiscalModule(),
         new BemAqui.Assets.Endpoints.AssetsModule(),
+        new BemAqui.Catalog.Endpoints.CatalogModule(),
         new BemAqui.Migrations.Endpoints.MigrationModule(),
     ];
 

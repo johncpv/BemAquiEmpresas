@@ -59,6 +59,15 @@ public partial class PlatformAuthTests
     {
         var node = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
         node.Remove("profiles");
+        // Os módulos do PDV (CAT-01 em diante) não existiam antes dos perfis e nunca entram na Fábrica: sem perfil aparecem com cadeado e,
+        // com a Fábrica, ficam ocultos. O retrato compara os 16 módulos de hoje (e a versão, que não muda).
+        var factory = BusinessProfileCatalog.Find(BusinessProfileCatalog.Factory)!.Modules;
+        var modules = node["modules"]!.AsArray();
+        foreach (var pdv in modules.Where(m => !factory.Contains(m!["code"]!.GetValue<string>())).ToList())
+        {
+            modules.Remove(pdv);
+        }
+
         return node.ToJsonString();
     }
 
@@ -124,7 +133,10 @@ public partial class PlatformAuthTests
             JsonDocument.Parse(after).RootElement.GetProperty("profiles").EnumerateArray().Select(p => p.GetString()).Should().Equal(BusinessProfileCatalog.Factory);
         }
 
-        (await ModulesOfAsync(actors[Group.OwnerSeedKey])).Values.Should().NotContain(m => m.GetProperty("hidden").GetBoolean());
+        var factoryModules = BusinessProfileCatalog.Find(BusinessProfileCatalog.Factory)!.Modules;
+        var owned = await ModulesOfAsync(actors[Group.OwnerSeedKey]);
+        owned.Where(m => factoryModules.Contains(m.Key)).Select(m => m.Value).Should().NotContain(m => m.GetProperty("hidden").GetBoolean());
+        owned["catalog"].GetProperty("hidden").GetBoolean().Should().BeTrue("o catálogo do PDV (CAT-01) fica oculto para a fábrica");
     }
 
     [Fact]

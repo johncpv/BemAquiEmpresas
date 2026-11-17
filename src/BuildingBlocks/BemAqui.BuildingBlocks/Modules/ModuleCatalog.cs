@@ -79,6 +79,13 @@ public static partial class ModuleCatalog
                 new("edit_budget", "Editar custo orçado", "Editar custo orçado: informar ou corrigir o custo orçado do projeto por natureza, com motivo. Muda a margem orçada; exige também Ver custo e margem."),
             ], "aditivos de contrato"),
         new("parties", "Cadastros", ModuleAreas.Commercial, 1, 40, "Clientes, fornecedores e instaladores.", Crud, []),
+        // CAT-01 (PDV, ADR 0046): só nos perfis de comércio; para a fábrica (Konebras) fica oculto. Vai para a área "Loja" quando a PERF-03
+        // criar a área (até lá, fica no Comercial). edit_price separa quem cadastra de quem muda preço; view_cost guarda custo e margem.
+        new("catalog", "Catálogo", ModuleAreas.Commercial, 10, 45, "Produtos à venda: código de barras, preço, categoria e grade.", Crud,
+            [
+                new("edit_price", "Alterar preço", "Alterar preço: mudar o preço de venda na tabela de preço; a versão da tabela sobe e o histórico guarda quem e quando."),
+                new("view_cost", "Ver custo e margem", "Ver o custo médio do item e a margem sobre o preço de venda (sigilo comercial)."),
+            ]),
         new("engineering", "Engenharia", ModuleAreas.Factory, 3, 50, "Estrutura de produto (BOM) e roteiros de fabricação.", CrudApprove, [], "liberar a BOM"),
         // PRD-05 (D6, ADR 0003 adendo de 21/10/2026): a decisão de qualidade sai da production.approve para a ação específica,
         // usável por PIN (ADR 0026 §2); a production.approve fica com a conclusão da OS e a aprovação de etapa.

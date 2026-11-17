@@ -38,7 +38,7 @@ public static class BusinessProfileCatalog
         new(Factory, "Fábrica", "Indústria sob encomenda: orçamento, projeto, engenharia, produção e chão de fábrica.",
             [.. Core, "quotes", "projects", "engineering", "production", "kiosk", "shopfloor"], []),
         new(Retail, "Comércio", "Venda no balcão e na loja: caixa, estoque e retaguarda.",
-            [.. Core, "kiosk"],
+            [.. Core, "kiosk", "catalog"],
             [
                 new("counter", "Balcão"),
                 new("supermarket", "Supermercado"),
@@ -48,9 +48,10 @@ public static class BusinessProfileCatalog
                 new("food_truck", "Trailer"),
             ]),
         new(Services, "Prestação de serviços", "Serviço com orçamento e ordem de serviço.",
-            [.. Core, "quotes", "projects"],
+            [.. Core, "quotes", "projects", "catalog"],
             [new("workshop", "Oficina")]),
-        new(Ecommerce, "E-commerce", "Venda pela loja virtual.", Core, []),
+        // CAT-01: o catálogo entra em Comércio, Serviços e E-commerce (PRD do PDV, seção 3.3); na Fábrica, não (decisão explícita pendente).
+        new(Ecommerce, "E-commerce", "Venda pela loja virtual.", [.. Core, "catalog"], []),
     ];
 
     /// <summary>Recurso de pagamentos da venda dentro do Financeiro (PAG-01): formas de pagamento e taxas da adquirente.</summary>

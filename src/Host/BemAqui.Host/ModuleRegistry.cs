@@ -1,4 +1,5 @@
 using BemAqui.Assets.Endpoints;
+using BemAqui.Catalog.Endpoints;
 using BemAqui.BuildingBlocks.Modules;
 using BemAqui.Commercial.Endpoints;
 using BemAqui.Dashboard.Endpoints;
@@ -34,6 +35,8 @@ public static class ModuleRegistry
         new FinanceModule(),
         new FiscalModule(),
         new AssetsModule(),
+        // CAT-01: catálogo de produtos do PDV (oculto fora dos perfis de comércio, ADR 0046).
+        new CatalogModule(),
         new PortalModule(),
         new MigrationModule(),
         // DSH-01a (ADR 0028 §1): módulo de composição, só Application e Endpoints, sem tabela nem seeder.

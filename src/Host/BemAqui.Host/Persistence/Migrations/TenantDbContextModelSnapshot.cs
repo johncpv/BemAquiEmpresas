@@ -1426,6 +1426,376 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("webhook_events", "shared");
                 });
 
+            modelBuilder.Entity("BemAqui.Catalog.Domain.PriceChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("ChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("changed_at");
+
+                    b.Property<Guid?>("ChangedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("changed_by");
+
+                    b.Property<long>("ListVersion")
+                        .HasColumnType("bigint")
+                        .HasColumnName("list_version");
+
+                    b.Property<decimal>("NewPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("new_price");
+
+                    b.Property<decimal?>("PreviousPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("previous_price");
+
+                    b.Property<Guid>("PriceListId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("price_list_id");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_price_changes");
+
+                    b.HasIndex("PriceListId")
+                        .HasDatabaseName("ix_price_changes_price_list_id");
+
+                    b.HasIndex("ProductId", "ChangedAt")
+                        .HasDatabaseName("ix_price_changes_product_changed_at");
+
+                    b.ToTable("price_changes", "catalog_products");
+                });
+
+            modelBuilder.Entity("BemAqui.Catalog.Domain.PriceList", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("channel");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_default");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("seed_key");
+
+                    b.Property<Guid?>("StoreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("store_id");
+
+                    b.Property<DateOnly?>("ValidFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("valid_from");
+
+                    b.Property<DateOnly?>("ValidTo")
+                        .HasColumnType("date")
+                        .HasColumnName("valid_to");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("pk_price_lists");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_price_lists_seed_key")
+                        .HasFilter("seed_key IS NOT NULL");
+
+                    b.ToTable("price_lists", "catalog_products");
+                });
+
+            modelBuilder.Entity("BemAqui.Catalog.Domain.PriceListItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("MinQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("min_quantity");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("price");
+
+                    b.Property<Guid>("PriceListId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("price_list_id");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_price_list_items");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_price_list_items_product_id");
+
+                    b.HasIndex("PriceListId", "ProductId", "MinQuantity")
+                        .IsUnique()
+                        .HasDatabaseName("ix_price_list_items_list_product_quantity");
+
+                    b.ToTable("price_list_items", "catalog_products");
+                });
+
+            modelBuilder.Entity("BemAqui.Catalog.Domain.Product", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("category_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("HasVariants")
+                        .HasColumnType("boolean")
+                        .HasColumnName("has_variants");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<bool>("IsWeighable")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_weighable");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("Plu")
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)")
+                        .HasColumnName("plu");
+
+                    b.Property<string>("SaleName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("sale_name");
+
+                    b.Property<string>("SearchText")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("search_text");
+
+                    b.Property<bool>("SellableOnline")
+                        .HasColumnType("boolean")
+                        .HasColumnName("sellable_online");
+
+                    b.Property<bool>("SellablePos")
+                        .HasColumnType("boolean")
+                        .HasColumnName("sellable_pos");
+
+                    b.Property<string>("VariantAttributes")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("variant_attributes");
+
+                    b.Property<Guid?>("VariantOfProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("variant_of_product_id");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_products");
+
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("ix_products_category_id");
+
+                    b.HasIndex("ItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_products_item_id")
+                        .HasFilter("NOT is_deleted");
+
+                    b.HasIndex("Plu")
+                        .IsUnique()
+                        .HasDatabaseName("ix_products_plu")
+                        .HasFilter("plu IS NOT NULL AND NOT is_deleted");
+
+                    b.HasIndex("SearchText")
+                        .HasDatabaseName("ix_products_search_text_trgm");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchText"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("SearchText"), new[] { "gin_trgm_ops" });
+
+                    b.HasIndex("VariantOfProductId")
+                        .HasDatabaseName("ix_products_variant_of_product_id")
+                        .HasFilter("variant_of_product_id IS NOT NULL");
+
+                    b.ToTable("products", "catalog_products");
+                });
+
+            modelBuilder.Entity("BemAqui.Catalog.Domain.ProductBarcode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Gtin")
+                        .IsRequired()
+                        .HasMaxLength(14)
+                        .HasColumnType("character varying(14)")
+                        .HasColumnName("gtin");
+
+                    b.Property<decimal>("PackQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("pack_quantity");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_product_barcodes");
+
+                    b.HasIndex("Gtin")
+                        .IsUnique()
+                        .HasDatabaseName("ix_product_barcodes_gtin");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_product_barcodes_product_id");
+
+                    b.ToTable("product_barcodes", "catalog_products");
+                });
+
+            modelBuilder.Entity("BemAqui.Catalog.Domain.ProductCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<decimal?>("DefaultMarginPercent")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("numeric(9,4)")
+                        .HasColumnName("default_margin_percent");
+
+                    b.Property<decimal?>("DefaultMarkupPercent")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("numeric(9,4)")
+                        .HasColumnName("default_markup_percent");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("parent_id");
+
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("seed_key");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id")
+                        .HasName("pk_categories");
+
+                    b.HasIndex("ParentId")
+                        .HasDatabaseName("ix_categories_parent_id");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_categories_seed_key")
+                        .HasFilter("seed_key IS NOT NULL");
+
+                    b.ToTable("categories", "catalog_products");
+                });
+
             modelBuilder.Entity("BemAqui.Commercial.Domain.CommercialParameter", b =>
                 {
                     b.Property<Guid>("Id")
@@ -17723,6 +18093,75 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_maintenance_plans_assets_asset_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Catalog.Domain.PriceChange", b =>
+                {
+                    b.HasOne("BemAqui.Catalog.Domain.PriceList", null)
+                        .WithMany()
+                        .HasForeignKey("PriceListId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_price_changes_price_lists_price_list_id");
+
+                    b.HasOne("BemAqui.Catalog.Domain.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_price_changes_products_product_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Catalog.Domain.PriceListItem", b =>
+                {
+                    b.HasOne("BemAqui.Catalog.Domain.PriceList", null)
+                        .WithMany()
+                        .HasForeignKey("PriceListId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_price_list_items_price_lists_price_list_id");
+
+                    b.HasOne("BemAqui.Catalog.Domain.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_price_list_items_products_product_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Catalog.Domain.Product", b =>
+                {
+                    b.HasOne("BemAqui.Catalog.Domain.ProductCategory", null)
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_products_categories_category_id");
+
+                    b.HasOne("BemAqui.Catalog.Domain.Product", null)
+                        .WithMany()
+                        .HasForeignKey("VariantOfProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_products_products_variant_of_product_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Catalog.Domain.ProductBarcode", b =>
+                {
+                    b.HasOne("BemAqui.Catalog.Domain.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_barcodes_products_product_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Catalog.Domain.ProductCategory", b =>
+                {
+                    b.HasOne("BemAqui.Catalog.Domain.ProductCategory", null)
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_categories_categories_parent_id");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.Contract", b =>
