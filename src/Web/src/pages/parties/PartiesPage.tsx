@@ -9,13 +9,15 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Tag } from '@/components/ui/tag'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
-import { ROLE_LABELS, ROLE_OPTIONS } from './labels'
+import { ROLE_LABELS } from './labels'
+import { useRoleOptions } from './role-options'
 
 /** Cadastros → Terceiros (CAD-01a CA 16 e 17): lista server-side com busca, filtro por papel e inativos na URL. */
 export function PartiesPage() {
   const [search] = useTableSearch()
   const { papel, inativos } = useTableFilters(['papel'])
-  const role = ROLE_OPTIONS.some((o) => o.value === papel) ? (papel as PartyRoleKind) : undefined
+  const roleOptions = useRoleOptions()
+  const role = roleOptions.some((o) => o.value === papel) ? (papel as PartyRoleKind) : undefined
   const filters = { q: search.q, role, includeInactive: inativos === 'true', sort: search.sort }
   const query = useListParties({ ...filters, page: search.page, pageSize: search.pageSize })
 
@@ -50,7 +52,7 @@ export function PartiesPage() {
         rowHref={(p) => `/app/cadastros/terceiros/${p.id}`}
         searchPlaceholder="Buscar por nome, CNPJ ou CPF completo"
         toolbar={<ExportMenu formats={['xlsx']} fileBase="terceiros" empty={query.data?.total === 0} url={(format) => getExportPartiesUrl({ ...filters, format })} />}
-        filters={[{ key: 'papel', label: 'Papel', options: ROLE_OPTIONS }]}
+        filters={[{ key: 'papel', label: 'Papel', options: roleOptions }]}
         inactiveFilter
         empty={{
           title: 'Cadastre o primeiro cliente ou fornecedor.',

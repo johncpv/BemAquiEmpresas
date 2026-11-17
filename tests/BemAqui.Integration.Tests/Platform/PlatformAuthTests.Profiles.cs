@@ -51,6 +51,17 @@ public partial class PlatformAuthTests
         return await action(scope.ServiceProvider);
     }
 
+    /// <summary>
+    /// <c>/me/permissions</c> sem a lista de perfis (adendo da ADR 0046, PAG-01): o backfill muda só essa lista (de vazia para <c>factory</c>);
+    /// menu, permissões e versão têm de continuar idênticos.
+    /// </summary>
+    private static string WithoutProfiles(string json)
+    {
+        var node = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
+        node.Remove("profiles");
+        return node.ToJsonString();
+    }
+
     private static async Task<Dictionary<string, JsonElement>> ModulesOfAsync(HttpClient client) =>
         (await client.GetFromJsonAsync<JsonElement>("/api/v1/me/permissions")).GetProperty("modules").EnumerateArray()
             .ToDictionary(m => m.GetProperty("code").GetString()!, m => m);
@@ -81,7 +92,7 @@ public partial class PlatformAuthTests
         var before = new Dictionary<string, string>();
         foreach (var (group, client) in actors)
         {
-            before[group] = await client.GetStringAsync("/api/v1/me/permissions");
+            before[group] = WithoutProfiles(await client.GetStringAsync("/api/v1/me/permissions"));
         }
 
         var modulesBefore = await CatalogScopeAsync(sp => sp.GetRequiredService<CatalogDbContext>().TenantModules.AsNoTracking()
@@ -108,7 +119,9 @@ public partial class PlatformAuthTests
             .Should().Equal(modulesBefore, "o perfil Fábrica lista todos os módulos de hoje: tenant_modules não muda");
         foreach (var (group, client) in actors)
         {
-            (await client.GetStringAsync("/api/v1/me/permissions")).Should().Be(before[group], $"o grupo {group} vê o mesmo menu e as mesmas permissões (CA 11)");
+            var after = await client.GetStringAsync("/api/v1/me/permissions");
+            WithoutProfiles(after).Should().Be(before[group], $"o grupo {group} vê o mesmo menu e as mesmas permissões (CA 11)");
+            JsonDocument.Parse(after).RootElement.GetProperty("profiles").EnumerateArray().Select(p => p.GetString()).Should().Equal(BusinessProfileCatalog.Factory);
         }
 
         (await ModulesOfAsync(actors[Group.OwnerSeedKey])).Values.Should().NotContain(m => m.GetProperty("hidden").GetBoolean());

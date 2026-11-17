@@ -64,7 +64,7 @@ public sealed class HelpAccess(HelpCatalog catalog, IPermissionService permissio
             return null;
         }
 
-        if (tenant.Resolved?.IsReleased(module) != true || ModuleCatalog.Find(module) is null)
+        if (tenant.Resolved?.IsReleased(module) != true || ModuleCatalog.Find(module) is null || (document.Feature is { } feature && tenant.Resolved?.HasFeature(feature) != true))
         {
             return Error.Forbidden(Error.Codes.ModuleNotReleased, "Funcionalidade não liberada nessa versão do sistema.");
         }

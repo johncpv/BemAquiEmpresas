@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useNavigation } from '@/navigation/navigation-context'
+import { useHasProfile, useNavigation } from '@/navigation/navigation-context'
 import { AccessDenied, ModuleNotReleased, NotFound } from './ModulePage'
 
 /**
@@ -13,6 +13,19 @@ export function ModuleGate({ code, children }: { code: string; children: ReactNo
   if (!module) return <NotFound />
   if (module.locked) return <ModuleNotReleased module={module} />
   if (!module.enabled) return <AccessDenied module={module} />
+  return <>{children}</>
+}
+
+/**
+ * Recurso por perfil dentro de um módulo comum (adendo da ADR 0046): sem um dos perfis, a URL direta mostra a tela padrão de não
+ * liberado, como um módulo oculto; o servidor responde 403 module_not_released. Use dentro do ModuleGate do módulo.
+ */
+export function ProfileGate({ code, profiles, name, children }: { code: string; profiles: readonly string[]; name: string; children: ReactNode }) {
+  const { all, status } = useNavigation()
+  const allowed = useHasProfile(profiles)
+  if (status === 'loading') return null
+  const module = all.find((m) => m.code === code)
+  if (!allowed) return <ModuleNotReleased module={{ name, description: module?.description }} />
   return <>{children}</>
 }
 

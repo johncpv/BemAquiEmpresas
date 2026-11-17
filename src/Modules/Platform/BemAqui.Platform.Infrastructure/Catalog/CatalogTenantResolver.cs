@@ -100,6 +100,7 @@ public sealed class CatalogTenantResolver(IServiceScopeFactory scopes, TimeProvi
         {
             ReleasedModules = releasedSet,
             HiddenModules = BusinessProfileCatalog.Hidden(profiles, releasedSet), // ADR 0046: fora de todo perfil e não liberado
+            Profiles = profiles.ToHashSet(StringComparer.Ordinal),
             BankProductionAllowed = tenant.BankProductionAllowed,
         };
     }

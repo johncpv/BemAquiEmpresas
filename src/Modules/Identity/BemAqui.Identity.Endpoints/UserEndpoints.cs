@@ -17,7 +17,8 @@ public sealed record SetUserGroupsRequest(IReadOnlyList<Guid> GroupIds);
 /// </summary>
 public sealed record MyModule(string Code, string Name, string Area, int Order, string Description, bool Released, bool Enabled, IReadOnlyList<string> Actions, bool Hidden);
 
-public sealed record MyPermissionsResponse(IReadOnlyList<string> Permissions, bool IsOwner, string Version, IReadOnlyList<MyModule> Modules);
+/// <summary><c>Profiles</c>: perfis de negócio ativos do tenant (ADR 0046), para o menu esconder os recursos por perfil (adendo da PAG-01).</summary>
+public sealed record MyPermissionsResponse(IReadOnlyList<string> Permissions, bool IsOwner, string Version, IReadOnlyList<MyModule> Modules, IReadOnlyList<string> Profiles);
 
 /// <summary>
 /// Usuários (FND-06c, módulo <c>identity</c>): ver com <c>identity.view</c>, convidar com <c>identity.create</c> e o
@@ -70,7 +71,8 @@ internal static class UserEndpoints
                             tenant.Resolved?.IsHidden(m.Code) == true);
                     })
                     .ToList();
-                return Results.Ok(new MyPermissionsResponse(effective.Permissions.Order(StringComparer.Ordinal).ToList(), effective.IsOwner, effective.Version, modules));
+                return Results.Ok(new MyPermissionsResponse(effective.Permissions.Order(StringComparer.Ordinal).ToList(), effective.IsOwner, effective.Version, modules,
+                    (tenant.Resolved?.Profiles ?? new HashSet<string>()).Order(StringComparer.Ordinal).ToList()));
             })
             .WithTags("Identidade").AllowPinSession().WithName("GetMyPermissions").Produces<MyPermissionsResponse>();
 

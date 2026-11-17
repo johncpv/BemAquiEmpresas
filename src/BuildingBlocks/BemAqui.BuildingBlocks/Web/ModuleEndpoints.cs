@@ -88,6 +88,24 @@ public static class ModuleEndpoints
         return builder;
     }
 
+    /// <summary>
+    /// Recurso por perfil dentro de um módulo (adendo da ADR 0046): tenant sem um dos perfis do recurso responde 403
+    /// <c>module_not_released</c>, o mesmo código da camada 1. Use junto com <see cref="RequireModule"/>.
+    /// </summary>
+    public static TBuilder RequireProfileFeature<TBuilder>(this TBuilder builder, string moduleCode, string feature)
+        where TBuilder : IEndpointConventionBuilder
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        if (!BusinessProfileCatalog.Features.ContainsKey(feature))
+        {
+            throw new ArgumentException("Recurso fora do BusinessProfileCatalog: " + feature, nameof(feature));
+        }
+
+        builder.AddEndpointFilter(async (context, next) =>
+            context.HttpContext.RequestServices.GetService<TenantContextHolder>()?.Resolved?.HasFeature(feature) == true ? await next(context) : NotReleased(moduleCode));
+        return builder;
+    }
+
     public static bool IsReleased(HttpContext http, string moduleCode)
     {
         ArgumentNullException.ThrowIfNull(http);

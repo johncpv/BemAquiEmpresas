@@ -61,3 +61,14 @@ describe('perfil de negócio: liberado, cadeado e oculto (PERF-01, ADR 0046)', (
     expect(production.locked).toBe(true)
   })
 })
+
+describe('recurso por perfil dentro do Financeiro (PAG-01, decisão do PO de 17/11/2026)', () => {
+  const tabs = (profiles: string[]) => buildNavigation([m('finance', 'Financeiro', true, true)], false, profiles).all[0].tabs.map((t) => t.slug)
+
+  it('a fábrica (Konebras) não vê Formas de pagamento; Comércio vê', () => {
+    expect(tabs(['factory'])).not.toContain('formas-de-pagamento')
+    expect(tabs([])).not.toContain('formas-de-pagamento')
+    expect(tabs(['factory', 'retail'])).toContain('formas-de-pagamento')
+    expect(tabs(['factory'])).toContain('condicoes-de-pagamento')
+  })
+})

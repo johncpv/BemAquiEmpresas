@@ -13,4 +13,5 @@ export const PartyRoleKind = {
   Supplier: 'Supplier',
   Installer: 'Installer',
   Carrier: 'Carrier',
+  Acquirer: 'Acquirer',
 } as const;

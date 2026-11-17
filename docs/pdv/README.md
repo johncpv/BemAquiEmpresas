@@ -52,6 +52,7 @@ Onde cada pedido é atendido: [01-PRD.md](01-PRD.md), seção 2.
 | [05-backlog.md](05-backlog.md) | Fases 10 a 17, épicos, as 93 stories, o marco MVP, a regra do go-live, esforço em dois cenários e paralelismo |
 | [06-pendencias-riscos.md](06-pendencias-riscos.md) | Perguntas ao PO em primeiro lugar, decisões (PP-01 a PP-42), perguntas para a contadora (QC-01 a QC-17) e riscos |
 | [07-emissor-fiscal.md](07-emissor-fiscal.md) | As 41 lacunas do EmissorFiscal para a NFC-e, o contrato da API, fases e homologação |
+| [08-gestao-de-modulos-e-teste.md](08-gestao-de-modulos-e-teste.md) | Quem decide o que a empresa vê (plano, perfil, exceção), o papel da Plataforma e como testar o PDV numa empresa de demonstração |
 | [adr/](adr/README.md) | Seis rascunhos de ADR (A a F), ainda não numerados |
 | [prototipo/](prototipo/README.md) | Dois protótipos navegáveis em HTML: o do plano (por tipo de comércio, com offline, cozinha, retaguarda e caixa) e as quatro telas por modo de venda trazidas pelo PO |
 | [stories/](stories/README.md) | Stories detalhadas das Fases 10 e 11 e as quatro primeiras do e-commerce (32 stories) |
