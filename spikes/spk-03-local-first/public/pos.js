@@ -124,7 +124,7 @@ window.summary = () => ({ ...S, rtt: stats(S.rtt), serverMs: stats(S.serverMs) }
 window.retryLock = async () => { const ok = await boot(); return ok; };
 window.releaseLock = () => lockRelease?.();
 
-window.start = () => run();
+window.start = () => { run(); return true; }; // não espera: a venda continua até o navegador cair
 
 async function run() {
   try {

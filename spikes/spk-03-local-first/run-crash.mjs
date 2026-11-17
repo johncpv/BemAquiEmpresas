@@ -37,7 +37,8 @@ async function gotoRetry(page, u) {
 async function waitProfileFree(dir) {
   const t0 = Date.now();
   for (;;) {
-    const out = execSync(`powershell -NoProfile -Command "(Get-CimInstance Win32_Process -Filter \"name='chrome.exe'\" | ? { $_.CommandLine -like '*${path.basename(dir)}*' }).Count"`).toString().trim();
+    const ps = `$ProgressPreference='SilentlyContinue'; (Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'chrome.exe' -and $_.CommandLine -like '*${path.basename(dir)}*' }).Count`;
+    const out = execSync(`powershell -NoProfile -EncodedCommand ${Buffer.from(ps, 'utf16le').toString('base64')}`).toString().trim();
     if (out === '0' || out === '' || Date.now() - t0 > 15000) return Date.now() - t0;
     await sleep(250);
   }
@@ -150,7 +151,7 @@ try {
     await browser.close().catch(() => {});
     killTree(child.pid);
     await sleep(500);
-    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 500 });
+    try { fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 500 }); } catch { /* perfil ainda preso; fica na pasta temporária */ }
     out.variants.push(V);
   }
   const ver = await (await fetch(`${BASE}/api/sync/verify`)).json();
