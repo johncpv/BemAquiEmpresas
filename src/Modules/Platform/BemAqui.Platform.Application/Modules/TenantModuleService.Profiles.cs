@@ -46,7 +46,7 @@ public sealed partial class TenantModuleService
                 p.Segments.Select(s => new CatalogItemView(s.Code, s.Name)).ToList()))
             .ToList();
 
-    public async Task<IReadOnlyList<PlanModulesView>> PlanModulesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<PlanModulesView>> ListPlanModulesAsync(CancellationToken cancellationToken = default)
     {
         var plans = await db.Plans.AsNoTracking().OrderBy(p => p.Name).Select(p => new { p.Id, p.Name }).ToListAsync(cancellationToken);
         var modules = await db.PlanModules.AsNoTracking().Select(m => new { m.PlanId, m.ModuleCode }).ToListAsync(cancellationToken);

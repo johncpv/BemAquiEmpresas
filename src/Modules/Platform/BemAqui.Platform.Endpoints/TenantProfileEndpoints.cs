@@ -25,7 +25,7 @@ internal static class TenantProfileEndpoints
         platform.MapGet("/business-profiles", () => Results.Ok(TenantModuleService.BusinessProfiles()))
             .WithName("ListBusinessProfiles").Produces<IReadOnlyList<BusinessProfileView>>();
 
-        platform.MapGet("/plans/modules", async (TenantModuleService service, CancellationToken ct) => Results.Ok(await service.PlanModulesAsync(ct)))
+        platform.MapGet("/plans/modules", async (TenantModuleService service, CancellationToken ct) => Results.Ok(await service.ListPlanModulesAsync(ct)))
             .WithName("ListPlanModules").Produces<IReadOnlyList<PlanModulesView>>();
 
         var profiles = platform.MapGroup("/tenants/{tenantId:guid}/profiles");
