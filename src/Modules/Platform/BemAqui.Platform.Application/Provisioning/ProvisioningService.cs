@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using BemAqui.BuildingBlocks.Modules;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.Platform.Contracts;
@@ -120,7 +121,13 @@ public sealed partial class ProvisioningService(
         tenant.PlanId = await catalog.EnsurePlanAsync(request.Plan, cancellationToken);
         tenant.Domains.Add(new TenantDomain { TenantId = id, Host = host, IsPrimary = true });
         await catalog.AddTenantAsync(tenant, cancellationToken);
-        await modules.ApplyPlanAsync(id, tenant.PlanId, cancellationToken); // FND-06 CA 7: o tenant herda os módulos do plano
+        // FND-06 CA 7 e PERF-01 (ADR 0046): o tenant nasce com o perfil Fábrica (o único vendido até a PERF-02 trazer a escolha no
+        // provisionamento) e herda os módulos do plano filtrados pelo perfil. Aplicar o perfil já roda o ApplyPlanAsync.
+        var profile = await modules.ApplyProfileAsync(id, BusinessProfileCatalog.Factory, null, null, cancellationToken);
+        if (profile.IsFailure)
+        {
+            throw new InvalidOperationException(profile.Error!.Message);
+        }
         await catalog.LogAsync(id, ProvisioningSteps.Register, ProvisioningStatus.Succeeded, null, cancellationToken);
         resolver.Invalidate();
         return tenant;

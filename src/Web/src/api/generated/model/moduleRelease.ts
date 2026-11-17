@@ -13,4 +13,5 @@ export interface ModuleRelease {
   released: boolean;
   inPlan: boolean;
   isException: boolean;
+  inProfile: boolean;
 }

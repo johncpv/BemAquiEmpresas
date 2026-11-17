@@ -49,4 +49,9 @@ public static partial class PermissionRules
 
         return problems;
     }
+
+    /// <summary>PERF-01 CA 2: todo módulo citado por um perfil de negócio existe no catálogo.</summary>
+    public static IReadOnlyList<string> ProfileProblems(IEnumerable<BusinessProfileDefinition> profiles) =>
+        profiles.SelectMany(p => p.Modules.Where(code => ModuleCatalog.Find(code) is null).Select(code => $"perfil {p.Code}: módulo {code} fora do ModuleCatalog"))
+            .ToList();
 }

@@ -13,6 +13,14 @@ public sealed record ResolvedTenant(TenantInfo Tenant, string LegalName, string?
     public bool IsReleased(string moduleCode) => ReleasedModules.Contains(moduleCode);
 
     /// <summary>
+    /// Módulos fora de todos os perfis de negócio do tenant e não liberados (PERF-01, ADR 0046): somem do menu, da busca e da ajuda.
+    /// Só apresentação: quem barra é <see cref="ReleasedModules"/> (camada 1).
+    /// </summary>
+    public IReadOnlySet<string> HiddenModules { get; init; } = new HashSet<string>(StringComparer.Ordinal);
+
+    public bool IsHidden(string moduleCode) => HiddenModules.Contains(moduleCode);
+
+    /// <summary>
     /// Cobrança real pelo banco liberada (<c>catalog.tenants.bank_production_allowed</c>, ligada só pelo super admin na GOL-01b, ADR 0034):
     /// sem ela, a integração bancária de produção só é salva e testada (BNK-01a CA 12).
     /// </summary>

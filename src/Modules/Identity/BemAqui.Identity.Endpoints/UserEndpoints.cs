@@ -11,8 +11,11 @@ namespace BemAqui.Identity.Endpoints;
 
 public sealed record SetUserGroupsRequest(IReadOnlyList<Guid> GroupIds);
 
-/// <summary>Módulo como o menu vê (FND-06d): a descrição explica, na tela de não liberado, o que o módulo fará.</summary>
-public sealed record MyModule(string Code, string Name, string Area, int Order, string Description, bool Released, bool Enabled, IReadOnlyList<string> Actions);
+/// <summary>
+/// Módulo como o menu vê (FND-06d): a descrição explica, na tela de não liberado, o que o módulo fará. <c>Hidden</c> (ADR 0046): fora
+/// de todo perfil do tenant e não liberado; o menu, a busca e a ajuda o escondem, e a rota direta mostra a tela de não liberado.
+/// </summary>
+public sealed record MyModule(string Code, string Name, string Area, int Order, string Description, bool Released, bool Enabled, IReadOnlyList<string> Actions, bool Hidden);
 
 public sealed record MyPermissionsResponse(IReadOnlyList<string> Permissions, bool IsOwner, string Version, IReadOnlyList<MyModule> Modules);
 
@@ -63,7 +66,8 @@ internal static class UserEndpoints
                     .Select(m =>
                     {
                         var actions = m.Actions.Where(a => effective.Has(m.Code + "." + a)).ToList();
-                        return new MyModule(m.Code, m.Name, m.Area, m.Order, m.Description, tenant.Resolved?.IsReleased(m.Code) == true, actions.Count > 0, actions);
+                        return new MyModule(m.Code, m.Name, m.Area, m.Order, m.Description, tenant.Resolved?.IsReleased(m.Code) == true, actions.Count > 0, actions,
+                            tenant.Resolved?.IsHidden(m.Code) == true);
                     })
                     .ToList();
                 return Results.Ok(new MyPermissionsResponse(effective.Permissions.Order(StringComparer.Ordinal).ToList(), effective.IsOwner, effective.Version, modules));

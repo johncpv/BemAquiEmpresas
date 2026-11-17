@@ -84,6 +84,9 @@ public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant
             .ToHashSet(StringComparer.Ordinal));
     }
 
+    // Os ocultos (ADR 0046) entram no hash só quando existem: trocar o perfil muda a versão e o front recarrega o menu; sem
+    // oculto, a versão fica idêntica à de antes dos perfis (regressão da Konebras, PERF-01 CA 11).
     private static string ReleaseHash(ResolvedTenant tenant) =>
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join(',', tenant.ReleasedModules.Order(StringComparer.Ordinal)))))[..8];
+        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join(',', tenant.ReleasedModules.Order(StringComparer.Ordinal))
+            + (tenant.HiddenModules.Count == 0 ? string.Empty : "|" + string.Join(',', tenant.HiddenModules.Order(StringComparer.Ordinal))))))[..8];
 }
