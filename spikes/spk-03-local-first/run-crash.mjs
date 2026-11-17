@@ -71,7 +71,17 @@ async function verifyAfter(context, tech, dur, device, before) {
   watch(page, log);
   const t0 = Date.now();
   await gotoRetry(page, url(tech, dur, device, false));
-  await page.waitForFunction(() => window.__opened || window.__lock === 'busy', null, { timeout: 120_000 });
+  // Se a abertura do armazenamento falhar logo depois da queda, recarrega a página (como o app faria) e conta.
+  const bootErrors = [];
+  for (let i = 0; ; i++) {
+    await page.waitForFunction(() => window.__opened || window.__lock === 'busy' || window.__bootError, null, { timeout: 120_000 });
+    const err = await page.evaluate(() => window.__bootError || null);
+    if (!err) break;
+    bootErrors.push({ atMs: Date.now() - t0, err });
+    if (i >= 8) throw new Error('armazenamento não abriu depois de 9 tentativas: ' + err);
+    await sleep(2000);
+    await gotoRetry(page, url(tech, dur, device, false));
+  }
   const reopenMs = Date.now() - t0;
   const st = await page.evaluate(() => window.inspect());
   const pend = before.lastSale && !before.committedSales.has(before.lastSale) ? before.lastSale : null;
@@ -84,7 +94,7 @@ async function verifyAfter(context, tech, dur, device, before) {
     // ou já tinha sido concluída depois do último log observado
     cartIntact: !pend || (st.cartSaleId === pend && st.cartLines >= linesSeen) || st.seq > before.lastCommitted,
   };
-  return { page, st, checks, reopenMs, pend, linesSeen, lastCommittedSeen: before.lastCommitted };
+  return { page, st, checks, reopenMs, pend, linesSeen, lastCommittedSeen: before.lastCommitted, bootErrors };
 }
 
 const server = await startServer();
@@ -119,8 +129,8 @@ try {
       }
       const r = await verifyAfter(context, tech, dur, device, before);
       const ok = Object.values(r.checks).every(Boolean);
-      V.cycles.push({ kind, ok, ...r.checks, seqAfter: r.st.seq, ackedAfter: r.st.acked, lastCommittedSeen: r.lastCommittedSeen, pendingSaleLinesSeen: r.linesSeen, cartLinesAfter: r.st.cartLines, reopenMs: r.reopenMs });
-      console.log(`  ${kind} ${c + 1}: ${ok ? 'ok' : 'FALHOU'} seq ${r.lastCommittedSeen}->${r.st.seq} carrinho ${r.linesSeen}->${r.st.cartLines} reabrir ${r.reopenMs} ms`);
+      V.cycles.push({ kind, ok, ...r.checks, seqAfter: r.st.seq, ackedAfter: r.st.acked, lastCommittedSeen: r.lastCommittedSeen, pendingSaleLinesSeen: r.linesSeen, cartLinesAfter: r.st.cartLines, reopenMs: r.reopenMs, bootErrors: r.bootErrors });
+      console.log(`  ${kind} ${c + 1}: ${ok ? 'ok' : 'FALHOU'} seq ${r.lastCommittedSeen}->${r.st.seq} carrinho ${r.linesSeen}->${r.st.cartLines} reabrir ${r.reopenMs} ms${r.bootErrors.length ? ` (falhas ao abrir: ${r.bootErrors.length}, ${r.bootErrors[0].err})` : ''}`);
       // retoma a venda na mesma página
       page = r.page;
       log = { added: new Map(), committedSales: new Set(), lastCommitted: r.st.seq, errors: [] };
@@ -153,6 +163,7 @@ try {
     await sleep(500);
     try { fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 500 }); } catch { /* perfil ainda preso; fica na pasta temporária */ }
     out.variants.push(V);
+    writeResult(arg('out', 'crash.json'), out); // grava a cada variante
   }
   const ver = await (await fetch(`${BASE}/api/sync/verify`)).json();
   out.server = { duplicatesRejected: ver.stats.duplicate || 0, accepted: ver.stats.accepted || 0, chainBreaks: ver.chainBreaks };

@@ -146,6 +146,7 @@ async function run() {
     console.log('READY');
     if (P.autostart) run();
   } catch (e) {
-    console.log('ERROR ' + (e && e.stack || e));
+    window.__bootError = String(e && (e.name + ': ' + e.message + ' / ' + (e.inner ? e.inner.name + ' ' + e.inner.message : '')) || e);
+    console.log('ERROR boot ' + window.__bootError);
   }
 })();
