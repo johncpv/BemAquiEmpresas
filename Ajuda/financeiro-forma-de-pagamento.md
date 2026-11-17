@@ -4,6 +4,7 @@ rota: /app/financeiro/formas-de-pagamento/$id
 aba: forma-de-pagamento
 padrao: true
 modulo: finance
+recurso: finance.payment_methods
 ---
 
 ## Para que serve

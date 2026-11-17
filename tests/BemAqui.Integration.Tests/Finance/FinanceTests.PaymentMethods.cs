@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using BemAqui.BuildingBlocks.Modules;
+using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.BuildingBlocks.Time;
 using BemAqui.Finance.Contracts;
 using FluentAssertions;
@@ -22,9 +24,46 @@ public partial class FinanceTests
     private static object Fee(string brand, int installments, decimal feePercent, int settlementDays, DateOnly validFrom) =>
         new { brand, installments, feePercent, settlementDays, validFrom = validFrom.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) };
 
-    /// <summary>Conta bancária, caixa e adquirente (terceiro com o papel Adquirente) para os cenários.</summary>
-    private static async Task<(Guid Bank, Guid Cash, Guid Acquirer)> PaymentSetupAsync(HttpClient owner)
+    /// <summary>
+    /// Liga ou desliga o perfil Comércio no tenant A (decisão do PO de 17/11/2026: formas de pagamento só para Comércio, Serviços ou
+    /// E-commerce). O tenant de teste nasce com <c>factory</c>, como a Konebras.
+    /// </summary>
+    private async Task CommerceAsync(bool on)
     {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var service = scope.ServiceProvider.GetRequiredService<BemAqui.Platform.Application.Modules.TenantModuleService>();
+        var result = on
+            ? await service.ApplyProfileAsync(tenancy.TenantA.Id, BusinessProfileCatalog.Retail, null, null)
+            : await service.RemoveProfileAsync(tenancy.TenantA.Id, BusinessProfileCatalog.Retail, null, null);
+        result.IsSuccess.Should().BeTrue();
+        scope.ServiceProvider.GetRequiredService<ITenantResolver>().Invalidate();
+        tenancy.Factory.Services.GetRequiredService<ITenantResolver>().Invalidate();
+    }
+
+    [Fact]
+    public async Task Fabrica_nao_ve_nem_acessa_formas_de_pagamento_e_Comercio_acessa()
+    {
+        var (_, owner) = await ActorAsync(BemAqui.Identity.Domain.Group.OwnerSeedKey);
+        await CommerceAsync(false);
+        var me = await JsonAsync(await owner.GetAsync("/api/v1/me/permissions"));
+        me.GetProperty("profiles").EnumerateArray().Select(p => p.GetString()).Should().Equal("factory");
+        var denied = await owner.GetAsync(Methods);
+        denied.StatusCode.Should().Be(HttpStatusCode.Forbidden, "fábrica não tem formas de pagamento");
+        Code(await JsonAsync(denied)).Should().Be("module_not_released");
+        (await owner.PostAsync($"{Methods}/suggested", null)).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        (await owner.GetAsync("/api/v1/ajuda/financeiro-formas-de-pagamento")).StatusCode.Should().Be(HttpStatusCode.Forbidden, "a ajuda some com o recurso");
+        (await owner.GetAsync("/api/v1/finance/payment-terms")).StatusCode.Should().Be(HttpStatusCode.OK, "o resto do Financeiro segue igual");
+
+        await CommerceAsync(true);
+        (await JsonAsync(await owner.GetAsync("/api/v1/me/permissions"))).GetProperty("profiles").EnumerateArray().Select(p => p.GetString()).Should().Contain("retail");
+        (await owner.GetAsync(Methods)).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await owner.GetAsync("/api/v1/ajuda/financeiro-formas-de-pagamento")).StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    /// <summary>Conta bancária, caixa e adquirente (terceiro com o papel Adquirente) para os cenários.</summary>
+    private async Task<(Guid Bank, Guid Cash, Guid Acquirer)> PaymentSetupAsync(HttpClient owner)
+    {
+        await CommerceAsync(true);
         var suffix = Guid.NewGuid().ToString("N")[..6];
         var bank = await CreatedAsync(await owner.PostAsJsonAsync("/api/v1/finance/bank-accounts", Bank("Banco " + suffix)));
         var cash = await CreatedAsync(await owner.PostAsJsonAsync("/api/v1/finance/bank-accounts", new { name = "Caixa " + suffix, kind = "Cash" }));

@@ -41,6 +41,8 @@ export interface Tab {
   requiresAny?: readonly string[]
   /** Só membro do Proprietário vê a aba (Privacidade, LGPD-01a CA 2). */
   ownerOnly?: boolean
+  /** Recurso por perfil (adendo da ADR 0046): a aba só aparece para tenant com algum destes perfis de negócio. */
+  profiles?: readonly string[]
   /** Ações do módulo que trazem a aba para a primeira posição (o Painel do supervisor com production.approve ou approve_quality, DSH-03). */
   firstFor?: readonly string[]
 }
@@ -58,6 +60,12 @@ export interface ModuleUi {
   /** Tela dedicada fora do /app (ex.: o app do operador em /fab, PRD-03a CA 27): o menu e a busca levam direto a ela. */
   href?: string
 }
+
+/**
+ * Perfis do recurso de pagamentos da venda (PAG-01, decisão do PO de 17/11/2026), o mesmo do BusinessProfileCatalog.Features no
+ * servidor: a fábrica (Konebras) não vê formas de pagamento nem o papel Adquirente.
+ */
+export const COMMERCE_PROFILES = ['retail', 'services', 'ecommerce'] as const
 
 const CASH = 'Caixa e pagamentos'
 const SETUP = 'Configuração financeira'
@@ -104,7 +112,7 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'centros-de-custo', label: 'Centros de custo', icon: ChartPie, group: SETUP },
     { slug: 'condicoes-de-pagamento', label: 'Condições de pagamento', icon: CreditCard, group: SETUP },
     // PAG-01: formas de pagamento da venda (dinheiro, Pix, cartões) com a taxa e o prazo da maquininha.
-    { slug: 'formas-de-pagamento', label: 'Formas de pagamento', icon: Wallet, group: SETUP },
+    { slug: 'formas-de-pagamento', label: 'Formas de pagamento', icon: Wallet, group: SETUP, profiles: COMMERCE_PROFILES },
     { slug: 'recorrentes', label: 'Recorrentes', icon: Repeat, group: SETUP },
     { slug: 'alcadas', label: 'Alçadas', icon: Scale, group: SETUP },
     { slug: 'implantacao', label: 'Implantação financeira', icon: Rocket, group: SETUP },
@@ -161,10 +169,11 @@ const grants = (modules: readonly PermissionModule[], permission: string) => {
   return !!module && module.released && module.actions.includes(action)
 }
 
-const toNav = (m: PermissionModule, modules: readonly PermissionModule[], isOwner: boolean): NavModule | null => {
+const toNav = (m: PermissionModule, modules: readonly PermissionModule[], isOwner: boolean, profiles: readonly string[]): NavModule | null => {
   const ui = MODULE_UI[m.code]
   const allowed = (ui?.tabs ?? []).filter(
-    (t) => (!t.action || m.actions.includes(t.action)) && (!t.requiresAny || t.requiresAny.some((p) => grants(modules, p))) && (!t.ownerOnly || isOwner),
+    (t) => (!t.action || m.actions.includes(t.action)) && (!t.requiresAny || t.requiresAny.some((p) => grants(modules, p))) && (!t.ownerOnly || isOwner)
+      && (!t.profiles || t.profiles.some((p) => profiles.includes(p))),
   )
   const first = (t: Tab) => !!t.firstFor?.some((a) => m.actions.includes(a))
   const tabs = [...allowed.filter(first), ...allowed.filter((t) => !first(t))]
@@ -177,8 +186,8 @@ const toNav = (m: PermissionModule, modules: readonly PermissionModule[], isOwne
  */
 export const isVisible = (m: NavModule) => !m.hidden && (m.locked || m.enabled)
 
-export function buildNavigation(modules: readonly PermissionModule[], isOwner = false): Navigation {
-  const all = modules.map((m) => toNav(m, modules, isOwner)).filter((m): m is NavModule => m !== null)
+export function buildNavigation(modules: readonly PermissionModule[], isOwner = false, profiles: readonly string[] = []): Navigation {
+  const all = modules.map((m) => toNav(m, modules, isOwner, profiles)).filter((m): m is NavModule => m !== null)
   const areas = AREAS.map((area) => ({
     ...area,
     modules: all.filter((m) => m.area === area.name && isVisible(m)).sort((x, y) => (x.order ?? 0) - (y.order ?? 0)),

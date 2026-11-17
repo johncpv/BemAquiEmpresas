@@ -15,7 +15,8 @@ import { documentKind } from '@/lib/masks'
 import { Dica } from '@/help/Dica'
 import { PageHeading } from '@/shell/PageHeading'
 import { DocumentNotice, type ExistingParty } from './DocumentNotice'
-import { ROLE_OPTIONS, STATES } from './labels'
+import { STATES } from './labels'
+import { useRoleOptions } from './role-options'
 import { addRoles } from './party-actions'
 import { emptyOnly, useCepLookup, useCnpjLookup } from './lookups'
 import { emptyParty, newPartySchema, toCreateRequest } from './party-form'
@@ -28,7 +29,8 @@ import { ReceitaPanel } from './ReceitaPanel'
 export function NewPartyPage() {
   const navigate = useNavigate()
   const search = useSearch({ strict: false }) as Record<string, unknown>
-  const origin = ROLE_OPTIONS.find((o) => o.value === search.papel)?.value
+  const roleOptions = useRoleOptions()
+  const origin = roleOptions.find((o) => o.value === search.papel)?.value
   // ?nome= (RH-02a "Cadastrar órgão"): a razão social vem sugerida pela tela de origem.
   const suggested = typeof search.nome === 'string' ? search.nome.slice(0, 150) : ''
   const form = useZodForm(newPartySchema, { defaultValues: { ...emptyParty(origin), legalName: suggested } })
@@ -151,7 +153,7 @@ export function NewPartyPage() {
           </Field>
           <FormGridItem>
             <Controller control={form.control} name="roles" render={({ field }) => (
-              <ChipGroup legend="Papéis" required value={field.value} onChange={field.onChange} error={errors.roles?.message} options={ROLE_OPTIONS} />
+              <ChipGroup legend="Papéis" required value={field.value} onChange={field.onChange} error={errors.roles?.message} options={roleOptions} />
             )} />
           </FormGridItem>
         </FormSection>

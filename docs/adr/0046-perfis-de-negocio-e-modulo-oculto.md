@@ -43,3 +43,10 @@
 - `CLAUDE.md`: a regra da camada 1 passa a dizer "no perfil e fora do plano: cadeado; fora do perfil: oculto".
 - Próximas stories: PERF-02 (perfil no provisionamento e aba Perfis, com os endpoints da plataforma), PERF-03 (área "Loja" e vocabulário, teto de cerca de 30 termos, PP-25), PERF-04 (dados iniciais por perfil e segmento).
 - Módulo novo entra no `ModuleCatalog` e no(s) perfil(is) dele na mesma story; o teste de arquitetura impede perfil com código inexistente, e o teste de unidade do `factory` impede que um módulo novo apareça para a Konebras sem querer.
+
+## Adendo de 17/11/2026: recurso por perfil dentro de um módulo comum (PAG-01)
+- Decisão do PO: as formas de pagamento da venda (PAG-01) ficam no Financeiro, que é de todos os perfis, mas a fábrica (Konebras) não pode ver nada delas.
+- `BusinessProfileCatalog.Features` lista os recursos por perfil (`finance.payment_methods` → `retail`, `services`, `ecommerce`). Tenant sem nenhum desses perfis, inclusive o sem perfil, não tem o recurso. `factory` nunca entra num recurso sem decisão explícita.
+- Servidor: `RequireProfileFeature(modulo, recurso)` no grupo de rotas responde 403 `module_not_released`, o mesmo código da camada 1. A ajuda declara `recurso:` no cabeçalho e some para quem não tem o recurso.
+- Front: `GET /me/permissions` passa a trazer `profiles` (perfis ativos do tenant). A aba do módulo declara `profiles` e some do menu e da busca; a rota direta mostra a tela padrão `ModuleNotReleased` (`ProfileGate`). O papel de terceiro "Adquirente" segue a mesma regra nos formulários e no filtro de Terceiros.
+- A versão de permissões só inclui os perfis quando há algum além de `factory`: a Konebras mantém a versão de antes.

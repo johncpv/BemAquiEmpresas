@@ -26,7 +26,8 @@ internal static partial class FinanceEndpoints
         finance.MapGet("/banks", () => Results.Ok(Banks.All)).RequirePermission("finance.view").WithName("ListBanks").Produces<IReadOnlyList<BankInfo>>();
         MapBankAccounts(finance.MapGroup("/bank-accounts"));
         MapPaymentTerms(finance.MapGroup("/payment-terms"));
-        MapPaymentMethods(finance.MapGroup("/payment-methods"));
+        // PAG-01 (decisão do PO de 17/11/2026): só para perfil Comércio, Serviços ou E-commerce; a fábrica recebe module_not_released.
+        MapPaymentMethods(finance.MapGroup("/payment-methods").RequireProfileFeature("finance", BemAqui.BuildingBlocks.Modules.BusinessProfileCatalog.PaymentMethodsFeature));
         MapChartOfAccounts(finance.MapGroup("/chart-of-accounts"));
         MapCostCenters(finance.MapGroup("/cost-centers"));
         MapReceivables(finance.MapGroup("/receivables"));

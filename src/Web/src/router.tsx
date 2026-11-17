@@ -9,7 +9,8 @@ import { AccountPage } from '@/pages/account/AccountPage'
 import { AccountSecurityPage } from '@/pages/account/AccountSecurityPage'
 import { GroupsPage } from '@/pages/access/GroupsPage'
 import { UsersPage } from '@/pages/access/UsersPage'
-import { ModuleGate } from '@/pages/ModuleGate'
+import { COMMERCE_PROFILES } from '@/navigation/modules'
+import { ModuleGate, ProfileGate } from '@/pages/ModuleGate'
 import { SecurityPage } from '@/pages/settings/SecurityPage'
 import { CompanyPage } from '@/pages/settings/company/CompanyPage'
 import { NumberingPage } from '@/pages/settings/numbering/NumberingPage'
@@ -380,9 +381,11 @@ const calendarRoute = createRoute({ getParentRoute: () => appRoute, path: 'produ
 const financeRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro', beforeLoad: () => { throw redirect({ to: '/app/financeiro/contas' }) } })
 const bankAccountsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/contas', component: gated('finance', BankAccountsPage), validateSearch: (s: Record<string, unknown>): { conta?: string } => ({ conta: text(s.conta) }) })
 const paymentTermsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/condicoes-de-pagamento', component: gated('finance', PaymentTermsPage) })
-const paymentMethodsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/formas-de-pagamento', component: gated('finance', PaymentMethodsPage) })
-const newPaymentMethodRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'financeiro/formas-de-pagamento/nova', component: gated('finance', NewPaymentMethodPage) })
-const paymentMethodRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'financeiro/formas-de-pagamento/$id', component: gated('finance', PaymentMethodPage) })
+// PAG-01 (decisão do PO de 17/11/2026): só para perfil Comércio, Serviços ou E-commerce; a fábrica cai na tela de não liberado.
+const commerce = (Page: () => React.ReactNode) => () => <ModuleGate code="finance"><ProfileGate code="finance" profiles={COMMERCE_PROFILES} name="Formas de pagamento"><Page /></ProfileGate></ModuleGate>
+const paymentMethodsRoute = createRoute({ getParentRoute: () => appRoute, path: 'financeiro/formas-de-pagamento', component: commerce(PaymentMethodsPage) })
+const newPaymentMethodRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'financeiro/formas-de-pagamento/nova', component: commerce(NewPaymentMethodPage) })
+const paymentMethodRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'financeiro/formas-de-pagamento/$id', component: commerce(PaymentMethodPage) })
 const newPaymentTermRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'financeiro/condicoes-de-pagamento/nova', component: gated('finance', NewPaymentTermPage) })
 // Patrimônio (PAT-01a): bens (lista, novo com ?de= para duplicar, ficha com abas) e locais.
 const assetsRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio', beforeLoad: () => { throw redirect({ to: '/app/patrimonio/bens' }) } })

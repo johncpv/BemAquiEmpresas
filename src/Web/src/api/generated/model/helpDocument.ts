@@ -16,4 +16,6 @@ export interface HelpDocument {
   /** @nullable */
   module: string | null;
   sections: HelpSection[];
+  /** @nullable */
+  feature?: string | null;
 }

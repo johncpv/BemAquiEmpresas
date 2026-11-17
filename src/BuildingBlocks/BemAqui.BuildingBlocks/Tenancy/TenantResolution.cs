@@ -20,6 +20,12 @@ public sealed record ResolvedTenant(TenantInfo Tenant, string LegalName, string?
 
     public bool IsHidden(string moduleCode) => HiddenModules.Contains(moduleCode);
 
+    /// <summary>Perfis de negócio ativos do tenant (ADR 0046): decidem os recursos por perfil dentro de um módulo comum (adendo da PAG-01).</summary>
+    public IReadOnlySet<string> Profiles { get; init; } = new HashSet<string>(StringComparer.Ordinal);
+
+    /// <summary>Recurso por perfil liberado: o tenant tem algum dos perfis do recurso (<see cref="Modules.BusinessProfileCatalog.Features"/>).</summary>
+    public bool HasFeature(string feature) => Modules.BusinessProfileCatalog.HasFeature(Profiles, feature);
+
     /// <summary>
     /// Cobrança real pelo banco liberada (<c>catalog.tenants.bank_production_allowed</c>, ligada só pelo super admin na GOL-01b, ADR 0034):
     /// sem ela, a integração bancária de produção só é salva e testada (BNK-01a CA 12).

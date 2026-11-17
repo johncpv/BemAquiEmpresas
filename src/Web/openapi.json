@@ -60179,6 +60179,12 @@
             "items": {
               "$ref": "#/components/schemas/HelpSection"
             }
+          },
+          "feature": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -70554,7 +70560,8 @@
           "permissions",
           "isOwner",
           "version",
-          "modules"
+          "modules",
+          "profiles"
         ],
         "type": "object",
         "properties": {
@@ -70574,6 +70581,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/MyModule"
+            }
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "type": "string"
             }
           }
         }
