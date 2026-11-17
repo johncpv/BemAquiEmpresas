@@ -9,7 +9,7 @@
 - Projeto `src/Modules/Catalog` nas cinco camadas, código de módulo `catalog` no `ModuleCatalog` (ações padrão `view`, `create`, `edit`, `delete` e as específicas `edit_price` e `view_cost`).
 - Schema `catalog_products`: o nome `catalog` já é do banco da plataforma (`catalog.tenants`, `catalog.plan_modules`), e o teste de posse de schema não aceita dois donos.
 - O `catalog` está nos perfis `retail`, `services` e `ecommerce`; **não** está em `factory` (oculto para a Konebras). A migration do banco da plataforma `CatalogModuleInPlans` põe o módulo nos planos existentes (só acréscimo em `plan_modules`); `tenant_modules` não muda.
-- Área do dock: "Comercial" até a PERF-03 criar a área "Loja"; na integração da PERF-03, o módulo passa para `ModuleAreas.Store`.
+- Área do dock: "Loja" (`ModuleAreas.Store`, criada pela PERF-03), em que entram também Vendas e Caixa.
 
 ### 2. Fronteira com o Estoque
 - Um produto por item (`products.item_id`, índice único entre os não excluídos). O Estoque continua dono de unidade, NCM, custo e saldo; o Catálogo é dono do nome de venda, da foto, dos códigos de barras e do preço.

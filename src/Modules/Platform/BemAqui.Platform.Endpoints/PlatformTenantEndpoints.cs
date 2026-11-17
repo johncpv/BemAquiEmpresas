@@ -2,6 +2,7 @@ using System.Security.Claims;
 using BemAqui.BuildingBlocks.Jobs;
 using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Web;
+using BemAqui.Platform.Application.Modules;
 using BemAqui.Platform.Application.Provisioning;
 using BemAqui.Platform.Application.Tenants;
 using BemAqui.Platform.Infrastructure.Provisioning;
@@ -13,7 +14,9 @@ using Microsoft.AspNetCore.Routing;
 
 namespace BemAqui.Platform.Endpoints;
 
-public sealed record ProvisionTenantRequest(string Key, string LegalName, string? TradeName, string? Document, string Host, string OwnerEmail, string? Plan);
+/// <summary>Pedido da tela "Provisionar tenant"; <c>Profiles</c> é o passo "Perfil de negócio" e "Segmento" (PERF-02).</summary>
+public sealed record ProvisionTenantRequest(string Key, string LegalName, string? TradeName, string? Document, string Host, string OwnerEmail, string? Plan,
+    IReadOnlyList<ProfileChoice>? Profiles = null);
 
 public sealed record SuspendTenantRequest(string Reason);
 
@@ -42,13 +45,15 @@ internal static class PlatformTenantEndpoints
 
         tenants.MapPost(string.Empty, async (ProvisionTenantRequest body, ClaimsPrincipal user, HttpContext http, TenantAdminService service, IBackgroundJobClient jobs, CancellationToken ct) =>
             {
-                var request = new ProvisionRequest(body.Key?.Trim() ?? string.Empty, body.LegalName, body.Document, body.Host, body.OwnerEmail?.Trim() ?? string.Empty, body.Plan, TradeName: body.TradeName);
+                var request = new ProvisionRequest(body.Key?.Trim() ?? string.Empty, body.LegalName, body.Document, body.Host, body.OwnerEmail?.Trim() ?? string.Empty, body.Plan, TradeName: body.TradeName,
+                    Profiles: body.Profiles?.Select(p => p with { Code = p.Code?.Trim() ?? string.Empty, Segment = string.IsNullOrWhiteSpace(p.Segment) ? null : p.Segment.Trim() }).ToList(),
+                    RequestedBy: AdminId(user));
                 if (await service.ValidateNewAsync(request, ct) is { } invalid)
                 {
                     return invalid.ToProblem();
                 }
 
-                await service.AuditAsync(request.Key, "TenantProvisionRequested", AdminId(user), Ip(http), new { request.Key, request.LegalName, request.Host, request.Plan }, ct);
+                await service.AuditAsync(request.Key, "TenantProvisionRequested", AdminId(user), Ip(http), new { request.Key, request.LegalName, request.Host, request.Plan, request.Profiles }, ct);
                 jobs.Create<ProvisionTenantJob>(j => j.ExecuteAsync(request, CancellationToken.None), new EnqueuedState(JobQueues.Maintenance));
                 return Results.Accepted("/api/v1/platform/tenants/" + request.Key, new ProvisionAccepted(request.Key));
             })

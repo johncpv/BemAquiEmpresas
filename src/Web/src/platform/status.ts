@@ -5,6 +5,7 @@ export type TenantStatusName = keyof typeof TENANT_STATUS
 /** Nomes das etapas do provisionamento (FND-03a) para a tela. */
 export const STEP_LABEL: Record<string, string> = {
   Register: 'Registro',
+  Profile: 'Perfil de negócio',
   CreateRole: 'Usuário do banco',
   CreateDatabase: 'Banco',
   Migrate: 'Estrutura',

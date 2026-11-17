@@ -7,13 +7,18 @@ public static class ModuleAreas
 {
     public const string Overview = "Visão geral";
     public const string Commercial = "Comercial";
+
+    /// <summary>Área do varejo (PERF-03): recebe os módulos do PDV (Catálogo, Vendas e Caixa). Sem módulo, some do dock.</summary>
+    public const string Store = "Loja";
+
+    /// <summary>Estoque e Compras: "Fábrica" no perfil fábrica e "Retaguarda" nos demais (rótulo pelo vocabulário, ADR 0046 §6).</summary>
     public const string Factory = "Fábrica";
     public const string Financial = "Financeiro";
     public const string People = "Pessoas";
     public const string Dedicated = "Telas dedicadas";
     public const string System = "Sistema";
 
-    public static readonly string[] All = [Overview, Commercial, Factory, Financial, People, Dedicated, System];
+    public static readonly string[] All = [Overview, Commercial, Store, Factory, Financial, People, Dedicated, System];
 }
 
 /// <summary>Ações padrão (CLAUDE.md, camada 3). Ações específicas são snake_case e só existem com necessidade real (ADR 0003).</summary>
@@ -79,9 +84,9 @@ public static partial class ModuleCatalog
                 new("edit_budget", "Editar custo orçado", "Editar custo orçado: informar ou corrigir o custo orçado do projeto por natureza, com motivo. Muda a margem orçada; exige também Ver custo e margem."),
             ], "aditivos de contrato"),
         new("parties", "Cadastros", ModuleAreas.Commercial, 1, 40, "Clientes, fornecedores e instaladores.", Crud, []),
-        // CAT-01 (PDV, ADR 0046): só nos perfis de comércio; para a fábrica (Konebras) fica oculto. Vai para a área "Loja" quando a PERF-03
-        // criar a área (até lá, fica no Comercial). edit_price separa quem cadastra de quem muda preço; view_cost guarda custo e margem.
-        new("catalog", "Catálogo", ModuleAreas.Commercial, 10, 45, "Produtos à venda: código de barras, preço, categoria e grade.", Crud,
+        // CAT-01 (PDV, ADR 0046 e 0047): área Loja, só nos perfis de comércio; para a fábrica (Konebras) fica oculto. edit_price separa quem
+        // cadastra de quem muda preço; view_cost guarda custo e margem.
+        new("catalog", "Catálogo", ModuleAreas.Store, 10, 45, "Produtos à venda: código de barras, preço, categoria e grade.", Crud,
             [
                 new("edit_price", "Alterar preço", "Alterar preço: mudar o preço de venda na tabela de preço; a versão da tabela sobe e o histórico guarda quem e quando."),
                 new("view_cost", "Ver custo e margem", "Ver o custo médio do item e a margem sobre o preço de venda (sigilo comercial)."),

@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react'
+import { applyTerms, useVocabulary } from '@/navigation/vocabulary'
 import { renderInline } from './inline'
 
-export function Markdown({ text }: { text: string }) {
+/** Texto da ajuda. As marcas {{chave|Padrão}} saem como o tenant vê o termo (PERF-03 CA 7); o backend já entrega resolvido, e o front cobre o que vier sem resolver. */
+export function Markdown({ text: source }: { text: string }) {
+  const text = applyTerms(source, useVocabulary())
   const blocks: ReactNode[] = []
   let list: { ordered: boolean; items: string[] } | null = null
   let paragraph: string[] = []

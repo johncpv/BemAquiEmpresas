@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright'
 import { expect, type Route, test } from '@playwright/test'
 import { allModules, json, mockApi } from './mock-api'
 
-const CATALOG_MODULE = { code: 'catalog', name: 'Catálogo', area: 'Comercial', order: 45, description: 'Produtos à venda.', released: true, enabled: true, hidden: false }
+const CATALOG_MODULE = { code: 'catalog', name: 'Catálogo', area: 'Loja', order: 45, description: 'Produtos à venda.', released: true, enabled: true, hidden: false }
 const GERAL = { id: 'cat-geral', name: 'Geral', parentId: null, sortOrder: 0, defaultMarginPercent: null, defaultMarkupPercent: null, isActive: true, isDefault: true, productCount: 0 }
 const UNITS = [{ id: 'u-un', code: 'UN', name: 'Unidade' }, { id: 'u-kg', code: 'KG', name: 'Quilograma' }]
 
