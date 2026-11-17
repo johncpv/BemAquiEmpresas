@@ -70033,7 +70033,9 @@
           "permissions",
           "isOwner",
           "version",
-          "modules"
+          "modules",
+          "areaLabels",
+          "vocabulary"
         ],
         "type": "object",
         "properties": {
@@ -70053,6 +70055,18 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/MyModule"
+            }
+          },
+          "areaLabels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "vocabulary": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
             }
           }
         }
