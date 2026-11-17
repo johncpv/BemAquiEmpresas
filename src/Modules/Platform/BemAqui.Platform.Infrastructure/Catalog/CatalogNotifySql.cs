@@ -54,12 +54,11 @@ public static class CatalogNotifySql
     /// auditoria do sistema. Não toca <c>tenant_modules</c>: o perfil Fábrica lista todos os módulos de hoje, então a liberação
     /// herdada não muda (regressão da Konebras, CA 11). Idempotente.
     /// </summary>
-    public const string BackfillFactoryProfile = """
-        INSERT INTO audit.audit_log (id, entity, entity_id, action, user_id, at, origin, changes)
+    public static string BackfillFactoryProfile => BemAqui.BuildingBlocks.Persistence.Auditing.AuditLogSql.InsertFrom("""
         SELECT gen_random_uuid(), 'TenantProfile', t.id::text || ':factory', 'ProfileApplied', NULL, now(), 'Sistema · migration PERF-01 (ADR 0046)', '{"profile":"factory","segment":null}'::jsonb
         FROM catalog.tenants t
         WHERE NOT EXISTS (SELECT 1 FROM catalog.tenant_profiles p WHERE p.tenant_id = t.id AND p.removed_at IS NULL);
-
+        """) + "\n" + """
         INSERT INTO catalog.tenant_profiles (id, tenant_id, profile_code, segment, applied_at, applied_by, removed_at, removed_by)
         SELECT gen_random_uuid(), t.id, 'factory', NULL, now(), NULL, NULL, NULL
         FROM catalog.tenants t

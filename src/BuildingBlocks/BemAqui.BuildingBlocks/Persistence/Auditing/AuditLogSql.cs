@@ -29,4 +29,12 @@ public static class AuditLogSql
         DROP TRIGGER IF EXISTS audit_log_no_update_delete ON audit.audit_log;
         DROP FUNCTION IF EXISTS audit.reject_audit_mutation();
         """;
+
+    /// <summary>
+    /// Trilha gravada pela migration de um módulo (backfill do sistema, sem <c>IAuditWriter</c>). O schema <c>audit</c> é dos
+    /// BuildingBlocks: o módulo entrega só o SELECT, com as colunas na ordem (id, entity, entity_id, action, user_id, at,
+    /// origin, changes), e o SQL cru dele não cita <c>audit</c> (ADR 0006).
+    /// </summary>
+    public static string InsertFrom(string select) =>
+        "INSERT INTO audit.audit_log (id, entity, entity_id, action, user_id, at, origin, changes)\n" + select;
 }
