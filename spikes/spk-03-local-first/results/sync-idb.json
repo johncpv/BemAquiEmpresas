@@ -1,0 +1,304 @@
+{
+  "when": "2026-11-16T12:24:30.203Z",
+  "machine": {
+    "cpu": "Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz",
+    "cores": 8,
+    "ramGb": 16,
+    "os": "Windows_NT 10.0.26200",
+    "node": "v24.14.0"
+  },
+  "tech": "idb",
+  "caixas": 20,
+  "salesPerCaixa": 200,
+  "dropProb": 0.3,
+  "failProb": 0.05,
+  "cpuRate": 1,
+  "wallSec": 294.255,
+  "expected": 4000,
+  "serverEvents": 4000,
+  "serverSales": 4000,
+  "distinctNumbers": 4000,
+  "duplicatesRejected": 1819,
+  "accepted": 4000,
+  "chainBreaks": 0,
+  "perDeviceOk": true,
+  "batchesTotal": 5729,
+  "responsesDropped": 1715,
+  "serverFailures": 251,
+  "clientRttP50ByCaixa": {
+    "min": 18.86,
+    "max": 41.06
+  },
+  "clientRttP95Worst": 259.09,
+  "serverBatchMs": {
+    "p50": 9.927600000009988,
+    "p95": 28.23609999998007,
+    "max": 257.1417999999976
+  },
+  "dbBytes": 2506752,
+  "dbBytesPerSale": 627,
+  "localAllContiguous": true,
+  "devices": [
+    {
+      "device": "L1-C01",
+      "acked": 200,
+      "batches": 275,
+      "dropped": 77,
+      "failed": 6,
+      "rtt": {
+        "n": 275,
+        "p50": 34.77,
+        "p95": 218.02,
+        "max": 438.07
+      }
+    },
+    {
+      "device": "L1-C02",
+      "acked": 200,
+      "batches": 288,
+      "dropped": 89,
+      "failed": 7,
+      "rtt": {
+        "n": 288,
+        "p50": 41.06,
+        "p95": 193.45,
+        "max": 1677.02
+      }
+    },
+    {
+      "device": "L1-C03",
+      "acked": 200,
+      "batches": 292,
+      "dropped": 84,
+      "failed": 17,
+      "rtt": {
+        "n": 292,
+        "p50": 35.59,
+        "p95": 222.34,
+        "max": 2158.74
+      }
+    },
+    {
+      "device": "L1-C04",
+      "acked": 200,
+      "batches": 295,
+      "dropped": 90,
+      "failed": 14,
+      "rtt": {
+        "n": 295,
+        "p50": 37.69,
+        "p95": 223.84,
+        "max": 671.11
+      }
+    },
+    {
+      "device": "L1-C05",
+      "acked": 200,
+      "batches": 294,
+      "dropped": 90,
+      "failed": 12,
+      "rtt": {
+        "n": 294,
+        "p50": 37.21,
+        "p95": 233.36,
+        "max": 694.23
+      }
+    },
+    {
+      "device": "L1-C06",
+      "acked": 200,
+      "batches": 298,
+      "dropped": 90,
+      "failed": 16,
+      "rtt": {
+        "n": 298,
+        "p50": 34.07,
+        "p95": 207.69,
+        "max": 2384.78
+      }
+    },
+    {
+      "device": "L1-C07",
+      "acked": 200,
+      "batches": 305,
+      "dropped": 89,
+      "failed": 24,
+      "rtt": {
+        "n": 305,
+        "p50": 33.2,
+        "p95": 186.33,
+        "max": 780.69
+      }
+    },
+    {
+      "device": "L1-C08",
+      "acked": 200,
+      "batches": 296,
+      "dropped": 97,
+      "failed": 11,
+      "rtt": {
+        "n": 296,
+        "p50": 36.08,
+        "p95": 200.56,
+        "max": 662.4
+      }
+    },
+    {
+      "device": "L1-C09",
+      "acked": 200,
+      "batches": 294,
+      "dropped": 93,
+      "failed": 10,
+      "rtt": {
+        "n": 294,
+        "p50": 36.67,
+        "p95": 212.57,
+        "max": 1177.82
+      }
+    },
+    {
+      "device": "L1-C10",
+      "acked": 200,
+      "batches": 296,
+      "dropped": 82,
+      "failed": 21,
+      "rtt": {
+        "n": 296,
+        "p50": 36.91,
+        "p95": 177.04,
+        "max": 1309.29
+      }
+    },
+    {
+      "device": "L1-C11",
+      "acked": 200,
+      "batches": 303,
+      "dropped": 98,
+      "failed": 12,
+      "rtt": {
+        "n": 303,
+        "p50": 37.48,
+        "p95": 206.41,
+        "max": 461.85
+      }
+    },
+    {
+      "device": "L1-C12",
+      "acked": 200,
+      "batches": 288,
+      "dropped": 76,
+      "failed": 19,
+      "rtt": {
+        "n": 288,
+        "p50": 30.7,
+        "p95": 211.36,
+        "max": 477.19
+      }
+    },
+    {
+      "device": "L1-C13",
+      "acked": 200,
+      "batches": 287,
+      "dropped": 88,
+      "failed": 11,
+      "rtt": {
+        "n": 287,
+        "p50": 36.06,
+        "p95": 185.4,
+        "max": 684.24
+      }
+    },
+    {
+      "device": "L1-C14",
+      "acked": 200,
+      "batches": 291,
+      "dropped": 85,
+      "failed": 15,
+      "rtt": {
+        "n": 291,
+        "p50": 34.76,
+        "p95": 192.36,
+        "max": 701.12
+      }
+    },
+    {
+      "device": "L1-C15",
+      "acked": 200,
+      "batches": 282,
+      "dropped": 79,
+      "failed": 11,
+      "rtt": {
+        "n": 282,
+        "p50": 32.56,
+        "p95": 164.02,
+        "max": 451.63
+      }
+    },
+    {
+      "device": "L1-C16",
+      "acked": 200,
+      "batches": 295,
+      "dropped": 95,
+      "failed": 9,
+      "rtt": {
+        "n": 295,
+        "p50": 35.83,
+        "p95": 202.34,
+        "max": 3159.77
+      }
+    },
+    {
+      "device": "L1-C17",
+      "acked": 200,
+      "batches": 294,
+      "dropped": 94,
+      "failed": 13,
+      "rtt": {
+        "n": 294,
+        "p50": 36.66,
+        "p95": 230.79,
+        "max": 788.84
+      }
+    },
+    {
+      "device": "L1-C18",
+      "acked": 200,
+      "batches": 268,
+      "dropped": 69,
+      "failed": 7,
+      "rtt": {
+        "n": 268,
+        "p50": 31.34,
+        "p95": 183.46,
+        "max": 2615.61
+      }
+    },
+    {
+      "device": "L1-C19",
+      "acked": 200,
+      "batches": 293,
+      "dropped": 99,
+      "failed": 8,
+      "rtt": {
+        "n": 293,
+        "p50": 36.74,
+        "p95": 259.09,
+        "max": 705.38
+      }
+    },
+    {
+      "device": "L1-C20",
+      "acked": 200,
+      "batches": 195,
+      "dropped": 51,
+      "failed": 8,
+      "rtt": {
+        "n": 195,
+        "p50": 18.86,
+        "p95": 44.65,
+        "max": 183.68
+      }
+    }
+  ],
+  "ok": true
+}

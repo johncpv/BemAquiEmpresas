@@ -1,0 +1,22 @@
+﻿{
+  "name": "spk-03-local-first",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "SPK-03: núcleo local-first sob carga (IndexedDB/Dexie x SQLite-WASM/OPFS). Fora do build do produto.",
+  "scripts": {
+    "server": "node server.mjs",
+    "bench": "node run-bench.mjs",
+    "sync": "node run-sync.mjs",
+    "crash": "node run-crash.mjs",
+    "stock": "node run-stock.mjs",
+    "all": "node run-bench.mjs && node run-sync.mjs && node run-crash.mjs && node run-stock.mjs"
+  },
+  "dependencies": {
+    "@sqlite.org/sqlite-wasm": "3.54.1-build1",
+    "dexie": "4.4.7"
+  },
+  "devDependencies": {
+    "playwright-core": "1.64.1"
+  }
+}
