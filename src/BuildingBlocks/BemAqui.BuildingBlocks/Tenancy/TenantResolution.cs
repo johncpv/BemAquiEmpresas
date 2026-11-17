@@ -21,6 +21,12 @@ public sealed record ResolvedTenant(TenantInfo Tenant, string LegalName, string?
     public bool IsHidden(string moduleCode) => HiddenModules.Contains(moduleCode);
 
     /// <summary>
+    /// Vocabulário dos perfis do tenant (PERF-03, ADR 0046 §6), só com o que difere do padrão: a fábrica recebe vazio. Vem de
+    /// <c>tenant_profiles</c>, então troca de perfil chega pelo mesmo NOTIFY que recarrega o tenant.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> Vocabulary { get; init; } = new Dictionary<string, string>(StringComparer.Ordinal);
+
+    /// <summary>
     /// Cobrança real pelo banco liberada (<c>catalog.tenants.bank_production_allowed</c>, ligada só pelo super admin na GOL-01b, ADR 0034):
     /// sem ela, a integração bancária de produção só é salva e testada (BNK-01a CA 12).
     /// </summary>

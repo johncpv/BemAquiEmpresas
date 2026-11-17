@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { buildNavigation, type PermissionModule } from './modules'
+import { areaOf, buildNavigation, type PermissionModule } from './modules'
+import { SAMPLE_MODULES } from './sample'
 
 const m = (code: string, area: string, released: boolean, enabled: boolean): PermissionModule => ({ code, name: code, area, released, enabled, actions: enabled ? ['view'] : [] })
 
@@ -59,5 +60,33 @@ describe('perfil de negócio: liberado, cadeado e oculto (PERF-01, ADR 0046)', (
   it('oculto continua conhecido pela rota e cai na tela de não liberado (CA 9)', () => {
     const production = nav.all.find((x) => x.code === 'production')!
     expect(production.locked).toBe(true)
+  })
+})
+
+describe('área Loja e rótulo de área por perfil (PERF-03)', () => {
+  it('a Konebras (fábrica, areaLabels vazio) vê o mesmo dock de antes: sem Loja e com Fábrica (CA 8)', () => {
+    const nav = buildNavigation(SAMPLE_MODULES)
+    expect(nav.areas.map((a) => [a.id, a.name, a.short])).toEqual([
+      ['overview', 'Visão geral', 'Visão geral'],
+      ['commercial', 'Comercial', 'Comercial'],
+      ['factory', 'Fábrica', 'Fábrica'],
+      ['financial', 'Financeiro', 'Financeiro'],
+      ['people', 'Pessoas', 'Pessoas'],
+      ['dedicated', 'Telas dedicadas', 'Telas'],
+      ['system', 'Sistema', 'Sistema'],
+    ])
+  })
+
+  it('sem fábrica, a área de Estoque e Compras vira Retaguarda e continua achando os módulos (CA 2)', () => {
+    const nav = buildNavigation(SAMPLE_MODULES, false, { Fábrica: 'Retaguarda' })
+    const backoffice = nav.areas.find((a) => a.id === 'factory')!
+    expect([backoffice.name, backoffice.short]).toEqual(['Retaguarda', 'Retaguarda'])
+    expect(backoffice.modules.map((x) => x.code)).toEqual(expect.arrayContaining(['inventory', 'purchasing']))
+    expect(areaOf(nav.areas, nav.all.find((x) => x.code === 'inventory')!)?.name).toBe('Retaguarda')
+  })
+
+  it('a área Loja aparece entre Comercial e Fábrica quando tem módulo (CA 1)', () => {
+    const nav = buildNavigation([...SAMPLE_MODULES, { ...SAMPLE_MODULES[0], code: 'dashboard', area: 'Loja' }])
+    expect(nav.areas.map((a) => a.id).slice(0, 4)).toEqual(['overview', 'commercial', 'store', 'factory'])
   })
 })

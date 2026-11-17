@@ -55,6 +55,9 @@ public partial class PlatformAuthTests
         (await client.GetFromJsonAsync<JsonElement>("/api/v1/me/permissions")).GetProperty("modules").EnumerateArray()
             .ToDictionary(m => m.GetProperty("code").GetString()!, m => m);
 
+    private static async Task<string> HelpTextAsync(HttpClient client, string key) =>
+        string.Join(' ', (await client.GetFromJsonAsync<JsonElement>("/api/v1/ajuda/" + key)).GetProperty("sections").EnumerateArray().Select(s => s.GetProperty("body").GetString()));
+
     [Fact]
     public async Task Regressao_da_Konebras_backfill_factory_deixa_permissoes_e_menu_identicos()
     {
@@ -112,6 +115,12 @@ public partial class PlatformAuthTests
         }
 
         (await ModulesOfAsync(actors[Group.OwnerSeedKey])).Values.Should().NotContain(m => m.GetProperty("hidden").GetBoolean());
+
+        // PERF-03 CA 3 e 8: a fábrica não recebe rótulo nem termo trocado; a ajuda sai com o termo padrão, sem a marca.
+        var me = await actors[Group.OwnerSeedKey].GetFromJsonAsync<JsonElement>("/api/v1/me/permissions");
+        me.GetProperty("areaLabels").EnumerateObject().Should().BeEmpty();
+        me.GetProperty("vocabulary").EnumerateObject().Should().BeEmpty();
+        (await HelpTextAsync(actors[Group.OwnerSeedKey], "inicio")).Should().Contain("se chama \"Fábrica\"?").And.NotContain("{{");
     }
 
     [Fact]
@@ -147,6 +156,12 @@ public partial class PlatformAuthTests
         modules["assets"].GetProperty("hidden").GetBoolean().Should().BeFalse("no perfil e fora do plano fica com cadeado (CA 8)");
         modules["assets"].GetProperty("released").GetBoolean().Should().BeFalse();
         modules["finance"].GetProperty("released").GetBoolean().Should().BeTrue();
+
+        // PERF-03 CA 2 e 7: sem fábrica, a área de Estoque e Compras é "Retaguarda" no dock e na ajuda.
+        var me = await owner.GetFromJsonAsync<JsonElement>("/api/v1/me/permissions");
+        me.GetProperty("areaLabels").GetProperty(ModuleAreas.Factory).GetString().Should().Be("Retaguarda");
+        me.GetProperty("vocabulary").GetProperty(BusinessVocabulary.FactoryArea).GetString().Should().Be("Retaguarda");
+        (await HelpTextAsync(owner, "inicio")).Should().Contain("se chama \"Retaguarda\"?").And.NotContain("{{");
 
         // CA 9: oculto é só apresentação; a rota direta continua barrada pela camada 1.
         var direct = await owner.GetAsync("/api/v1/production/work-centers");

@@ -5,27 +5,31 @@ import {
   FileText, Filter, FolderKanban, FolderTree, Gauge, Hammer, HandCoins, HardHat, Hash, Home, Hourglass, Import, Landmark, LayoutDashboard,
   List, ListTree, Lock, type LucideIcon, MapPin, MessagesSquare, MonitorPlay, MonitorSmartphone, Network, OctagonAlert,
   PackageCheck, PackageMinus, PackageX, Plug, Receipt, Repeat, Rocket, Route, Ruler, Scale, ScanSearch, Settings, Settings2, ShieldCheck,
-  ShieldPlus, ShoppingCart, SlidersHorizontal, Sparkles, SquareKanban, SquarePen, Table, Tag, Tags, Tally5, Target, Timer, TreePalm, Truck,
+  ShieldPlus, ShoppingCart, SlidersHorizontal, Sparkles, Store, SquareKanban, SquarePen, Table, Tag, Tags, Tally5, Target, Timer, TreePalm, Truck,
   UserCog, Users, UsersRound, Wallet, Warehouse, Wrench,
 } from 'lucide-react'
 
-/** As 7 áreas do dock, na ordem do CLAUDE.md (ADR 0005 D8). */
+/** As áreas do dock, na ordem do CLAUDE.md (ADR 0005 D8) e do ModuleAreas (a "Loja" entrou com a PERF-03). */
 export interface Area {
   id: string
-  /** Mesmo texto de ModuleAreas no backend (campo area de /me/permissions). */
+  /** Mesmo texto de ModuleAreas no backend (campo area de /me/permissions): liga o módulo à área e nunca muda por perfil. */
+  key: string
+  /** Rótulo na tela: o padrão, ou o de areaLabels do tenant ("Retaguarda" no lugar de "Fábrica", PERF-03). */
   name: string
   short: string
   icon: LucideIcon
 }
 
 export const AREAS: readonly Area[] = [
-  { id: 'overview', name: 'Visão geral', short: 'Visão geral', icon: Home },
-  { id: 'commercial', name: 'Comercial', short: 'Comercial', icon: Briefcase },
-  { id: 'factory', name: 'Fábrica', short: 'Fábrica', icon: Factory },
-  { id: 'financial', name: 'Financeiro', short: 'Financeiro', icon: Landmark },
-  { id: 'people', name: 'Pessoas', short: 'Pessoas', icon: Users },
-  { id: 'dedicated', name: 'Telas dedicadas', short: 'Telas', icon: MonitorSmartphone },
-  { id: 'system', name: 'Sistema', short: 'Sistema', icon: Settings2 },
+  { id: 'overview', key: 'Visão geral', name: 'Visão geral', short: 'Visão geral', icon: Home },
+  { id: 'commercial', key: 'Comercial', name: 'Comercial', short: 'Comercial', icon: Briefcase },
+  // PERF-03: módulos do PDV (Catálogo, Vendas, Caixa). Sem módulo visível, a área some do dock, como as demais.
+  { id: 'store', key: 'Loja', name: 'Loja', short: 'Loja', icon: Store },
+  { id: 'factory', key: 'Fábrica', name: 'Fábrica', short: 'Fábrica', icon: Factory },
+  { id: 'financial', key: 'Financeiro', name: 'Financeiro', short: 'Financeiro', icon: Landmark },
+  { id: 'people', key: 'Pessoas', name: 'Pessoas', short: 'Pessoas', icon: Users },
+  { id: 'dedicated', key: 'Telas dedicadas', name: 'Telas dedicadas', short: 'Telas', icon: MonitorSmartphone },
+  { id: 'system', key: 'Sistema', name: 'Sistema', short: 'Sistema', icon: Settings2 },
 ]
 
 export interface Tab {
@@ -175,11 +179,13 @@ const toNav = (m: PermissionModule, modules: readonly PermissionModule[], isOwne
  */
 export const isVisible = (m: NavModule) => !m.hidden && (m.locked || m.enabled)
 
-export function buildNavigation(modules: readonly PermissionModule[], isOwner = false): Navigation {
+/** areaLabels: área (ModuleAreas) → rótulo do tenant, de /me/permissions (PERF-03). Vazio para a fábrica: dock idêntico. */
+export function buildNavigation(modules: readonly PermissionModule[], isOwner = false, areaLabels: Readonly<Record<string, string>> = {}): Navigation {
   const all = modules.map((m) => toNav(m, modules, isOwner)).filter((m): m is NavModule => m !== null)
   const areas = AREAS.map((area) => ({
     ...area,
-    modules: all.filter((m) => m.area === area.name && isVisible(m)).sort((x, y) => (x.order ?? 0) - (y.order ?? 0)),
+    ...(areaLabels[area.key] ? { name: areaLabels[area.key], short: areaLabels[area.key] } : {}),
+    modules: all.filter((m) => m.area === area.key && isVisible(m)).sort((x, y) => (x.order ?? 0) - (y.order ?? 0)),
   })).filter((area) => area.modules.length > 0)
   return { areas, all }
 }
@@ -189,5 +195,5 @@ export function findModuleBySlug(modules: readonly NavModule[], slug: string): N
 }
 
 export function areaOf(areas: readonly NavArea[], module: NavModule): NavArea | undefined {
-  return areas.find((a) => a.name === module.area)
+  return areas.find((a) => a.key === module.area)
 }
