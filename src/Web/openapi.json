@@ -70098,7 +70098,8 @@
           "description",
           "released",
           "inPlan",
-          "isException"
+          "isException",
+          "inProfile"
         ],
         "type": "object",
         "properties": {
@@ -70121,6 +70122,9 @@
             "type": "boolean"
           },
           "isException": {
+            "type": "boolean"
+          },
+          "inProfile": {
             "type": "boolean"
           }
         }
@@ -70147,7 +70151,8 @@
           "area",
           "order",
           "description",
-          "released"
+          "released",
+          "hidden"
         ],
         "type": "object",
         "properties": {
@@ -70168,6 +70173,9 @@
             "type": "string"
           },
           "released": {
+            "type": "boolean"
+          },
+          "hidden": {
             "type": "boolean"
           }
         }
@@ -70461,7 +70469,8 @@
           "description",
           "released",
           "enabled",
-          "actions"
+          "actions",
+          "hidden"
         ],
         "type": "object",
         "properties": {
@@ -70492,6 +70501,9 @@
             "items": {
               "type": "string"
             }
+          },
+          "hidden": {
+            "type": "boolean"
           }
         }
       },

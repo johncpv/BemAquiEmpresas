@@ -27,6 +27,8 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
 
     public DbSet<TenantModule> TenantModules => Set<TenantModule>();
 
+    public DbSet<TenantProfile> TenantProfiles => Set<TenantProfile>();
+
     public DbSet<PlatformAdmin> PlatformAdmins => Set<PlatformAdmin>();
 
     public DbSet<PlatformAdminToken> PlatformAdminTokens => Set<PlatformAdminToken>();
@@ -119,6 +121,17 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
             b.ToTable("tenant_modules");
             b.Property(e => e.ModuleCode).HasMaxLength(32);
             b.HasIndex(e => new { e.TenantId, e.ModuleCode }).IsUnique();
+            b.HasOne<Tenant>().WithMany().HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // PERF-01 (ADR 0046): um perfil ativo por (tenant, perfil, segmento); segmento nulo conta como valor (NULLS NOT DISTINCT).
+        modelBuilder.Entity<TenantProfile>(b =>
+        {
+            b.ToTable("tenant_profiles");
+            b.Property(e => e.ProfileCode).HasMaxLength(32);
+            b.Property(e => e.Segment).HasMaxLength(32);
+            b.HasIndex(e => new { e.TenantId, e.ProfileCode, e.Segment }).IsUnique().AreNullsDistinct(false).HasFilter("removed_at IS NULL")
+                .HasDatabaseName("ux_tenant_profiles_active");
             b.HasOne<Tenant>().WithMany().HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
 

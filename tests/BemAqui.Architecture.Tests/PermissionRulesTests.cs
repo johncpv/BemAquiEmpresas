@@ -31,4 +31,14 @@ public class PermissionRulesTests
     public void Catalogo_tem_os_16_modulos_aprovados_na_ADR_0010() =>
         ModuleCatalog.All.Select(m => m.Code).Should().BeEquivalentTo(
             ["dashboard", "quotes", "projects", "parties", "engineering", "production", "inventory", "purchasing", "assets", "finance", "fiscal", "hr", "kiosk", "shopfloor", "identity", "settings"]);
+
+    /// <summary>PERF-01 CA 2: perfil de negócio só cita módulo do <c>ModuleCatalog</c>; a falha diz o perfil e o código.</summary>
+    [Fact]
+    public void Perfil_de_negocio_so_cita_modulo_do_catalogo() =>
+        PermissionRules.ProfileProblems(BusinessProfileCatalog.All).Should().BeEmpty();
+
+    [Fact]
+    public void Perfil_com_modulo_inexistente_viola() =>
+        PermissionRules.ProfileProblems([new BusinessProfileDefinition("x", "X", "X", ["finance", "crm"], [])])
+            .Should().ContainSingle().Which.Should().Be("perfil x: módulo crm fora do ModuleCatalog");
 }

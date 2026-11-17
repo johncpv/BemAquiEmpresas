@@ -12,4 +12,5 @@ export interface ModuleSummary {
   order: number;
   description: string;
   released: boolean;
+  hidden: boolean;
 }

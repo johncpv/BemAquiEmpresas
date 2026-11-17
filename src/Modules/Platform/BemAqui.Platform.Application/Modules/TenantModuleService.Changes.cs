@@ -6,7 +6,7 @@ namespace BemAqui.Platform.Application.Modules;
 
 public sealed partial class TenantModuleService
 {
-    /// <summary>"Salvar liberação": diferente do plano vira exceção; igual ao plano deixa de ser exceção. Auditado (CA 8).</summary>
+    /// <summary>"Salvar liberação": diferente do herdado (plano e perfil) vira exceção; igual deixa de ser exceção. Auditado (CA 8).</summary>
     public async Task<Result> SaveAsync(Guid tenantId, IReadOnlyCollection<ModuleReleaseChange> changes, Guid? adminId, string? ip, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(changes);
@@ -24,6 +24,7 @@ public sealed partial class TenantModuleService
 
         await ApplyPlanAsync(tenantId, tenant.PlanId, cancellationToken);
         var plan = await PlanModulesAsync(tenant.PlanId, cancellationToken);
+        var profile = await ProfileModulesAsync(tenantId, cancellationToken);
         var rows = await db.TenantModules.Where(m => m.TenantId == tenantId).ToDictionaryAsync(m => m.ModuleCode, StringComparer.Ordinal, cancellationToken);
         var now = clock.GetUtcNow();
         foreach (var change in changes)
@@ -36,7 +37,8 @@ public sealed partial class TenantModuleService
 
             Audit(tenantId + ":" + change.Code, change.Released ? "ModuleReleased" : "ModuleBlocked", adminId, ip, new { before = row.Enabled, after = change.Released });
             row.Enabled = change.Released;
-            row.IsException = change.Released != plan.Contains(change.Code);
+            // Exceção = diferente do herdado (plano E perfil, ADR 0046): liberar à mão um módulo fora do perfil vira exceção e aparece.
+            row.IsException = change.Released != BusinessProfileCatalog.Inherited(plan.Contains(change.Code), BusinessProfileCatalog.InProfile(profile, change.Code));
             row.ReleasedAt = change.Released ? now : row.ReleasedAt;
             row.UpdatedAt = now;
         }

@@ -17,13 +17,18 @@ public interface ITenantModulesDb
 
     DbSet<TenantModule> TenantModules { get; }
 
+    DbSet<TenantProfile> TenantProfiles { get; }
+
     DbSet<AuditEntry> AuditEntries { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
 
-/// <summary>Linha da aba "Módulos" do tenant: o que o plano dá, o que vale e se é exceção.</summary>
-public sealed record ModuleRelease(string Code, string Name, string Area, string Description, bool Released, bool InPlan, bool IsException);
+/// <summary>
+/// Linha da aba "Módulos" do tenant: o que o plano dá, se está em algum perfil de negócio do tenant (ADR 0046), o que vale e se é
+/// exceção.
+/// </summary>
+public sealed record ModuleRelease(string Code, string Name, string Area, string Description, bool Released, bool InPlan, bool IsException, bool InProfile);
 
 public sealed record ModuleReleaseChange(string Code, bool Released);
 
@@ -42,26 +47,34 @@ public sealed partial class TenantModuleService(ITenantModulesDb db, BemAqui.Bui
         }
 
         var plan = await PlanModulesAsync(tenant.PlanId, cancellationToken);
+        var profile = await ProfileModulesAsync(tenantId, cancellationToken);
         var rows = await db.TenantModules.AsNoTracking().Where(m => m.TenantId == tenantId).ToDictionaryAsync(m => m.ModuleCode, StringComparer.Ordinal, cancellationToken);
         return ModuleCatalog.All
             .OrderBy(m => Array.IndexOf(ModuleAreas.All, m.Area)).ThenBy(m => m.Order)
             .Select(m =>
             {
                 var row = rows.GetValueOrDefault(m.Code);
-                return new ModuleRelease(m.Code, m.Name, m.Area, m.Description, row?.Enabled ?? plan.Contains(m.Code), plan.Contains(m.Code), row?.IsException ?? false);
+                var inProfile = BusinessProfileCatalog.InProfile(profile, m.Code);
+                return new ModuleRelease(m.Code, m.Name, m.Area, m.Description, row?.Enabled ?? BusinessProfileCatalog.Inherited(plan.Contains(m.Code), inProfile),
+                    plan.Contains(m.Code), row?.IsException ?? false, inProfile);
             })
             .ToList();
     }
 
-    /// <summary>Herda do plano: cria as linhas que faltam e atualiza as que não são exceção (provisionamento e troca de plano).</summary>
+    /// <summary>
+    /// Herda do plano e dos perfis (PERF-01 CA 5): cria as linhas que faltam e atualiza as que não são exceção, com
+    /// <c>liberado = no plano E em algum perfil</c>. Idempotente; roda no provisionamento, na troca de plano e ao aplicar ou remover
+    /// perfil. A exceção manual nunca é tocada.
+    /// </summary>
     public async Task ApplyPlanAsync(Guid tenantId, Guid? planId, CancellationToken cancellationToken = default)
     {
         var now = clock.GetUtcNow();
         var plan = await PlanModulesAsync(planId, cancellationToken);
+        var profile = await ProfileModulesAsync(tenantId, cancellationToken);
         var rows = await db.TenantModules.Where(m => m.TenantId == tenantId).ToDictionaryAsync(m => m.ModuleCode, StringComparer.Ordinal, cancellationToken);
         foreach (var module in ModuleCatalog.All)
         {
-            var enabled = plan.Contains(module.Code);
+            var enabled = BusinessProfileCatalog.Inherited(plan.Contains(module.Code), BusinessProfileCatalog.InProfile(profile, module.Code));
             if (!rows.TryGetValue(module.Code, out var row))
             {
                 db.TenantModules.Add(new TenantModule { TenantId = tenantId, ModuleCode = module.Code, Enabled = enabled, ReleasedAt = enabled ? now : null, UpdatedAt = now });
@@ -77,6 +90,11 @@ public sealed partial class TenantModuleService(ITenantModulesDb db, BemAqui.Bui
         await db.SaveChangesAsync(cancellationToken);
         resolver.Invalidate(); // nesta instância já no próximo request; nas outras, pelo NOTIFY do catálogo
     }
+
+    /// <summary>União dos módulos dos perfis ativos do tenant; <c>null</c> quando ele não tem perfil (sem filtro, ADR 0046 §3).</summary>
+    private async Task<IReadOnlySet<string>?> ProfileModulesAsync(Guid tenantId, CancellationToken cancellationToken) =>
+        BusinessProfileCatalog.ModulesOf(await db.TenantProfiles.AsNoTracking()
+            .Where(p => p.TenantId == tenantId && p.RemovedAt == null).Select(p => p.ProfileCode).ToListAsync(cancellationToken));
 
     private async Task<HashSet<string>> PlanModulesAsync(Guid? planId, CancellationToken cancellationToken) =>
         planId is null

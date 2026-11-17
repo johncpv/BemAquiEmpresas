@@ -128,6 +128,8 @@ export interface PermissionModule {
   released: boolean
   enabled: boolean
   actions: readonly string[]
+  /** Fora de todo perfil de negócio do tenant e não liberado (PERF-01, ADR 0046): some do dock e da busca; a URL direta mostra ModuleNotReleased. */
+  hidden?: boolean
 }
 
 export interface NavModule extends PermissionModule {
@@ -146,7 +148,7 @@ export interface NavArea extends Area {
 }
 
 export interface Navigation {
-  /** Só o que o usuário vê: liberado com acesso, ou não liberado (com cadeado). Área vazia some (CA 4). */
+  /** Só o que o usuário vê: liberado com acesso, ou não liberado e no perfil (com cadeado). Área vazia some (CA 4). */
   areas: NavArea[]
   /** Todos os módulos, para a rota saber se mostra a tela, o cadeado ou o acesso negado (CA 2, 3). */
   all: NavModule[]
@@ -169,8 +171,11 @@ const toNav = (m: PermissionModule, modules: readonly PermissionModule[], isOwne
   return ui ? { ...m, slug: ui.slug, aliases: ui.aliases ?? [], path: ui.href ?? `/app/${ui.slug}`, icon: ui.icon, tabs, locked: !m.released } : null
 }
 
-/** Visível no menu: liberado com acesso, ou não liberado (com cadeado). Liberado sem acesso fica oculto (CA 3). */
-export const isVisible = (m: NavModule) => m.locked || m.enabled
+/**
+ * Visível no menu: liberado com acesso, ou não liberado e no perfil (com cadeado). Liberado sem acesso fica oculto (CA 3); fora do
+ * perfil também (PERF-01 CA 7, ADR 0046). A exceção manual que libera um módulo fora do perfil chega como liberado e aparece (CA 10).
+ */
+export const isVisible = (m: NavModule) => !m.hidden && (m.locked || m.enabled)
 
 export function buildNavigation(modules: readonly PermissionModule[], isOwner = false): Navigation {
   const all = modules.map((m) => toNav(m, modules, isOwner)).filter((m): m is NavModule => m !== null)

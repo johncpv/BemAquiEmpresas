@@ -1,6 +1,6 @@
 # Rascunhos de ADR do plano do PDV
 
-Status de todos: **Proposto (rascunho)**, 15/11/2026. **Não estão numerados em `docs/adr`.** A última ADR aceita é a 0045.
+Status de todos: **Proposto (rascunho)**, 15/11/2026. **Não estão numerados em `docs/adr`.** A última ADR aceita é a 0046 (perfis de negócio, PERF-01).
 
 ## Os seis rascunhos
 
@@ -19,7 +19,7 @@ A síntese dos seis está em [02-arquitetura.md](../02-arquitetura.md).
 
 1. Os spikes de que ele depende terminam e o texto é corrigido com o que foi medido.
 2. O PO decide as pendências ligadas a ele ([06-pendencias-riscos.md](../06-pendencias-riscos.md)).
-3. O arquivo vai para `docs/adr/NNNN-titulo.md`, com o próximo número livre (**0046 em diante**, na ordem em que forem aprovados, que pode não ser a ordem das letras), status "Aceito" e a data da decisão.
+3. O arquivo vai para `docs/adr/NNNN-titulo.md`, com o próximo número livre (**0047 em diante**, na ordem em que forem aprovados, que pode não ser a ordem das letras), status "Aceito" e a data da decisão.
 4. As "Notas da consolidação do plano" do fim de cada rascunho saem do texto: ou viraram decisão, ou viraram adendo.
 
 O rascunho F **não pode ser aceito antes** da decisão PP-02. O rascunho E já tem a decisão do PO sobre a venda sem internet (assinatura na loja, PP-01) e precisa ser reescrito com ela antes de virar ADR; depende ainda do parecer da contadora por UF.
@@ -30,7 +30,7 @@ Não fazem parte dos seis rascunhos, mas o plano depende delas:
 
 | Tema | Por quê | Story que a escreve |
 |---|---|---|
-| Perfis de negócio: estado "oculto", `tenant_profiles`, áreas e vocabulário | Muda a regra do `CLAUDE.md` de que módulo não liberado aparece com cadeado (PP-03) | [PERF-01](../stories/PERF-01-perfis-liberacao-efetiva.md) |
+| Perfis de negócio: estado "oculto", `tenant_profiles`, áreas e vocabulário | Muda a regra do `CLAUDE.md` de que módulo não liberado aparece com cadeado (PP-03). **Escrita: [ADR 0046](../../adr/0046-perfis-de-negocio-e-modulo-oculto.md) (16/11/2026)**; áreas e vocabulário entram como adendo na PERF-03 | [PERF-01](../stories/PERF-01-perfis-liberacao-efetiva.md) |
 | Fronteiras Catalog / Sales / Pos / Restaurant / ServiceOrders / Storefront e os contratos `ISaleIngestion` e `IOrderPayments` | Seis módulos novos; quem é dono de preço, de código de barras, de cada tabela e de cada rota. A proposta está em [02, seção 4.1](../02-arquitetura.md#41-fronteira-sales--pos-quem-é-dono-de-quê) (PP-04) | [CAT-01](../stories/CAT-01-produto-vendavel-barras-preco.md), [VND-01](../stories/VND-01-nucleo-vendas-sem-caixa.md) e [PDV-01](../stories/PDV-01-lojas-caixas-aparelho.md) |
 | Usuário de operação sem e-mail | A P-24 do `docs/06` já previa ADR nova (PP-12) | [PDV-01](../stories/PDV-01-lojas-caixas-aparelho.md) |
 

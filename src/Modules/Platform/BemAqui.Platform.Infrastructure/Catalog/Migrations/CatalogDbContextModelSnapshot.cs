@@ -607,6 +607,57 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                     b.ToTable("tenant_modules", "catalog");
                 });
 
+            modelBuilder.Entity("BemAqui.Platform.Domain.TenantProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AppliedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("applied_at");
+
+                    b.Property<Guid?>("AppliedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("applied_by");
+
+                    b.Property<string>("ProfileCode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("profile_code");
+
+                    b.Property<DateTimeOffset?>("RemovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("removed_at");
+
+                    b.Property<Guid?>("RemovedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("removed_by");
+
+                    b.Property<string>("Segment")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("segment");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tenant_profiles");
+
+                    b.HasIndex("TenantId", "ProfileCode", "Segment")
+                        .IsUnique()
+                        .HasDatabaseName("ux_tenant_profiles_active")
+                        .HasFilter("removed_at IS NULL");
+
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("TenantId", "ProfileCode", "Segment"), false);
+
+                    b.ToTable("tenant_profiles", "catalog");
+                });
+
             modelBuilder.Entity("BemAqui.Platform.Domain.PlanModule", b =>
                 {
                     b.HasOne("BemAqui.Platform.Domain.Plan", null)
@@ -684,6 +735,16 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_tenant_modules_tenants_tenant_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Platform.Domain.TenantProfile", b =>
+                {
+                    b.HasOne("BemAqui.Platform.Domain.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tenant_profiles_tenants_tenant_id");
                 });
 
             modelBuilder.Entity("BemAqui.Platform.Domain.Tenant", b =>

@@ -32,4 +32,6 @@ modulo:
 
 **Não encontro um módulo no dock.** Ele pode não estar liberado na versão contratada ou não estar habilitado nos seus grupos. Fale com quem administra os acessos da empresa.
 
+**Por que não vejo todos os módulos?** O sistema mostra só o que faz sentido para o tipo de negócio da empresa (Fábrica, Comércio, Prestação de serviços ou E-commerce). Módulo que não faz parte desse perfil não aparece no dock, na busca nem na ajuda. Módulo do perfil que não está na versão contratada aparece com cadeado e abre a tela "Funcionalidade não liberada nessa versão do sistema.". E módulo liberado que não está habilitado nos seus grupos também não aparece para você. Para mudar o perfil ou a versão, fale com o suporte do BemAqui; para os grupos, com quem administra os acessos da empresa.
+
 **O que é o traço amarelo no dock?** Ele marca a área em que você está.

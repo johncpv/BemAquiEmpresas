@@ -5,7 +5,7 @@
 | ID | PERF-01 |
 | Título | Perfis de negócio no catálogo (`BusinessProfileCatalog`, `tenant_profiles`), liberação efetiva por plano e perfil e o estado "oculto" para módulo fora do perfil |
 | Tamanho | G |
-| Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
+| Status | Ready for Review (implementada em 16/11/2026, branch `feat/perf-01-perfis`; PR, merge e deploy pendentes) |
 | Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (itens 1, 2 e 3) · [PRD do PDV](../01-PRD.md) seção 3 · ADR 0003 · ADR 0006 · FND-06 (catálogo de módulos e liberação por tenant) |
 | Dependências | PP-03 decidida; FND-06 (existente) |
@@ -69,19 +69,39 @@ Como **super admin**, quero **dizer que tipo de negócio cada empresa é**, para
 - Dados iniciais (PERF-04).
 
 ## Pontos em aberto
-- PP-03: oculto ou cadeado. Se o PO preferir o cadeado, os CA 7 a 10 caem e a story vira M.
+- PP-03: **decidida em 16/11/2026: oculto** (o cadeado fica para "no perfil, fora do plano"). Registrada na [ADR 0046](../../adr/0046-perfis-de-negocio-e-modulo-oculto.md).
 - Os módulos novos (`catalog`, `sales`, `pos` e os demais) entram no `ModuleCatalog` nas stories de cada um; até lá o perfil `retail` só cita os que existem.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade e de integração (Testcontainers) passando; Vitest no front.
-- [ ] Migration criada; permissões só do `ModuleCatalog`.
-- [ ] Telas com estados de carregando, vazio e erro; ajuda escrita ou atualizada em `Ajuda/` no mesmo commit.
-- [ ] Padrões e próximo passo propositivos avaliados; auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade e de integração (Testcontainers) passando; Vitest no front.
+- [x] Migration criada; permissões só do `ModuleCatalog`.
+- [x] Telas com estados de carregando, vazio e erro (sem tela nova); ajuda atualizada em `Ajuda/inicio.md` no mesmo commit.
+- [x] Padrões e próximo passo propositivos avaliados (sem tela nova; a PERF-02 traz a aba Perfis); auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR (0046).
+
+## O que foi feito (16/11/2026)
+**Revisão antes de codar (story × código):**
+- A story não dizia o que vale para um tenant **sem perfil**. Decidido: sem perfil = sem filtro (o comportamento de antes, só plano e exceção, com cadeado). É rede de segurança; a migration dá `factory` a todos e o provisionamento aplica `factory` até a PERF-02 trazer a escolha. O último perfil ativo não pode ser removido.
+- A exceção manual era "diferente do plano" (`SaveAsync`). Passou a ser "diferente do herdado (plano E perfil)", senão liberar à mão um módulo fora do perfil (CA 10) não ficaria marcado como exceção e cairia no próximo recálculo.
+- O "oculto" não cabe em `tenant_modules` (que só tem `enabled`) sem mudar a tabela que a camada 1 lê. Ele é calculado no tenant resolvido (`ResolvedTenant.HiddenModules` = não liberado e fora de todo perfil) e entra no hash da versão de permissões só quando existe, para a versão da Konebras não mudar.
+- A ajuda e o "Pergunte ao BemAqui" já filtravam por módulo liberado (`HelpAccess`): o oculto some deles sem código novo.
+- `CatalogTenantProfile` já existia com outro sentido (documento e ambiente fiscal do tenant): a entidade nova se chama `TenantProfile` no domínio e `tenant_profiles` no banco, sem colisão.
+- A PRD diz que restaurante e KDS só aparecem nos segmentos de alimentação, mas a story diz que segmento não altera a liberação. Ficou a regra da story; a ADR 0046 §4 prevê adendo na Fase 15.
+- `applied_by` "do sistema" = nulo, com a origem da auditoria dizendo "Sistema · migration PERF-01".
+
+**Entregue:**
+- `BusinessProfileCatalog` (`BuildingBlocks/Modules`): 4 perfis, 7 segmentos, `factory` = os 16 módulos de hoje; regras puras de liberação herdada e dos três estados (`ModuleVisibility`).
+- `catalog.tenant_profiles` (migration `TenantProfiles` do catálogo, só acréscimo): índice único parcial entre os não removidos com `NULLS NOT DISTINCT`, trigger de NOTIFY e backfill `factory` auditado. `tenant_modules` não é tocada.
+- `TenantModuleService`: `ApplyPlanAsync` com plano × perfis; `ApplyProfileAsync`, `RemoveProfileAsync` e `GetProfilesAsync` (idempotentes, auditados; os endpoints são da PERF-02); `ModuleRelease` ganhou `inProfile`. Provisionamento aplica `factory`.
+- `GET /me/permissions` e `GET /modules` com `hidden`; front: `isVisible` esconde o oculto do dock, do Início e da busca; a rota direta cai em `ModuleNotReleased` (o oculto chega como não liberado).
+- [ADR 0046](../../adr/0046-perfis-de-negocio-e-modulo-oculto.md); `CLAUDE.md` (camada 1) e ADR 0002 atualizados; `Ajuda/inicio.md` com "Por que não vejo todos os módulos".
+
+**Testes:** unidade (tabela-verdade plano × perfil × exceção, união, `factory` = 16 módulos, perfis e segmentos); arquitetura (perfil só cita módulo do catálogo, com perfil e código na mensagem); integração (regressão da Konebras com retrato de `/me/permissions` de um usuário de cada grupo do seed antes e depois do backfill; união, cadeado, oculto, 403 `module_not_released` na rota direta, ajuda sem o oculto, exceção manual preservada, último perfil, auditoria); Vitest (liberado, cadeado e oculto).
 
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
+| 16/11/2026 | 1.0 | Implementada: revisão contra o código (tenant sem perfil, exceção relativa ao herdado, oculto no tenant resolvido), ADR 0046, migration com backfill `factory` e regressão da Konebras. | Claude (dev) |
