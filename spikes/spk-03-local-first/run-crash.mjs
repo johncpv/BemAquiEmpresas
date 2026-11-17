@@ -12,7 +12,7 @@ const KILLS = Number(arg('kills', '6'));
 const CLOSES = Number(arg('closes', '3'));
 const N = Number(arg('n', '5000'));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-let port = 9400;
+let port = 9400 + Math.floor(Math.random() * 500);
 
 async function startChromium(dir) {
   const p = ++port;
@@ -20,7 +20,7 @@ async function startChromium(dir) {
     '--headless=new', `--user-data-dir=${dir}`, `--remote-debugging-port=${p}`, '--no-first-run', '--no-default-browser-check', 'about:blank',
   ], { stdio: 'ignore' });
   let browser;
-  for (let i = 0; i < 100 && !browser; i++) {
+  for (let i = 0; i < 300 && !browser; i++) {
     try { browser = await chromium.connectOverCDP(`http://127.0.0.1:${p}`); } catch { await sleep(200); }
   }
   if (!browser) throw new Error('não conectou no Chromium');
@@ -127,9 +127,24 @@ try {
       } else {
         await page.close({ runBeforeUnload: false });
       }
-      const r = await verifyAfter(context, tech, dur, device, before);
+      let r;
+      const harnessErrors = [];
+      for (let a = 0; !r; a++) {
+        try {
+          r = await verifyAfter(context, tech, dur, device, before);
+        } catch (e) {
+          // a página de verificação não carregou (Chromium recém-reiniciado travado): reinicia o navegador e tenta de novo
+          harnessErrors.push(String(e.message).split('\n')[0]);
+          console.log(`  ${kind} ${c + 1}: reabertura não respondeu (${harnessErrors.at(-1)}); reiniciando o navegador`);
+          if (a >= 2) throw e;
+          killTree(child.pid);
+          await waitProfileFree(dir);
+          ({ child, context, browser } = await startChromium(dir));
+        }
+      }
+      r.harnessErrors = harnessErrors;
       const ok = Object.values(r.checks).every(Boolean);
-      V.cycles.push({ kind, ok, ...r.checks, seqAfter: r.st.seq, ackedAfter: r.st.acked, lastCommittedSeen: r.lastCommittedSeen, pendingSaleLinesSeen: r.linesSeen, cartLinesAfter: r.st.cartLines, reopenMs: r.reopenMs, bootErrors: r.bootErrors });
+      V.cycles.push({ kind, ok, ...r.checks, seqAfter: r.st.seq, ackedAfter: r.st.acked, lastCommittedSeen: r.lastCommittedSeen, pendingSaleLinesSeen: r.linesSeen, cartLinesAfter: r.st.cartLines, reopenMs: r.reopenMs, bootErrors: r.bootErrors, harnessErrors: r.harnessErrors });
       console.log(`  ${kind} ${c + 1}: ${ok ? 'ok' : 'FALHOU'} seq ${r.lastCommittedSeen}->${r.st.seq} carrinho ${r.linesSeen}->${r.st.cartLines} reabrir ${r.reopenMs} ms${r.bootErrors.length ? ` (falhas ao abrir: ${r.bootErrors.length}, ${r.bootErrors[0].err})` : ''}`);
       // retoma a venda na mesma página
       page = r.page;
