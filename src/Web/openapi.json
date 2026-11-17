@@ -823,6 +823,161 @@
         }
       }
     },
+    "/api/v1/platform/business-profiles": {
+      "get": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "ListBusinessProfiles",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BusinessProfileView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/plans/modules": {
+      "get": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "ListPlanModules",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanModulesView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/tenants/{tenantId}/profiles": {
+      "get": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "GetTenantProfiles",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantProfilesTab"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "AddTenantProfile",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTenantProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantProfileChange"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/tenants/{tenantId}/profiles/{profile}": {
+      "delete": {
+        "tags": [
+          "Plataforma"
+        ],
+        "operationId": "RemoveTenantProfile",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "profile",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "segment",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/platform/plans": {
       "get": {
         "tags": [
@@ -42425,6 +42580,24 @@
           "Site"
         ]
       },
+      "AddTenantProfileRequest": {
+        "required": [
+          "profile",
+          "segment"
+        ],
+        "type": "object",
+        "properties": {
+          "profile": {
+            "type": "string"
+          },
+          "segment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "AgendaEntry": {
         "required": [
           "title",
@@ -49507,6 +49680,39 @@
         },
         "additionalProperties": false
       },
+      "BusinessProfileView": {
+        "required": [
+          "code",
+          "name",
+          "description",
+          "modules",
+          "segments"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogItemView"
+            }
+          },
+          "segments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogItemView"
+            }
+          }
+        }
+      },
       "CalendarDetail": {
         "required": [
           "id",
@@ -50621,6 +50827,21 @@
           "adjustedBalance": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "CatalogItemView": {
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
           }
         }
       },
@@ -83048,6 +83269,24 @@
           null
         ]
       },
+      "PlanModulesView": {
+        "required": [
+          "name",
+          "modules"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "PlanningQueueChangeKind": {
         "enum": [
           "Initial",
@@ -84964,6 +85203,24 @@
           }
         }
       },
+      "ProfileChoice": {
+        "required": [
+          "code",
+          "segment"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "segment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ProjectBillingView": {
         "required": [
           "projectId",
@@ -86865,6 +87122,15 @@
               "null",
               "string"
             ]
+          },
+          "profiles": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ProfileChoice"
+            }
           }
         }
       },
@@ -102492,6 +102758,95 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "TenantProfileChange": {
+        "required": [
+          "changed",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "changed": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "TenantProfileEntry": {
+        "required": [
+          "code",
+          "name",
+          "segment",
+          "segmentName",
+          "appliedAt",
+          "appliedBy",
+          "removedAt",
+          "removedBy"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "segment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "segmentName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "appliedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "appliedBy": {
+            "type": "string"
+          },
+          "removedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "removedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "TenantProfilesTab": {
+        "required": [
+          "active",
+          "history"
+        ],
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TenantProfileEntry"
+            }
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TenantProfileEntry"
+            }
           }
         }
       },

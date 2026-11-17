@@ -1,9 +1,14 @@
+using BemAqui.Platform.Application.Modules;
 using BemAqui.Platform.Domain;
 
 namespace BemAqui.Platform.Application.Provisioning;
 
-/// <summary>Pedido de provisionamento (CLI ou tela da FND-03b).</summary>
-public sealed record ProvisionRequest(string Key, string LegalName, string? Document, string Host, string OwnerEmail, string? Plan, bool Resume = false, string? TradeName = null);
+/// <summary>
+/// Pedido de provisionamento (CLI ou tela da FND-03b). <c>Profiles</c> são os perfis de negócio escolhidos (PERF-02); nulo aplica
+/// Fábrica, como antes. <c>RequestedBy</c> é o super admin que pediu pela tela (nulo na CLI: o sistema).
+/// </summary>
+public sealed record ProvisionRequest(string Key, string LegalName, string? Document, string Host, string OwnerEmail, string? Plan, bool Resume = false, string? TradeName = null,
+    IReadOnlyList<ProfileChoice>? Profiles = null, Guid? RequestedBy = null);
 
 /// <summary>Catálogo visto pelo provisionamento.</summary>
 public interface IProvisioningCatalog

@@ -59,6 +59,16 @@ public sealed partial class TenantAdminService
             fields["ownerEmail"] = ["Informe um e-mail válido para o proprietário."];
         }
 
+        // PERF-02 CA 1: a tela manda ao menos um perfil; sem o campo (cliente antigo) vale Fábrica, como antes.
+        if (request.Profiles is { Count: 0 })
+        {
+            fields["profiles"] = ["Escolha ao menos um perfil."];
+        }
+        else if (request.Profiles?.Any(p => p.Code is null || !BemAqui.BuildingBlocks.Modules.BusinessProfileCatalog.IsKnown(p.Code, p.Segment)) == true)
+        {
+            fields["profiles"] = ["Perfil de negócio ou segmento desconhecido."];
+        }
+
         return fields.Count == 0 ? null : Error.Validation(Error.Codes.Validation, "Confira os campos destacados.", fields);
     }
 }

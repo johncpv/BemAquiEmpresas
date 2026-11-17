@@ -5,7 +5,7 @@
 | ID | PERF-02 |
 | Título | Provisionar com perfil de negócio e segmento, e adicionar ou remover perfil em tenant existente pela aba "Perfis" |
 | Tamanho | M |
-| Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
+| Status | Ready for Review (implementada em 17/11/2026, branch `feat/perf-02-provisionar-perfil`; PR, merge e deploy pendentes) |
 | Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (item 3: perfil fácil de habilitar) · [PRD do PDV](../01-PRD.md) seção 3.4 · FND-03a e FND-03b (provisionamento e tela do super admin) |
 | Dependências | PERF-01 |
@@ -58,16 +58,28 @@ Como **super admin**, quero **escolher o perfil de negócio ao criar a empresa e
 ## Pontos em aberto
 - PP-17: se o plano limitar caixas ou lojas, o aviso do CA 3 passa a mostrar também os limites.
 
+## Implementação (17/11/2026): o que a revisão contra o código ajustou
+- **Etapa "Perfil" no log.** O perfil virou uma etapa própria do provisionamento (`ProvisioningSteps.Profile`), logo depois do registro: ela aplica o plano e os perfis escolhidos (o `ApplyProfileAsync` já roda o `ApplyPlanAsync`) e grava a linha "Perfil aplicado: Comércio · Padaria." (CA 4). A ordem fica registro → **plano e perfil** → usuário do banco → banco → estrutura → dados iniciais → proprietário. O plano já era aplicado no registro, antes do banco existir, então "perfil antes do seed" (o que importa para a PERF-04) vale; a story falava em "migrations → plano → perfil", o que não refletia o código.
+- **Retomada (CA 5).** A etapa concluída não roda de novo; se ela falhar, a retomada reaplica sem duplicar (aplicar é idempotente). A retomada pela tela não traz a escolha de perfis: se nada tiver sido gravado, aplica Fábrica (o comportamento de antes), e o super admin corrige na aba Perfis. Tenants provisionados antes desta story mostram a etapa como "Sem registro".
+- **Endpoints.** `GET /platform/business-profiles`, `GET /platform/plans/modules` (o aviso do CA 3 precisa dos módulos de cada plano), `GET|POST /platform/tenants/{tenantId}/profiles` e `DELETE /platform/tenants/{tenantId}/profiles/{perfil}?segment=`. Mesma sessão de super admin e mesmo filtro de origem da aba Módulos. O `POST /platform/tenants` aceita `profiles[]`; sem o campo vale Fábrica, e lista vazia é 422 "Escolha ao menos um perfil.".
+- **CA 10.** Sem a sessão do super admin a resposta é **401** (não 403), como todas as rotas da plataforma; no host do tenant a rota não existe (404).
+- **CA 7.** "Já tem" compara perfil **e** segmento: Comércio · Padaria numa empresa com Comércio · Balcão é um perfil novo (é assim que se troca o segmento). A mensagem cita o segmento quando há ("Esta empresa já tem o perfil Comércio · Balcão.").
+- **Quem aplicou (CA 6).** O provisionamento grava o super admin que pediu (`applied_by`); a aba mostra o e-mail dele ou "Sistema". O histórico (aplicado e removido, com data e quem fez) é a auditoria visível; as entradas `ProfileApplied` e `ProfileRemoved` do catálogo levam agora também o IP.
+- **Segmento de Serviços.** Pode ficar "Em geral" (sem segmento) ou Oficina; Comércio exige segmento.
+- **Sem migration.** `tenant_profiles` (PERF-01) já tinha tudo; nenhuma tabela mudou.
+- **Fora desta story:** dados iniciais por perfil ao adicionar (PERF-04); a CLI `tenant provision` continua aplicando Fábrica.
+
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade e de integração (Testcontainers) passando; Vitest no front.
-- [ ] Migration criada; permissões só do `ModuleCatalog`.
-- [ ] Telas com estados de carregando, vazio e erro; ajuda escrita ou atualizada em `Ajuda/` no mesmo commit.
-- [ ] Padrões e próximo passo propositivos avaliados; auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR.
+- [x] Critérios de aceite atendidos (CA 10 com 401, ver acima).
+- [x] Testes de integração (Testcontainers) passando; Vitest no front.
+- [x] Sem migration (a tabela é da PERF-01); permissões: área da plataforma, nada novo no `ModuleCatalog`.
+- [x] Telas com estados de carregando e erro (o vazio não existe); ajuda escrita (`Ajuda/plataforma-tenant-perfis.md`) e atualizada (`plataforma-tenants.md`, `plataforma-tenant.md`) no mesmo commit.
+- [x] Padrões e próximo passo propositivos avaliados (Fábrica e Balcão já marcados, aviso do plano); auditoria ligada e visível.
+- [x] OpenAPI e cliente Orval regenerados; story marcada no backlog; sem decisão nova de arquitetura (ADR 0046 cobre).
 
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
+| 17/11/2026 | 1.0 | Implementada: etapa "Perfil" no provisionamento, passos no `ProvisionDialog`, aba Perfis com histórico e os endpoints da plataforma. | Claude (dev) |
