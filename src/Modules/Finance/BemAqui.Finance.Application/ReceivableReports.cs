@@ -57,5 +57,6 @@ public sealed class FinanceUsage(IFinanceDb db) : IBankAccountUsageProvider, IAc
     public async Task<string?> UsageAsync(Guid partyId, CancellationToken cancellationToken = default) =>
         await db.Receivables.AnyAsync(r => r.PartyId == partyId, cancellationToken) ? "títulos a receber"
         : await db.Payables.AnyAsync(p => p.PartyId == partyId, cancellationToken) ? "títulos a pagar"
-        : await db.RecurringExpenses.AnyAsync(r => r.PartyId == partyId, cancellationToken) ? "despesas recorrentes" : null;
+        : await db.RecurringExpenses.AnyAsync(r => r.PartyId == partyId, cancellationToken) ? "despesas recorrentes"
+        : await db.PaymentMethods.AnyAsync(m => m.AcquirerPartyId == partyId, cancellationToken) ? "formas de pagamento" : null;
 }

@@ -1,7 +1,7 @@
 import type { AddressKind, PartyRoleKind, TaxRegime } from '@/api/generated/model'
 
 /** Rótulos dos papéis, tipos de endereço e regimes (CAD-01a), na ordem em que aparecem na tela. */
-export const ROLE_LABELS: Record<PartyRoleKind, string> = { Customer: 'Cliente', Supplier: 'Fornecedor', Installer: 'Instalador', Carrier: 'Transportadora' }
+export const ROLE_LABELS: Record<PartyRoleKind, string> = { Customer: 'Cliente', Supplier: 'Fornecedor', Installer: 'Instalador', Carrier: 'Transportadora', Acquirer: 'Adquirente' }
 export const ROLE_OPTIONS = (Object.keys(ROLE_LABELS) as PartyRoleKind[]).map((value) => ({ value, label: ROLE_LABELS[value] }))
 
 export const ADDRESS_LABELS: Record<AddressKind, string> = { Billing: 'Cobrança', Delivery: 'Entrega', Site: 'Obra' }

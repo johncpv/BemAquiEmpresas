@@ -11,4 +11,5 @@ export interface MyPermissionsResponse {
   isOwner: boolean;
   version: string;
   modules: MyModule[];
+  profiles: string[];
 }

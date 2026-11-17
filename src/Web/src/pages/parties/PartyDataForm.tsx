@@ -12,14 +12,15 @@ import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
 import { notifySuccess } from '@/components/ui/messages'
 import { isValidCnpj, isValidCpf, onlyAlnum } from '@/lib/masks'
 import { z } from '@/lib/zod'
-import { ROLE_OPTIONS, TAX_REGIME_LABELS } from './labels'
+import { TAX_REGIME_LABELS } from './labels'
+import { useRoleOptions } from './role-options'
 import { updateFrom } from './party-actions'
 
 const schema = z.object({
   document: z.string(),
   legalName: z.string().trim().min(2, 'Informe o nome ou a razão social.').max(200, 'Use até 200 caracteres.'),
   tradeName: z.string().max(200, 'Use até 200 caracteres.'),
-  roles: z.array(z.enum(['Customer', 'Supplier', 'Installer', 'Carrier'])).min(1, 'O terceiro precisa de ao menos um papel.'),
+  roles: z.array(z.enum(['Customer', 'Supplier', 'Installer', 'Carrier', 'Acquirer'])).min(1, 'O terceiro precisa de ao menos um papel.'),
   stateRegistration: z.string().refine((v) => v === '' || /^(ISENTO|\d{2,14})$/i.test(v.trim()), 'Informe só os dígitos da inscrição estadual, ou ISENTO.'),
   municipalRegistration: z.string().max(20, 'Use até 20 caracteres.'),
   taxRegime: z.enum(['NotInformed', 'SimplesNacional', 'Mei', 'LucroPresumido', 'LucroReal', 'Exempt']),
@@ -37,6 +38,7 @@ const searchTerms = async (term: string) => {
 
 /** Aba Dados (CA 10 e 15): papéis, dados fiscais e contato do cadastro. Sem parties.edit, fica só leitura. */
 export function PartyDataForm({ party, canEdit, onSaved }: { party: PartyDetail; canEdit: boolean; onSaved: (p: PartyDetail) => void }) {
+  const roleOptions = useRoleOptions(party.roles)
   const form = useZodForm(schema.superRefine((v, ctx) => {
     if (v.document && !(party.kind === 'PF' ? isValidCpf(v.document) : isValidCnpj(v.document))) ctx.addIssue({ code: 'custom', path: ['document'], message: party.kind === 'PF' ? 'CPF inválido.' : 'CNPJ inválido.' })
   }), {
@@ -81,7 +83,7 @@ export function PartyDataForm({ party, canEdit, onSaved }: { party: PartyDetail;
         {party.kind === 'PJ' ? <Field label="Nome fantasia" error={errors.tradeName?.message}>{(p) => <input {...p} {...form.register('tradeName')} className={inputClass} />}</Field> : null}
         <FormGridItem>
           <Controller control={form.control} name="roles" render={({ field }) => (
-            <ChipGroup legend="Papéis" required value={field.value} onChange={field.onChange} error={errors.roles?.message} options={ROLE_OPTIONS} disabled={!canEdit} />
+            <ChipGroup legend="Papéis" required value={field.value} onChange={field.onChange} error={errors.roles?.message} options={roleOptions} disabled={!canEdit} />
           )} />
         </FormGridItem>
         <Field label="Inscrição estadual" size="sm" error={errors.stateRegistration?.message} hint="Só os dígitos, ou ISENTO.">{(p) => <input {...p} {...form.register('stateRegistration')} className={inputClass} />}</Field>

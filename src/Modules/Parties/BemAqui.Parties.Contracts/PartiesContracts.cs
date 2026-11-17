@@ -18,6 +18,9 @@ public enum PartyRoleKind
     Supplier,
     Installer,
     Carrier,
+
+    /// <summary>Empresa da maquininha de cartão (PAG-01): a forma de pagamento aponta para ela; o CNPJ serve ao grupo de cartão da NFC-e.</summary>
+    Acquirer,
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<AddressKind>))]
