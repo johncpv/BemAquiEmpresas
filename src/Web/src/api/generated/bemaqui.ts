@@ -39,6 +39,7 @@ import type {
   ActiveProjectsCard,
   AddHolidaysInput,
   AddHolidaysResult,
+  AddTenantProfileRequest,
   AddressData,
   AddressInput,
   AgendaView,
@@ -138,6 +139,7 @@ import type {
   BomReleasePreview,
   BomUpdate,
   BomVersionInput,
+  BusinessProfileView,
   CalendarDetail,
   CalendarExceptionDetail,
   CalendarExceptionInput,
@@ -794,6 +796,7 @@ import type {
   PinLoginRequest,
   PinSessionResponse,
   PinUsers,
+  PlanModulesView,
   PlanningQueuePreview,
   PlanningQueuePreviewInput,
   PlanningQueueSaveInput,
@@ -945,6 +948,7 @@ import type {
   RejectIncomingInvoiceRequest,
   RemoveMaintenanceOrderCostParams,
   RemoveQuoteItemParams,
+  RemoveTenantProfileParams,
   ReopenInventoryCountInput,
   RequisitionConfirmInput,
   RequisitionDecisionInput,
@@ -1065,6 +1069,8 @@ import type {
   TaxSimulationView,
   TenantDetail,
   TenantParametersDto,
+  TenantProfileChange,
+  TenantProfilesTab,
   TenantPublicContext,
   TerminationCalculationResult,
   TerminationCancelInput,
@@ -3572,6 +3578,453 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getSaveTenantModulesMutationOptions(options), queryClient);
+    }
+
+export const getListBusinessProfilesUrl = () => {
+
+
+
+
+  return `/api/v1/platform/business-profiles`
+}
+
+export const listBusinessProfiles = async ( options?: Parameters<typeof apiFetch>[1]): Promise<BusinessProfileView[]> => {
+
+  return apiFetch<BusinessProfileView[]>(getListBusinessProfilesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListBusinessProfilesQueryKey = () => {
+    return [
+    `/api/v1/platform/business-profiles`
+    ] as const;
+    }
+
+
+export const getListBusinessProfilesQueryOptions = <TData = Awaited<ReturnType<typeof listBusinessProfiles>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBusinessProfiles>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBusinessProfilesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBusinessProfiles>>> = ({ signal }) => listBusinessProfiles({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBusinessProfiles>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListBusinessProfilesQueryResult = NonNullable<Awaited<ReturnType<typeof listBusinessProfiles>>>
+export type ListBusinessProfilesQueryError = unknown
+
+
+export function useListBusinessProfiles<TData = Awaited<ReturnType<typeof listBusinessProfiles>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBusinessProfiles>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBusinessProfiles>>,
+          TError,
+          Awaited<ReturnType<typeof listBusinessProfiles>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBusinessProfiles<TData = Awaited<ReturnType<typeof listBusinessProfiles>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBusinessProfiles>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBusinessProfiles>>,
+          TError,
+          Awaited<ReturnType<typeof listBusinessProfiles>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBusinessProfiles<TData = Awaited<ReturnType<typeof listBusinessProfiles>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBusinessProfiles>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListBusinessProfiles<TData = Awaited<ReturnType<typeof listBusinessProfiles>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBusinessProfiles>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListBusinessProfilesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListPlanModulesUrl = () => {
+
+
+
+
+  return `/api/v1/platform/plans/modules`
+}
+
+export const listPlanModules = async ( options?: Parameters<typeof apiFetch>[1]): Promise<PlanModulesView[]> => {
+
+  return apiFetch<PlanModulesView[]>(getListPlanModulesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPlanModulesQueryKey = () => {
+    return [
+    `/api/v1/platform/plans/modules`
+    ] as const;
+    }
+
+
+export const getListPlanModulesQueryOptions = <TData = Awaited<ReturnType<typeof listPlanModules>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlanModules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPlanModulesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPlanModules>>> = ({ signal }) => listPlanModules({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPlanModules>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPlanModulesQueryResult = NonNullable<Awaited<ReturnType<typeof listPlanModules>>>
+export type ListPlanModulesQueryError = unknown
+
+
+export function useListPlanModules<TData = Awaited<ReturnType<typeof listPlanModules>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlanModules>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPlanModules>>,
+          TError,
+          Awaited<ReturnType<typeof listPlanModules>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPlanModules<TData = Awaited<ReturnType<typeof listPlanModules>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlanModules>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPlanModules>>,
+          TError,
+          Awaited<ReturnType<typeof listPlanModules>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPlanModules<TData = Awaited<ReturnType<typeof listPlanModules>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlanModules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPlanModules<TData = Awaited<ReturnType<typeof listPlanModules>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlanModules>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPlanModulesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetTenantProfilesUrl = (tenantId: string,) => {
+
+
+
+
+  return `/api/v1/platform/tenants/${tenantId}/profiles`
+}
+
+export const getTenantProfiles = async (tenantId: string, options?: Parameters<typeof apiFetch>[1]): Promise<TenantProfilesTab> => {
+
+  return apiFetch<TenantProfilesTab>(getGetTenantProfilesUrl(tenantId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTenantProfilesQueryKey = (tenantId: string,) => {
+    return [
+    `/api/v1/platform/tenants/${tenantId}/profiles`
+    ] as const;
+    }
+
+
+export const getGetTenantProfilesQueryOptions = <TData = Awaited<ReturnType<typeof getTenantProfiles>>, TError = unknown>(tenantId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTenantProfiles>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTenantProfilesQueryKey(tenantId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTenantProfiles>>> = ({ signal }) => getTenantProfiles(tenantId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: tenantId !== null && tenantId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTenantProfiles>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTenantProfilesQueryResult = NonNullable<Awaited<ReturnType<typeof getTenantProfiles>>>
+export type GetTenantProfilesQueryError = unknown
+
+
+export function useGetTenantProfiles<TData = Awaited<ReturnType<typeof getTenantProfiles>>, TError = unknown>(
+ tenantId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTenantProfiles>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTenantProfiles>>,
+          TError,
+          Awaited<ReturnType<typeof getTenantProfiles>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTenantProfiles<TData = Awaited<ReturnType<typeof getTenantProfiles>>, TError = unknown>(
+ tenantId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTenantProfiles>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTenantProfiles>>,
+          TError,
+          Awaited<ReturnType<typeof getTenantProfiles>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTenantProfiles<TData = Awaited<ReturnType<typeof getTenantProfiles>>, TError = unknown>(
+ tenantId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTenantProfiles>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTenantProfiles<TData = Awaited<ReturnType<typeof getTenantProfiles>>, TError = unknown>(
+ tenantId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTenantProfiles>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTenantProfilesQueryOptions(tenantId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAddTenantProfileUrl = (tenantId: string,) => {
+
+
+
+
+  return `/api/v1/platform/tenants/${tenantId}/profiles`
+}
+
+export const addTenantProfile = async (tenantId: string,
+    addTenantProfileRequest: AddTenantProfileRequest, options?: Parameters<typeof apiFetch>[1]): Promise<TenantProfileChange> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TenantProfileChange>(getAddTenantProfileUrl(tenantId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(addTenantProfileRequest)
+  }
+);}
+
+
+
+
+
+export const getAddTenantProfileMutationKey = () => ['addTenantProfile'] as const;
+
+export const getAddTenantProfileMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addTenantProfile>>, TError,AddTenantProfileMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addTenantProfile>>, TError,AddTenantProfileMutationVariables, TContext> => {
+
+const mutationKey = getAddTenantProfileMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addTenantProfile>>, AddTenantProfileMutationVariables> = (props) => {
+          const {tenantId,data} = props ?? {};
+
+          return  addTenantProfile(tenantId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddTenantProfileMutationResult = NonNullable<Awaited<ReturnType<typeof addTenantProfile>>>
+    export type AddTenantProfileMutationBody = AddTenantProfileRequest
+    export type AddTenantProfileMutationError = unknown
+    export type AddTenantProfileMutationVariables = {tenantId: string;data: AddTenantProfileRequest}
+
+    export const useAddTenantProfile = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addTenantProfile>>, TError,AddTenantProfileMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof addTenantProfile>>,
+        TError,
+        AddTenantProfileMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAddTenantProfileMutationOptions(options), queryClient);
+    }
+
+export const getRemoveTenantProfileUrl = (tenantId: string,
+    profile: string,
+    params?: RemoveTenantProfileParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/platform/tenants/${tenantId}/profiles/${profile}?${stringifiedParams}` : `/api/v1/platform/tenants/${tenantId}/profiles/${profile}`
+}
+
+export const removeTenantProfile = async (tenantId: string,
+    profile: string,
+    params?: RemoveTenantProfileParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getRemoveTenantProfileUrl(tenantId,profile,params),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRemoveTenantProfileMutationKey = () => ['removeTenantProfile'] as const;
+
+export const getRemoveTenantProfileMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeTenantProfile>>, TError,RemoveTenantProfileMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeTenantProfile>>, TError,RemoveTenantProfileMutationVariables, TContext> => {
+
+const mutationKey = getRemoveTenantProfileMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeTenantProfile>>, RemoveTenantProfileMutationVariables> = (props) => {
+          const {tenantId,profile,params} = props ?? {};
+
+          return  removeTenantProfile(tenantId,profile,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveTenantProfileMutationResult = NonNullable<Awaited<ReturnType<typeof removeTenantProfile>>>
+
+    export type RemoveTenantProfileMutationError = unknown
+    export type RemoveTenantProfileMutationVariables = {tenantId: string;profile: string;params?: RemoveTenantProfileParams}
+
+    export const useRemoveTenantProfile = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeTenantProfile>>, TError,RemoveTenantProfileMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof removeTenantProfile>>,
+        TError,
+        RemoveTenantProfileMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRemoveTenantProfileMutationOptions(options), queryClient);
     }
 
 export const getListPlansUrl = () => {
