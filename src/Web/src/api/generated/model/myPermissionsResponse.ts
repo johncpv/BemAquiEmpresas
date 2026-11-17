@@ -5,10 +5,14 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { MyModule } from './myModule';
+import type { MyPermissionsResponseAreaLabels } from './myPermissionsResponseAreaLabels';
+import type { MyPermissionsResponseVocabulary } from './myPermissionsResponseVocabulary';
 
 export interface MyPermissionsResponse {
   permissions: string[];
   isOwner: boolean;
   version: string;
   modules: MyModule[];
+  areaLabels: MyPermissionsResponseAreaLabels;
+  vocabulary: MyPermissionsResponseVocabulary;
 }
