@@ -19,6 +19,8 @@ public interface ITenantModulesDb
 
     DbSet<TenantProfile> TenantProfiles { get; }
 
+    DbSet<PlatformAdmin> PlatformAdmins { get; }
+
     DbSet<AuditEntry> AuditEntries { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

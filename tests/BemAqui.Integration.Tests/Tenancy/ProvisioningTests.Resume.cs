@@ -31,7 +31,7 @@ public partial class ProvisioningTests
 
         resumed.Success.Should().BeTrue(resumed.Error);
         resumed.Steps.Where(s => s.Status == "Já concluída").Select(s => s.Step)
-            .Should().Equal(ProvisioningSteps.CreateRole, ProvisioningSteps.CreateDatabase, ProvisioningSteps.Migrate);
+            .Should().Equal(ProvisioningSteps.Profile, ProvisioningSteps.CreateRole, ProvisioningSteps.CreateDatabase, ProvisioningSteps.Migrate);
         FlakySeeder.Calls.Should().Be(1, "o seed roda uma vez com sucesso, sem duplicar");
         (await tenancy.FindAsync("empresa-r")).Status.Should().Be(TenantLifecycle.Active);
 

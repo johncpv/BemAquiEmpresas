@@ -7,13 +7,18 @@ public static class ModuleAreas
 {
     public const string Overview = "Visão geral";
     public const string Commercial = "Comercial";
+
+    /// <summary>Área do varejo (PERF-03): recebe os módulos do PDV (Catálogo, Vendas e Caixa). Sem módulo, some do dock.</summary>
+    public const string Store = "Loja";
+
+    /// <summary>Estoque e Compras: "Fábrica" no perfil fábrica e "Retaguarda" nos demais (rótulo pelo vocabulário, ADR 0046 §6).</summary>
     public const string Factory = "Fábrica";
     public const string Financial = "Financeiro";
     public const string People = "Pessoas";
     public const string Dedicated = "Telas dedicadas";
     public const string System = "Sistema";
 
-    public static readonly string[] All = [Overview, Commercial, Factory, Financial, People, Dedicated, System];
+    public static readonly string[] All = [Overview, Commercial, Store, Factory, Financial, People, Dedicated, System];
 }
 
 /// <summary>Ações padrão (CLAUDE.md, camada 3). Ações específicas são snake_case e só existem com necessidade real (ADR 0003).</summary>
@@ -79,9 +84,9 @@ public static partial class ModuleCatalog
                 new("edit_budget", "Editar custo orçado", "Editar custo orçado: informar ou corrigir o custo orçado do projeto por natureza, com motivo. Muda a margem orçada; exige também Ver custo e margem."),
             ], "aditivos de contrato"),
         new("parties", "Cadastros", ModuleAreas.Commercial, 1, 40, "Clientes, fornecedores e instaladores.", Crud, []),
-        // VND-01 (Fase 10 do PDV): núcleo de vendas de todos os canais. Fica na área "Loja", que nasce na PERF-03; até lá, no Comercial. Fora do
-        // perfil Fábrica (oculto para a Konebras). Aprovar = cancelar venda com pagamento capturado (estorno, rascunho C §7).
-        new("sales", "Vendas", ModuleAreas.Commercial, 10, 45, "Vendas do balcão, da loja virtual e das OS, com pagamentos, baixa de estoque e recebíveis.", CrudApprove,
+        // VND-01 (Fase 10 do PDV): núcleo de vendas de todos os canais. Fica na área "Loja" (PERF-03). Fora do perfil Fábrica
+        // (oculto para a Konebras). Aprovar = cancelar venda com pagamento capturado (estorno, rascunho C §7).
+        new("sales", "Vendas", ModuleAreas.Store, 10, 45, "Vendas do balcão, da loja virtual e das OS, com pagamentos, baixa de estoque e recebíveis.", CrudApprove,
             [new("view_cost", "Ver custo e margem", "Ver o custo da baixa de estoque e a margem de cada venda.")], "cancelar venda com pagamento capturado"),
         new("engineering", "Engenharia", ModuleAreas.Factory, 3, 50, "Estrutura de produto (BOM) e roteiros de fabricação.", CrudApprove, [], "liberar a BOM"),
         // PRD-05 (D6, ADR 0003 adendo de 21/10/2026): a decisão de qualidade sai da production.approve para a ação específica,

@@ -6,6 +6,9 @@ public sealed record BusinessSegment(string Code, string Name);
 /// <summary>Perfil de negócio: os módulos que fazem sentido para esse tipo de empresa (ADR 0046).</summary>
 public sealed record BusinessProfileDefinition(string Code, string Name, string Description, IReadOnlyList<string> Modules, IReadOnlyList<BusinessSegment> Segments)
 {
+    /// <summary>Vocabulário do perfil (PERF-03): chave → termo, com teto de <see cref="BusinessVocabulary.MaxTerms"/> chaves.</summary>
+    public IReadOnlyDictionary<string, string> Vocabulary { get; init; } = new Dictionary<string, string>(StringComparer.Ordinal);
+
     public bool HasSegment(string? segment) => segment is null || Segments.Any(s => string.Equals(s.Code, segment, StringComparison.Ordinal));
 }
 
@@ -36,7 +39,10 @@ public static class BusinessProfileCatalog
     [
         // CA 3: exatamente os módulos que a Konebras tem hoje (os 16 da ADR 0010). Módulo novo só entra aqui por decisão explícita.
         new(Factory, "Fábrica", "Indústria sob encomenda: orçamento, projeto, engenharia, produção e chão de fábrica.",
-            [.. Core, "quotes", "projects", "engineering", "production", "kiosk", "shopfloor"], []),
+            [.. Core, "quotes", "projects", "engineering", "production", "kiosk", "shopfloor"], [])
+        {
+            Vocabulary = BusinessVocabulary.Defaults, // a Fábrica fala como o sistema fala hoje: com ela, nenhum termo muda (PERF-03 CA 3)
+        },
         new(Retail, "Comércio", "Venda no balcão e na loja: caixa, estoque e retaguarda.",
             [.. Core, "kiosk", "sales"],
             [
@@ -46,11 +52,17 @@ public static class BusinessProfileCatalog
                 new("restaurant", "Restaurante"),
                 new("snack_bar", "Lanchonete e hamburgueria"),
                 new("food_truck", "Trailer"),
-            ]),
+            ])
+        {
+            Vocabulary = BusinessVocabulary.Backoffice,
+        },
         new(Services, "Prestação de serviços", "Serviço com orçamento e ordem de serviço.",
             [.. Core, "quotes", "projects", "sales"],
-            [new("workshop", "Oficina")]),
-        new(Ecommerce, "E-commerce", "Venda pela loja virtual.", [.. Core, "sales"], []),
+            [new("workshop", "Oficina")])
+        {
+            Vocabulary = BusinessVocabulary.Backoffice,
+        },
+        new(Ecommerce, "E-commerce", "Venda pela loja virtual.", [.. Core, "sales"], []) { Vocabulary = BusinessVocabulary.Backoffice },
     ];
 
     /// <summary>Recurso de pagamentos da venda dentro do Financeiro (PAG-01): formas de pagamento e taxas da adquirente.</summary>

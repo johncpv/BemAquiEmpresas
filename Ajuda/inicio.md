@@ -34,4 +34,6 @@ modulo:
 
 **Por que não vejo todos os módulos?** O sistema mostra só o que faz sentido para o tipo de negócio da empresa (Fábrica, Comércio, Prestação de serviços ou E-commerce). Módulo que não faz parte desse perfil não aparece no dock, na busca nem na ajuda. Módulo do perfil que não está na versão contratada aparece com cadeado e abre a tela "Funcionalidade não liberada nessa versão do sistema.". E módulo liberado que não está habilitado nos seus grupos também não aparece para você. Para mudar o perfil ou a versão, fale com o suporte do BemAqui; para os grupos, com quem administra os acessos da empresa.
 
+**Por que a área de Estoque e Compras se chama "{{area.factory|Fábrica}}"?** O nome das áreas acompanha o tipo de negócio da empresa: numa fábrica, a área se chama "Fábrica"; num comércio, numa prestadora de serviços ou numa loja virtual, ela se chama "Retaguarda", que é onde se controla estoque, compras e cadastros. A área **Loja** reúne as telas de venda no balcão e só aparece quando a empresa usa esses módulos. Os nomes valem para o menu, a busca e a ajuda; nome de permissão e texto de nota fiscal não mudam.
+
 **O que é o traço amarelo no dock?** Ele marca a área em que você está.

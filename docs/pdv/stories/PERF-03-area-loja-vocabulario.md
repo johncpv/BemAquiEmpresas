@@ -5,7 +5,7 @@
 | ID | PERF-03 |
 | Título | Área "Loja" no dock, rótulo de área por perfil ("Retaguarda" no lugar de "Fábrica") e vocabulário por perfil servido no `tenant-context` |
 | Tamanho | M |
-| Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
+| Status | Done (17/11/2026), aguardando PR |
 | Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (item 3) · [PRD do PDV](../01-PRD.md) seção 3.2 · ADR 0005 (shell, dock e navegação) |
 | Dependências | PERF-01; PP-25 |
@@ -55,16 +55,25 @@ Como **dono de um comércio**, quero **ver "Loja" e "Retaguarda" no menu, e não
 ## Pontos em aberto
 - PP-25: a lista inicial de termos por perfil precisa da validação do PO.
 
+## Revisão contra o código (17/11/2026, antes de codar)
+- **Área como identificador.** O `area` de `/me/permissions` é o próprio texto do `ModuleAreas` ("Fábrica") e o front casa módulo e área por ele. Trocar o texto quebraria o casamento e o retrato da Konebras. Ajuste: o texto continua sendo o identificador (`Area.key` no front) e o rótulo vem à parte, em `areaLabels`.
+- **"Contexto autenticado do tenant" não existia como endpoint.** O que o front carrega depois do login é o `/me/permissions` (`NavigationProvider`), com recarga pela `X-Perm-Version`. Ajuste: `areaLabels` e `vocabulary` entram nele, sem endpoint novo; o `tenant-context` público não muda (o login não usa termo).
+- **Ordem fixa (CA 6) x Konebras (CA 3).** Se a Fábrica não declarasse termo, "Fábrica + Comércio" herdaria "Retaguarda" do Comércio. Ajuste: a Fábrica declara os termos padrão, então com `factory` nada muda.
+- **Lista de termos (PP-25).** O teto foi decidido; a lista não. Termos óbvios como "Itens" → "Produtos" no Estoque colidem com o "produto" do Catálogo (CAT-01 liga produto a item). Ajuste: a lista inicial tem só `area.factory`; o mecanismo (teto, ordem, ajuda, hook) fica pronto para a CAT-01 e as seguintes, e a lista segue em aberto para o PO.
+- **Loja vazia.** Nenhum módulo é da área "Loja" até a CAT-01; área sem módulo visível some do dock, então ela não aparece para ninguém por enquanto, e a Konebras nunca a verá (o perfil `factory` não recebe módulo novo sem decisão, ADR 0046).
+- **DoD não se aplica em parte:** sem migration e sem permissão nova (nenhuma tabela); sem tela nova.
+
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade e de integração (Testcontainers) passando; Vitest no front.
-- [ ] Migration criada; permissões só do `ModuleCatalog`.
-- [ ] Telas com estados de carregando, vazio e erro; ajuda escrita ou atualizada em `Ajuda/` no mesmo commit.
-- [ ] Padrões e próximo passo propositivos avaliados; auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR.
+- [x] Critérios de aceite atendidos (CA 1 a 8; a área "Loja" fica oculta até ter módulo).
+- [x] Testes de unidade e de integração (Testcontainers) passando; Vitest no front.
+- [x] Migration criada; permissões só do `ModuleCatalog`. _Não se aplica: nenhuma tabela nem permissão._
+- [x] Telas com estados de carregando, vazio e erro; ajuda escrita ou atualizada em `Ajuda/` no mesmo commit (`Ajuda/inicio.md`).
+- [x] Padrões e próximo passo propositivos avaliados; auditoria ligada. _Sem escrita: nada a auditar._
+- [x] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR (ADR 0046 §6).
 
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
+| 17/11/2026 | 1.0 | Implementada: `ModuleAreas.Store`, `BusinessVocabulary` (teto de 30, ordem fixa, `area.factory`), `areaLabels` e `vocabulary` em `/me/permissions`, ajuda com `{{chave|Padrão}}`, `useTerm`/`<Term>`/`useAreaLabel` no front, ADR 0046 §6. | Claude (dev) |

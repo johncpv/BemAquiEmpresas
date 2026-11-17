@@ -39,9 +39,19 @@
 - A migration `TenantProfiles` do catálogo é só acréscimo: cria `tenant_profiles`, o trigger de NOTIFY e grava `factory` (sistema, auditado) para todo tenant sem perfil. **Não toca `tenant_modules`**: como `factory` lista todos os módulos de hoje, o herdado não muda.
 - Teste de regressão (integração): retrato de `GET /me/permissions` de um usuário de cada grupo do seed, com uma exceção manual, antes e depois do backfill e de um recálculo; tem de ser idêntico, inclusive a versão.
 
+### 6. Áreas do dock e vocabulário (PERF-03, PP-25)
+- **Área "Loja"** (`ModuleAreas.Store`) entre "Comercial" e "Fábrica", para os módulos do PDV (Catálogo, Vendas, Caixa). Área sem módulo visível some do dock; o primeiro módulo dela é Vendas (`sales`, VND-01), e o perfil `factory` nunca recebe módulo dela sem decisão explícita.
+- **Vocabulário em código** (`BusinessVocabulary`, ao lado do catálogo): dicionário chave → termo por perfil, com **teto de 30 chaves** (PP-25; o teste de unidade falha acima disso). Toda chave existe nos **termos padrão**, que são os do perfil `factory` (como o sistema fala hoje). O tenant não edita termo nesta versão. Vale para rótulo de interface e ajuda; nome de permissão, código de módulo, texto de documento fiscal e o campo `area` de `/me/permissions` (identificador) não mudam.
+- **Combinação:** com dois perfis que definem a mesma chave, vale a **ordem fixa do catálogo**: `factory`, `retail`, `services`, `ecommerce` (não a ordem de aplicação). Como `factory` declara os termos padrão, tenant com `factory` (com ou sem outros perfis) vê sempre o padrão; tenant sem perfil (rede de segurança do §3) também.
+- **Rótulo de área** sai do vocabulário (`area.factory`): "Fábrica" no padrão, "Retaguarda" em `retail`, `services` e `ecommerce`.
+- **Onde chega:** `ResolvedTenant.Vocabulary` (recarrega pelo mesmo NOTIFY de `tenant_profiles`); `GET /me/permissions` ganha `areaLabels` (área → rótulo) e `vocabulary` (chave → termo), **só com o que difere do padrão** (a Konebras recebe os dois vazios). O vocabulário entra no hash da versão de permissões só quando não é vazio, como os ocultos. O `tenant-context` público não muda: o login não usa termo.
+- **Ajuda:** o termo é marcado no `.md` como `{{chave|Padrão}}`; o `HelpAccess` entrega a ajuda já com o termo do tenant (painel, busca e Pergunte ao BemAqui), e o renderizador do front resolve o que vier sem resolver. Padrão em minúscula deixa o termo em minúscula. Chave desconhecida derruba a subida, como qualquer ajuda inválida.
+- **Front:** `useTerm`, `<Term k="...">Padrão</Term>` e `useAreaLabel` (`navigation/vocabulary.tsx`); o dock casa módulo e área pelo texto do `ModuleAreas` (`key`) e mostra o rótulo.
+
 ## Consequências
 - `CLAUDE.md`: a regra da camada 1 passa a dizer "no perfil e fora do plano: cadeado; fora do perfil: oculto".
-- Próximas stories: PERF-02 (perfil no provisionamento e aba Perfis, com os endpoints da plataforma), PERF-03 (área "Loja" e vocabulário, teto de cerca de 30 termos, PP-25), PERF-04 (dados iniciais por perfil e segmento).
+- Próximas stories: PERF-02 (perfil no provisionamento e aba Perfis, com os endpoints da plataforma), PERF-04 (dados iniciais por perfil e segmento). A PERF-03 (§6) entregou a área "Loja" e o vocabulário.
+- Termo novo entra no `BusinessVocabulary.Defaults` e no(s) perfil(is) na story que precisa dele, dentro do teto; a lista inicial (só `area.factory`) aguarda a validação do PO (PERF-03, pontos em aberto).
 - Módulo novo entra no `ModuleCatalog` e no(s) perfil(is) dele na mesma story; o teste de arquitetura impede perfil com código inexistente, e o teste de unidade do `factory` impede que um módulo novo apareça para a Konebras sem querer.
 
 ## Adendo de 17/11/2026: recurso por perfil dentro de um módulo comum (PAG-01)

@@ -8,7 +8,7 @@ import { ProximosPassos } from './Inicio'
 afterEach(cleanup)
 
 const mod = (code: string, actions: string[]) => ({ code, locked: false, actions }) as unknown as NavModule
-const nav = (all: NavModule[]): NavigationValue => ({ areas: [], all, isOwner: false, tenantName: 'Konebras', status: 'ready', retry: () => undefined })
+const nav = (all: NavModule[]): NavigationValue => ({ areas: [], all, isOwner: false, tenantName: 'Konebras', status: 'ready', retry: () => undefined, vocabulary: {}, areaLabels: {} })
 
 function renderWith(all: NavModule[]) {
   return renderWithRouter(() => (

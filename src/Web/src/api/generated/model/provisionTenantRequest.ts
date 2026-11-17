@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { ProfileChoice } from './profileChoice';
 
 export interface ProvisionTenantRequest {
   key: string;
@@ -16,4 +17,6 @@ export interface ProvisionTenantRequest {
   ownerEmail: string;
   /** @nullable */
   plan: string | null;
+  /** @nullable */
+  profiles?: ProfileChoice[] | null;
 }
