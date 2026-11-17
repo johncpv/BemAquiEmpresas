@@ -78,7 +78,7 @@ describe('área Loja e rótulo de área por perfil (PERF-03)', () => {
   })
 
   it('sem fábrica, a área de Estoque e Compras vira Retaguarda e continua achando os módulos (CA 2)', () => {
-    const nav = buildNavigation(SAMPLE_MODULES, false, { Fábrica: 'Retaguarda' })
+    const nav = buildNavigation(SAMPLE_MODULES, false, ['retail'], { Fábrica: 'Retaguarda' })
     const backoffice = nav.areas.find((a) => a.id === 'factory')!
     expect([backoffice.name, backoffice.short]).toEqual(['Retaguarda', 'Retaguarda'])
     expect(backoffice.modules.map((x) => x.code)).toEqual(expect.arrayContaining(['inventory', 'purchasing']))
@@ -88,5 +88,16 @@ describe('área Loja e rótulo de área por perfil (PERF-03)', () => {
   it('a área Loja aparece entre Comercial e Fábrica quando tem módulo (CA 1)', () => {
     const nav = buildNavigation([...SAMPLE_MODULES, { ...SAMPLE_MODULES[0], code: 'dashboard', area: 'Loja' }])
     expect(nav.areas.map((a) => a.id).slice(0, 4)).toEqual(['overview', 'commercial', 'store', 'factory'])
+  })
+})
+
+describe('recurso por perfil dentro do Financeiro (PAG-01, decisão do PO de 17/11/2026)', () => {
+  const tabs = (profiles: string[]) => buildNavigation([m('finance', 'Financeiro', true, true)], false, profiles).all[0].tabs.map((t) => t.slug)
+
+  it('a fábrica (Konebras) não vê Formas de pagamento; Comércio vê', () => {
+    expect(tabs(['factory'])).not.toContain('formas-de-pagamento')
+    expect(tabs([])).not.toContain('formas-de-pagamento')
+    expect(tabs(['factory', 'retail'])).toContain('formas-de-pagamento')
+    expect(tabs(['factory'])).toContain('condicoes-de-pagamento')
   })
 })

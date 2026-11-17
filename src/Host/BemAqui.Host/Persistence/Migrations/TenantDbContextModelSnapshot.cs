@@ -2916,6 +2916,66 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("chart_of_accounts", "finance");
                 });
 
+            modelBuilder.Entity("BemAqui.Finance.Domain.AcquirerFee", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AcquirerPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acquirer_party_id");
+
+                    b.Property<string>("Brand")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("brand");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<decimal>("FeePercent")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("numeric(9,4)")
+                        .HasColumnName("fee_percent");
+
+                    b.Property<int>("Installments")
+                        .HasColumnType("integer")
+                        .HasColumnName("installments");
+
+                    b.Property<Guid>("PaymentMethodId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_method_id");
+
+                    b.Property<int>("SettlementDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("settlement_days");
+
+                    b.Property<DateOnly>("ValidFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("valid_from");
+
+                    b.Property<DateOnly?>("ValidTo")
+                        .HasColumnType("date")
+                        .HasColumnName("valid_to");
+
+                    b.HasKey("Id")
+                        .HasName("pk_acquirer_fees");
+
+                    b.HasIndex("PaymentMethodId", "AcquirerPartyId", "Brand", "Installments", "ValidFrom")
+                        .IsUnique()
+                        .HasDatabaseName("ix_acquirer_fees_payment_method_id_acquirer_party_id_brand_ins");
+
+                    b.ToTable("acquirer_fees", "finance");
+                });
+
             modelBuilder.Entity("BemAqui.Finance.Domain.ApprovalRule", b =>
                 {
                     b.Property<Guid>("Id")
@@ -5023,6 +5083,89 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_payable_settlements_payment_order_id");
 
                     b.ToTable("payable_settlements", "finance");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.PaymentMethod", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AcquirerPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acquirer_party_id");
+
+                    b.Property<bool>("AllowsChange")
+                        .HasColumnType("boolean")
+                        .HasColumnName("allows_change");
+
+                    b.Property<DateTimeOffset?>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("confirmed_at");
+
+                    b.Property<Guid?>("ConfirmedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("confirmed_by");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid>("DestinationAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("destination_account_id");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NfePaymentCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("nfe_payment_code");
+
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("seed_key");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_payment_methods");
+
+                    b.HasIndex("AcquirerPartyId")
+                        .HasDatabaseName("ix_payment_methods_acquirer_party_id");
+
+                    b.HasIndex("DestinationAccountId")
+                        .HasDatabaseName("ix_payment_methods_destination_account_id");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_payment_methods_seed_key")
+                        .HasFilter("seed_key IS NOT NULL");
+
+                    b.ToTable("payment_methods", "finance");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.PaymentOrder", b =>
@@ -17778,6 +17921,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasConstraintName("fk_chart_of_accounts_chart_of_accounts_parent_id");
                 });
 
+            modelBuilder.Entity("BemAqui.Finance.Domain.AcquirerFee", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.PaymentMethod", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentMethodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_acquirer_fees_payment_methods_payment_method_id");
+                });
+
             modelBuilder.Entity("BemAqui.Finance.Domain.BankIntegration", b =>
                 {
                     b.HasOne("BemAqui.Finance.Domain.BankAccount", null)
@@ -17942,6 +18095,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_financial_transactions_bank_accounts_bank_account_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Finance.Domain.PaymentMethod", b =>
+                {
+                    b.HasOne("BemAqui.Finance.Domain.BankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("DestinationAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_payment_methods_bank_accounts_destination_account_id");
                 });
 
             modelBuilder.Entity("BemAqui.Finance.Domain.PaymentOrderLevel", b =>

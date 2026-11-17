@@ -18,11 +18,12 @@ public sealed record SetUserGroupsRequest(IReadOnlyList<Guid> GroupIds);
 public sealed record MyModule(string Code, string Name, string Area, int Order, string Description, bool Released, bool Enabled, IReadOnlyList<string> Actions, bool Hidden);
 
 /// <summary>
-/// Permissões e contexto autenticado do tenant. <c>AreaLabels</c> (área do dock → rótulo) e <c>Vocabulary</c> (chave → termo) vêm
+/// Permissões e contexto autenticado do tenant. <c>Profiles</c>: perfis de negócio ativos (ADR 0046), para o menu esconder os
+/// recursos por perfil (adendo da PAG-01). <c>AreaLabels</c> (área do dock → rótulo) e <c>Vocabulary</c> (chave → termo) vêm
 /// dos perfis de negócio (PERF-03, ADR 0046 §6) e trazem só o que difere do padrão: para a fábrica, os dois vêm vazios.
 /// </summary>
 public sealed record MyPermissionsResponse(
-    IReadOnlyList<string> Permissions, bool IsOwner, string Version, IReadOnlyList<MyModule> Modules,
+    IReadOnlyList<string> Permissions, bool IsOwner, string Version, IReadOnlyList<MyModule> Modules, IReadOnlyList<string> Profiles,
     IReadOnlyDictionary<string, string> AreaLabels, IReadOnlyDictionary<string, string> Vocabulary);
 
 /// <summary>
@@ -78,6 +79,7 @@ internal static class UserEndpoints
                     .ToList();
                 var vocabulary = tenant.Resolved?.Vocabulary ?? new Dictionary<string, string>(StringComparer.Ordinal);
                 return Results.Ok(new MyPermissionsResponse(effective.Permissions.Order(StringComparer.Ordinal).ToList(), effective.IsOwner, effective.Version, modules,
+                    (tenant.Resolved?.Profiles ?? new HashSet<string>()).Order(StringComparer.Ordinal).ToList(),
                     BusinessVocabulary.AreaLabels(vocabulary), vocabulary));
             })
             .WithTags("Identidade").AllowPinSession().WithName("GetMyPermissions").Produces<MyPermissionsResponse>();

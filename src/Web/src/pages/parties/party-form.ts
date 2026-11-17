@@ -15,7 +15,7 @@ export const newPartySchema = z
     kind: z.enum(['PF', 'PJ']),
     legalName: z.string().trim().min(2, 'Informe o nome ou a razão social.').max(200, 'Use até 200 caracteres.'),
     tradeName: z.string().max(200, 'Use até 200 caracteres.'),
-    roles: z.array(z.enum(['Customer', 'Supplier', 'Installer', 'Carrier'])).min(1, 'O terceiro precisa de ao menos um papel.'),
+    roles: z.array(z.enum(['Customer', 'Supplier', 'Installer', 'Carrier', 'Acquirer'])).min(1, 'O terceiro precisa de ao menos um papel.'),
     email: optionalEmail,
     phone: optionalPhone,
     zipCode: z.string(),

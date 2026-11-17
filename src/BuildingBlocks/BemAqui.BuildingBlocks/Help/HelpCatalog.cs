@@ -7,7 +7,8 @@ namespace BemAqui.BuildingBlocks.Help;
 public sealed record HelpSection(string Title, string Body);
 
 /// <summary>Uma ajuda de tela (<c>Ajuda/&lt;chave&gt;.md</c>, padrão NSHome, PRD §5.15a).</summary>
-public sealed record HelpDocument(string Key, string Title, string Route, string? Tab, bool IsDefault, string? Module, IReadOnlyList<HelpSection> Sections);
+/// <param name="Feature">Recurso por perfil (cabeçalho opcional <c>recurso</c>, adendo da ADR 0046): a ajuda só aparece para o tenant com o recurso.</param>
+public sealed record HelpDocument(string Key, string Title, string Route, string? Tab, bool IsDefault, string? Module, IReadOnlyList<HelpSection> Sections, string? Feature = null);
 
 /// <summary>
 /// Catálogo das ajudas (FND-14): os <c>.md</c> de <c>Ajuda/</c>, na raiz do repositório, são embutidos no assembly do Host
@@ -73,6 +74,11 @@ public sealed partial class HelpCatalog
             problems.Add("cabeçalho precisa declarar 'aba' e 'modulo' (podem ficar vazios)");
         }
 
+        if (header.GetValueOrDefault("recurso") is { Length: > 0 } feature && !Modules.BusinessProfileCatalog.Features.ContainsKey(feature))
+        {
+            problems.Add("recurso '" + feature + "' fora do BusinessProfileCatalog");
+        }
+
         var sections = new List<HelpSection>();
         string? current = null;
         var lines = new List<string>();
@@ -115,7 +121,8 @@ public sealed partial class HelpCatalog
             string.IsNullOrWhiteSpace(header["aba"]) ? null : header["aba"],
             padrao.Equals("true", StringComparison.OrdinalIgnoreCase) || padrao.Equals("sim", StringComparison.OrdinalIgnoreCase),
             string.IsNullOrWhiteSpace(header["modulo"]) ? null : header["modulo"],
-            sections);
+            sections,
+            header.GetValueOrDefault("recurso") is { Length: > 0 } recurso ? recurso : null);
     }
 
     [GeneratedRegex("^---\n(.*?)\n---\n", RegexOptions.Singleline)]

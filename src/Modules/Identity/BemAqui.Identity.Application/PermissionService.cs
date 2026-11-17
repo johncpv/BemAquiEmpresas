@@ -89,5 +89,7 @@ public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant
     private static string ReleaseHash(ResolvedTenant tenant) =>
         Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join(',', tenant.ReleasedModules.Order(StringComparer.Ordinal))
             + (tenant.HiddenModules.Count == 0 ? string.Empty : "|" + string.Join(',', tenant.HiddenModules.Order(StringComparer.Ordinal)))
-            + (tenant.Vocabulary.Count == 0 ? string.Empty : "|v:" + string.Join(',', tenant.Vocabulary.OrderBy(t => t.Key, StringComparer.Ordinal).Select(t => t.Key + "=" + t.Value))))))[..8];
+            + (tenant.Vocabulary.Count == 0 ? string.Empty : "|v:" + string.Join(',', tenant.Vocabulary.OrderBy(t => t.Key, StringComparer.Ordinal).Select(t => t.Key + "=" + t.Value)))
+            // Adendo da PAG-01: perfil além da fábrica muda os recursos por perfil; a fábrica sozinha (a Konebras) mantém a versão de antes.
+            + (tenant.Profiles.All(p => p == BusinessProfileCatalog.Factory) ? string.Empty : "#" + string.Join(',', tenant.Profiles.Order(StringComparer.Ordinal))))))[..8];
 }

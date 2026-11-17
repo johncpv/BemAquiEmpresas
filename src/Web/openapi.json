@@ -30288,6 +30288,392 @@
         }
       }
     },
+    "/api/v1/finance/payment-methods": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListPaymentMethods",
+        "parameters": [
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfPaymentMethodDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "CreatePaymentMethod",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentMethodRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-methods/acquirers": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "SearchPaymentMethodAcquirers",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AcquirerChoice"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-methods/{id}": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetPaymentMethod",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "UpdatePaymentMethod",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentMethodRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "DeletePaymentMethod",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-methods/suggested": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ApplySuggestedPaymentMethods",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentMethodDetail"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-methods/{id}/confirm": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ConfirmPaymentMethod",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-methods/{id}/inactivate": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "InactivatePaymentMethod",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-methods/{id}/reactivate": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ReactivatePaymentMethod",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/payment-methods/{id}/fees": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListAcquirerFees",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AcquirerFeeView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "AddAcquirerFee",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcquirerFeeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcquirerFeeView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/chart-of-accounts": {
       "get": {
         "tags": [
@@ -41628,6 +42014,128 @@
           "Liability"
         ]
       },
+      "AcquirerChoice": {
+        "required": [
+          "id",
+          "name",
+          "document"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AcquirerFeeInput": {
+        "required": [
+          "brand",
+          "installments",
+          "feePercent",
+          "settlementDays",
+          "validFrom"
+        ],
+        "type": "object",
+        "properties": {
+          "brand": {
+            "$ref": "#/components/schemas/CardBrand"
+          },
+          "installments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "feePercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "settlementDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "AcquirerFeeView": {
+        "required": [
+          "id",
+          "brand",
+          "installments",
+          "feePercent",
+          "settlementDays",
+          "validFrom",
+          "validTo",
+          "inForce",
+          "createdAt",
+          "createdBy",
+          "createdByName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "brand": {
+            "$ref": "#/components/schemas/CardBrand"
+          },
+          "installments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "feePercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "settlementDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "validTo": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "inForce": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "createdByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ActiveProjectItem": {
         "required": [
           "id",
@@ -49466,6 +49974,19 @@
             "type": "boolean"
           }
         }
+      },
+      "CardBrand": {
+        "enum": [
+          "Any",
+          "Visa",
+          "Mastercard",
+          "Elo",
+          "Amex",
+          "Hipercard",
+          "Diners",
+          "Cabal",
+          "Other"
+        ]
       },
       "CarrierOption": {
         "required": [
@@ -59658,6 +60179,12 @@
             "items": {
               "$ref": "#/components/schemas/HelpSection"
             }
+          },
+          "feature": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -70034,6 +70561,7 @@
           "isOwner",
           "version",
           "modules",
+          "profiles",
           "areaLabels",
           "vocabulary"
         ],
@@ -70055,6 +70583,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/MyModule"
+            }
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "type": "string"
             }
           },
           "areaLabels": {
@@ -74871,6 +75405,35 @@
           }
         }
       },
+      "PagedListOfPaymentMethodDetail": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentMethodDetail"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfPaymentTermDetail": {
         "required": [
           "items",
@@ -75881,7 +76444,8 @@
           "Customer",
           "Supplier",
           "Installer",
-          "Carrier"
+          "Carrier",
+          "Acquirer"
         ]
       },
       "PartySearchHit": {
@@ -76847,6 +77411,103 @@
           }
         }
       },
+      "PaymentMethodDetail": {
+        "required": [
+          "id",
+          "name",
+          "type",
+          "destinationAccountId",
+          "destinationAccountName",
+          "acquirerPartyId",
+          "acquirerName",
+          "nfePaymentCode",
+          "allowsChange",
+          "isActive",
+          "seedKey",
+          "confirmed",
+          "confirmedAt",
+          "confirmedByName",
+          "currentFees",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PaymentMethodType"
+          },
+          "destinationAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "destinationAccountName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "acquirerPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "acquirerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nfePaymentCode": {
+            "type": "string"
+          },
+          "allowsChange": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "seedKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "confirmedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "currentFees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AcquirerFeeView"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "PaymentMethodInput": {
         "required": [
           "paymentDetails",
@@ -76879,6 +77540,53 @@
           "Other",
           "EmployeeAccount",
           null
+        ]
+      },
+      "PaymentMethodRequest": {
+        "required": [
+          "name",
+          "type",
+          "destinationAccountId",
+          "acquirerPartyId",
+          "nfePaymentCode"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PaymentMethodType"
+          },
+          "destinationAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "acquirerPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "nfePaymentCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PaymentMethodType": {
+        "enum": [
+          "Cash",
+          "Pix",
+          "Debit",
+          "Credit",
+          "CreditInstallments",
+          "Voucher",
+          "StoreCredit",
+          "OnAccount"
         ]
       },
       "PaymentNoticeActivation": {

@@ -11,7 +11,7 @@ export const TO_CONFIRM_DICA = 'Valor pré-configurado pelo sistema. Vale desde 
  * Selo de conferência (ADR 0042 §1, BNK-01b CA 2): "A confirmar com a contadora" até alguém com settings.edit clicar "Marcar como
  * conferido" (mensagem "Conferido"); conferido, mostra quem e quando. Reutilizado pela FIS-02a e pela WPP-01.
  */
-export function ToConfirmChip({ state, reviewedByName, reviewedAt, canEdit, onConfirm, field }: {
+export function ToConfirmChip({ state, reviewedByName, reviewedAt, canEdit, onConfirm, field, label = TO_CONFIRM_LABEL, dica = TO_CONFIRM_DICA }: {
   state: 'ToConfirm' | 'Confirmed'
   reviewedByName?: string | null
   reviewedAt?: string | null
@@ -19,6 +19,9 @@ export function ToConfirmChip({ state, reviewedByName, reviewedAt, canEdit, onCo
   onConfirm: () => Promise<unknown>
   /** Nome do campo, para o botão ter nome acessível próprio ("Marcar como conferido: Multa"). */
   field?: string
+  /** Rótulo e dica de outro conferente (ex.: "A confirmar" na taxa da maquininha, PAG-01); o padrão é a contadora. */
+  label?: string
+  dica?: string
 }) {
   const [busy, setBusy] = useState(false)
   if (state === 'Confirmed') {
@@ -37,8 +40,8 @@ export function ToConfirmChip({ state, reviewedByName, reviewedAt, canEdit, onCo
 
   return (
     <span className="inline-flex flex-wrap items-center gap-2">
-      <StatusChip tone="warn">{TO_CONFIRM_LABEL}</StatusChip>
-      <Dica nome={TO_CONFIRM_LABEL} texto={TO_CONFIRM_DICA} />
+      <StatusChip tone="warn">{label}</StatusChip>
+      <Dica nome={label} texto={dica} />
       {canEdit ? (
         <button type="button" disabled={busy} onClick={() => void confirm()} aria-label={field ? `Marcar como conferido: ${field}` : undefined}
           className="min-h-11 rounded-md border border-border px-2 py-1 text-xs font-semibold disabled:opacity-60 sm:min-h-0">

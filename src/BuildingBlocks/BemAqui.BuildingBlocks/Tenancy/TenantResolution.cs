@@ -20,6 +20,12 @@ public sealed record ResolvedTenant(TenantInfo Tenant, string LegalName, string?
 
     public bool IsHidden(string moduleCode) => HiddenModules.Contains(moduleCode);
 
+    /// <summary>Perfis de negócio ativos do tenant (ADR 0046): decidem os recursos por perfil dentro de um módulo comum (adendo da PAG-01).</summary>
+    public IReadOnlySet<string> Profiles { get; init; } = new HashSet<string>(StringComparer.Ordinal);
+
+    /// <summary>Recurso por perfil liberado: o tenant tem algum dos perfis do recurso (<see cref="Modules.BusinessProfileCatalog.Features"/>).</summary>
+    public bool HasFeature(string feature) => Modules.BusinessProfileCatalog.HasFeature(Profiles, feature);
+
     /// <summary>
     /// Vocabulário dos perfis do tenant (PERF-03, ADR 0046 §6), só com o que difere do padrão: a fábrica recebe vazio. Vem de
     /// <c>tenant_profiles</c>, então troca de perfil chega pelo mesmo NOTIFY que recarrega o tenant.

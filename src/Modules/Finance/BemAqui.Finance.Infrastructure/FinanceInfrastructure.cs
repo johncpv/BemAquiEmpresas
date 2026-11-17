@@ -24,6 +24,9 @@ public static class FinanceInfrastructure
         services.TryAddScoped<BankAccountService>();
         services.TryAddScoped<PaymentTermService>();
         services.TryAddScoped<IPaymentTerms, PaymentTermsContract>();
+        // PAG-01: formas de pagamento e taxas da adquirente; sem seed automático (as sugeridas só por ação do usuário ou, na PERF-04, do perfil Comércio).
+        services.TryAddScoped<PaymentMethodService>();
+        services.TryAddScoped<IPaymentMethods, PaymentMethodsContract>();
         services.TryAddScoped<IPaymentTermImport, PaymentTermImport>();
         services.TryAddScoped<IBankAccountImport, BankAccountImport>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, PaymentTermSeeder>());
@@ -187,6 +190,8 @@ public static class FinanceInfrastructure
         services.AddAuditableEntity<FinanceParameter>("settings");
         services.AddAuditableEntity<BankAccount>("finance");
         services.AddAuditableEntity<PaymentTerm>("finance");
+        services.AddAuditableEntity<PaymentMethod>("finance");
+        services.AddAuditableEntity<AcquirerFee>("finance");
         services.AddAuditableEntity<Account>("finance");
         services.AddAuditableEntity<CostCenter>("finance");
         return services;

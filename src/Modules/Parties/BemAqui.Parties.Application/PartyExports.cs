@@ -15,6 +15,7 @@ public static class PartyExports
         [PartyRoleKind.Supplier] = "Fornecedor",
         [PartyRoleKind.Installer] = "Instalador",
         [PartyRoleKind.Carrier] = "Transportadora",
+        [PartyRoleKind.Acquirer] = "Adquirente",
     };
 
     public static readonly ExportSpec<PartyListItem> Spec = new ExportSpec<PartyListItem>("Party", "terceiros", "Terceiros")

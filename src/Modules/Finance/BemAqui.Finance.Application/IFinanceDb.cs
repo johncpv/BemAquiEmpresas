@@ -12,6 +12,10 @@ public interface IFinanceDb
 
     DbSet<PaymentTerm> PaymentTerms { get; }
 
+    DbSet<PaymentMethod> PaymentMethods { get; }
+
+    DbSet<AcquirerFee> AcquirerFees { get; }
+
     DbSet<Account> Accounts { get; }
 
     DbSet<CostCenter> CostCenters { get; }

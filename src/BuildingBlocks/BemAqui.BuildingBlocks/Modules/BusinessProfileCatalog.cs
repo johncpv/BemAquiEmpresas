@@ -65,6 +65,25 @@ public static class BusinessProfileCatalog
         new(Ecommerce, "E-commerce", "Venda pela loja virtual.", Core, []) { Vocabulary = BusinessVocabulary.Backoffice },
     ];
 
+    /// <summary>Recurso de pagamentos da venda dentro do Financeiro (PAG-01): formas de pagamento e taxas da adquirente.</summary>
+    public const string PaymentMethodsFeature = "finance.payment_methods";
+
+    /// <summary>
+    /// Recursos por perfil dentro de um módulo comum (adendo da ADR 0046, decisão do PO de 17/11/2026): o módulo continua liberado para
+    /// todos, mas o recurso só existe para os perfis listados. Fora deles, o recurso some do menu e a API responde 403
+    /// <c>module_not_released</c>, como a camada 1. Tenant sem perfil nenhum não tem o recurso. Nunca liste <c>factory</c> aqui sem decisão.
+    /// </summary>
+    public static IReadOnlyDictionary<string, IReadOnlyList<string>> Features { get; } = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal)
+    {
+        [PaymentMethodsFeature] = [Retail, Services, Ecommerce],
+    };
+
+    public static bool HasFeature(IEnumerable<string> profiles, string feature)
+    {
+        ArgumentNullException.ThrowIfNull(profiles);
+        return Features.TryGetValue(feature, out var allowed) && profiles.Any(p => allowed.Contains(p, StringComparer.Ordinal));
+    }
+
     public static BusinessProfileDefinition? Find(string code) => All.FirstOrDefault(p => string.Equals(p.Code, code, StringComparison.Ordinal));
 
     /// <summary>Perfil e segmento válidos: o segmento, quando informado, tem de ser do perfil.</summary>
