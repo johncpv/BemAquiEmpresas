@@ -79,6 +79,10 @@ public static partial class ModuleCatalog
                 new("edit_budget", "Editar custo orçado", "Editar custo orçado: informar ou corrigir o custo orçado do projeto por natureza, com motivo. Muda a margem orçada; exige também Ver custo e margem."),
             ], "aditivos de contrato"),
         new("parties", "Cadastros", ModuleAreas.Commercial, 1, 40, "Clientes, fornecedores e instaladores.", Crud, []),
+        // VND-01 (Fase 10 do PDV): núcleo de vendas de todos os canais. Fica na área "Loja", que nasce na PERF-03; até lá, no Comercial. Fora do
+        // perfil Fábrica (oculto para a Konebras). Aprovar = cancelar venda com pagamento capturado (estorno, rascunho C §7).
+        new("sales", "Vendas", ModuleAreas.Commercial, 10, 45, "Vendas do balcão, da loja virtual e das OS, com pagamentos, baixa de estoque e recebíveis.", CrudApprove,
+            [new("view_cost", "Ver custo e margem", "Ver o custo da baixa de estoque e a margem de cada venda.")], "cancelar venda com pagamento capturado"),
         new("engineering", "Engenharia", ModuleAreas.Factory, 3, 50, "Estrutura de produto (BOM) e roteiros de fabricação.", CrudApprove, [], "liberar a BOM"),
         // PRD-05 (D6, ADR 0003 adendo de 21/10/2026): a decisão de qualidade sai da production.approve para a ação específica,
         // usável por PIN (ADR 0026 §2); a production.approve fica com a conclusão da OS e a aprovação de etapa.

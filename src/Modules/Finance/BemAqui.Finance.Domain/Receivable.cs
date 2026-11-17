@@ -74,6 +74,28 @@ public sealed class Receivable : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>Boleto em andamento do título (BNK-01b): pedido, emitido ou com falha à espera de nova tentativa; nulo sem boleto.</summary>
     public Guid? BillingSlipId { get; set; }
 
+    /// <summary>Canal da venda do recebível de venda (VND-01): <c>Online</c>, <c>ServiceOrder</c>, <c>Pos</c>…; nulo nos outros títulos.</summary>
+    public string? SaleChannel { get; set; }
+
+    /// <summary>Sessão de caixa do recebível do PDV (CX-03); nula no canal sem caixa e nos outros títulos.</summary>
+    public Guid? CashSessionId { get; set; }
+
+    /// <summary>Data prevista do crédito da adquirente (D+N); nula nos outros títulos.</summary>
+    public DateOnly? SettlementDate { get; set; }
+
+    /// <summary>Bruto das vendas do grupo; o título (<see cref="Amount"/>) vale o líquido. Nulos nos outros títulos.</summary>
+    public decimal? GrossAmount { get; set; }
+
+    public decimal? ExpectedFee { get; set; }
+
+    public decimal? NetAmount { get; set; }
+
+    /// <summary>Chave do grupo do recebível de venda (dia, canal, sessão, forma, provedor, vencimento): reprocessar não duplica (CA 11).</summary>
+    public string? SaleGroupKey { get; set; }
+
+    /// <summary>Título de venda (VND-01): nasce e muda pelas vendas, nunca à mão; fica fora da régua de cobrança e do DRE pelo título.</summary>
+    public bool IsFromSales => Origin is DocumentOrigin.Sale or DocumentOrigin.CardSettlement;
+
     public uint Version { get; set; }
 
     public decimal Balance => Amount - PaidAmount;

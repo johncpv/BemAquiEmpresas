@@ -50,7 +50,9 @@ public sealed class TitleRevenueRecognition(IFinanceDb db, DreParametersService 
     /// <summary>Recebíveis que entram (CA 3); com o sinal como adiantamento, o sinal sai daqui e vai para <see cref="DownPaymentsAsync"/>.</summary>
     private IQueryable<Receivable> Included(bool advance, IReadOnlyCollection<Guid>? projectIds)
     {
-        var query = db.Receivables.AsNoTracking().Where(r => !DreRules.ExcludedReceivableStatuses.Contains(r.Status) && r.Origin != DocumentOrigin.Opening);
+        // VND-01: o recebível de venda vale o líquido da adquirente; a receita das vendas entra pelo ISalesRevenue (SalesRevenueSource), sem contar duas vezes.
+        var query = db.Receivables.AsNoTracking().Where(r => !DreRules.ExcludedReceivableStatuses.Contains(r.Status) && r.Origin != DocumentOrigin.Opening
+            && r.Origin != DocumentOrigin.Sale && r.Origin != DocumentOrigin.CardSettlement);
         if (projectIds is not null)
         {
             var projects = projectIds.ToList();

@@ -158,8 +158,8 @@ O que pode correr em paralelo:
 - Paridade: 28 (base).
 - CA: `finance.payment_methods` e tabela de taxas por adquirente, bandeira, forma e parcelas; adquirente é terceiro; `IPaymentMethods` em `Finance.Contracts`; valores do seed com o chip "A confirmar"; histórico de alteração de taxa.
 
-**VND-01 [ ] Núcleo de vendas sem caixa: venda, pagamento, estoque e financeiro por canal (G)** — ordem 7 — [story](stories/VND-01-nucleo-vendas-sem-caixa.md)
-- Depende de: CAT-01, PAG-01; PP-04.
+**VND-01 [x] Núcleo de vendas sem caixa: venda, pagamento, estoque e financeiro por canal (G)** — ordem 7 — [story](stories/VND-01-nucleo-vendas-sem-caixa.md)
+- Depende de: CAT-01, PAG-01; PP-04. Feita antes da CAT-01 com a porta `ISaleProductResolver` e um adaptador provisório pelo item de estoque (troca-se só o adaptador quando a CAT-01 entrar).
 - Paridade: base de 10, 28, 35 e 37.
 - CA: módulo `sales` no `ModuleCatalog`; venda com linhas, partes e pagamentos, por canal; `ISaleIngestion` e `IOrderPayments` em `Sales.Contracts`; venda de canal sem caixa (online, OS) não exige sessão de caixa; baixa de estoque por consumidor idempotente; recebível por canal no Financeiro, sem `cash_session_id`; `ISalesRevenue` para o DRE; nenhum dado de cartão guardado.
 

@@ -41,4 +41,10 @@ public enum DocumentOrigin
 
     /// <summary>Nota de entrada (FIS-04b CA 9): os títulos da parte "Sem item de estoque" da NF-e recebida, uma parcela por duplicata.</summary>
     IncomingInvoice,
+
+    /// <summary>Venda de canal sem caixa (VND-01): recebível por dia, canal, forma, provedor e vencimento (Pix, dinheiro, vale, fiado).</summary>
+    Sale,
+
+    /// <summary>Venda com cartão (VND-01): título contra a adquirente, com bruto, taxa prevista e líquido.</summary>
+    CardSettlement,
 }

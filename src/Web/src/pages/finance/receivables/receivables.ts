@@ -65,3 +65,13 @@ export function receivablePrefill(search: Record<string, unknown>): ReceivablePr
     issueDate: DATE.test(issue) ? issue : null,
   }
 }
+
+/** Filtro "Origem" (VND-01): só os recebíveis de venda (origem Venda ou Cartão). Só aparece para os perfis de comércio. */
+export const ORIGIN_OPTIONS = [{ value: 'vendas', label: 'Vendas' }]
+
+const CHANNELS: Record<string, string> = { Pos: 'Balcão', Online: 'Loja virtual', Delivery: 'Delivery', Table: 'Mesas', ServiceOrder: 'OS' }
+
+/** Canal da venda do recebível ("Loja virtual", "OS"); traço nos títulos que não vêm de venda. */
+export const channelLabel = (channel: string | null | undefined) => (channel ? CHANNELS[channel] ?? channel : '—')
+
+export const SALES_DICA = 'Recebível que nasce das vendas: um por dia, canal, forma de pagamento e maquininha, com o valor que cai na conta (bruto menos a taxa). Muda sozinho quando uma venda é cancelada e não entra na régua de cobrança.'

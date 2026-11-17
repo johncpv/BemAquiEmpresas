@@ -30,6 +30,9 @@ public static class StockSources
     public const string ProductionOrder = "ProductionOrder";
     public const string Shipment = "Shipment";
     public const string InventoryCount = "InventoryCount";
+
+    /// <summary>Venda (VND-01): a baixa da venda de canal sem caixa, pelo consumidor do Sales; o estorno vem do cancelamento da venda.</summary>
+    public const string Sale = "Sale";
 }
 
 /// <summary>

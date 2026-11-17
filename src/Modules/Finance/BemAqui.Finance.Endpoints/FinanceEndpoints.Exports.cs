@@ -37,9 +37,9 @@ internal static partial class FinanceEndpoints
         finance.MapGet("/payment-orders/export", (string? format, string? situation, bool? awaitingMe, bool? selfApproved, HttpContext http, FinanceExportService service,
                 ListExportService export, CancellationToken ct) => export.ExportAsync(http, format, (max, c) => service.PaymentOrdersAsync(situation, awaitingMe == true, selfApproved == true, max, c), ct))
             .RequirePermission("finance.view").WithName("ExportPaymentOrders");
-        finance.MapGet("/receivables/export", (string? format, string? q, string? situation, Guid? partyId, DateOnly? dueFrom, DateOnly? dueTo, Guid? contractId, bool? withBillingSlip, string? sort,
+        finance.MapGet("/receivables/export", (string? format, string? q, string? situation, Guid? partyId, DateOnly? dueFrom, DateOnly? dueTo, Guid? contractId, bool? withBillingSlip, string? sort, string? origin,
                 HttpContext http, FinanceExportService service, ListExportService export, CancellationToken ct) =>
-                export.ExportAsync(http, format, (max, c) => service.ReceivablesAsync(new ReceivableListQuery(q, situation, partyId, dueFrom, dueTo, contractId, withBillingSlip == true), sort, max, c), ct))
+                export.ExportAsync(http, format, (max, c) => service.ReceivablesAsync(new ReceivableListQuery(q, situation, partyId, dueFrom, dueTo, contractId, withBillingSlip == true, origin), sort, max, c), ct))
             .RequirePermission("finance.view").WithName("ExportReceivables");
         finance.MapGet("/dre/export", (string? format, DateOnly? from, DateOnly? to, HttpContext http, FinanceExportService service, ListExportService export, CancellationToken ct) =>
                 export.ExportAsync(http, format, (_, c) => service.DreAsync(from, to, c), ct))

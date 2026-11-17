@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { receivablePrefill, situation } from './receivables'
+import { channelLabel, ORIGIN_OPTIONS, receivablePrefill, situation } from './receivables'
 
 describe('situação do título a receber (FIN-01 CA 6 e 7)', () => {
   const base = { status: 'Open' as const, isOverdue: false, isDueToday: false }
@@ -26,5 +26,19 @@ describe('título pré-preenchido pela venda do bem (PAT-02 CA 7)', () => {
 
   it('sem comprador, valor inválido ou data fora do padrão, o campo fica vazio', () => {
     expect(receivablePrefill({ valor: 'abc', emissao: '01/11/2026' })).toEqual({ customer: null, description: '', amount: null, issueDate: null })
+  })
+})
+
+describe('recebível de venda em Contas a receber (VND-01)', () => {
+  it('canal da venda em português; traço no título que não vem de venda', () => {
+    expect(channelLabel('Online')).toBe('Loja virtual')
+    expect(channelLabel('ServiceOrder')).toBe('OS')
+    expect(channelLabel('Pos')).toBe('Balcão')
+    expect(channelLabel(null)).toBe('—')
+    expect(channelLabel('Novo')).toBe('Novo')
+  })
+
+  it('o filtro "Origem" tem só Vendas', () => {
+    expect(ORIGIN_OPTIONS).toEqual([{ value: 'vendas', label: 'Vendas' }])
   })
 })

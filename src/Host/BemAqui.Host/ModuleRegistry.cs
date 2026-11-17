@@ -14,6 +14,7 @@ using BemAqui.Platform.Endpoints;
 using BemAqui.Portal.Endpoints;
 using BemAqui.Production.Endpoints;
 using BemAqui.Purchasing.Endpoints;
+using BemAqui.Sales.Endpoints;
 
 namespace BemAqui.Host;
 
@@ -32,6 +33,7 @@ public static class ModuleRegistry
         new InventoryModule(),
         new PurchasingModule(),
         new FinanceModule(),
+        new SalesModule(),
         new FiscalModule(),
         new AssetsModule(),
         new PortalModule(),
