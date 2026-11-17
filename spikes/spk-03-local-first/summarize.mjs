@@ -1,0 +1,41 @@
+// Resume results/bench*.json numa tabela Markdown (usada no relatório).
+import fs from 'node:fs';
+import path from 'node:path';
+import { RESULTS } from './lib/harness.mjs';
+
+const files = process.argv.slice(2).length ? process.argv.slice(2) : ['bench.json'];
+const runs = files.flatMap((f) => JSON.parse(fs.readFileSync(path.join(RESULTS, f), 'utf8')).runs);
+const ms = (x) => (x == null ? '—' : x >= 1000 ? `${(x / 1000).toFixed(1)} s` : `${Math.round(x * 10) / 10} ms`);
+const mb = (b) => (b == null ? '—' : `${(b / 2 ** 20).toFixed(1)} MB`);
+const p = (s) => (s ? `${ms(s.p50)} / ${ms(s.p95)}` : '—');
+
+const rows = [];
+rows.push('| Medida (p50 / p95) | ' + runs.map((r) => `${r.tech} ${r.label || r.rate + 'x'}`).join(' | ') + ' |');
+rows.push('|---|' + runs.map(() => '---').join('|') + '|');
+const line = (label, f) => rows.push(`| ${label} | ${runs.map((r) => { try { return f(r) ?? '—'; } catch { return '—'; } }).join(' | ')} |`);
+line('Calibração: laço de CPU, página / worker', (r) => `${ms(r.calib.mainMs)} / ${ms(r.calib.workerMs)}`);
+line('Abrir o armazenamento (frio)', (r) => ms(r.openMs));
+line('Carga inicial 50 mil (total)', (r) => ms(r.snapshot.totalMs));
+line('… gravação', (r) => ms(r.snapshot.insertMs));
+line('… índice de texto (FTS5)', (r) => (r.tech.startsWith('sqlite') ? ms(r.snapshot.ftsMs) : '—'));
+line('Código de barras exato', (r) => p(r.barcode));
+line('Nome, começo de palavra: índice', (r) => p(r.search.prefix_index || r.search.prefix_like));
+line('Nome, trecho no meio: varredura', (r) => p(r.search.middle_scan));
+line('Nome, começo de palavra: memória / FTS5', (r) => p(r.search.prefix_mem || r.search.prefix_fts));
+line('Nome, trecho no meio: memória / FTS5', (r) => p(r.search.middle_mem || r.search.middle_fts));
+line('Montar índice em memória', (r) => ms(r.memIndexBuildMs));
+line('Item na venda (busca + gravar carrinho), sem fsync', (r) => p(r.sale_relaxed?.addItem || r.sale_sync_normal?.addItem));
+line('Concluir venda (venda + evento + contador), sem fsync', (r) => p(r.sale_relaxed?.complete || r.sale_sync_normal?.complete));
+line('Item na venda, com fsync', (r) => p(r.sale_strict?.addItem || r.sale_sync_full?.addItem));
+line('Concluir venda, com fsync', (r) => p(r.sale_strict?.complete || r.sale_sync_full?.complete));
+line('Delta de 500 (baixar + aplicar)', (r) => ms(r.delta.totalMs));
+line('Reabrir até a 1ª busca', (r) => ms(r.reopenToFirstLookupMs));
+line('… mais índice em memória', (r) => ms(r.reopenMemIndexMs));
+line('Disco (pasta do perfil)', (r) => mb(r.disk.indexedDb + r.disk.fileSystem));
+line('storage.estimate()', (r) => mb(r.sizeFinal.usage));
+line('Heap JS da página com o catálogo', (r) => (r.heapMB == null ? '—' : r.heapMB + ' MB'));
+line('persist() concedido', (r) => String(r.persist.granted));
+console.log(rows.join('\n'));
+const r0 = runs[0];
+console.log(`\nFoto: ${mb(r0.snapshot.rawBytes)} JSON, ${mb(r0.snapshot.gzBytes)} gzip. Delta: ${(r0.delta.rawBytes / 1024).toFixed(0)} KB JSON, ${(r0.delta.gzBytes / 1024).toFixed(0)} KB gzip. Navegador: ${r0.browserVersion}. ${r0.ua}`);
+for (const r of runs) console.log(`${r.tech} ${r.label || r.rate + 'x'}: count ${r.count} -> ${r.countAfterDelta}; removido achado: ${r.deltaCheck.removedBarcodeFound}; engine ${JSON.stringify(r.engine || {})}`);

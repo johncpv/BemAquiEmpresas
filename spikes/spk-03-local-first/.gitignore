@@ -1,0 +1,6 @@
+node_modules/
+results/*.db*
+results/smoke.json
+results/explore.json
+results/*-smoke.json
+
