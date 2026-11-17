@@ -9,6 +9,7 @@ using BemAqui.Catalog.Contracts;
 using BemAqui.Identity.Application;
 using BemAqui.Identity.Domain;
 using BemAqui.Integration.Tests.Tenancy;
+using BemAqui.Platform.Domain;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;

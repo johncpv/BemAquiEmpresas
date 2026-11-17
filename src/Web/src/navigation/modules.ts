@@ -1,5 +1,5 @@
 import {
-  ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Award, BadgeCheck, BookText, Boxes, Briefcase, Building, Building2, Calculator,
+  ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Award, BadgeCheck, Barcode, BookText, Boxes, Briefcase, Building, Building2, Calculator,
   CalendarClock, CalendarDays, CalendarX, ChartGantt, ChartLine, ChartPie, CheckCheck, ClipboardCheck, ClipboardList, Clock, Cog, Coins,
   Contact, CreditCard, DraftingCompass, Eye, EyeOff, Factory, FileChartColumn, FileCog, FileInput, FileOutput, FilePlus, FileSpreadsheet,
   FileText, Filter, FolderKanban, FolderTree, Gauge, Hammer, HandCoins, HardHat, Hash, Home, Hourglass, Import, Landmark, LayoutDashboard,
@@ -78,6 +78,8 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   // DSH-02: "Orçado × realizado" (/app/projetos/margens), só com projects.view_cost.
   projects: { slug: 'projetos', aliases: ['contratos'], icon: FolderKanban, tabs: [{ slug: 'margens', label: 'Orçado × realizado', icon: Target, action: 'view_cost' }] },
   parties: { slug: 'cadastros', icon: Contact, tabs: [{ slug: 'terceiros', label: 'Terceiros', icon: Contact }] },
+  // CAT-01: catálogo do PDV (oculto para a fábrica pelo perfil, ADR 0046). Vai para a área "Loja" com a PERF-03.
+  catalog: { slug: 'catalogo', icon: Barcode, tabs: [{ slug: 'produtos', label: 'Produtos', icon: Barcode }, { slug: 'categorias', label: 'Categorias', icon: FolderTree }] },
   engineering: { slug: 'engenharia', icon: DraftingCompass, tabs: [{ slug: 'roteiros', label: 'Roteiros', icon: Route }, { slug: 'boms', label: 'BOMs', icon: Network }] },
   production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'os', label: 'OS de fabricação', icon: ClipboardList }, { slug: 'kanban', label: 'Kanban', icon: SquareKanban }, { slug: 'planejamento', label: 'Planejamento', icon: ChartGantt }, { slug: 'qualidade', label: 'Qualidade', icon: BadgeCheck }, { slug: 'nao-conformidades', label: 'Não conformidades', icon: OctagonAlert }, { slug: 'apontamentos-abertos', label: 'Apontamentos abertos', icon: Timer }, { slug: 'expedicao', label: 'Expedição', icon: Truck }, { slug: 'instalacoes', label: 'Instalações', icon: Hammer }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho', icon: Cog }, { slug: 'calendario', label: 'Calendário', icon: CalendarDays }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação', icon: FileCog }, { slug: 'supervisor', label: 'Painel do supervisor', icon: Eye, firstFor: ['approve', 'approve_quality'] }] },
   inventory: { slug: 'estoque', icon: Boxes, tabs: [

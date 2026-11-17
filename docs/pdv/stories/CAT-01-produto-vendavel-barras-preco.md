@@ -5,7 +5,7 @@
 | ID | CAT-01 |
 | Título | Módulo Catálogo: produto vendável ligado ao item do estoque, categoria, variação (grade), vários códigos de barras por produto, tabela de preço padrão versionada e consulta rápida por código, PLU e busca |
 | Tamanho | G |
-| Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
+| Status | Done (17/11/2026; branch `feat/cat-01-catalogo`) |
 | Fase | 10 — Fundação: perfil de negócio, catálogo, pagamentos, núcleo de vendas e spikes |
 | Requisitos | Pedido do PO de 15/11/2026 (itens 1 e 4) · [PRD do PDV](../01-PRD.md) seção 4.2 · [Modelo de dados](../03-modelo-dados.md#3-catalog--schema-catalog_products) · ADR 0006 (contratos entre módulos) |
 | Dependências | PERF-01, PERF-03; PP-04 decidida |
@@ -82,16 +82,32 @@ Como **gerente de loja**, quero **cadastrar o que eu vendo com código de barras
 ## Pontos em aberto
 - PP-04: se o PO preferir preço no `Sales` e código de barras no item do Estoque, esta story muda de módulo, não de critérios.
 
+## Implementação (17/11/2026)
+Decisões em [ADR 0047](../../adr/0047-catalogo-de-produtos.md).
+- **Módulo:** `src/Modules/Catalog` nas cinco camadas, schema `catalog_products` (o nome `catalog` é do banco da plataforma). Código `catalog` no `ModuleCatalog` com `view`, `create`, `edit`, `delete`, `edit_price` e `view_cost`; nos perfis `retail`, `services` e `ecommerce`, **fora** de `factory` (oculto para a Konebras). A migration da plataforma `CatalogModuleInPlans` põe o módulo nos planos existentes.
+- **Área do dock:** fica em "Comercial" até a PERF-03 criar a área "Loja" (desvio registrado; a troca é uma linha no `ModuleCatalog` e no `modules.ts`, na integração da PERF-03).
+- **CA 3 e 4:** item novo pelo contrato novo `IItemRegistration` do Estoque (mesmas regras da tela de itens, na transação do produto; sem código, gera `MER-000001`) ou item existente sem produto; `ItemType.Merchandise` (aditivo, sem NCM obrigatório), oferecido na tela de itens só para perfis de comércio. 409 "Este item já tem um produto no catálogo." pela conferência e pelo índice único. Item com produto não é excluído no Estoque.
+- **CA 5 a 7:** `product_barcodes` com `pack_quantity` `numeric(18,4)`; GTIN-8, 12, 13 e 14 com dígito verificador (422 com a mensagem do CA); GTIN único no tenant (409 `barcode_taken` com o nome do produto). O pai de grade não recebe código: vai na variação.
+- **CA 8 e 9:** "Balcão" criada no primeiro uso do módulo; mudar preço trava a tabela (`FOR UPDATE`), sobe a versão, grava `price_changes` e publica `PriceChanged` na mesma transação. Rota do preço com `catalog.edit_price`; preço na criação ou edição sem a ação = 403 `forbidden`, nada muda.
+- **CA 10 e 11:** `cost` (custo médio pelo `IItemCosts`, margem, markup e preço sugerido pela categoria) só com `catalog.view_cost`, com `JsonIgnore(WhenWritingNull)`: ausente, não zerado. A exportação omite as colunas sem a ação.
+- **CA 12 e 13:** `ICatalogLookup` por GTIN (com a quantidade da embalagem), PLU e trecho do nome (pg_trgm), com o preço da tabela pedida; teste de carga com 20 mil produtos.
+- **CA 14:** categorias com pai, ordem e margem ou markup padrão (um dos dois); "Geral" padrão, que não sai; com produto, 409 `category_in_use` e "Desativar".
+- **CA 15 e 16:** grade por atributos (até 3, até 200 variações), cada combinação com item Mercadoria próprio (unidade e NCM do pai), preço do pai ou informado; lista agrupa no pai; nome, categoria e foto (anexo `ProductPhoto` no produto raiz) descem do pai; "Aplicar a todas as variações" no preço.
+- **Contrato com a VND-01:** `ISellableProducts` (`FindAsync`, `FindManyAsync` → `SellableProduct`), `ICatalogLookup`, `IProductUsageProvider` (a venda implementa) e os eventos `ProductChanged` e `PriceChanged`.
+- **Konebras:** catálogo oculto e não liberado; a versão de permissões não muda (os ocultos só entram no hash com perfil além da Fábrica); o tipo "Mercadoria para revenda" não aparece na tela de itens dela; categoria e tabela de preço não são criadas no banco dela (nascem no primeiro uso).
+- **Fora desta story / pendente:** "Importar planilha" no vazio da lista fica para a CAT-02 (o botão não foi posto). Colunas das Fases 15 (`kitchen_station_id`, `prep_minutes`) e `fiscal_ready` (regra 10) não entraram. PP-04 está decidida; nenhuma pendência sem decisão foi implementada.
+
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade e de integração (Testcontainers) passando; Vitest no front.
-- [ ] Migration criada; permissões só do `ModuleCatalog`.
-- [ ] Telas com estados de carregando, vazio e erro; ajuda escrita ou atualizada em `Ajuda/` no mesmo commit.
-- [ ] Padrões e próximo passo propositivos avaliados; auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade e de integração (Testcontainers) passando; Vitest no front.
+- [x] Migration criada; permissões só do `ModuleCatalog`.
+- [x] Telas com estados de carregando, vazio e erro; ajuda escrita ou atualizada em `Ajuda/` no mesmo commit.
+- [x] Padrões e próximo passo propositivos avaliados; auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR (0047).
 
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
+| 17/11/2026 | 1.0 | Implementada (seção "Implementação"): módulo Catálogo, contrato `Catalog.Contracts` para a VND-01, `IItemRegistration` e `ItemType.Merchandise` no Estoque, telas Produtos, Produto e Categorias, ajuda, ADR 0047. Desvio: área "Comercial" até a PERF-03. | Claude (dev) |

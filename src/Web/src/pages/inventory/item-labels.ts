@@ -1,10 +1,22 @@
 import { ItemType } from '@/api/generated/model'
+import { COMMERCE_PROFILES } from '@/navigation/modules'
+import { useHasProfile } from '@/navigation/navigation-context'
 
 export const TYPE_LABELS: Record<ItemType, string> = {
   RawMaterial: 'Matéria-prima', Component: 'Componente', Finished: 'Produto acabado', Consumable: 'Material de consumo', Service: 'Serviço',
+  Merchandise: 'Mercadoria para revenda',
 }
 
-export const TYPE_OPTIONS = (Object.keys(TYPE_LABELS) as ItemType[]).map((value) => ({ value, label: TYPE_LABELS[value] }))
+const ALL_OPTIONS = (Object.keys(TYPE_LABELS) as ItemType[]).map((value) => ({ value, label: TYPE_LABELS[value] }))
+
+/** Tipos da fábrica: "Mercadoria para revenda" (CAT-01) fica de fora para quem não tem perfil de comércio (a Konebras não vê nada novo). */
+export const TYPE_OPTIONS = ALL_OPTIONS.filter((o) => o.value !== ItemType.Merchandise)
+
+/** Tipos oferecidos na tela: com Comércio, Serviços ou E-commerce entra a Mercadoria; na fábrica, só no item que já é mercadoria. */
+export function useTypeOptions(current?: ItemType | '' | null) {
+  const commerce = useHasProfile(COMMERCE_PROFILES)
+  return commerce || current === ItemType.Merchandise ? ALL_OPTIONS : TYPE_OPTIONS
+}
 
 /** Tipos que exigem NCM quando o item está ativo (CAD-02a CA 7). */
 export const requiresNcm = (type: ItemType) => type === ItemType.RawMaterial || type === ItemType.Component || type === ItemType.Finished
