@@ -86,6 +86,8 @@ public static class IdentityInfrastructure
         services.AddAuditableEntity<UserPin>("identity");
         // PIN no caixa do PDV (PDV-01 CA 11) e usuário de operação (CA 12, ADR 0049).
         services.TryAddScoped<Application.Shopfloor.PosDeviceCookieGate>();
+        services.TryAddScoped<Application.Shopfloor.PosStoreOperators>();
+        services.TryAddScoped<BemAqui.Identity.Contracts.IPosStoreOperators>(sp => sp.GetRequiredService<Application.Shopfloor.PosStoreOperators>()); // OFF-01
         services.TryAddScoped<Application.Shopfloor.PosPinService>();
         services.TryAddScoped<OperationUserService>();
         services.AddAuditableEntity<PosPin>("identity");

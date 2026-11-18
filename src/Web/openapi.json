@@ -36313,6 +36313,65 @@
         }
       }
     },
+    "/api/v1/pos/sync/snapshot": {
+      "get": {
+        "tags": [
+          "PDV: sincroniza\u00E7\u00E3o"
+        ],
+        "operationId": "GetPosCatalogSnapshot",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PosCatalogSnapshot"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/sync/changes": {
+      "get": {
+        "tags": [
+          "PDV: sincroniza\u00E7\u00E3o"
+        ],
+        "operationId": "GetPosCatalogChanges",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PosCatalogChanges"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/fiscal/integration": {
       "get": {
         "tags": [
@@ -86053,6 +86112,143 @@
           }
         }
       },
+      "PosCatalogChanges": {
+        "required": [
+          "schemaVersion",
+          "cursor",
+          "hasMore",
+          "generatedAt",
+          "store",
+          "priceList",
+          "items",
+          "removedItemIds",
+          "paymentMethods",
+          "removedPaymentMethodIds",
+          "operators",
+          "printers"
+        ],
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cursor": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "store": {
+            "$ref": "#/components/schemas/PosSyncStore"
+          },
+          "priceList": {
+            "$ref": "#/components/schemas/PosSyncPriceList"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PosSyncItem"
+            }
+          },
+          "removedItemIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "paymentMethods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PosSyncPaymentMethod"
+            }
+          },
+          "removedPaymentMethodIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "operators": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PosSyncOperator"
+            }
+          },
+          "printers": {
+            "$ref": "#/components/schemas/PosSyncPrinters"
+          }
+        }
+      },
+      "PosCatalogSnapshot": {
+        "required": [
+          "schemaVersion",
+          "collections",
+          "cursor",
+          "generatedAt",
+          "store",
+          "priceList",
+          "items",
+          "paymentMethods",
+          "operators",
+          "printers"
+        ],
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "collections": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cursor": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "store": {
+            "$ref": "#/components/schemas/PosSyncStore"
+          },
+          "priceList": {
+            "$ref": "#/components/schemas/PosSyncPriceList"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PosSyncItem"
+            }
+          },
+          "paymentMethods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PosSyncPaymentMethod"
+            }
+          },
+          "operators": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PosSyncOperator"
+            }
+          },
+          "printers": {
+            "$ref": "#/components/schemas/PosSyncPrinters"
+          }
+        }
+      },
       "PosDeviceView": {
         "required": [
           "id",
@@ -86586,6 +86782,244 @@
           "sessionExpiresAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "PosSyncBarcode": {
+        "required": [
+          "gtin",
+          "packQuantity"
+        ],
+        "type": "object",
+        "properties": {
+          "gtin": {
+            "type": "string"
+          },
+          "packQuantity": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PosSyncItem": {
+        "required": [
+          "productId",
+          "parentProductId",
+          "description",
+          "unitCode",
+          "isWeighable",
+          "plu",
+          "barcodes",
+          "priceCents",
+          "priceListVersion",
+          "changeSeq"
+        ],
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parentProductId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "isWeighable": {
+            "type": "boolean"
+          },
+          "plu": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "barcodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PosSyncBarcode"
+            }
+          },
+          "priceCents": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "priceListVersion": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "changeSeq": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PosSyncOperator": {
+        "required": [
+          "userId",
+          "displayName"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          }
+        }
+      },
+      "PosSyncPaymentMethod": {
+        "required": [
+          "id",
+          "name",
+          "type",
+          "allowsChange",
+          "nfePaymentCode",
+          "confirmed",
+          "changeSeq"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PaymentMethodType"
+          },
+          "allowsChange": {
+            "type": "boolean"
+          },
+          "nfePaymentCode": {
+            "type": "string"
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "changeSeq": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PosSyncPriceList": {
+        "required": [
+          "id",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PosSyncPrinter": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "PosSyncPrinters": {
+        "required": [
+          "version",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PosSyncPrinter"
+            }
+          }
+        }
+      },
+      "PosSyncStore": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "registerId",
+          "registerNumber",
+          "offlineWindowHours",
+          "cashBreakToleranceCents",
+          "exchangeDays",
+          "cashDropAlertCents"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "registerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "registerNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "offlineWindowHours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cashBreakToleranceCents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "exchangeDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cashDropAlertCents": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },

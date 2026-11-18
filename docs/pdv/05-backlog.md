@@ -195,6 +195,7 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - Depende de: PDV-01, CAT-01, PAG-01, SPK-03; PP-09.
 - Paridade: 1.
 - CA: app `/pdv` com build e service worker próprios, sem afetar `/fab` nem `/tv`; `LocalStore` com armazenamento persistente; foto e delta do catálogo da loja; a tela abre sem rede; atualização só na troca de turno; faixa "Sem conexão: N vendas a enviar".
+- Backend (18/11/2026, branch `feat/off-01-catalogo-loja`): `pos.catalog_items` com consumidor idempotente, carga inicial por loja, `GET /api/v1/pos/sync/snapshot` e `/changes?cursor=`, parâmetros da loja (PP-10, PP-22). Pendências: saldo por item (PP-02) na PDV-05; edição dos parâmetros da loja na CX-01.
 
 **PDV-02 [ ] Tela de venda: toque e teclado/leitor (G)** — ordem 3 — [story](stories/PDV-02-tela-de-venda.md)
 - Depende de: OFF-01; PP-26.

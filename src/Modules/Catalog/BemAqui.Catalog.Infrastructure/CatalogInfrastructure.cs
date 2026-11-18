@@ -34,6 +34,7 @@ public static class CatalogInfrastructure
         services.TryAddScoped<ICatalogLookup>(sp => sp.GetRequiredService<CatalogReadContract>());
         services.TryAddScoped<ICatalogStatus>(sp => sp.GetRequiredService<CatalogReadContract>());
         services.TryAddScoped<IPriceLists, PriceListsContract>(); // PDV-01: a tabela padrão da loja
+        services.TryAddScoped<IPosCatalogFeed, PosCatalogFeed>(); // OFF-01: fonte do modelo de leitura do caixa
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IItemUsageProvider, CatalogItemUsage>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IProfileSeedPackage, CatalogRetailSeedPackage>()); // PERF-04
         services.AddAuditableEntity<Product>(ProductService.Module);

@@ -24,6 +24,8 @@ namespace BemAqui.Host.Persistence.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.HasSequence("catalog_change_seq", "pos");
+
             modelBuilder.Entity("BemAqui.Assets.Domain.Asset", b =>
                 {
                     b.Property<Guid>("Id")
@@ -15291,6 +15293,74 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("party_roles", "parties");
                 });
 
+            modelBuilder.Entity("BemAqui.Pos.Domain.CatalogItem", b =>
+                {
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("store_id");
+
+                    b.Property<string>("Kind")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("EntityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("entity_id");
+
+                    b.Property<long>("ChangeSeq")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("change_seq")
+                        .HasDefaultValueSql("nextval('pos.catalog_change_seq')");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("deleted");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("payload");
+
+                    b.Property<long?>("PriceListVersion")
+                        .HasColumnType("bigint")
+                        .HasColumnName("price_list_version");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("StoreId", "Kind", "EntityId")
+                        .HasName("pk_catalog_items");
+
+                    b.HasIndex("StoreId", "ChangeSeq")
+                        .HasDatabaseName("ix_catalog_items_store_change_seq");
+
+                    b.ToTable("catalog_items", "pos");
+                });
+
+            modelBuilder.Entity("BemAqui.Pos.Domain.CatalogStoreBuild", b =>
+                {
+                    b.Property<Guid>("StoreId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("store_id");
+
+                    b.Property<DateTimeOffset>("BuiltAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("built_at");
+
+                    b.Property<Guid>("PriceListId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("price_list_id");
+
+                    b.HasKey("StoreId")
+                        .HasName("pk_catalog_store_builds");
+
+                    b.ToTable("catalog_store_builds", "pos");
+                });
+
             modelBuilder.Entity("BemAqui.Pos.Domain.Register", b =>
                 {
                     b.Property<Guid>("Id")
@@ -15369,6 +15439,20 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<decimal>("CashBreakTolerance")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasDefaultValue(5.00m)
+                        .HasColumnName("cash_break_tolerance");
+
+                    b.Property<decimal>("CashDropAlertAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasDefaultValue(1000.00m)
+                        .HasColumnName("cash_drop_alert_amount");
+
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(6)
@@ -15383,6 +15467,12 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("default_price_list_id");
 
+                    b.Property<int>("ExchangeDays")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(30)
+                        .HasColumnName("exchange_days");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("is_active");
@@ -15392,6 +15482,12 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)")
                         .HasColumnName("name");
+
+                    b.Property<int>("OfflineWindowHours")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(168)
+                        .HasColumnName("offline_window_hours");
 
                     b.Property<string>("SeedKey")
                         .HasMaxLength(40)
@@ -15420,7 +15516,12 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_stores_seed_key")
                         .HasFilter("seed_key IS NOT NULL");
 
-                    b.ToTable("stores", "pos");
+                    b.ToTable("stores", "pos", t =>
+                        {
+                            t.HasCheckConstraint("ck_stores_offline_window", "offline_window_hours BETWEEN 1 AND 168");
+
+                            t.HasCheckConstraint("ck_stores_parameters", "cash_break_tolerance >= 0 AND exchange_days >= 0 AND cash_drop_alert_amount >= 0");
+                        });
                 });
 
             modelBuilder.Entity("BemAqui.Production.Domain.Calendar", b =>

@@ -6,8 +6,8 @@ namespace BemAqui.Pos.Domain;
 
 /// <summary>
 /// Loja (<c>pos.stores</c>, PDV-01 CA 2): código curto (único, entra no número da venda), nome, local de estoque (Estoque, só o id) e a tabela de
-/// preço padrão (Catálogo, só o id). O CNPJ próprio da loja (estabelecimento) é da NFCE-07; o modo fiscal e os parâmetros da loja chegam com as
-/// stories que os usam (PP-05 e PP-22). Não é apagada: com caixa, só desativa.
+/// preço padrão (Catálogo, só o id). O CNPJ próprio da loja (estabelecimento) é da NFCE-07; o modo fiscal chega com a PP-05. Os parâmetros da loja
+/// (PP-10 e PP-22) nasceram na OFF-01 com os padrões decididos pelo PO e descem na foto do caixa. Não é apagada: com caixa, só desativa.
 /// </summary>
 [DocumentName("Loja")]
 public sealed class Store : Entity, IAuditable, IConcurrencyVersioned
@@ -16,6 +16,9 @@ public sealed class Store : Entity, IAuditable, IConcurrencyVersioned
 
     /// <summary>Chave do pacote de dados iniciais do Comércio (<c>loja</c>); null para as criadas pelo tenant.</summary>
     public const string RetailSeedKey = "loja";
+
+    /// <summary>PP-10: padrão e teto da janela sem sincronizar (7 dias).</summary>
+    public const int DefaultOfflineWindowHours = 168;
 
     public string Code { get; set; } = string.Empty;
 
@@ -26,6 +29,18 @@ public sealed class Store : Entity, IAuditable, IConcurrencyVersioned
     public Guid DefaultPriceListId { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+    /// <summary>Janela máxima sem sincronizar, em horas (PP-10, OFF-01): padrão e teto de 7 dias (168 h).</summary>
+    public int OfflineWindowHours { get; set; } = DefaultOfflineWindowHours;
+
+    /// <summary>Tolerância de quebra de caixa por forma de pagamento (PP-22), <c>numeric(18,2)</c>: padrão R$ 5,00. Usada pela CX-01.</summary>
+    public decimal CashBreakTolerance { get; set; } = 5.00m;
+
+    /// <summary>Prazo para troca, em dias (PP-22): padrão 30. Usado pela PDV-06.</summary>
+    public int ExchangeDays { get; set; } = 30;
+
+    /// <summary>Aviso de sangria a partir deste valor em dinheiro no caixa (PP-22), <c>numeric(18,2)</c>: padrão R$ 1.000,00. Usado pela CX-02.</summary>
+    public decimal CashDropAlertAmount { get; set; } = 1000.00m;
 
     public string? SeedKey { get; init; }
 

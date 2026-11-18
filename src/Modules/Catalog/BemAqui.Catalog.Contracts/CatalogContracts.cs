@@ -118,3 +118,39 @@ public interface IPriceLists
     /// <summary>A tabela padrão ("Balcão"), criada no primeiro uso.</summary>
     Task<PriceListOption> DefaultAsync(CancellationToken cancellationToken = default);
 }
+
+/// <summary>Código de barras do produto para o caixa (OFF-01): GTIN e a quantidade da embalagem (<c>numeric(18,4)</c>; 1 na unidade).</summary>
+public sealed record PosFeedBarcode(string Gtin, decimal PackQuantity);
+
+/// <summary>Preço do produto numa tabela (OFF-01): <c>numeric(18,2)</c> e a versão da tabela no momento da leitura.</summary>
+public sealed record PosFeedPrice(Guid PriceListId, decimal Price, long PriceListVersion);
+
+/// <summary>
+/// Produto como desce para o caixa (OFF-01 CA 10): o que o aparelho precisa para vender e nada mais. <b>Sem custo e sem margem</b> (CA 12): o
+/// contrato não os tem, então não há como descerem. <c>SellableAtPos</c> é falso para produto desativado, excluído, fora do canal do caixa ou pai
+/// de grade (o aparelho recebe como removido). <c>Prices</c> traz só as tabelas pedidas que têm preço para o produto.
+/// </summary>
+public sealed record PosFeedProduct(
+    Guid ProductId,
+    Guid? ParentProductId,
+    string Description,
+    string UnitCode,
+    Guid ItemId,
+    bool IsWeighable,
+    string? Plu,
+    bool SellableAtPos,
+    IReadOnlyList<PosFeedBarcode> Barcodes,
+    IReadOnlyList<PosFeedPrice> Prices);
+
+/// <summary>
+/// Fonte do modelo de leitura do caixa (<c>pos.catalog_items</c>, OFF-01): o Catálogo é o dono; o <c>Pos</c> lê por aqui ao consumir
+/// <see cref="ProductChanged"/> e <see cref="PriceChanged"/> e na carga inicial (backfill) de cada loja.
+/// </summary>
+public interface IPosCatalogFeed
+{
+    /// <summary>Os produtos pedidos, inclusive desativados e excluídos (com <c>SellableAtPos</c> falso); id inexistente fica fora.</summary>
+    Task<IReadOnlyList<PosFeedProduct>> FindAsync(IReadOnlyCollection<Guid> productIds, IReadOnlyCollection<Guid> priceListIds, CancellationToken cancellationToken = default);
+
+    /// <summary>Ids dos produtos vendáveis no caixa, em ordem de id, depois de <paramref name="after"/> (página da carga inicial).</summary>
+    Task<IReadOnlyList<Guid>> SellableIdsAsync(Guid? after, int take, CancellationToken cancellationToken = default);
+}

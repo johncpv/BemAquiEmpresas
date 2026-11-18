@@ -379,6 +379,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Pos.Domain.Register> Registers => Set<BemAqui.Pos.Domain.Register>();
 
+    public DbSet<BemAqui.Pos.Domain.CatalogItem> CatalogItems => Set<BemAqui.Pos.Domain.CatalogItem>();
+
+    public DbSet<BemAqui.Pos.Domain.CatalogStoreBuild> CatalogStoreBuilds => Set<BemAqui.Pos.Domain.CatalogStoreBuild>();
+
     public DbSet<BemAqui.Sales.Domain.Sale> Sales => Set<BemAqui.Sales.Domain.Sale>();
 
     public DbSet<BemAqui.Sales.Domain.SaleLine> SaleLines => Set<BemAqui.Sales.Domain.SaleLine>();
@@ -491,6 +495,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     {
         // Busca por parte do nome e do CNPJ (CAD-01a CA 18). pg_trgm é extensão confiável: o dono do banco cria.
         modelBuilder.HasPostgresExtension("pg_trgm");
+        // OFF-01: cursor do catálogo do caixa (pos.catalog_items.change_seq), em série pela trava do tenant.
+        modelBuilder.HasSequence<long>("catalog_change_seq", BemAqui.Pos.Application.PosSchema.Name);
         foreach (var module in ModuleRegistry.All)
         {
             if (module.PersistenceAssembly is { } assembly)

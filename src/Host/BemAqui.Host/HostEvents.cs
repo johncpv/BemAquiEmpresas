@@ -93,17 +93,17 @@ public static class HostEvents
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderApproved>()
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderPaid>()
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderLevelReleased>()
-            // PAG-01: a forma de pagamento mudou; o que desce para os caixas é refeito (consumidor na OFF-02).
-            .AddEvent<BemAqui.Finance.Contracts.PaymentMethodChanged>()
+            // PAG-01: a forma de pagamento mudou; o modelo de leitura do caixa (pos.catalog_items) é refeito pela fonte (OFF-01).
+            .AddHandler<BemAqui.Finance.Contracts.PaymentMethodChanged, BemAqui.Pos.Application.PosCatalogProjector>()
             // VND-01: venda concluída ou cancelada no canal sem caixa. O Sales baixa (e estorna) o estoque pelo IStockMovements; o Financeiro recompõe o
             // recebível do dia e canal pela fonte (ISaleLookup). Os dois são idempotentes (inbox + regra).
             .AddHandler<BemAqui.Sales.Contracts.SaleCompleted, BemAqui.Sales.Application.SaleStockConsumer>()
             .AddHandler<BemAqui.Sales.Contracts.SaleCancelled, BemAqui.Sales.Application.SaleStockConsumer>()
             .AddHandler<BemAqui.Sales.Contracts.SaleCompleted, BemAqui.Finance.Application.SaleReceivablesConsumer>()
             .AddHandler<BemAqui.Sales.Contracts.SaleCancelled, BemAqui.Finance.Application.SaleReceivablesConsumer>()
-            // CAT-01: produto e preço mudaram; o modelo de leitura do caixa recarrega (consumidor na OFF-01).
-            .AddEvent<BemAqui.Catalog.Contracts.ProductChanged>()
-            .AddEvent<BemAqui.Catalog.Contracts.PriceChanged>()
+            // CAT-01: produto e preço mudaram; o modelo de leitura do caixa (pos.catalog_items) relê a fonte pelo IPosCatalogFeed (OFF-01).
+            .AddHandler<BemAqui.Catalog.Contracts.ProductChanged, BemAqui.Pos.Application.PosCatalogProjector>()
+            .AddHandler<BemAqui.Catalog.Contracts.PriceChanged, BemAqui.Pos.Application.PosCatalogProjector>()
             // RH-02c (ADR 0036 §4): o fechamento cria os títulos na própria transação; os eventos da folha são só aviso e projeção, e a folha
             // fica paga (ou volta a fechada no estorno) pela fonte, no consumidor da OP.
             .AddEvent<BemAqui.HR.Contracts.PayrollClosed>()

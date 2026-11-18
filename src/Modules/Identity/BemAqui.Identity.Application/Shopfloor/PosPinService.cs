@@ -4,6 +4,7 @@ using BemAqui.BuildingBlocks.Observability;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.HR.Contracts;
+using BemAqui.Identity.Contracts;
 using BemAqui.Identity.Domain;
 using BemAqui.Pos.Contracts;
 using BemAqui.SharedKernel;
@@ -43,6 +44,34 @@ public sealed record SetPosPinInput(string Pin, string Confirmation);
 
 /// <summary>"PIN do caixa" da própria pessoa (Meu perfil): se tem, quando criou e usou, e se o perfil pode usar.</summary>
 public sealed record MyPosPin(bool HasPin, DateTimeOffset? CreatedAt, DateTimeOffset? LastUsedAt, bool CanUse);
+
+/// <summary>
+/// Operadores com PIN que podem entrar nos caixas de uma loja (PDV-01 CA 11; OFF-01 CA 10 pelo <see cref="IPosStoreOperators"/>): ativos, com perfil
+/// que usa o caixa (<c>pos.create</c>, sem ação reservada) e, se de operação, ligados à loja. O último a entrar vem primeiro.
+/// </summary>
+public sealed class PosStoreOperators(IIdentityDb db, IPermissionService permissions) : IPosStoreOperators
+{
+    public async Task<IReadOnlyList<PosStoreOperator>> ForStoreAsync(Guid storeId, CancellationToken cancellationToken = default)
+    {
+        var rows = await (
+            from p in db.PosPins.AsNoTracking()
+            join u in db.Users.AsNoTracking() on p.UserId equals u.Id
+            where u.Status == UserStatus.Active && (!u.IsOperationUser || u.OperationStoreIds.Contains(storeId))
+            select new { u.Id, u.Name, p.LastUsedAt }).ToListAsync(cancellationToken);
+        var operators = new List<(Guid Id, string Name, DateTimeOffset? LastUsedAt)>();
+        foreach (var row in rows)
+        {
+            if (PinProfile.CanUsePosPin(await permissions.GetAsync(row.Id, cancellationToken)))
+            {
+                operators.Add((row.Id, row.Name, row.LastUsedAt));
+            }
+        }
+
+        return operators
+            .OrderByDescending(r => r.LastUsedAt.HasValue).ThenByDescending(r => r.LastUsedAt).ThenBy(r => r.Name, StringComparer.CurrentCulture)
+            .Select(r => new PosStoreOperator(r.Id, PinNames.ShortName(r.Name))).ToList();
+    }
+}
 
 /// <summary>
 /// Aparelho de caixa pelo cookie <c>__Host-bq_pos</c>, sem a assinatura (ADR 0048 §2): serve à sessão por PIN do caixa, conferida a cada request, e à
@@ -95,6 +124,7 @@ public sealed class PosPinService(
     AuthService auth,
     IAlertSink alerts,
     ITenantContext tenant,
+    PosStoreOperators storeOperators,
     TimeProvider clock)
 {
     public const string InvalidPin = "PIN incorreto. Confira e tente de novo.";
@@ -116,24 +146,8 @@ public sealed class PosPinService(
             return Error.Conflict("device_not_registered", NotRegisteredMessage);
         }
 
-        var storeId = device.StoreId!.Value;
-        var rows = await (
-            from p in db.PosPins.AsNoTracking()
-            join u in db.Users.AsNoTracking() on p.UserId equals u.Id
-            where u.Status == UserStatus.Active && (!u.IsOperationUser || u.OperationStoreIds.Contains(storeId))
-            select new { u.Id, u.Name, p.LastUsedAt }).ToListAsync(cancellationToken);
-        var operators = new List<(Guid Id, string Name, DateTimeOffset? LastUsedAt)>();
-        foreach (var row in rows)
-        {
-            if (PinProfile.CanUsePosPin(await permissions.GetAsync(row.Id, cancellationToken)))
-            {
-                operators.Add((row.Id, row.Name, row.LastUsedAt));
-            }
-        }
-
-        var list = operators
-            .OrderByDescending(r => r.LastUsedAt.HasValue).ThenByDescending(r => r.LastUsedAt).ThenBy(r => r.Name, StringComparer.CurrentCulture)
-            .Select(r => new PosOperator(r.Id, PinNames.ShortName(r.Name))).ToList();
+        var list = (await storeOperators.ForStoreAsync(device.StoreId!.Value, cancellationToken))
+            .Select(r => new PosOperator(r.UserId, r.DisplayName)).ToList();
         return new PosOperators(device.Name, place.StoreName, place.RegisterNumber, list);
     }
 
