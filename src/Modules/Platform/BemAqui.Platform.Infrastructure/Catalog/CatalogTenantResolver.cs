@@ -94,13 +94,15 @@ public sealed class CatalogTenantResolver(IServiceScopeFactory scopes, TimeProvi
             _ => TenantStatus.Provisioning,
         };
         var released = await db.TenantModules.AsNoTracking().Where(m => m.TenantId == tenant.Id && m.Enabled).Select(m => m.ModuleCode).ToListAsync(cancellationToken);
-        var profiles = await db.TenantProfiles.AsNoTracking().Where(p => p.TenantId == tenant.Id && p.RemovedAt == null).Select(p => p.ProfileCode).ToListAsync(cancellationToken);
+        var active = await db.TenantProfiles.AsNoTracking().Where(p => p.TenantId == tenant.Id && p.RemovedAt == null).Select(p => new { p.ProfileCode, p.Segment }).ToListAsync(cancellationToken);
+        var profiles = active.Select(p => p.ProfileCode).Distinct(StringComparer.Ordinal).ToList();
         var releasedSet = released.ToHashSet(StringComparer.Ordinal);
         return new ResolvedTenant(new TenantInfo(tenant.Id, tenant.Key, status), tenant.LegalName, tenant.TradeName, primary, tenant.ConnectionSecret, tenant.SchemaVersion)
         {
             ReleasedModules = releasedSet,
             HiddenModules = BusinessProfileCatalog.Hidden(profiles, releasedSet), // ADR 0046: fora de todo perfil e não liberado
             Profiles = profiles.ToHashSet(StringComparer.Ordinal),
+            Segments = active.Where(p => p.Segment != null).Select(p => p.Segment!).ToHashSet(StringComparer.Ordinal), // PERF-04: pacotes do segmento
             BankProductionAllowed = tenant.BankProductionAllowed,
         };
     }
