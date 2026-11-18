@@ -25,6 +25,8 @@ public static class DashboardServices
         // DSH-03: painel do supervisor (blocos pelos contratos do Production, do Inventory e do Purchasing).
         services.TryAddScoped<SupervisorService>();
         services.TryAddScoped<SupervisorShortages>();
+        // PERF-04: checklist "Primeiros passos" do Comércio (empresa, regime e formas de pagamento pelos contratos dos donos).
+        services.TryAddScoped<FirstStepsService>();
         return services;
     }
 }

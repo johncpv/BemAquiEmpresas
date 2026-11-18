@@ -316,6 +316,7 @@ import type {
   FinanceLimitsInput,
   FinanceProjectOption,
   FinanceSupplierOption,
+  FirstStepsCard,
   FiscalCertificateForm,
   FiscalCertificateView,
   FiscalConnectionTest,
@@ -105888,6 +105889,101 @@ export function useDownloadOwnerDashboardPdf<TData = Awaited<ReturnType<typeof d
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getDownloadOwnerDashboardPdfQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetDashboardFirstStepsUrl = () => {
+
+
+
+
+  return `/api/v1/dashboard/first-steps`
+}
+
+export const getDashboardFirstSteps = async ( options?: Parameters<typeof apiFetch>[1]): Promise<FirstStepsCard> => {
+
+  return apiFetch<FirstStepsCard>(getGetDashboardFirstStepsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDashboardFirstStepsQueryKey = () => {
+    return [
+    `/api/v1/dashboard/first-steps`
+    ] as const;
+    }
+
+
+export const getGetDashboardFirstStepsQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardFirstSteps>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardFirstSteps>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardFirstStepsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardFirstSteps>>> = ({ signal }) => getDashboardFirstSteps({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardFirstSteps>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDashboardFirstStepsQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardFirstSteps>>>
+export type GetDashboardFirstStepsQueryError = unknown
+
+
+export function useGetDashboardFirstSteps<TData = Awaited<ReturnType<typeof getDashboardFirstSteps>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardFirstSteps>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardFirstSteps>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardFirstSteps>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardFirstSteps<TData = Awaited<ReturnType<typeof getDashboardFirstSteps>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardFirstSteps>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardFirstSteps>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardFirstSteps>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardFirstSteps<TData = Awaited<ReturnType<typeof getDashboardFirstSteps>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardFirstSteps>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetDashboardFirstSteps<TData = Awaited<ReturnType<typeof getDashboardFirstSteps>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardFirstSteps>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDashboardFirstStepsQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

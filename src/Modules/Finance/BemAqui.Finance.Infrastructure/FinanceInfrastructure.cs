@@ -27,6 +27,8 @@ public static class FinanceInfrastructure
         // PAG-01: formas de pagamento e taxas da adquirente; sem seed automático (as sugeridas só por ação do usuário ou, na PERF-04, do perfil Comércio).
         services.TryAddScoped<PaymentMethodService>();
         services.TryAddScoped<IPaymentMethods, PaymentMethodsContract>();
+        services.TryAddScoped<RetailFinanceSeed>(); // PERF-04: pacote do Comércio
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IProfileSeedPackage, FinanceRetailSeedPackage>());
         services.TryAddScoped<IPaymentTermImport, PaymentTermImport>();
         services.TryAddScoped<IBankAccountImport, BankAccountImport>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, PaymentTermSeeder>());

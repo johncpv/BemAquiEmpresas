@@ -14,7 +14,9 @@ public class PersonalDataTests
     {
         ["Party"] = ["Id", "Kind", "LegalName", "TradeName", "SearchText", "StateRegistration", "MunicipalRegistration", "TaxRegime", "IsActive", "DefaultPaymentTermId", "ImportSource", "CreatedAt", "IsDeleted", "DeletedAt", "Roles", "Addresses", "Contacts",
             // LGPD-01b: a data e o número do pedido da anonimização são marcas técnicas, sem dado do titular.
-            "AnonymizedAt", "AnonymizationRequest"],
+            "AnonymizedAt", "AnonymizationRequest",
+            // PERF-04: a chave do seed por perfil é técnica, sem dado do titular.
+            "SeedKey"],
         ["PartyRole"] = ["Id", "PartyId", "Role"],
         ["PartyAddress"] = ["Id", "PartyId", "Kind", "ZipCode", "Street", "Number", "Complement", "District", "City", "IbgeCode", "State", "IsDefault"],
         ["PartyContact"] = ["Id", "PartyId", "Role", "ReceivesBilling"],

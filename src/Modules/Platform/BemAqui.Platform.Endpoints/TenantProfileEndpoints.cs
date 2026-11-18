@@ -34,8 +34,17 @@ internal static class TenantProfileEndpoints
                 (await service.GetProfileTabAsync(tenantId, ct)).ToHttpResult())
             .WithName("GetTenantProfiles").Produces<TenantProfilesTab>();
 
-        profiles.MapPost(string.Empty, async (Guid tenantId, AddTenantProfileRequest request, ClaimsPrincipal user, HttpContext http, TenantModuleService service, CancellationToken ct) =>
-                (await service.AddProfileAsync(tenantId, request.Profile, request.Segment, AdminId(user), Ip(http), ct)).ToHttpResult())
+        // PERF-04: adicionar perfil roda também os dados iniciais do perfil (idempotente; falha no seed não desfaz o perfil).
+        profiles.MapPost(string.Empty, async (Guid tenantId, AddTenantProfileRequest request, ClaimsPrincipal user, HttpContext http, TenantModuleService service, TenantProfileSeeding seeding, CancellationToken ct) =>
+            {
+                var added = await service.AddProfileAsync(tenantId, request.Profile, request.Segment, AdminId(user), Ip(http), ct);
+                if (added.IsSuccess && !await seeding.RunAsync(tenantId, ct))
+                {
+                    return Results.Ok(added.Value with { Message = added.Value.Message + TenantProfileSeeding.SeedFailedNotice });
+                }
+
+                return added.ToHttpResult();
+            })
             .WithName("AddTenantProfile").Produces<TenantProfileChange>();
 
         profiles.MapDelete("/{profile}", async (Guid tenantId, string profile, string? segment, ClaimsPrincipal user, HttpContext http, TenantModuleService service, CancellationToken ct) =>
