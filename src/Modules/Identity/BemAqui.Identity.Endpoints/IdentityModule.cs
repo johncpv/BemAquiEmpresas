@@ -30,6 +30,7 @@ public sealed class IdentityModule : IModule
         endpoints.MapCompanySettingsEndpoints();
         endpoints.MapShopfloorDeviceEndpoints();
         endpoints.MapRegisterDeviceEndpoints(); // PDV-01: aparelhos de caixa
+        endpoints.MapPosPinEndpoints(); // PDV-01 CA 11 e 12: PIN no caixa e usuário de operação
         endpoints.MapKioskEndpoints();
         endpoints.MapPrivacyEndpoints();
 

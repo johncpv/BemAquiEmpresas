@@ -26,6 +26,9 @@ public sealed class AuthRateLimitOptions
 
     /// <summary>Troca do token da TV pelo cookie (PNL-01a CA 8, política nomeada <c>kiosk-session</c>), por IP + tenant.</summary>
     public int KioskSessionPerMinute { get; set; } = 10;
+
+    /// <summary>Entrada por PIN no caixa do PDV (PDV-01 CA 11, política nomeada <c>pos-pin-login</c>), por tenant, IP e aparelho.</summary>
+    public int PosPinPerMinute { get; set; } = 10;
 }
 
 /// <summary>
@@ -80,6 +83,13 @@ public static class AuthRateLimiting
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0,
                 }));
+            // Entrada por PIN no caixa do PDV (PDV-01 CA 11): por tenant, IP e aparelho (hash do cookie __Host-bq_pos; vários caixas atrás do mesmo IP da
+            // loja não dividem o limite). O bloqueio do PIN (5 erros) e do aparelho (20 em 15 min) já cortam a força bruta; isto limita o custo do PBKDF2.
+            // Cookie inventado não chega ao PBKDF2: o esquema Device recusa antes.
+            o.AddPolicy(BemAqui.BuildingBlocks.Web.PinSessionEndpoints.PosPinLoginRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "pos-pin|" + TenantKey(http) + "|" + PosDeviceKey(http) + "|"
+                + (http.Connection.RemoteIpAddress?.ToString() ?? "-"),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = options.PosPinPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
             // "2FA de novo" (BNK-01a CA 1): 10 códigos a cada 5 min por usuário e tenant (o anti-replay do código já vale; isto corta a
             // força bruta dos 6 dígitos). "Testar conexão" do Inter: 6 por minuto por usuário e rota (chamada externa com mTLS).
             o.AddPolicy(BemAqui.BuildingBlocks.Web.RecentTwoFactorEndpoints.StepUpRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
@@ -160,4 +170,10 @@ public static class AuthRateLimiting
 
     private static string TenantKey(HttpContext http) =>
         http.RequestServices.GetService<ITenantContext>()?.Tenant?.Id.ToString() ?? "-";
+
+    /// <summary>Aparelho de caixa pelo hash do cookie (nunca o segredo em si na chave da partição).</summary>
+    private static string PosDeviceKey(HttpContext http) =>
+        http.Request.Cookies[BemAqui.BuildingBlocks.Security.PosDeviceCookie.Name] is { Length: > 0 and <= 128 } secret
+            ? Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(secret)))[..16]
+            : "-";
 }

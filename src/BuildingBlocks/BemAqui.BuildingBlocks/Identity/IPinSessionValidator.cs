@@ -19,4 +19,11 @@ public enum PinSessionCheck
 public interface IPinSessionValidator
 {
     Task<PinSessionCheck> CheckAsync(Guid userId, string? deviceSecret, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sessão por PIN no aparelho de caixa do PDV (PDV-01 CA 11, ADR 0048): o aparelho do cookie <c>__Host-bq_pos</c> continua ativo, a sessão por PIN
+    /// dele está viva dentro das 12 h, o usuário continua ativo, com <c>pos.create</c>, sem ação reservada e, se for usuário de operação, com a loja do
+    /// aparelho entre as dele. Implementado pelo Identity.
+    /// </summary>
+    Task<PinSessionCheck> CheckRegisterAsync(Guid userId, string? posDeviceSecret, CancellationToken cancellationToken = default);
 }

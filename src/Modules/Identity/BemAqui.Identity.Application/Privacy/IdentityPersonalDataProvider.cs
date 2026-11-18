@@ -73,7 +73,7 @@ public sealed class IdentityPersonalDataProvider(
                 ("Verificação em duas etapas", PersonalDataMask.YesNo(user.TotpEnabled)), ("Último acesso", PersonalDataMask.At(user.LastLoginAt)),
                 ("Grupos", string.Join(", ", groups)))]),
             new PersonalDataBlock("Acessos registrados", "identity.refresh_tokens", sessions.Select(s => PersonalDataRecord.Of(s.CreatedAt,
-                ("Entrada em", PersonalDataMask.At(s.CreatedAt)), ("IP", s.CreatedByIp), ("Tipo", s.SessionKind == SessionKind.Pin ? "PIN no aparelho da fábrica" : "E-mail e senha"),
+                ("Entrada em", PersonalDataMask.At(s.CreatedAt)), ("IP", s.CreatedByIp), ("Tipo", s.SessionKind switch { SessionKind.Pin => "PIN no aparelho da fábrica", SessionKind.PosPin => "PIN no caixa do PDV", _ => "E-mail e senha" }),
                 ("Endereço", s.Host), ("Encerrada em", PersonalDataMask.At(s.RevokedAt)))).ToList()),
             new PersonalDataBlock("Convites", "identity.user_invites", invites.Select(i => PersonalDataRecord.Of(i.CreatedAt,
                 ("E-mail", i.Email), ("Enviado em", PersonalDataMask.At(i.CreatedAt)), ("Aceito em", PersonalDataMask.At(i.AcceptedAt)), ("Cancelado em", PersonalDataMask.At(i.CanceledAt)))).ToList()),

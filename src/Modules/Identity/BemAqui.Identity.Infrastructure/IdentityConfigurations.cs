@@ -25,6 +25,8 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
         b.Property(e => e.TotpSecretCipher).HasMaxLength(1024);
         b.Property(e => e.AnonymizationRequest).HasMaxLength(20);
+        // PDV-01 CA 12 (ADR 0049): usuário de operação e as lojas dele (uuid[], ids de pos.stores sem FK: outro módulo).
+        b.Property(e => e.OperationStoreIds).HasDefaultValueSql("'{}'::uuid[]");
     }
 }
 
@@ -79,6 +81,18 @@ internal sealed class UserPinConfiguration : IEntityTypeConfiguration<UserPin>
         b.HasIndex(e => e.DeviceId);
         b.HasOne<User>().WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<ShopfloorDevice>().WithMany().HasForeignKey(e => e.DeviceId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+/// <summary>PIN do caixa do PDV (PDV-01 CA 11): um por usuário, só o hash PBKDF2.</summary>
+internal sealed class PosPinConfiguration : IEntityTypeConfiguration<PosPin>
+{
+    public void Configure(EntityTypeBuilder<PosPin> b)
+    {
+        b.ToTable("pos_pins", IdentitySchema.Name);
+        b.Property(e => e.PinHash).HasMaxLength(512);
+        b.HasIndex(e => e.UserId).IsUnique();
+        b.HasOne<User>().WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 

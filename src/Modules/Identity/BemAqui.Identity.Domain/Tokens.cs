@@ -2,11 +2,15 @@ using BemAqui.SharedKernel;
 
 namespace BemAqui.Identity.Domain;
 
-/// <summary>Tipo da sessão (ADR 0026 §3): completa (e-mail e senha) ou por PIN, presa a um aparelho registrado.</summary>
+/// <summary>
+/// Tipo da sessão (ADR 0026 §3): completa (e-mail e senha) ou por PIN, presa a um aparelho registrado. <c>PosPin</c> (PDV-01 CA 11, ADR 0048): PIN
+/// no aparelho de caixa, com cookie e regras próprios; nunca vira sessão da fábrica nem completa.
+/// </summary>
 public enum SessionKind
 {
     Full,
     Pin,
+    PosPin,
 }
 
 /// <summary>

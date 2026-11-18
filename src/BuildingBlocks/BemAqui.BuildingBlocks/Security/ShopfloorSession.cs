@@ -12,6 +12,13 @@ public static class AuthMethods
     public const string Pin = "pin";
 
     /// <summary>
+    /// PIN no aparelho de caixa do PDV (PDV-01 CA 11, ADR 0048): a entrada foi assinada com a chave ECDSA não exportável do aparelho (RFC 8176
+    /// <c>hwk</c>, prova de posse de chave guardada no hardware). Vem sempre com <c>pin</c>: <c>amr = ["pin", "hwk"]</c>. A sessão só alcança a lista
+    /// <c>[PosPinSessionAllowed]</c> do caixa, nunca a da fábrica.
+    /// </summary>
+    public const string DeviceKey = "hwk";
+
+    /// <summary>
     /// Instante (segundos Unix) da última confirmação do código TOTP nesta sessão: no login com o código e no "2FA de novo"
     /// (BNK-01a CA 1). Não é dado de identidade nem de permissão: só a prova que o <c>RequireRecentTwoFactor</c> confere.
     /// </summary>

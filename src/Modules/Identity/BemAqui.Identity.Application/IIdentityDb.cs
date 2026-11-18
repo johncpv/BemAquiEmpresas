@@ -15,6 +15,9 @@ public interface IIdentityDb
 
     DbSet<UserPin> UserPins { get; }
 
+    /// <summary>PIN do caixa do PDV, um por usuário (PDV-01 CA 11).</summary>
+    DbSet<PosPin> PosPins { get; }
+
     /// <summary>Telas de TV (<c>identity.kiosk_tokens</c>, PNL-01a).</summary>
     DbSet<KioskScreen> KioskScreens { get; }
 
@@ -61,6 +64,9 @@ public interface IIdentityDb
     DbSet<AuditEntry> AuditEntries { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Transação e trava (<c>pg_advisory_xact_lock</c>) da entrada por PIN no caixa (revisão de segurança da PDV-01, M2).</summary>
+    Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
 
     /// <summary>Concorrência otimista (xmin) da tela de TV.</summary>
     Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<TEntity> Entry<TEntity>(TEntity entity)

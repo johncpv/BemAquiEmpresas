@@ -17,7 +17,8 @@ public sealed record GroupChip(Guid Id, string Name);
 /// </summary>
 public sealed record UserRow(
     Guid Id, string Name, string Email, IReadOnlyList<GroupChip> Groups, string TwoFactor, DateTimeOffset? LastLoginAt, string Status, bool InviteOpen,
-    DateTimeOffset? AnonymizedAt = null, string? AnonymizationRequest = null, Guid? EmployeeId = null, string? EmployeeName = null, bool EmployeeTerminated = false);
+    DateTimeOffset? AnonymizedAt = null, string? AnonymizationRequest = null, Guid? EmployeeId = null, string? EmployeeName = null, bool EmployeeTerminated = false,
+    bool IsOperationUser = false, IReadOnlyList<Guid>? OperationStoreIds = null, bool HasPosPin = false);
 
 /// <summary>Convite (FND-06c); <c>EmployeeId</c> opcional liga o usuário ao funcionário já na criação (USR-01 CA 1 a 4).</summary>
 public sealed record InviteUserRequest(string Name, string Email, IReadOnlyList<Guid>? GroupIds, Guid? EmployeeId = null);
@@ -46,6 +47,7 @@ public sealed partial class UserService(
             : await db.Groups.Where(g => g.IsActive).ToDictionaryAsync(g => g.Id, g => g.Name, cancellationToken);
         var linked = users.Where(u => u.EmployeeId is not null).Select(u => u.EmployeeId!.Value).ToList();
         var staff = linked.Count == 0 ? new Dictionary<Guid, EmployeeSummary>() : (await employees.FindAsync(linked, cancellationToken)).ToDictionary(e => e.Id);
+        var posPins = (await db.PosPins.AsNoTracking().Select(p => p.UserId).ToListAsync(cancellationToken)).ToHashSet();
         var rows = new List<UserRow>(users.Count);
         foreach (var user in users)
         {
@@ -53,10 +55,13 @@ public sealed partial class UserService(
             var chips = memberships.Where(m => m.UserId == user.Id && m.IsActive).Select(m => new GroupChip(m.Id, m.Name))
                 .Concat(invitedGroups.Where(i => i.UserId == user.Id && groupNames.ContainsKey(i.GroupId)).Select(i => new GroupChip(i.GroupId, groupNames[i.GroupId])))
                 .DistinctBy(c => c.Id).ToList();
-            var tfa = user.TotpEnabled ? "active" : user.Status == UserStatus.Active && await twoFactor.IsRequiredAsync(user, cancellationToken) ? "required_pending" : "pending";
+            // Usuário de operação (ADR 0049): sem e-mail (o técnico nunca sai daqui) e sem 2FA ("none").
+            var tfa = user.IsOperationUser ? "none"
+                : user.TotpEnabled ? "active" : user.Status == UserStatus.Active && await twoFactor.IsRequiredAsync(user, cancellationToken) ? "required_pending" : "pending";
             var employee = user.EmployeeId is { } employeeId ? staff.GetValueOrDefault(employeeId) : null;
-            rows.Add(new UserRow(user.Id, user.Name, user.Email, chips, tfa, user.LastLoginAt, user.Status.ToString(), open.Contains(user.Id), user.AnonymizedAt, user.AnonymizationRequest,
-                user.EmployeeId, employee?.Name, employee is { Status: EmployeeSituation.Terminated }));
+            rows.Add(new UserRow(user.Id, user.Name, user.IsOperationUser ? string.Empty : user.Email, chips, tfa, user.LastLoginAt, user.Status.ToString(), open.Contains(user.Id),
+                user.AnonymizedAt, user.AnonymizationRequest, user.EmployeeId, employee?.Name, employee is { Status: EmployeeSituation.Terminated },
+                user.IsOperationUser, user.IsOperationUser ? user.OperationStoreIds : null, posPins.Contains(user.Id)));
         }
 
         return rows;
@@ -148,7 +153,7 @@ public sealed partial class UserService(
     }
 
     /// <summary>USR-01 CA 2 a 4: vincular no convite exige <c>hr.edit</c> (como na ficha), funcionário ativo e ainda sem usuário.</summary>
-    private async Task<Error?> EmployeeLinkErrorAsync(Guid employeeId, CancellationToken cancellationToken)
+    internal async Task<Error?> EmployeeLinkErrorAsync(Guid employeeId, CancellationToken cancellationToken)
     {
         if (!await checker.HasPermissionAsync("hr", "edit", cancellationToken))
         {

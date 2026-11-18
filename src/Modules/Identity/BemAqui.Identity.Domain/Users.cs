@@ -54,6 +54,53 @@ public sealed class User : Entity, IAuditable
     /// <summary>Último intervalo de 30 s aceito: um código do mesmo intervalo (ou anterior) é recusado (anti-replay).</summary>
     public long? TotpLastStep { get; private set; }
 
+    /// <summary>
+    /// Usuário de operação (ADR 0049, PDV-01 CA 12): sem e-mail de verdade, sem senha, sem 2FA; só entra por PIN em aparelho de caixa registrado de uma
+    /// das lojas dele e nunca acessa a retaguarda. O e-mail guardado é técnico (<see cref="OperationEmail"/>), nunca exibido nem usado.
+    /// </summary>
+    public bool IsOperationUser { get; private set; }
+
+    /// <summary>Lojas onde o usuário de operação trabalha (ids de <c>pos.stores</c>, sem FK: outro módulo). Vazio no usuário completo.</summary>
+    public List<Guid> OperationStoreIds { get; private set; } = [];
+
+    /// <summary>Domínio reservado (RFC 2606) do e-mail técnico do usuário de operação: a coluna é obrigatória e única, mas nada é enviado.</summary>
+    public const string OperationEmailDomain = "operacao.invalid";
+
+    public static string OperationEmail(Guid id) => $"operacao.{id:N}@{OperationEmailDomain}";
+
+    /// <summary>Cria o usuário de operação já ativo (não há convite nem senha): nome, lojas e, opcionalmente, o funcionário.</summary>
+    public static User CreateOperation(string name, IReadOnlyCollection<Guid> storeIds, Guid? employeeId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(storeIds);
+        var id = Guid.CreateVersion7();
+        var email = OperationEmail(id);
+        return new User
+        {
+            Id = id,
+            Email = email,
+            NormalizedEmail = email,
+            Name = name.Trim(),
+            IsOperationUser = true,
+            Status = UserStatus.Active,
+            EmployeeId = employeeId,
+            OperationStoreIds = storeIds.Distinct().ToList(),
+        };
+    }
+
+    /// <summary>Troca as lojas do usuário de operação (a sessão por PIN numa loja que saiu cai no próximo request).</summary>
+    public void SetOperationStores(IReadOnlyCollection<Guid> storeIds)
+    {
+        ArgumentNullException.ThrowIfNull(storeIds);
+        if (!IsOperationUser)
+        {
+            throw new InvalidOperationException("Só o usuário de operação tem lojas.");
+        }
+
+        OperationStoreIds = storeIds.Distinct().ToList();
+        PermVersion++;
+    }
+
     public static User Invite(string email, string? name = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(email);

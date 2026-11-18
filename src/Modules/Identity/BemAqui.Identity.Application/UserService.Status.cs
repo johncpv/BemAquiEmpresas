@@ -51,7 +51,8 @@ public sealed partial class UserService
             return Error.Conflict("user_anonymized", "Usuário anonimizado a pedido do titular: não pode ser reativado. Convide a pessoa de novo, com outro cadastro.");
         }
 
-        if (user.Status != UserStatus.Inactive || user.PasswordHash is null)
+        // Usuário de operação (ADR 0049) não tem senha nem convite: reativa sem PIN, e o gerente dá um PIN novo.
+        if (user.Status != UserStatus.Inactive || (user.PasswordHash is null && !user.IsOperationUser))
         {
             return Error.Validation("user_not_inactive", "Só dá para reativar quem já entrou e foi desativado. Para quem não entrou, reenvie o convite.");
         }
@@ -90,6 +91,11 @@ public sealed partial class UserService
         if (await groups.GroupGrantDeniedAsync(actorId, added, cancellationToken) is { } denied)
         {
             return denied;
+        }
+
+        if (await groups.OperationUsersDeniedAsync([userId], added, cancellationToken) is { } operation)
+        {
+            return operation;
         }
 
         var ownerGroup = await db.Groups.Where(g => g.IsSystem && g.SeedKey == Group.OwnerSeedKey).Select(g => (Guid?)g.Id).FirstOrDefaultAsync(cancellationToken);

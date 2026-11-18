@@ -2907,6 +2907,269 @@
         }
       }
     },
+    "/api/v1/pos/sync/operators": {
+      "get": {
+        "tags": [
+          "PDV: sincroniza\u00E7\u00E3o"
+        ],
+        "operationId": "ListPosOperators",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PosOperators"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/sync/pin": {
+      "post": {
+        "tags": [
+          "PDV: sincroniza\u00E7\u00E3o"
+        ],
+        "operationId": "LoginPosPin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PosPinLoginInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PosPinSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/session": {
+      "get": {
+        "tags": [
+          "PDV: sess\u00E3o do operador"
+        ],
+        "operationId": "GetPosSession",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PosOperatorSession"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/session/end": {
+      "post": {
+        "tags": [
+          "PDV: sess\u00E3o do operador"
+        ],
+        "operationId": "EndPosSession",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/pos/my-pin": {
+      "get": {
+        "tags": [
+          "PDV: sess\u00E3o do operador"
+        ],
+        "operationId": "GetMyPosPin",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyPosPin"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "PDV: sess\u00E3o do operador"
+        ],
+        "operationId": "SetMyPosPin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPosPinInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyPosPin"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "PDV: sess\u00E3o do operador"
+        ],
+        "operationId": "DeleteMyPosPin",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/operation-users/stores": {
+      "get": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "ListOperationUserStores",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OperationStoreOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identity/operation-users": {
+      "post": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "CreateOperationUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOperationUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationUserCreated"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identity/operation-users/{id}": {
+      "put": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "UpdateOperationUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOperationUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/operation-users/{id}/pin": {
+      "post": {
+        "tags": [
+          "Usu\u00E1rios e acessos"
+        ],
+        "operationId": "ResetOperationUserPin",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetOperationPinRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/kiosk-screens": {
       "get": {
         "tags": [
@@ -54786,6 +55049,49 @@
           }
         }
       },
+      "CreateOperationUserRequest": {
+        "required": [
+          "name",
+          "groupIds",
+          "storeIds",
+          "pin",
+          "pinConfirmation"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "groupIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "storeIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "pin": {
+            "type": "string"
+          },
+          "pinConfirmation": {
+            "type": "string"
+          },
+          "employeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
       "CreateOutgoingInvoiceRequest": {
         "required": [
           "shipmentId"
@@ -72580,6 +72886,37 @@
           }
         }
       },
+      "MyPosPin": {
+        "required": [
+          "hasPin",
+          "createdAt",
+          "lastUsedAt",
+          "canUse"
+        ],
+        "type": "object",
+        "properties": {
+          "hasPin": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lastUsedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "canUse": {
+            "type": "boolean"
+          }
+        }
+      },
       "MyTimeClock": {
         "required": [
           "banner",
@@ -74929,6 +75266,38 @@
             "items": {
               "$ref": "#/components/schemas/OpenLaborEntry"
             }
+          }
+        }
+      },
+      "OperationStoreOption": {
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "OperationUserCreated": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -86069,6 +86438,154 @@
           "chargesPct": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "PosOperator": {
+        "required": [
+          "userId",
+          "displayName"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          }
+        }
+      },
+      "PosOperators": {
+        "required": [
+          "deviceName",
+          "storeName",
+          "registerNumber",
+          "operators"
+        ],
+        "type": "object",
+        "properties": {
+          "deviceName": {
+            "type": "string"
+          },
+          "storeName": {
+            "type": "string"
+          },
+          "registerNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "operators": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PosOperator"
+            }
+          }
+        }
+      },
+      "PosOperatorSession": {
+        "required": [
+          "userId",
+          "name",
+          "isOperationUser",
+          "storeId",
+          "storeName",
+          "registerId",
+          "registerNumber",
+          "deviceName",
+          "sessionExpiresAt",
+          "actions"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isOperationUser": {
+            "type": "boolean"
+          },
+          "storeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storeName": {
+            "type": "string"
+          },
+          "registerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "registerNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deviceName": {
+            "type": "string"
+          },
+          "sessionExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PosPinLoginInput": {
+        "required": [
+          "userId",
+          "pin"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pin": {
+            "type": "string"
+          },
+          "newPin": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "newPinConfirmation": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "PosPinSessionResponse": {
+        "required": [
+          "accessToken",
+          "expiresAt",
+          "sessionExpiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sessionExpiresAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -97590,6 +98107,22 @@
           "Released"
         ]
       },
+      "ResetOperationPinRequest": {
+        "required": [
+          "pin",
+          "pinConfirmation"
+        ],
+        "type": "object",
+        "properties": {
+          "pin": {
+            "type": "string"
+          },
+          "pinConfirmation": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "ResetPasswordRequest": {
         "required": [
           "token",
@@ -100737,6 +101270,22 @@
             }
           }
         }
+      },
+      "SetPosPinInput": {
+        "required": [
+          "pin",
+          "confirmation"
+        ],
+        "type": "object",
+        "properties": {
+          "pin": {
+            "type": "string"
+          },
+          "confirmation": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
       },
       "SettlementInput": {
         "required": [
@@ -109630,6 +110179,26 @@
           }
         }
       },
+      "UpdateOperationUserRequest": {
+        "required": [
+          "name",
+          "storeIds"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "storeIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "UpdateOutgoingInvoiceRequest": {
         "required": [
           "items",
@@ -109860,6 +110429,24 @@
             ]
           },
           "employeeTerminated": {
+            "type": "boolean",
+            "default": false
+          },
+          "isOperationUser": {
+            "type": "boolean",
+            "default": false
+          },
+          "operationStoreIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "hasPosPin": {
             "type": "boolean",
             "default": false
           }
@@ -111093,6 +111680,12 @@
       "name": "Aparelhos do PDV"
     },
     {
+      "name": "PDV: sincroniza\u00E7\u00E3o"
+    },
+    {
+      "name": "PDV: sess\u00E3o do operador"
+    },
+    {
       "name": "Painel da TV"
     },
     {
@@ -111133,9 +111726,6 @@
     },
     {
       "name": "Lojas e caixas"
-    },
-    {
-      "name": "PDV: sincroniza\u00E7\u00E3o"
     },
     {
       "name": "Fiscal"

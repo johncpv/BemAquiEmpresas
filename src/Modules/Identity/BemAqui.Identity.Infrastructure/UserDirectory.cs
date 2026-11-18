@@ -47,5 +47,5 @@ internal sealed class UserDirectory(IIdentityDb db, IPermissionService permissio
         db.Groups.AsNoTracking().Where(g => g.Id == groupId).Select(g => (string?)g.Name).FirstOrDefaultAsync(cancellationToken);
 
     public Task<string?> EmailOfAsync(Guid userId, CancellationToken cancellationToken = default) =>
-        db.Users.AsNoTracking().Where(u => u.Id == userId && u.Status == UserStatus.Active).Select(u => (string?)u.Email).FirstOrDefaultAsync(cancellationToken);
+        db.Users.AsNoTracking().Where(u => u.Id == userId && u.Status == UserStatus.Active && !u.IsOperationUser).Select(u => (string?)u.Email).FirstOrDefaultAsync(cancellationToken);
 }

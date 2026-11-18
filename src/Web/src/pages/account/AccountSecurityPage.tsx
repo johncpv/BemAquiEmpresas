@@ -9,7 +9,11 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { notifySuccess } from '@/components/ui/messages'
 import { z } from '@/lib/zod'
 import { PageHeading } from '@/shell/PageHeading'
+import { useHasProfile } from '@/navigation/navigation-context'
+import { OPERATION_PROFILES } from '@/pages/access/operation-users'
+import { useCan } from '@/pages/use-can'
 import { MyPinsSection } from './MyPinsSection'
+import { MyPosPinSection } from './MyPosPinSection'
 
 const profileApi = { begin: () => beginTwoFactorSetup(), confirm: (code: string) => confirmTwoFactorSetup({ code }) }
 const disableSchema = z.object({ password: z.string().min(1, 'Informe a senha.'), code: z.string().min(6, 'Informe o código do app.') })
@@ -17,6 +21,10 @@ const disableSchema = z.object({ password: z.string().min(1, 'Informe a senha.')
 /** Minha conta → Verificação em duas etapas (FND-05 CA 1, 2 e 10): ativar, ver códigos restantes e desativar. */
 export function AccountSecurityPage() {
   const status = useGetTwoFactorStatus()
+  // PDV-01 CA 11: o PIN do caixa só no Comércio e para quem vende no caixa.
+  const retail = useHasProfile(OPERATION_PROFILES)
+  const sells = useCan('pos.create')
+  const posPin = retail && sells
   const [activating, setActivating] = useState(false)
   const form = useZodForm(disableSchema, { defaultValues: { password: '', code: '' } })
 
@@ -69,6 +77,7 @@ export function AccountSecurityPage() {
         </section>
       )}
       <MyPinsSection />
+      {posPin ? <MyPosPinSection /> : null}
     </>
   )
 }

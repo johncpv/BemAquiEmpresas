@@ -25,4 +25,8 @@ export interface UserRow {
   /** @nullable */
   employeeName?: string | null;
   employeeTerminated?: boolean;
+  isOperationUser?: boolean;
+  /** @nullable */
+  operationStoreIds?: string[] | null;
+  hasPosPin?: boolean;
 }

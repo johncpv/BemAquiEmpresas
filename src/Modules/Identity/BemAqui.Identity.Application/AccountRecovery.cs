@@ -27,7 +27,7 @@ public sealed class AccountRecovery(
     public async Task<string> ForgotAsync(string emailAddress, CancellationToken cancellationToken = default)
     {
         var normalized = User.Normalize(emailAddress ?? string.Empty);
-        var user = await db.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalized && u.Status == UserStatus.Active, cancellationToken);
+        var user = await db.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalized && u.Status == UserStatus.Active && !u.IsOperationUser, cancellationToken);
         if (user is null)
         {
             return ForgotMessage;

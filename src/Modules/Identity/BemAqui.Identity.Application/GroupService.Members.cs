@@ -52,6 +52,11 @@ public sealed partial class GroupService
             {
                 return denied;
             }
+
+            if (await OperationUsersDeniedAsync(added, [group.Id], cancellationToken) is { } operation)
+            {
+                return operation;
+            }
         }
 
         var removed = current.Where(c => !wanted.Contains(c.UserId)).ToList();

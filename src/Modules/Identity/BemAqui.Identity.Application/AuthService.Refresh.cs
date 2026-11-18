@@ -17,7 +17,11 @@ public sealed partial class AuthService
     public async Task<Result<LoginSession>> RefreshAsync(string? refreshToken, string host, string? ip, CancellationToken cancellationToken = default) =>
         await RefreshAsync(refreshToken, host, ip, deviceSecret: null, cancellationToken);
 
-    public async Task<Result<LoginSession>> RefreshAsync(string? refreshToken, string host, string? ip, string? deviceSecret, CancellationToken cancellationToken = default)
+    public Task<Result<LoginSession>> RefreshAsync(string? refreshToken, string host, string? ip, string? deviceSecret, CancellationToken cancellationToken = default) =>
+        RefreshAsync(refreshToken, host, ip, deviceSecret, posDeviceSecret: null, cancellationToken);
+
+    /// <param name="posDeviceSecret">Cookie do aparelho de caixa (<c>__Host-bq_pos</c>): a sessão por PIN do caixa só renova no aparelho dela (PDV-01 CA 11).</param>
+    public async Task<Result<LoginSession>> RefreshAsync(string? refreshToken, string host, string? ip, string? deviceSecret, string? posDeviceSecret, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(refreshToken))
         {
@@ -67,15 +71,31 @@ public sealed partial class AuthService
             device.Touch(now);
         }
 
+        if (current.SessionKind == SessionKind.PosPin)
+        {
+            // Caixa do PDV (PDV-01 CA 11): só no aparelho de caixa da sessão, pelo cookie __Host-bq_pos; nunca no tablet da fábrica.
+            var register = await posDevices.ResolveAsync(posDeviceSecret, cancellationToken);
+            if (register is null || register.Id != current.DeviceId)
+            {
+                await RevokeFamilyAsync(current.FamilyId, now, cancellationToken);
+                await AuditAsync("PosPinRefreshRejected", current.UserId, ip, new { device = current.DeviceId }, cancellationToken);
+                return Expired();
+            }
+        }
+
         var user = await db.Users.FirstOrDefaultAsync(u => u.Id == current.UserId, cancellationToken);
-        if (user is null || user.Status != UserStatus.Active)
+        if (user is null || user.Status != UserStatus.Active || (user.IsOperationUser && current.SessionKind != SessionKind.PosPin))
         {
             await RevokeFamilyAsync(current.FamilyId, now, cancellationToken);
             return Expired();
         }
 
-        var amr = current.SessionKind == SessionKind.Pin ? new[] { AuthMethods.Pin }
-            : user.TotpEnabled ? [AuthMethods.Password, AuthMethods.Otp] : [AuthMethods.Password];
+        var amr = current.SessionKind switch
+        {
+            SessionKind.Pin => new[] { AuthMethods.Pin },
+            SessionKind.PosPin => PosPinAmr,
+            _ => user.TotpEnabled ? [AuthMethods.Password, AuthMethods.Otp] : [AuthMethods.Password],
+        };
         var session = CreateSession(user, host, current.FamilyId, ip, now, new SessionSpec(current.SessionKind, current.DeviceId, absolute, amr));
         var created = db.RefreshTokens.Local.Single(t => t.TokenHash == OpaqueToken.Hash(session.RefreshToken!));
         current.ReplaceWith(created.Id, now);

@@ -11748,6 +11748,65 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("password_resets", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.PosPin", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<int>("FailedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("failed_count");
+
+                    b.Property<int>("FailuresInWindow")
+                        .HasColumnType("integer")
+                        .HasColumnName("failures_in_window");
+
+                    b.Property<DateTimeOffset?>("FailuresSince")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("failures_since");
+
+                    b.Property<DateTimeOffset?>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_used_at");
+
+                    b.Property<DateTimeOffset?>("LockedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("locked_until");
+
+                    b.Property<bool>("MustChange")
+                        .HasColumnType("boolean")
+                        .HasColumnName("must_change");
+
+                    b.Property<string>("PinHash")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("pin_hash");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_pos_pins");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_pos_pins_user_id");
+
+                    b.ToTable("pos_pins", "identity");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.PrivacyRequest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -12425,6 +12484,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("employee_id");
 
+                    b.Property<bool>("IsOperationUser")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_operation_user");
+
                     b.Property<DateTimeOffset?>("LastLoginAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_login_at");
@@ -12444,6 +12507,13 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(320)
                         .HasColumnType("character varying(320)")
                         .HasColumnName("normalized_email");
+
+                    b.PrimitiveCollection<List<Guid>>("OperationStoreIds")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("operation_store_ids")
+                        .HasDefaultValueSql("'{}'::uuid[]");
 
                     b.Property<string>("PasswordHash")
                         .HasMaxLength(512)
@@ -19761,6 +19831,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_password_resets_users_user_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.PosPin", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_pos_pins_users_user_id");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.RecoveryCode", b =>

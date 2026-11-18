@@ -23,7 +23,18 @@ public sealed class UserLifecycle(IIdentityDb db, AuthService auth, ISecuritySta
         }
 
         user.Deactivate();
-        db.AuditEntries.Add(new AuditEntry { Entity = "Auth", EntityId = userId.ToString(), Action = "Deactivated", UserId = byUserId, At = clock.GetUtcNow(), Changes = "{}" });
+        // PDV-01 CA 12 (ADR 0049): desativar (inclusive pelo desligamento do funcionário, USR-01) apaga o PIN do caixa; as sessões por PIN caem abaixo.
+        var posPin = await db.PosPins.FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
+        if (posPin is not null)
+        {
+            db.PosPins.Remove(posPin);
+        }
+
+        db.AuditEntries.Add(new AuditEntry
+        {
+            Entity = "Auth", EntityId = userId.ToString(), Action = "Deactivated", UserId = byUserId, At = clock.GetUtcNow(),
+            Changes = posPin is null ? "{}" : "{\"posPinErased\":true}",
+        });
         await db.SaveChangesAsync(cancellationToken);
         await auth.RevokeAllAsync(userId, cancellationToken);
         stamps.Invalidate(tenant.Tenant?.Id ?? Guid.Empty, userId);
