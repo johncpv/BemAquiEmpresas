@@ -62,13 +62,29 @@ export async function createDeviceKey(): Promise<{ keys: CryptoKeyPair; publicKe
   return { keys, publicKey: toBase64(await crypto.subtle.exportKey('spki', keys.publicKey)) }
 }
 
-/** Esquece a chave (aparelho bloqueado ou trocado): o próximo registro gera outra. */
+/** Esquece a chave (aparelho bloqueado ou trocado): o próximo registro gera outra. A chave do documento do consumidor vai junto. */
 export async function forgetDeviceKey(): Promise<void> {
   try {
     await withStore('readwrite', (s) => s.delete(KEY_ID))
+    await withStore('readwrite', (s) => s.delete(DOCUMENT_KEY_ID))
   } catch {
     // sem IndexedDB não há o que apagar
   }
+}
+
+const DOCUMENT_KEY_ID = 'document-key'
+
+/**
+ * Chave AES-GCM do documento do consumidor (PDV-02 CA 14, PP-26), não exportável, guardada ao lado da chave do aparelho e apagada com ela
+ * (`forgetDeviceKey`): sem a chave do aparelho, o CPF cifrado deste caixa vira lixo ilegível. O WebCrypto não deriva chave de cifra de uma chave
+ * ECDSA não exportável; por isso a chave do documento nasce à parte, presa à vida da chave do aparelho. Nasce no primeiro uso.
+ */
+export async function loadDocumentKey(): Promise<CryptoKey> {
+  const saved = await withStore<CryptoKey | undefined>('readonly', (s) => s.get(DOCUMENT_KEY_ID))
+  if (saved) return saved
+  const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt'])
+  await withStore('readwrite', (s) => s.put(key, DOCUMENT_KEY_ID))
+  return key
 }
 
 /** Cabeçalhos da assinatura de uma chamada do aparelho. */

@@ -27,6 +27,11 @@ export interface CatalogBarcode {
   id: string
   code: string
   itemId: string
+  /**
+   * Quantidade que o código representa (PDV-02 CA 2: o código da caixa com 12 lança 12). Ausente nos catálogos baixados antes da PDV-02: vale 1,
+   * e o próximo delta do item traz o valor.
+   */
+  packQuantity?: number
 }
 
 /** Preço de venda do item na tabela da loja, com a versão da tabela (para a venda registrar qual preço valeu). */

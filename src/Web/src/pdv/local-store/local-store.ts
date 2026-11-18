@@ -1,4 +1,5 @@
-import type { CatalogChange, CatalogCollection, CatalogData, CatalogItem, CatalogPrice, CatalogRecords, CatalogState, CatalogVersion } from './catalog-types'
+import type { CatalogBarcode, CatalogChange, CatalogCollection, CatalogData, CatalogItem, CatalogPrice, CatalogRecords, CatalogState, CatalogVersion } from './catalog-types'
+import type { ClosedSale, CustomerDocumentRecord, SaleJournalEvent } from './sale-journal-types'
 
 /**
  * Porta `LocalStore` (OFF-01 CA 7, rascunho A item 4): todo dado local do caixa passa por aqui. A implementação é IndexedDB com Dexie (escolha
@@ -26,6 +27,8 @@ export interface LocalStore {
   list<K extends CatalogCollection>(collection: K): readonly CatalogRecords[K][]
   get<K extends CatalogCollection>(collection: K, id: string): CatalogRecords[K] | null
   findByBarcode(code: string): CatalogItem | null
+  /** O item e o código lido, com a quantidade da embalagem (PDV-02 CA 2). */
+  lookupBarcode(code: string): { item: CatalogItem; barcode: CatalogBarcode } | null
   priceOf(itemId: string): CatalogPrice | null
   /** Busca pelo nome, por pedaços de palavra, sem acento e sem diferença de maiúscula ("arro cami" acha "Arroz Camil"). */
   searchItems(term: string, limit?: number): CatalogItem[]
@@ -34,6 +37,19 @@ export interface LocalStore {
   enqueue(kind: string, payload: unknown, at?: string): Promise<OutboxEntry>
   /** Quantas vendas esperam para subir e desde quando (faixa de estado, CA 13). */
   pendingSummary(): Promise<PendingSummary>
+
+  /** Grava eventos da venda em andamento no diário (PDV-02), numa transação; a tela só confirma depois disso. */
+  appendSaleEvents(events: readonly SaleJournalEvent[]): Promise<void>
+  /** O diário inteiro, na ordem em que foi gravado (vendas abertas e em espera). */
+  saleJournal(): Promise<SaleJournalEvent[]>
+  /**
+   * Fecha a venda numa transação só: atribui o próximo número do caixa, tira os eventos dela do diário e põe uma entrada na fila de saída,
+   * montada por `build` com o número e os eventos. `deleteDocumentId`: o documento do consumidor que deixa de ser preciso (venda descartada).
+   */
+  closeSale(saleId: string, build: (number: number, events: SaleJournalEvent[]) => ClosedSale, deleteDocumentId?: string | null): Promise<{ number: number; entry: OutboxEntry }>
+  putCustomerDocument(doc: CustomerDocumentRecord): Promise<void>
+  getCustomerDocument(id: string): Promise<CustomerDocumentRecord | null>
+  deleteCustomerDocument(id: string): Promise<void>
 
   /** Relê do disco (a segunda aba, quando vira dona, pega o que a primeira gravou). */
   reload(): Promise<void>
