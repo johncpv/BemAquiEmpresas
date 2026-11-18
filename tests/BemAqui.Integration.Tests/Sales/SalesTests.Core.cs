@@ -51,7 +51,7 @@ public partial class SalesTests
         (await WithDbAsync(db => db.SaleLines.CountAsync(l => l.SaleId == sale.Id && l.ItemId == item))).Should().Be(2);
         (await WithDbAsync(db => db.SaleParts.CountAsync(p => p.SaleId == sale.Id && p.Paid))).Should().Be(1);
         (await WithDbAsync(db => db.OutboxMessages.Where(m => m.Type == IntegrationEventRegistry.NameOf(typeof(SaleCompleted))).Select(m => m.Payload).ToListAsync()))
-            .Should().Contain(p => p.Contains(sale.Id.ToString(), StringComparison.Ordinal) && p.Contains("\"Channel\":\"Online\"", StringComparison.Ordinal));
+            .Should().Contain(p => p.Contains(sale.Id.ToString(), StringComparison.Ordinal) && p.Contains("\"Channel\": \"Online\"", StringComparison.Ordinal)); // jsonb do Postgres serializa com espaço
         await DrainAsync();
     }
 

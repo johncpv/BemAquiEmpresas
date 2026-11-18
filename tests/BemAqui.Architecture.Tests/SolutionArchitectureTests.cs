@@ -9,14 +9,14 @@ public class SolutionArchitectureTests
     private static readonly string[] DomainForbiddenNamespaces = ["Microsoft.EntityFrameworkCore", "Microsoft.AspNetCore", "Npgsql"];
 
     /// <summary>
-    /// 16 módulos: 15 com as 5 camadas e o <c>Dashboard</c>, módulo de composição só com Application e Endpoints (ADR 0028 §1,
-    /// DSH-01a CA 1; as regras dele estão em <see cref="CompositionRulesTests"/>).
+    /// 17 módulos: 16 com as 5 camadas e o <c>Dashboard</c>, módulo de composição só com Application e Endpoints (ADR 0028 §1,
+    /// DSH-01a CA 1; as regras dele estão em <see cref="CompositionRulesTests"/>). Do PDV: Catalog (CAT-01) e Sales (VND-01).
     /// </summary>
     [Fact]
-    public void Existem_os_16_modulos_com_as_5_camadas_e_o_Dashboard_so_de_composicao()
+    public void Existem_os_17_modulos_com_as_5_camadas_e_o_Dashboard_so_de_composicao()
     {
         Solution.ModuleNames.Should().BeEquivalentTo(
-            "Platform", "Identity", "Parties", "HR", "Commercial", "Engineering", "Production", "Catalog",
+            "Platform", "Identity", "Parties", "HR", "Commercial", "Engineering", "Production", "Catalog", "Sales",
             "Inventory", "Purchasing", "Finance", "Fiscal", "Assets", "Portal", "Migrations", "Dashboard");
 
         foreach (var module in Solution.ModuleNames)
