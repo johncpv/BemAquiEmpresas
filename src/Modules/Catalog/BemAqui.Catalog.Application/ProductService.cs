@@ -131,7 +131,8 @@ public sealed partial class ProductService(
             return taken;
         }
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        // Dentro da transação de quem chama (a importação, CAT-02, grava produto, preço e saldo de cada linha juntos), não abre outra.
+        await using var transaction = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(cancellationToken) : null;
         var itemId = input.ItemId;
         if (input.NewItem is { } newItem)
         {
@@ -171,7 +172,10 @@ public sealed partial class ProductService(
             }
         }
 
-        await transaction.CommitAsync(cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
         return await GetAsync(product.Id, cancellationToken);
     }
 
@@ -213,7 +217,8 @@ public sealed partial class ProductService(
             return taken;
         }
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        // Dentro da transação de quem chama (a importação, CAT-02, grava produto, preço e saldo de cada linha juntos), não abre outra.
+        await using var transaction = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(cancellationToken) : null;
         if (product.VariantOfProductId is null)
         {
             product.SaleName = name;
@@ -243,7 +248,10 @@ public sealed partial class ProductService(
             }
         }
 
-        await transaction.CommitAsync(cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
         return await GetAsync(id, cancellationToken);
     }
 

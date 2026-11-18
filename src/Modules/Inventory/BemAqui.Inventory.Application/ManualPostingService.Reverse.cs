@@ -140,6 +140,7 @@ public sealed class ReversePolicy(IInventoryDb db, IPermissionChecker permission
         StockSources.ProductionOrder => "OS",
         StockSources.Shipment => "Romaneio",
         StockSources.InventoryCount => "Inventário",
+        StockSources.CatalogImport => "Importação de produtos",
         _ => sourceType,
     };
 
@@ -150,6 +151,8 @@ public sealed class ReversePolicy(IInventoryDb db, IPermissionChecker permission
         StockSources.Adjustment => StockAdjustmentService.Link + sourceId,
         // CMP-04 CA 18: a entrada do recebimento aponta para o recebimento.
         StockSources.GoodsReceipt => "/app/compras/recebimentos/" + sourceId,
+        // CAT-02: o saldo inicial da importação aponta para o produto.
+        StockSources.CatalogImport => "/app/catalogo/produtos/" + sourceId,
         _ => null,
     };
 }

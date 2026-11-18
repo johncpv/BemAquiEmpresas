@@ -78,3 +78,10 @@ export const describeAttributes = (attributes: Record<string, string> | null | u
 
 /** Número da API (string normalizada do campo) ou null. */
 export const toNumber = (value: string | null | undefined) => (value === null || value === undefined || value === '' ? null : Number(value))
+
+/** Importação (CAT-02): quantas linhas vão entrar (criam + atualizam). */
+export const validRows = (view: { toCreate: number; toUpdate: number }) => view.toCreate + view.toUpdate
+
+/** Importação (CAT-02): progresso do job em %, de 0 a 100. */
+export const progressPercent = (view: { processed: number; toProcess: number }) =>
+  view.toProcess <= 0 ? 100 : Math.min(100, Math.round((view.processed / view.toProcess) * 100))

@@ -404,6 +404,9 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Catalog.Domain.PriceChange> PriceChanges => Set<BemAqui.Catalog.Domain.PriceChange>();
 
+    // CAT-02: importação de produtos por planilha.
+    public DbSet<BemAqui.Catalog.Domain.ProductImportRun> ProductImportRuns => Set<BemAqui.Catalog.Domain.ProductImportRun>();
+
     public DbSet<BemAqui.Production.Domain.Downtime> Downtimes => Set<BemAqui.Production.Domain.Downtime>();
 
     public DbSet<JobPosition> JobPositions => Set<JobPosition>();

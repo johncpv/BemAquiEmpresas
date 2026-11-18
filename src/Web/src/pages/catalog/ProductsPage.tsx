@@ -52,6 +52,11 @@ export function ProductsPage() {
     { id: 'status', header: 'Situação', cell: ({ row: { original: p } }) => <StatusChip tone={p.isActive ? 'ok' : 'neutral'}>{p.isActive ? 'Ativo' : 'Inativo'}</StatusChip> },
   ]
 
+  const importLink = (
+    <Can perm="catalog.create">
+      <Link to="/app/catalogo/produtos/importar" search={{}} className="inline-flex min-h-11 items-center rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold">Importar planilha</Link>
+    </Can>
+  )
   const newLink = (primary: boolean) => (
     <Can perm="catalog.create">
       <Link to="/app/catalogo/produtos/novo" className={primary ? 'inline-flex min-h-11 items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground' : 'inline-flex min-h-11 items-center text-sm font-semibold text-primary'}>Novo produto</Link>
@@ -60,7 +65,7 @@ export function ProductsPage() {
   return (
     <>
       <PageHeading title="Catálogo: Produtos" description="O que a loja vende: código de barras, preço e categoria de cada produto."
-        actions={newLink(true)} />
+        actions={<span className="flex flex-wrap gap-2">{importLink}{newLink(true)}</span>} />
       <DataTable
         label="Produtos"
         columns={columns}
@@ -76,8 +81,8 @@ export function ProductsPage() {
         ]}
         empty={{
           title: 'Nenhum produto ainda.',
-          description: 'Cadastre o que você vende: o nome, o código de barras e o preço. O item do estoque nasce junto, sem digitar duas vezes.',
-          action: newLink(false),
+          description: 'Cadastre o que você vende: o nome, o código de barras e o preço. O item do estoque nasce junto, sem digitar duas vezes. Tem uma lista pronta? Importe a planilha.',
+          action: <span className="flex flex-wrap items-center gap-3">{newLink(false)}{importLink}</span>,
         }}
       />
     </>

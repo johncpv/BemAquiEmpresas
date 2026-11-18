@@ -28,6 +28,7 @@ public static class CatalogInfrastructure
         services.TryAddScoped<ProductPhotoService>();
         services.TryAddScoped<ProductService>();
         services.TryAddScoped<ProductExportService>();
+        services.TryAddScoped<ProductImportService>();
         services.TryAddScoped<CatalogReadContract>();
         services.TryAddScoped<ISellableProducts>(sp => sp.GetRequiredService<CatalogReadContract>());
         services.TryAddScoped<ICatalogLookup>(sp => sp.GetRequiredService<CatalogReadContract>());

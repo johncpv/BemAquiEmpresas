@@ -149,7 +149,7 @@ O que pode correr em paralelo:
 - Paridade: 22, 25 (tabela padrão), 33.
 - CA: projeto `Catalog` nas 5 camadas; `ItemType.Merchandise`; categoria de produto; produto com variações (grade de cor e tamanho), cada uma com item, código de barras e preço próprios; vários GTIN por produto, únicos e com dígito verificador validado; tabela de preço padrão versionada; `ICatalogLookup` por código, PLU e busca em menos de 50 ms com 20 mil produtos (teste de carga); `catalog.edit_price` separada; margem só com `view_cost`.
 
-**CAT-02 [ ] Importação de produtos por planilha (M)** — ordem 5 — [story](stories/CAT-02-importacao-produtos-planilha.md)
+**CAT-02 [x] Importação de produtos por planilha (M)** — ordem 5 — [story](stories/CAT-02-importacao-produtos-planilha.md)
 - Depende de: CAT-01.
 - CA: modelo xlsx para baixar; prévia com erros por linha; cria item + produto + categoria + código de barras + preço + saldo inicial opcional; reexecutável sem duplicar; relatório final.
 
