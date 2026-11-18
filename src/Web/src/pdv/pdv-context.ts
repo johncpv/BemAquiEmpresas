@@ -9,7 +9,7 @@ import type { LocalStore } from './local-store/local-store'
 export interface PdvContextValue {
   store: LocalStore
   /** Monta a fonte assinada pela chave do aparelho; null enquanto o adaptador do cliente Orval não existe (ver catalog-source.ts). */
-  createCatalogSource: ((keys: CryptoKeyPair) => CatalogSyncSource) | null
+  createCatalogSource: ((keys: CryptoKeyPair, store: LocalStore) => CatalogSyncSource) | null
   openHelp: () => void
   /** Avisa a faixa de estado que algo mudou (venda na fila, sincronização) para ela reler na hora. */
   refreshStatus: () => void
