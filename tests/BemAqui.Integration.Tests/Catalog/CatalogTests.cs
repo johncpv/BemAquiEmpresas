@@ -115,7 +115,7 @@ public partial class CatalogTests(TenancyFixture tenancy) : IClassFixture<Tenanc
     }
 
     /// <summary>Uma unidade ativa do seed (UN).</summary>
-    private async Task<Guid> UnitAsync(HttpClient client) =>
+    private static async Task<Guid> UnitAsync(HttpClient client) =>
         (await client.GetFromJsonAsync<JsonElement>("/api/v1/catalog/units")).EnumerateArray().First(u => u.GetProperty("code").GetString() == "UN").GetProperty("id").GetGuid();
 
     private static object NewProduct(string name, Guid unitId, decimal? price = null, string? gtin = null, decimal pack = 1m, string? plu = null, string? ncm = null) => new
