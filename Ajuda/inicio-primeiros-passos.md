@@ -12,7 +12,7 @@ recurso: dashboard.first_steps
 
 ## Como usar
 - **1. Empresa e regime tributário:** complete o endereço e um contato da empresa em Configurações → Empresa. Depois confira o regime tributário com a contadora em Configurações → Fiscal e marque como conferido.
-- **2. Importar produtos:** em breve. Vai trazer os produtos de uma planilha, com código de barras e preço.
+- **2. Importar produtos:** em Catálogo → Produtos → Importar planilha, baixe o modelo, preencha com os produtos (código de barras e preço) e envie. O passo se conclui quando houver algum produto cadastrado, pela planilha ou um a um.
 - **3. Formas de pagamento e taxas:** em Financeiro → Formas de pagamento, informe a empresa da maquininha no lugar de "Maquininha", cadastre a taxa e o prazo de cada cartão e marque cada forma como conferida.
 - **4. Impressora:** em breve. Vai ligar a impressora do caixa para o cupom.
 - **5. Abrir o caixa e fazer uma venda de teste:** em breve, com a tela de venda.

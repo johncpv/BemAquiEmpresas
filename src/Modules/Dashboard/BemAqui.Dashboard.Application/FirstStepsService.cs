@@ -1,6 +1,7 @@
 using BemAqui.BuildingBlocks.Modules;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.BuildingBlocks.Time;
+using BemAqui.Catalog.Contracts;
 using BemAqui.Finance.Contracts;
 using BemAqui.Fiscal.Contracts;
 using BemAqui.Identity.Contracts;
@@ -22,14 +23,16 @@ public sealed record FirstStepsCard(bool Applies, IReadOnlyList<FirstStep> Steps
 
 /// <summary>
 /// Monta o checklist pelos contratos dos donos dos dados (padrão da ADR 0028): a empresa (Identity), o regime conferido (Fiscal) e as formas de
-/// pagamento conferidas (Finance). Os passos "Importar produtos" (CAT-02), "Impressora" (IMP-01) e "Abrir o caixa e fazer uma venda de
-/// teste" (PDV-01 e PDV-02) aparecem como "Em breve" até as stories deles. A fábrica não tem o cartão (CA 5: nada muda para a Konebras).
+/// pagamento conferidas (Finance) e algum produto cadastrado (Catalog, tela de importação da CAT-02). Os passos "Impressora" (IMP-01) e
+/// "Abrir o caixa e fazer uma venda de teste" (PDV-01 e PDV-02) aparecem como "Em breve" até as stories deles. A fábrica não tem o cartão
+/// (CA 5: nada muda para a Konebras).
 /// </summary>
-public sealed class FirstStepsService(ITenantContext tenantContext, ICompanyIdentity company, IFiscalSetupStatus fiscal, IPaymentMethods payments, TimeProvider clock)
+public sealed class FirstStepsService(ITenantContext tenantContext, ICompanyIdentity company, IFiscalSetupStatus fiscal, IPaymentMethods payments, ICatalogStatus catalog, TimeProvider clock)
 {
     public const string CompanyUrl = "/app/configuracoes/empresa";
     public const string FiscalUrl = "/app/configuracoes/fiscal";
     public const string PaymentMethodsUrl = "/app/financeiro/formas-de-pagamento";
+    public const string ImportProductsUrl = "/app/catalogo/produtos/importar";
 
     public async Task<FirstStepsCard> GetAsync(CancellationToken cancellationToken = default)
     {
@@ -42,7 +45,8 @@ public sealed class FirstStepsService(ITenantContext tenantContext, ICompanyIden
         var identity = await company.GetAsync(cancellationToken);
         var regime = await fiscal.RegimeConfirmedAsync(cancellationToken);
         var methods = await payments.ActiveAsync(BusinessTime.Today(clock), cancellationToken);
-        var steps = Build(identity.Complete, regime, methods.Count, methods.Count(m => !m.Confirmed));
+        var hasProducts = await catalog.HasProductsAsync(cancellationToken);
+        var steps = Build(identity.Complete, regime, methods.Count, methods.Count(m => !m.Confirmed), hasProducts);
         var done = steps.Count(s => s.Done);
         var allDone = done == steps.Count;
         return new FirstStepsCard(true, steps, done, steps.Count, allDone, allDone ? NextTitle : null, allDone ? NextUrl : null);
@@ -54,7 +58,7 @@ public sealed class FirstStepsService(ITenantContext tenantContext, ICompanyIden
     public const string NextUrl = "/app/acessos/usuarios";
 
     /// <summary>Regra pura dos cinco passos (unidade): cada um concluído pelo dado, nunca por um clique em "feito" (CA 7).</summary>
-    public static IReadOnlyList<FirstStep> Build(bool companyComplete, bool regimeConfirmed, int activeMethods, int methodsToConfirm)
+    public static IReadOnlyList<FirstStep> Build(bool companyComplete, bool regimeConfirmed, int activeMethods, int methodsToConfirm, bool hasProducts)
     {
         var companyStep = !companyComplete
             ? new FirstStep("company", "Empresa e regime tributário", "Complete o endereço e um contato da empresa; depois confira o regime tributário.", false, true, CompanyUrl, "settings.edit", null)
@@ -68,7 +72,9 @@ public sealed class FirstStepsService(ITenantContext tenantContext, ICompanyIden
         return
         [
             companyStep,
-            new FirstStep("products", "Importar produtos", "Traga os produtos de uma planilha, com código de barras e preço.", false, false, null, null, "CAT-02"),
+            new FirstStep("products", "Importar produtos",
+                hasProducts ? "Produtos cadastrados." : "Traga os produtos de uma planilha, com código de barras e preço.",
+                hasProducts, true, ImportProductsUrl, "catalog.create", null),
             new FirstStep("payments", "Formas de pagamento e taxas", paymentsText, paymentsDone, true, PaymentMethodsUrl, "finance.edit", null),
             new FirstStep("printer", "Impressora", "Ligue a impressora do caixa para o cupom.", false, false, null, null, "IMP-01"),
             new FirstStep("first_sale", "Abrir o caixa e fazer uma venda de teste", "Abra o caixa com o fundo de troco e registre uma venda de teste.", false, false, null, null, "PDV-02"),

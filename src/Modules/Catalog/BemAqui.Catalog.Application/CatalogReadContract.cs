@@ -11,8 +11,11 @@ namespace BemAqui.Catalog.Application;
 /// vigente da tabela pedida e a unidade do item (pelo <see cref="IItems"/>). O pai de grade fica fora: vende-se a variação. As consultas usam os
 /// índices do GTIN (único), do PLU e do trigrama do nome.
 /// </summary>
-public sealed class CatalogReadContract(ICatalogDb db, CatalogDefaults defaults, IItems items) : ISellableProducts, ICatalogLookup
+public sealed class CatalogReadContract(ICatalogDb db, CatalogDefaults defaults, IItems items) : ISellableProducts, ICatalogLookup, ICatalogStatus
 {
+    /// <summary>PERF-04, passo "Importar produtos": algum produto cadastrado (os excluídos ficam fora pelo filtro de consulta).</summary>
+    public Task<bool> HasProductsAsync(CancellationToken cancellationToken = default) => db.Products.AnyAsync(cancellationToken);
+
     public async Task<SellableProduct?> FindAsync(Guid productId, CancellationToken cancellationToken = default)
     {
         var found = await FindManyAsync([productId], cancellationToken);
