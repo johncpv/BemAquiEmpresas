@@ -29,6 +29,7 @@ public sealed class IdentityModule : IModule
         endpoints.MapHelpEndpoints();
         endpoints.MapCompanySettingsEndpoints();
         endpoints.MapShopfloorDeviceEndpoints();
+        endpoints.MapRegisterDeviceEndpoints(); // PDV-01: aparelhos de caixa
         endpoints.MapKioskEndpoints();
         endpoints.MapPrivacyEndpoints();
 

@@ -25,7 +25,8 @@ public sealed class ShopfloorDeviceGate(IIdentityDb db, TokenSigning signing, Sh
         }
 
         var hash = OpaqueToken.Hash(secret);
-        var device = await db.ShopfloorDevices.FirstOrDefaultAsync(d => d.SecretHash == hash || d.PreviousSecretHash == hash, cancellationToken);
+        // Só o aparelho da fábrica (PDV-01): o caixa do PDV tem cookie e regras próprios (ADR 0048) e nunca abre o /fab.
+        var device = await db.ShopfloorDevices.FirstOrDefaultAsync(d => d.Kind == DeviceKind.Factory && (d.SecretHash == hash || d.PreviousSecretHash == hash), cancellationToken);
         var now = clock.GetUtcNow();
         if (device is null || !device.IsActive(now))
         {
@@ -57,7 +58,8 @@ public sealed class ShopfloorRevocations(
     IRealtimeConnections connections,
     ITenantContext tenant,
     ICurrentUser currentUser,
-    TimeProvider clock)
+    TimeProvider clock,
+    BemAqui.Pos.Contracts.IPosRegisters registers)
 {
     public const string NotificationType = "security.shopfloor_device";
     public const string DevicesLink = "/app/configuracoes/seguranca";
@@ -75,6 +77,12 @@ public sealed class ShopfloorRevocations(
 
         var pins = await db.UserPins.Where(p => p.DeviceId == device.Id).ToListAsync(cancellationToken);
         db.UserPins.RemoveRange(pins);
+        if (device.RegisterId is { } registerId)
+        {
+            // Caixa do PDV (PDV-01 CA 8): o caixa fica sem aparelho; o aparelho revogado só sobe o que já tinha gravado (OFF-02).
+            await registers.ReleaseDeviceAsync(registerId, device.Id, cancellationToken);
+        }
+
         Audit("ShopfloorDevice", device.Id.ToString(), "DeviceRevoked", by, new { device = device.Id, reason, sessions = sessions.Count, pins = pins.Count });
         if (notifyOwners)
         {

@@ -119,6 +119,8 @@ import { ImportProductsPage } from '@/pages/catalog/ImportProductsPage'
 import { NewProductPage } from '@/pages/catalog/NewProductPage'
 import { ProductPage } from '@/pages/catalog/ProductPage'
 import { ProductsPage } from '@/pages/catalog/ProductsPage'
+import { PdvPage } from '@/pages/pdv/PdvPage'
+import { StoresPage } from '@/pages/store/StoresPage'
 import { AssetSitesPage } from '@/pages/assets/AssetSitesPage'
 import { MaintenanceOrderPage } from '@/pages/assets/MaintenanceOrderPage'
 import { MaintenancePage } from '@/pages/assets/MaintenancePage'
@@ -399,6 +401,9 @@ const newProductRoute = createRoute({ getParentRoute: () => appRoute, staticData
 const importProductsRoute = createRoute({ getParentRoute: () => appRoute, path: 'catalogo/produtos/importar', component: gated('catalog', ImportProductsPage), validateSearch: (s: Record<string, unknown>): { id?: string } => ({ id: text(s.id) }) })
 const productRoute = createRoute({ getParentRoute: () => appRoute, path: 'catalogo/produtos/$id', component: gated('catalog', ProductPage), validateSearch: (s: Record<string, unknown>): { novo?: string } => ({ novo: text(s.novo) }) })
 const productCategoriesRoute = createRoute({ getParentRoute: () => appRoute, path: 'catalogo/categorias', component: gated('catalog', ProductCategoriesPage) })
+// Loja (PDV-01): lojas e caixas, retaguarda com sales.* (oculto para a fábrica pelo perfil).
+const storeRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'loja', beforeLoad: () => { throw redirect({ to: '/app/loja/lojas' }) } })
+const storesRoute = createRoute({ getParentRoute: () => appRoute, path: 'loja/lojas', component: gated('sales', StoresPage) })
 // Patrimônio (PAT-01a): bens (lista, novo com ?de= para duplicar, ficha com abas) e locais.
 const assetsRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio', beforeLoad: () => { throw redirect({ to: '/app/patrimonio/bens' }) } })
 const assetsRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/bens', component: gated('assets', AssetsPage) })
@@ -561,6 +566,8 @@ const countingIndexRoute = createRoute({ getParentRoute: () => countingRoute, pa
 const tvRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tv', component: TvLayout })
 const tvIndexRoute = createRoute({ getParentRoute: () => tvRoute, path: '/', component: TvPage })
 const tvLegacyRoute = createRoute({ getParentRoute: () => tvRoute, path: '$', component: TvLegacyPage })
+// Caixa (PDV-01, ADR 0048): tela dedicada no aparelho da loja; sem sessão de usuário (o aparelho se apresenta pela chave). O registro pede login.
+const pdvRoute = createRoute({ getParentRoute: () => rootRoute, path: '/pdv', component: PdvPage, validateSearch: (s: Record<string, unknown>): { registrar?: string } => ({ registrar: text(s.registrar) }) })
 const galleryRoute = createRoute({ getParentRoute: () => rootRoute, path: '/dev/galeria', component: Gallery ?? NotFound })
 
 export const routeTree = rootRoute.addChildren([
@@ -572,7 +579,7 @@ export const routeTree = rootRoute.addChildren([
   resetRoute,
   inviteRoute,
   tagRoute,
-  appRoute.addChildren([appIndexRoute, catalogRootRoute, productsRoute, newProductRoute, importProductsRoute, productRoute, productCategoriesRoute, assetsRootRoute, assetsRoute, newAssetRoute, assetRoute, assetSitesRoute, maintenanceRoute, maintenanceOrderRoute, maintenanceCostRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute, myPayslipsRoute, myTimeClockRoute,
+  appRoute.addChildren([appIndexRoute, catalogRootRoute, productsRoute, newProductRoute, importProductsRoute, productRoute, productCategoriesRoute, storeRootRoute, storesRoute,assetsRootRoute, assetsRoute, newAssetRoute, assetRoute, assetSitesRoute, maintenanceRoute, maintenanceOrderRoute, maintenanceCostRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute, myPayslipsRoute, myTimeClockRoute,
     aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, interAccountsRoute, interAccountRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, billingSettingsRoute,
     inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute, capacityRoute, planningRoute, supervisorRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, paymentMethodsRoute, newPaymentMethodRoute, paymentMethodRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, reconciliationRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, hrTimeRoute, timeEntriesRoute, timeAdjustmentsRoute, timesheetsRoute, timesheetRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, vacationsRoute, payrollTaxTablesRoute, fiscalIntegrationRoute, fiscalSettingsRoute, fiscalCertificateRoute, privacyRequestsRoute, privacyRequestRoute, privacyRetentionRoute, fiscalRootRoute, taxRulesRoute, newTaxRuleRoute, taxRuleRoute, outgoingInvoicesRoute, outgoingInvoiceRoute, nfseRoute, incomingInvoicesRoute, importIncomingRoute, importPdfRoute, incomingReadingRoute, incomingInvoiceRoute, invoiceReceiptRoute, accountantExportRoute, payrollParallelRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
@@ -583,6 +590,7 @@ export const routeTree = rootRoute.addChildren([
   fabRoute.addChildren([fabQueueRoute, fabStepRoute, fabQualityRoute, fabQualityStepRoute, fabTimeClockRoute, fabAssetRoute, fabMaintenanceRoute]),
   countingRoute.addChildren([countingIndexRoute]),
   tvRoute.addChildren([tvIndexRoute, tvLegacyRoute]),
+  pdvRoute,
   galleryRoute,
 ])
 

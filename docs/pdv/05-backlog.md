@@ -186,7 +186,7 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 
 **Ordem de execução:** PDV-01 → OFF-01 → PDV-02 → PDV-03 → CX-01 → IMP-01 → OFF-02 → CX-02 → CX-03 → PDV-05 → PDV-04 → IMP-02 → OFF-03 → PDV-06 → PDV-07. No fechamento do marco: um E2E por fluxo principal e a rodada completa do CI.
 
-**PDV-01 [ ] Lojas, caixas e aparelho de PDV registrado (G)** — ordem 1 — [story](stories/PDV-01-lojas-caixas-aparelho.md)
+**PDV-01 [~] Lojas, caixas e aparelho de PDV registrado (G)** (parte 1 feita em 18/11/2026: lojas, caixas, aparelho, esquema `Device`; falta o CA 11 e o CA 12, usuário de operação) — ordem 1 — [story](stories/PDV-01-lojas-caixas-aparelho.md)
 - Depende de: PERF-01, CAT-01, PAG-01, VND-01, PERF-04; PP-04, PP-11, PP-12.
 - Paridade: 27 (lojas).
 - CA: módulo `pos` no `ModuleCatalog`; loja ligada a local de estoque e tabela de preço; caixa ligado a aparelho registrado (aparelho ganha tipo, loja e caixa), a conta Caixa e a série; registro com TOTP recente e aviso ao Proprietário; época do aparelho no número da venda; esquema `Device` restrito a `/api/v1/pos/sync/*` por teste de arquitetura. Re-estimada de M para G pela revisão.

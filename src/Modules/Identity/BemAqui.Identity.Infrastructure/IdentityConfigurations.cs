@@ -61,6 +61,10 @@ internal sealed class ShopfloorDeviceConfiguration : IEntityTypeConfiguration<Sh
         b.Property(e => e.RevokedReason).HasMaxLength(32);
         b.Property(e => e.Theme).HasConversion<string>().HasMaxLength(8);
         b.HasIndex(e => e.RevokedAt);
+        // PDV-01 (ADR 0048 §1): tipo com padrão Fábrica (backfill dos aparelhos existentes, CA 5), loja, caixa e época do caixa, chave pública.
+        b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(16).HasDefaultValue(DeviceKind.Factory).HasSentinel(DeviceKind.Factory);
+        b.Property(e => e.PublicKey).HasMaxLength(512);
+        b.HasIndex(e => e.RegisterId).HasFilter("register_id IS NOT NULL");
     }
 }
 

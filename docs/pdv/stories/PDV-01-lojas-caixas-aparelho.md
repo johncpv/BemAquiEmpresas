@@ -5,10 +5,10 @@
 | ID | PDV-01 |
 | Título | Lojas, caixas e aparelho de PDV registrado: módulo `pos` no catálogo, aparelho com tipo, loja, caixa e época, registro com TOTP recente, chave do aparelho e esquema de autenticação `Device` |
 | Tamanho | G |
-| Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
+| Status | In Progress: parte 1 pronta em 18/11/2026 (branch `feat/pdv-01-lojas-caixas`); falta a parte 2 (CA 11 e CA 12) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | Pedido do PO de 15/11/2026 (itens 4, 5 e 8) · [Rascunho A](../adr/rascunho-A-offline.md) item 9 · [Rascunho F](../adr/rascunho-F-escala-hospedagem.md) modelo multi-loja · ADR 0026 (aparelho e PIN) · [Modelo de dados](../03-modelo-dados.md#4-pos--schema-pos) |
-| Dependências | PERF-01, CAT-01, PAG-01, VND-01, PERF-04; PP-04, PP-11 e PP-12 decididas |
+| Dependências | PERF-01, CAT-01, PAG-01, VND-01, PERF-04; PP-04 (16/11), PP-11, PP-12, PP-09 e PP-35 (18/11/2026) decididas |
 | Bloqueia | OFF-01, CX-01 e todo o resto da Fase 11 |
 | Paridade com o mercado | Requisitos mínimos 27 (lojas) do [benchmark](../00-benchmark-mercado.md#7-matriz-de-paridade-cada-requisito-mínimo-e-a-story-que-o-cobre) |
 | Ordem de execução | 1 (Fase 11) |
@@ -81,8 +81,35 @@ Como **gerente de loja**, quero **cadastrar a loja, os caixas e os aparelhos que
 - [ ] Padrões e próximo passo propositivos avaliados; auditoria ligada.
 - [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR.
 
+## Implementação (parte 1, 18/11/2026)
+
+Desenho em [ADR 0048](../../adr/0048-aparelho-do-pdv-e-esquema-device.md) (fronteiras, aparelho com tipo, esquema `Device`, época) e [ADR 0049](../../adr/0049-usuario-de-operacao.md) (usuário de operação, PP-12). Adendos nas ADRs 0008, 0026 e 0046.
+
+| CA | Situação | Como |
+|---|---|---|
+| 1 | Feito | `pos` no `ModuleCatalog` (área Loja, fase 11, as 12 ações), só no perfil Comércio. Grupos do Comércio: Gerente de loja com `sales` (inclusive `approve`), `catalog` (com `edit_price`) e o `pos` menos `skip_fiscal`; Operador de caixa com `pos.view` e `pos.create`; grupo novo Fiscal de caixa com as restritas do balcão. Grupos já criados recebem pelo seed patch `pos-retail-groups`. Planos já gravados recebem `pos` e `sales` (migration `PosModuleInPlans` do catálogo) |
+| 2 | Feito | `pos.stores` (código 2 a 6 letras ou números, único), local de estoque (`ILocations`) e tabela de preço (`IPriceLists`, novo no Catálogo). Pacote `pos.retail`: loja "Loja" (`LOJA`) no local "Loja" e na tabela "Balcão", com o caixa 01 na conta "Caixa PDV 01" |
+| 3 | Feito | `pos.registers`: número 1 a 99 único na loja, conta do tipo Caixa (`ICashAccounts`, novo no Financeiro) única entre os caixas, modo Toque ou Teclado e leitor |
+| 4 | Feito | `POST /api/v1/identity/devices` com `pos.manage_devices`, login completo e `RequireRecentTwoFactor` (403 `two_factor_required` abre o "Confirme o código"); chave ECDSA P-256 não exportável gerada no navegador, só a pública vai; auditoria `DeviceRegistered` e aviso "Novo caixa registrado na loja X por Fulano." |
+| 5 | Feito | `kind` com padrão `Factory` na migration; o `/fab` só enxerga `Factory` |
+| 6 | Feito | 409 `register_has_device` ("O caixa 01 já tem um aparelho (…). Trocar?"); com `replaceActive`, o anterior é revogado (`replaced`) e a época sobe, numa transação. `PosSaleNumber`: `{loja}-{caixa}.{época}-{seq}` |
+| 7 | Feito | Teto por tipo: os 10 da fábrica contam só `Factory`; caixa tem um aparelho por vez. Teto por plano: PP-17 (pendente) |
+| 8 | Parcial | Revogado ou substituído: aperto de mão 401 `device_revoked`; o esquema reconhece o revogado (status `Revoked`) e `RequireDevice(allowRevoked: true)` existe para a subida, mas o endpoint de subida e a quarentena são da OFF-02. A entrada por PIN do caixa é o CA 11 |
+| 9 | Feito | Esquema `Device` (cookie `__Host-bq_pos` + assinatura ECDSA do método, caminho, instante e hash do corpo); `EndpointAuthorizationTests` reprova o esquema fora de `/api/v1/pos/sync/*` |
+| 10 | Feito | Loja e caixa vêm do principal (`POST /api/v1/pos/sync/handshake`); teste com query de outra loja, chave trocada, segredo de outro aparelho e instante vencido |
+| 11 | Parte 2 | PIN no aparelho de caixa e a lista `[PinSessionAllowed]` do PDV: não há ainda endpoint de venda (PDV-02); entra com a parte 2 |
+| 12 | Parte 2 | Usuário de operação: ADR 0049 escrita; implementação na parte 2, na mesma branch |
+
+Telas: **Loja → Lojas e caixas** (`/app/loja/lojas`, módulo `sales`), **/pdv** ("Este aparelho ainda não é um caixa." e o registro) e a lista de aparelhos de Configurações → Segurança com a coluna Tipo e o filtro por loja só no Comércio (recurso `settings.pos_devices`; a fábrica vê como antes). Ajuda: `loja-lojas-caixas.md`, `pdv-registrar-aparelho.md` e `configuracoes-seguranca-caixas.md` (só Comércio; a ajuda de Segurança da fábrica não mudou).
+
+**Revisão de segurança do PR #227 (18/11/2026), corrigido na mesma branch:** M1 (segredo anterior aposentado; reuso revoga com aviso), B1 (rotação com UPDATE condicional), B2 (aparelho achado antes de ler o corpo; 413 acima de 4 MB), B5 (`device_clock_skew` e "Acerte o relógio deste aparelho" no `/pdv`), B6 (caixa revogado só com `pos.manage_devices`), B8 (`Down` da `PosModuleInPlans` apaga `sales`), B10 (curva P-256 pelo OID) e o teste de aparelho de um tenant no host de outro. **Anotado para depois:** B3, idempotência por (`register_id`, `device_epoch`, `seq`), obrigatória na OFF-02; B4, canonicalização do caminho assinado com `RawTarget`; B7, a chave antiga é sobrescrita antes do POST do registro; B9, CSP e origem próprias para o `/pdv`.
+
+Fora desta parte, além dos CA 11 e 12: o `Pos` não avisa o Financeiro quando a conta de um caixa é desativada (o `IBankAccountUsageProvider` é interno do Financeiro).
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
+| 18/11/2026 | 1.0 | Parte 1 implementada (CA 1 a 10; CA 8 parcial, a subida é da OFF-02). Decisões do PO de 18/11/2026: PP-35, PP-11, PP-12 e PP-09. Recomendação aceita: a tabela de aparelhos mantém o nome e o segredo anterior do caixa vale com a assinatura (ADR 0048 §2). CA 11 e 12 na parte 2. | Claude (dev) |
+| 18/11/2026 | 1.1 | Correções da revisão de segurança do PR #227 (M1, B1, B2, B5, B6, B8, B10 e o teste de outro tenant); B3, B4, B7 e B9 anotados para as próximas stories. | Claude (dev) |

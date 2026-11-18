@@ -44,7 +44,7 @@ public static class BusinessProfileCatalog
             Vocabulary = BusinessVocabulary.Defaults, // a Fábrica fala como o sistema fala hoje: com ela, nenhum termo muda (PERF-03 CA 3)
         },
         new(Retail, "Comércio", "Venda no balcão e na loja: caixa, estoque e retaguarda.",
-            [.. Core, "kiosk", "catalog", "sales"],
+            [.. Core, "kiosk", "catalog", "sales", "pos"], // PDV-01: o caixa (pos) só no Comércio
             [
                 new("counter", "Balcão"),
                 new("supermarket", "Supermercado"),
@@ -83,7 +83,14 @@ public static class BusinessProfileCatalog
         [PaymentMethodsFeature] = [Retail, Services, Ecommerce],
         [SaleReceivablesFeature] = [Retail, Services, Ecommerce],
         [FirstStepsFeature] = [Retail],
+        [PosDevicesFeature] = [Retail],
     };
+
+    /// <summary>
+    /// Caixas da loja na lista de aparelhos de Configurações → Segurança (PDV-01): coluna Tipo, filtro por loja e a ajuda deles. Só o Comércio;
+    /// a fábrica (Konebras) vê a lista como antes.
+    /// </summary>
+    public const string PosDevicesFeature = "settings.pos_devices";
 
     /// <summary>Checklist "Primeiros passos" do Início (PERF-04): só o Comércio, por enquanto; a fábrica não vê o cartão nem a ajuda.</summary>
     public const string FirstStepsFeature = "dashboard.first_steps";

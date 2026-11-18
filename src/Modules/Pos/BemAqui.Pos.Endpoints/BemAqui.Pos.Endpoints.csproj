@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\BemAqui.BuildingBlocks\BemAqui.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\BemAqui.Pos.Application\BemAqui.Pos.Application.csproj" />
+    <ProjectReference Include="..\BemAqui.Pos.Infrastructure\BemAqui.Pos.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

@@ -188,6 +188,36 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
         kiosk.Should().OnlyContain(e => !HasPermission(e), "endpoint do painel não é de usuário");
     }
 
+    /// <summary>
+    /// Aparelho de caixa (PDV-01 CA 9, ADR 0048 §2): só o principal do aparelho (policy <c>device</c>, esquema <c>Device</c>), com a marca
+    /// <c>DeviceEndpoint</c>, em <c>/api/v1/pos/sync/*</c>, com o módulo <c>pos</c>; nenhum outro endpoint usa a policy ou o esquema.
+    /// </summary>
+    private static bool UsesDevice(RouteEndpoint e) =>
+        e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(a => a.Policy == BemAqui.BuildingBlocks.Security.DeviceClaims.Policy
+            || (a.AuthenticationSchemes ?? string.Empty).Split(',').Any(s => s.Trim() == BemAqui.BuildingBlocks.Security.DeviceClaims.Scheme));
+
+    private static bool IsDevice(RouteEndpoint e) =>
+        UsesDevice(e)
+        && e.Metadata.GetMetadata<DeviceEndpointAttribute>() is not null
+        && e.Metadata.GetMetadata<RequiresModuleMetadata>()?.ModuleCode == "pos"
+        && e.RoutePattern.RawText!.StartsWith(DeviceEndpoints.PathPrefix + "/", StringComparison.Ordinal);
+
+    [Fact]
+    public void Esquema_do_aparelho_so_nos_endpoints_de_sincronizacao_do_PDV()
+    {
+        var endpoints = Endpoints();
+        var device = endpoints.Where(UsesDevice).ToList();
+
+        device.Should().NotBeEmpty();
+        device.Should().OnlyContain(e => IsDevice(e), "só /api/v1/pos/sync/* com RequireDevice() aceita o esquema Device");
+        device.Should().OnlyContain(e => !HasPermission(e) && e.Metadata.GetMetadata<PinSessionAllowedAttribute>() == null, "o aparelho não é usuário");
+        endpoints.Where(e => e.Metadata.GetMetadata<DeviceEndpointAttribute>() != null).Should().OnlyContain(e => UsesDevice(e), "a marca sem o esquema não vale");
+        endpoints.Where(e => e.RoutePattern.RawText!.StartsWith(DeviceEndpoints.PathPrefix, StringComparison.Ordinal)).Should()
+            .OnlyContain(e => IsDevice(e), "toda rota de sincronização é do aparelho");
+        device.Where(e => e.Metadata.GetMetadata<DeviceEndpointAttribute>()!.AllowRevoked).Should()
+            .BeEmpty("nesta story nenhum endpoint aceita o aparelho revogado; a subida de eventos (OFF-02) entra com revisão");
+    }
+
     /// <summary>Super admin: sessão própria da plataforma (esquema e policy <c>platform</c>), fora do tenant (FND-13).</summary>
     private static bool IsPlatform(RouteEndpoint e) =>
         e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(a => a.Policy == PlatformSessionAuthenticationHandler.Policy);
@@ -208,7 +238,7 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
                     problems.Add("anônima fora da lista: " + key + " (" + endpoint.DisplayName + ")");
                 }
             }
-            else if (!HasPermission(endpoint) && !HasHubAccess(endpoint) && !IsKiosk(endpoint) && !IsPlatform(endpoint) && !IsSelfService(endpoint) && !AuthenticatedOnly.ContainsKey(key))
+            else if (!HasPermission(endpoint) && !HasHubAccess(endpoint) && !IsKiosk(endpoint) && !IsDevice(endpoint) && !IsPlatform(endpoint) && !IsSelfService(endpoint) && !AuthenticatedOnly.ContainsKey(key))
             {
                 problems.Add("só autenticado, sem RequirePermission: " + key + " (" + endpoint.DisplayName + ")");
             }

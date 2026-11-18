@@ -12,6 +12,17 @@ public enum DeviceTheme
     Dark,
 }
 
+/// <summary>
+/// Tipo do aparelho registrado (PDV-01, ADR 0048 §1): o da fábrica (o de sempre, com PIN do /fab) e o caixa do PDV (chave ECDSA, loja, caixa e
+/// época). KDS, garçom e estação de impressão entram nas Fases 12 e 15. O teto de aparelhos ativos é contado por tipo.
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<DeviceKind>))]
+public enum DeviceKind
+{
+    Factory,
+    Register,
+}
+
 /// <summary>Como o segredo apresentado pelo cookie casa com o aparelho (ADR 0026 §1, segredo rotativo).</summary>
 public enum DeviceSecretMatch
 {
@@ -76,6 +87,54 @@ public sealed class ShopfloorDevice : Entity, IAuditable
     public DateTimeOffset? PinFailuresSince { get; private set; }
 
     public int PinFailures { get; private set; }
+
+    /// <summary>Tipo (PDV-01): os aparelhos de antes da migration ficam como Fábrica.</summary>
+    public DeviceKind Kind { get; init; } = DeviceKind.Factory;
+
+    /// <summary>Loja do caixa (<c>pos.stores</c>, só o id); null no aparelho da fábrica.</summary>
+    public Guid? StoreId { get; init; }
+
+    /// <summary>Caixa (<c>pos.registers</c>, só o id); null no aparelho da fábrica.</summary>
+    public Guid? RegisterId { get; init; }
+
+    /// <summary>Época do caixa quando este aparelho entrou (CA 6): entra na chave dos eventos e no número da venda.</summary>
+    public int RegisterEpoch { get; init; }
+
+    /// <summary>Chave pública ECDSA P-256 do aparelho (SubjectPublicKeyInfo em base64); a privada nunca sai do aparelho.</summary>
+    public string? PublicKey { get; init; }
+
+    /// <summary>Última sincronização bem-sucedida do caixa (o segredo gira a cada uma). Fora do diff da auditoria: a sincronização é a trilha.</summary>
+    [NotAudited]
+    public DateTimeOffset? LastSyncAt { get; private set; }
+
+    /// <summary>Caixa do PDV (PDV-01 CA 4): loja, caixa, época e a chave pública; mesma validade do aparelho da fábrica.</summary>
+    public static ShopfloorDevice RegisterPos(Guid id, string name, string secretHash, Guid createdBy, Guid storeId, Guid registerId, int epoch, string publicKey, DateTimeOffset now) => new()
+    {
+        Id = id,
+        Kind = DeviceKind.Register,
+        Name = name,
+        SecretHash = secretHash,
+        SecretRotatedAt = now,
+        CreatedBy = createdBy,
+        CreatedAt = now,
+        LastSeenAt = now,
+        ExpiresAt = now + Lifetime,
+        StoreId = storeId,
+        RegisterId = registerId,
+        RegisterEpoch = epoch,
+        PublicKey = publicKey,
+    };
+
+    /// <summary>
+    /// Caixa do PDV (ADR 0048 §2, revisão de segurança do PR 227): o segredo anterior deixou de valer. Fica preenchido quando o aparelho usa o segredo
+    /// atual (provou que recebeu o novo) ou quando a rotação foi pedida com o anterior (a resposta perdida já foi coberta uma vez). Depois disso,
+    /// apresentar o anterior é reuso (dois clones se revezando): o aparelho é revogado. Gravado por UPDATE condicional, fora do diff da auditoria.
+    /// </summary>
+    [NotAudited]
+    public DateTimeOffset? PreviousSecretRetiredAt { get; private set; }
+
+    /// <summary>O segredo anterior ainda vale (nenhum uso do atual nem rotação pedida com o anterior desde a última troca).</summary>
+    public bool PreviousSecretStillValid => PreviousSecretHash is not null && PreviousSecretRetiredAt is null;
 
     public static ShopfloorDevice Register(string name, string secretHash, Guid createdBy, DateTimeOffset now) => new()
     {
