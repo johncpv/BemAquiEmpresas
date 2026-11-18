@@ -35,6 +35,7 @@ public static class IdentityInfrastructure
         services.AddScoped<BemAqui.BuildingBlocks.Identity.IStepUpTwoFactor>(sp => sp.GetRequiredService<TwoFactorService>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, ModuleCatalogSeeder>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, GroupSeeder>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.IProfileSeedPackage, IdentityRetailSeedPackage>()); // PERF-04
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.ITenantSeeder, SeedPatchSeeder>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITwoFactorRequirementRule, GroupRequiresTwoFactorRule>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITwoFactorRequirementRule, ApproverRequiresTwoFactorRule>());
