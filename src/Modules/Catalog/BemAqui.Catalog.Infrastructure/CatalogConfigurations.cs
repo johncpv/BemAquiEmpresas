@@ -115,3 +115,23 @@ internal sealed class PriceChangeConfiguration : IEntityTypeConfiguration<PriceC
         b.HasIndex(e => new { e.ProductId, e.ChangedAt }).HasDatabaseName("ix_price_changes_product_changed_at");
     }
 }
+
+/// <summary>
+/// <c>catalog_products.import_runs</c> (CAT-02): resumo, progresso e resultado da importação por planilha; as linhas válidas e as com erro em
+/// jsonb (para confirmar sem reenviar o arquivo e para baixar as linhas com erro). A troca de situação é atômica (UPDATE condicional).
+/// </summary>
+internal sealed class ProductImportRunConfiguration : IEntityTypeConfiguration<ProductImportRun>
+{
+    public void Configure(EntityTypeBuilder<ProductImportRun> b)
+    {
+        b.ToTable("import_runs", CatalogSchema.Name);
+        // O Migrations também tem uma import_runs (schema migration): nomes próprios para a chave e o índice, sem renomear a dele.
+        b.HasKey(e => e.Id).HasName("pk_product_import_runs");
+        b.Property(e => e.FileName).HasMaxLength(255);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.RowsJson).HasColumnName("rows").HasColumnType("jsonb");
+        b.Property(e => e.ErrorsJson).HasColumnName("errors").HasColumnType("jsonb");
+        b.Property(e => e.FailureMessage).HasMaxLength(500);
+        b.HasIndex(e => e.CreatedAt).HasDatabaseName("ix_product_import_runs_created_at");
+    }
+}

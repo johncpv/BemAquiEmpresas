@@ -55,6 +55,23 @@ public sealed class XlsxTabularExporter : ITabularExporter
         return Task.Run(() => Build(table), cancellationToken);
     }
 
+    /// <summary>
+    /// Planilha nova com a fonte embutida já configurada, para quem monta um arquivo fora da exportação de lista (CAT-02: o modelo de importação
+    /// e as linhas com erro). Texto é escrito como texto pelo chamador.
+    /// </summary>
+    public static XLWorkbook NewWorkbook()
+    {
+        _ = Configured.Value;
+        return new XLWorkbook();
+    }
+
+    /// <summary>Abre uma planilha enviada (CAT-02), com a mesma configuração de fonte. Lança exceção se o arquivo não for xlsx válido.</summary>
+    public static XLWorkbook OpenWorkbook(Stream content)
+    {
+        _ = Configured.Value;
+        return new XLWorkbook(content);
+    }
+
     internal static byte[] Build(ExportTable table)
     {
         _ = Configured.Value;

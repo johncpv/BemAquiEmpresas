@@ -30,6 +30,9 @@ public static class StockSources
     public const string ProductionOrder = "ProductionOrder";
     public const string Shipment = "Shipment";
     public const string InventoryCount = "InventoryCount";
+
+    /// <summary>Saldo inicial da importação de produtos por planilha (CAT-02): <c>SourceId</c> é o produto, então reimportar não lança de novo.</summary>
+    public const string CatalogImport = "CatalogImport";
 }
 
 /// <summary>
