@@ -186,12 +186,12 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 
 **Ordem de execução:** PDV-01 → OFF-01 → PDV-02 → PDV-03 → CX-01 → IMP-01 → OFF-02 → CX-02 → CX-03 → PDV-05 → PDV-04 → IMP-02 → OFF-03 → PDV-06 → PDV-07. No fechamento do marco: um E2E por fluxo principal e a rodada completa do CI.
 
-**PDV-01 [~] Lojas, caixas e aparelho de PDV registrado (G)** (parte 1 em produção em 18/11/2026: lojas, caixas, aparelho, esquema `Device`; parte 2 em revisão: PIN no caixa com a lista `[PosPinSessionAllowed]` e usuário de operação) — ordem 1 — [story](stories/PDV-01-lojas-caixas-aparelho.md)
+**PDV-01 [x] Lojas, caixas e aparelho de PDV registrado (G)** (em produção em 18/11/2026: parte 1 em befb72c3, parte 2 em cae72a21) — ordem 1 — [story](stories/PDV-01-lojas-caixas-aparelho.md)
 - Depende de: PERF-01, CAT-01, PAG-01, VND-01, PERF-04; PP-04, PP-11, PP-12.
 - Paridade: 27 (lojas).
 - CA: módulo `pos` no `ModuleCatalog`; loja ligada a local de estoque e tabela de preço; caixa ligado a aparelho registrado (aparelho ganha tipo, loja e caixa), a conta Caixa e a série; registro com TOTP recente e aviso ao Proprietário; época do aparelho no número da venda; esquema `Device` restrito a `/api/v1/pos/sync/*` por teste de arquitetura. Re-estimada de M para G pela revisão.
 
-**OFF-01 [ ] Fundação offline: app `/pdv`, armazenamento local e descida do catálogo (G)** — ordem 2 — [story](stories/OFF-01-fundacao-offline.md)
+**OFF-01 [x] Fundação offline: app `/pdv`, armazenamento local e descida do catálogo (G)** — ordem 2 — [story](stories/OFF-01-fundacao-offline.md)
 - Depende de: PDV-01, CAT-01, PAG-01, SPK-03; PP-09.
 - Paridade: 1.
 - CA: app `/pdv` com build e service worker próprios, sem afetar `/fab` nem `/tv`; `LocalStore` com armazenamento persistente; foto e delta do catálogo da loja; a tela abre sem rede; atualização só na troca de turno; faixa "Sem conexão: N vendas a enviar".

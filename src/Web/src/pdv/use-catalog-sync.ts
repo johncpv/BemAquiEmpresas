@@ -23,7 +23,7 @@ export function useCatalogSync(keys: CryptoKeyPair | null, online: boolean): { s
     setSyncing(true)
     setError(null)
     try {
-      await syncCatalog(pdv.store, pdv.createCatalogSource(keys), { onProgress: (p) => setProgress(p.fraction) })
+      await syncCatalog(pdv.store, pdv.createCatalogSource(keys, pdv.store), { onProgress: (p) => setProgress(p.fraction) })
     } catch (e) {
       setError(e instanceof CatalogSchemaError || e instanceof Error ? e.message : 'Não foi possível baixar os produtos.')
     } finally {
