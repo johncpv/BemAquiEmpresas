@@ -84,6 +84,10 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   parties: { slug: 'cadastros', icon: Contact, tabs: [{ slug: 'terceiros', label: 'Terceiros', icon: Contact }] },
   // CAT-01: catálogo do PDV, na área Loja (oculto para a fábrica pelo perfil, ADR 0046 e 0047).
   catalog: { slug: 'catalogo', icon: Barcode, tabs: [{ slug: 'produtos', label: 'Produtos', icon: Barcode }, { slug: 'categorias', label: 'Categorias', icon: FolderTree }] },
+  // PDV-01: retaguarda da loja (sales.*): lojas, caixas e o aparelho de cada um. A lista de vendas e os cards chegam na PDV-07.
+  sales: { slug: 'loja', icon: Store, tabs: [{ slug: 'lojas', label: 'Lojas e caixas', icon: Store }] },
+  // PDV-01: o caixa é tela dedicada (/pdv), no aparelho registrado da loja; por enquanto, só o registro do aparelho.
+  pos: { slug: 'pdv', icon: Calculator, href: '/pdv' },
   engineering: { slug: 'engenharia', icon: DraftingCompass, tabs: [{ slug: 'roteiros', label: 'Roteiros', icon: Route }, { slug: 'boms', label: 'BOMs', icon: Network }] },
   production: { slug: 'producao', icon: Factory, tabs: [{ slug: 'os', label: 'OS de fabricação', icon: ClipboardList }, { slug: 'kanban', label: 'Kanban', icon: SquareKanban }, { slug: 'planejamento', label: 'Planejamento', icon: ChartGantt }, { slug: 'qualidade', label: 'Qualidade', icon: BadgeCheck }, { slug: 'nao-conformidades', label: 'Não conformidades', icon: OctagonAlert }, { slug: 'apontamentos-abertos', label: 'Apontamentos abertos', icon: Timer }, { slug: 'expedicao', label: 'Expedição', icon: Truck }, { slug: 'instalacoes', label: 'Instalações', icon: Hammer }, { slug: 'centros-de-trabalho', label: 'Centros de trabalho', icon: Cog }, { slug: 'calendario', label: 'Calendário', icon: CalendarDays }, { slug: 'modelo-instalacao', label: 'Modelo da OS de instalação', icon: FileCog }, { slug: 'supervisor', label: 'Painel do supervisor', icon: Eye, firstFor: ['approve', 'approve_quality'] }] },
   inventory: { slug: 'estoque', icon: Boxes, tabs: [

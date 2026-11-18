@@ -548,6 +548,7 @@ import type {
   ListPayrollEligibleEmployeesParams,
   ListPendingFabricationItemsParams,
   ListPlanningQueueChangesParams,
+  ListPosDevicesParams,
   ListPositionsParams,
   ListPrivacyRequestsParams,
   ListProductCategoriesParams,
@@ -829,6 +830,8 @@ import type {
   PlatformSetPasswordRequest,
   PlatformTotpSetup,
   PlatformVerifyRequest,
+  PosDeviceView,
+  PosHandshake,
   PositionChangeInput,
   PositionDetail,
   PositionInput,
@@ -973,6 +976,8 @@ import type {
   RegisterDeviceInput,
   RegisterNfseCancellationRequest,
   RegisterNfseForm,
+  RegisterPosDeviceInput,
+  RegisterRequest,
   RejectIncomingInvoiceRequest,
   RemoveMaintenanceOrderCostParams,
   RemoveQuoteItemParams,
@@ -1081,6 +1086,9 @@ import type {
   StockItemContext,
   StockOpeningStatus,
   StockProjectOption,
+  StoreFormOptions,
+  StoreRequest,
+  StoreView,
   SuggestAccountParams,
   SuggestAssetPlacementParams,
   SuggestCostCenterParams,
@@ -9672,6 +9680,258 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDeleteMyPinMutationOptions(options), queryClient);
+    }
+
+export const getListPosDevicesUrl = (params?: ListPosDevicesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/identity/devices?${stringifiedParams}` : `/api/v1/identity/devices`
+}
+
+export const listPosDevices = async (params?: ListPosDevicesParams, options?: Parameters<typeof apiFetch>[1]): Promise<PosDeviceView[]> => {
+
+  return apiFetch<PosDeviceView[]>(getListPosDevicesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPosDevicesQueryKey = (params?: ListPosDevicesParams,) => {
+    return [
+    `/api/v1/identity/devices`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListPosDevicesQueryOptions = <TData = Awaited<ReturnType<typeof listPosDevices>>, TError = unknown>(params?: ListPosDevicesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPosDevices>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPosDevicesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPosDevices>>> = ({ signal }) => listPosDevices(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPosDevices>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPosDevicesQueryResult = NonNullable<Awaited<ReturnType<typeof listPosDevices>>>
+export type ListPosDevicesQueryError = unknown
+
+
+export function useListPosDevices<TData = Awaited<ReturnType<typeof listPosDevices>>, TError = unknown>(
+ params: undefined |  ListPosDevicesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPosDevices>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPosDevices>>,
+          TError,
+          Awaited<ReturnType<typeof listPosDevices>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPosDevices<TData = Awaited<ReturnType<typeof listPosDevices>>, TError = unknown>(
+ params?: ListPosDevicesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPosDevices>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPosDevices>>,
+          TError,
+          Awaited<ReturnType<typeof listPosDevices>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPosDevices<TData = Awaited<ReturnType<typeof listPosDevices>>, TError = unknown>(
+ params?: ListPosDevicesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPosDevices>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPosDevices<TData = Awaited<ReturnType<typeof listPosDevices>>, TError = unknown>(
+ params?: ListPosDevicesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPosDevices>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPosDevicesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRegisterPosDeviceUrl = () => {
+
+
+
+
+  return `/api/v1/identity/devices`
+}
+
+export const registerPosDevice = async (registerPosDeviceInput: RegisterPosDeviceInput, options?: Parameters<typeof apiFetch>[1]): Promise<PosDeviceView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PosDeviceView>(getRegisterPosDeviceUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(registerPosDeviceInput)
+  }
+);}
+
+
+
+
+
+export const getRegisterPosDeviceMutationKey = () => ['registerPosDevice'] as const;
+
+export const getRegisterPosDeviceMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerPosDevice>>, TError,RegisterPosDeviceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof registerPosDevice>>, TError,RegisterPosDeviceMutationVariables, TContext> => {
+
+const mutationKey = getRegisterPosDeviceMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registerPosDevice>>, RegisterPosDeviceMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  registerPosDevice(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterPosDeviceMutationResult = NonNullable<Awaited<ReturnType<typeof registerPosDevice>>>
+    export type RegisterPosDeviceMutationBody = RegisterPosDeviceInput
+    export type RegisterPosDeviceMutationError = unknown
+    export type RegisterPosDeviceMutationVariables = {data: RegisterPosDeviceInput}
+
+    export const useRegisterPosDevice = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerPosDevice>>, TError,RegisterPosDeviceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof registerPosDevice>>,
+        TError,
+        RegisterPosDeviceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRegisterPosDeviceMutationOptions(options), queryClient);
+    }
+
+export const getRevokePosDeviceUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/identity/devices/${id}`
+}
+
+export const revokePosDevice = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getRevokePosDeviceUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRevokePosDeviceMutationKey = () => ['revokePosDevice'] as const;
+
+export const getRevokePosDeviceMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokePosDevice>>, TError,RevokePosDeviceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokePosDevice>>, TError,RevokePosDeviceMutationVariables, TContext> => {
+
+const mutationKey = getRevokePosDeviceMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokePosDevice>>, RevokePosDeviceMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  revokePosDevice(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokePosDeviceMutationResult = NonNullable<Awaited<ReturnType<typeof revokePosDevice>>>
+
+    export type RevokePosDeviceMutationError = unknown
+    export type RevokePosDeviceMutationVariables = {id: string}
+
+    export const useRevokePosDevice = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokePosDevice>>, TError,RevokePosDeviceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof revokePosDevice>>,
+        TError,
+        RevokePosDeviceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRevokePosDeviceMutationOptions(options), queryClient);
     }
 
 export const getListKioskScreensUrl = () => {
@@ -90150,6 +90410,597 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getCancelSaleMutationOptions(options), queryClient);
+    }
+
+export const getListStoresUrl = () => {
+
+
+
+
+  return `/api/v1/pos/stores`
+}
+
+export const listStores = async ( options?: Parameters<typeof apiFetch>[1]): Promise<StoreView[]> => {
+
+  return apiFetch<StoreView[]>(getListStoresUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStoresQueryKey = () => {
+    return [
+    `/api/v1/pos/stores`
+    ] as const;
+    }
+
+
+export const getListStoresQueryOptions = <TData = Awaited<ReturnType<typeof listStores>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStores>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStoresQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStores>>> = ({ signal }) => listStores({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStores>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStoresQueryResult = NonNullable<Awaited<ReturnType<typeof listStores>>>
+export type ListStoresQueryError = unknown
+
+
+export function useListStores<TData = Awaited<ReturnType<typeof listStores>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStores>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStores>>,
+          TError,
+          Awaited<ReturnType<typeof listStores>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStores<TData = Awaited<ReturnType<typeof listStores>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStores>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStores>>,
+          TError,
+          Awaited<ReturnType<typeof listStores>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStores<TData = Awaited<ReturnType<typeof listStores>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStores>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListStores<TData = Awaited<ReturnType<typeof listStores>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStores>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStoresQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateStoreUrl = () => {
+
+
+
+
+  return `/api/v1/pos/stores`
+}
+
+export const createStore = async (storeRequest: StoreRequest, options?: Parameters<typeof apiFetch>[1]): Promise<StoreView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StoreView>(getCreateStoreUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(storeRequest)
+  }
+);}
+
+
+
+
+
+export const getCreateStoreMutationKey = () => ['createStore'] as const;
+
+export const getCreateStoreMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStore>>, TError,CreateStoreMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createStore>>, TError,CreateStoreMutationVariables, TContext> => {
+
+const mutationKey = getCreateStoreMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createStore>>, CreateStoreMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createStore(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateStoreMutationResult = NonNullable<Awaited<ReturnType<typeof createStore>>>
+    export type CreateStoreMutationBody = StoreRequest
+    export type CreateStoreMutationError = unknown
+    export type CreateStoreMutationVariables = {data: StoreRequest}
+
+    export const useCreateStore = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStore>>, TError,CreateStoreMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createStore>>,
+        TError,
+        CreateStoreMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateStoreMutationOptions(options), queryClient);
+    }
+
+export const getGetStoreFormOptionsUrl = () => {
+
+
+
+
+  return `/api/v1/pos/stores/options`
+}
+
+export const getStoreFormOptions = async ( options?: Parameters<typeof apiFetch>[1]): Promise<StoreFormOptions> => {
+
+  return apiFetch<StoreFormOptions>(getGetStoreFormOptionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStoreFormOptionsQueryKey = () => {
+    return [
+    `/api/v1/pos/stores/options`
+    ] as const;
+    }
+
+
+export const getGetStoreFormOptionsQueryOptions = <TData = Awaited<ReturnType<typeof getStoreFormOptions>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStoreFormOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStoreFormOptionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStoreFormOptions>>> = ({ signal }) => getStoreFormOptions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStoreFormOptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStoreFormOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof getStoreFormOptions>>>
+export type GetStoreFormOptionsQueryError = unknown
+
+
+export function useGetStoreFormOptions<TData = Awaited<ReturnType<typeof getStoreFormOptions>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStoreFormOptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStoreFormOptions>>,
+          TError,
+          Awaited<ReturnType<typeof getStoreFormOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStoreFormOptions<TData = Awaited<ReturnType<typeof getStoreFormOptions>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStoreFormOptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStoreFormOptions>>,
+          TError,
+          Awaited<ReturnType<typeof getStoreFormOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStoreFormOptions<TData = Awaited<ReturnType<typeof getStoreFormOptions>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStoreFormOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetStoreFormOptions<TData = Awaited<ReturnType<typeof getStoreFormOptions>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStoreFormOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStoreFormOptionsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateStoreUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/pos/stores/${id}`
+}
+
+export const updateStore = async (id: string,
+    storeRequest: StoreRequest, options?: Parameters<typeof apiFetch>[1]): Promise<StoreView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StoreView>(getUpdateStoreUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(storeRequest)
+  }
+);}
+
+
+
+
+
+export const getUpdateStoreMutationKey = () => ['updateStore'] as const;
+
+export const getUpdateStoreMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStore>>, TError,UpdateStoreMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateStore>>, TError,UpdateStoreMutationVariables, TContext> => {
+
+const mutationKey = getUpdateStoreMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateStore>>, UpdateStoreMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateStore(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateStoreMutationResult = NonNullable<Awaited<ReturnType<typeof updateStore>>>
+    export type UpdateStoreMutationBody = StoreRequest
+    export type UpdateStoreMutationError = unknown
+    export type UpdateStoreMutationVariables = {id: string;data: StoreRequest}
+
+    export const useUpdateStore = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStore>>, TError,UpdateStoreMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateStore>>,
+        TError,
+        UpdateStoreMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateStoreMutationOptions(options), queryClient);
+    }
+
+export const getCreateRegisterUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/pos/stores/${id}/registers`
+}
+
+export const createRegister = async (id: string,
+    registerRequest: RegisterRequest, options?: Parameters<typeof apiFetch>[1]): Promise<StoreView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StoreView>(getCreateRegisterUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(registerRequest)
+  }
+);}
+
+
+
+
+
+export const getCreateRegisterMutationKey = () => ['createRegister'] as const;
+
+export const getCreateRegisterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRegister>>, TError,CreateRegisterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createRegister>>, TError,CreateRegisterMutationVariables, TContext> => {
+
+const mutationKey = getCreateRegisterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRegister>>, CreateRegisterMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createRegister(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateRegisterMutationResult = NonNullable<Awaited<ReturnType<typeof createRegister>>>
+    export type CreateRegisterMutationBody = RegisterRequest
+    export type CreateRegisterMutationError = unknown
+    export type CreateRegisterMutationVariables = {id: string;data: RegisterRequest}
+
+    export const useCreateRegister = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRegister>>, TError,CreateRegisterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createRegister>>,
+        TError,
+        CreateRegisterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateRegisterMutationOptions(options), queryClient);
+    }
+
+export const getUpdateRegisterUrl = (id: string,
+    registerId: string,) => {
+
+
+
+
+  return `/api/v1/pos/stores/${id}/registers/${registerId}`
+}
+
+export const updateRegister = async (id: string,
+    registerId: string,
+    registerRequest: RegisterRequest, options?: Parameters<typeof apiFetch>[1]): Promise<StoreView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StoreView>(getUpdateRegisterUrl(id,registerId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(registerRequest)
+  }
+);}
+
+
+
+
+
+export const getUpdateRegisterMutationKey = () => ['updateRegister'] as const;
+
+export const getUpdateRegisterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRegister>>, TError,UpdateRegisterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateRegister>>, TError,UpdateRegisterMutationVariables, TContext> => {
+
+const mutationKey = getUpdateRegisterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateRegister>>, UpdateRegisterMutationVariables> = (props) => {
+          const {id,registerId,data} = props ?? {};
+
+          return  updateRegister(id,registerId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateRegisterMutationResult = NonNullable<Awaited<ReturnType<typeof updateRegister>>>
+    export type UpdateRegisterMutationBody = RegisterRequest
+    export type UpdateRegisterMutationError = unknown
+    export type UpdateRegisterMutationVariables = {id: string;registerId: string;data: RegisterRequest}
+
+    export const useUpdateRegister = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRegister>>, TError,UpdateRegisterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateRegister>>,
+        TError,
+        UpdateRegisterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateRegisterMutationOptions(options), queryClient);
+    }
+
+export const getPosHandshakeUrl = () => {
+
+
+
+
+  return `/api/v1/pos/sync/handshake`
+}
+
+export const posHandshake = async ( options?: Parameters<typeof apiFetch>[1]): Promise<PosHandshake> => {
+
+  return apiFetch<PosHandshake>(getPosHandshakeUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getPosHandshakeMutationKey = () => ['posHandshake'] as const;
+
+export const getPosHandshakeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof posHandshake>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof posHandshake>>, TError,void, TContext> => {
+
+const mutationKey = getPosHandshakeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof posHandshake>>, void> = () => {
+
+
+          return  posHandshake(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PosHandshakeMutationResult = NonNullable<Awaited<ReturnType<typeof posHandshake>>>
+
+    export type PosHandshakeMutationError = unknown
+
+
+    export const usePosHandshake = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof posHandshake>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof posHandshake>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getPosHandshakeMutationOptions(options), queryClient);
     }
 
 export const getGetFiscalIntegrationUrl = () => {

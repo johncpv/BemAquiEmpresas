@@ -87,11 +87,14 @@ const PLATFORM = '/api/v1/platform/'
 /** API do quiosque (TV): sem refresh nem login no 401; a TV mostra o estado da tela (ADR 0030). */
 export const isKioskUrl = (url: string) => url.startsWith('/api/v1/kiosk/')
 
+/** Sincronização do caixa (PDV-01, ADR 0048): a sessão é o aparelho (cookie __Host-bq_pos + assinatura), nunca o token de um usuário; 401 não leva ao login. */
+export const isDeviceUrl = (url: string) => url.startsWith('/api/v1/pos/sync/')
+
 async function send(url: string, options: RequestInit): Promise<Response> {
   const headers = new Headers(options.headers)
   const token = getAccessToken()
   // Painel da TV (PNL-01a): a sessão é o cookie __Host-bq_kiosk; o token de um usuário nunca vai para a API do quiosque.
-  if (token && !isKioskUrl(url)) headers.set('Authorization', 'Bearer ' + token)
+  if (token && !isKioskUrl(url) && !isDeviceUrl(url)) headers.set('Authorization', 'Bearer ' + token)
   // As rotas do PIN (GET /auth/pin/users) também exigem o X-CSRF: o navegador não manda Origin num GET da mesma origem.
   if ((options.method && options.method !== 'GET') || url.startsWith('/api/v1/auth/')) headers.set('X-CSRF', '1')
   try {
@@ -108,7 +111,7 @@ async function exchange(url: string, options: RequestInit): Promise<{ response: 
   // Plataforma (FND-13): a sessão é o cookie do super admin, sem refresh; 401 leva ao login da plataforma.
   if (response.status === 401 && url.startsWith(PLATFORM) && !url.startsWith(PLATFORM + 'auth/')) {
     redirectToLogin('/plataforma/entrar')
-  } else if (response.status === 401 && !url.startsWith('/api/v1/auth/') && !url.startsWith(PLATFORM) && !isKioskUrl(url)) {
+  } else if (response.status === 401 && !url.startsWith('/api/v1/auth/') && !url.startsWith(PLATFORM) && !isKioskUrl(url) && !isDeviceUrl(url)) {
     if (await renewSession()) {
       response = await send(url, options)
     }
