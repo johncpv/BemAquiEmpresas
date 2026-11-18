@@ -3626,6 +3626,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDefaultValue("None")
                         .HasColumnName("provider");
 
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("seed_key");
+
                     b.HasKey("Id")
                         .HasName("pk_bank_accounts");
 
@@ -3633,6 +3638,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_bank_accounts_default")
                         .HasFilter("is_default");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_bank_accounts_seed_key")
+                        .HasFilter("seed_key IS NOT NULL");
 
                     b.ToTable("bank_accounts", "finance");
                 });
@@ -14933,6 +14943,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(420)")
                         .HasColumnName("search_text");
 
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("seed_key");
+
                     b.Property<string>("StateRegistration")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
@@ -14951,6 +14966,11 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_parties");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_parties_seed_key")
+                        .HasFilter("seed_key IS NOT NULL");
 
                     b.HasIndex(new[] { "Document" }, "ix_parties_document_trgm")
                         .HasDatabaseName("ix_parties_document_trgm");
