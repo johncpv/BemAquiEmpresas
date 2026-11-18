@@ -178,6 +178,12 @@ public sealed partial class ReceivableService
             return stale;
         }
 
+        // VND-01: o recebível de venda nasce e muda pelas vendas; cancelá-lo à mão deixaria o dia diferente das vendas.
+        if (receivable.IsFromSales)
+        {
+            return Error.Conflict("receivable_from_sales", "Este recebível vem das vendas: para tirá-lo, cancele a venda.");
+        }
+
         if (receivable.Status == ReceivableStatus.Cancelled)
         {
             return Error.Conflict("receivable_cancelled", "O título já está cancelado.");

@@ -40,7 +40,7 @@
 - Teste de regressão (integração): retrato de `GET /me/permissions` de um usuário de cada grupo do seed, com uma exceção manual, antes e depois do backfill e de um recálculo; tem de ser idêntico, inclusive a versão.
 
 ### 6. Áreas do dock e vocabulário (PERF-03, PP-25)
-- **Área "Loja"** (`ModuleAreas.Store`) entre "Comercial" e "Fábrica", para os módulos do PDV (Catálogo, Vendas, Caixa). Área sem módulo visível some do dock: até a CAT-01, ela não aparece para ninguém, e o perfil `factory` nunca recebe módulo dela sem decisão explícita.
+- **Área "Loja"** (`ModuleAreas.Store`) entre "Comercial" e "Fábrica", para os módulos do PDV (Catálogo, Vendas, Caixa). Área sem módulo visível some do dock; o primeiro módulo dela é Vendas (`sales`, VND-01), e o perfil `factory` nunca recebe módulo dela sem decisão explícita.
 - **Vocabulário em código** (`BusinessVocabulary`, ao lado do catálogo): dicionário chave → termo por perfil, com **teto de 30 chaves** (PP-25; o teste de unidade falha acima disso). Toda chave existe nos **termos padrão**, que são os do perfil `factory` (como o sistema fala hoje). O tenant não edita termo nesta versão. Vale para rótulo de interface e ajuda; nome de permissão, código de módulo, texto de documento fiscal e o campo `area` de `/me/permissions` (identificador) não mudam.
 - **Combinação:** com dois perfis que definem a mesma chave, vale a **ordem fixa do catálogo**: `factory`, `retail`, `services`, `ecommerce` (não a ordem de aplicação). Como `factory` declara os termos padrão, tenant com `factory` (com ou sem outros perfis) vê sempre o padrão; tenant sem perfil (rede de segurança do §3) também.
 - **Rótulo de área** sai do vocabulário (`area.factory`): "Fábrica" no padrão, "Retaguarda" em `retail`, `services` e `ecommerce`.

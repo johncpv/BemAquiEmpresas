@@ -31,6 +31,7 @@
     <ProjectReference Include="..\..\Modules\Portal\BemAqui.Portal.Endpoints\BemAqui.Portal.Endpoints.csproj" />
     <ProjectReference Include="..\..\Modules\Production\BemAqui.Production.Endpoints\BemAqui.Production.Endpoints.csproj" />
     <ProjectReference Include="..\..\Modules\Purchasing\BemAqui.Purchasing.Endpoints\BemAqui.Purchasing.Endpoints.csproj" />
+    <ProjectReference Include="..\..\Modules\Sales\BemAqui.Sales.Endpoints\BemAqui.Sales.Endpoints.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- Ajuda contextual (FND-14): Ajuda/*.md da raiz, embutidos como Ajuda.<chave>.md. -->

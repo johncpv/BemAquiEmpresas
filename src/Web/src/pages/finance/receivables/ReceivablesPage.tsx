@@ -21,7 +21,9 @@ import { slipStatus } from './billing-slips'
 import { DeadLetterBanner } from './DeadLetterBanner'
 import { REVIEW_DICAS, REVIEW_FILTER } from './payment-review'
 import { PaymentReviewList } from './PaymentReviewList'
-import { awaits, RECEIVABLE_DICAS, situation, SITUATION_OPTIONS, today } from './receivables'
+import { COMMERCE_PROFILES } from '@/navigation/modules'
+import { useHasProfile } from '@/navigation/navigation-context'
+import { awaits, channelLabel, ORIGIN_OPTIONS, RECEIVABLE_DICAS, SALES_DICA, situation, SITUATION_OPTIONS, today } from './receivables'
 
 const PERIODS = [
   { value: 'ontem', label: 'Venceram ontem' },
@@ -45,11 +47,13 @@ function period(value: string | undefined): { dueFrom?: string; dueTo?: string }
 /** Financeiro → A receber (FIN-01): o que os clientes devem, por vencimento; "Vencido" calculado; totais do filtro no rodapé. */
 export function ReceivablesPage() {
   const [search] = useTableSearch()
-  const { situacao, vencimento, cliente, contrato, boleto, filtro, conferir } = useTableFilters(['situacao', 'vencimento', 'cliente', 'contrato', 'boleto', 'filtro', 'conferir'])
+  const { situacao, vencimento, cliente, contrato, boleto, filtro, conferir, origem } = useTableFilters(['situacao', 'vencimento', 'cliente', 'contrato', 'boleto', 'filtro', 'conferir', 'origem'])
+  // VND-01: recebível de venda (filtro "Origem: Vendas" e coluna "Canal") só para os perfis de comércio; a fábrica não vê nada disso.
+  const sells = useHasProfile(COMMERCE_PROFILES)
   const reviewing = filtro === REVIEW_FILTER
   const toReview = useListPaymentsToReview()
   const reviewCount = toReview.data?.count ?? 0
-  const filters = { q: search.q, situation: situacao || undefined, partyId: cliente || undefined, contractId: contrato || undefined, withBillingSlip: boleto === 'com' ? true : undefined, ...period(vencimento), sort: search.sort }
+  const filters = { q: search.q, situation: situacao || undefined, partyId: cliente || undefined, contractId: contrato || undefined, withBillingSlip: boleto === 'com' ? true : undefined, origin: sells && origem === 'vendas' ? 'vendas' : undefined, ...period(vencimento), sort: search.sort }
   const query = useListReceivables({ ...filters, page: search.page, pageSize: search.pageSize })
   const table = { ...query, data: query.data?.page }
   const totals = query.data?.totals
@@ -75,6 +79,7 @@ export function ReceivablesPage() {
     } },
     { id: 'slip', header: 'Boleto', meta: { secondary: true }, cell: ({ row: { original: r } }) => <BillingSlipShortcut receivable={r} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-primary sm:min-h-0" /> },
   ]
+  if (sells) columns.splice(2, 0, { id: 'channel', header: 'Canal', meta: { secondary: true }, cell: ({ row: { original: r } }) => channelLabel(r.saleChannel) })
 
   return (
     <>
@@ -104,6 +109,11 @@ export function ReceivablesPage() {
           <Link to={'/app/financeiro/receber' as never} search={((prev: Record<string, unknown>) => ({ ...prev, contrato: undefined })) as never} className="font-semibold text-primary hover:underline">Ver todos os títulos</Link>
         </p>
       ) : null}
+      {sells && origem === 'vendas' ? (
+        <p role="note" className="mb-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          Mostrando os recebíveis das vendas.<Dica nome="Recebível de venda" texto={SALES_DICA} />
+        </p>
+      ) : null}
       {cliente ? (
         <p role="note" className="mb-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           Mostrando os títulos de um cliente, vindo da Inadimplência.
@@ -127,7 +137,7 @@ export function ReceivablesPage() {
         rowClassName={(r) => (r.isOverdue ? 'border-l-4 border-l-crit' : undefined)}
         searchPlaceholder="Buscar pelo número ou descrição"
         toolbar={<Can perm="finance.view"><ExportMenu fileBase="contas-a-receber" empty={query.data?.page.total === 0} url={(format) => getExportReceivablesUrl({ ...filters, format })} /></Can>}
-        filters={[{ key: 'situacao', label: 'Situação', options: SITUATION_OPTIONS }, { key: 'vencimento', label: 'Vencimento', options: PERIODS }, { key: 'boleto', label: 'Boleto', options: [{ value: 'com', label: 'Com boleto' }] }]}
+        filters={[{ key: 'situacao', label: 'Situação', options: SITUATION_OPTIONS }, { key: 'vencimento', label: 'Vencimento', options: PERIODS }, { key: 'boleto', label: 'Boleto', options: [{ value: 'com', label: 'Com boleto' }] }, ...(sells ? [{ key: 'origem', label: 'Origem', options: ORIGIN_OPTIONS }] : [])]}
         totals={totals ? { balance: <span className="block">Em aberto <Money value={totals.open} /><br /><span className="text-crit-ink">Vencido <Money value={totals.overdue} /></span></span> } : undefined}
         empty={{
           title: 'Lance o primeiro título a receber ou aprove um orçamento para gerar as parcelas do contrato.',

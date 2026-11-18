@@ -95,6 +95,12 @@ public static class HostEvents
             .AddEvent<BemAqui.Finance.Contracts.PaymentOrderLevelReleased>()
             // PAG-01: a forma de pagamento mudou; o que desce para os caixas é refeito (consumidor na OFF-02).
             .AddEvent<BemAqui.Finance.Contracts.PaymentMethodChanged>()
+            // VND-01: venda concluída ou cancelada no canal sem caixa. O Sales baixa (e estorna) o estoque pelo IStockMovements; o Financeiro recompõe o
+            // recebível do dia e canal pela fonte (ISaleLookup). Os dois são idempotentes (inbox + regra).
+            .AddHandler<BemAqui.Sales.Contracts.SaleCompleted, BemAqui.Sales.Application.SaleStockConsumer>()
+            .AddHandler<BemAqui.Sales.Contracts.SaleCancelled, BemAqui.Sales.Application.SaleStockConsumer>()
+            .AddHandler<BemAqui.Sales.Contracts.SaleCompleted, BemAqui.Finance.Application.SaleReceivablesConsumer>()
+            .AddHandler<BemAqui.Sales.Contracts.SaleCancelled, BemAqui.Finance.Application.SaleReceivablesConsumer>()
             // CAT-01: produto e preço mudaram; o modelo de leitura do caixa recarrega (consumidor na OFF-01).
             .AddEvent<BemAqui.Catalog.Contracts.ProductChanged>()
             .AddEvent<BemAqui.Catalog.Contracts.PriceChanged>()

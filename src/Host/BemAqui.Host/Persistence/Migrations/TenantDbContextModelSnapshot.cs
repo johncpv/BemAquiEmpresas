@@ -6052,6 +6052,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("cancelled_by");
 
+                    b.Property<Guid?>("CashSessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cash_session_id");
+
                     b.Property<Guid?>("ContractId")
                         .HasColumnType("uuid")
                         .HasColumnName("contract_id");
@@ -6087,10 +6091,20 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("due_date");
 
+                    b.Property<decimal?>("ExpectedFee")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("expected_fee");
+
                     b.Property<decimal>("Fine")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("fine");
+
+                    b.Property<decimal?>("GrossAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("gross_amount");
 
                     b.Property<Guid?>("InstallmentGroupId")
                         .HasColumnType("uuid")
@@ -6104,6 +6118,11 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<DateOnly>("IssueDate")
                         .HasColumnType("date")
                         .HasColumnName("issue_date");
+
+                    b.Property<decimal?>("NetAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("net_amount");
 
                     b.Property<string>("Number")
                         .IsRequired()
@@ -6138,6 +6157,20 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid?>("ProjectId")
                         .HasColumnType("uuid")
                         .HasColumnName("project_id");
+
+                    b.Property<string>("SaleChannel")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("sale_channel");
+
+                    b.Property<string>("SaleGroupKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("sale_group_key");
+
+                    b.Property<DateOnly?>("SettlementDate")
+                        .HasColumnType("date")
+                        .HasColumnName("settlement_date");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -6184,10 +6217,19 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasIndex("ProjectId")
                         .HasDatabaseName("ix_receivables_project_id");
 
+                    b.HasIndex("SaleGroupKey")
+                        .IsUnique()
+                        .HasDatabaseName("ux_receivables_sale_group_key")
+                        .HasFilter("sale_group_key IS NOT NULL");
+
                     b.HasIndex("IssueDate", "AccountId")
                         .HasDatabaseName("ix_receivables_issue_date");
 
                     NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("IssueDate", "AccountId"), new[] { "Amount" });
+
+                    b.HasIndex("IssueDate", "SaleChannel")
+                        .HasDatabaseName("ix_receivables_sale_day_channel")
+                        .HasFilter("sale_channel IS NOT NULL");
 
                     b.HasIndex("Origin", "OriginId")
                         .HasDatabaseName("ix_receivables_origin_origin_id");
@@ -18167,6 +18209,490 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("rfq_suppliers", "purchasing");
                 });
 
+            modelBuilder.Entity("BemAqui.Sales.Domain.Sale", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateOnly>("BusinessDate")
+                        .HasColumnType("date")
+                        .HasColumnName("business_date");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("cancel_reason");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid?>("CancelledBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancelled_by");
+
+                    b.Property<Guid?>("CashSessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cash_session_id");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("channel");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTimeOffset?>("CompletedAtDevice")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at_device");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<decimal>("DiscountTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("discount_total");
+
+                    b.Property<string>("FiscalStatus")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("fiscal_status");
+
+                    b.Property<bool>("FromDevice")
+                        .HasColumnType("boolean")
+                        .HasColumnName("from_device");
+
+                    b.Property<Guid?>("InvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("number");
+
+                    b.Property<decimal?>("PaymentDifference")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("payment_difference");
+
+                    b.Property<long?>("PriceListVersion")
+                        .HasColumnType("bigint")
+                        .HasColumnName("price_list_version");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.Property<Guid?>("RegisterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("register_id");
+
+                    b.Property<Guid?>("SellerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("seller_user_id");
+
+                    b.Property<decimal>("ServiceFee")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("service_fee");
+
+                    b.Property<Guid?>("SourceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_id");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("source_type");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("StockLocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stock_location_id");
+
+                    b.Property<string>("StockStatus")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("stock_status");
+
+                    b.Property<Guid?>("StoreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("store_id");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("subtotal");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales");
+
+                    b.HasIndex("CashSessionId")
+                        .HasDatabaseName("ix_sales_cash_session_id")
+                        .HasFilter("cash_session_id IS NOT NULL");
+
+                    b.HasIndex("BusinessDate", "Channel")
+                        .HasDatabaseName("ix_sales_completed_day_channel")
+                        .HasFilter("status = 'Completed'");
+
+                    b.HasIndex("Channel", "Number")
+                        .IsUnique()
+                        .HasDatabaseName("ux_sales_channel_number");
+
+                    b.HasIndex("SourceType", "SourceId")
+                        .HasDatabaseName("ix_sales_source_type_source_id");
+
+                    b.ToTable("sales", "sales", t =>
+                        {
+                            t.HasCheckConstraint("ck_sales_no_register_channels", "channel NOT IN ('Online', 'ServiceOrder') OR (register_id IS NULL AND cash_session_id IS NULL)");
+
+                            t.HasCheckConstraint("ck_sales_pos_register", "channel <> 'Pos' OR (register_id IS NOT NULL AND cash_session_id IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_sales_totals", "subtotal >= 0 AND discount_total >= 0 AND service_fee >= 0 AND total >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Sales.Domain.SaleLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("description");
+
+                    b.Property<decimal>("Discount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("discount");
+
+                    b.Property<Guid?>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<int>("LineNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("line_number");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("note");
+
+                    b.Property<Guid?>("ParentProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("parent_product_id");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("SaleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sale_id");
+
+                    b.Property<string>("Seat")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("seat");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total");
+
+                    b.Property<string>("UnitCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("unit_code");
+
+                    b.Property<decimal?>("UnitCost")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("unit_cost");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sale_lines");
+
+                    b.HasIndex("ParentProductId")
+                        .HasDatabaseName("ix_sale_lines_parent_product_id");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_sale_lines_product_id");
+
+                    b.HasIndex("SaleId", "LineNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sale_lines_sale_id_line_number");
+
+                    b.ToTable("sale_lines", "sales", t =>
+                        {
+                            t.HasCheckConstraint("ck_sale_lines_quantity", "quantity > 0");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Sales.Domain.SalePart", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("label");
+
+                    b.Property<bool>("Paid")
+                        .HasColumnType("boolean")
+                        .HasColumnName("paid");
+
+                    b.Property<Guid>("SaleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sale_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sale_parts");
+
+                    b.HasIndex("SaleId")
+                        .HasDatabaseName("ix_sale_parts_sale_id");
+
+                    b.ToTable("sale_parts", "sales");
+                });
+
+            modelBuilder.Entity("BemAqui.Sales.Domain.SalePayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AcquirerPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acquirer_party_id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("AuthorizationCode")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("authorization_code");
+
+                    b.Property<string>("CardBrand")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("card_brand");
+
+                    b.Property<decimal>("ChangeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("change_amount");
+
+                    b.Property<DateTimeOffset?>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("confirmed_at");
+
+                    b.Property<Guid?>("ConfirmedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("confirmed_by");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("EndToEndId")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("end_to_end_id");
+
+                    b.Property<int>("Installments")
+                        .HasColumnType("integer")
+                        .HasColumnName("installments");
+
+                    b.Property<string>("Integration")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("integration");
+
+                    b.Property<string>("Nsu")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("nsu");
+
+                    b.Property<Guid>("PaymentMethodId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_method_id");
+
+                    b.Property<string>("Provider")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("provider");
+
+                    b.Property<Guid>("SaleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sale_id");
+
+                    b.Property<Guid>("SalePartId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sale_part_id");
+
+                    b.Property<DateTimeOffset?>("StatementCheckedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("statement_checked_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Txid")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("txid");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sale_payments");
+
+                    b.HasIndex("PaymentMethodId")
+                        .HasDatabaseName("ix_sale_payments_payment_method_id");
+
+                    b.HasIndex("SaleId")
+                        .HasDatabaseName("ix_sale_payments_sale_id");
+
+                    b.HasIndex("SalePartId")
+                        .HasDatabaseName("ix_sale_payments_sale_part_id");
+
+                    b.ToTable("sale_payments", "sales", t =>
+                        {
+                            t.HasCheckConstraint("ck_sale_payments_amount", "amount > 0 AND change_amount >= 0 AND change_amount < amount");
+
+                            t.HasCheckConstraint("ck_sale_payments_installments", "installments BETWEEN 1 AND 24");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Sales.Domain.SaleStockPosting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("note");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid?>("ReversalMovementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversal_movement_id");
+
+                    b.Property<Guid>("SaleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sale_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("StockMovementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stock_movement_id");
+
+                    b.Property<decimal?>("UnitCost")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("unit_cost");
+
+                    b.HasKey("Id")
+                        .HasName("pk_stock_postings");
+
+                    b.HasIndex("StockMovementId")
+                        .HasDatabaseName("ix_stock_postings_stock_movement_id");
+
+                    b.HasIndex("SaleId", "ItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_stock_postings_sale_item");
+
+                    b.ToTable("stock_postings", "sales");
+                });
+
             modelBuilder.Entity("BemAqui.Assets.Domain.Asset", b =>
                 {
                     b.HasOne("BemAqui.Assets.Domain.AssetSite", null)
@@ -19906,6 +20432,53 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_rfq_suppliers_rfqs_rfq_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Sales.Domain.SaleLine", b =>
+                {
+                    b.HasOne("BemAqui.Sales.Domain.Sale", null)
+                        .WithMany()
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_sale_lines_sales_sale_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Sales.Domain.SalePart", b =>
+                {
+                    b.HasOne("BemAqui.Sales.Domain.Sale", null)
+                        .WithMany()
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_sale_parts_sales_sale_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Sales.Domain.SalePayment", b =>
+                {
+                    b.HasOne("BemAqui.Sales.Domain.Sale", null)
+                        .WithMany()
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_sale_payments_sales_sale_id");
+
+                    b.HasOne("BemAqui.Sales.Domain.SalePart", null)
+                        .WithMany()
+                        .HasForeignKey("SalePartId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_sale_payments_sale_parts_sale_part_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Sales.Domain.SaleStockPosting", b =>
+                {
+                    b.HasOne("BemAqui.Sales.Domain.Sale", null)
+                        .WithMany()
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_stock_postings_sales_sale_id");
                 });
 
             modelBuilder.Entity("BemAqui.Parties.Domain.Party", b =>

@@ -44,7 +44,7 @@ public static class BusinessProfileCatalog
             Vocabulary = BusinessVocabulary.Defaults, // a Fábrica fala como o sistema fala hoje: com ela, nenhum termo muda (PERF-03 CA 3)
         },
         new(Retail, "Comércio", "Venda no balcão e na loja: caixa, estoque e retaguarda.",
-            [.. Core, "kiosk", "catalog"],
+            [.. Core, "kiosk", "catalog", "sales"],
             [
                 new("counter", "Balcão"),
                 new("supermarket", "Supermercado"),
@@ -57,17 +57,21 @@ public static class BusinessProfileCatalog
             Vocabulary = BusinessVocabulary.Backoffice,
         },
         new(Services, "Prestação de serviços", "Serviço com orçamento e ordem de serviço.",
-            [.. Core, "quotes", "projects", "catalog"],
+            [.. Core, "quotes", "projects", "catalog", "sales"],
             [new("workshop", "Oficina")])
         {
             Vocabulary = BusinessVocabulary.Backoffice,
         },
         // CAT-01: o catálogo entra em Comércio, Serviços e E-commerce (PRD do PDV, seção 3.3); na Fábrica, não (decisão explícita pendente).
-        new(Ecommerce, "E-commerce", "Venda pela loja virtual.", [.. Core, "catalog"], []) { Vocabulary = BusinessVocabulary.Backoffice },
+        // VND-01: as vendas entram nos mesmos três perfis; na Fábrica, não.
+        new(Ecommerce, "E-commerce", "Venda pela loja virtual.", [.. Core, "catalog", "sales"], []) { Vocabulary = BusinessVocabulary.Backoffice },
     ];
 
     /// <summary>Recurso de pagamentos da venda dentro do Financeiro (PAG-01): formas de pagamento e taxas da adquirente.</summary>
     public const string PaymentMethodsFeature = "finance.payment_methods";
+
+    /// <summary>Recebíveis das vendas em Contas a receber (VND-01): filtro "Origem: Vendas", coluna "Canal" e a ajuda deles.</summary>
+    public const string SaleReceivablesFeature = "finance.sale_receivables";
 
     /// <summary>
     /// Recursos por perfil dentro de um módulo comum (adendo da ADR 0046, decisão do PO de 17/11/2026): o módulo continua liberado para
@@ -77,6 +81,7 @@ public static class BusinessProfileCatalog
     public static IReadOnlyDictionary<string, IReadOnlyList<string>> Features { get; } = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal)
     {
         [PaymentMethodsFeature] = [Retail, Services, Ecommerce],
+        [SaleReceivablesFeature] = [Retail, Services, Ecommerce],
         [FirstStepsFeature] = [Retail],
     };
 

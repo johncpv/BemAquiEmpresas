@@ -35,7 +35,8 @@ public sealed record WriteOffInput(DateOnly Date, string? BackdateReason, uint V
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ReasonInput(string Reason, uint Version);
 
-public sealed record ReceivableListQuery(string? Q, string? Situation, Guid? PartyId, DateOnly? DueFrom, DateOnly? DueTo, Guid? ContractId = null, bool WithBillingSlip = false);
+/// <summary>Filtros da lista; <c>Origin</c> = <c>vendas</c> mostra só os recebíveis de venda (VND-01: origem Venda ou Cartão).</summary>
+public sealed record ReceivableListQuery(string? Q, string? Situation, Guid? PartyId, DateOnly? DueFrom, DateOnly? DueTo, Guid? ContractId = null, bool WithBillingSlip = false, string? Origin = null);
 
 /// <summary>Título para a lista e o detalhe; <c>IsOverdue</c> e <c>IsDueToday</c> são calculados (CA 6 e 7).</summary>
 public sealed record ReceivableDetail(
@@ -70,7 +71,10 @@ public sealed record ReceivableDetail(
     TriggerEvent? TriggerEvent = null,
     Guid? ContractId = null,
     Guid? BillingSlipId = null,
-    BillingSlipStatus? BillingSlipStatus = null);
+    BillingSlipStatus? BillingSlipStatus = null,
+    string? SaleChannel = null,
+    decimal? GrossAmount = null,
+    decimal? ExpectedFee = null);
 
 /// <summary>Totais do filtro inteiro (rodapé da lista).</summary>
 public sealed record ReceivableTotals(decimal Open, decimal Overdue);

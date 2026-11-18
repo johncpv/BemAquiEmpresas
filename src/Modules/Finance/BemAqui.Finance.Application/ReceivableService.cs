@@ -42,6 +42,9 @@ public sealed partial class ReceivableService(
     public const string DocType = "CR";
     public const string NotificationType = "finance.receivable";
 
+    /// <summary>Recebível de venda sem terceiro (Pix, dinheiro): o nome que a lista mostra no lugar do cliente.</summary>
+    public const string NoPartySales = "Vendas (sem terceiro)";
+
     private DateOnly Today => BusinessTime.Today(clock);
 
     public async Task<ReceivablePage> ListAsync(ReceivableListQuery query, PageRequest page, CancellationToken cancellationToken = default)
@@ -84,6 +87,11 @@ public sealed partial class ReceivableService(
         if (query.ContractId is { } contract)
         {
             receivables = receivables.Where(r => r.ContractId == contract);
+        }
+
+        if (string.Equals(query.Origin, "vendas", StringComparison.Ordinal))
+        {
+            receivables = receivables.Where(r => r.Origin == DocumentOrigin.Sale || r.Origin == DocumentOrigin.CardSettlement);
         }
 
         if (query.WithBillingSlip)
@@ -174,11 +182,12 @@ public sealed partial class ReceivableService(
         var slipIds = receivables.Where(r => r.BillingSlipId is not null).Select(r => r.BillingSlipId!.Value).ToList();
         var slipStatus = slipIds.Count == 0 ? new Dictionary<Guid, BillingSlipStatus>() : await db.BillingSlips.AsNoTracking().Where(s => slipIds.Contains(s.Id)).ToDictionaryAsync(s => s.Id, s => s.Status, ct);
         return receivables.Select(r => new ReceivableDetail(
-            r.Id, r.Number, r.PartyId, names.GetValueOrDefault(r.PartyId, string.Empty), r.Description, r.AccountId, accounts.GetValueOrDefault(r.AccountId, string.Empty),
+            r.Id, r.Number, r.PartyId, (r.IsFromSales && r.PartyId == Guid.Empty ? NoPartySales : names.GetValueOrDefault(r.PartyId, string.Empty)), r.Description, r.AccountId, accounts.GetValueOrDefault(r.AccountId, string.Empty),
             r.CostCenterId, r.ProjectId, r.Amount, r.PaidAmount, r.Balance, r.Interest, r.Fine, r.Discount, r.IssueDate, r.DueDate, r.Status,
             r.IsOverdue(today), r.IsDueToday(today), r.Origin, r.OriginId, r.OpeningReference, r.InstallmentGroupId, r.CancelReason, r.CancelledAt, r.Version,
             r.ProjectId is { } project ? projectNumbers.GetValueOrDefault(project) : null, r.TriggerEvent, r.ContractId,
-            r.BillingSlipId, r.BillingSlipId is { } slip && slipStatus.TryGetValue(slip, out var st) ? (BillingSlipStatus?)st : null)).ToList();
+            r.BillingSlipId, r.BillingSlipId is { } slip && slipStatus.TryGetValue(slip, out var st) ? (BillingSlipStatus?)st : null,
+            r.SaleChannel, r.GrossAmount, r.ExpectedFee)).ToList();
     }
 
     private async Task NotifyOwnersAsync(string title, Guid receivableId, CancellationToken ct)

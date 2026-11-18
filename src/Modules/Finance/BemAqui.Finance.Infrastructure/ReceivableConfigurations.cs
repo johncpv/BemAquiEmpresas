@@ -23,6 +23,16 @@ internal sealed class ReceivableConfiguration : IEntityTypeConfiguration<Receiva
         b.Property(e => e.OpeningReference).HasMaxLength(40);
         b.Ignore(e => e.Balance);
         b.Ignore(e => e.IsOpen);
+        b.Ignore(e => e.IsFromSales);
+
+        // Recebível de venda (VND-01): colunas novas, todas anuláveis; os títulos de antes ficam com nulo.
+        b.Property(e => e.SaleChannel).HasMaxLength(16);
+        b.Property(e => e.GrossAmount).HasPrecision(18, 2);
+        b.Property(e => e.ExpectedFee).HasPrecision(18, 2);
+        b.Property(e => e.NetAmount).HasPrecision(18, 2);
+        b.Property(e => e.SaleGroupKey).HasMaxLength(200);
+        b.HasIndex(e => e.SaleGroupKey).IsUnique().HasFilter("sale_group_key IS NOT NULL").HasDatabaseName(SaleReceivableWriter.GroupKeyIndex);
+        b.HasIndex(e => new { e.IssueDate, e.SaleChannel }).HasFilter("sale_channel IS NOT NULL").HasDatabaseName("ix_receivables_sale_day_channel");
         b.HasIndex(e => e.Number).IsUnique().HasDatabaseName(ReceivableService.NumberIndex);
         b.HasIndex(e => new { e.Status, e.DueDate }).HasFilter("status NOT IN ('Paid','Cancelled')").HasDatabaseName("ix_receivables_open_due");
         b.HasIndex(e => e.PartyId);

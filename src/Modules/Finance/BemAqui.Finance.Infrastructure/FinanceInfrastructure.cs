@@ -55,6 +55,11 @@ public static class FinanceInfrastructure
         // Custo do projeto pelos títulos (DSH-02): somas em lote e o drill-down, com a regra única da PayableCostRules.
         services.TryAddScoped<IProjectPayableCosts, ProjectPayableCostsContract>();
         services.TryAddScoped<IReceivables, ReceivablesContract>();
+        // Recebível de venda (VND-01 CA 11 e 13): a escrita por origem de venda, usada pelo consumidor do canal sem caixa e, na CX-03, pelo fechamento do caixa.
+        services.TryAddScoped<SaleReceivableWriter>();
+        services.TryAddScoped<ISaleReceivables>(sp => sp.GetRequiredService<SaleReceivableWriter>());
+        // CA 12: a receita das vendas no DRE (ISalesRevenue), pelo roteador da receita.
+        services.TryAddScoped<SalesRevenueSource>();
         services.TryAddScoped<IFinancialOpening, FinancialOpeningContract>();
         services.TryAddScoped<PaymentStatsService>();
         services.TryAddScoped<ApprovalRuleService>();

@@ -29446,6 +29446,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "origin",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -31299,6 +31306,13 @@
             "in": "query",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "origin",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           },
           {
@@ -35649,6 +35663,78 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CollectionPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/{id}": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "GetSale",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "CancelSale",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaleCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleView"
                 }
               }
             }
@@ -55178,7 +55264,9 @@
           "Maintenance",
           "GoodsReceipt",
           "PayrollForecast",
-          "IncomingInvoice"
+          "IncomingInvoice",
+          "Sale",
+          "CardSettlement"
         ]
       },
       "DreAccountOption": {
@@ -79009,6 +79097,15 @@
           }
         }
       },
+      "PaymentIntegration": {
+        "enum": [
+          "Manual",
+          "Tef",
+          "SmartPos",
+          "PixApi",
+          "Gateway"
+        ]
+      },
       "PaymentMethodDetail": {
         "required": [
           "id",
@@ -94421,6 +94518,26 @@
                 "$ref": "#/components/schemas/BillingSlipStatus"
               }
             ]
+          },
+          "saleChannel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "grossAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedFee": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -98980,6 +99097,446 @@
           }
         },
         "additionalProperties": false
+      },
+      "SaleCancelInput": {
+        "required": [
+          "reason",
+          "capturedRefundedOutside"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "capturedRefundedOutside": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SaleChannel": {
+        "enum": [
+          "Pos",
+          "Online",
+          "Delivery",
+          "Table",
+          "ServiceOrder"
+        ]
+      },
+      "SaleLineView": {
+        "required": [
+          "id",
+          "lineNumber",
+          "productId",
+          "parentProductId",
+          "itemId",
+          "description",
+          "unitCode",
+          "quantity",
+          "unitPrice",
+          "discount",
+          "total",
+          "unitCost",
+          "note",
+          "seat"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lineNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parentProductId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "seat": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SalePartKind": {
+        "enum": [
+          "Equal",
+          "Amount",
+          "Items"
+        ]
+      },
+      "SalePartView": {
+        "required": [
+          "id",
+          "label",
+          "kind",
+          "amount",
+          "paid"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/SalePartKind"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paid": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SalePaymentStatus": {
+        "enum": [
+          "Created",
+          "Pending",
+          "Captured",
+          "Voided",
+          "Refunded",
+          "Failed",
+          "Unknown"
+        ]
+      },
+      "SalePaymentView": {
+        "required": [
+          "id",
+          "partId",
+          "paymentMethodId",
+          "amount",
+          "changeAmount",
+          "status",
+          "integration",
+          "installments",
+          "provider",
+          "acquirerPartyId",
+          "cardBrand",
+          "nsu",
+          "authorizationCode",
+          "txid",
+          "endToEndId",
+          "confirmedBy",
+          "confirmedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "paymentMethodId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "changeAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SalePaymentStatus"
+          },
+          "integration": {
+            "$ref": "#/components/schemas/PaymentIntegration"
+          },
+          "installments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "provider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "acquirerPartyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "cardBrand": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nsu": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "authorizationCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "txid": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "endToEndId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "SaleStatus": {
+        "enum": [
+          "Open",
+          "PartiallyPaid",
+          "Completed",
+          "Cancelled"
+        ]
+      },
+      "SaleStockStatus": {
+        "enum": [
+          "Pending",
+          "Posted",
+          "Shortfall",
+          "NotRequired",
+          "Reversed"
+        ]
+      },
+      "SaleView": {
+        "required": [
+          "id",
+          "number",
+          "channel",
+          "status",
+          "stockStatus",
+          "storeId",
+          "registerId",
+          "cashSessionId",
+          "stockLocationId",
+          "customerId",
+          "sourceType",
+          "sourceId",
+          "businessDate",
+          "completedAt",
+          "subtotal",
+          "discountTotal",
+          "serviceFee",
+          "total",
+          "capturedTotal",
+          "lines",
+          "parts",
+          "payments"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/SaleChannel"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SaleStatus"
+          },
+          "stockStatus": {
+            "$ref": "#/components/schemas/SaleStockStatus"
+          },
+          "storeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "registerId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "cashSessionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "stockLocationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "customerId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "sourceType": {
+            "type": "string"
+          },
+          "sourceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "businessDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "subtotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "serviceFee": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "capturedTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleLineView"
+            }
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalePartView"
+            }
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalePaymentView"
+            }
+          },
+          "cancelledAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
       },
       "SaveFiscalIntegrationRequest": {
         "required": [
@@ -109800,6 +110357,9 @@
     },
     {
       "name": "Financeiro"
+    },
+    {
+      "name": "Vendas"
     },
     {
       "name": "Fiscal"

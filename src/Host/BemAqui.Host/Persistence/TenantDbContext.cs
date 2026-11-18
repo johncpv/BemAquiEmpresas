@@ -21,7 +21,7 @@ namespace BemAqui.Host.Persistence;
 /// DbContext único do banco de tenant (ADR 0006): tabelas compartilhadas da base e, conforme as stories
 /// avançam, as configurações de cada módulo. A conexão por tenant chega na FND-02.
 /// </summary>
-public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IProductionPlanDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb, BemAqui.Engineering.Application.IEngineeringDb, BemAqui.Purchasing.Application.IPurchasingDb, BemAqui.Fiscal.Application.IFiscalDb, BemAqui.Assets.Application.IAssetsDb, BemAqui.Catalog.Application.ICatalogDb
+public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IProductionPlanDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb, BemAqui.Engineering.Application.IEngineeringDb, BemAqui.Purchasing.Application.IPurchasingDb, BemAqui.Fiscal.Application.IFiscalDb, BemAqui.Assets.Application.IAssetsDb, BemAqui.Catalog.Application.ICatalogDb, BemAqui.Sales.Application.ISalesDb
 {
     public DbSet<User> Users => Set<User>();
 
@@ -372,6 +372,16 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Fiscal.Domain.InstallationBilling> InstallationBillings => Set<BemAqui.Fiscal.Domain.InstallationBilling>();
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoiceReading> IncomingInvoiceReadings => Set<BemAqui.Fiscal.Domain.IncomingInvoiceReading>();
+
+    public DbSet<BemAqui.Sales.Domain.Sale> Sales => Set<BemAqui.Sales.Domain.Sale>();
+
+    public DbSet<BemAqui.Sales.Domain.SaleLine> SaleLines => Set<BemAqui.Sales.Domain.SaleLine>();
+
+    public DbSet<BemAqui.Sales.Domain.SalePart> SaleParts => Set<BemAqui.Sales.Domain.SalePart>();
+
+    public DbSet<BemAqui.Sales.Domain.SalePayment> SalePayments => Set<BemAqui.Sales.Domain.SalePayment>();
+
+    public DbSet<BemAqui.Sales.Domain.SaleStockPosting> SaleStockPostings => Set<BemAqui.Sales.Domain.SaleStockPosting>();
 
     public DbSet<BemAqui.Assets.Domain.Asset> Assets => Set<BemAqui.Assets.Domain.Asset>();
 

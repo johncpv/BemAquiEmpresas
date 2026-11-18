@@ -89,7 +89,7 @@ public sealed record RoutedRevenue(IReadOnlyList<RevenueAmount> Amounts, IReadOn
 /// Escolhe a regra da receita por período (CA 4): antes da data de corte, pelo título (provisório); da data de corte em diante,
 /// pela nota. Sem implementação pela nota registrada, tudo continua pelo título.
 /// </summary>
-public sealed class RevenueRecognitionRouter(IEnumerable<IRevenueRecognition> recognitions, IRevenueCutover cutover)
+public sealed class RevenueRecognitionRouter(IEnumerable<IRevenueRecognition> recognitions, IRevenueCutover cutover, SalesRevenueSource? sales = null)
 {
     public static bool IsProvisional(DateOnly month, DateOnly? effectiveCutover) => effectiveCutover is not { } cut || DreBuilder.MonthOf(month) < cut;
 
@@ -105,6 +105,11 @@ public sealed class RevenueRecognitionRouter(IEnumerable<IRevenueRecognition> re
             advances.AddRange(part.Advances);
         }
 
+        if (sales is not null)
+        {
+            amounts.AddRange(await sales.AmountsAsync(from, to, projectIds, cancellationToken));
+        }
+
         return new RoutedRevenue(amounts, advances, cut);
     }
 
@@ -115,6 +120,11 @@ public sealed class RevenueRecognitionRouter(IEnumerable<IRevenueRecognition> re
         foreach (var (rule, start, end) in Parts(title, invoice, cut, from, to))
         {
             documents.AddRange(await rule.DocumentsAsync(accountIds, start, end, cancellationToken));
+        }
+
+        if (sales is not null)
+        {
+            documents.AddRange(await sales.DocumentsAsync(accountIds, from, to, cancellationToken));
         }
 
         return documents;
