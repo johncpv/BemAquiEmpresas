@@ -18,6 +18,6 @@ export default defineConfig({
   ],
   webServer: [
     { command: 'pnpm exec vite --port 5174 --strictPort', url: 'http://localhost:5174/app', reuseExistingServer: !process.env.CI, timeout: 120_000 },
-    { command: 'pnpm exec vite build --outDir dist-e2e --emptyOutDir && pnpm exec vite preview --port 5175 --strictPort --outDir dist-e2e', url: 'http://localhost:5175/fab/entrar', reuseExistingServer: !process.env.CI, timeout: 300_000 },
+    { command: 'pnpm exec vite build --outDir dist-e2e --emptyOutDir && pnpm exec vite build -c vite.pdv.config.ts --outDir dist-e2e && pnpm exec vite preview --port 5175 --strictPort --outDir dist-e2e', url: 'http://localhost:5175/fab/entrar', reuseExistingServer: !process.env.CI, timeout: 300_000 },
   ],
 })
