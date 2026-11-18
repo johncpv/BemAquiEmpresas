@@ -152,6 +152,13 @@ public sealed partial class GroupService
             return denied;
         }
 
+        // ADR 0049: grupo com usuário de operação não ganha ação reservada (o usuário de operação nunca a recebe).
+        if (!isNew && after.Except(before).Order(StringComparer.Ordinal).FirstOrDefault(Shopfloor.PinProfile.IsSensitive) is { } reserved
+            && await db.UserGroups.Where(ug => ug.GroupId == group.Id).Join(db.Users.Where(u => u.IsOperationUser), ug => ug.UserId, u => u.Id, (ug, _) => ug).AnyAsync(cancellationToken))
+        {
+            return OperationUserDenied(reserved);
+        }
+
         group.Name = name;
         group.Description = request.Description?.Trim() ?? string.Empty;
         group.RequiresTwoFactor = request.RequiresTwoFactor;

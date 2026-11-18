@@ -84,6 +84,7 @@ public static class BusinessProfileCatalog
         [SaleReceivablesFeature] = [Retail, Services, Ecommerce],
         [FirstStepsFeature] = [Retail],
         [PosDevicesFeature] = [Retail],
+        [OperationUsersFeature] = [Retail],
     };
 
     /// <summary>
@@ -91,6 +92,9 @@ public static class BusinessProfileCatalog
     /// a fábrica (Konebras) vê a lista como antes.
     /// </summary>
     public const string PosDevicesFeature = "settings.pos_devices";
+
+    /// <summary>Usuário de operação (PDV-01 CA 12, ADR 0049): sem e-mail, só PIN no caixa. Só o Comércio; a fábrica não vê o botão nem a marca.</summary>
+    public const string OperationUsersFeature = "identity.operation_users";
 
     /// <summary>Checklist "Primeiros passos" do Início (PERF-04): só o Comércio, por enquanto; a fábrica não vê o cartão nem a ajuda.</summary>
     public const string FirstStepsFeature = "dashboard.first_steps";

@@ -15,6 +15,9 @@ public interface IIdentityDb
 
     DbSet<UserPin> UserPins { get; }
 
+    /// <summary>PIN do caixa do PDV, um por usuário (PDV-01 CA 11).</summary>
+    DbSet<PosPin> PosPins { get; }
+
     /// <summary>Telas de TV (<c>identity.kiosk_tokens</c>, PNL-01a).</summary>
     DbSet<KioskScreen> KioskScreens { get; }
 

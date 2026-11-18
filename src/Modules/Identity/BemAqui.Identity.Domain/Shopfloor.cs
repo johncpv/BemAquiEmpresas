@@ -315,3 +315,93 @@ public sealed class UserPin : Entity, IAuditable
         LastUsedAt = now;
     }
 }
+/// <summary>
+/// PIN do caixa do PDV (<c>identity.pos_pins</c>, PDV-01 CA 11, ADR 0048 e 0049): um por usuário, vale em todo aparelho de caixa registrado das lojas
+/// em que ele pode entrar (o caixa troca de aparelho; o PIN do operador não, e o mesmo PIN vale sem rede, PP-39). Hash forte com o mesmo algoritmo do
+/// PIN da fábrica (<c>PasswordHasher</c>, PBKDF2) e as mesmas regras de erro da ADR 0026 §2: 5 seguidos bloqueiam 15 min, o 10º em 24 h apaga.
+/// <c>MustChange</c>: o PIN inicial que o gerente deu ao usuário de operação, trocado no primeiro uso.
+/// </summary>
+public sealed class PosPin : Entity, IAuditable
+{
+    public Guid UserId { get; init; }
+
+    [ProtectedSecret]
+    public string PinHash { get; private set; } = string.Empty;
+
+    public bool MustChange { get; private set; }
+
+    /// <summary>Quem definiu o PIN (o próprio usuário ou o gerente que criou o usuário de operação).</summary>
+    public Guid CreatedBy { get; private set; }
+
+    public int FailedCount { get; private set; }
+
+    public DateTimeOffset? LockedUntil { get; private set; }
+
+    public DateTimeOffset? FailuresSince { get; private set; }
+
+    public int FailuresInWindow { get; private set; }
+
+    public DateTimeOffset CreatedAt { get; private set; }
+
+    public DateTimeOffset? LastUsedAt { get; private set; }
+
+    public static PosPin Create(Guid userId, string pinHash, bool mustChange, Guid createdBy, DateTimeOffset now) => new()
+    {
+        UserId = userId,
+        PinHash = pinHash,
+        MustChange = mustChange,
+        CreatedBy = createdBy,
+        CreatedAt = now,
+    };
+
+    /// <summary>PIN novo: zera os erros e o bloqueio.</summary>
+    public void Replace(string pinHash, bool mustChange, Guid by, DateTimeOffset now)
+    {
+        PinHash = pinHash;
+        MustChange = mustChange;
+        CreatedBy = by;
+        CreatedAt = now;
+        FailedCount = 0;
+        LockedUntil = null;
+        FailuresSince = null;
+        FailuresInWindow = 0;
+    }
+
+    /// <summary>Hash refeito com o mesmo PIN (o <c>PasswordHasher</c> pediu rehash): nada mais muda.</summary>
+    public void Rehash(string pinHash) => PinHash = pinHash;
+
+    public bool IsLocked(DateTimeOffset now) => LockedUntil is { } until && until > now;
+
+    /// <summary>As mesmas regras do <see cref="UserPin"/>: 5 erros seguidos bloqueiam 15 min; o 10º em 24 h apaga o PIN (quem chama remove a linha).</summary>
+    public PinFailure RegisterFailure(DateTimeOffset now)
+    {
+        if (FailuresSince is not { } since || now - since > UserPin.DailyWindow)
+        {
+            FailuresSince = now;
+            FailuresInWindow = 0;
+        }
+
+        FailuresInWindow++;
+        FailedCount++;
+        if (FailuresInWindow >= UserPin.DailyFailureLimit)
+        {
+            return PinFailure.Erased;
+        }
+
+        if (FailedCount < UserPin.MaxConsecutiveFailures)
+        {
+            return PinFailure.Counted;
+        }
+
+        LockedUntil = now + UserPin.LockDuration;
+        FailedCount = 0;
+        return PinFailure.Locked;
+    }
+
+    public void RegisterSuccess(DateTimeOffset now)
+    {
+        FailedCount = 0;
+        LockedUntil = null;
+        LastUsedAt = now;
+    }
+}

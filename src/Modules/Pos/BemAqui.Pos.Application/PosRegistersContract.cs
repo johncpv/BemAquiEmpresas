@@ -47,6 +47,9 @@ public sealed class PosRegistersContract(IPosDb db) : IPosRegisters
         register?.ReleaseDevice(deviceId);
     }
 
+    public async Task<IReadOnlyList<PosStoreRef>> ListStoresAsync(CancellationToken cancellationToken = default) =>
+        await db.Stores.AsNoTracking().OrderBy(s => s.Name).Select(s => new PosStoreRef(s.Id, s.Code, s.Name, s.IsActive)).ToListAsync(cancellationToken);
+
     private static PosRegisterRef ToRef(Store store, Register register) =>
         new(store.Id, store.Code, store.Name, register.Id, register.Number, register.ActiveDeviceId, register.DeviceEpoch, register.IsActive && store.IsActive);
 }

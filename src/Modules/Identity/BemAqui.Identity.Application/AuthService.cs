@@ -38,6 +38,7 @@ public sealed partial class AuthService(
     TenantLinks links,
     TwoFactorRequirement requirement,
     ShopfloorDeviceGate devices,
+    PosDeviceCookieGate posDevices,
     TimeProvider clock)
 {
     public const string InvalidCredentials = "E-mail ou senha inválidos.";
@@ -56,10 +57,12 @@ public sealed partial class AuthService(
         var normalized = User.Normalize(email ?? string.Empty);
         var user = await db.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalized, cancellationToken);
 
-        if (user?.PasswordHash is null || user.Status != UserStatus.Active)
+        // Usuário de operação (ADR 0049) não tem senha e nunca entra por e-mail: mesma resposta e mesmo custo de e-mail inexistente.
+        if (user?.PasswordHash is null || user.Status != UserStatus.Active || user.IsOperationUser)
         {
             hasher.VerifyHashedPassword(User.Invite("ninguem@exemplo.com"), DummyHash, password ?? string.Empty);
-            await AuditAsync("LoginFailed", user?.Id, ip, new { reason = user is null ? "unknown_email" : "not_active" }, cancellationToken);
+            var reason = user is null ? "unknown_email" : user.IsOperationUser ? "operation_user" : "not_active";
+            await AuditAsync("LoginFailed", user?.Id, ip, new { reason }, cancellationToken);
             return Invalid();
         }
 
@@ -120,6 +123,7 @@ public sealed partial class AuthService(
     public async Task<LoginSession> StartSessionAsync(User user, string host, string? ip, IReadOnlyList<string> amr, bool persistent, bool otpProven, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(user);
+        RefuseOperationUser(user);
         var now = clock.GetUtcNow();
         user.RegisterSuccessfulLogin(now);
         LoginSession session;
@@ -152,7 +156,39 @@ public sealed partial class AuthService(
             old.Revoke(now);
         }
 
+        RefuseOperationUser(user);
         return CreateSession(user, host, Guid.CreateVersion7(), ip, now, new SessionSpec(SessionKind.Pin, deviceId, SessionLifetimes.PinAbsolute(now), [AuthMethods.Pin]));
+    }
+
+    /// <summary>
+    /// Sessão por PIN no aparelho de caixa (PDV-01 CA 11, ADR 0048): <c>amr = ["pin", "hwk"]</c>, refresh preso ao aparelho de caixa, 12 h absolutas e
+    /// não renováveis além disso. Um operador por caixa: as sessões por PIN vivas do aparelho (de qualquer usuário) são revogadas. Quem chama grava.
+    /// </summary>
+    public async Task<LoginSession> StartPosPinSessionAsync(User user, Guid deviceId, string host, string? ip, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        var now = clock.GetUtcNow();
+        foreach (var old in await db.RefreshTokens.Where(t => t.DeviceId == deviceId && t.RevokedAt == null).ToListAsync(cancellationToken))
+        {
+            old.Revoke(now);
+        }
+
+        return CreateSession(user, host, Guid.CreateVersion7(), ip, now, new SessionSpec(SessionKind.PosPin, deviceId, SessionLifetimes.PinAbsolute(now), PosPinAmr));
+    }
+
+    /// <summary><c>amr</c> da sessão por PIN do caixa: PIN mais a chave do aparelho.</summary>
+    public static readonly string[] PosPinAmr = [AuthMethods.Pin, AuthMethods.DeviceKey];
+
+    /// <summary>
+    /// ADR 0049: o usuário de operação nunca recebe token de retaguarda (sessão completa, sem persistência, 2FA de novo nem PIN da fábrica). Os caminhos
+    /// de entrada já o recusam antes; isto é a trava final.
+    /// </summary>
+    private static void RefuseOperationUser(User user)
+    {
+        if (user.IsOperationUser)
+        {
+            throw new InvalidOperationException("Usuário de operação só entra por PIN no caixa (ADR 0049).");
+        }
     }
 
     private TwoFactorPending NewChallenge(Guid userId, TwoFactorChallengePurpose purpose, string? ip, DateTimeOffset now)
@@ -210,11 +246,17 @@ public sealed partial class AuthService(
     public AccessToken IssueStepUp(User user, string host)
     {
         ArgumentNullException.ThrowIfNull(user);
+        RefuseOperationUser(user);
         return issuer.Issue(user, TenantId(), host, [AuthMethods.Password, AuthMethods.Otp], clock.GetUtcNow());
     }
 
     private LoginSession CreateSession(User user, string host, Guid familyId, string? ip, DateTimeOffset now, SessionSpec spec)
     {
+        if (spec.Kind != SessionKind.PosPin)
+        {
+            RefuseOperationUser(user);
+        }
+
         var access = issuer.Issue(user, TenantId(), host, spec.Amr, spec.OtpAt);
         var raw = OpaqueToken.New();
         var refresh = new RefreshToken
@@ -223,7 +265,7 @@ public sealed partial class AuthService(
             TokenHash = OpaqueToken.Hash(raw),
             FamilyId = familyId,
             CreatedAt = now,
-            ExpiresAt = spec.Kind == SessionKind.Pin ? spec.Absolute : SessionLifetimes.RefreshExpiry(now, signing.Options.RefreshTokenLifetime, spec.Absolute),
+            ExpiresAt = spec.Kind is SessionKind.Pin or SessionKind.PosPin ? spec.Absolute : SessionLifetimes.RefreshExpiry(now, signing.Options.RefreshTokenLifetime, spec.Absolute),
             CreatedByIp = ip,
             SessionKind = spec.Kind,
             DeviceId = spec.DeviceId,

@@ -9,6 +9,7 @@ import { inputClass } from '@/components/form/form-utils'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { createDeviceKey, deviceSupported, forgetDeviceKey, loadDeviceKey, signRequest } from '@/pdv/device-signing'
 import { registerLabel } from '@/pages/store/stores'
+import { PdvOperatorEntry } from './PdvOperatorEntry'
 
 const HANDSHAKE = '/api/v1/pos/sync/handshake'
 
@@ -19,7 +20,7 @@ type State =
   | { kind: 'blocked'; message: string }
   | { kind: 'error'; message: string }
   | { kind: 'clock'; message: string; serverTime: string | null }
-  | { kind: 'registered'; register: PosHandshake }
+  | { kind: 'registered'; register: PosHandshake; keys: CryptoKeyPair }
 
 /** Aperto de mão assinado pela chave do aparelho (ADR 0048 §2): diz se este aparelho é um caixa e de qual loja. */
 async function check(): Promise<State> {
@@ -27,7 +28,7 @@ async function check(): Promise<State> {
   const keys = await loadDeviceKey()
   if (!keys) return { kind: 'unregistered' }
   try {
-    return { kind: 'registered', register: await posHandshake({ headers: await signRequest(keys, 'POST', HANDSHAKE) }) }
+    return { kind: 'registered', register: await posHandshake({ headers: await signRequest(keys, 'POST', HANDSHAKE) }), keys }
   } catch (e) {
     if (e instanceof ApiError && e.status === 401) {
       // Relógio do aparelho fora da tolerância (revisão do PR 227, B5): acertar o relógio, não registrar de novo.
@@ -40,8 +41,9 @@ async function check(): Promise<State> {
 }
 
 /**
- * Caixa (/pdv, PDV-01): por enquanto, só o registro do aparelho. Aparelho não registrado: "Este aparelho ainda não é um caixa." com "Registrar
- * este aparelho" (pede login completo, pos.manage_devices e o código do autenticador). A tela de venda chega na PDV-02, sobre a OFF-01.
+ * Caixa (/pdv, PDV-01): o registro do aparelho e a entrada do operador por PIN. Aparelho não registrado: "Este aparelho ainda não é um caixa." com
+ * "Registrar este aparelho" (pede login completo, pos.manage_devices e o código do autenticador). Registrado: a lista de quem pode entrar e o PIN
+ * (CA 11). A tela de venda chega na PDV-02, sobre a OFF-01.
  */
 export function PdvPage() {
   const search = useSearch({ strict: false }) as { registrar?: string }
@@ -95,8 +97,10 @@ export function PdvPage() {
       ) : state.kind === 'error' ? (
         <ErrorState title="Não foi possível conferir o aparelho." message={state.message} onRetry={() => void refresh()} />
       ) : state.kind === 'registered' ? (
-        <Card title={`Este aparelho é o caixa ${registerLabel(state.register.registerNumber)} da loja ${state.register.storeName}.`}
-          text={`As vendas deste aparelho vão sair numeradas a partir de ${state.register.salePrefix}000001. A tela de venda chega na próxima versão.`} />
+        <>
+          <PdvOperatorEntry keys={state.keys} onDeviceGone={refresh} />
+          <p className="text-sm text-muted-foreground">As vendas deste aparelho vão sair numeradas a partir de {state.register.salePrefix}000001.</p>
+        </>
       ) : (
         <Card title={state.kind === 'blocked' ? 'Este aparelho foi bloqueado ou trocado por outro.' : 'Este aparelho ainda não é um caixa.'}
           text={state.kind === 'blocked' ? 'Para voltar a vender nele, registre o aparelho de novo.' : 'Registre o aparelho para ele vender por um caixa da loja. É preciso entrar com e-mail e senha de quem pode registrar aparelhos.'}

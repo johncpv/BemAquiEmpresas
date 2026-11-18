@@ -210,13 +210,37 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
 
         device.Should().NotBeEmpty();
         device.Should().OnlyContain(e => IsDevice(e), "só /api/v1/pos/sync/* com RequireDevice() aceita o esquema Device");
-        device.Should().OnlyContain(e => !HasPermission(e) && e.Metadata.GetMetadata<PinSessionAllowedAttribute>() == null, "o aparelho não é usuário");
+        device.Should().OnlyContain(e => !HasPermission(e) && e.Metadata.GetMetadata<PinSessionAllowedAttribute>() == null && e.Metadata.GetMetadata<PosPinSessionAllowedAttribute>() == null,
+            "o aparelho não é usuário");
         endpoints.Where(e => e.Metadata.GetMetadata<DeviceEndpointAttribute>() != null).Should().OnlyContain(e => UsesDevice(e), "a marca sem o esquema não vale");
         endpoints.Where(e => e.RoutePattern.RawText!.StartsWith(DeviceEndpoints.PathPrefix, StringComparison.Ordinal)).Should()
             .OnlyContain(e => IsDevice(e), "toda rota de sincronização é do aparelho");
         device.Where(e => e.Metadata.GetMetadata<DeviceEndpointAttribute>()!.AllowRevoked).Should()
             .BeEmpty("nesta story nenhum endpoint aceita o aparelho revogado; a subida de eventos (OFF-02) entra com revisão");
     }
+
+    /// <summary>
+    /// Sessão por PIN do caixa (PDV-01 CA 11, ADR 0048): a marca <c>[PosPinSessionAllowed]</c> só em <c>/api/v1/pos/*</c>, no módulo <c>pos</c>, com permissão do
+    /// catálogo e fora do esquema do aparelho; nunca junto com a marca da fábrica. A lista revisada fica no <c>PinSessionAllowListTests</c>.
+    /// </summary>
+    [Fact]
+    public void Sessao_por_PIN_do_caixa_so_nas_rotas_do_PDV_e_nunca_na_lista_da_fabrica()
+    {
+        var endpoints = Endpoints();
+        var pos = endpoints.Where(e => e.Metadata.GetMetadata<PosPinSessionAllowedAttribute>() != null).ToList();
+
+        pos.Should().NotBeEmpty();
+        pos.Should().OnlyContain(e => IsPosPinRoute(e), "a sessão por PIN do caixa só alcança rotas do PDV, com módulo e permissão");
+        endpoints.Should().NotContain(e => e.Metadata.GetMetadata<PosPinSessionAllowedAttribute>() != null && e.Metadata.GetMetadata<PinSessionAllowedAttribute>() != null,
+            "as listas da fábrica e do caixa nunca se misturam");
+        endpoints.Where(e => e.Metadata.GetMetadata<PinSessionAllowedAttribute>() != null).Should()
+            .NotContain(e => e.RoutePattern.RawText!.StartsWith(PinSessionEndpoints.PosPathPrefix, StringComparison.Ordinal), "a sessão por PIN da fábrica não alcança o PDV");
+    }
+
+    private static bool IsPosPinRoute(RouteEndpoint e) =>
+        e.RoutePattern.RawText!.StartsWith(PinSessionEndpoints.PosPathPrefix, StringComparison.Ordinal)
+        && !e.RoutePattern.RawText.StartsWith(DeviceEndpoints.PathPrefix, StringComparison.Ordinal)
+        && e.Metadata.GetMetadata<RequiresModuleMetadata>()?.ModuleCode == "pos" && HasPermission(e) && !UsesDevice(e);
 
     /// <summary>Super admin: sessão própria da plataforma (esquema e policy <c>platform</c>), fora do tenant (FND-13).</summary>
     private static bool IsPlatform(RouteEndpoint e) =>

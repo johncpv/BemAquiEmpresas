@@ -17,6 +17,9 @@ public sealed record PosRegisterRef(
     public string Label => $"{StoreName} · Caixa {RegisterNumber:00}";
 }
 
+/// <summary>Loja para os outros módulos (PDV-01 CA 12): o usuário de operação trabalha em uma ou mais lojas.</summary>
+public sealed record PosStoreRef(Guid Id, string Code, string Name, bool IsActive);
+
 /// <summary>O caixa depois de receber o aparelho: a época nova e o aparelho que saiu (null se o caixa estava sem aparelho).</summary>
 public sealed record PosRegisterAssignment(PosRegisterRef Register, int Epoch, Guid? PreviousDeviceId);
 
@@ -40,6 +43,9 @@ public interface IPosRegisters
 
     /// <summary>Tira o aparelho do caixa quando ele é revogado (só se ainda for o aparelho ativo do caixa). Não grava.</summary>
     Task ReleaseDeviceAsync(Guid registerId, Guid deviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>As lojas (inclusive inativas), para o usuário de operação escolher onde trabalha (PDV-01 CA 12, ADR 0049).</summary>
+    Task<IReadOnlyList<PosStoreRef>> ListStoresAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>

@@ -31,6 +31,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<UserPin> UserPins => Set<UserPin>();
 
+    public DbSet<PosPin> PosPins => Set<PosPin>();
+
     public DbSet<KioskScreen> KioskScreens => Set<KioskScreen>();
 
     public DbSet<KioskSession> KioskSessions => Set<KioskSession>();

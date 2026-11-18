@@ -12,12 +12,15 @@ import { formatDateTime } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
+import { useHasProfile } from '@/navigation/navigation-context'
 import { InviteDialog } from './InviteDialog'
+import { OperationUserActions, OperationUserDialog } from './OperationUserDialog'
+import { OPERATION_PROFILES, userContact } from './operation-users'
 import { UserRowActions } from './UserRowActions'
 import { employeeLabel, filterUsers, USER_FILTER_KEY, USER_FILTER_OPTIONS } from './users-filter'
 
 const STATUS = { Active: ['ok', 'Ativo'], Invited: ['warn', 'Convite pendente'], Inactive: ['crit', 'Inativo'] } as const
-const TWO_FA = { active: ['ok', 'Ativa'], pending: ['info', 'Pendente'], required_pending: ['warn', 'Obrigatória pendente'] } as const
+const TWO_FA = { active: ['ok', 'Ativa'], pending: ['info', 'Pendente'], required_pending: ['warn', 'Obrigatória pendente'], none: ['neutral', 'Não se aplica'] } as const
 
 /**
  * Usuários e acessos → Usuários (FND-06c, protótipo): grupos, 2FA, último acesso, situação e o convite. USR-01: a coluna "Funcionário"
@@ -27,6 +30,8 @@ export function UsersPage() {
   const client = useQueryClient()
   const users = useListUsers()
   const canViewHr = useCan('hr.view')
+  // PDV-01 CA 12: usuário de operação só no Comércio; a fábrica não vê o botão.
+  const operation = useHasProfile(OPERATION_PROFILES)
   const { [USER_FILTER_KEY]: show } = useTableFilters([USER_FILTER_KEY])
   const { data, isPending, isError, error, refetch } = users
   const filtered = useMemo(() => ({ data: data ? filterUsers(data, show) : undefined, isPending, isError, error, refetch }), [data, show, isPending, isError, error, refetch])
@@ -36,7 +41,7 @@ export function UsersPage() {
   const query = useClientPage(filtered, text, sortValue)
 
   const columns: ColumnDef<UserRow>[] = [
-    { id: 'nome', header: 'Usuário', meta: { sortField: 'nome' }, cell: ({ row: { original: u } }) => <span><b className="block font-semibold">{u.name || '—'}</b><span className="text-xs text-muted-foreground">{u.email}</span></span> },
+    { id: 'nome', header: 'Usuário', meta: { sortField: 'nome' }, cell: ({ row: { original: u } }) => <span><b className="block font-semibold">{u.name || '—'}{u.isOperationUser ? <StatusChip tone="info" className="ml-2">Operação</StatusChip> : null}</b><span className="text-xs text-muted-foreground">{userContact(u)}</span></span> },
     {
       id: 'funcionario', header: 'Funcionário', meta: { secondary: true }, cell: ({ row: { original: u } }) => u.employeeId && canViewHr
         ? <Link to="/app/rh/funcionarios/$id" params={{ id: u.employeeId }} className="font-semibold text-primary">{employeeLabel(u)}</Link>
@@ -47,7 +52,12 @@ export function UsersPage() {
     { id: 'acesso', header: 'Último acesso', meta: { sortField: 'lastLoginAt', secondary: true }, cell: ({ row: { original: u } }) => <span className="tabular-nums">{u.lastLoginAt ? formatDateTime(u.lastLoginAt) : '—'}</span> },
     // LGPD-01b: usuário anonimizado fica bloqueado e sem ações, com o pedido que anonimizou.
     { id: 'situacao', header: 'Situação', cell: ({ row: { original: u } }) => { if (u.anonymizedAt) return <span title={`Cadastro anonimizado em ${formatDateTime(u.anonymizedAt)}${u.anonymizationRequest ? ` (pedido ${u.anonymizationRequest})` : ''}`}><StatusChip tone="neutral">Anonimizado</StatusChip></span>; const [tone, label] = STATUS[u.status as keyof typeof STATUS] ?? STATUS.Active; return <StatusChip tone={tone}>{label}</StatusChip> } },
-    { id: 'acoes', header: '', cell: ({ row: { original: u } }) => u.anonymizedAt ? null : <Can perm="identity.edit"><UserRowActions user={u} refresh={refresh} /></Can> },
+    { id: 'acoes', header: '', cell: ({ row: { original: u } }) => u.anonymizedAt ? null : (
+      <span className="flex items-center justify-end gap-2">
+        {u.isOperationUser ? <Can perm="identity.create"><OperationUserActions user={u} refresh={refresh} /></Can> : null}
+        <Can perm="identity.edit"><UserRowActions user={u} refresh={refresh} /></Can>
+      </span>
+    ) },
   ]
 
   return (
@@ -55,7 +65,12 @@ export function UsersPage() {
       <PageHeading title="Usuários e acessos: Usuários">
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <p className="text-muted-foreground">Cada pessoa entra com o próprio acesso. O que ela vê depende dos grupos.</p>
-          <Can perm="identity.create"><InviteDialog onInvited={refresh} /></Can>
+          <Can perm="identity.create">
+            <span className="flex flex-wrap gap-2">
+              {operation ? <OperationUserDialog onCreated={refresh} /> : null}
+              <InviteDialog onInvited={refresh} />
+            </span>
+          </Can>
         </div>
       </PageHeading>
       <DataTable

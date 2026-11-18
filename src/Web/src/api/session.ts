@@ -37,6 +37,9 @@ export function sessionMethods(token: string | null = accessToken): string[] {
 /** Sessão aberta por PIN no aparelho da fábrica (ADR 0026 §3): só o /fab, com saída por inatividade. */
 export const isPinSession = (token: string | null = accessToken) => sessionMethods(token).includes('pin')
 
+/** Sessão por PIN no aparelho de caixa do PDV (PDV-01 CA 11, ADR 0048): amr = ["pin", "hwk"]; só o /pdv, nunca o /fab nem a retaguarda. */
+export const isPosPinSession = (token: string | null = accessToken) => sessionMethods(token).includes('hwk')
+
 let ephemeral = false
 
 /**

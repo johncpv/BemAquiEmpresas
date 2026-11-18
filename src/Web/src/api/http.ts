@@ -73,6 +73,8 @@ export const FAB_ENTRY = '/fab/entrar'
 /** Sem sessão: vai para o login (do tenant ou da plataforma) guardando a rota para voltar depois. */
 export function redirectToLogin(login = '/entrar'): void {
   setAccessToken(null)
+  // Caixa do PDV (PDV-01 CA 11): sem sessão, o /pdv volta à lista de operadores dele, nunca ao login da retaguarda.
+  if (login === '/entrar' && window.location.pathname.startsWith('/pdv')) return
   if (login === '/entrar' && window.location.pathname.startsWith('/fab')) {
     if (!window.location.pathname.startsWith(FAB_ENTRY)) window.location.assign(FAB_ENTRY)
     return

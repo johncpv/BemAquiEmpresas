@@ -84,6 +84,11 @@ public static class IdentityInfrastructure
         services.TryAddScoped<BemAqui.Identity.Contracts.IRegisterDevices>(sp => sp.GetRequiredService<Application.Shopfloor.RegisterDeviceService>());
         services.TryAddScoped<BemAqui.BuildingBlocks.Identity.IDeviceAuthenticator>(sp => sp.GetRequiredService<Application.Shopfloor.RegisterDeviceService>());
         services.AddAuditableEntity<UserPin>("identity");
+        // PIN no caixa do PDV (PDV-01 CA 11) e usuário de operação (CA 12, ADR 0049).
+        services.TryAddScoped<Application.Shopfloor.PosDeviceCookieGate>();
+        services.TryAddScoped<Application.Shopfloor.PosPinService>();
+        services.TryAddScoped<OperationUserService>();
+        services.AddAuditableEntity<PosPin>("identity");
         // Painel da TV (PNL-01a, ADR 0030): telas com token de uso único, sessão de quiosque conferida a cada request e a troca da rota.
         services.TryAddSingleton<Application.Kiosk.KioskSessionVersions>();
         services.TryAddSingleton<BemAqui.BuildingBlocks.Identity.IKioskRealtime, BemAqui.BuildingBlocks.Identity.NoKioskRealtime>();

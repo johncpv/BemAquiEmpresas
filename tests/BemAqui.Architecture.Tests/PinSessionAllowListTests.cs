@@ -56,6 +56,23 @@ public static partial class PinSessionAllowList
         ["hub:ProductionHub"] = "ProductionHub, grupo do chão de fábrica",
     };
 
+    /// <summary>
+    /// Lista revisada da sessão por PIN do caixa do PDV (PDV-01 CA 11, ADR 0048): <c>[PosPinSessionAllowed]</c>, separada da lista da fábrica. A venda
+    /// (PDV-02) e o resto do caixa entram aqui com revisão. A lista de nomes e a entrada por PIN não entram: são do aparelho (esquema Device).
+    /// </summary>
+    public static readonly IReadOnlyDictionary<string, string> PosReviewed = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["GetPosSession"] = "quem está no caixa: o operador da sessão, a loja, o caixa e as ações do caixa dele",
+        ["EndPosSession"] = "sair do caixa: encerra a sessão por PIN do operador neste aparelho",
+    };
+
+    [GeneratedRegex("""\.AllowPosPinSession\(\)""")]
+    private static partial Regex PosMark();
+
+    /// <summary>Chaves dos usos de <c>.AllowPosPinSession()</c>: o <c>WithName</c> da mesma instrução.</summary>
+    public static IReadOnlyList<string> PosUses(IEnumerable<(string File, string Content)> sources) =>
+        sources.SelectMany(s => PosMark().Matches(s.Content).Select(m => Key(s.File, s.Content, m.Index))).ToList();
+
     [GeneratedRegex("""\.AllowPinSession\(\)""")]
     private static partial Regex Mark();
 
@@ -93,6 +110,19 @@ public class PinSessionAllowListTests
         uses.Should().OnlyHaveUniqueItems();
         uses.Except(PinSessionAllowList.Reviewed.Keys).Should().BeEmpty("endpoint novo com [PinSessionAllowed] precisa de revisão e entrar na lista");
         PinSessionAllowList.Reviewed.Keys.Except(uses).Should().BeEmpty("endpoint da lista revisada perdeu a marca ou foi removido");
+    }
+
+    [Fact]
+    public void So_os_endpoints_revisados_tem_a_marca_da_sessao_por_PIN_do_caixa()
+    {
+        var uses = PinSessionAllowList.PosUses(PermissionRules.SolutionSources());
+
+        uses.Should().OnlyHaveUniqueItems();
+        uses.Except(PinSessionAllowList.PosReviewed.Keys).Should().BeEmpty("endpoint novo com [PosPinSessionAllowed] precisa de revisão e entrar na lista do caixa");
+        PinSessionAllowList.PosReviewed.Keys.Except(uses).Should().BeEmpty("endpoint da lista do caixa perdeu a marca ou foi removido");
+        PinSessionAllowList.PosReviewed.Keys.Intersect(PinSessionAllowList.Reviewed.Keys).Should().BeEmpty("as listas da fábrica e do caixa nunca se misturam");
+        PinSessionAllowList.PosReviewed.Keys.Should().NotContain(["LoginPosPin", "ListPosOperators", "RegisterPosDevice", "RevokePosDevice", "SetMyPosPin", "CreateOperationUser"],
+            "entrar, registrar aparelho, criar PIN e usuário são do aparelho ou do login completo");
     }
 
     [Fact]

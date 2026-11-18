@@ -97,9 +97,35 @@ public sealed class ShopfloorRevocations(
         CloseConnections(sessions.Select(s => s.UserId).Distinct().ToList());
     }
 
+    /// <summary>PIN do caixa do PDV (PDV-01): o vínculo com o funcionário trocou, o PIN do caixa e as sessões por PIN do caixa caem também.</summary>
+    private async Task ErasePosPinAsync(Guid userId, string reason, CancellationToken cancellationToken)
+    {
+        var pin = await db.PosPins.FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
+        var sessions = await db.RefreshTokens.Where(t => t.UserId == userId && t.SessionKind == SessionKind.PosPin && t.RevokedAt == null).ToListAsync(cancellationToken);
+        if (pin is null && sessions.Count == 0)
+        {
+            return;
+        }
+
+        if (pin is not null)
+        {
+            db.PosPins.Remove(pin);
+        }
+
+        var now = clock.GetUtcNow();
+        foreach (var token in sessions)
+        {
+            token.Revoke(now);
+        }
+
+        Audit("Auth", userId.ToString(), "PosPinErased", userId, new { reason, sessions = sessions.Count });
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
     /// <summary>Apaga o PIN do usuário em todos os aparelhos e revoga as sessões por PIN dele (CA 19).</summary>
     public async Task<int> EraseUserPinsAsync(Guid userId, string reason, CancellationToken cancellationToken = default)
     {
+        await ErasePosPinAsync(userId, reason, cancellationToken);
         var now = clock.GetUtcNow();
         var pins = await db.UserPins.Where(p => p.UserId == userId).ToListAsync(cancellationToken);
         var sessions = await db.RefreshTokens.Where(t => t.UserId == userId && t.SessionKind == SessionKind.Pin && t.RevokedAt == null).ToListAsync(cancellationToken);

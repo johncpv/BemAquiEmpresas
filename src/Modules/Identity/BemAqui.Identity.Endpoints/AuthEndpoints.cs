@@ -51,7 +51,8 @@ public static class AuthEndpoints
                     return CsrfRejected();
                 }
 
-                var result = await service.RefreshAsync(http.Request.Cookies[RefreshCookie], http.Request.Host.Host, Ip(http), http.Request.Cookies[ShopfloorDeviceCookie.Name], ct);
+                var result = await service.RefreshAsync(http.Request.Cookies[RefreshCookie], http.Request.Host.Host, Ip(http), http.Request.Cookies[ShopfloorDeviceCookie.Name],
+                    http.Request.Cookies[PosDeviceCookie.Name], ct);
                 if (result.IsFailure)
                 {
                     http.Response.Cookies.Delete(RefreshCookie, CookieOptions(DateTimeOffset.UnixEpoch));

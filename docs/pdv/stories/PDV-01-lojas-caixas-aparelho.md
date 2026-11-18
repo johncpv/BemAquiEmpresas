@@ -5,7 +5,7 @@
 | ID | PDV-01 |
 | Título | Lojas, caixas e aparelho de PDV registrado: módulo `pos` no catálogo, aparelho com tipo, loja, caixa e época, registro com TOTP recente, chave do aparelho e esquema de autenticação `Device` |
 | Tamanho | G |
-| Status | In Progress: parte 1 pronta em 18/11/2026 (branch `feat/pdv-01-lojas-caixas`); falta a parte 2 (CA 11 e CA 12) |
+| Status | Review: parte 1 em produção (18/11/2026); parte 2 (CA 11 e CA 12) pronta em 18/11/2026 na branch `feat/pdv-01b-pin-operacao` |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | Pedido do PO de 15/11/2026 (itens 4, 5 e 8) · [Rascunho A](../adr/rascunho-A-offline.md) item 9 · [Rascunho F](../adr/rascunho-F-escala-hospedagem.md) modelo multi-loja · ADR 0026 (aparelho e PIN) · [Modelo de dados](../03-modelo-dados.md#4-pos--schema-pos) |
 | Dependências | PERF-01, CAT-01, PAG-01, VND-01, PERF-04; PP-04 (16/11), PP-11, PP-12, PP-09 e PP-35 (18/11/2026) decididas |
@@ -97,14 +97,27 @@ Desenho em [ADR 0048](../../adr/0048-aparelho-do-pdv-e-esquema-device.md) (front
 | 8 | Parcial | Revogado ou substituído: aperto de mão 401 `device_revoked`; o esquema reconhece o revogado (status `Revoked`) e `RequireDevice(allowRevoked: true)` existe para a subida, mas o endpoint de subida e a quarentena são da OFF-02. A entrada por PIN do caixa é o CA 11 |
 | 9 | Feito | Esquema `Device` (cookie `__Host-bq_pos` + assinatura ECDSA do método, caminho, instante e hash do corpo); `EndpointAuthorizationTests` reprova o esquema fora de `/api/v1/pos/sync/*` |
 | 10 | Feito | Loja e caixa vêm do principal (`POST /api/v1/pos/sync/handshake`); teste com query de outra loja, chave trocada, segredo de outro aparelho e instante vencido |
-| 11 | Parte 2 | PIN no aparelho de caixa e a lista `[PinSessionAllowed]` do PDV: não há ainda endpoint de venda (PDV-02); entra com a parte 2 |
-| 12 | Parte 2 | Usuário de operação: ADR 0049 escrita; implementação na parte 2, na mesma branch |
+| 11 | Feito (parte 2) | Ver "Implementação (parte 2)" abaixo |
+| 12 | Feito (parte 2) | Ver "Implementação (parte 2)" abaixo |
 
 Telas: **Loja → Lojas e caixas** (`/app/loja/lojas`, módulo `sales`), **/pdv** ("Este aparelho ainda não é um caixa." e o registro) e a lista de aparelhos de Configurações → Segurança com a coluna Tipo e o filtro por loja só no Comércio (recurso `settings.pos_devices`; a fábrica vê como antes). Ajuda: `loja-lojas-caixas.md`, `pdv-registrar-aparelho.md` e `configuracoes-seguranca-caixas.md` (só Comércio; a ajuda de Segurança da fábrica não mudou).
 
 **Revisão de segurança do PR #227 (18/11/2026), corrigido na mesma branch:** M1 (segredo anterior aposentado; reuso revoga com aviso), B1 (rotação com UPDATE condicional), B2 (aparelho achado antes de ler o corpo; 413 acima de 4 MB), B5 (`device_clock_skew` e "Acerte o relógio deste aparelho" no `/pdv`), B6 (caixa revogado só com `pos.manage_devices`), B8 (`Down` da `PosModuleInPlans` apaga `sales`), B10 (curva P-256 pelo OID) e o teste de aparelho de um tenant no host de outro. **Anotado para depois:** B3, idempotência por (`register_id`, `device_epoch`, `seq`), obrigatória na OFF-02; B4, canonicalização do caminho assinado com `RawTarget`; B7, a chave antiga é sobrescrita antes do POST do registro; B9, CSP e origem próprias para o `/pdv`.
 
 Fora desta parte, além dos CA 11 e 12: o `Pos` não avisa o Financeiro quando a conta de um caixa é desativada (o `IBankAccountUsageProvider` é interno do Financeiro).
+
+## Implementação (parte 2, 18/11/2026): CA 11 e CA 12
+
+Desenho nos adendos de 18/11/2026 da [ADR 0048](../../adr/0048-aparelho-do-pdv-e-esquema-device.md) (PIN no caixa) e da [ADR 0049](../../adr/0049-usuario-de-operacao.md) (como o usuário de operação foi implementado).
+
+| CA | Como |
+|---|---|
+| 11 | **Entrada pelo aparelho, sem rota anônima nova:** `GET /api/v1/pos/sync/operators` (primeiro nome e inicial de quem pode entrar neste caixa) e `POST /api/v1/pos/sync/pin` usam o esquema `Device` (cookie e assinatura; o PIN vai dentro do corpo assinado), com o limite nomeado `pos-pin-login`. **PIN:** `identity.pos_pins`, um por usuário, PBKDF2 do `PasswordHasher` (o mesmo do PIN da fábrica), tempo uniforme, 5 erros seguidos bloqueiam 15 min, o 10º em 24 h apaga, 20 erros em 15 min no aparelho bloqueiam o caixa e avisam o Proprietário; perfil reconferido a cada entrada (`pos.create`, nenhuma ação reservada, loja do usuário de operação, funcionário ligado ativo). Tudo auditado (`PosPinLoginSucceeded`, `PosPinLoginFailed`, `PosPinLocked`, `PosPinErased`, `PosPinChanged`…), nunca o valor. **Sessão:** `amr = ["pin", "hwk"]`, família `PosPin` presa ao aparelho, 12 h, um operador por caixa; renova só com o cookie do caixa. **Lista fechada:** marcador `[PosPinSessionAllowed]` (`.AllowPosPinSession()`), separado do da fábrica; hoje `GetPosSession` (quem está no caixa) e `EndPosSession` (sair). O `PinSessionScopeMiddleware` confere tudo a cada request e responde 403 `pin_session_scope` fora da lista. **PIN de quem tem e-mail:** "PIN do caixa" em Meu perfil → Segurança (`/api/v1/pos/my-pin`, login completo e `pos.create`). Tela: `/pdv` registrado mostra os nomes, o teclado do PIN, a troca do PIN inicial, quem está no caixa e "Sair" |
+| 12 | `identity.users.is_operation_user` e `operation_store_ids`; e-mail técnico `.invalid` no lugar do nulo (recomendação aceita, adendo da ADR 0049). `POST /api/v1/identity/operation-users` (nome, grupos, lojas, funcionário opcional e PIN inicial, trocado no primeiro uso), `PUT …/{id}` (nome e lojas) e `POST …/{id}/pin` ("Novo PIN"), todos com `identity.create`, só no Comércio (recurso `identity.operation_users`) e com o `pos` liberado. Grupo com ação reservada não aceita usuário de operação (criação, grupos do usuário, membros do grupo e matriz do grupo). Login por e-mail recusado, recuperação de senha e e-mail nunca saem para ele, e o `AuthService` não emite token de retaguarda para ele. Desativar (inclusive pelo desligamento do funcionário, USR-01) apaga o PIN do caixa e derruba a sessão; reativado, volta sem PIN. Tela de usuários: marca "Operação", "Sem e-mail · entra por PIN no caixa", 2FA "Não se aplica", "Novo usuário de operação", "Lojas" e "Novo PIN" |
+
+**Fora desta parte:** o PIN de supervisor de balcão (PP-11, ADR 0048 §5) é da PDV-04, e o código de aprovação sem rede (PP-39) é da OFF-03; até lá, quem tem ação reservada (o Gerente de loja do seed tem `sales.approve`) não usa PIN no caixa. Saída por inatividade no caixa: não há regra na story; o `/pdv` mostra o fim absoluto da sessão. O seed não dá `identity.create` ao Gerente de loja: hoje quem cria o usuário de operação é o Proprietário ou quem tiver `identity.create` (decisão do PO, se o Gerente de loja deve criar).
+
+Ajuda: `pdv-registrar-aparelho.md` (entrar por PIN), `acessos-usuarios-operacao.md` e `conta-seguranca-pin-caixa.md` (as duas só no Comércio, pelo recurso `identity.operation_users`). Migration `PosPinOperationUser` (só acréscimos).
 
 ## Change Log
 | Data | Versão | Descrição | Autor |
@@ -113,3 +126,4 @@ Fora desta parte, além dos CA 11 e 12: o `Pos` não avisa o Financeiro quando a
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
 | 18/11/2026 | 1.0 | Parte 1 implementada (CA 1 a 10; CA 8 parcial, a subida é da OFF-02). Decisões do PO de 18/11/2026: PP-35, PP-11, PP-12 e PP-09. Recomendação aceita: a tabela de aparelhos mantém o nome e o segredo anterior do caixa vale com a assinatura (ADR 0048 §2). CA 11 e 12 na parte 2. | Claude (dev) |
 | 18/11/2026 | 1.1 | Correções da revisão de segurança do PR #227 (M1, B1, B2, B5, B6, B8, B10 e o teste de outro tenant); B3, B4, B7 e B9 anotados para as próximas stories. | Claude (dev) |
+| 18/11/2026 | 2.0 | Parte 2: CA 11 (PIN no caixa pelo esquema `Device`, sessão `PosPin` com `amr = ["pin", "hwk"]`, lista `[PosPinSessionAllowed]` própria, PIN do caixa em Meu perfil) e CA 12 (usuário de operação). Recomendações aceitas: e-mail técnico `.invalid` em vez de e-mail nulo; PIN do caixa por usuário, não por aparelho; quem tem `identity.create` também troca as lojas e dá PIN novo. PIN de supervisor (PP-11) fica na PDV-04. | Claude (dev) |
