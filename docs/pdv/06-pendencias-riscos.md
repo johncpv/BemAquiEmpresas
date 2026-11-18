@@ -24,11 +24,8 @@ A primeira versão falava em "sete decisões". A revisão mostrou que eram mais:
 
 | # | Decisão | Recomendação do plano | Trava |
 |---|---|---|---|
-| [PP-02](#pp-02--venda-com-saldo-insuficiente) | Venda com saldo de estoque insuficiente | **Sem recomendação única: as análises discordam** | PDV-05 |
 | PP-08 | Ponte (agente local) no Windows | Aceitar. Com a PP-01 decidida, o agente passa a ser necessário de qualquer forma para a assinatura na loja; o que resta decidir é se ele entra já no MVP, para a impressão | IMP-02; a IMP-03 no MVP |
-| PP-10 | Janela máxima sem sincronizar | Parâmetro por loja, com teto de 7 dias | OFF-03 |
 | PP-19 | Kit de hardware | Comprar antes do SPK-01 | SPK-01, IMP-01, IMP-02 |
-| PP-22 | Parâmetros da loja (tolerância, teto, prazo de devolução) | Padrões no seed | CX-01, CX-02, PDV-04, PDV-06 |
 | PP-26 | CPF do consumidor, finalidades e LGPD | Ver a pendência | PDV-02, PDV-06, OFF-02 |
 
 **Decidido em 15/11/2026 (John):**
@@ -56,6 +53,9 @@ A primeira versão falava em "sete decisões". A revisão mostrou que eram mais:
 | PP-11 | PIN de supervisor no balcão no lugar do TOTP | **Aceito**, como exceção nomeada à ADR 0008 e à ADR 0026: PIN do supervisor, motivo e aviso ao Proprietário, tudo auditado. Vale **só** para as ações de balcão da story (cancelar venda e NFC-e, desconto acima do limite). O TOTP continua valendo na retaguarda. Registrado na [ADR 0048](../adr/0048-aparelho-do-pdv-e-esquema-device.md) e nos adendos das ADRs 0008 e 0026 |
 | PP-12 | Operador de caixa sem e-mail | **Criar o "usuário de operação"**: sem e-mail, criado pelo gerente, entra só por PIN em aparelho registrado da loja e não acessa a retaguarda ([ADR 0049](../adr/0049-usuario-de-operacao.md)) |
 | PP-09 | Plataformas da primeira versão | **Windows com Chrome ou Edge e Android com Chrome. iOS fica fora do caixa** |
+| PP-10 | Janela máxima sem sincronizar | **Prática de mercado (Hiper): até 7 dias sem sincronizar.** Parâmetro por loja, padrão e teto de 7 dias; a loja pode reduzir. O caixa avisa enquanto está sem conexão e para de vender ao estourar a janela. O prazo legal de 24 h para transmitir a NFC-e em contingência é outra regra (stories NFCE) |
+| PP-02 | Venda com saldo insuficiente | **Configurável nas Configurações da empresa; padrão: não vender sem saldo.** Ligada, a venda sai e a falta vai para a pendência da retaguarda (opção B: o `CHECK` do estoque não muda). Sem rede, o caixa confere pelo último saldo recebido; venda concluída nunca é recusada na sincronização |
+| PP-22 | Parâmetros da loja | **Padrões no seed, editáveis por loja:** tolerância de quebra de R$ 5,00 por forma de pagamento; 30 dias para troca; aviso de sangria a partir de R$ 1.000,00 em dinheiro no caixa |
 
 **Não travam as Fases 10 e 11**, mas têm prazo longo e convém decidir cedo: PP-06 (UF do piloto), PP-18 (adquirentes e TEF), o caminho da E14 (PP-13) e as perguntas QC-01 e QC-12 à contadora, que agora seguram a NFCE-04.
 
@@ -136,7 +136,7 @@ A story [PDV-05](stories/PDV-05-baixa-estoque-sem-bloquear.md) está escrita par
 
 | Decisão |
 |---|
-| _(em aberto)_ |
+| **18/11/2026 (John):** opção nas Configurações da empresa, padrão **não vender** sem saldo. Ligada, vale a opção B (pendência na retaguarda; o motor e o `CHECK` não mudam, nada muda na Konebras). Sem rede, o caixa usa o último saldo recebido e a venda concluída nunca é recusada depois |
 
 ### Demais pendências
 
@@ -149,7 +149,7 @@ A story [PDV-05](stories/PDV-05-baixa-estoque-sem-bloquear.md) está escrita par
 | PP-07 | Hospedagem | (a) migrar API, PostgreSQL e EmissorFiscal para São Paulo, em VPS dedicada, com WAL contínuo, antes de o MVP ir a cliente; (b) ficar na VPS atual por enquanto | As análises recomendavam (a). O PO decidiu (b); ver o quadro "PP-07: o que foi aceito" abaixo | INFRA-01 (condicionada), INFRA-02 | 15/11/2026 (John): **(b). Ficar na VPS atual neste momento; não migrar para o Brasil antes do piloto.** A INFRA-01 sai do caminho crítico do MVP e fica condicionada aos gatilhos |
 | PP-08 | Agente local no Windows | (a) aceitar um instalador assinado como parte do "simples"; (b) só navegador | (a). Com a PP-01 decidida pela assinatura na loja, o agente em Windows **passa a existir de qualquer forma** em loja fiscal. O que resta decidir é se ele entra já no MVP, para a impressão, o que depende do SPK-01. Exige comprar certificado de assinatura de código | IMP-03 | |
 | PP-09 | Plataformas da primeira versão | — | Windows com Chrome ou Edge e Android com Chrome. iOS fora do caixa. Navegador puro não assina offline (liga com a PP-01) | OFF-01 | **18/11/2026 (John): Windows com Chrome ou Edge e Android com Chrome; iOS fica fora do caixa** |
-| PP-10 | Janela máxima sem sincronizar e limites sem rede | (a) 72 h (proposta da arquitetura); (b) 7 dias (piso de mercado, Hiper); (c) parâmetro por loja | (c), com teto de 7 dias e padrão a decidir. **72 h fixas ficam abaixo do mercado.** Quanto maior a janela, maior a exposição a aparelho perdido e a PIN quebrado | OFF-03 | |
+| PP-10 | Janela máxima sem sincronizar e limites sem rede | (a) 72 h (proposta da arquitetura); (b) 7 dias (piso de mercado, Hiper); (c) parâmetro por loja | (c), com teto de 7 dias e padrão a decidir. **72 h fixas ficam abaixo do mercado.** Quanto maior a janela, maior a exposição a aparelho perdido e a PIN quebrado | OFF-03 | **18/11/2026 (John): seguir o mercado.** (c) com padrão e teto de 7 dias; a loja pode reduzir |
 | PP-11 | PIN de supervisor no balcão para cancelar venda e NFC-e | (a) PIN de supervisor + motivo + aviso ao Proprietário; (b) manter o TOTP | (a). A ADR 0008 exige TOTP recente para estornar e a ADR 0026 recusa PIN para quem tem `*.approve`; nenhuma das duas funciona no balcão. O TOTP continua valendo na retaguarda. Exceção nomeada, como a `production.approve_quality` | PDV-04, OFF-03, NFCE-03 | **18/11/2026 (John): (a)**, exceção nomeada à ADR 0008 e à ADR 0026: PIN, motivo e aviso ao Proprietário, tudo auditado; só para as ações de balcão (cancelar venda e NFC-e, desconto acima do limite) |
 | PP-12 | Operador de caixa, garçom e cozinha sem e-mail | (a) "usuário de operação" sem e-mail, que só entra por PIN em aparelho registrado; (b) apelido de e-mail (solução da P-24) | (a). Apelido de e-mail não escala para o varejo. ADR nova, como a P-24 já previa | PDV-01 | **18/11/2026 (John): (a).** Sem e-mail, criado pelo gerente, entra só por PIN em aparelho registrado da loja e não acessa a retaguarda (ADR 0049) |
 | PP-13 | Prioridade e dono do EmissorFiscal | (a) NFC-e entra já no roteiro de lá; (b) esperar o MVP | (a). É o caminho crítico. As lacunas 25 e 5 afetam a NF-e de hoje e não esperam nada. A **dívida E14** (painel preso ao tenant da WSP) bloqueia o segundo cliente, de balcão ou de loja virtual | NFCE-00 | 15/11/2026 (John): **(a). O dono é o próprio PO, em outra sessão de trabalho, e o trabalho pode começar antes do go-live** (PP-41). **Falta decidir** por qual dos dois caminhos do `plano-finalizacao.md` de lá a E14 será resolvida |
@@ -161,7 +161,7 @@ A story [PDV-05](stories/PDV-05-baixa-estoque-sem-bloquear.md) está escrita par
 | PP-19 | Hardware homologado | — | Lista curta: 2 impressoras de 80 mm (USB e rede), 1 Bluetooth de 58 mm, 1 leitor USB, 1 balança, 1 gaveta. Comprar o kit antes do SPK-01. A lista é contrato de suporte e precisa de dono | SPK-01, IMP-01, IMP-02, IMP-05, IMP-06 | |
 | PP-20 | Split por pessoa: documento fiscal | (a) uma NFC-e por venda, com vários pagamentos; (b) uma por pagante | (a) como padrão; (b) como opção quando pedirem CPF individual. Confirmar com a contadora (QC-14) | MESA-04 | |
 | PP-21 | Gateway de cartão do e-commerce, marketplaces e plataformas | Gateway com antifraude; marketplace direto ou por hub; quais plataformas (Nuvemshop, Tray, Loja Integrada) | Pix primeiro; um gateway com antifraude para cartão; marketplace e plataformas por hub, se houver um que cubra os quatro. Sem isso os itens 34, 36 e 38 do piso não fecham | ECM-03, ECM-06, ECM-07, PAG-06 | |
-| PP-22 | Parâmetros da loja | — | Por loja, com padrão no seed. Sugestão inicial a validar: R$ 5,00 de tolerância de quebra **por forma de pagamento**; 30 dias para troca; teto de dinheiro em caixa a definir. O limite de desconto está na PP-38 | CX-01, CX-02, PDV-04, PDV-06 | |
+| PP-22 | Parâmetros da loja | — | Por loja, com padrão no seed. Sugestão inicial a validar: R$ 5,00 de tolerância de quebra **por forma de pagamento**; 30 dias para troca; teto de dinheiro em caixa a definir. O limite de desconto está na PP-38 | CX-01, CX-02, PDV-04, PDV-06 | **18/11/2026 (John): aceitos os padrões.** R$ 5,00 por forma; 30 dias para troca; aviso de sangria a partir de R$ 1.000,00. Tudo editável por loja |
 | PP-23 | Restaurante sem internet | (a) degradar: mesas, comandas, KDS e painel exigem rede; o caixa segue vendendo no modo balcão e a cozinha recebe pela impressora; (b) servidor local na loja | (a). Recomendar 4G de reserva, que custa menos que o servidor local. Loja que usa só KDS, sem impressora de cozinha, não tem modo sem internet: isso vai no material comercial | MESA-02, KDS-02 | |
 | PP-24 | Painel do cliente | (a) só a senha; (b) senha e primeiro nome | (b) como opção por loja; padrão (a) | KDS-03 | |
 | PP-25 | Vocabulário por perfil | — | Teto de cerca de 30 termos; sem tradução livre pelo tenant na primeira versão | PERF-03 | |

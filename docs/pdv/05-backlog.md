@@ -232,8 +232,8 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - CA: `CashSessionClosed` gera resumos por forma, adquirente, bandeira e vencimento; título contra a adquirente com bruto, taxa prevista e D+N; recolhimento como transferência Caixa → Cofre; `ISalesRevenue` alimenta DRE e fluxo; um depósito baixa vários títulos; idempotente por sessão; teste de integração com Testcontainers.
 
 **PDV-05 [ ] Baixa de estoque da venda sem bloquear (M)** — ordem 10 — [story](stories/PDV-05-baixa-estoque-sem-bloquear.md)
-- Depende de: OFF-02, VND-01, SPK-03; **PP-02**.
-- CA: a falta de saldo nunca impede nem recusa a venda do PDV; a baixa acontece fora do caminho do caixa; a falta fica visível na retaguarda com a ação de ajuste; estorno pelo documento de origem; custo gravado na linha para a margem.
+- Depende de: OFF-02, VND-01, SPK-03; PP-02 (decidida).
+- CA: opção "vender sem saldo" nas Configurações da empresa, padrão desligada (PP-02, 18/11/2026): desligada, o caixa não deixa vender item sem saldo (sem rede, pelo último saldo recebido); ligada, a falta não impede a venda; venda concluída nunca é recusada na sincronização; a baixa acontece fora do caminho do caixa; a falta fica visível na retaguarda com a ação de ajuste; estorno pelo documento de origem; custo gravado na linha para a margem.
 
 **PDV-04 [ ] Desconto, troca de preço, cancelamento e PIN de supervisor (M)** — ordem 11 — [story](stories/PDV-04-desconto-cancelamento-supervisor.md)
 - Depende de: PDV-03, CX-01; PP-11, PP-22, PP-38.
