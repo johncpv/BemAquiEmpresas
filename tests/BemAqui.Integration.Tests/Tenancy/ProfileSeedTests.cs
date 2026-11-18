@@ -253,7 +253,8 @@ public class ProfileSeedTests(TenancyFixture tenancy) : IClassFixture<TenancyFix
         var card = await owner.GetFromJsonAsync<JsonElement>("/api/v1/dashboard/first-steps");
         card.GetProperty("applies").GetBoolean().Should().BeTrue();
         Steps(card).Select(s => s.Key).Should().Equal("company", "products", "payments", "printer", "first_sale");
-        Steps(card).Where(s => !s.Available).Select(s => s.Key).Should().Equal("products", "printer", "first_sale");
+        Steps(card).Where(s => !s.Available).Select(s => s.Key).Should().Equal("printer", "first_sale");
+        Steps(card).Single(s => s.Key == "products").Url.Should().Be("/app/catalogo/produtos/importar", "o passo leva à importação da CAT-02");
         Steps(card).Should().OnlyContain(s => !s.Done);
         card.GetProperty("done").GetInt32().Should().Be(0);
         card.GetProperty("total").GetInt32().Should().Be(5);

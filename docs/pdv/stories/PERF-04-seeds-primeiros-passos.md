@@ -82,7 +82,7 @@ A story depende da CAT-01, que ainda não está na `main`. Esta parte entrega tu
 
 **Fica para depois (anotado):**
 - **Categorias do segmento de alimentação** (CA 4): o Catálogo da CAT-01 ainda não tem categorias por segmento; entram quando o PO definir a lista.
-- **CAT-02:** o link do passo 2 "Importar produtos" (hoje "Em breve", sem link) e a regra de concluído (produto cadastrado).
+- ~~**CAT-02:** o link do passo 2 "Importar produtos" e a regra de concluído.~~ Feito em 18/11: o passo leva a `/app/catalogo/produtos/importar` (permissão `catalog.create`) e se conclui quando há algum produto cadastrado (`ICatalogStatus` do `Catalog.Contracts`).
 - **IMP-01:** o passo 4 "Impressora" (hoje "Em breve").
 - **PDV-01 e PDV-02:** o passo 5 "Abrir o caixa e fazer uma venda de teste" (hoje "Em breve"), as permissões `pos` e `sales` dos grupos do seed e a loja e o caixa do PDV. Enquanto houver passo "Em breve", o cartão não chega a "Tudo pronto".
 - **CA 2, regras fiscais do Simples "A confirmar com a contadora":** não são do perfil Comércio nesta parte; o seed fiscal de hoje (`TaxRuleSeeder`, ADR 0042) não muda.
@@ -103,3 +103,4 @@ A story depende da CAT-01, que ainda não está na `main`. Esta parte entrega tu
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
 | 17/11/2026 | 1.0 | Parte 1 implementada: mecanismo de pacotes por perfil, pacotes do Financeiro, Estoque, Acessos e Terceiros, unidades de alimentação, gancho no provisionamento, no `migrate` e na aba Perfis, regressão da fábrica e o cartão "Primeiros passos". O pacote do Catálogo e os passos 2, 4 e 5 esperam a CAT-01, a CAT-02, a IMP-01 e a PDV-02. | Claude (dev) |
+| 18/11/2026 | 1.1 | Pacote do Catálogo (Balcão e Geral) e passo 2 "Importar produtos" ligado à tela da CAT-02, concluído pelo dado. Os passos 4 e 5 esperam a IMP-01 e a PDV-02. | Claude (dev) |
