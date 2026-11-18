@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { DeviceKind } from './deviceKind';
 
 export interface ShopfloorDeviceRow {
   id: string;
@@ -21,4 +22,11 @@ export interface ShopfloorDeviceRow {
   status: string;
   daysUnused: number;
   pins: number;
+  kind?: DeviceKind;
+  /** @nullable */
+  storeId?: string | null;
+  /** @nullable */
+  registerLabel?: string | null;
+  /** @nullable */
+  lastSyncAt?: string | null;
 }

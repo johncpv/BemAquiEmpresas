@@ -22,6 +22,9 @@ public static class BusinessProfileSeeds
     /// <summary>Tabela de preço "Balcão" e categoria "Geral" (Catalog): os mesmos cadastros padrão que a CAT-01 cria no primeiro uso.</summary>
     public const string CatalogRetail = "catalog.retail";
 
+    /// <summary>Loja "Loja" com o caixa 01 (Pos, PDV-01): usa o local Loja, a tabela Balcão e a conta Caixa PDV 01 dos pacotes anteriores.</summary>
+    public const string PosRetail = "pos.retail";
+
     /// <summary>Unidades do segmento de alimentação (Inventory).</summary>
     public const string InventoryFood = "inventory.food";
 
@@ -32,7 +35,7 @@ public static class BusinessProfileSeeds
     public static IReadOnlyDictionary<string, IReadOnlyList<string>> ByProfile { get; } = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal)
     {
         [BusinessProfileCatalog.Factory] = [],
-        [BusinessProfileCatalog.Retail] = [PartiesRetail, FinanceRetail, InventoryRetail, IdentityRetail, CatalogRetail],
+        [BusinessProfileCatalog.Retail] = [PartiesRetail, FinanceRetail, InventoryRetail, IdentityRetail, CatalogRetail, PosRetail],
         [BusinessProfileCatalog.Services] = [], // Fase 14
         [BusinessProfileCatalog.Ecommerce] = [], // Fase 17
     };

@@ -117,6 +117,13 @@
     <Project Path="src/Modules/Purchasing/BemAqui.Purchasing.Endpoints/BemAqui.Purchasing.Endpoints.csproj" />
     <Project Path="src/Modules/Purchasing/BemAqui.Purchasing.Infrastructure/BemAqui.Purchasing.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Pos/">
+    <Project Path="src/Modules/Pos/BemAqui.Pos.Application/BemAqui.Pos.Application.csproj" />
+    <Project Path="src/Modules/Pos/BemAqui.Pos.Contracts/BemAqui.Pos.Contracts.csproj" />
+    <Project Path="src/Modules/Pos/BemAqui.Pos.Domain/BemAqui.Pos.Domain.csproj" />
+    <Project Path="src/Modules/Pos/BemAqui.Pos.Endpoints/BemAqui.Pos.Endpoints.csproj" />
+    <Project Path="src/Modules/Pos/BemAqui.Pos.Infrastructure/BemAqui.Pos.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Sales/">
     <Project Path="src/Modules/Sales/BemAqui.Sales.Application/BemAqui.Sales.Application.csproj" />
     <Project Path="src/Modules/Sales/BemAqui.Sales.Contracts/BemAqui.Sales.Contracts.csproj" />

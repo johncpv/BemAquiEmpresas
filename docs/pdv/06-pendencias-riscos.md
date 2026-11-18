@@ -26,14 +26,10 @@ A primeira versão falava em "sete decisões". A revisão mostrou que eram mais:
 |---|---|---|---|
 | [PP-02](#pp-02--venda-com-saldo-insuficiente) | Venda com saldo de estoque insuficiente | **Sem recomendação única: as análises discordam** | PDV-05 |
 | PP-08 | Ponte (agente local) no Windows | Aceitar. Com a PP-01 decidida, o agente passa a ser necessário de qualquer forma para a assinatura na loja; o que resta decidir é se ele entra já no MVP, para a impressão | IMP-02; a IMP-03 no MVP |
-| PP-09 | Plataformas da primeira versão | Windows com Chrome ou Edge; Android com Chrome | OFF-01 |
 | PP-10 | Janela máxima sem sincronizar | Parâmetro por loja, com teto de 7 dias | OFF-03 |
-| PP-11 | PIN de supervisor no balcão no lugar do TOTP | Aceitar, como exceção nomeada | PDV-01, PDV-04, OFF-03 |
-| PP-12 | Operador de caixa sem e-mail | Criar o "usuário de operação" | PDV-01 |
 | PP-19 | Kit de hardware | Comprar antes do SPK-01 | SPK-01, IMP-01, IMP-02 |
 | PP-22 | Parâmetros da loja (tolerância, teto, prazo de devolução) | Padrões no seed | CX-01, CX-02, PDV-04, PDV-06 |
 | PP-26 | CPF do consumidor, finalidades e LGPD | Ver a pendência | PDV-02, PDV-06, OFF-02 |
-| PP-35 | Lojista piloto de balcão | Não abrir a Fase 11 sem ele | Fase 11 |
 
 **Decidido em 15/11/2026 (John):**
 
@@ -51,6 +47,15 @@ A primeira versão falava em "sete decisões". A revisão mostrou que eram mais:
 | PP-03 | Módulo fora do perfil | **Oculto** (16/11/2026). O cadeado fica para "no perfil, fora do plano" |
 | PP-04 | Fronteiras dos módulos novos | **Catálogo próprio; `Sales` + `Pos`**, com a tabela de donos do [02, seção 4.1](02-arquitetura.md#41-fronteira-sales--pos-quem-é-dono-de-quê) (16/11/2026) |
 | PP-25 | Vocabulário por perfil | **Teto de cerca de 30 termos**, sem tradução livre pelo tenant na primeira versão (16/11/2026) |
+
+**Decidido em 18/11/2026 (John):**
+
+| # | Decisão | O que ficou |
+|---|---|---|
+| PP-35 | Lojista piloto de balcão | **A Fase 11 abre agora, sem lojista piloto.** A validação é na Loja Demo (tenant de teste com o perfil Comércio). Quando houver piloto, ajusta-se com ele antes de ir à loja real |
+| PP-11 | PIN de supervisor no balcão no lugar do TOTP | **Aceito**, como exceção nomeada à ADR 0008 e à ADR 0026: PIN do supervisor, motivo e aviso ao Proprietário, tudo auditado. Vale **só** para as ações de balcão da story (cancelar venda e NFC-e, desconto acima do limite). O TOTP continua valendo na retaguarda. Registrado na [ADR 0048](../adr/0048-aparelho-do-pdv-e-esquema-device.md) e nos adendos das ADRs 0008 e 0026 |
+| PP-12 | Operador de caixa sem e-mail | **Criar o "usuário de operação"**: sem e-mail, criado pelo gerente, entra só por PIN em aparelho registrado da loja e não acessa a retaguarda ([ADR 0049](../adr/0049-usuario-de-operacao.md)) |
+| PP-09 | Plataformas da primeira versão | **Windows com Chrome ou Edge e Android com Chrome. iOS fica fora do caixa** |
 
 **Não travam as Fases 10 e 11**, mas têm prazo longo e convém decidir cedo: PP-06 (UF do piloto), PP-18 (adquirentes e TEF), o caminho da E14 (PP-13) e as perguntas QC-01 e QC-12 à contadora, que agora seguram a NFCE-04.
 
@@ -143,10 +148,10 @@ A story [PDV-05](stories/PDV-05-baixa-estoque-sem-bloquear.md) está escrita par
 | PP-06 | UF e regime do primeiro cliente; UFs do lançamento, em ordem | — | Piloto na mesma UF da Konebras (SP). Confirmar com a contadora o documento exigido hoje; não assumir. Cada UF a mais custa pesquisa, credenciamento e piloto | NFCE-00, NFCE-01 | |
 | PP-07 | Hospedagem | (a) migrar API, PostgreSQL e EmissorFiscal para São Paulo, em VPS dedicada, com WAL contínuo, antes de o MVP ir a cliente; (b) ficar na VPS atual por enquanto | As análises recomendavam (a). O PO decidiu (b); ver o quadro "PP-07: o que foi aceito" abaixo | INFRA-01 (condicionada), INFRA-02 | 15/11/2026 (John): **(b). Ficar na VPS atual neste momento; não migrar para o Brasil antes do piloto.** A INFRA-01 sai do caminho crítico do MVP e fica condicionada aos gatilhos |
 | PP-08 | Agente local no Windows | (a) aceitar um instalador assinado como parte do "simples"; (b) só navegador | (a). Com a PP-01 decidida pela assinatura na loja, o agente em Windows **passa a existir de qualquer forma** em loja fiscal. O que resta decidir é se ele entra já no MVP, para a impressão, o que depende do SPK-01. Exige comprar certificado de assinatura de código | IMP-03 | |
-| PP-09 | Plataformas da primeira versão | — | Windows com Chrome ou Edge e Android com Chrome. iOS fora do caixa. Navegador puro não assina offline (liga com a PP-01) | OFF-01 | |
+| PP-09 | Plataformas da primeira versão | — | Windows com Chrome ou Edge e Android com Chrome. iOS fora do caixa. Navegador puro não assina offline (liga com a PP-01) | OFF-01 | **18/11/2026 (John): Windows com Chrome ou Edge e Android com Chrome; iOS fica fora do caixa** |
 | PP-10 | Janela máxima sem sincronizar e limites sem rede | (a) 72 h (proposta da arquitetura); (b) 7 dias (piso de mercado, Hiper); (c) parâmetro por loja | (c), com teto de 7 dias e padrão a decidir. **72 h fixas ficam abaixo do mercado.** Quanto maior a janela, maior a exposição a aparelho perdido e a PIN quebrado | OFF-03 | |
-| PP-11 | PIN de supervisor no balcão para cancelar venda e NFC-e | (a) PIN de supervisor + motivo + aviso ao Proprietário; (b) manter o TOTP | (a). A ADR 0008 exige TOTP recente para estornar e a ADR 0026 recusa PIN para quem tem `*.approve`; nenhuma das duas funciona no balcão. O TOTP continua valendo na retaguarda. Exceção nomeada, como a `production.approve_quality` | PDV-04, OFF-03, NFCE-03 | |
-| PP-12 | Operador de caixa, garçom e cozinha sem e-mail | (a) "usuário de operação" sem e-mail, que só entra por PIN em aparelho registrado; (b) apelido de e-mail (solução da P-24) | (a). Apelido de e-mail não escala para o varejo. ADR nova, como a P-24 já previa | PDV-01 | |
+| PP-11 | PIN de supervisor no balcão para cancelar venda e NFC-e | (a) PIN de supervisor + motivo + aviso ao Proprietário; (b) manter o TOTP | (a). A ADR 0008 exige TOTP recente para estornar e a ADR 0026 recusa PIN para quem tem `*.approve`; nenhuma das duas funciona no balcão. O TOTP continua valendo na retaguarda. Exceção nomeada, como a `production.approve_quality` | PDV-04, OFF-03, NFCE-03 | **18/11/2026 (John): (a)**, exceção nomeada à ADR 0008 e à ADR 0026: PIN, motivo e aviso ao Proprietário, tudo auditado; só para as ações de balcão (cancelar venda e NFC-e, desconto acima do limite) |
+| PP-12 | Operador de caixa, garçom e cozinha sem e-mail | (a) "usuário de operação" sem e-mail, que só entra por PIN em aparelho registrado; (b) apelido de e-mail (solução da P-24) | (a). Apelido de e-mail não escala para o varejo. ADR nova, como a P-24 já previa | PDV-01 | **18/11/2026 (John): (a).** Sem e-mail, criado pelo gerente, entra só por PIN em aparelho registrado da loja e não acessa a retaguarda (ADR 0049) |
 | PP-13 | Prioridade e dono do EmissorFiscal | (a) NFC-e entra já no roteiro de lá; (b) esperar o MVP | (a). É o caminho crítico. As lacunas 25 e 5 afetam a NF-e de hoje e não esperam nada. A **dívida E14** (painel preso ao tenant da WSP) bloqueia o segundo cliente, de balcão ou de loja virtual | NFCE-00 | 15/11/2026 (John): **(a). O dono é o próprio PO, em outra sessão de trabalho, e o trabalho pode começar antes do go-live** (PP-41). **Falta decidir** por qual dos dois caminhos do `plano-finalizacao.md` de lá a E14 será resolvida |
 | PP-14 | Caminho da venda fiscal | (a) PDV → BemAqui → Emissor (dois saltos, como na ADR 0027); (b) PDV → Emissor direto, com chave por loja | (a) na primeira versão: mantém o imposto calculado no servidor e uma só integração. Rever com a latência medida no SPK-02 | NFCE-02 | |
 | PP-15 | Filiais | (a) um CNPJ com várias lojas; (b) CNPJ por loja. E o certificado: A1 por loja ou o da matriz (lacuna 22) | (a) na primeira versão. (b) quando houver cliente com filial: pede emitente por estabelecimento e adendo à ADR 0027 §2. A1 da matriz na filial depende de a SEFAZ aceitar [F] (QC-16) | NFCE-07 | |
@@ -169,7 +174,7 @@ A story [PDV-05](stories/PDV-05-baixa-estoque-sem-bloquear.md) está escrita par
 | PP-32 | Emissor: número rejeitado na NFC-e | Queimar e inutilizar, como hoje, ou reaproveitar quando a rejeição é conclusiva | Depende da contadora (QC-11) | NFCE-00 | |
 | PP-33 | Meta de latência e de volume | Tempo máximo no caixa, vendas por minuto no pico, lojas no primeiro ano | Sem isso a fase de escala do Emissor é chute. Proposta de teto no caixa: 8 a 10 s, depois a venda segue pendente | NFCE-00, NFCE-02 | |
 | PP-34 | **Arquivo de certificado no diretório do EmissorFiscal** | — | Ver a nota de segurança abaixo | — | |
-| PP-35 | Lojista piloto | — | Não abrir a Fase 11 sem um lojista parceiro de balcão para teste em campo. Pela decisão da PP-05, o piloto não precisa ser MEI nem dispensado: basta o Proprietário ligar o modo "só cupom não fiscal" com o aceite registrado. Recomendação que continua valendo: orientar o lojista a consultar a contadora dele antes, e preferir quem tenha emissor próprio em paralelo durante o piloto. **A UF segue aberta** (PP-06) | Fase 11 | |
+| PP-35 | Lojista piloto | — | Não abrir a Fase 11 sem um lojista parceiro de balcão para teste em campo. Pela decisão da PP-05, o piloto não precisa ser MEI nem dispensado: basta o Proprietário ligar o modo "só cupom não fiscal" com o aceite registrado. Recomendação que continua valendo: orientar o lojista a consultar a contadora dele antes, e preferir quem tenha emissor próprio em paralelo durante o piloto. **A UF segue aberta** (PP-06) | Fase 11 | **18/11/2026 (John): a Fase 11 abre agora, sem lojista piloto.** Validação na Loja Demo (tenant de teste, perfil Comércio); com o piloto, ajusta-se antes de ir à loja real |
 | PP-36 | Integrações de food com terceiros | iFood, 99Food e Keeta (Open Delivery), robô de WhatsApp, totem | Só com cliente de alimentação pedindo. Credenciamento e custo a levantar. Sem isso os itens 14, 18 e 20 do piso não fecham | DLV-04, DLV-05, PDV-13 | |
 | PP-37 | PRD e `CLAUDE.md` | — | Atualizar os dois antes das stories: o produto deixa de ser só "ERP de indústria sob encomenda" | Todas | |
 | PP-38 | Limite de desconto: onde mora | (a) por grupo de usuários (um campo no grupo, no Identity); (b) por loja (parâmetro do `Pos`), com o grupo dando só a permissão `pos.discount` | (b). O limite é regra de PDV e não deveria virar campo do Identity; a primeira versão do plano dizia as duas coisas em lugares diferentes. Se o lojista precisar de limites diferentes por papel, (b) aceita uma faixa por papel dentro da loja | PDV-04 | **Decidida em 15/11/2026: (b)** |
@@ -251,7 +256,7 @@ Fora da contadora: perguntar a uma **Autoridade Certificadora** se existe certif
 | RP-19 | MVP abaixo do piso de mercado (sem NFC-e, TEF e SmartPOS) apresentado como produto pronto | Comercial e de imagem | Tratar o MVP como piloto (PP-16); só anunciar depois da Fase 13 |
 | RP-20 | Itens do piso que dependem de terceiros (iFood, marketplaces, plataformas, WhatsApp) sem prazo controlável | Prazo | PP-21 e PP-36; preferir hub e padrão aberto (Open Delivery) |
 | RP-21 | Suporte a hardware vira operação contínua; o lojista liga na hora do pico | Custo | Lista curta homologada; checklist de primeiros passos; ajuda contextual por tela; modo treinamento (PDV-11) |
-| RP-22 | Sem piloto definido | Médio | PP-35 |
+| RP-22 | Sem piloto definido | Médio | PP-35 (decidida em 18/11/2026: validação na Loja Demo até haver piloto) |
 | RP-23 | Estimativas de esforço não reconciliadas entre as análises | Prazo | SPK-03 antes de assumir data; ver [05-backlog.md](05-backlog.md#esforço) |
 | RP-24 | Regras fiscais marcadas [F] vêm de memória e podem estar desatualizadas em 11/2026 | Alto | Nenhuma vira regra de código sem a contadora ou fonte oficial |
 | RP-25 | Certificado e senha numa pasta de projeto do Emissor | Segurança | PP-34 |

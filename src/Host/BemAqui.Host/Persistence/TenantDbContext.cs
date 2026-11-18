@@ -21,7 +21,7 @@ namespace BemAqui.Host.Persistence;
 /// DbContext único do banco de tenant (ADR 0006): tabelas compartilhadas da base e, conforme as stories
 /// avançam, as configurações de cada módulo. A conexão por tenant chega na FND-02.
 /// </summary>
-public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IProductionPlanDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb, BemAqui.Engineering.Application.IEngineeringDb, BemAqui.Purchasing.Application.IPurchasingDb, BemAqui.Fiscal.Application.IFiscalDb, BemAqui.Assets.Application.IAssetsDb, BemAqui.Catalog.Application.ICatalogDb, BemAqui.Sales.Application.ISalesDb
+public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IProductionPlanDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb, BemAqui.Engineering.Application.IEngineeringDb, BemAqui.Purchasing.Application.IPurchasingDb, BemAqui.Fiscal.Application.IFiscalDb, BemAqui.Assets.Application.IAssetsDb, BemAqui.Catalog.Application.ICatalogDb, BemAqui.Sales.Application.ISalesDb, BemAqui.Pos.Application.IPosDb
 {
     public DbSet<User> Users => Set<User>();
 
@@ -372,6 +372,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Fiscal.Domain.InstallationBilling> InstallationBillings => Set<BemAqui.Fiscal.Domain.InstallationBilling>();
     public DbSet<BemAqui.Fiscal.Domain.IncomingInvoiceReading> IncomingInvoiceReadings => Set<BemAqui.Fiscal.Domain.IncomingInvoiceReading>();
+
+    public DbSet<BemAqui.Pos.Domain.Store> Stores => Set<BemAqui.Pos.Domain.Store>();
+
+    public DbSet<BemAqui.Pos.Domain.Register> Registers => Set<BemAqui.Pos.Domain.Register>();
 
     public DbSet<BemAqui.Sales.Domain.Sale> Sales => Set<BemAqui.Sales.Domain.Sale>();
 

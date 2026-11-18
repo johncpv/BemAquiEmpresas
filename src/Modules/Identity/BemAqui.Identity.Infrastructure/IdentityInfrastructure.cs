@@ -79,6 +79,10 @@ public static class IdentityInfrastructure
         services.TryAddScoped<BemAqui.Identity.Contracts.IShopfloorDevices, Application.Shopfloor.ShopfloorDevicesContract>();
         services.TryAddScoped<BemAqui.BuildingBlocks.Identity.IPinSessionValidator, Application.Shopfloor.PinSessionValidator>();
         services.AddAuditableEntity<ShopfloorDevice>("settings");
+        // Caixa do PDV (PDV-01, ADR 0048): registro com loja e caixa, último contato para o Pos e o esquema Device (segredo + assinatura ECDSA).
+        services.TryAddScoped<Application.Shopfloor.RegisterDeviceService>();
+        services.TryAddScoped<BemAqui.Identity.Contracts.IRegisterDevices>(sp => sp.GetRequiredService<Application.Shopfloor.RegisterDeviceService>());
+        services.TryAddScoped<BemAqui.BuildingBlocks.Identity.IDeviceAuthenticator>(sp => sp.GetRequiredService<Application.Shopfloor.RegisterDeviceService>());
         services.AddAuditableEntity<UserPin>("identity");
         // Painel da TV (PNL-01a, ADR 0030): telas com token de uso único, sessão de quiosque conferida a cada request e a troca da rota.
         services.TryAddSingleton<Application.Kiosk.KioskSessionVersions>();

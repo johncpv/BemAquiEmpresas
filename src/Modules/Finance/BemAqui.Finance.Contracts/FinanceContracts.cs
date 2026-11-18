@@ -40,3 +40,19 @@ public interface IPaymentTermUsageProvider
     /// <summary>Descrição curta do uso ("terceiros") ou null se não usa.</summary>
     Task<string?> UsageAsync(Guid termId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Conta do tipo Caixa para os outros módulos (PDV-01: a conta de cada caixa da loja).</summary>
+public sealed record CashAccountOption(Guid Id, string Name, bool IsActive, string? SeedKey);
+
+/// <summary>
+/// Contas do tipo Caixa (<c>finance.bank_accounts</c> com <c>kind = Cash</c>) para o caixa do PDV (PDV-01 CA 3): o <c>Pos</c> guarda só o id e
+/// confere aqui que a conta existe, está ativa e é do tipo Caixa.
+/// </summary>
+public interface ICashAccounts
+{
+    /// <summary>As contas Caixa ativas, por nome.</summary>
+    Task<IReadOnlyList<CashAccountOption>> ActiveAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Por id, inclusive inativas; contas do tipo Banco ficam fora.</summary>
+    Task<IReadOnlyList<CashAccountOption>> FindAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+}

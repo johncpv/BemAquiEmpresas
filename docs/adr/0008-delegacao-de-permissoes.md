@@ -58,3 +58,8 @@
   - Quem não tem 2FA ativo não executa essas ações: a tela leva a "Ativar 2FA" (FND-05).
   - **Estorno de pagamento e de baixa bancária exige `finance.approve`** (além do 2FA de novo), com motivo; quem registrou o pagamento ou a baixa não estorna sozinho (exceção do Proprietário único, `SoleOwnerRule`, com a marca e a notificação).
 - As ações entram nos critérios de entrada da GOL-01a (ADR 0034 §6). O `06-pendencias-riscos.md` fecha a P-19 e a P-20 com esta decisão.
+
+## Adendo 18/11/2026 (PDV-01, decisão PP-11 do PO): PIN de supervisor no balcão
+- **Exceção nomeada ao TOTP recente:** no balcão, cancelar venda e NFC-e e dar desconto acima do limite aceitam o PIN do supervisor no aparelho de caixa, com motivo obrigatório e aviso ao Proprietário, tudo auditado ([ADR 0048](0048-aparelho-do-pdv-e-esquema-device.md) §5). Só essas ações; o TOTP recente continua exigido na retaguarda e em todas as demais ações do adendo de 21/10/2026.
+- **Registrar aparelho de caixa** exige o TOTP recente (`RequireRecentTwoFactor`), como as ações sensíveis.
+- **Seed patch `pos-retail-groups`:** o Gerente de loja do seed do Comércio recebe `sales.approve` pelo sistema, fora da regra de delegação, como o `finance-pay-financeiro`. Fora do seed, só um membro do Proprietário concede `sales.approve`, e quem a tem passa a ter 2FA obrigatório no login.
