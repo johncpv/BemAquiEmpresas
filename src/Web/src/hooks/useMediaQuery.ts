@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 
-/** Media query reativa (dock: popover no desktop, sheet no celular). */
+/** Media query reativa (navegação: menu lateral no desktop e no tablet, dock com sheet no celular). */
 export function useMediaQuery(query: string): boolean {
   return useSyncExternalStore(
     (notify) => {

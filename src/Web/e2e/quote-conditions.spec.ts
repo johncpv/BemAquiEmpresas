@@ -34,4 +34,32 @@ test.describe('Condições do orçamento (COM-01b)', () => {
     await expect(page.getByRole('status').filter({ hasText: 'Condições salvas' }).first()).toBeVisible()
     expect(posted[0]).toMatchObject({ milestones: [{ description: 'Sinal', percent: 33.3333 }, { percent: 33.3333 }, { percent: 33.3334 }] })
   })
+
+  test('o evento do marco aparece inteiro no select, e a 400 px a página não rola de lado', async ({ page }) => {
+    const milestone = (n: number, triggerEvent: string) => ({ id: 'm' + n, sequence: n, description: 'Marco ' + n, percent: 25, amount: 25000, trigger: 'Event', triggerEvent, daysAfterEvent: 10, dueDate: null })
+    const milestones = ['Signature', 'FabricationDone', 'Delivered', 'TechnicalAcceptance'].map((e, i) => milestone(i + 1, e))
+    await mockApi(page, {
+      'GET /api/v1/quotes/q1': (r: Route) => json(r, quote),
+      'GET /api/v1/quotes/q1/conditions': (r: Route) => json(r, { milestones, percentSum: 100, warning: null, validUntil: '2026-11-04', defaultPaymentTermId: null, version: 1 }),
+      'GET /api/v1/quotes/payment-terms': (r: Route) => json(r, []),
+    })
+    await page.goto('/app/orcamentos/q1?aba=condicoes')
+    const main = page.getByRole('main')
+    for (const [i, label] of ['Assinatura do contrato', 'Fabricação concluída', 'Entrega', 'Aceite técnico'].entries()) {
+      const select = main.getByRole('combobox', { name: `Evento do marco ${i + 1}` })
+      await expect(select).toHaveValue(milestones[i].triggerEvent)
+      // Largura do texto da opção escolhida contra o espaço útil do select (sem o padding e a seta, ~20 px).
+      const fit = await select.evaluate((el: HTMLSelectElement) => {
+        const style = getComputedStyle(el)
+        const ctx = document.createElement('canvas').getContext('2d')!
+        ctx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
+        const text = ctx.measureText(el.selectedOptions[0].text).width
+        return { text, room: el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - 20 }
+      })
+      expect(fit.text, label).toBeLessThanOrEqual(fit.room)
+      await expect(main.getByRole('textbox', { name: `Prazo após o evento do marco ${i + 1}` })).toHaveValue('10')
+    }
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+    expect(overflow).toBeLessThanOrEqual(0)
+  })
 })

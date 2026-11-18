@@ -10,7 +10,7 @@ modulo:
 Mostra um módulo que já aparece no menu, mas cujas telas chegam numa próxima entrega do BemAqui Empresas.
 
 ## Como usar
-- Volte ao início pelo botão da tela ou pelo dock.
+- Volte ao início pelo botão da tela ou pelo menu (Visão geral).
 - Use a busca (Ctrl K) para ir direto a outra tela.
 
 ## Perguntas frequentes

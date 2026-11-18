@@ -1,16 +1,49 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { mockApi } from './mock-api'
+import { allModules, json, mockApi } from './mock-api'
 
 const isMobile = (name: string) => name === 'celular'
 
 test.describe('shell do backoffice (FND-09b)', () => {
   test.beforeEach(async ({ page }) => mockApi(page))
 
-  test('desktop: área abre popover, setas navegam e Esc devolve o foco (CA 2, 5)', async ({ page }, info) => {
+  test('desktop: menu lateral com os módulos abertos, setas navegam e o módulo atual fica marcado (CA 2, 5, adendo D8)', async ({ page }, info) => {
+    test.skip(isMobile(info.project.name))
+    // Lista de Projetos vazia e válida: o "{}" genérico do mock derruba a tela de destino.
+    await mockApi(page, {
+      'GET /api/v1/projects': (r) => json(r, { items: [], page: 1, pageSize: 20, total: 0 }),
+      'GET /api/v1/projects/margins': (r) => json(r, []),
+      'GET /api/v1/projects/received': (r) => json(r, []),
+    })
+    await page.goto('/app')
+    const nav = page.getByRole('navigation', { name: 'Navegação principal' })
+    const orcamentos = nav.getByRole('link', { name: 'Orçamentos' })
+    await expect(orcamentos).toBeVisible()
+    await expect(nav.getByRole('list', { name: 'Comercial' })).toBeVisible()
+    // O menu fica à esquerda e o conteúdo ao lado, sem o espaço do dock.
+    const side = (await nav.boundingBox())!
+    const main = (await page.getByRole('main').boundingBox())!
+    expect(side.x).toBe(0)
+    expect(main.x).toBeGreaterThanOrEqual(side.x + side.width)
+    await orcamentos.focus()
+    await page.keyboard.press('ArrowDown')
+    await expect(nav.getByRole('link', { name: 'Projetos' })).toBeFocused()
+    await page.keyboard.press('Enter')
+    await expect(page).toHaveURL(/\/app\/projetos/)
+    await expect(nav.getByRole('link', { name: 'Projetos' })).toHaveAttribute('aria-current', 'page')
+    await expect(nav.locator('[aria-current="page"]')).toHaveCount(1)
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+    expect(overflow).toBeLessThanOrEqual(0)
+  })
+
+  test('desktop: Recolher deixa só os ícones, o ícone abre o popover, Esc devolve o foco e a escolha fica lembrada (adendo D8)', async ({ page }, info) => {
     test.skip(isMobile(info.project.name))
     await page.goto('/app')
-    const comercial = page.getByRole('button', { name: 'Comercial' })
+    const nav = page.getByRole('navigation', { name: 'Navegação principal' })
+    await nav.getByRole('button', { name: 'Recolher' }).click()
+    await expect(nav.getByRole('link')).toHaveCount(0)
+    expect((await nav.boundingBox())!.width).toBeLessThan(80)
+    const comercial = nav.getByRole('button', { name: 'Comercial' })
     await comercial.click()
     const menu = page.getByRole('dialog', { name: 'Comercial' })
     const orcamentos = menu.getByRole('link', { name: 'Orçamentos' })
@@ -21,6 +54,26 @@ test.describe('shell do backoffice (FND-09b)', () => {
     await page.keyboard.press('Escape')
     await expect(orcamentos).toBeHidden()
     await expect(comercial).toBeFocused()
+    await page.reload()
+    await expect(nav.getByRole('button', { name: 'Expandir o menu' })).toBeVisible()
+    await nav.getByRole('button', { name: 'Expandir o menu' }).click()
+    await expect(nav.getByRole('link', { name: 'Orçamentos' })).toBeVisible()
+  })
+
+  test('desktop: erro ao carregar o menu mostra a mensagem e Tentar de novo', async ({ page }, info) => {
+    test.skip(isMobile(info.project.name))
+    let fail = true
+    await mockApi(page, {
+      'GET /api/v1/me/permissions': (r) => (fail
+        ? r.fulfill({ status: 500, contentType: 'application/json', body: '{}' })
+        : r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ permissions: [], isOwner: true, version: '1', modules: allModules() }) })),
+    })
+    await page.goto('/app')
+    const nav = page.getByRole('navigation', { name: 'Navegação principal' })
+    await expect(nav.getByRole('alert')).toHaveText(/Não foi possível carregar o menu\./, { timeout: 15_000 })
+    fail = false
+    await nav.getByRole('button', { name: 'Tentar de novo' }).click()
+    await expect(nav.getByRole('link', { name: 'Orçamentos' })).toBeVisible()
   })
 
   test('celular: área abre sheet e nada transborda na horizontal (CA 2, 4, 7)', async ({ page }, info) => {

@@ -28,13 +28,20 @@ test.describe('plataforma (FND-13, FND-03b, FND-06)', () => {
     await expect(page.getByRole('link', { name: 'Konebras' })).toBeVisible()
   })
 
-  test('provisionar valida o CNPJ no cliente e acompanha até ativar', async ({ page }) => {
+  test('provisionar valida o CNPJ no cliente, escolhe perfil, segmento e plano, e acompanha até ativar (PERF-02)', async ({ page }) => {
     let polls = 0
+    let posted: unknown
+    const item = (code: string, name: string) => ({ code, name })
     await mockApi(page, {
       'GET /api/v1/platform/me': (r) => json(r, { adminId: 'a1' }),
       'GET /api/v1/platform/tenants': (r) => json(r, { items: [], page: 1, pageSize: 20, total: 0 }),
       'GET /api/v1/platform/plans': (r) => json(r, ['Completo']),
-      'POST /api/v1/platform/tenants': (r) => json(r, { key: 'konebras' }, 202),
+      'GET /api/v1/platform/plans/modules': (r) => json(r, [{ name: 'Completo', modules: ['quotes', 'production'] }]),
+      'GET /api/v1/platform/business-profiles': (r) => json(r, [
+        { code: 'factory', name: 'Fábrica', description: 'Fabricação sob encomenda.', modules: [item('quotes', 'Orçamentos'), item('production', 'Produção')], segments: [] },
+        { code: 'retail', name: 'Comércio', description: 'Loja e balcão.', modules: [item('catalog', 'Catálogo')], segments: [item('counter', 'Balcão'), item('market', 'Mercado')] },
+      ]),
+      'POST /api/v1/platform/tenants': (r) => { posted = r.request().postDataJSON(); return json(r, { key: 'konebras' }, 202) },
       'GET /api/v1/platform/tenants/konebras': (r) => json(r, detail(++polls < 3 ? 'Provisioning' : 'Active')),
     })
     await page.goto('/plataforma/tenants')
@@ -46,11 +53,23 @@ test.describe('plataforma (FND-13, FND-03b, FND-06)', () => {
     await dialog.getByLabel('CNPJ').fill('11.111.111/1111-11')
     await dialog.getByLabel('Endereço').fill('app.konebras.com.br')
     await dialog.getByLabel('E-mail do proprietário').fill('dono@konebras.com.br')
-    await dialog.getByRole('button', { name: 'Provisionar' }).click()
+    await dialog.getByRole('button', { name: 'Avançar' }).click()
     await expect(dialog.getByText('CNPJ inválido. Confira os dígitos.')).toBeVisible()
     await dialog.getByLabel('CNPJ').fill('47.225.005/0001-86')
+    await dialog.getByRole('button', { name: 'Avançar' }).click()
+
+    // Perfil: Fábrica vem marcada; marcar Comércio acrescenta o passo Segmento, com Balcão já escolhido.
+    await expect(dialog.getByRole('checkbox', { name: /Fábrica/ })).toBeChecked()
+    await dialog.getByRole('checkbox', { name: /Comércio/ }).check()
+    await dialog.getByRole('button', { name: 'Avançar' }).click()
+    await expect(dialog.getByRole('radio', { name: 'Balcão' })).toBeChecked()
+    await dialog.getByRole('button', { name: 'Avançar' }).click()
+
+    // Plano: o que o plano não cobre vem avisado.
+    await expect(dialog.getByRole('note')).toContainText('O plano Completo não cobre Catálogo')
     await dialog.getByRole('button', { name: 'Provisionar' }).click()
     await expect(page).toHaveURL(/\/plataforma\/tenants\/konebras/)
+    expect(posted).toMatchObject({ key: 'konebras', document: '47.225.005/0001-86', plan: 'Completo', profiles: [{ code: 'factory', segment: null }, { code: 'retail', segment: 'counter' }] })
     await expect(page.getByText('Provisionamento concluído. Convite enviado ao proprietário.')).toBeVisible({ timeout: 10_000 })
   })
 
