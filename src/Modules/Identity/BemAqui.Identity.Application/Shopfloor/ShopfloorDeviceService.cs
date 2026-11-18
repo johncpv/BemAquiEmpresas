@@ -201,7 +201,9 @@ public sealed class ShopfloorDeviceService(
     /// <summary>Revoga (CA 9): o PIN deixa de funcionar, as sessões por PIN do aparelho caem e o Proprietário é avisado.</summary>
     public async Task<Result<ShopfloorDeviceList>> RevokeAsync(Guid id, Guid actorId, CancellationToken cancellationToken = default)
     {
-        var device = await db.ShopfloorDevices.FirstOrDefaultAsync(d => d.Id == id, cancellationToken);
+        // B6 (revisão do PR 227): por aqui (settings.edit ou production.approve) só o aparelho da fábrica; o caixa do PDV é bloqueado com
+        // pos.manage_devices (DELETE /api/v1/identity/devices/{id}).
+        var device = await db.ShopfloorDevices.FirstOrDefaultAsync(d => d.Id == id && d.Kind == DeviceKind.Factory, cancellationToken);
         if (device is null)
         {
             return Error.NotFound(Error.Codes.NotFound, "Aparelho não encontrado.");

@@ -22,4 +22,6 @@ Transformar o computador ou o tablet da loja num caixa. O aparelho registrado fi
 
 **"Este aparelho foi bloqueado ou trocado por outro."** O aparelho foi bloqueado na retaguarda ou outro aparelho foi registrado no mesmo caixa. Registre de novo, se for o caso.
 
+**"Acerte o relógio deste aparelho."** A data ou a hora do aparelho está diferente da do servidor. Acerte nas configurações do aparelho (de preferência no automático) e toque em **Conferir de novo**.
+
 **Por que pede o código do autenticador?** Para que ninguém registre um caixa só com a senha de outra pessoa. Sem a verificação em duas etapas ativa, a tela leva para ativá-la.

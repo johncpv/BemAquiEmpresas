@@ -28,6 +28,16 @@ public sealed record RegisterDeviceInfo(Guid Id, string Name, DateTimeOffset Las
 /// <summary>Segredo novo do aparelho depois de uma sincronização (vai só para o cookie <c>__Host-bq_pos</c>, nunca para o corpo).</summary>
 public sealed record DeviceSecretRotation(string Secret, DateTimeOffset ExpiresAt);
 
+/// <summary>Resultado da sincronização: segredo girado, aparelho revogado ou outra sincronização do mesmo aparelho ganhou a corrida.</summary>
+public enum DeviceSyncStatus
+{
+    Rotated,
+    Revoked,
+    Conflict,
+}
+
+public sealed record DeviceSyncResult(DeviceSyncStatus Status, DeviceSecretRotation? Rotation);
+
 /// <summary>
 /// Aparelhos de caixa para o <c>Pos</c> (PDV-01, ADR 0048): o Identity é o dono do aparelho; o <c>Pos</c> mostra o último contato na tela das
 /// lojas e, na sincronização, pede o segredo novo (o segredo do caixa gira a cada sincronização bem-sucedida, não a cada PIN).
@@ -36,6 +46,10 @@ public interface IRegisterDevices
 {
     Task<IReadOnlyDictionary<Guid, RegisterDeviceInfo>> FindAsync(IReadOnlyCollection<Guid> deviceIds, CancellationToken cancellationToken = default);
 
-    /// <summary>Sincronização bem-sucedida do aparelho ativo: grava o instante e gira o segredo. Aparelho revogado: null (não gira).</summary>
-    Task<DeviceSecretRotation?> CompleteSyncAsync(Guid deviceId, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Sincronização bem-sucedida do aparelho ativo: grava o instante e gira o segredo, por UPDATE condicional ao segredo lido (duas sincronizações
+    /// simultâneas: uma gira, a outra recebe <see cref="DeviceSyncStatus.Conflict"/>). Pedida com o segredo anterior, a rotação já aposenta o anterior
+    /// novo (ADR 0048 §2).
+    /// </summary>
+    Task<DeviceSyncResult> CompleteSyncAsync(Guid deviceId, bool usedPreviousSecret, CancellationToken cancellationToken = default);
 }

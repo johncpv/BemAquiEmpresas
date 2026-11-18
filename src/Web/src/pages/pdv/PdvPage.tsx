@@ -18,6 +18,7 @@ type State =
   | { kind: 'unregistered' }
   | { kind: 'blocked'; message: string }
   | { kind: 'error'; message: string }
+  | { kind: 'clock'; message: string; serverTime: string | null }
   | { kind: 'registered'; register: PosHandshake }
 
 /** Aperto de mão assinado pela chave do aparelho (ADR 0048 §2): diz se este aparelho é um caixa e de qual loja. */
@@ -29,6 +30,8 @@ async function check(): Promise<State> {
     return { kind: 'registered', register: await posHandshake({ headers: await signRequest(keys, 'POST', HANDSHAKE) }) }
   } catch (e) {
     if (e instanceof ApiError && e.status === 401) {
+      // Relógio do aparelho fora da tolerância (revisão do PR 227, B5): acertar o relógio, não registrar de novo.
+      if (e.code === 'device_clock_skew') return { kind: 'clock', message: e.message, serverTime: typeof e.data.serverTime === 'string' ? e.data.serverTime : null }
       return e.code === 'device_revoked' ? { kind: 'blocked', message: e.message } : { kind: 'unregistered' }
     }
 
@@ -85,6 +88,10 @@ export function PdvPage() {
         <RegisterForm onDone={() => { setRegistering(false); void refresh() }} onCancel={() => setRegistering(false)} />
       ) : state.kind === 'checking' ? <Skeleton className="h-40" /> : state.kind === 'unsupported' ? (
         <Card title="Este navegador não serve de caixa." text="Use Windows com Chrome ou Edge, ou Android com Chrome. iPhone e iPad ficam fora do caixa." />
+      ) : state.kind === 'clock' ? (
+        <Card title="Acerte o relógio deste aparelho."
+          text={`A data e a hora deste aparelho estão diferentes das do servidor${state.serverTime ? ` (agora: ${new Date(state.serverTime).toLocaleString('pt-BR')})` : ''}. Acerte o relógio nas configurações do aparelho e confira de novo.`}
+          action={<button type="button" onClick={() => void refresh()} className="min-h-14 rounded-md bg-primary px-5 text-base font-semibold text-primary-foreground">Conferir de novo</button>} />
       ) : state.kind === 'error' ? (
         <ErrorState title="Não foi possível conferir o aparelho." message={state.message} onRetry={() => void refresh()} />
       ) : state.kind === 'registered' ? (

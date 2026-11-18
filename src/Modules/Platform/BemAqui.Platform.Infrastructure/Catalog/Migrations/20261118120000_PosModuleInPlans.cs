@@ -26,7 +26,7 @@ namespace BemAqui.Platform.Infrastructure.Catalog.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql("DELETE FROM catalog.plan_modules WHERE module_code = 'pos';");
+            migrationBuilder.Sql("DELETE FROM catalog.plan_modules WHERE module_code IN ('pos', 'sales');");
         }
     }
 }

@@ -53,6 +53,9 @@ public sealed class RegisterDeviceService(
 {
     public const int MaxPublicKeyLength = 512;
 
+    /// <summary>OID da curva nistP256 (secp256r1).</summary>
+    public const string P256Oid = "1.2.840.10045.3.1.7";
+
     public async Task<IReadOnlyList<PosDeviceView>> ListAsync(Guid? storeId, CancellationToken cancellationToken = default)
     {
         var devices = await db.ShopfloorDevices.AsNoTracking().Where(d => d.Kind != DeviceKind.Factory && (storeId == null || d.StoreId == storeId))
@@ -176,37 +179,76 @@ public sealed class RegisterDeviceService(
             .ToDictionaryAsync(d => d.Id, d => new RegisterDeviceInfo(d.Id, d.Name, d.LastSeenAt, d.LastSyncAt, d.RevokedAt), cancellationToken);
     }
 
-    public async Task<DeviceSecretRotation?> CompleteSyncAsync(Guid deviceId, CancellationToken cancellationToken = default)
+    public async Task<DeviceSyncResult> CompleteSyncAsync(Guid deviceId, bool usedPreviousSecret, CancellationToken cancellationToken = default)
     {
         var now = clock.GetUtcNow();
-        var device = await db.ShopfloorDevices.FirstOrDefaultAsync(d => d.Id == deviceId && d.Kind != DeviceKind.Factory, cancellationToken);
-        if (device is null || !device.IsActive(now))
+        var read = await db.ShopfloorDevices.AsNoTracking().Where(d => d.Id == deviceId && d.Kind != DeviceKind.Factory)
+            .Select(d => new { d.SecretHash, d.RevokedAt, d.ExpiresAt }).FirstOrDefaultAsync(cancellationToken);
+        if (read is null || read.RevokedAt is not null || read.ExpiresAt <= now)
         {
-            return null;
+            return new DeviceSyncResult(DeviceSyncStatus.Revoked, null);
         }
 
+        // B1 (revisão do PR 227): só gira se o segredo ainda é o que foi lido; a outra sincronização simultânea recebe Conflict. Pedida com o segredo
+        // anterior (resposta perdida), a rotação já aposenta o anterior novo: um clone que guardou o atual e o apresente depois é reuso (M1).
         var secret = OpaqueToken.New();
-        device.CompleteSync(OpaqueToken.Hash(secret), now);
-        await db.SaveChangesAsync(cancellationToken);
-        return new DeviceSecretRotation(secret, device.ExpiresAt);
+        var hash = OpaqueToken.Hash(secret);
+        DateTimeOffset? retired = usedPreviousSecret ? now : null;
+        var rows = await db.ShopfloorDevices
+            .Where(d => d.Id == deviceId && d.SecretHash == read.SecretHash && d.RevokedAt == null)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(d => d.PreviousSecretHash, read.SecretHash)
+                .SetProperty(d => d.SecretHash, hash)
+                .SetProperty(d => d.SecretRotatedAt, now)
+                .SetProperty(d => d.PreviousSecretRetiredAt, retired)
+                .SetProperty(d => d.LastSyncAt, now)
+                .SetProperty(d => d.LastSeenAt, now), cancellationToken);
+        return rows == 1
+            ? new DeviceSyncResult(DeviceSyncStatus.Rotated, new DeviceSecretRotation(secret, read.ExpiresAt))
+            : new DeviceSyncResult(DeviceSyncStatus.Conflict, null);
     }
 
     /// <summary>
-    /// Esquema <c>Device</c> (ADR 0048 §2): o segredo atual ou o anterior do cookie e a assinatura ECDSA do texto da requisição com a chave do
-    /// aparelho. O anterior vale sem prazo porque a assinatura é a prova (a chave privada não sai do aparelho): uma resposta perdida na rede não
-    /// bloqueia o caixa. Aparelho revogado ou vencido, com segredo e assinatura certos, volta como <see cref="DeviceAuthStatus.Revoked"/>.
+    /// Esquema <c>Device</c> (ADR 0048 §2): acha o aparelho pelo segredo do cookie antes de ler o corpo; depois confere a assinatura ECDSA do texto
+    /// da requisição com a chave do aparelho. O segredo atual aposenta o anterior. O anterior só vale enquanto não foi aposentado (resposta perdida
+    /// na rede); aposentado e apresentado com a assinatura certa, é reuso de um clone: o aparelho é revogado (<c>secret_reused</c>) e o Proprietário
+    /// avisado. Aparelho revogado ou vencido, com segredo e assinatura certos, volta como <see cref="DeviceAuthStatus.Revoked"/>.
     /// </summary>
-    public async Task<DeviceAuthResult> AuthenticateAsync(string? secret, string signedPayload, string? signature, CancellationToken cancellationToken = default)
+    public async Task<DeviceAuthResult> AuthenticateAsync(string? secret, Func<CancellationToken, Task<string>> signedPayload, string? signature, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(signedPayload);
-        var device = await FindBySecretAsync(secret, cancellationToken);
-        if (device?.PublicKey is null || device.RegisterId is null || !VerifySignature(device.PublicKey, signedPayload, signature))
+        if (string.IsNullOrWhiteSpace(secret) || secret.Length > 128)
         {
             return DeviceAuthResult.Invalid;
         }
 
-        var revoked = !device.IsActive(clock.GetUtcNow());
-        var identity = new DeviceIdentity(device.Id, device.Kind.ToString(), device.StoreId, device.RegisterId, device.RegisterEpoch, revoked);
+        var hash = OpaqueToken.Hash(secret);
+        var device = await db.ShopfloorDevices.AsNoTracking()
+            .FirstOrDefaultAsync(d => d.Kind != DeviceKind.Factory && (d.SecretHash == hash || d.PreviousSecretHash == hash), cancellationToken);
+        if (device?.PublicKey is null || device.RegisterId is null || !VerifySignature(device.PublicKey, await signedPayload(cancellationToken), signature))
+        {
+            return DeviceAuthResult.Invalid;
+        }
+
+        var now = clock.GetUtcNow();
+        var revoked = !device.IsActive(now);
+        var usedPrevious = !string.Equals(device.SecretHash, hash, StringComparison.Ordinal);
+        if (!revoked && usedPrevious && !device.PreviousSecretStillValid)
+        {
+            // M1: o anterior já foi aposentado; quem o apresenta com a chave do aparelho é um clone revezando com o original.
+            var tracked = await db.ShopfloorDevices.FirstAsync(d => d.Id == device.Id, cancellationToken);
+            await revocations.RevokeDeviceAsync(tracked, null, "secret_reused", notifyOwners: true, cancellationToken);
+            return DeviceAuthResult.Invalid;
+        }
+
+        if (!revoked && !usedPrevious && device.PreviousSecretStillValid)
+        {
+            // O aparelho provou que recebeu o segredo novo: o anterior deixa de valer (UPDATE condicional, sem linha de auditoria).
+            await db.ShopfloorDevices.Where(d => d.Id == device.Id && d.SecretHash == hash && d.PreviousSecretRetiredAt == null)
+                .ExecuteUpdateAsync(s => s.SetProperty(d => d.PreviousSecretRetiredAt, now), cancellationToken);
+        }
+
+        var identity = new DeviceIdentity(device.Id, device.Kind.ToString(), device.StoreId, device.RegisterId, device.RegisterEpoch, revoked, usedPrevious);
         return new DeviceAuthResult(revoked ? DeviceAuthStatus.Revoked : DeviceAuthStatus.Active, identity);
     }
 
@@ -222,7 +264,7 @@ public sealed class RegisterDeviceService(
         {
             using var key = ECDsa.Create();
             key.ImportSubjectPublicKeyInfo(Convert.FromBase64String(publicKey.Trim()), out _);
-            return key.KeySize == 256;
+            return key.ExportParameters(false).Curve.Oid.Value == P256Oid; // B10: a curva, não só o tamanho
         }
         catch (Exception ex) when (ex is FormatException or CryptographicException)
         {

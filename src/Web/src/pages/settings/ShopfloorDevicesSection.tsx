@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { getListShopfloorDevicesQueryKey, revokeShopfloorDevice, useListShopfloorDevices } from '@/api/generated/bemaqui'
+import { getListShopfloorDevicesQueryKey, revokePosDevice, revokeShopfloorDevice, useListShopfloorDevices } from '@/api/generated/bemaqui'
 import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
@@ -22,6 +22,8 @@ export function ShopfloorDevicesSection() {
   const canEdit = useCan('settings.edit')
   const canApprove = useCan('production.approve')
   const canRevoke = canEdit || canApprove
+  // O caixa do PDV é bloqueado só com pos.manage_devices (revisão do PR 227, B6).
+  const canRevokeRegister = useCan('pos.manage_devices')
   const pos = useHasProfile(POS_DEVICE_PROFILES)
   const [store, setStore] = useState('')
   const stores = pos && list.data ? storesOf(list.data.devices) : []
@@ -63,13 +65,18 @@ export function ShopfloorDevicesSection() {
                   {d.status === 'Active' ? ` · vale até ${formatDate(d.expiresAt)}` : d.revokedAt ? ` · ${revokedText(d)} em ${formatDate(d.revokedAt)}` : ''}
                 </p>
               </div>
-              {d.status === 'Active' && canRevoke ? (
+              {d.status === 'Active' && (d.kind === 'Register' ? canRevokeRegister : canRevoke) ? (
                 <ConfirmDialog verb="Revogar aparelho" done="Aparelho revogado" destructive title={`Revogar o aparelho ${d.name}?`}
                   description={d.kind === 'Register'
                     ? 'O caixa deixa de vender por este aparelho na hora; para voltar, registre o aparelho de novo em /pdv. O que ele já vendeu ainda pode subir e fica para revisão.'
                     : 'O PIN deixa de funcionar nele e quem estiver entrando por PIN sai na próxima ação. Para voltar a usar, registre o tablet de novo.'}
                   onConfirm={async () => {
-                    client.setQueryData(getListShopfloorDevicesQueryKey(), await revokeShopfloorDevice(d.id))
+                    if (d.kind === 'Register') {
+                      await revokePosDevice(d.id)
+                      await client.invalidateQueries({ queryKey: getListShopfloorDevicesQueryKey() })
+                    } else {
+                      client.setQueryData(getListShopfloorDevicesQueryKey(), await revokeShopfloorDevice(d.id))
+                    }
                   }}
                   trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Revogar aparelho</button>} />
               ) : null}

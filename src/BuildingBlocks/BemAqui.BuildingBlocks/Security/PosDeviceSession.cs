@@ -46,7 +46,8 @@ public enum DeviceAuthStatus
 }
 
 /// <summary>O aparelho autenticado: tudo vem do banco, nunca do corpo (CA 10).</summary>
-public sealed record DeviceIdentity(Guid DeviceId, string Kind, Guid? StoreId, Guid? RegisterId, int Epoch, bool Revoked);
+/// <summary><c>UsedPreviousSecret</c>: a requisição veio com o segredo anterior (resposta perdida); a rotação que ela pedir já aposenta o anterior.</summary>
+public sealed record DeviceIdentity(Guid DeviceId, string Kind, Guid? StoreId, Guid? RegisterId, int Epoch, bool Revoked, bool UsedPreviousSecret = false);
 
 /// <summary>Claims do principal do aparelho: nunca <c>sub</c> (não é usuário), nunca permissão.</summary>
 public static class DeviceClaims
@@ -60,6 +61,7 @@ public static class DeviceClaims
     public const string RegisterId = "device_register";
     public const string Epoch = "device_epoch";
     public const string Revoked = "device_revoked";
+    public const string PreviousSecret = "device_previous_secret";
 }
 
 /// <summary>Monta e lê o principal do aparelho.</summary>
@@ -75,6 +77,7 @@ public static class DevicePrincipal
             new(DeviceClaims.Kind, device.Kind),
             new(DeviceClaims.Epoch, device.Epoch.ToString(CultureInfo.InvariantCulture)),
             new(DeviceClaims.Revoked, device.Revoked ? "true" : "false"),
+            new(DeviceClaims.PreviousSecret, device.UsedPreviousSecret ? "true" : "false"),
         };
         if (device.StoreId is { } store)
         {
@@ -104,6 +107,7 @@ public static class DevicePrincipal
             Guid.TryParse(user.FindFirst(DeviceClaims.StoreId)?.Value, out var store) ? store : null,
             Guid.TryParse(user.FindFirst(DeviceClaims.RegisterId)?.Value, out var register) ? register : null,
             int.TryParse(user.FindFirst(DeviceClaims.Epoch)?.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var epoch) ? epoch : 0,
-            user.FindFirst(DeviceClaims.Revoked)?.Value == "true");
+            user.FindFirst(DeviceClaims.Revoked)?.Value == "true",
+            user.FindFirst(DeviceClaims.PreviousSecret)?.Value == "true");
     }
 }

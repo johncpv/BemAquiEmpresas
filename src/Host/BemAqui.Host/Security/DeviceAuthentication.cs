@@ -30,18 +30,40 @@ public sealed class DeviceAuthenticationHandler(IOptionsMonitor<AuthenticationSc
         var cookie = Request.Cookies[PosDeviceCookie.Name];
         var timestamp = Request.Headers[DeviceSignatureHeaders.Timestamp].ToString();
         var signature = Request.Headers[DeviceSignatureHeaders.Signature].ToString();
-        if (tenant is null || string.IsNullOrEmpty(cookie) || string.IsNullOrEmpty(signature) || !FreshTimestamp(timestamp))
+        if (tenant is null || string.IsNullOrEmpty(cookie) || string.IsNullOrEmpty(signature)
+            || !long.TryParse(timestamp, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var ms))
         {
             return AuthenticateResult.NoResult();
         }
 
+        // B5: relógio do aparelho fora da tolerância tem código próprio (a tela pede para acertar o relógio, não para registrar de novo).
+        if (!FreshTimestamp(ms))
+        {
+            Context.Items[StatusItem] = ClockSkewStatus;
+            return AuthenticateResult.Fail("Relógio do aparelho fora da tolerância.");
+        }
+
         if (Request.ContentLength > MaxSignedBody)
         {
+            Context.Items[StatusItem] = TooLargeStatus;
             return AuthenticateResult.Fail("Corpo grande demais para o aparelho.");
         }
 
-        var payload = DeviceSignatureHeaders.Payload(Request.Method, Request.Path.Value + Request.QueryString.Value, timestamp, await BodyHashAsync());
-        var result = await Context.RequestServices.GetRequiredService<IDeviceAuthenticator>().AuthenticateAsync(cookie, payload, signature, Context.RequestAborted);
+        // B2: o aparelho é achado pelo segredo antes; o corpo só é lido (e o hash calculado) para um aparelho que existe.
+        DeviceAuthResult result;
+        try
+        {
+            result = await Context.RequestServices.GetRequiredService<IDeviceAuthenticator>().AuthenticateAsync(cookie,
+                async ct => DeviceSignatureHeaders.Payload(Request.Method, Request.Path.Value + Request.QueryString.Value, timestamp, await BodyHashAsync(ct)),
+                signature, Context.RequestAborted);
+        }
+        catch (IOException) when (!Context.RequestAborted.IsCancellationRequested)
+        {
+            // Corpo sem Content-Length (chunked) passando do limite do buffer: 413, não 500.
+            Context.Items[StatusItem] = TooLargeStatus;
+            return AuthenticateResult.Fail("Corpo grande demais para o aparelho.");
+        }
+
         Context.Items[StatusItem] = result.Status;
         if (result.Status == DeviceAuthStatus.Invalid || result.Device is null)
         {
@@ -51,32 +73,39 @@ public sealed class DeviceAuthenticationHandler(IOptionsMonitor<AuthenticationSc
         return AuthenticateResult.Success(new AuthenticationTicket(DevicePrincipal.Create(tenant.Id, result.Device), DeviceClaims.Scheme));
     }
 
-    /// <summary>401 com o motivo: a tela do <c>/pdv</c> pede um novo registro.</summary>
+    private const string ClockSkewStatus = "clock_skew";
+    private const string TooLargeStatus = "too_large";
+
+    /// <summary>401 com o motivo (a tela do <c>/pdv</c> pede novo registro, ou para acertar o relógio); 413 para corpo grande demais.</summary>
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
     {
         Response.Headers.CacheControl = "no-store";
-        await Results.Problem(detail: DeviceEndpoints.InvalidMessage, statusCode: StatusCodes.Status401Unauthorized, title: "Aparelho não reconhecido",
-                extensions: new Dictionary<string, object?> { ["code"] = DeviceEndpoints.InvalidCode })
-            .ExecuteAsync(Context);
-    }
-
-    private bool FreshTimestamp(string value)
-    {
-        if (!long.TryParse(value, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var ms))
+        var status = Context.Items.TryGetValue(StatusItem, out var value) ? value as string : null;
+        var result = status switch
         {
-            return false;
-        }
-
-        var now = (Context.RequestServices.GetService<TimeProvider>() ?? TimeProvider.System).GetUtcNow();
-        var at = DateTimeOffset.FromUnixTimeMilliseconds(Math.Clamp(ms, 0, DateTimeOffset.MaxValue.ToUnixTimeMilliseconds()));
-        return (now - at).Duration() <= DeviceSignatureHeaders.ClockSkew;
+            ClockSkewStatus => Results.Problem(detail: DeviceEndpoints.ClockSkewMessage, statusCode: StatusCodes.Status401Unauthorized, title: "Relógio do aparelho errado",
+                extensions: new Dictionary<string, object?> { ["code"] = DeviceEndpoints.ClockSkewCode, ["serverTime"] = DeviceClock().GetUtcNow() }),
+            TooLargeStatus => Results.Problem(detail: "O envio passou do limite de 4 MB. Envie em lotes menores.", statusCode: StatusCodes.Status413PayloadTooLarge,
+                title: "Envio grande demais", extensions: new Dictionary<string, object?> { ["code"] = "payload_too_large" }),
+            _ => Results.Problem(detail: DeviceEndpoints.InvalidMessage, statusCode: StatusCodes.Status401Unauthorized, title: "Aparelho não reconhecido",
+                extensions: new Dictionary<string, object?> { ["code"] = DeviceEndpoints.InvalidCode }),
+        };
+        await result.ExecuteAsync(Context);
     }
 
-    private async Task<string> BodyHashAsync()
+    private TimeProvider DeviceClock() => Context.RequestServices.GetService<TimeProvider>() ?? TimeProvider.System;
+
+    private bool FreshTimestamp(long ms)
+    {
+        var at = DateTimeOffset.FromUnixTimeMilliseconds(Math.Clamp(ms, 0, DateTimeOffset.MaxValue.ToUnixTimeMilliseconds()));
+        return (DeviceClock().GetUtcNow() - at).Duration() <= DeviceSignatureHeaders.ClockSkew;
+    }
+
+    private async Task<string> BodyHashAsync(CancellationToken cancellationToken)
     {
         Request.EnableBuffering(MaxSignedBody);
         Request.Body.Position = 0;
-        var hash = await SHA256.HashDataAsync(Request.Body, Context.RequestAborted);
+        var hash = await SHA256.HashDataAsync(Request.Body, cancellationToken);
         Request.Body.Position = 0;
         return Convert.ToBase64String(hash);
     }

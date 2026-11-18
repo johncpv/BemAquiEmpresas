@@ -23,6 +23,8 @@ public static class DeviceEndpoints
     public const string RevokedMessage = "Este aparelho foi bloqueado ou trocado por outro. Registre o aparelho de novo.";
     public const string InvalidCode = "device_not_registered";
     public const string InvalidMessage = "Este aparelho ainda não é um caixa. Registre o aparelho.";
+    public const string ClockSkewCode = "device_clock_skew";
+    public const string ClockSkewMessage = "O relógio deste aparelho está errado. Acerte a data e a hora do aparelho e tente de novo.";
 
     /// <summary>
     /// Exige o principal do aparelho (esquema <c>Device</c>) e marca o endpoint. Aparelho revogado ou substituído responde 401

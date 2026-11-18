@@ -55,8 +55,14 @@ public sealed class PosSyncService(IPosDb db, IRegisterDevices devices, TimeProv
             return Error.Forbidden("register_inactive", "Este caixa está desativado. Fale com o gerente da loja.");
         }
 
-        var rotation = await devices.CompleteSyncAsync(device.DeviceId, cancellationToken);
-        if (rotation is null)
+        var sync = await devices.CompleteSyncAsync(device.DeviceId, device.UsedPreviousSecret, cancellationToken);
+        if (sync.Status == DeviceSyncStatus.Conflict)
+        {
+            // B1: outra sincronização deste aparelho girou o segredo primeiro; o aparelho tenta de novo com o segredo que recebeu.
+            return Error.Conflict("device_sync_conflict", "Outra sincronização deste aparelho estava em andamento. Tente de novo.");
+        }
+
+        if (sync.Rotation is not { } rotation)
         {
             return Error.Forbidden("device_revoked", "Este aparelho foi bloqueado. Registre o aparelho de novo.");
         }

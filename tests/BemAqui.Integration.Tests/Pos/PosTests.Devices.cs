@@ -135,10 +135,10 @@ public partial class PosTests
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(System.Globalization.CultureInfo.InvariantCulture);
         var payload = DeviceSignatureHeaders.Payload("POST", "/api/v1/pos/sync/events", timestamp, Convert.ToBase64String(SHA256.HashData([])));
         var signature = Convert.ToBase64String(device.Key.SignData(System.Text.Encoding.UTF8.GetBytes(payload), HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation));
-        var result = await auth.AuthenticateAsync(device.Secret, payload, signature);
+        var result = await auth.AuthenticateAsync(device.Secret, _ => Task.FromResult(payload), signature);
         result.Status.Should().Be(DeviceAuthStatus.Revoked);
         result.Device!.RegisterId.Should().Be(register);
-        (await auth.AuthenticateAsync(device.Secret, payload + "x", signature)).Status.Should().Be(DeviceAuthStatus.Invalid, "texto adulterado");
+        (await auth.AuthenticateAsync(device.Secret, _ => Task.FromResult(payload + "x"), signature)).Status.Should().Be(DeviceAuthStatus.Invalid, "texto adulterado");
     }
 
     [Fact]
@@ -165,7 +165,11 @@ public partial class PosTests
         var stale = Signed(deviceA, "/api/v1/pos/sync/handshake");
         stale.Headers.Remove(DeviceSignatureHeaders.Timestamp);
         stale.Headers.Add(DeviceSignatureHeaders.Timestamp, DateTimeOffset.UtcNow.AddMinutes(-30).ToUnixTimeMilliseconds().ToString(System.Globalization.CultureInfo.InvariantCulture));
-        (await Anonymous().SendAsync(stale)).StatusCode.Should().Be(HttpStatusCode.Unauthorized, "instante fora da tolerância");
+        var skew = await Anonymous().SendAsync(stale);
+        skew.StatusCode.Should().Be(HttpStatusCode.Unauthorized, "instante fora da tolerância");
+        var skewProblem = await JsonAsync(skew);
+        Code(skewProblem).Should().Be("device_clock_skew", "B5: a tela pede para acertar o relógio, não para registrar de novo");
+        skewProblem.TryGetProperty("serverTime", out _).Should().BeTrue();
 
         // O aparelho não é usuário: com o cookie e a assinatura, nenhuma rota de usuário responde.
         var asUser = Signed(deviceA, "/api/v1/pos/stores");

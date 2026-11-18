@@ -9,11 +9,12 @@ public sealed record DeviceAuthResult(DeviceAuthStatus Status, DeviceIdentity? D
 }
 
 /// <summary>
-/// Confere o aparelho de PDV no banco do tenant do host (ADR 0048 §2): o segredo do cookie <c>__Host-bq_pos</c> (atual ou o anterior dentro da
-/// tolerância) e a assinatura ECDSA do texto da requisição com a chave pública registrada. Não grava nada: o segredo só gira na sincronização
-/// bem-sucedida. Implementado pelo Identity; o esquema <c>Device</c> do Host chama.
+/// Confere o aparelho de PDV no banco do tenant do host (ADR 0048 §2). Primeiro acha o aparelho pelo segredo do cookie <c>__Host-bq_pos</c> (sem
+/// aparelho, nada do corpo é lido); só então pede o texto assinado (<c>signedPayload</c>, que lê o corpo) e confere a assinatura ECDSA com a chave
+/// pública registrada. O segredo anterior vale até o atual ser usado (ou uma vez, para a resposta perdida); apresentado depois disso, é reuso: o
+/// aparelho é revogado e o Proprietário avisado. Implementado pelo Identity; o esquema <c>Device</c> do Host chama.
 /// </summary>
 public interface IDeviceAuthenticator
 {
-    Task<DeviceAuthResult> AuthenticateAsync(string? secret, string signedPayload, string? signature, CancellationToken cancellationToken = default);
+    Task<DeviceAuthResult> AuthenticateAsync(string? secret, Func<CancellationToken, Task<string>> signedPayload, string? signature, CancellationToken cancellationToken = default);
 }

@@ -12227,6 +12227,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("previous_secret_hash");
 
+                    b.Property<DateTimeOffset?>("PreviousSecretRetiredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("previous_secret_retired_at");
+
                     b.Property<string>("PublicKey")
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)")

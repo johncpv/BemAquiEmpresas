@@ -125,13 +125,16 @@ public sealed class ShopfloorDevice : Entity, IAuditable
         PublicKey = publicKey,
     };
 
-    /// <summary>Sincronização bem-sucedida do caixa: segredo novo (o anterior continua valendo com a assinatura do aparelho, ADR 0048 §2) e o instante.</summary>
-    public void CompleteSync(string newHash, DateTimeOffset now)
-    {
-        Rotate(newHash, now);
-        LastSyncAt = now;
-        LastSeenAt = now;
-    }
+    /// <summary>
+    /// Caixa do PDV (ADR 0048 §2, revisão de segurança do PR 227): o segredo anterior deixou de valer. Fica preenchido quando o aparelho usa o segredo
+    /// atual (provou que recebeu o novo) ou quando a rotação foi pedida com o anterior (a resposta perdida já foi coberta uma vez). Depois disso,
+    /// apresentar o anterior é reuso (dois clones se revezando): o aparelho é revogado. Gravado por UPDATE condicional, fora do diff da auditoria.
+    /// </summary>
+    [NotAudited]
+    public DateTimeOffset? PreviousSecretRetiredAt { get; private set; }
+
+    /// <summary>O segredo anterior ainda vale (nenhum uso do atual nem rotação pedida com o anterior desde a última troca).</summary>
+    public bool PreviousSecretStillValid => PreviousSecretHash is not null && PreviousSecretRetiredAt is null;
 
     public static ShopfloorDevice Register(string name, string secretHash, Guid createdBy, DateTimeOffset now) => new()
     {
