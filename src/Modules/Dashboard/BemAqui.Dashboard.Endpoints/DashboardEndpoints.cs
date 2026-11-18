@@ -39,6 +39,10 @@ internal static class DashboardEndpoints
             })
             .WithName("DownloadOwnerDashboardPdf").Produces(StatusCodes.Status200OK, contentType: "application/pdf");
 
+        // PERF-04: checklist "Primeiros passos" do Comércio, calculado dos dados (a fábrica recebe applies = false).
+        dashboard.MapGet("/first-steps", async (FirstStepsService service, CancellationToken ct) => Results.Ok(await service.GetAsync(ct)))
+            .WithName("GetDashboardFirstSteps").Produces<FirstStepsCard>();
+
         var cards = dashboard.MapGroup("/cards");
         cards.MapGet("/balances", async (DashboardService service, CancellationToken ct) => Results.Ok(await service.BalancesAsync(ct)))
             .RequireModule("finance").RequirePermission("finance.view").WithName("GetDashboardBalances").Produces<BalancesCard>();
