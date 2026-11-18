@@ -279,8 +279,11 @@ public partial class SalesTests
     /// <summary>Catálogo falso com a forma do <c>ISellableProducts</c> da CAT-01: uma variação de grade ligada a um item de estoque.</summary>
     private sealed class FakeCatalog(Guid variation, Guid parent, Guid item) : BemAqui.Catalog.Contracts.ISellableProducts
     {
-        public async Task<BemAqui.Catalog.Contracts.SellableProduct?> FindAsync(Guid productId, CancellationToken cancellationToken = default) =>
-            (await FindManyAsync([productId], cancellationToken)).FirstOrDefault();
+        public async Task<BemAqui.Catalog.Contracts.SellableProduct?> FindAsync(Guid productId, CancellationToken cancellationToken = default)
+        {
+            var found = await FindManyAsync([productId], cancellationToken);
+            return found.Count > 0 ? found[0] : null;
+        }
 
         public Task<IReadOnlyList<BemAqui.Catalog.Contracts.SellableProduct>> FindManyAsync(IReadOnlyCollection<Guid> productIds, CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<BemAqui.Catalog.Contracts.SellableProduct>>(productIds.Where(p => p == variation)
