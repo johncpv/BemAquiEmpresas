@@ -5,6 +5,8 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { MyModule } from './myModule';
+import type { MyPermissionsResponseAreaLabels } from './myPermissionsResponseAreaLabels';
+import type { MyPermissionsResponseVocabulary } from './myPermissionsResponseVocabulary';
 
 export interface MyPermissionsResponse {
   permissions: string[];
@@ -12,4 +14,6 @@ export interface MyPermissionsResponse {
   version: string;
   modules: MyModule[];
   profiles: string[];
+  areaLabels: MyPermissionsResponseAreaLabels;
+  vocabulary: MyPermissionsResponseVocabulary;
 }

@@ -70782,7 +70782,9 @@
           "isOwner",
           "version",
           "modules",
-          "profiles"
+          "profiles",
+          "areaLabels",
+          "vocabulary"
         ],
         "type": "object",
         "properties": {
@@ -70807,6 +70809,18 @@
           "profiles": {
             "type": "array",
             "items": {
+              "type": "string"
+            }
+          },
+          "areaLabels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "vocabulary": {
+            "type": "object",
+            "additionalProperties": {
               "type": "string"
             }
           }

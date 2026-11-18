@@ -101,6 +101,7 @@ public sealed class CatalogTenantResolver(IServiceScopeFactory scopes, TimeProvi
         {
             ReleasedModules = releasedSet,
             HiddenModules = BusinessProfileCatalog.Hidden(profiles, releasedSet), // ADR 0046: fora de todo perfil e não liberado
+            Vocabulary = BusinessVocabulary.Resolve(profiles), // PERF-03: termos e rótulo de área do perfil
             Profiles = profiles.ToHashSet(StringComparer.Ordinal),
             Segments = active.Where(p => p.Segment != null).Select(p => p.Segment!).ToHashSet(StringComparer.Ordinal), // PERF-04: pacotes do segmento
             BankProductionAllowed = tenant.BankProductionAllowed,

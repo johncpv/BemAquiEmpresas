@@ -3,6 +3,7 @@ import type { GroupModuleRow } from '@/api/generated/model'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { cn } from '@/lib/utils'
+import { useAreaLabel } from '@/navigation/vocabulary'
 import { type MatrixRow, toggleAction, toggleEnabled } from './group-matrix'
 
 const STANDARD = [
@@ -25,6 +26,7 @@ interface Props {
  * específicas na coluna "Outras" com a descrição; "Aprovar" explica o que aprovar significa no módulo (CA 5, 6).
  */
 export function GroupMatrixTable({ modules, value, onChange, readOnly }: Props) {
+  const areaLabel = useAreaLabel()
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[720px] border-collapse text-sm" aria-label="Permissões do grupo">
@@ -53,7 +55,7 @@ export function GroupMatrixTable({ modules, value, onChange, readOnly }: Props) 
 
             return (
               <tr key={m.code} className={cn('border-b border-border last:border-0', !row.enabled && 'text-muted-foreground')}>
-                <td className="px-3 py-2"><b className="font-semibold">{m.name}</b><span className="block text-xs text-muted-foreground">{m.area}</span></td>
+                <td className="px-3 py-2"><b className="font-semibold">{m.name}</b><span className="block text-xs text-muted-foreground">{areaLabel(m.area)}</span></td>
                 <td className="px-2 py-2 text-center">
                   <Switch.Root
                     checked={row.enabled}

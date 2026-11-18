@@ -7,13 +7,18 @@ public static class ModuleAreas
 {
     public const string Overview = "Visão geral";
     public const string Commercial = "Comercial";
+
+    /// <summary>Área do varejo (PERF-03): recebe os módulos do PDV (Catálogo, Vendas e Caixa). Sem módulo, some do dock.</summary>
+    public const string Store = "Loja";
+
+    /// <summary>Estoque e Compras: "Fábrica" no perfil fábrica e "Retaguarda" nos demais (rótulo pelo vocabulário, ADR 0046 §6).</summary>
     public const string Factory = "Fábrica";
     public const string Financial = "Financeiro";
     public const string People = "Pessoas";
     public const string Dedicated = "Telas dedicadas";
     public const string System = "Sistema";
 
-    public static readonly string[] All = [Overview, Commercial, Factory, Financial, People, Dedicated, System];
+    public static readonly string[] All = [Overview, Commercial, Store, Factory, Financial, People, Dedicated, System];
 }
 
 /// <summary>Ações padrão (CLAUDE.md, camada 3). Ações específicas são snake_case e só existem com necessidade real (ADR 0003).</summary>

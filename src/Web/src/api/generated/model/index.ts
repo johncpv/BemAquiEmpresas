@@ -931,6 +931,8 @@ export * from './myEmployeeLink';
 export * from './myModule';
 export * from './myPayslip';
 export * from './myPermissionsResponse';
+export * from './myPermissionsResponseAreaLabels';
+export * from './myPermissionsResponseVocabulary';
 export * from './myPin';
 export * from './myTimeClock';
 export * from './myTimeEntry';
