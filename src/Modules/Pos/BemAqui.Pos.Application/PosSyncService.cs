@@ -34,7 +34,11 @@ public sealed class PosSyncService(IPosDb db, IRegisterDevices devices, TimeProv
 {
     public const string ReplacedMessage = "Este caixa recebeu outro aparelho. Registre este aparelho de novo.";
 
-    public async Task<Result<PosHandshakeResult>> HandshakeAsync(DeviceIdentity device, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// A loja e o caixa do aparelho, só pelo principal (CA 10; OFF-01 CA 12): o caixa precisa ainda ter este aparelho como o ativo da mesma época, e
+    /// os dois precisam estar ativos. Serve ao aperto de mão e à descida do catálogo.
+    /// </summary>
+    public async Task<Result<(Store Store, Register Register)>> ResolveAsync(DeviceIdentity device, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(device);
         if (device.RegisterId is not { } registerId || device.StoreId is not { } storeId)
@@ -42,7 +46,6 @@ public sealed class PosSyncService(IPosDb db, IRegisterDevices devices, TimeProv
             return Error.Forbidden("device_kind", "Este aparelho não é um caixa.");
         }
 
-        // A loja e o caixa vêm do principal (CA 10); o caixa precisa ainda ter este aparelho como o ativo da mesma época.
         var register = await db.Registers.AsNoTracking().FirstOrDefaultAsync(r => r.Id == registerId && r.StoreId == storeId, cancellationToken);
         var store = await db.Stores.AsNoTracking().FirstOrDefaultAsync(s => s.Id == storeId, cancellationToken);
         if (register is null || store is null || register.ActiveDeviceId != device.DeviceId || register.DeviceEpoch != device.Epoch)
@@ -54,6 +57,19 @@ public sealed class PosSyncService(IPosDb db, IRegisterDevices devices, TimeProv
         {
             return Error.Forbidden("register_inactive", "Este caixa está desativado. Fale com o gerente da loja.");
         }
+
+        return (store, register);
+    }
+
+    public async Task<Result<PosHandshakeResult>> HandshakeAsync(DeviceIdentity device, CancellationToken cancellationToken = default)
+    {
+        var place = await ResolveAsync(device, cancellationToken);
+        if (place.IsFailure)
+        {
+            return place.Error!;
+        }
+
+        var (store, register) = place.Value;
 
         var sync = await devices.CompleteSyncAsync(device.DeviceId, device.UsedPreviousSecret, cancellationToken);
         if (sync.Status == DeviceSyncStatus.Conflict)

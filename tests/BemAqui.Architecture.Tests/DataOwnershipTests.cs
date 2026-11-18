@@ -28,6 +28,7 @@ public partial class DataOwnershipTests
         ["Inventory/BemAqui.Inventory.Application/StockLedger.cs"] = "trava do motor de estoque: INSERT … ON CONFLICT DO NOTHING da posição, do lote e do saldo por lote antes do SELECT … FOR UPDATE (ADR 0023 §2); o movimento é a trilha",
         ["Finance/BemAqui.Finance.Application/Statements/BankStatementImportService.Commands.cs"] = "\"Desfazer importação\" (BNK-03a CA 9): as linhas do lote viram Undone e o saldo trazido pelo lote sai numa transação; o lote desfeito (quem, quando, motivo) é a trilha auditada",
         ["Catalog/BemAqui.Catalog.Application/ProductImportService.cs"] = "situação e progresso da importação por planilha (CAT-02): a troca Previewed → Running é atômica (confirma uma vez só) e o progresso do job é gravado por bloco; import_runs não é auditável e a confirmação grava o Imported pelo IAuditWriter",
+        ["Pos/BemAqui.Pos.Application/PosCatalogProjector.cs"] = "modelo de leitura do caixa (OFF-01): pos.catalog_items é projeção do Catálogo e das formas de pagamento, regravada em lote (upsert e marca de removido com change_seq); não é dado de negócio nem auditável, a trilha fica nos donos",
     };
 
     [GeneratedRegex(@"\.(ExecuteUpdate|ExecuteDelete|ExecuteSql)\w*\(")]

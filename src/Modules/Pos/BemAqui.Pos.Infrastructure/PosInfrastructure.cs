@@ -19,6 +19,8 @@ public static class PosInfrastructure
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddScoped<StoreService>();
         services.TryAddScoped<PosSyncService>();
+        services.TryAddScoped<PosCatalogProjector>(); // OFF-01: modelo de leitura do caixa (consumidor e carga inicial)
+        services.TryAddScoped<PosCatalogSyncService>();
         services.TryAddScoped<IPosRegisters, PosRegistersContract>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IProfileSeedPackage, PosRetailSeedPackage>());
         services.AddAuditableEntity<Store>("sales");

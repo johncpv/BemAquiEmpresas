@@ -62,6 +62,14 @@ internal static class PosEndpoints
                 return Results.Ok(result.Value.Handshake);
             })
             .RequireDevice().WithName("PosHandshake").Produces<PosHandshake>();
+
+        // OFF-01 CA 10 a 12: foto e delta do catálogo da loja do aparelho (a loja vem do principal; nada de outra loja, sem custo nem margem).
+        sync.MapGet("/snapshot", async (HttpContext http, PosCatalogSyncService service, CancellationToken ct) =>
+                (await service.SnapshotAsync(DevicePrincipal.From(http.User)!, ct)).ToHttpResult())
+            .RequireDevice().WithName("GetPosCatalogSnapshot").Produces<PosCatalogSnapshot>();
+        sync.MapGet("/changes", async (long cursor, int? limit, HttpContext http, PosCatalogSyncService service, CancellationToken ct) =>
+                (await service.ChangesAsync(DevicePrincipal.From(http.User)!, cursor, limit, ct)).ToHttpResult())
+            .RequireDevice().WithName("GetPosCatalogChanges").Produces<PosCatalogChanges>();
         return api;
     }
 

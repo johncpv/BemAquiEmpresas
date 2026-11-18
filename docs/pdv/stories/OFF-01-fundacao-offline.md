@@ -85,3 +85,4 @@ Como **operador de caixa**, quero **que a tela de venda abra e ache os produtos 
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
+| 18/11/2026 | 0.3 | Backend dos CA 9 a 12: modelo de leitura `pos.catalog_items` com consumidor idempotente e cursor sem buraco, carga inicial por loja, foto e delta no esquema `Device`, parâmetros da loja (PP-10, PP-22) e o contrato de operadores da loja. Saldo por item (PP-02) adiado para a PDV-05. | Claude (dev) |

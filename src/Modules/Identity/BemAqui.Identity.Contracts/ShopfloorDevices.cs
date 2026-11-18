@@ -53,3 +53,15 @@ public interface IRegisterDevices
     /// </summary>
     Task<DeviceSyncResult> CompleteSyncAsync(Guid deviceId, bool usedPreviousSecret, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Quem pode entrar por PIN nos caixas de uma loja (OFF-01): só o id e o nome curto (primeiro nome e inicial). Nunca o PIN nem o hash.</summary>
+public sealed record PosStoreOperator(Guid UserId, string DisplayName);
+
+/// <summary>
+/// Operadores da loja para a descida do catálogo do caixa (OFF-01 CA 10 e 12): ativos, com PIN do caixa, com perfil que usa o caixa e, se usuário
+/// de operação, ligados à loja. O Identity é o dono; o <c>Pos</c> lê só por aqui.
+/// </summary>
+public interface IPosStoreOperators
+{
+    Task<IReadOnlyList<PosStoreOperator>> ForStoreAsync(Guid storeId, CancellationToken cancellationToken = default);
+}
