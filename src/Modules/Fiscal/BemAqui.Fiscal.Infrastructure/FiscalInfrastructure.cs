@@ -72,6 +72,7 @@ public static class FiscalInfrastructure
         // FIS-02a: Configurações → Fiscal, certificado digital, vencimento e pauta; a tela é de Configurações (histórico com settings.view).
         services.AddMemoryCache();
         services.TryAddScoped<FiscalSettingsService>();
+        services.TryAddScoped<BemAqui.Fiscal.Contracts.IFiscalSetupStatus, BemAqui.Fiscal.Application.Settings.FiscalSetupStatus>(); // PERF-04: Primeiros passos
         services.TryAddScoped<IFiscalSettings>(sp => sp.GetRequiredService<FiscalSettingsService>());
         services.TryAddScoped<FiscalSettingsExport>();
         services.TryAddScoped<FiscalCertificateService>();

@@ -36,6 +36,9 @@ public sealed class BankAccount : Entity, IAuditable, ISoftDeletable
     /// <summary>Origem da importação (ex.: <c>dolibarr:llx_bank_account:3</c>), gravada só pelo <c>IBankAccountImport</c> (MIG-01b).</summary>
     public string? ImportSource { get; set; }
 
+    /// <summary>Chave do pacote de dados iniciais do perfil (PERF-04: <c>caixa-pdv-01</c>, <c>cofre</c>...); null para as criadas pelo tenant.</summary>
+    public string? SeedKey { get; init; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public bool IsDeleted { get; private set; }

@@ -35,6 +35,15 @@
 ### 6. Versão de permissões
 - Os ocultos entram no hash da versão de permissões só quando o tenant tem perfil além da Fábrica (ajuste do `PermissionService`). Na Fábrica sozinha, o oculto é só módulo novo do PDV, que nunca aparece para ela: a Konebras mantém a versão, o menu e as permissões de antes.
 
+### 7. Importação por planilha (CAT-02, 18/11/2026)
+- **Formato e leitura:** só `.xlsx` (allowlist dos anexos, assinatura zip), até 10 MB e 150 MB descompactados, lido com o ClosedXML (o mesmo da exportação, ADR 0045). As colunas são achadas pelo cabeçalho (sem diferença de maiúscula ou acento), na aba "Produtos" do modelo; o arquivo não é guardado.
+- **Prévia gravada:** `catalog_products.import_runs` guarda as linhas válidas e as com erro (jsonb) e os totais. A confirmação usa o que a prévia gravou (não pede o arquivo de novo) e confere cada linha outra vez contra o banco do momento. Confirma uma vez só (troca de situação atômica).
+- **Chave (CA 4):** o código interno é o código do item no Estoque (novo contrato `IItems.FindByCodesAsync`); na falta dele, o código de barras. Linha sem nenhum dos dois é erro, porque não teria como ser reimportada sem duplicar. Código de item que existe sem produto cria o produto ligado a ele.
+- **Gravação:** cada linha numa transação, pelos serviços do Catálogo (`ProductService`, que passa a entrar na transação de quem chama, `PriceService` e `CategoryService`) e pelo `IStockMovements`. Categoria que não existe é criada. Unidade e NCM só valem para o produto novo (o Estoque é dono).
+- **Preço (CA 5):** sem `catalog.edit_price` na prévia, a coluna nem é conferida e a prévia avisa; na confirmação, a permissão é conferida de novo.
+- **Saldo inicial (CA 6):** exige "Lançar saldo inicial", `inventory.adjust` e um local ativo (sugerido: o de nome "Loja", senão o padrão). Movimento `OpeningBalance` com origem `StockSources.CatalogImport` e o **produto** como `source_id`: a chave de idempotência do motor (ADR 0023 §4) faz a reimportação devolver o movimento já lançado. O motor exige custo maior que zero na entrada, então a linha com saldo pede o custo.
+- **Job:** até 500 linhas válidas (`Catalog:ImportSyncMaxRows`) a confirmação roda no pedido; acima, `ProductImportJob` (Hangfire, só `tenantId` e ids), em blocos de 200 com o progresso gravado, retomando de onde parou, e o aviso no sino para quem confirmou. No job não há usuário: o histórico de preço e os movimentos ficam sem autor, e quem confirmou fica na importação e na auditoria (`Imported`, com os totais).
+
 ## Consequências
 - A VND-01 consome o Catálogo só pelos contratos acima. A CAT-02 (importação) e a PERF-04 (dados iniciais) gravam pelos serviços do Catálogo.
 - Tabelas por loja e canal, promoções, etiquetas, complementos e ficha técnica ficam para CAT-03 a CAT-06.

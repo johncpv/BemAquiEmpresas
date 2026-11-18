@@ -50,6 +50,12 @@ public interface IItems
     Task<IReadOnlyList<ItemSummary>> FindAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Itens não excluídos pelo código exato (CAT-02: o código interno é a chave da importação de produtos), ativos e inativos; código que não
+    /// existe fica de fora.
+    /// </summary>
+    Task<IReadOnlyList<ItemSummary>> FindByCodesAsync(IReadOnlyCollection<string> codes, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Itens ativos de estoque (fora Serviço) com estoque mínimo &gt; 0, na unidade de estoque (CAD-02a): o job do mínimo da CMP-01 (CA 9).
     /// </summary>
     Task<IReadOnlyList<ItemMinStock>> WithMinStockAsync(CancellationToken cancellationToken = default);

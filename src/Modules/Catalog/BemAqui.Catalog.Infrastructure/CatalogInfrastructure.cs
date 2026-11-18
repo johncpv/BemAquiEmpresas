@@ -1,5 +1,6 @@
 using BemAqui.BuildingBlocks.Attachments;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
+using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.Catalog.Application;
 using BemAqui.Catalog.Contracts;
 using BemAqui.Catalog.Domain;
@@ -27,10 +28,12 @@ public static class CatalogInfrastructure
         services.TryAddScoped<ProductPhotoService>();
         services.TryAddScoped<ProductService>();
         services.TryAddScoped<ProductExportService>();
+        services.TryAddScoped<ProductImportService>();
         services.TryAddScoped<CatalogReadContract>();
         services.TryAddScoped<ISellableProducts>(sp => sp.GetRequiredService<CatalogReadContract>());
         services.TryAddScoped<ICatalogLookup>(sp => sp.GetRequiredService<CatalogReadContract>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IItemUsageProvider, CatalogItemUsage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IProfileSeedPackage, CatalogRetailSeedPackage>()); // PERF-04
         services.AddAuditableEntity<Product>(ProductService.Module);
         services.AddAuditableEntity<ProductCategory>(ProductService.Module);
         services.AddAuditableEntity<ProductBarcode>(ProductService.Module);

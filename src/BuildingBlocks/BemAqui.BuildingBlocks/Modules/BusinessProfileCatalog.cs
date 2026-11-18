@@ -82,7 +82,11 @@ public static class BusinessProfileCatalog
     {
         [PaymentMethodsFeature] = [Retail, Services, Ecommerce],
         [SaleReceivablesFeature] = [Retail, Services, Ecommerce],
+        [FirstStepsFeature] = [Retail],
     };
+
+    /// <summary>Checklist "Primeiros passos" do Início (PERF-04): só o Comércio, por enquanto; a fábrica não vê o cartão nem a ajuda.</summary>
+    public const string FirstStepsFeature = "dashboard.first_steps";
 
     public static bool HasFeature(IEnumerable<string> profiles, string feature)
     {

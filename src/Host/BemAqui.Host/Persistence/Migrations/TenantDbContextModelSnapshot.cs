@@ -1796,6 +1796,133 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("categories", "catalog_products");
                 });
 
+            modelBuilder.Entity("BemAqui.Catalog.Domain.ProductImportRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("ApplyPrices")
+                        .HasColumnType("boolean")
+                        .HasColumnName("apply_prices");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTimeOffset?>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("confirmed_at");
+
+                    b.Property<Guid?>("ConfirmedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("confirmed_by");
+
+                    b.Property<int>("Created")
+                        .HasColumnType("integer")
+                        .HasColumnName("created");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<int>("ErrorRows")
+                        .HasColumnType("integer")
+                        .HasColumnName("error_rows");
+
+                    b.Property<string>("ErrorsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("errors");
+
+                    b.Property<int>("Failed")
+                        .HasColumnType("integer")
+                        .HasColumnName("failed");
+
+                    b.Property<string>("FailureMessage")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("failure_message");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("file_name");
+
+                    b.Property<bool>("InBackground")
+                        .HasColumnType("boolean")
+                        .HasColumnName("in_background");
+
+                    b.Property<bool>("LaunchStock")
+                        .HasColumnType("boolean")
+                        .HasColumnName("launch_stock");
+
+                    b.Property<bool>("PricesIgnored")
+                        .HasColumnType("boolean")
+                        .HasColumnName("prices_ignored");
+
+                    b.Property<int>("Processed")
+                        .HasColumnType("integer")
+                        .HasColumnName("processed");
+
+                    b.Property<string>("RowsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("rows");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<int>("StockAlreadyPosted")
+                        .HasColumnType("integer")
+                        .HasColumnName("stock_already_posted");
+
+                    b.Property<Guid?>("StockLocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stock_location_id");
+
+                    b.Property<int>("StockPosted")
+                        .HasColumnType("integer")
+                        .HasColumnName("stock_posted");
+
+                    b.Property<int>("StockRows")
+                        .HasColumnType("integer")
+                        .HasColumnName("stock_rows");
+
+                    b.Property<int>("ToCreate")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_create");
+
+                    b.Property<int>("ToUpdate")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_update");
+
+                    b.Property<int>("TotalRows")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_rows");
+
+                    b.Property<int>("Updated")
+                        .HasColumnType("integer")
+                        .HasColumnName("updated");
+
+                    b.HasKey("Id")
+                        .HasName("pk_product_import_runs");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_product_import_runs_created_at");
+
+                    b.ToTable("import_runs", "catalog_products");
+                });
+
             modelBuilder.Entity("BemAqui.Commercial.Domain.CommercialParameter", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3496,6 +3623,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDefaultValue("None")
                         .HasColumnName("provider");
 
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("seed_key");
+
                     b.HasKey("Id")
                         .HasName("pk_bank_accounts");
 
@@ -3503,6 +3635,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_bank_accounts_default")
                         .HasFilter("is_default");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_bank_accounts_seed_key")
+                        .HasFilter("seed_key IS NOT NULL");
 
                     b.ToTable("bank_accounts", "finance");
                 });
@@ -14845,6 +14982,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(420)")
                         .HasColumnName("search_text");
 
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("seed_key");
+
                     b.Property<string>("StateRegistration")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
@@ -14863,6 +15005,11 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_parties");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_parties_seed_key")
+                        .HasFilter("seed_key IS NOT NULL");
 
                     b.HasIndex(new[] { "Document" }, "ix_parties_document_trgm")
                         .HasDatabaseName("ix_parties_document_trgm");

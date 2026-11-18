@@ -27,6 +27,9 @@ internal sealed class PartyConfiguration : IEntityTypeConfiguration<Party>
         b.Property(e => e.Phone).HasMaxLength(11);
         b.Property(e => e.Notes).HasMaxLength(2000);
         b.Property(e => e.ImportSource).HasMaxLength(100);
+        // PERF-04: terceiro do pacote do Comércio (adquirente "Maquininha"), uma vez por tenant, mesmo excluído.
+        b.Property(e => e.SeedKey).HasMaxLength(50);
+        b.HasIndex(e => e.SeedKey).IsUnique().HasFilter("seed_key IS NOT NULL").HasDatabaseName("ix_parties_seed_key");
         b.Property(e => e.AnonymizationRequest).HasMaxLength(20);
 
         // Um documento por cadastro não excluído (CA 4 e 5); sem documento é permitido (tabela 1.1).

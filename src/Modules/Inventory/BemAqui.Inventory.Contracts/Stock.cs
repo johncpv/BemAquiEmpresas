@@ -33,6 +33,8 @@ public static class StockSources
 
     /// <summary>Venda (VND-01): a baixa da venda de canal sem caixa, pelo consumidor do Sales; o estorno vem do cancelamento da venda.</summary>
     public const string Sale = "Sale";
+    /// <summary>Saldo inicial da importação de produtos por planilha (CAT-02): <c>SourceId</c> é o produto, então reimportar não lança de novo.</summary>
+    public const string CatalogImport = "CatalogImport";
 }
 
 /// <summary>

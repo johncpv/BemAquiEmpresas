@@ -4,6 +4,7 @@ using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Catalog.Application;
 using BemAqui.Catalog.Contracts;
+using BemAqui.SharedKernel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -27,6 +28,7 @@ internal static class CatalogEndpoints
             });
         MapProducts(root.MapGroup("/products"));
         MapCategories(root.MapGroup("/categories"));
+        MapImport(root.MapGroup("/import"));
         root.MapGet("/price-lists", async (PriceService service, CancellationToken ct) => Results.Ok(await service.ListsAsync(ct)))
             .RequirePermission("catalog.view").WithName("ListPriceLists").Produces<IReadOnlyList<PriceListView>>();
         root.MapGet("/lookup", async (string? code, string? q, ICatalogLookup lookup, CancellationToken ct) => Results.Ok(await LookupAsync(code, q, lookup, ct)))
@@ -105,6 +107,56 @@ internal static class CatalogEndpoints
                 return Results.File(result.Value.Content, result.Value.ContentType, result.Value.FileName);
             })
             .RequirePermission("catalog.view").WithName("DownloadProductPhoto");
+    }
+
+    /// <summary>
+    /// Importação por planilha (CAT-02): tudo com <c>catalog.create</c>; preço (<c>catalog.edit_price</c>) e saldo inicial (<c>inventory.adjust</c>)
+    /// conferidos no serviço, porque sem eles a importação segue sem o preço ou sem o saldo. O arquivo é lido em memória até 10 MB e não fica guardado.
+    /// </summary>
+    private static void MapImport(RouteGroupBuilder import)
+    {
+        import.MapGet("/template", () => Results.File(ProductImportService.Template(), XlsxTabularExporter.XlsxContentType, "modelo-importacao-produtos.xlsx"))
+            .RequirePermission("catalog.create").WithName("DownloadProductImportTemplate");
+        import.MapPost("/preview", async (IFormFile file, ProductImportService service, CancellationToken ct) =>
+                await ReadFileAsync(file, ct) is { } content
+                    ? (await service.PreviewAsync(file.FileName, content, ct)).ToHttpResult()
+                    : Error.Validation(ProductImportSheet.InvalidFileCode, "A planilha passa de 10 MB. Divida em arquivos menores.").ToProblem())
+            .RequirePermission("catalog.create").DisableAntiforgery().WithName("PreviewProductImport").Produces<ProductImportView>();
+        import.MapGet("/{id:guid}", async (Guid id, ProductImportService service, CancellationToken ct) => (await service.GetAsync(id, ct)).ToHttpResult())
+            .RequirePermission("catalog.create").WithName("GetProductImport").Produces<ProductImportView>();
+        import.MapPost("/{id:guid}/confirm", async (Guid id, ProductImportConfirmInput input, ProductImportService service, CancellationToken ct) =>
+                (await service.ConfirmAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("catalog.create").WithName("ConfirmProductImport").Produces<ProductImportView>();
+        import.MapGet("/{id:guid}/errors", async (Guid id, ProductImportService service, CancellationToken ct) =>
+            {
+                var file = await service.ErrorsFileAsync(id, ct);
+                return file.IsFailure ? file.Error!.ToProblem() : Results.File(file.Value, XlsxTabularExporter.XlsxContentType, "linhas-com-erro.xlsx");
+            })
+            .RequirePermission("catalog.create").WithName("DownloadProductImportErrors");
+    }
+
+    /// <summary>Lê o arquivo em memória até 10 MB; passou, null (nunca vai para disco).</summary>
+    private static async Task<byte[]?> ReadFileAsync(IFormFile file, CancellationToken ct)
+    {
+        if (file.Length > ProductImportService.MaxFileBytes)
+        {
+            return null;
+        }
+
+        await using var stream = file.OpenReadStream();
+        using var buffer = new MemoryStream();
+        var chunk = new byte[81920];
+        int read;
+        while ((read = await stream.ReadAsync(chunk, ct)) > 0)
+        {
+            buffer.Write(chunk, 0, read);
+            if (buffer.Length > ProductImportService.MaxFileBytes)
+            {
+                return null;
+            }
+        }
+
+        return buffer.ToArray();
     }
 
     private static void MapCategories(RouteGroupBuilder categories)

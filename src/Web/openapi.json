@@ -41697,6 +41697,153 @@
         }
       }
     },
+    "/api/v1/catalog/import/template": {
+      "get": {
+        "tags": [
+          "Cat\u00E1logo"
+        ],
+        "operationId": "DownloadProductImportTemplate",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/import/preview": {
+      "post": {
+        "tags": [
+          "Cat\u00E1logo"
+        ],
+        "operationId": "PreviewProductImport",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductImportView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/import/{id}": {
+      "get": {
+        "tags": [
+          "Cat\u00E1logo"
+        ],
+        "operationId": "GetProductImport",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductImportView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/import/{id}/confirm": {
+      "post": {
+        "tags": [
+          "Cat\u00E1logo"
+        ],
+        "operationId": "ConfirmProductImport",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductImportConfirmInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductImportView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/import/{id}/errors": {
+      "get": {
+        "tags": [
+          "Cat\u00E1logo"
+        ],
+        "operationId": "DownloadProductImportErrors",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/catalog/price-lists": {
       "get": {
         "tags": [
@@ -41996,6 +42143,26 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/first-steps": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardFirstSteps",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirstStepsCard"
+                }
+              }
+            }
           }
         }
       }
@@ -58398,6 +58565,100 @@
           }
         }
       },
+      "FirstStep": {
+        "required": [
+          "key",
+          "title",
+          "text",
+          "done",
+          "available",
+          "url",
+          "permission",
+          "comingWith"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "permission": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "comingWith": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "FirstStepsCard": {
+        "required": [
+          "applies",
+          "steps",
+          "done",
+          "total",
+          "allDone",
+          "nextTitle",
+          "nextUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "applies": {
+            "type": "boolean"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FirstStep"
+            }
+          },
+          "done": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "allDone": {
+            "type": "boolean"
+          },
+          "nextTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nextUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "FiscalCertificateChange": {
         "required": [
           "at",
@@ -62032,6 +62293,22 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          }
+        }
+      },
+      "ImportLocationChoice": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
           }
         }
       },
@@ -86547,6 +86824,185 @@
               {
                 "$ref": "#/components/schemas/ProductCostView"
               }
+            ]
+          }
+        }
+      },
+      "ProductImportConfirmInput": {
+        "required": [
+          "launchInitialStock",
+          "locationId"
+        ],
+        "type": "object",
+        "properties": {
+          "launchInitialStock": {
+            "type": "boolean"
+          },
+          "locationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "ProductImportStatus": {
+        "enum": [
+          "Previewed",
+          "Running",
+          "Completed",
+          "Failed"
+        ]
+      },
+      "ProductImportView": {
+        "required": [
+          "id",
+          "fileName",
+          "status",
+          "totalRows",
+          "toCreate",
+          "toUpdate",
+          "errorCount",
+          "errors",
+          "pricesIgnored",
+          "stockRows",
+          "canLaunchStock",
+          "locations",
+          "suggestedLocationId",
+          "newCategories",
+          "inBackground",
+          "processed",
+          "toProcess",
+          "created",
+          "updated",
+          "skipped",
+          "stockPosted",
+          "stockAlreadyPosted",
+          "launchStock",
+          "locationName",
+          "createdAt",
+          "completedAt",
+          "failureMessage"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProductImportStatus"
+          },
+          "totalRows": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "toCreate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "toUpdate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "errorCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pricesIgnored": {
+            "type": "boolean"
+          },
+          "stockRows": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "canLaunchStock": {
+            "type": "boolean"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportLocationChoice"
+            }
+          },
+          "suggestedLocationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "newCategories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "inBackground": {
+            "type": "boolean"
+          },
+          "processed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "toProcess": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "created": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skipped": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockPosted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockAlreadyPosted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "launchStock": {
+            "type": "boolean"
+          },
+          "locationName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "failureMessage": {
+            "type": [
+              "null",
+              "string"
             ]
           }
         }
