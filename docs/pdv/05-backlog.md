@@ -197,7 +197,7 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - CA: app `/pdv` com build e service worker próprios, sem afetar `/fab` nem `/tv`; `LocalStore` com armazenamento persistente; foto e delta do catálogo da loja; a tela abre sem rede; atualização só na troca de turno; faixa "Sem conexão: N vendas a enviar".
 
 **PDV-02 [ ] Tela de venda: toque e teclado/leitor (G)** — ordem 3 — [story](stories/PDV-02-tela-de-venda.md)
-- Depende de: OFF-01; PP-26.
+- Depende de: OFF-01; PP-26 (decidida).
 - Paridade: 22.
 - CA: item por leitor, busca ou grade por categoria em menos de 100 ms; quantidade, remover e observação; venda em espera; cliente opcional e CPF; os dois modos por caixa; atalhos na ajuda; funciona igual sem rede.
 
