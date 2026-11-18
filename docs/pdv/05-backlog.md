@@ -144,7 +144,7 @@ O que pode correr em paralelo:
 - Depende de: PERF-01; PP-25.
 - CA: área "Loja" no dock; tenant sem `factory` vê "Retaguarda" no lugar de "Fábrica"; dicionário com teto de chaves servido no contexto do tenant; a ajuda respeita o termo; a Konebras não muda.
 
-**CAT-01 [ ] Módulo Catálogo: produto vendável, categoria, variação, códigos de barras e preço (G)** — ordem 4 — [story](stories/CAT-01-produto-vendavel-barras-preco.md)
+**CAT-01 [x] Módulo Catálogo: produto vendável, categoria, variação, códigos de barras e preço (G)** — ordem 4 — [story](stories/CAT-01-produto-vendavel-barras-preco.md)
 - Depende de: PERF-01, PERF-03; PP-04.
 - Paridade: 22, 25 (tabela padrão), 33.
 - CA: projeto `Catalog` nas 5 camadas; `ItemType.Merchandise`; categoria de produto; produto com variações (grade de cor e tamanho), cada uma com item, código de barras e preço próprios; vários GTIN por produto, únicos e com dígito verificador validado; tabela de preço padrão versionada; `ICatalogLookup` por código, PLU e busca em menos de 50 ms com 20 mil produtos (teste de carga); `catalog.edit_price` separada; margem só com `view_cost`.

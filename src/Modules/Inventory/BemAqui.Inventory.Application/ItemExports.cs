@@ -15,6 +15,7 @@ public static class ItemExports
         [ItemType.Finished] = "Produto acabado",
         [ItemType.Consumable] = "Material de consumo",
         [ItemType.Service] = "Serviço",
+        [ItemType.Merchandise] = "Mercadoria para revenda",
     };
 
     public static readonly ExportSpec<ItemListItem> Spec = new ExportSpec<ItemListItem>("Item", "itens", "Itens")

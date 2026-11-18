@@ -84,12 +84,17 @@ public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant
             .ToHashSet(StringComparer.Ordinal));
     }
 
-    // Os ocultos (ADR 0046) e o vocabulário (PERF-03) entram no hash só quando existem: trocar o perfil muda a versão e o front
-    // recarrega o menu; sem oculto e sem termo, a versão fica idêntica à de antes dos perfis (regressão da Konebras, PERF-01 CA 11).
-    private static string ReleaseHash(ResolvedTenant tenant) =>
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join(',', tenant.ReleasedModules.Order(StringComparer.Ordinal))
-            + (tenant.HiddenModules.Count == 0 ? string.Empty : "|" + string.Join(',', tenant.HiddenModules.Order(StringComparer.Ordinal)))
+    // Os ocultos (ADR 0046) entram no hash só quando o tenant tem perfil além da fábrica: trocar o perfil muda a versão e o front recarrega o
+    // menu. Na fábrica sozinha (a Konebras), o oculto é só o módulo novo do PDV, que nunca aparece para ela: entra no catálogo de módulos sem
+    // mudar a versão (CAT-01; regressão da PERF-01 CA 11). Liberar à mão um módulo oculto muda os liberados, e a versão muda por eles.
+    // O vocabulário (PERF-03) entra só quando existe; sem termo, a versão fica idêntica à de antes dos perfis.
+    private static string ReleaseHash(ResolvedTenant tenant)
+    {
+        var factoryOnly = tenant.Profiles.All(p => p == BusinessProfileCatalog.Factory);
+        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join(',', tenant.ReleasedModules.Order(StringComparer.Ordinal))
+            + (factoryOnly || tenant.HiddenModules.Count == 0 ? string.Empty : "|" + string.Join(',', tenant.HiddenModules.Order(StringComparer.Ordinal)))
             + (tenant.Vocabulary.Count == 0 ? string.Empty : "|v:" + string.Join(',', tenant.Vocabulary.OrderBy(t => t.Key, StringComparer.Ordinal).Select(t => t.Key + "=" + t.Value)))
             // Adendo da PAG-01: perfil além da fábrica muda os recursos por perfil; a fábrica sozinha (a Konebras) mantém a versão de antes.
-            + (tenant.Profiles.All(p => p == BusinessProfileCatalog.Factory) ? string.Empty : "#" + string.Join(',', tenant.Profiles.Order(StringComparer.Ordinal))))))[..8];
+            + (factoryOnly ? string.Empty : "#" + string.Join(',', tenant.Profiles.Order(StringComparer.Ordinal))))))[..8];
+    }
 }
