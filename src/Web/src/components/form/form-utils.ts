@@ -25,5 +25,12 @@ export function applyServerErrors<T extends FieldValues>(form: UseFormReturn<T, 
   return true
 }
 
-export const inputClass =
-  'w-full rounded-md border border-input bg-card px-3 py-2 text-sm aria-[invalid=true]:border-crit focus-visible:outline-2 focus-visible:outline-ring'
+const fieldClass = 'rounded-md border border-input bg-card px-3 py-2 text-sm aria-[invalid=true]:border-crit focus-visible:outline-2 focus-visible:outline-ring'
+
+export const inputClass = `w-full ${fieldClass}`
+
+/**
+ * Select curto ao lado de outro campo na mesma célula (a unidade ao lado da quantidade): cresce até a opção mais longa, em
+ * vez de uma largura fixa que corta o texto ("BARRA", "PCT"), e não encolhe abaixo de 5rem.
+ */
+export const inlineSelectClass = `w-auto min-w-20 shrink-0 ${fieldClass}`

@@ -142,7 +142,7 @@ export function BomEditor({ orderId, orderQuantity, initial, canEdit, stockConne
               ),
             },
             {
-              label: 'Unidade', width: '6rem', render: (row, i, update) => (
+              label: 'Unidade', width: '7rem', render: (row, i, update) => (
                 <div>
                   <select aria-label={`Unidade da linha ${i + 1}`} aria-invalid={!!lineField(i, 'unitId')} aria-describedby={lineField(i, 'unitId') ? `bom-${i}-unit` : undefined}
                     value={row.unitId ?? ''} disabled={!row.itemId} onChange={(e) => update({ unitId: e.target.value || null })} className={inputClass}>

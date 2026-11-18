@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { mockApi } from './mock-api'
 
-/** FND-09e: mensagem no topo acima do dock, diálogo grande só pelo teclado e editor em cartões a 400 px. */
+/** FND-09e: mensagem no topo (no celular, acima do dock), diálogo grande só pelo teclado e editor em cartões a 400 px. */
 test.describe('componentes da Fase 2 (FND-09e)', () => {
   test.beforeEach(async ({ page }) => mockApi(page))
 
@@ -33,10 +33,12 @@ test.describe('componentes da Fase 2 (FND-09e)', () => {
 
     const message = page.getByRole('status').filter({ hasText: 'Baixa registrada' })
     await expect(message).toBeVisible()
-    const dock = await page.getByRole('navigation', { name: 'Navegação principal' }).boundingBox()
     const shown = (await message.boundingBox())!
     expect(shown.y).toBeLessThan(viewport.height / 2)
-    if (dock) expect(shown.y + shown.height).toBeLessThanOrEqual(dock.y)
+    // O dock só existe no celular; no desktop o menu lateral fica ao lado, e a mensagem fica à direita dele.
+    const nav = (await page.getByRole('navigation', { name: 'Navegação principal' }).boundingBox())!
+    if (viewport.width < 640) expect(shown.y + shown.height).toBeLessThanOrEqual(nav.y)
+    else expect(shown.x).toBeGreaterThanOrEqual(nav.x + nav.width)
   })
 
   test('a 400 px, cada linha do editor vira um cartão com os rótulos (CA 9)', async ({ page }) => {

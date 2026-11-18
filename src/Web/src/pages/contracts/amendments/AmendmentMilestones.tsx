@@ -5,7 +5,10 @@ import { emptyMilestone, milestoneAmounts, type MilestoneDraft } from './amendme
 
 const EVENTS = [{ value: 'Signature', label: 'Assinatura' }, { value: 'FabricationDone', label: 'Fabricação concluída' }, { value: 'Delivered', label: 'Entrega' }, { value: 'TechnicalAcceptance', label: 'Aceite técnico' }]
 
-/** Marcos do acréscimo (COM-07 CA 3): somam 100%; o valor de cada um sai pelo maior resto, como no servidor. */
+/**
+ * Marcos do acréscimo (COM-07 CA 3): somam 100%; o valor de cada um sai pelo maior resto, como no servidor. O gatilho tem
+ * largura mínima para mostrar o evento inteiro ("Fabricação concluída"); abaixo de 1024 px os campos vão em duas colunas.
+ */
 export function AmendmentMilestones({ value, rows, onChange }: { value: number; rows: MilestoneDraft[]; onChange: (rows: MilestoneDraft[]) => void }) {
   const amounts = milestoneAmounts(value, rows.map((r) => Number(r.percent ?? 0)))
   const sum = rows.reduce((a, r) => a + Number(r.percent ?? 0), 0)
@@ -13,7 +16,7 @@ export function AmendmentMilestones({ value, rows, onChange }: { value: number; 
   return (
     <div className="space-y-2">
       {rows.map((r, i) => (
-        <div key={i} className="grid gap-2 rounded-md border border-border bg-card p-3 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]" aria-label={`Marco ${i + 1}`}>
+        <div key={i} className="grid gap-2 rounded-md border border-border bg-card p-3 sm:grid-cols-2 lg:grid-cols-[minmax(8rem,2fr)_minmax(6.5rem,1fr)_minmax(13rem,1.4fr)_minmax(8rem,1fr)_auto]" aria-label={`Marco ${i + 1}`}>
           <input aria-label={`Descrição do marco ${i + 1}`} value={r.description} maxLength={120} onChange={(e) => set(i, { description: e.target.value })} className={inputClass} placeholder="Descrição" />
           <PercentInput aria-label={`Percentual do marco ${i + 1}`} value={r.percent} onChange={(percent) => set(i, { percent })} />
           <select aria-label={`Gatilho do marco ${i + 1}`} value={r.trigger === 'Date' ? 'Date' : r.triggerEvent} onChange={(e) => set(i, e.target.value === 'Date' ? { trigger: 'Date' } : { trigger: 'Event', triggerEvent: e.target.value })} className={inputClass}>

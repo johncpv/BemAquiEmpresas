@@ -109,7 +109,8 @@ export function RowsEditor<T>({ noun, rows, onChange, newRow, columns, headers =
   const iconButton = 'grid size-8 place-items-center rounded-md border border-border disabled:opacity-40'
   return (
     <div className="space-y-2">
-      <div ref={container} role="table" aria-label={plural} className="space-y-2">
+      {/* Grade mais larga que a coluna (tablet, painel estreito): rola dentro do editor, nunca a página. O respiro de 2 px não corta o foco. */}
+      <div ref={container} role="table" aria-label={plural} className="space-y-2 sm:-mx-0.5 sm:overflow-x-auto sm:px-0.5 sm:pb-0.5">
         <div role="row" className="hidden gap-2 px-1 text-xs font-semibold text-muted-foreground sm:grid" style={{ gridTemplateColumns: template }}>
           {labels.map((h) => <span key={h} role="columnheader">{h}</span>)}
           <span role="columnheader" className="sr-only">Ações</span>
