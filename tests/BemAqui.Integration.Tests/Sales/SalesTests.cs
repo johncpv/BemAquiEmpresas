@@ -55,6 +55,11 @@ public partial class SalesTests(TenancyFixture tenancy) : IClassFixture<TenancyF
         return await action(scope.ServiceProvider.GetRequiredService<TenantDbContext>());
     }
 
+    /// <summary>Conta mensagens do outbox que citam o id; o payload é jsonb, então o filtro de texto roda em memória.</summary>
+    private async Task<int> OutboxCountAsync(Guid id, string? type = null) =>
+        (await WithDbAsync(db => db.OutboxMessages.AsNoTracking().Where(m => type == null || m.Type == type).Select(m => m.Payload).ToListAsync()))
+            .Count(p => p.Contains(id.ToString(), StringComparison.Ordinal));
+
     /// <summary>Liga ou desliga o perfil Comércio do tenant A (ele nasce só com <c>factory</c>, como a Konebras).</summary>
     private async Task CommerceAsync(bool on)
     {
@@ -132,7 +137,7 @@ public partial class SalesTests(TenancyFixture tenancy) : IClassFixture<TenancyF
         await CommerceAsync(true);
         var suffix = Guid.NewGuid().ToString("N")[..6];
         var bank = await CreatedAsync(await owner.PostAsJsonAsync("/api/v1/finance/bank-accounts",
-            new { name = "Banco " + suffix, kind = "Bank", bankCode = "077", agency = "1234-5", account = "1" + suffix[..5] + "-9", isDefault = false }));
+            new { name = "Banco " + suffix, kind = "Bank", bankCode = "077", agency = "1234-5", account = "1" + Random.Shared.Next(10000, 99999) + "-9", isDefault = false }));
         var cash = await CreatedAsync(await owner.PostAsJsonAsync("/api/v1/finance/bank-accounts", new { name = "Caixa " + suffix, kind = "Cash" }));
         var acquirer = await CreatedAsync(await owner.PostAsJsonAsync("/api/v1/parties", new { kind = "PJ", document = (string?)null, legalName = "Maquininha " + suffix, roles = new[] { "Acquirer" } }));
         object Method(string name, string type, Guid account, Guid? acq = null) => new { name, type, destinationAccountId = account, acquirerPartyId = acq, nfePaymentCode = (string?)null };

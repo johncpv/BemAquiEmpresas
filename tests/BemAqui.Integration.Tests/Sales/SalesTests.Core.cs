@@ -34,7 +34,7 @@ public partial class SalesTests
 
         (await WithDbAsync(db => db.Sales.CountAsync(s => s.Id == rolledBack.SaleId))).Should().Be(0);
         (await WithDbAsync(db => db.SalePayments.CountAsync(p => p.SaleId == rolledBack.SaleId))).Should().Be(0);
-        (await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.Payload.Contains(rolledBack.SaleId.ToString())))).Should().Be(0);
+        (await OutboxCountAsync(rolledBack.SaleId)).Should().Be(0);
 
         // CA 3 e 6: canal online sem caixa nem sessão; venda, linhas, parte única e pagamento gravados; SaleCompleted no outbox.
         var request = Online(day, location, [Line(product, 2, 15m, 2m), Line(product, 1, 12m)], [Paid(methods.Cash, 50m, change: 10m)]);
@@ -70,7 +70,7 @@ public partial class SalesTests
         second.Value.Should().BeEquivalentTo(first.Value with { Replayed = true }, "a resposta é a da primeira (CA 4)");
         (await WithDbAsync(db => db.Sales.CountAsync(s => s.Id == request.SaleId))).Should().Be(1);
         (await WithDbAsync(db => db.SaleLines.CountAsync(l => l.SaleId == request.SaleId))).Should().Be(1);
-        (await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.Payload.Contains(request.SaleId.ToString()) && m.Type == IntegrationEventRegistry.NameOf(typeof(SaleCompleted)))))
+        (await OutboxCountAsync(request.SaleId, IntegrationEventRegistry.NameOf(typeof(SaleCompleted))))
             .Should().Be(1);
         await DrainAsync();
     }
@@ -148,9 +148,9 @@ public partial class SalesTests
         var first = new OrderPaymentInput(Guid.CreateVersion7(), methods.Pix, 40m, PartLabel: "Ana");
         var partial = await PayAsync(first);
         partial.Status.Should().Be(SaleStatus.PartiallyPaid);
-        partial.Payments.Should().ContainSingle(p => p.Status == SalePaymentStatus.Captured && p.ConfirmedBy != null);
+        partial.Payments.Should().ContainSingle(p => p.Status == SalePaymentStatus.Captured && p.ConfirmedAt != null);
         partial.CashSessionId.Should().BeNull();
-        (await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.Payload.Contains(order.SaleId.ToString())))).Should().Be(0, "só conclui no último pagamento");
+        (await OutboxCountAsync(order.SaleId)).Should().Be(0, "só conclui no último pagamento");
 
         // Mesmo pagamento de novo não grava duas vezes; o que passa do total é recusado.
         (await PayAsync(first)).Payments.Should().HaveCount(1);
@@ -165,7 +165,7 @@ public partial class SalesTests
         done.Parts.Select(p => p.Label).Should().BeEquivalentTo(["Ana", "Bruno"]);
         done.Parts.Should().OnlyContain(p => p.Paid);
         done.CapturedTotal.Should().Be(100m);
-        (await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.Payload.Contains(order.SaleId.ToString())))).Should().Be(1);
+        (await OutboxCountAsync(order.SaleId)).Should().Be(1);
         await DrainAsync();
     }
 

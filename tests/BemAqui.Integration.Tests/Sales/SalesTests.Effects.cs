@@ -60,7 +60,8 @@ public partial class SalesTests
         await DrainAsync();
         (await OnHandAsync(product, location)).Should().Be(10m);
         (await WithDbAsync(db => db.SaleStockPostings.AsNoTracking().SingleAsync(p => p.SaleId == request.SaleId))).Status.Should().Be(SaleStockPostingStatus.Reversed);
-        (await WithDbAsync(db => db.AuditEntries.AsNoTracking().CountAsync(a => a.Entity == "Sale" && a.EntityId == request.SaleId.ToString() && a.Changes.Contains("cancelReason"))))
+        (await WithDbAsync(db => db.AuditEntries.AsNoTracking().Where(a => a.Entity == "Sale" && a.EntityId == request.SaleId.ToString()).Select(a => a.Changes).ToListAsync()))
+            .Count(c => c != null && c.Contains("cancelReason", StringComparison.Ordinal))
             .Should().BeGreaterThan(0, "o cancelamento da venda é auditado");
     }
 

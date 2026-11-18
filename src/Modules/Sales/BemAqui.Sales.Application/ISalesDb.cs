@@ -30,8 +30,8 @@ public static class SalesSchema
 }
 
 /// <summary>
-/// Produto vendável como a venda precisa dele: <b>cópia, campo a campo, do <c>SellableProduct</c> de <c>Catalog.Contracts</c></b> (CAT-01, commit
-/// 11468cae), para a troca do adaptador ser direta. <c>ProductId</c> numa grade é a variação; <c>ParentProductId</c>, o pai; <c>ItemId</c>, o item
+/// Produto vendável como a venda precisa dele: <b>cópia, campo a campo, do <c>SellableProduct</c> de <c>Catalog.Contracts</c></b> (CAT-01, PR #221;
+/// nomes finais), para a troca do adaptador ser direta. <c>ProductId</c> numa grade é a variação; <c>ParentProductId</c>, o pai; <c>ItemId</c>, o item
 /// de estoque por onde a venda baixa; <c>Price</c>, o preço vigente da tabela padrão (null = sem preço); <c>IsActive</c> falso para desativado ou
 /// excluído (a resolução por id devolve mesmo assim).
 /// </summary>
@@ -56,6 +56,10 @@ public sealed record SellableProductInfo(
 /// </summary>
 public interface ISaleProductResolver
 {
+    /// <summary>O produto ou a variação pelo id; null se não existe (como o <c>ISellableProducts.FindAsync</c>).</summary>
+    async Task<SellableProductInfo?> FindAsync(Guid productId, CancellationToken cancellationToken = default) =>
+        await FindManyAsync([productId], cancellationToken) is [var product, ..] ? product : null;
+
     /// <summary>Lote de ids numa consulta só; os que não existem ficam fora da lista (como o <c>ISellableProducts.FindManyAsync</c>).</summary>
     Task<IReadOnlyList<SellableProductInfo>> FindManyAsync(IReadOnlyCollection<Guid> productIds, CancellationToken cancellationToken = default);
 }
