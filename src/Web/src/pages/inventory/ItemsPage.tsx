@@ -9,7 +9,7 @@ import { ExportMenu } from '@/components/ui/export-menu'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
-import { formatNcm, TYPE_LABELS, TYPE_OPTIONS } from './item-labels'
+import { formatNcm, TYPE_LABELS, useTypeOptions } from './item-labels'
 
 const quantity = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 })
 
@@ -18,7 +18,8 @@ export function ItemsPage() {
   const [search] = useTableSearch()
   const { tipo, categoria, inativos } = useTableFilters(['tipo', 'categoria'])
   const categories = useListItemCategories()
-  const type = TYPE_OPTIONS.some((o) => o.value === tipo) ? (tipo as ItemType) : undefined
+  const typeOptions = useTypeOptions()
+  const type = typeOptions.some((o) => o.value === tipo) ? (tipo as ItemType) : undefined
   const filters = { q: search.q, type, categoryId: categoria || undefined, includeInactive: inativos === 'true', sort: search.sort }
   const query = useListItems({ ...filters, page: search.page, pageSize: search.pageSize })
 
@@ -61,7 +62,7 @@ export function ItemsPage() {
         searchPlaceholder="Buscar pelo código ou nome"
         toolbar={<ExportMenu formats={['xlsx']} fileBase="itens" empty={query.data?.total === 0} url={(format) => getExportItemsUrl({ ...filters, format })} />}
         filters={[
-          { key: 'tipo', label: 'Tipo', options: TYPE_OPTIONS },
+          { key: 'tipo', label: 'Tipo', options: typeOptions },
           { key: 'categoria', label: 'Categoria', options: (categories.data ?? []).map((c) => ({ value: c.id, label: c.name })) },
         ]}
         inactiveFilter

@@ -44,7 +44,7 @@ public static class BusinessProfileCatalog
             Vocabulary = BusinessVocabulary.Defaults, // a Fábrica fala como o sistema fala hoje: com ela, nenhum termo muda (PERF-03 CA 3)
         },
         new(Retail, "Comércio", "Venda no balcão e na loja: caixa, estoque e retaguarda.",
-            [.. Core, "kiosk"],
+            [.. Core, "kiosk", "catalog"],
             [
                 new("counter", "Balcão"),
                 new("supermarket", "Supermercado"),
@@ -57,12 +57,13 @@ public static class BusinessProfileCatalog
             Vocabulary = BusinessVocabulary.Backoffice,
         },
         new(Services, "Prestação de serviços", "Serviço com orçamento e ordem de serviço.",
-            [.. Core, "quotes", "projects"],
+            [.. Core, "quotes", "projects", "catalog"],
             [new("workshop", "Oficina")])
         {
             Vocabulary = BusinessVocabulary.Backoffice,
         },
-        new(Ecommerce, "E-commerce", "Venda pela loja virtual.", Core, []) { Vocabulary = BusinessVocabulary.Backoffice },
+        // CAT-01: o catálogo entra em Comércio, Serviços e E-commerce (PRD do PDV, seção 3.3); na Fábrica, não (decisão explícita pendente).
+        new(Ecommerce, "E-commerce", "Venda pela loja virtual.", [.. Core, "catalog"], []) { Vocabulary = BusinessVocabulary.Backoffice },
     ];
 
     /// <summary>Recurso de pagamentos da venda dentro do Financeiro (PAG-01): formas de pagamento e taxas da adquirente.</summary>

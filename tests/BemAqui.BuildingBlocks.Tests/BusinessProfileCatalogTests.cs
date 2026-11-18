@@ -47,4 +47,13 @@ public class BusinessProfileCatalogTests
         BusinessProfileCatalog.Find("services")!.Segments.Select(s => s.Code).Should().Equal("workshop");
         BusinessProfileCatalog.IsKnown("retail", "workshop").Should().BeFalse();
     }
+
+    /// <summary>CAT-01: o catálogo é de Comércio, Serviços e E-commerce; para a fábrica (Konebras), fica oculto.</summary>
+    [Fact]
+    public void Catalogo_de_produtos_so_nos_perfis_de_comercio_e_oculto_para_a_fabrica()
+    {
+        BusinessProfileCatalog.All.Where(p => p.Modules.Contains("catalog")).Select(p => p.Code).Should().Equal("retail", "services", "ecommerce");
+        var allButCatalog = ModuleCatalog.All.Select(m => m.Code).Where(c => c != "catalog").ToHashSet(StringComparer.Ordinal);
+        BusinessProfileCatalog.Hidden([BusinessProfileCatalog.Factory], allButCatalog).Should().Equal("catalog");
+    }
 }

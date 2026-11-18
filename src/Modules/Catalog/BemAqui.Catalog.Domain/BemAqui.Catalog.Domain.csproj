@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\BemAqui.SharedKernel\BemAqui.SharedKernel.csproj" />
+    <ProjectReference Include="..\BemAqui.Catalog.Contracts\BemAqui.Catalog.Contracts.csproj" />
+  </ItemGroup>
+</Project>

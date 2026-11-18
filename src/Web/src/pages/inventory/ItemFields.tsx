@@ -5,7 +5,7 @@ import { inputClass } from '@/components/form/form-utils'
 import { CestInput, NcmInput, QuantityInput } from '@/components/form/inputs'
 import { Dica } from '@/help/Dica'
 import { type ItemDraft, withType } from './item-draft'
-import { DICAS, ORIGINS, requiresNcm, TYPE_OPTIONS } from './item-labels'
+import { DICAS, ORIGINS, requiresNcm, useTypeOptions } from './item-labels'
 
 /** Categorias em ordem de árvore, com o caminho ("Chapas › Aço carbono"), para o seletor. */
 function categoryOptions(all: CategoryDetail[], currentId: string) {
@@ -29,6 +29,7 @@ export function ItemFields({ draft, onChange, errors, readOnly, active }: Props)
   const units = useListUnits({ includeInactive: true })
   const categories = useListItemCategories()
   const warranties = useListWarrantyDefaults()
+  const typeOptions = useTypeOptions(draft.type)
   const set = (patch: Partial<ItemDraft>) => onChange({ ...draft, ...patch })
   const service = draft.type === 'Service'
   const ncmRequired = active && !!draft.type && requiresNcm(draft.type)
@@ -41,7 +42,7 @@ export function ItemFields({ draft, onChange, errors, readOnly, active }: Props)
           {(p) => (
             <select {...p} value={draft.type} onChange={(e) => onChange(withType(draft, e.target.value as ItemType, warranties.data ?? []))} className={inputClass}>
               <option value="">Escolha</option>
-              {TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              {typeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           )}
         </Field>

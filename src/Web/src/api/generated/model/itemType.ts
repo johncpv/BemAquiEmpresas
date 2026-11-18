@@ -14,4 +14,5 @@ export const ItemType = {
   Finished: 'Finished',
   Consumable: 'Consumable',
   Service: 'Service',
+  Merchandise: 'Merchandise',
 } as const;

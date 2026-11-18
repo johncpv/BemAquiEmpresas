@@ -14,6 +14,12 @@ public enum ItemType
     Finished,
     Consumable,
     Service,
+
+    /// <summary>
+    /// Mercadoria para revenda (CAT-01, aditivo): comprada e vendida sem transformação. NCM não é obrigatório no cadastro (a loja que só
+    /// emite cupom não fiscal vende sem ele). Na tela de itens, só aparece para os perfis de comércio.
+    /// </summary>
+    Merchandise,
 }
 
 /// <summary>Resumo do item para os outros módulos (CA 21).</summary>
