@@ -84,6 +84,15 @@ public interface IProductUsageProvider
     Task<string?> UsageAsync(Guid productId, CancellationToken cancellationToken = default);
 }
 
+/// <summary>
+/// Situação do catálogo para o cartão "Primeiros passos" (PERF-04, passo "Importar produtos"): o passo se conclui pelo dado, quando o
+/// tenant já tem algum produto cadastrado (pela importação da CAT-02 ou à mão).
+/// </summary>
+public interface ICatalogStatus
+{
+    Task<bool> HasProductsAsync(CancellationToken cancellationToken = default);
+}
+
 /// <summary>Produto criado, alterado, desativado, excluído ou com código de barras novo: o modelo de leitura do caixa (OFF-01) recarrega.</summary>
 public sealed record ProductChanged(Guid ProductId) : IIntegrationEvent;
 
