@@ -73,3 +73,9 @@
 - **Login completo no tablet:** sem refresh quando a tela pede (`ephemeral`) ou quando o navegador já tem o cookie do aparelho; registrar o aparelho revoga o refresh que houver.
 - **Refresh preso ao host** em que a sessão nasceu, nas duas sessões.
 - Desvios e detalhes na Change Log da PRD-03b.
+
+## Adendo 18/11/2026 (PDV-01, decisões PP-11 e PP-12 do PO): aparelho com tipo
+- `identity.shopfloor_devices` ganha o tipo (`kind`: `Factory`, `Register`), a loja, o caixa, a época do caixa, a chave pública e a última sincronização ([ADR 0048](0048-aparelho-do-pdv-e-esquema-device.md) §1). Os aparelhos de antes ficam `Factory` e nada muda para eles: o `/fab`, o PIN, o segredo rotativo e o teto de 10 continuam valendo só para o tipo Fábrica.
+- O caixa do PDV tem cookie próprio (`__Host-bq_pos`), chave ECDSA e o esquema `Device`; o segredo dele gira na sincronização, não no PIN (ADR 0048 §2).
+- **Exceção nomeada ao §2 (PP-11):** o supervisor de balcão pode ter PIN no aparelho de caixa mesmo com `*.approve`, só para cancelar venda e NFC-e e dar desconto acima do limite, com motivo e aviso ao Proprietário (ADR 0048 §5). Fica ao lado da exceção da `production.approve_quality`.
+- **§5 (operador sem e-mail):** no varejo, o operador sem e-mail é o usuário de operação da [ADR 0049](0049-usuario-de-operacao.md).
