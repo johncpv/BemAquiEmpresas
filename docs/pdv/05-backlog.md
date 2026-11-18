@@ -166,6 +166,7 @@ O que pode correr em paralelo:
 **PERF-04 [ ] Pacotes de dados iniciais por perfil e segmento e checklist "Primeiros passos" (M)** — ordem 8 — [story](stories/PERF-04-seeds-primeiros-passos.md)
 - Depende de: PERF-02, CAT-01, PAG-01.
 - CA: seed do Comércio (locais, contas Caixa e Cofre, formas de pagamento, tabela de preço, categorias, grupos, regras do Simples "A confirmar"); idempotente por `seed_key`; checklist no Início com 5 passos e progresso; cada passo leva à tela certa.
+- Parcial (17/11/2026, branch `feat/perf-04-seeds-primeiros-passos`): mecanismo de pacotes por perfil, pacotes do Financeiro, Estoque, Acessos e Terceiros, unidades de alimentação, gancho no provisionamento e na aba Perfis e o cartão "Primeiros passos". Falta, com a CAT-01 e a CAT-02: o pacote do Catálogo (tabela "Balcão" e categoria "Geral", e as categorias de alimentação) e o link do passo "Importar produtos"; com a IMP-01, o passo "Impressora"; com a PDV-02, o passo da venda de teste.
 
 **INFRA-02 [ ] Backup mais frequente na VPS atual (P)** — em paralelo, antes do piloto — [story](stories/INFRA-02-backup-frequente-vps-atual.md)
 - Depende de: —

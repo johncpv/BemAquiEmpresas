@@ -92,7 +92,8 @@ Dono das tabelas abaixo e das rotas `/api/v1/sales/…`. O núcleo (as quatro pr
 | `finance.payment_methods` (nova) | `id`, `name`, `kind` (`Cash`, `Pix`, `Debit`, `Credit`, `CreditInstallments`, `Voucher`, `StoreCredit`, `OnAccount` fiado), `destination_account_id`, `acquirer_party_id`, `nfe_payment_code` (o `tPag`), `allows_change`, `is_active`, `seed_key`, `confirmed_at`, `confirmed_by`, soft delete | `confirmed_at` nulo = chip "A confirmar" (só nas formas sugeridas; PAG-01) |
 | `finance.acquirer_fees` (nova) | `id`, `acquirer_party_id`, `card_brand`, `payment_method_id`, `installments`, `fee_percent` `decimal(9,4)`, `settlement_days`, `valid_from`, `valid_to` (exclusivo), `created_at`, `created_by` | Histórico por vigência; nunca se edita a taxa passada; `installments` = "a partir de N parcelas" (PAG-01) |
 | `finance.receivables` | + origem `Sale` e `CardSettlement`; + `sale_channel`, `cash_session_id` (**nulo em canal sem caixa**), `settlement_date`, `gross_amount`, `expected_fee`, `net_amount` | Título contra a **adquirente** ou o gateway (cartão) ou contra o cliente (fiado). No PDV, um por adquirente, bandeira, forma e vencimento, por sessão. Em canal sem caixa, o mesmo agrupamento por **dia e canal** (VND-01) |
-| `finance.bank_accounts` | Sem mudança de forma | Contas "Caixa PDV nn" e "Cofre" do tipo `Cash` já são possíveis; conta "Quebra de caixa" entra pelo seed |
+| `finance.bank_accounts` | + `seed_key` (único entre as não nulas; PERF-04) | Contas "Caixa PDV 01", "Cofre" e "Quebra de caixa" do tipo `Cash` entram pelo pacote do Comércio (PERF-04); "Conta bancária principal" só quando o tenant não tem conta do tipo Banco |
+| `parties.parties` | + `seed_key` (único entre as não nulas; PERF-04) | Adquirente "Maquininha" do pacote do Comércio |
 | `finance.pix_charges` (nova, Fase 16) | `id`, `txid`, `amount`, `status`, `sale_payment_id`, `expires_at`, `end_to_end_id` | Atrás do `IPixChargeProvider` |
 
 ## 7. Inventory (extensões)
