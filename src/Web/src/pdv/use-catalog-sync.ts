@@ -36,9 +36,13 @@ export function useCatalogSync(keys: CryptoKeyPair | null, online: boolean): { s
 
   useEffect(() => {
     if (!enabled || !online) return
-    void run()
+    // Primeira descida fora do corpo do efeito (sem setState síncrono no efeito); depois, o delta periódico.
+    const first = setTimeout(() => void run(), 0)
     const timer = setInterval(() => void run(), DELTA_EVERY_MS)
-    return () => clearInterval(timer)
+    return () => {
+      clearTimeout(first)
+      clearInterval(timer)
+    }
   }, [enabled, online, run])
 
   const state = pdv?.store.catalogState() ?? null

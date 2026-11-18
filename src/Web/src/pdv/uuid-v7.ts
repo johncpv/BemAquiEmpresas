@@ -3,7 +3,7 @@
  * aleatórios do `crypto.getRandomValues`. Ordenam pelo instante (bom para índice no servidor) e não dependem de rede para nascer; o
  * servidor aceita o id do aparelho como chave da venda e do evento (rascunho A, item 6).
  */
-export function uuidv7(now: number = Date.now(), random: (bytes: Uint8Array) => Uint8Array = (b) => crypto.getRandomValues(b)): string {
+export function uuidv7(now: number = Date.now(), random: (bytes: Uint8Array<ArrayBuffer>) => Uint8Array<ArrayBuffer> = (b) => crypto.getRandomValues(b)): string {
   if (!Number.isSafeInteger(now) || now < 0) throw new Error(`Instante inválido para o Guid v7: ${now}.`)
   const bytes = random(new Uint8Array(16))
   let ms = now

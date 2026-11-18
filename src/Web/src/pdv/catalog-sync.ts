@@ -35,9 +35,11 @@ export type CatalogSyncResult =
   | { kind: 'delta'; changes: number; cursor: string }
 
 export class CatalogSchemaError extends Error {
-  constructor(readonly serverVersion: number) {
+  readonly serverVersion: number
+  constructor(serverVersion: number) {
     super(`O servidor mandou o catálogo na versão ${serverVersion}, e este app entende a ${CATALOG_SCHEMA_VERSION}. Atualize o app do caixa.`)
     this.name = 'CatalogSchemaError'
+    this.serverVersion = serverVersion
   }
 }
 

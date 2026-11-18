@@ -13,7 +13,10 @@ class FakeSource implements CatalogSyncSource {
   snapshots = 0
   cursors: string[] = []
   pages: CatalogChanges[] = []
-  constructor(public snap: CatalogSnapshot) {}
+  snap: CatalogSnapshot
+  constructor(snap: CatalogSnapshot) {
+    this.snap = snap
+  }
 
   async snapshot(options?: { onProgress?: (fraction: number) => void }) {
     this.snapshots++

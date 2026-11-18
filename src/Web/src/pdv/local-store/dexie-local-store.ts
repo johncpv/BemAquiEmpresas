@@ -56,7 +56,13 @@ export class DexieLocalStore implements LocalStore {
   private meta: CatalogMeta | null = null
   private overlaySize = 0
 
-  private constructor(private readonly db: PdvDatabase, private readonly lock: WriterLock) {}
+  private readonly db: PdvDatabase
+  private readonly lock: WriterLock
+
+  private constructor(db: PdvDatabase, lock: WriterLock) {
+    this.db = db
+    this.lock = lock
+  }
 
   /**
    * Abre o banco e carrega o catálogo na memória. Erro ao abrir: tenta de novo (SPK-03, achado 1) e, se insistir, propaga. **Nunca** apaga o

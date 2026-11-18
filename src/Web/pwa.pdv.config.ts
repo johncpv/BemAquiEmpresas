@@ -16,6 +16,8 @@ export const pdvPwaOptions: Partial<VitePWAOptions> = {
   filename: 'pdv/sw.js',
   manifestFilename: 'pdv/manifest.webmanifest',
   includeAssets: [],
+  // Os ícones já entram pelo globPatterns (pdv/icon-*.png); sem isto, o plugin os repete no precache.
+  includeManifestIcons: false,
   manifest: {
     id: PDV_SCOPE,
     name: 'BemAqui Caixa',
