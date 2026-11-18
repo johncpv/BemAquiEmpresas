@@ -7,7 +7,8 @@ test.describe('menu por permissão (FND-06d)', () => {
   test('não liberado: cadeado no menu e tela padrão com a mensagem exata pela URL (CA 1, 2)', async ({ page }, info) => {
     await mockApi(page, { 'GET /api/v1/me/permissions': (r) => json(r, { permissions: [], isOwner: false, version: '1', modules: allModules({ finance: { released: false, enabled: false } }) }) })
     await page.goto('/app')
-    await page.getByRole('button', { name: 'Financeiro' }).click()
+    // Desktop: o módulo já está à vista no menu lateral; celular: a área abre o sheet do dock.
+    if (info.project.name === 'celular') await page.getByRole('button', { name: 'Financeiro' }).click()
     await expect(page.getByRole('link', { name: 'Caixa e pagamentos, não liberado' })).toBeVisible()
     test.skip(info.project.name === 'celular', 'o sheet cobre a tela; a URL direta é coberta no desktop')
     await page.goto('/app/financeiro')
@@ -18,7 +19,9 @@ test.describe('menu por permissão (FND-06d)', () => {
   test('liberado sem acesso: some do menu (e a área vazia some) e a URL mostra acesso negado (CA 3, 4)', async ({ page }) => {
     await mockApi(page, { 'GET /api/v1/me/permissions': (r) => json(r, { permissions: [], isOwner: false, version: '1', modules: allModules({ hr: { enabled: false } }) }) })
     await page.goto('/app')
-    await expect(page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('button', { name: 'Pessoas' })).toHaveCount(0)
+    const nav = page.getByRole('navigation', { name: 'Navegação principal' })
+    await expect(nav.getByText('Comercial', { exact: true })).toBeVisible()
+    await expect(nav.getByText('Pessoas', { exact: true })).toHaveCount(0)
     await page.goto('/app/rh')
     await expect(page.getByRole('heading', { name: 'Sem acesso a esta tela' })).toBeVisible()
     await expect(page.getByText('Você não tem acesso a esta funcionalidade. Fale com o administrador.')).toBeVisible()

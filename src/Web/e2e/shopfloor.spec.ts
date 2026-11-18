@@ -210,14 +210,13 @@ test.describe('App do operador (PRD-03a)', () => {
     await expect(locked.getByText('Funcionalidade não liberada nessa versão do sistema.')).toBeVisible()
   })
 
-  test('dock leva ao /fab e o tema segue o sistema (automático)', async ({ page }, info) => {
-    test.skip(info.project.name === 'celular', 'dock no desktop')
+  test('o menu lateral leva ao /fab e o tema segue o sistema (automático)', async ({ page }, info) => {
+    test.skip(info.project.name === 'celular', 'menu lateral no desktop')
     const state: State = { started: false, paused: false, reason: null, checklist: [false, false], people: [] }
     await fabApi(page, state)
     await page.emulateMedia({ colorScheme: 'dark' })
     await page.goto('/app')
-    await page.getByRole('button', { name: 'Telas' }).click()
-    await page.getByLabel('Telas dedicadas').getByRole('link', { name: 'App do operador' }).click()
+    await page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('list', { name: 'Telas dedicadas' }).getByRole('link', { name: 'App do operador' }).click()
     await expect(page).toHaveURL(/\/fab$/)
     await expect(page.getByText('Olá, Diego')).toBeVisible()
     const background = await page.locator('main').evaluate((m) => getComputedStyle(m).backgroundColor)

@@ -25,7 +25,7 @@ describe('shell do backoffice (FND-09b)', () => {
   // Sessão em memória e API respondendo vazio: o guarda de /app deixa passar.
   beforeEach(() => {
     setAccessToken('token-de-teste')
-    const body = (url: string) => (url.startsWith('/api/v1/me/permissions') ? { permissions: [], isOwner: true, version: '1', modules: SAMPLE_MODULES } : url.startsWith('/api/v1/ajuda') || url.startsWith('/api/v1/assets/sites') ? [] : {})
+    const body = (url: string) => (url.startsWith('/api/v1/me/permissions') ? { permissions: [], isOwner: true, version: '1', modules: SAMPLE_MODULES } : url.startsWith('/api/v1/ajuda') || url.startsWith('/api/v1/assets/sites') || url === '/api/v1/identity/groups' ? [] : {})
     vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify(body(url)), { status: 200, headers: { 'Content-Type': 'application/json' } })))
   })
 
@@ -34,20 +34,44 @@ describe('shell do backoffice (FND-09b)', () => {
     setAccessToken(null)
   })
 
-  it('dock com as 7 áreas na ordem, dentro de nav rotulado (CA 1)', async () => {
+  it('desktop: menu lateral com as 7 áreas na ordem e os módulos de cada uma abertos, dentro de nav rotulado (CA 1, adendo D8)', async () => {
     renderAt('/app')
     const nav = await screen.findByRole('navigation', { name: 'Navegação principal' })
-    const areas = [...nav.querySelectorAll('button')].map((b) => b.textContent)
-    expect(areas).toEqual(['Visão geral', 'Comercial', 'Fábrica', 'Financeiro', 'Pessoas', 'Telas', 'Sistema'])
+    const lists = await within(nav).findAllByRole('list')
+    expect(lists.map((l) => l.getAttribute('aria-labelledby') && document.getElementById(l.getAttribute('aria-labelledby')!)?.textContent))
+      .toEqual(['Visão geral', 'Comercial', 'Fábrica', 'Financeiro', 'Pessoas', 'Telas dedicadas', 'Sistema'])
+    expect(within(lists[1]).getAllByRole('link').map((a) => a.textContent)).toEqual(['Orçamentos', 'Projetos', 'Cadastros'])
+    // O espaço do dock não existe no desktop.
+    expect(document.querySelector('.pb-28')).toBeNull()
   })
 
-  it('módulo aberto marca a área no dock e mostra as abas e a trilha (CA 3, 8)', async () => {
+  it('desktop: módulo aberto fica marcado no menu lateral e mostra as abas e a trilha (CA 3, 8)', async () => {
     renderAt('/app/acessos/grupos')
-    const sistema = await screen.findByRole('button', { name: 'Sistema' })
-    expect(sistema.getAttribute('aria-current')).toBe('page')
+    const nav = await screen.findByRole('navigation', { name: 'Navegação principal' })
+    const current = await within(nav).findByRole('link', { name: 'Usuários e acessos' })
+    expect(current.getAttribute('aria-current')).toBe('page')
+    expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(1)
     const tabs = screen.getByRole('navigation', { name: 'Telas de Usuários e acessos' })
     expect(tabs.querySelector('[aria-current="page"]')?.textContent).toBe('Grupos')
     expect(screen.getByRole('navigation', { name: 'Trilha' }).textContent).toContain('Usuários e acessos')
+  })
+
+  it('desktop: Recolher deixa só os ícones das áreas, lembra a escolha e o ícone abre os módulos (adendo D8)', async () => {
+    try {
+      renderAt('/app')
+      const nav = await screen.findByRole('navigation', { name: 'Navegação principal' })
+      fireEvent.click(await within(nav).findByRole('button', { name: 'Recolher' }))
+      expect(localStorage.getItem('bq.menu.recolhido')).toBe('1')
+      expect(within(nav).queryAllByRole('link')).toEqual([])
+      const comercial = within(nav).getByRole('button', { name: 'Comercial' })
+      fireEvent.click(comercial)
+      const menu = await screen.findByRole('dialog', { name: 'Comercial' })
+      expect(within(menu).getByRole('link', { name: 'Orçamentos' })).toBeDefined()
+      fireEvent.click(within(nav).getByRole('button', { name: 'Expandir o menu' }))
+      expect(localStorage.getItem('bq.menu.recolhido')).toBe('0')
+    } finally {
+      localStorage.removeItem('bq.menu.recolhido')
+    }
   })
 
   it('abas agrupadas na barra do topo, sem barra de rolagem nativa; módulo sem grupos não ganha rótulo', async () => {

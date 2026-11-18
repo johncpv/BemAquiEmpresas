@@ -43,4 +43,4 @@ Ver a empresa em um minuto: quanto há em caixa, como ele fica nas próximas sem
 
 **Onde defino a meta?** Em Configurações → Parâmetros → **Metas de faturamento**, um valor para cada mês do ano.
 
-**Por que caio no painel quando entro?** O painel é a primeira tela de quem é do grupo Proprietário. Os demais começam no Início; quem tem acesso ao painel o encontra no dock, em Visão geral.
+**Por que caio no painel quando entro?** O painel é a primeira tela de quem é do grupo Proprietário. Os demais começam no Início; quem tem acesso ao painel o encontra no menu, em Visão geral.

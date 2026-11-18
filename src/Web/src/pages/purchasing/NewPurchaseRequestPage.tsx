@@ -7,7 +7,7 @@ import { useIdempotencyKey } from '@/api/idempotency'
 import { Combobox, type ComboOption } from '@/components/form/combobox'
 import { Field, FormActions, FormError, FormGridItem, FormSection } from '@/components/form/form'
 import { FormLayout } from '@/components/layout/form-layout'
-import { inputClass } from '@/components/form/form-utils'
+import { inlineSelectClass, inputClass } from '@/components/form/form-utils'
 import { DateInput, QuantityInput } from '@/components/form/inputs'
 import { RowsEditor } from '@/components/form/rows-editor'
 import { notifySuccess } from '@/components/ui/messages'
@@ -158,7 +158,7 @@ function PurchaseRequestForm({ defaults, prefill }: { defaults: PurchaseRequestD
                     <span className="flex items-center gap-2">
                       <QuantityInput aria-label={`Quantidade da linha ${i + 1}`} aria-invalid={!!error} aria-describedby={error ? `linha-${i}-qtd` : undefined} value={l.quantity} onChange={(v) => update({ quantity: v })} />
                       {option && option.units.length > 1 ? (
-                        <select aria-label={`Unidade da linha ${i + 1}`} value={l.unitId} onChange={(e) => update({ unitId: e.target.value })} className={`${inputClass} w-20`}>
+                        <select aria-label={`Unidade da linha ${i + 1}`} value={l.unitId} onChange={(e) => update({ unitId: e.target.value })} className={inlineSelectClass}>
                           {option.units.map((u) => <option key={u.unitId} value={u.unitId}>{u.code}</option>)}
                         </select>
                       ) : <span className="text-sm text-muted-foreground">{option?.unitCode}</span>}

@@ -93,14 +93,15 @@ test.describe('Catálogo (CAT-01)', () => {
     await expect(steps.getByRole('button', { name: 'Gerar grade' })).toBeVisible()
 
     await page.getByRole('button', { name: 'Adicionar código', exact: true }).click()
-    const dialog = page.getByRole('dialog', { name: 'Adicionar código de barras' })
+    // ConfirmDialog é alertdialog (confirma um efeito), não dialog.
+    const dialog = page.getByRole('alertdialog', { name: 'Adicionar código de barras' })
     await dialog.getByRole('textbox', { name: 'Código de barras (GTIN)' }).fill('17891000315504')
     await dialog.getByRole('textbox', { name: /Quantidade da embalagem/ }).fill('12')
     await dialog.getByRole('button', { name: 'Adicionar código' }).click()
     await expect(page.getByRole('list', { name: 'Códigos de barras' }).getByText('Embalagem com 12')).toBeVisible()
 
     await page.getByRole('button', { name: 'Alterar preço', exact: true }).click()
-    const price = page.getByRole('dialog', { name: /Alterar o preço/ })
+    const price = page.getByRole('alertdialog', { name: /Alterar o preço/ })
     await price.getByRole('textbox', { name: 'Preço de venda' }).fill('10,50')
     await price.getByRole('button', { name: 'Alterar preço' }).click()
     await expect(page.getByText('Tabela Balcão, versão 2.')).toBeVisible()
