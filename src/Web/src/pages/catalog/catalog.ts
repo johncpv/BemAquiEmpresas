@@ -59,8 +59,12 @@ export const formatPercent = (value: number | null | undefined) =>
 export const describePack = (quantity: number) =>
   quantity === 1 ? 'Unidade' : `Embalagem com ${quantity.toLocaleString('pt-BR', { maximumFractionDigits: 4 })}`
 
-/** Atributos da grade digitados ("Azul, Preto"): valores sem repetição e sem vazio. */
-export const parseValues = (text: string) => [...new Map(text.split(',').map((v) => v.trim()).filter(Boolean).map((v) => [v.toLowerCase(), v])).values()]
+/** Atributos da grade digitados ("Azul, Preto"): valores sem repetição (vale a primeira grafia) e sem vazio. */
+export const parseValues = (text: string) => {
+  const seen = new Map<string, string>()
+  for (const v of text.split(',').map((s) => s.trim()).filter(Boolean)) if (!seen.has(v.toLowerCase())) seen.set(v.toLowerCase(), v)
+  return [...seen.values()]
+}
 
 /** Quantas variações a grade gera (produto das quantidades de valores). */
 export const combinationCount = (attributes: { name: string; values: string[] }[]) => {
