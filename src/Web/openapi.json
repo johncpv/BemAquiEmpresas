@@ -40994,6 +40994,26 @@
         }
       }
     },
+    "/api/v1/dashboard/first-steps": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardFirstSteps",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirstStepsCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/dashboard/cards/balances": {
       "get": {
         "tags": [
@@ -57342,6 +57362,100 @@
           },
           "reversed": {
             "type": "boolean"
+          }
+        }
+      },
+      "FirstStep": {
+        "required": [
+          "key",
+          "title",
+          "text",
+          "done",
+          "available",
+          "url",
+          "permission",
+          "comingWith"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "permission": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "comingWith": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "FirstStepsCard": {
+        "required": [
+          "applies",
+          "steps",
+          "done",
+          "total",
+          "allDone",
+          "nextTitle",
+          "nextUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "applies": {
+            "type": "boolean"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FirstStep"
+            }
+          },
+          "done": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "allDone": {
+            "type": "boolean"
+          },
+          "nextTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nextUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
