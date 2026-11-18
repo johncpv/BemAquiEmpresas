@@ -43,6 +43,8 @@ public static class InventoryInfrastructure
         services.TryAddScoped<IItemSuggestions, ItemSuggestionsContract>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, UnitSeeder>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, WarrantyDefaultSeeder>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IProfileSeedPackage, InventoryRetailSeedPackage>()); // PERF-04
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IProfileSeedPackage, InventoryFoodSeedPackage>());
         services.AddAuditableEntity<Location>("inventory");
         services.AddAuditableEntity<MeasureUnit>("inventory");
         services.AddAuditableEntity<ItemCategory>("inventory");

@@ -43,6 +43,10 @@ public static class PlatformInfrastructure
         services.TryAddScoped<BemAqui.Platform.Contracts.ITenantProfile, Catalog.CatalogTenantProfile>();
         services.TryAddScoped<BemAqui.Platform.Application.Modules.ITenantModulesDb>(sp => sp.GetRequiredService<CatalogDbContext>());
         services.TryAddScoped<BemAqui.Platform.Application.Modules.TenantModuleService>();
+        // PERF-04: os pacotes de dados iniciais do perfil rodam com os seeders (provisionamento e migrate) e ao adicionar perfil na aba Perfis.
+        services.TryAddScoped<ProfileSeedRunner>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, ProfileSeedRunner>(sp => sp.GetRequiredService<ProfileSeedRunner>()));
+        services.TryAddScoped<BemAqui.Platform.Application.Modules.TenantProfileSeeding>();
         services.TryAddScoped<BemAqui.Platform.Application.Tenants.IPlatformTenantsDb>(sp => sp.GetRequiredService<CatalogDbContext>());
         services.TryAddScoped<BemAqui.Platform.Application.Tenants.TenantAdminService>();
         services.TryAddTransient<Provisioning.ProvisionTenantJob>();

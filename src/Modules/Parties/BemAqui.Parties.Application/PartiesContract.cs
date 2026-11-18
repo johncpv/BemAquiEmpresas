@@ -45,6 +45,11 @@ public sealed class PartiesContract(IPartiesDb db, PartyAddressIbge ibge) : IPar
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<PartySummary?> FindBySeedKeyAsync(string seedKey, CancellationToken cancellationToken = default) =>
+        await db.Parties.AsNoTracking().Where(p => p.SeedKey == seedKey)
+            .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(r => r.Role).ToList(), p.IsActive, false, p.DefaultPaymentTermId, p.CreatedAt))
+            .FirstOrDefaultAsync(cancellationToken);
+
     public async Task<PartySummary?> FindByDocumentAsync(string document, CancellationToken cancellationToken = default)
     {
         var doc = BemAqui.SharedKernel.BrazilianDocuments.Normalize(document);

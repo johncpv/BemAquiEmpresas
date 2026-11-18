@@ -23,6 +23,9 @@ public sealed record ResolvedTenant(TenantInfo Tenant, string LegalName, string?
     /// <summary>Perfis de negócio ativos do tenant (ADR 0046): decidem os recursos por perfil dentro de um módulo comum (adendo da PAG-01).</summary>
     public IReadOnlySet<string> Profiles { get; init; } = new HashSet<string>(StringComparer.Ordinal);
 
+    /// <summary>Segmentos dos perfis ativos do tenant (ADR 0046 §4): só os pacotes de dados iniciais (PERF-04) e os padrões de tela leem.</summary>
+    public IReadOnlySet<string> Segments { get; init; } = new HashSet<string>(StringComparer.Ordinal);
+
     /// <summary>Recurso por perfil liberado: o tenant tem algum dos perfis do recurso (<see cref="Modules.BusinessProfileCatalog.Features"/>).</summary>
     public bool HasFeature(string feature) => Modules.BusinessProfileCatalog.HasFeature(Profiles, feature);
 

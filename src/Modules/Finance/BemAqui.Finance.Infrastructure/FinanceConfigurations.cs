@@ -29,6 +29,9 @@ internal sealed class BankAccountConfiguration : IEntityTypeConfiguration<BankAc
         b.Property(e => e.Provider).HasConversion<string>().HasMaxLength(20).HasDefaultValue(BankProvider.None).HasSentinel(BankProvider.None);
         // Uma conta padrão por vez (CA 6); a excluída deixa de ser padrão.
         b.HasIndex(e => e.IsDefault).IsUnique().HasFilter("is_default").HasDatabaseName(BankAccountService.DefaultIndex);
+        // PERF-04: contas do pacote do Comércio, uma vez por tenant, mesmo excluídas.
+        b.Property(e => e.SeedKey).HasMaxLength(50);
+        b.HasIndex(e => e.SeedKey).IsUnique().HasFilter("seed_key IS NOT NULL").HasDatabaseName("ix_bank_accounts_seed_key");
     }
 }
 

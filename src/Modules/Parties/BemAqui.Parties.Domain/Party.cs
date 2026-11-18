@@ -59,6 +59,9 @@ public sealed class Party : Entity, IAuditable, ISoftDeletable
     /// <summary>Origem da importação (ex.: <c>dolibarr:llx_societe:42</c>), gravada só pelo <c>IPartyImport</c> (MIG-01b CA 17).</summary>
     public string? ImportSource { get; set; }
 
+    /// <summary>Chave do pacote de dados iniciais do perfil (PERF-04: <c>maquininha</c>); null para os cadastrados pelo tenant.</summary>
+    public string? SeedKey { get; init; }
+
     /// <summary>Cadastro anonimizado a pedido do titular (LGPD-01b CA 4): fica inativo e só leitura, com a faixa "Cadastro anonimizado".</summary>
     public DateTimeOffset? AnonymizedAt { get; set; }
 

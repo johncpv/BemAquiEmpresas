@@ -69,6 +69,11 @@ public interface IParties
     /// </summary>
     Task<PartySummary?> FindByDocumentAsync(string document, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// O terceiro de um pacote de dados iniciais do perfil (PERF-04: a adquirente <c>maquininha</c>), se ainda existe (excluído: null).
+    /// </summary>
+    Task<PartySummary?> FindBySeedKeyAsync(string seedKey, CancellationToken cancellationToken = default) => Task.FromResult<PartySummary?>(null);
+
     Task<bool> HasRoleAsync(Guid id, PartyRoleKind role, CancellationToken cancellationToken = default);
 
     Task<PartyAddressInfo?> DefaultAddressAsync(Guid id, AddressKind kind, CancellationToken cancellationToken = default);

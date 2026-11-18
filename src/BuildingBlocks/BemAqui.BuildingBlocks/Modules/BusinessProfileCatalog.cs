@@ -77,7 +77,11 @@ public static class BusinessProfileCatalog
     public static IReadOnlyDictionary<string, IReadOnlyList<string>> Features { get; } = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal)
     {
         [PaymentMethodsFeature] = [Retail, Services, Ecommerce],
+        [FirstStepsFeature] = [Retail],
     };
+
+    /// <summary>Checklist "Primeiros passos" do Início (PERF-04): só o Comércio, por enquanto; a fábrica não vê o cartão nem a ajuda.</summary>
+    public const string FirstStepsFeature = "dashboard.first_steps";
 
     public static bool HasFeature(IEnumerable<string> profiles, string feature)
     {
