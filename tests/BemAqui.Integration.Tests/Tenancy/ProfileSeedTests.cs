@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using BemAqui.BuildingBlocks.Modules;
 using BemAqui.BuildingBlocks.Tenancy;
+using BemAqui.Catalog.Application;
 using BemAqui.Finance.Contracts;
 using BemAqui.Host.Persistence;
 using BemAqui.Identity.Domain;
@@ -159,6 +160,9 @@ public class ProfileSeedTests(TenancyFixture tenancy) : IClassFixture<TenancyFix
         var modules = await QueryAsync(tenant.Id, db => db.GroupPermissions.Select(p => p.ModuleCode).Distinct().ToListAsync());
         modules.Should().OnlyContain(m => ModuleCatalog.All.Any(c => c.Code == m), "só permissões de módulos que já existem");
 
+        (await QueryAsync(tenant.Id, db => db.ProductCategories.Where(c => c.SeedKey == "geral").Select(c => c.Name).ToListAsync())).Should().Equal("Geral");
+        (await QueryAsync(tenant.Id, db => db.PriceLists.Where(l => l.SeedKey == "balcao").Select(l => l.Name).ToListAsync())).Should().Equal("Balcão");
+
         // CA 4: o segmento de alimentação acrescenta as unidades.
         (await QueryAsync(tenant.Id, db => db.Units.Where(u => u.SeedKey != null).Select(u => u.Code).ToListAsync())).Should().Contain(["G", "ML", "DZ", "PCT", "POR"]);
 
@@ -178,12 +182,21 @@ public class ProfileSeedTests(TenancyFixture tenancy) : IClassFixture<TenancyFix
     {
         // CA 3: o tenant A nasce fábrica; a aba Perfis acrescenta Comércio (o endpoint chama estes dois serviços).
         var tenantId = tenancy.TenantA.Id;
+
+        // O Catálogo já foi usado antes do perfil (a CAT-01 cria a "Geral" e a "Balcão" no primeiro uso): o pacote reusa, não duplica.
+        await using (var scope = await ScopeAsync(tenantId))
+        {
+            await scope.ServiceProvider.GetRequiredService<CatalogDefaults>().EnsureAsync();
+        }
+
         await using (var scope = tenancy.Factory.Services.CreateAsyncScope())
         {
             (await scope.ServiceProvider.GetRequiredService<TenantModuleService>().AddProfileAsync(tenantId, BusinessProfileCatalog.Retail, "counter", null)).IsSuccess.Should().BeTrue();
             (await scope.ServiceProvider.GetRequiredService<TenantProfileSeeding>().RunAsync(tenantId)).Should().BeTrue();
         }
 
+        (await QueryAsync(tenantId, db => db.ProductCategories.IgnoreQueryFilters().CountAsync(c => c.SeedKey == "geral"))).Should().Be(1);
+        (await QueryAsync(tenantId, db => db.PriceLists.CountAsync(l => l.SeedKey == "balcao"))).Should().Be(1);
         (await QueryAsync(tenantId, db => db.PaymentMethods.CountAsync(m => m.SeedKey != null))).Should().Be(RetailMethodKeys.Length);
         (await QueryAsync(tenantId, db => db.Units.CountAsync(u => u.Code == "DZ"))).Should().Be(0, "Balcão não é segmento de alimentação");
 
@@ -228,7 +241,8 @@ public class ProfileSeedTests(TenancyFixture tenancy) : IClassFixture<TenancyFix
     private Task<string> CountsAsync(Guid tenantId) => QueryAsync(tenantId, async db =>
         string.Join(",", await db.BankAccounts.IgnoreQueryFilters().CountAsync(), await db.PaymentMethods.IgnoreQueryFilters().CountAsync(),
             await db.Locations.IgnoreQueryFilters().CountAsync(), await db.Groups.CountAsync(), await db.GroupPermissions.CountAsync(),
-            await db.Parties.IgnoreQueryFilters().CountAsync(), await db.Units.IgnoreQueryFilters().CountAsync()));
+            await db.Parties.IgnoreQueryFilters().CountAsync(), await db.Units.IgnoreQueryFilters().CountAsync(),
+            await db.ProductCategories.IgnoreQueryFilters().CountAsync(), await db.PriceLists.CountAsync()));
 
     [Fact]
     public async Task Primeiros_passos_marcam_sozinhos_pelo_dado()

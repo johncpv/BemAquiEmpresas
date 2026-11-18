@@ -19,10 +19,7 @@ public static class BusinessProfileSeeds
     /// <summary>Grupos Gerente de loja, Operador de caixa e Estoquista (Identity), só com permissões de módulos que já existem.</summary>
     public const string IdentityRetail = "identity.retail";
 
-    /// <summary>
-    /// Tabela de preço "Balcão" e categoria "Geral" (Catalog). Ponto de extensão: o módulo Catálogo (CAT-01) registra o pacote com esta
-    /// chave; até lá o executor pula a chave sem implementação.
-    /// </summary>
+    /// <summary>Tabela de preço "Balcão" e categoria "Geral" (Catalog): os mesmos cadastros padrão que a CAT-01 cria no primeiro uso.</summary>
     public const string CatalogRetail = "catalog.retail";
 
     /// <summary>Unidades do segmento de alimentação (Inventory).</summary>

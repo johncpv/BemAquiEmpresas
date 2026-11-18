@@ -76,11 +76,12 @@ A story depende da CAT-01, que ainda não está na `main`. Esta parte entrega tu
 - **CA 2 (parte das taxas):** as formas do seed abrem com o chip "A confirmar" e "Marcar como conferido" (da PAG-01) é auditado; com a Maquininha, os cartões já podem ser conferidos.
 - **CA 3:** idempotente pela `seed_key`; não recria o excluído; não altera nome, conta, adquirente, conferência nem permissões; nome ou código já usado pelo tenant não é duplicado; o local "Loja" só vira padrão se não houver nenhum.
 - **CA 4 (parcial):** segmentos de alimentação (padaria, restaurante, lanchonete e trailer) acrescentam as unidades G, ML, DZ, PCT e POR.
+- **CA 1, Catálogo (parte 2, 18/11, depois da CAT-01):** o pacote `catalog.retail` (`CatalogRetailSeedPackage`) cria a categoria "Geral" e a tabela de preço "Balcão" reusando os cadastros padrão da CAT-01 (`CatalogDefaults`), pela `seed_key`: se o primeiro uso do Catálogo já criou, nada é duplicado nem alterado. O passo 2 "Importar produtos" continua "Em breve" (CAT-02).
 - **CA 5:** `factory` não tem pacote; teste de regressão compara o retrato de todas as tabelas do banco (contagem e hash do conteúdo, menos auditoria e outbox) antes e depois do seed.
 - **CA 6 a 9:** `GET /api/v1/dashboard/first-steps` (calculado pelos contratos `ICompanyIdentity`, `IFiscalSetupStatus` novo e `IPaymentMethods`), recurso por perfil `dashboard.first_steps` (só Comércio). Cartão no Início com esqueleto, erro com "Tentar de novo", progresso, passo sem permissão sem link ("Peça a quem administra o sistema."), "Tudo pronto" com o próximo passo e "Dispensar" (guardado no navegador; não há tabela). Passo 1 concluído com empresa completa e regime conferido; passo 3 com todas as formas ativas conferidas. Ajuda `Ajuda/inicio-primeiros-passos.md`.
 
 **Fica para depois (anotado):**
-- **CAT-01:** o pacote `catalog.retail` (tabela de preço "Balcão" e categoria "Geral") e as categorias do segmento de alimentação. O ponto de extensão está pronto: o módulo Catálogo registra um `IProfileSeedPackage` com a chave `BusinessProfileSeeds.CatalogRetail`, que já está na lista do Comércio e hoje é pulada.
+- **Categorias do segmento de alimentação** (CA 4): o Catálogo da CAT-01 ainda não tem categorias por segmento; entram quando o PO definir a lista.
 - **CAT-02:** o link do passo 2 "Importar produtos" (hoje "Em breve", sem link) e a regra de concluído (produto cadastrado).
 - **IMP-01:** o passo 4 "Impressora" (hoje "Em breve").
 - **PDV-01 e PDV-02:** o passo 5 "Abrir o caixa e fazer uma venda de teste" (hoje "Em breve"), as permissões `pos` e `sales` dos grupos do seed e a loja e o caixa do PDV. Enquanto houver passo "Em breve", o cartão não chega a "Tudo pronto".
@@ -89,7 +90,7 @@ A story depende da CAT-01, que ainda não está na `main`. Esta parte entrega tu
 - **Local padrão:** num tenant novo do Comércio o "Almoxarifado principal" do seed básico continua sendo o padrão; trocar para "Loja" seria alterar um valor existente. Fica para decidir com a PDV-01.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos (parte 1: ver acima; o pacote do Catálogo e os passos 2, 4 e 5 esperam a CAT-01, a CAT-02, a IMP-01 e a PDV-02).
+- [ ] Critérios de aceite atendidos (ver acima; os passos 2, 4 e 5 esperam a CAT-02, a IMP-01 e a PDV-02).
 - [x] Testes de unidade e de integração (Testcontainers) passando; Vitest no front.
 - [x] Migration criada (`ProfileSeedKeys`, só acréscimo); nenhuma permissão nova.
 - [x] Telas com estados de carregando, vazio e erro; ajuda escrita em `Ajuda/` no mesmo commit.

@@ -11,7 +11,7 @@ import { useHasProfile, useNavigation } from '@/navigation/navigation-context'
 import { canIn } from '../use-can'
 
 /** Perfil que tem o checklist (PERF-04): o Comércio. A fábrica não vê o cartão nem faz a chamada. */
-export const FIRST_STEPS_PROFILES = ['retail'] as const
+const FIRST_STEPS_PROFILES = ['retail'] as const
 
 export const ASK_ADMIN = 'Peça a quem administra o sistema.'
 

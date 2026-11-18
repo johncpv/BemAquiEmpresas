@@ -39,7 +39,7 @@ public sealed class ProfileSeedRunner(IEnumerable<IProfileSeedPackage> packages,
         {
             if (!byKey.TryGetValue(key, out var package))
             {
-                // Ponto de extensão ainda sem módulo (ex.: catalog.retail até a CAT-01).
+                // Módulo que não registrou o pacote (ex.: não carregado no Host).
                 LogMissing(logger, key, null);
                 continue;
             }
