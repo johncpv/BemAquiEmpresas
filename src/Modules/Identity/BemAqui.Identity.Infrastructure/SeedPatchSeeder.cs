@@ -103,6 +103,16 @@ public sealed class SeedPatchSeeder : ITenantSeeder
             ("production_supervision", "assets", ["view", "create", "edit"]),
             ("warehouse", "assets", ["view"]),
         ]),
+        // PDV-01 (PRD do PDV §6.3): os grupos do Comércio criados antes do PDV (PERF-04) recebem as vendas, o catálogo e o caixa. Na fábrica esses
+        // grupos não existem e nada muda; tenant novo já nasce com as ações pelo pacote do Comércio. sales.approve no Gerente de loja pelo sistema,
+        // fora da delegação (ADR 0008, adendo de 18/11/2026): quem a tem passa a ter 2FA obrigatório no login.
+        new("pos-retail-groups",
+        [
+            ("store_manager", "sales", ["view", "create", "edit", "approve"]),
+            ("store_manager", "catalog", ["view", "create", "edit", "edit_price"]),
+            ("store_manager", "pos", IdentityRetailSeedPackage.ManagerPos),
+            ("cashier", "pos", ["view", "create"]),
+        ]),
     ];
 
     public int Order => 25;

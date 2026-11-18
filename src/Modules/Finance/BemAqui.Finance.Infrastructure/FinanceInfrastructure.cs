@@ -183,6 +183,7 @@ public static class FinanceInfrastructure
         // Painel do proprietário (DSH-01a, ADR 0028 §1): resumos com a mesma fonte dos relatórios e as metas de faturamento.
         services.TryAddScoped<FinanceSummariesContract>();
         services.TryAddScoped<IBankBalances>(sp => sp.GetRequiredService<FinanceSummariesContract>());
+        services.TryAddScoped<ICashAccounts, CashAccountsContract>(); // PDV-01: a conta Caixa de cada caixa da loja
         services.TryAddScoped<IReceivablesAging>(sp => sp.GetRequiredService<FinanceSummariesContract>());
         services.TryAddScoped<RevenueTargetService>();
         services.TryAddScoped<IRevenueTargets>(sp => sp.GetRequiredService<RevenueTargetService>());

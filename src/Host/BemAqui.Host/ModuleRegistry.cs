@@ -15,6 +15,7 @@ using BemAqui.Platform.Endpoints;
 using BemAqui.Portal.Endpoints;
 using BemAqui.Production.Endpoints;
 using BemAqui.Purchasing.Endpoints;
+using BemAqui.Pos.Endpoints;
 using BemAqui.Sales.Endpoints;
 
 namespace BemAqui.Host;
@@ -35,6 +36,8 @@ public static class ModuleRegistry
         new PurchasingModule(),
         new FinanceModule(),
         new SalesModule(),
+        // PDV-01: lojas, caixas e o aperto de mão do aparelho de caixa (oculto fora do perfil Comércio, ADR 0046).
+        new PosModule(),
         new FiscalModule(),
         new AssetsModule(),
         // CAT-01: catálogo de produtos do PDV (oculto fora dos perfis de comércio, ADR 0046).

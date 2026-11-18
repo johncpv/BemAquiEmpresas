@@ -34,7 +34,7 @@ public class PermissionRulesTests
     public void Catalogo_tem_os_16_modulos_aprovados_na_ADR_0010_e_os_do_PDV() =>
         ModuleCatalog.All.Select(m => m.Code).Should().BeEquivalentTo(
             ["dashboard", "quotes", "projects", "parties", "engineering", "production", "inventory", "purchasing", "assets", "finance", "fiscal", "hr", "kiosk", "shopfloor", "identity", "settings",
-                "catalog", "sales"]);
+                "catalog", "sales", "pos"]);
 
     /// <summary>PERF-01 CA 2: perfil de negócio só cita módulo do <c>ModuleCatalog</c>; a falha diz o perfil e o código.</summary>
     [Fact]

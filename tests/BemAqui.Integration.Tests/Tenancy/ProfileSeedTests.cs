@@ -128,6 +128,7 @@ public class ProfileSeedTests(TenancyFixture tenancy) : IClassFixture<TenancyFix
         after.Should().Equal(before, "a fábrica não roda pacote nenhum");
         (await QueryAsync(tenancy.TenantB.Id, db => db.PaymentMethods.IgnoreQueryFilters().CountAsync())).Should().Be(0);
         (await QueryAsync(tenancy.TenantB.Id, db => db.Locations.CountAsync(l => l.SeedKey == "loja" || l.SeedKey == "deposito"))).Should().Be(0);
+        (await QueryAsync(tenancy.TenantB.Id, db => db.Stores.CountAsync())).Should().Be(0, "PDV-01: a fábrica não ganha loja nem caixa");
 
         var owner = await OwnerAsync(tenancy.TenantB, "b.localhost");
         var steps = await owner.GetFromJsonAsync<JsonElement>("/api/v1/dashboard/first-steps");
@@ -162,6 +163,17 @@ public class ProfileSeedTests(TenancyFixture tenancy) : IClassFixture<TenancyFix
 
         (await QueryAsync(tenant.Id, db => db.ProductCategories.Where(c => c.SeedKey == "geral").Select(c => c.Name).ToListAsync())).Should().Equal("Geral");
         (await QueryAsync(tenant.Id, db => db.PriceLists.Where(l => l.SeedKey == "balcao").Select(l => l.Name).ToListAsync())).Should().Equal("Balcão");
+
+        // PDV-01 CA 2: a loja "Loja" ligada ao local Loja e à tabela Balcão, com o caixa 01 na conta Caixa PDV 01; e o grupo Fiscal de caixa.
+        var store = await QueryAsync(tenant.Id, db => db.Stores.SingleAsync(s => s.SeedKey == "loja"));
+        store.Code.Should().Be("LOJA");
+        store.StockLocationId.Should().Be(await QueryAsync(tenant.Id, db => db.Locations.Where(l => l.SeedKey == "loja").Select(l => l.Id).SingleAsync()));
+        store.DefaultPriceListId.Should().Be(await QueryAsync(tenant.Id, db => db.PriceLists.Where(l => l.SeedKey == "balcao").Select(l => l.Id).SingleAsync()));
+        var register = await QueryAsync(tenant.Id, db => db.Registers.SingleAsync(r => r.StoreId == store.Id));
+        register.Number.Should().Be(1);
+        register.CashAccountId.Should().Be(accounts["caixa-pdv-01"].Id);
+        (await QueryAsync(tenant.Id, db => db.Groups.CountAsync(g => g.SeedKey == "cash_supervisor"))).Should().Be(1);
+        (await QueryAsync(tenant.Id, db => db.GroupPermissions.CountAsync(p => p.ModuleCode == "pos" && p.Action == "manage_devices"))).Should().BeGreaterThan(0, "o Gerente de loja registra aparelhos");
 
         // CA 4: o segmento de alimentação acrescenta as unidades.
         (await QueryAsync(tenant.Id, db => db.Units.Where(u => u.SeedKey != null).Select(u => u.Code).ToListAsync())).Should().Contain(["G", "ML", "DZ", "PCT", "POR"]);

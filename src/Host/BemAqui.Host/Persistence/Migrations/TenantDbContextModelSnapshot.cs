@@ -12188,9 +12188,21 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasDefaultValue("Factory")
+                        .HasColumnName("kind");
+
                     b.Property<DateTimeOffset>("LastSeenAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_seen_at");
+
+                    b.Property<DateTimeOffset?>("LastSyncAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_sync_at");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -12215,6 +12227,19 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("previous_secret_hash");
 
+                    b.Property<string>("PublicKey")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("public_key");
+
+                    b.Property<int>("RegisterEpoch")
+                        .HasColumnType("integer")
+                        .HasColumnName("register_epoch");
+
+                    b.Property<Guid?>("RegisterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("register_id");
+
                     b.Property<DateTimeOffset?>("RevokedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("revoked_at");
@@ -12238,6 +12263,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("secret_rotated_at");
 
+                    b.Property<Guid?>("StoreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("store_id");
+
                     b.Property<string>("Theme")
                         .IsRequired()
                         .HasMaxLength(8)
@@ -12249,6 +12278,10 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasIndex("PreviousSecretHash")
                         .HasDatabaseName("ix_shopfloor_devices_previous_secret_hash");
+
+                    b.HasIndex("RegisterId")
+                        .HasDatabaseName("ix_shopfloor_devices_register_id")
+                        .HasFilter("register_id IS NOT NULL");
 
                     b.HasIndex("RevokedAt")
                         .HasDatabaseName("ix_shopfloor_devices_revoked_at");
@@ -15182,6 +15215,138 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_party_roles_party_id_role");
 
                     b.ToTable("party_roles", "parties");
+                });
+
+            modelBuilder.Entity("BemAqui.Pos.Domain.Register", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("ActiveDeviceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("active_device_id");
+
+                    b.Property<Guid>("CashAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cash_account_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("DeviceEpoch")
+                        .HasColumnType("integer")
+                        .HasColumnName("device_epoch");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("store_id");
+
+                    b.Property<string>("UiMode")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("ui_mode");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_registers");
+
+                    b.HasIndex("ActiveDeviceId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_registers_active_device_id")
+                        .HasFilter("active_device_id IS NOT NULL");
+
+                    b.HasIndex("CashAccountId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_registers_cash_account");
+
+                    b.HasIndex("StoreId", "Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_registers_store_number");
+
+                    b.ToTable("registers", "pos", t =>
+                        {
+                            t.HasCheckConstraint("ck_registers_epoch", "device_epoch >= 0");
+
+                            t.HasCheckConstraint("ck_registers_number", "number BETWEEN 1 AND 99");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Pos.Domain.Store", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)")
+                        .HasColumnName("code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("DefaultPriceListId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("default_price_list_id");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("seed_key");
+
+                    b.Property<Guid>("StockLocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stock_location_id");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_stores");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_stores_code");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_stores_seed_key")
+                        .HasFilter("seed_key IS NOT NULL");
+
+                    b.ToTable("stores", "pos");
                 });
 
             modelBuilder.Entity("BemAqui.Production.Domain.Calendar", b =>
@@ -20097,6 +20262,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_party_roles_parties_party_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Pos.Domain.Register", b =>
+                {
+                    b.HasOne("BemAqui.Pos.Domain.Store", null)
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_registers_stores_store_id");
                 });
 
             modelBuilder.Entity("BemAqui.Production.Domain.CalendarExceptionDay", b =>

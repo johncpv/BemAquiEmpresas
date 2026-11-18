@@ -19,7 +19,7 @@ public class BusinessProfileSeedsTests
     {
         var packages = BusinessProfileSeeds.PackagesFor([BusinessProfileCatalog.Retail], ["counter"]);
         packages.Should().Equal(BusinessProfileSeeds.PartiesRetail, BusinessProfileSeeds.FinanceRetail, BusinessProfileSeeds.InventoryRetail,
-            BusinessProfileSeeds.IdentityRetail, BusinessProfileSeeds.CatalogRetail);
+            BusinessProfileSeeds.IdentityRetail, BusinessProfileSeeds.CatalogRetail, BusinessProfileSeeds.PosRetail);
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public class BusinessProfileSeedsTests
         BusinessProfileSeeds.PackagesFor([BusinessProfileCatalog.Retail], ["bakery"]).Should().EndWith(BusinessProfileSeeds.InventoryFood);
         BusinessProfileSeeds.PackagesFor([BusinessProfileCatalog.Retail], ["supermarket"]).Should().NotContain(BusinessProfileSeeds.InventoryFood);
         BusinessProfileSeeds.PackagesFor([BusinessProfileCatalog.Ecommerce, BusinessProfileCatalog.Retail, BusinessProfileCatalog.Factory], ["bakery", "snack_bar"])
-            .Should().OnlyHaveUniqueItems().And.HaveCount(6);
+            .Should().OnlyHaveUniqueItems().And.HaveCount(7);
         BusinessProfileSeeds.PackagesFor([BusinessProfileCatalog.Services], ["bakery"]).Should().BeEmpty("segmento de outro perfil não vale");
     }
 

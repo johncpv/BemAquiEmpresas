@@ -127,6 +127,8 @@ try
     builder.Services.AddSingleton<BemAqui.Production.Application.IProductionBoardPush, BemAqui.Host.Realtime.SignalRProductionBoardPush>();
     // Painel da TV (PNL-01a, ADR 0030): esquema Kiosk (cookie __Host-bq_kiosk), hub do quiosque e revalidação das TVs a cada 30 s.
     builder.Services.AddKioskAuthentication();
+// Caixa do PDV (PDV-01, ADR 0048): esquema Device (cookie __Host-bq_pos + assinatura ECDSA), só em /api/v1/pos/sync/*.
+builder.Services.AddDeviceAuthentication();
     builder.Services.Configure<KioskRealtimeOptions>(builder.Configuration.GetSection(KioskRealtimeOptions.Section));
     builder.Services.AddSingleton<KioskConnectionRegistry>();
     builder.Services.AddSingleton<SignalRKioskRealtime>();

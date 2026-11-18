@@ -38,8 +38,13 @@ public sealed record ShopfloorDeviceRow(
     string? RevokedReason,
     string Status,
     int DaysUnused,
-    int Pins);
+    int Pins,
+    DeviceKind Kind = DeviceKind.Factory,
+    Guid? StoreId = null,
+    string? RegisterLabel = null,
+    DateTimeOffset? LastSyncAt = null);
 
+/// <summary>Lista dos aparelhos; o teto e os ativos são dos aparelhos da fábrica (o teto é por tipo, PDV-01 CA 7).</summary>
 public sealed record ShopfloorDeviceList(IReadOnlyList<ShopfloorDeviceRow> Devices, int ActiveCount, int MaxActive);
 
 /// <summary>Aparelho registrado agora: o segredo vai só para o cookie <c>__Host-bq_dev</c>, nunca para o corpo da resposta.</summary>
@@ -56,7 +61,8 @@ public sealed class ShopfloorDeviceService(
     IPermissionService permissions,
     IUserDirectory users,
     IEmployees employees,
-    TimeProvider clock)
+    TimeProvider clock,
+    BemAqui.Pos.Contracts.IPosRegisters registers)
 {
     public const string NotRegisteredMessage = "Este aparelho não está registrado. Entre com e-mail e senha.";
 
@@ -134,7 +140,8 @@ public sealed class ShopfloorDeviceService(
 
         var now = clock.GetUtcNow();
         var max = await MaxActiveAsync(cancellationToken);
-        var active = await db.ShopfloorDevices.CountAsync(d => d.RevokedAt == null && d.ExpiresAt > now, cancellationToken);
+        // Teto por tipo (PDV-01 CA 7): os 10 da fábrica contam só os aparelhos da fábrica.
+        var active = await db.ShopfloorDevices.CountAsync(d => d.Kind == DeviceKind.Factory && d.RevokedAt == null && d.ExpiresAt > now, cancellationToken);
         if (active >= max)
         {
             return Error.Conflict("device_limit", $"Limite de {max} aparelhos ativos. Revogue um antes de registrar outro.");
@@ -180,12 +187,15 @@ public sealed class ShopfloorDeviceService(
         var pins = await db.UserPins.AsNoTracking().Where(p => ids.Contains(p.DeviceId)).GroupBy(p => p.DeviceId).Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(g => g.Key, g => g.Count, cancellationToken);
         var people = devices.Select(d => d.CreatedBy).Concat(devices.Where(d => d.RevokedBy != null).Select(d => d.RevokedBy!.Value)).Distinct().ToList();
         var names = await db.Users.AsNoTracking().Where(u => people.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.Name, cancellationToken);
+        var registerIds = devices.Where(d => d.RegisterId != null).Select(d => d.RegisterId!.Value).Distinct().ToList();
+        var places = registerIds.Count == 0 ? new Dictionary<Guid, BemAqui.Pos.Contracts.PosRegisterRef>() : await registers.FindManyAsync(registerIds, cancellationToken);
         var rows = devices.Select(d => new ShopfloorDeviceRow(
             d.Id, d.Name, names.GetValueOrDefault(d.CreatedBy, "Usuário removido"), d.CreatedAt, d.LastSeenAt, d.ExpiresAt, d.RevokedAt,
             d.RevokedBy is { } by ? names.GetValueOrDefault(by, "Usuário removido") : null, d.RevokedReason,
             d.RevokedAt is not null ? "Revoked" : d.ExpiresAt <= now ? "Expired" : "Active",
-            Math.Max(0, (int)(now - d.LastSeenAt).TotalDays), pins.GetValueOrDefault(d.Id))).ToList();
-        return new ShopfloorDeviceList(rows, rows.Count(r => r.Status == "Active"), await MaxActiveAsync(cancellationToken));
+            Math.Max(0, (int)(now - d.LastSeenAt).TotalDays), pins.GetValueOrDefault(d.Id),
+            d.Kind, d.StoreId, d.RegisterId is { } register && places.TryGetValue(register, out var place) ? place.Label : null, d.LastSyncAt)).ToList();
+        return new ShopfloorDeviceList(rows, rows.Count(r => r.Status == "Active" && r.Kind == DeviceKind.Factory), await MaxActiveAsync(cancellationToken));
     }
 
     /// <summary>Revoga (CA 9): o PIN deixa de funcionar, as sessões por PIN do aparelho caem e o Proprietário é avisado.</summary>

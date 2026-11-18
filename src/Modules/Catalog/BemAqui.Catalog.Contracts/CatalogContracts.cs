@@ -100,3 +100,21 @@ public sealed record ProductChanged(Guid ProductId) : IIntegrationEvent;
 /// Preço mudou numa tabela (CA 8): anterior (null = sem preço), novo e a versão da tabela depois da mudança. Sem dado pessoal.
 /// </summary>
 public sealed record PriceChanged(Guid PriceListId, Guid ProductId, decimal? PreviousPrice, decimal NewPrice, long Version, DateTimeOffset At) : IIntegrationEvent;
+
+/// <summary>Tabela de preço para os seletores dos outros módulos (PDV-01: a tabela padrão da loja).</summary>
+public sealed record PriceListOption(Guid Id, string Name, bool IsActive, bool IsDefault);
+
+/// <summary>
+/// Tabelas de preço para os outros módulos (PDV-01 CA 2): a loja guarda só o id. A padrão ("Balcão") nasce no primeiro uso, como na CAT-01.
+/// </summary>
+public interface IPriceLists
+{
+    /// <summary>As ativas, a padrão primeiro. Cria a "Balcão" se ainda não existe.</summary>
+    Task<IReadOnlyList<PriceListOption>> ActiveAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Por id, inclusive inativas.</summary>
+    Task<IReadOnlyList<PriceListOption>> FindAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>A tabela padrão ("Balcão"), criada no primeiro uso.</summary>
+    Task<PriceListOption> DefaultAsync(CancellationToken cancellationToken = default);
+}

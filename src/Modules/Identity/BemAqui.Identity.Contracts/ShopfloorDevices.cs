@@ -21,3 +21,21 @@ public interface IShopfloorDevices
     /// </summary>
     Task<int> EndPinSessionAsync(Guid userId, Guid deviceId, string reason, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Aparelho de caixa para a tela "Lojas e caixas" (PDV-01): nome, último contato e a última sincronização.</summary>
+public sealed record RegisterDeviceInfo(Guid Id, string Name, DateTimeOffset LastSeenAt, DateTimeOffset? LastSyncAt, DateTimeOffset? RevokedAt);
+
+/// <summary>Segredo novo do aparelho depois de uma sincronização (vai só para o cookie <c>__Host-bq_pos</c>, nunca para o corpo).</summary>
+public sealed record DeviceSecretRotation(string Secret, DateTimeOffset ExpiresAt);
+
+/// <summary>
+/// Aparelhos de caixa para o <c>Pos</c> (PDV-01, ADR 0048): o Identity é o dono do aparelho; o <c>Pos</c> mostra o último contato na tela das
+/// lojas e, na sincronização, pede o segredo novo (o segredo do caixa gira a cada sincronização bem-sucedida, não a cada PIN).
+/// </summary>
+public interface IRegisterDevices
+{
+    Task<IReadOnlyDictionary<Guid, RegisterDeviceInfo>> FindAsync(IReadOnlyCollection<Guid> deviceIds, CancellationToken cancellationToken = default);
+
+    /// <summary>Sincronização bem-sucedida do aparelho ativo: grava o instante e gira o segredo. Aparelho revogado: null (não gira).</summary>
+    Task<DeviceSecretRotation?> CompleteSyncAsync(Guid deviceId, CancellationToken cancellationToken = default);
+}

@@ -95,6 +95,21 @@ public static partial class ModuleCatalog
         // (oculto para a Konebras). Aprovar = cancelar venda com pagamento capturado (estorno, rascunho C §7).
         new("sales", "Vendas", ModuleAreas.Store, 10, 46, "Vendas do balcão, da loja virtual e das OS, com pagamentos, baixa de estoque e recebíveis.", CrudApprove,
             [new("view_cost", "Ver custo e margem", "Ver o custo da baixa de estoque e a margem de cada venda.")], "cancelar venda com pagamento capturado"),
+        // PDV-01 (Fase 11, PRD do PDV §6.3): tela dedicada do caixa, na área "Loja"; só no perfil Comércio (oculto para a Konebras). Criar = vender.
+        // As ações restritas abrem "Chamar supervisor" no balcão (PIN do supervisor, PP-11); manage_devices registra e bloqueia os aparelhos.
+        new("pos", "Caixa (PDV)", ModuleAreas.Store, 11, 47, "Tela de venda do balcão nos aparelhos registrados da loja. Criar = vender.", [StandardActions.View, StandardActions.Create],
+            [
+                new("discount", "Desconto acima do limite", "Desconto acima do limite: dar desconto maior que o limite do operador definido na loja."),
+                new("change_price", "Alterar preço na venda", "Alterar preço na venda: mudar o preço de um item no caixa, fora da tabela de preço."),
+                new("cancel_item", "Cancelar item", "Cancelar item: tirar um item já registrado da venda em andamento."),
+                new("cancel_sale", "Cancelar venda", "Cancelar venda: cancelar uma venda concluída no caixa (e a NFC-e, quando houver)."),
+                new("return", "Devolução e troca", "Devolução e troca: receber mercadoria de volta e gerar vale-troca ou estorno."),
+                new("cash_out", "Sangria", "Sangria: retirar dinheiro do caixa para o cofre."),
+                new("cash_in", "Suprimento", "Suprimento: colocar dinheiro no caixa (troco)."),
+                new("open_drawer", "Abrir gaveta sem venda", "Abrir gaveta sem venda: abrir a gaveta do caixa sem registrar venda; fica registrado."),
+                new("skip_fiscal", "Vender sem NFC-e", "Vender sem NFC-e: concluir a venda só com cupom não fiscal numa loja que emite NFC-e."),
+                new("manage_devices", "Registrar aparelhos", "Registrar aparelhos: registrar e bloquear os aparelhos (caixas) da loja; registrar pede a confirmação do código do aplicativo autenticador."),
+            ]),
         new("engineering", "Engenharia", ModuleAreas.Factory, 3, 50, "Estrutura de produto (BOM) e roteiros de fabricação.", CrudApprove, [], "liberar a BOM"),
         // PRD-05 (D6, ADR 0003 adendo de 21/10/2026): a decisão de qualidade sai da production.approve para a ação específica,
         // usável por PIN (ADR 0026 §2); a production.approve fica com a conclusão da OS e a aprovação de etapa.
