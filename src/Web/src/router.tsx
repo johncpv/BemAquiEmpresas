@@ -119,7 +119,7 @@ import { ImportProductsPage } from '@/pages/catalog/ImportProductsPage'
 import { NewProductPage } from '@/pages/catalog/NewProductPage'
 import { ProductPage } from '@/pages/catalog/ProductPage'
 import { ProductsPage } from '@/pages/catalog/ProductsPage'
-import { PdvPage } from '@/pages/pdv/PdvPage'
+import { PdvAppRedirect } from '@/pages/pdv/PdvAppRedirect'
 import { StoresPage } from '@/pages/store/StoresPage'
 import { AssetSitesPage } from '@/pages/assets/AssetSitesPage'
 import { MaintenanceOrderPage } from '@/pages/assets/MaintenanceOrderPage'
@@ -566,8 +566,8 @@ const countingIndexRoute = createRoute({ getParentRoute: () => countingRoute, pa
 const tvRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tv', component: TvLayout })
 const tvIndexRoute = createRoute({ getParentRoute: () => tvRoute, path: '/', component: TvPage })
 const tvLegacyRoute = createRoute({ getParentRoute: () => tvRoute, path: '$', component: TvLegacyPage })
-// Caixa (PDV-01, ADR 0048): tela dedicada no aparelho da loja; sem sessão de usuário (o aparelho se apresenta pela chave). O registro pede login.
-const pdvRoute = createRoute({ getParentRoute: () => rootRoute, path: '/pdv', component: PdvPage, validateSearch: (s: Record<string, unknown>): { registrar?: string } => ({ registrar: text(s.registrar) }) })
+// Caixa (PDV-01, ADR 0048; OFF-01): app à parte em /pdv/ (build e service worker próprios, src/pdv-app). Aqui só leva para lá, com a query.
+const pdvRoute = createRoute({ getParentRoute: () => rootRoute, path: '/pdv', component: PdvAppRedirect, validateSearch: (s: Record<string, unknown>): { registrar?: string } => ({ registrar: text(s.registrar) }) })
 const galleryRoute = createRoute({ getParentRoute: () => rootRoute, path: '/dev/galeria', component: Gallery ?? NotFound })
 
 export const routeTree = rootRoute.addChildren([

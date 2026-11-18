@@ -1,0 +1,213 @@
+import Dexie, { type Table } from 'dexie'
+import { uuidv7 } from '@/pdv/uuid-v7'
+import { CatalogMemory } from './catalog-memory'
+import { CATALOG_COLLECTIONS, type CatalogChange, type CatalogCollection, type CatalogData, type CatalogState, type CatalogVersion, emptyCatalog } from './catalog-types'
+import { type LocalStore, type MetaKey, type OutboxEntry, type PendingSummary, ReadOnlyStoreError } from './local-store'
+import type { WriterLock } from './writer-lock'
+
+/** Banco local do caixa (um por origem, ou seja, por empresa). A chave do aparelho fica à parte, em `bemaqui-pdv` (PDV-01). */
+export const PDV_DB_NAME = 'bemaqui-pdv-dados'
+
+/** Blocos por coleção: ~800 itens por bloco com 50 mil itens (o SPK-03 mediu blocos de ~1.000). */
+export const CHUNKS = 64
+/** Mudanças guardadas à parte antes de regravar os blocos (o delta não regrava o catálogo inteiro; risco do SPK-03). */
+export const OVERLAY_COMPACT_AT = 2_000
+
+type MetaRow = { k: string; v: unknown }
+type ChunkRow = { k: string; collection: CatalogCollection; records: { id: string }[] }
+type OverlayRow = { k: string; collection: CatalogCollection; id: string; record: { id: string } | null }
+type OutboxRow = { seq?: number; id: string; kind: string; createdAt: string; payload: unknown }
+type CatalogMeta = Omit<CatalogState, 'counts'>
+
+export function chunkOf(id: string): number {
+  let h = 0
+  for (let i = 0; i < id.length; i++) h = (Math.imul(h, 31) + id.charCodeAt(i)) | 0
+  return Math.abs(h) % CHUNKS
+}
+
+class PdvDatabase extends Dexie {
+  meta!: Table<MetaRow, string>
+  catalogChunks!: Table<ChunkRow, string>
+  catalogOverlay!: Table<OverlayRow, string>
+  outbox!: Table<OutboxRow, number>
+
+  constructor(name: string, deps?: { indexedDB: IDBFactory; IDBKeyRange: typeof IDBKeyRange }) {
+    // 'strict': cada transação concluída já está no disco (fsync) antes de a promessa resolver; o caixa não perde venda concluída numa queda.
+    super(name, { chromeTransactionDurability: 'strict', ...(deps ?? {}) })
+    this.version(1).stores({ meta: 'k', catalogChunks: 'k', catalogOverlay: 'k', outbox: '++seq' })
+  }
+}
+
+export interface OpenOptions {
+  lock: WriterLock
+  dbName?: string
+  /** Para os testes (fake-indexeddb); no navegador, o IndexedDB dele. */
+  indexedDB?: IDBFactory
+  IDBKeyRange?: typeof IDBKeyRange
+  /** Tentativas de abrir (SPK-03: logo depois de o navegador morrer, a 1ª abertura pode falhar e a 2ª dá certo). */
+  attempts?: number
+  retryDelayMs?: number
+}
+
+
+/** `LocalStore` sobre IndexedDB com Dexie (SPK-03): catálogo em blocos + sobreposição do delta, carregado em memória ao abrir. */
+export class DexieLocalStore implements LocalStore {
+  private readonly memory = new CatalogMemory()
+  private meta: CatalogMeta | null = null
+  private overlaySize = 0
+
+  private constructor(private readonly db: PdvDatabase, private readonly lock: WriterLock) {}
+
+  /**
+   * Abre o banco e carrega o catálogo na memória. Erro ao abrir: tenta de novo (SPK-03, achado 1) e, se insistir, propaga. **Nunca** apaga o
+   * banco por causa de um erro: nele pode haver venda que ainda não subiu.
+   */
+  static async open(options: OpenOptions): Promise<DexieLocalStore> {
+    const deps = options.indexedDB && options.IDBKeyRange ? { indexedDB: options.indexedDB, IDBKeyRange: options.IDBKeyRange } : undefined
+    const attempts = options.attempts ?? 3
+    let lastError: unknown
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      const db = new PdvDatabase(options.dbName ?? PDV_DB_NAME, deps)
+      try {
+        await db.open()
+        const store = new DexieLocalStore(db, options.lock)
+        await store.reload()
+        return store
+      } catch (error) {
+        lastError = error
+        db.close()
+        if (attempt < attempts) await new Promise((resolve) => setTimeout(resolve, options.retryDelayMs ?? 1_000))
+      }
+    }
+
+    throw lastError
+  }
+
+  get writable(): boolean {
+    return this.lock.owned
+  }
+
+  private assertWritable(): void {
+    if (!this.lock.owned) throw new ReadOnlyStoreError()
+  }
+
+  async reload(): Promise<void> {
+    const [chunks, overlay, meta] = await this.db.transaction('r', this.db.catalogChunks, this.db.catalogOverlay, this.db.meta, async () =>
+      [await this.db.catalogChunks.toArray(), await this.db.catalogOverlay.toArray(), await this.db.meta.get('catalog')] as const)
+    const data = emptyCatalog()
+    for (const chunk of chunks) (data[chunk.collection] as { id: string }[]).push(...chunk.records)
+    this.memory.load(data)
+    this.memory.apply(overlay.map(toChange))
+    this.overlaySize = overlay.length
+    this.meta = (meta?.v as CatalogMeta | undefined) ?? null
+  }
+
+  async getMeta<T>(key: MetaKey): Promise<T | undefined> {
+    return (await this.db.meta.get(key))?.v as T | undefined
+  }
+
+  async setMeta(key: MetaKey, value: unknown): Promise<void> {
+    this.assertWritable()
+    await this.db.meta.put({ k: key, v: value })
+  }
+
+  catalogState(): CatalogState | null {
+    return this.meta ? { ...this.meta, counts: this.memory.counts() } : null
+  }
+
+  async replaceCatalog(version: CatalogVersion & { storeId: string; storeName?: string | null }, data: CatalogData, syncedAt: string): Promise<void> {
+    this.assertWritable()
+    const rows: ChunkRow[] = []
+    for (const collection of CATALOG_COLLECTIONS) {
+      const groups = new Map<number, { id: string }[]>()
+      for (const record of data[collection] as { id: string }[]) {
+        const k = chunkOf(record.id)
+        const group = groups.get(k)
+        if (group) group.push(record)
+        else groups.set(k, [record])
+      }
+
+      for (const [k, records] of groups) rows.push({ k: `${collection}:${k}`, collection, records })
+    }
+
+    const meta: CatalogMeta = {
+      schemaVersion: version.schemaVersion, cursor: version.cursor, storeId: version.storeId, storeName: version.storeName ?? null,
+      offlineWindowDays: version.offlineWindowDays ?? null, syncedAt,
+    }
+    await this.db.transaction('rw', this.db.catalogChunks, this.db.catalogOverlay, this.db.meta, async () => {
+      await this.db.catalogChunks.clear()
+      await this.db.catalogOverlay.clear()
+      await this.db.catalogChunks.bulkPut(rows)
+      await this.db.meta.put({ k: 'catalog', v: meta })
+    })
+    this.memory.load(data)
+    this.overlaySize = 0
+    this.meta = meta
+  }
+
+  async applyCatalogChanges(version: CatalogVersion, changes: readonly CatalogChange[], syncedAt: string): Promise<void> {
+    this.assertWritable()
+    if (!this.meta) throw new Error('Não há catálogo para aplicar o delta: baixe a foto primeiro.')
+    const meta: CatalogMeta = {
+      ...this.meta, schemaVersion: version.schemaVersion, cursor: version.cursor, syncedAt,
+      offlineWindowDays: version.offlineWindowDays === undefined ? this.meta.offlineWindowDays : version.offlineWindowDays,
+    }
+    const rows: OverlayRow[] = changes.map((c) => c.op === 'upsert'
+      ? { k: `${c.collection}:${c.record.id}`, collection: c.collection, id: c.record.id, record: c.record }
+      : { k: `${c.collection}:${c.id}`, collection: c.collection, id: c.id, record: null })
+    await this.db.transaction('rw', this.db.catalogOverlay, this.db.meta, async () => {
+      if (rows.length) await this.db.catalogOverlay.bulkPut(rows)
+      await this.db.meta.put({ k: 'catalog', v: meta })
+    })
+    this.memory.apply(changes)
+    this.meta = meta
+    this.overlaySize = await this.db.catalogOverlay.count()
+    if (this.overlaySize >= OVERLAY_COMPACT_AT) await this.compact()
+  }
+
+  /** Regrava os blocos tocados pela sobreposição e limpa a sobreposição, numa transação. */
+  async compact(): Promise<void> {
+    this.assertWritable()
+    const data = this.memory.data()
+    await this.db.transaction('rw', this.db.catalogChunks, this.db.catalogOverlay, async () => {
+      const overlay = await this.db.catalogOverlay.toArray()
+      const touched = new Set(overlay.map((o) => `${o.collection}:${chunkOf(o.id)}`))
+      const rows: ChunkRow[] = []
+      for (const key of touched) {
+        const [collection, n] = key.split(':') as [CatalogCollection, string]
+        const records = (data[collection] as { id: string }[]).filter((r) => chunkOf(r.id) === Number(n))
+        rows.push({ k: key, collection, records })
+      }
+
+      await this.db.catalogChunks.bulkPut(rows)
+      await this.db.catalogOverlay.clear()
+    })
+    this.overlaySize = 0
+  }
+
+  list<K extends CatalogCollection>(collection: K) { return this.memory.list(collection) }
+  get<K extends CatalogCollection>(collection: K, id: string) { return this.memory.get(collection, id) }
+  findByBarcode(code: string) { return this.memory.findByBarcode(code) }
+  priceOf(itemId: string) { return this.memory.priceOf(itemId) }
+  searchItems(term: string, limit?: number) { return this.memory.searchItems(term, limit) }
+
+  async enqueue(kind: string, payload: unknown, at: string = new Date().toISOString()): Promise<OutboxEntry> {
+    this.assertWritable()
+    const row: OutboxRow = { id: uuidv7(Date.parse(at)), kind, createdAt: at, payload }
+    const seq = await this.db.outbox.add(row)
+    return { ...row, seq }
+  }
+
+  async pendingSummary(): Promise<PendingSummary> {
+    const [count, oldest] = await this.db.transaction('r', this.db.outbox, async () => [await this.db.outbox.count(), await this.db.outbox.orderBy('seq').first()] as const)
+    return { count, oldestAt: oldest?.createdAt ?? null }
+  }
+
+  close(): void {
+    this.db.close()
+  }
+}
+
+function toChange(row: OverlayRow): CatalogChange {
+  return (row.record ? { collection: row.collection, op: 'upsert', record: row.record } : { collection: row.collection, op: 'delete', id: row.id }) as CatalogChange
+}
