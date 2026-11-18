@@ -318,6 +318,77 @@ public partial class PosTests
         }
     }
 
+    [Fact]
+    public async Task Gerente_sem_as_acoes_do_grupo_do_operador_nao_da_PIN_novo_nem_troca_a_loja()
+    {
+        // Revisão de segurança da PDV-01 (M1): "Novo PIN" é poder entrar no caixa como o operador; a delegação da ADR 0008 vale sobre os grupos dele.
+        await CommerceAsync(true);
+        var (owner, store, device) = await RegisterAsync();
+        using var registered = device;
+        var id = await CreateOperationUserAsync(owner, await CashierGroupAsync(), store, "Eva Prado");
+        var weak = await ManagerAsync("identity.view", "identity.create");
+        var reset = await weak.PostAsJsonAsync($"/api/v1/identity/operation-users/{id}/pin", new { pin = InitialPin, pinConfirmation = InitialPin });
+        reset.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Code(await JsonAsync(reset)).Should().Be(GroupService.DelegationDeniedCode);
+        var update = await weak.PutAsJsonAsync($"/api/v1/identity/operation-users/{id}", new { name = "Eva Prado", storeIds = new[] { store } });
+        update.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Code(await JsonAsync(update)).Should().Be(GroupService.DelegationDeniedCode);
+
+        // Gerente que tem o que o grupo do operador dá (sem ser membro dele) pode.
+        var full = await ManagerAsync("identity.view", "identity.create", "pos.view", "pos.create");
+        (await full.PostAsJsonAsync($"/api/v1/identity/operation-users/{id}/pin", new { pin = InitialPin, pinConfirmation = InitialPin })).IsSuccessStatusCode.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task PINs_errados_em_paralelo_contam_um_a_um()
+    {
+        // Revisão de segurança da PDV-01 (M2): a trava por aparelho e por usuário põe as tentativas em fila; 5 em paralelo são 5 erros e bloqueiam.
+        await CommerceAsync(true);
+        var (owner, store, device) = await RegisterAsync();
+        using var registered = device;
+        var id = await CreateOperationUserAsync(owner, await CashierGroupAsync(), store, "Rui Paz");
+        await OkAsync(await PinLoginAsync(device, id, InitialPin, OwnPin));
+
+        var responses = await Task.WhenAll(Enumerable.Range(0, 5).Select(_ => PinLoginAsync(device, id, "111111")));
+        var codes = new List<string>();
+        foreach (var response in responses)
+        {
+            codes.Add(Code(await JsonAsync(response)));
+        }
+
+        codes.Count(c => c == "auth.pin_invalid").Should().Be(4, string.Join(",", codes));
+        codes.Count(c => c == "auth.pin_locked").Should().Be(1, string.Join(",", codes));
+        var row = await WithDbAsync(db => db.PosPins.AsNoTracking().SingleAsync(p => p.UserId == id));
+        row.FailuresInWindow.Should().Be(5);
+        row.LockedUntil.Should().NotBeNull();
+    }
+
+    /// <summary>Usuário completo (não Proprietário) num grupo próprio com as ações pedidas.</summary>
+    private async Task<HttpClient> ManagerAsync(params string[] grants)
+    {
+        var (userId, stamp) = await tenancy.SeedUserAsync(tenancy.TenantA, "gerente" + Guid.NewGuid().ToString("N")[..10] + "@teste.com");
+        await using (var scope = await ScopeAsync())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IIdentityDb>();
+            var group = new Group { Name = Unique("Gerente ", 6), Description = "teste", CreatedAt = DateTimeOffset.UtcNow };
+            db.Groups.Add(group);
+            var split = grants.Select(p => p.Split('.')).ToList();
+            foreach (var module in split.Select(g => g[0]).Distinct())
+            {
+                db.GroupModules.Add(new GroupModule { GroupId = group.Id, ModuleCode = module, Enabled = true });
+            }
+
+            db.GroupPermissions.AddRange(split.Select(g => new GroupGrant { GroupId = group.Id, ModuleCode = g[0], Action = g[1] }));
+            db.UserGroups.Add(new UserGroup { UserId = userId, GroupId = group.Id });
+            await db.SaveChangesAsync();
+            await scope.ServiceProvider.GetRequiredService<IPermissionService>().BumpAsync([userId]);
+        }
+
+        var client = Anonymous();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TestTokens.Create(tenancy.TenantA.Id, Host, userId: userId, stamp: stamp));
+        return client;
+    }
+
     private static byte[] Base64Url(string value) =>
         Convert.FromBase64String(value.Replace('-', '+').Replace('_', '/').PadRight(value.Length + ((4 - (value.Length % 4)) % 4), '='));
 }

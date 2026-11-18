@@ -119,6 +119,19 @@ Desenho nos adendos de 18/11/2026 da [ADR 0048](../../adr/0048-aparelho-do-pdv-e
 
 Ajuda: `pdv-registrar-aparelho.md` (entrar por PIN), `acessos-usuarios-operacao.md` e `conta-seguranca-pin-caixa.md` (as duas só no Comércio, pelo recurso `identity.operation_users`). Migration `PosPinOperationUser` (só acréscimos).
 
+**Revisão de segurança da parte 2 (PR #228, 18/11/2026), corrigido na mesma branch:**
+- **M1:** "Novo PIN" e a troca de lojas do usuário de operação passam pela delegação da ADR 0008 sobre os grupos atuais dele (`GroupGrantDeniedAsync`) e pela regra do "grupo do qual faz parte" da troca de grupos; recusa com `delegation_denied`. Quem tem `identity.create` sem as ações do operador não entra no caixa como ele.
+- **M2:** a entrada por PIN no caixa roda numa transação com `pg_advisory_xact_lock` do aparelho e do usuário (nessa ordem) antes de ler os contadores; tentativas em paralelo contam uma a uma. Só no caixa; o PIN do `/fab` ficou como estava.
+- **B2:** o cookie do caixa (sessão e renovação) aceita o segredo anterior só dentro da tolerância da rotação, como o `/fab`; o esquema `Device` não mudou.
+
+### Pendências de segurança
+Registradas na revisão do PR #228, sem implementar:
+- **B1:** exigir a assinatura do aparelho na renovação da sessão `PosPin`, antes de abrir as rotas de venda (PDV-02).
+- **B3:** a trava "grupo com usuário de operação não ganha ação reservada" também no seeder (pacotes e seed patches) ou num teste de arquitetura, antes da PDV-04.
+- **B4:** nonce (`jti`) na assinatura do aparelho, contra a repetição dentro da janela do relógio.
+- **M2 no `/fab`:** os contadores do PIN da fábrica (`UserPin` e o limite do aparelho) têm a mesma corrida em tentativas paralelas; já existia antes desta story.
+- **Bloqueio de tela por inatividade no `/pdv`**, pedindo o PIN de novo sem encerrar a sessão.
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
@@ -127,3 +140,4 @@ Ajuda: `pdv-registrar-aparelho.md` (entrar por PIN), `acessos-usuarios-operacao.
 | 18/11/2026 | 1.0 | Parte 1 implementada (CA 1 a 10; CA 8 parcial, a subida é da OFF-02). Decisões do PO de 18/11/2026: PP-35, PP-11, PP-12 e PP-09. Recomendação aceita: a tabela de aparelhos mantém o nome e o segredo anterior do caixa vale com a assinatura (ADR 0048 §2). CA 11 e 12 na parte 2. | Claude (dev) |
 | 18/11/2026 | 1.1 | Correções da revisão de segurança do PR #227 (M1, B1, B2, B5, B6, B8, B10 e o teste de outro tenant); B3, B4, B7 e B9 anotados para as próximas stories. | Claude (dev) |
 | 18/11/2026 | 2.0 | Parte 2: CA 11 (PIN no caixa pelo esquema `Device`, sessão `PosPin` com `amr = ["pin", "hwk"]`, lista `[PosPinSessionAllowed]` própria, PIN do caixa em Meu perfil) e CA 12 (usuário de operação). Recomendações aceitas: e-mail técnico `.invalid` em vez de e-mail nulo; PIN do caixa por usuário, não por aparelho; quem tem `identity.create` também troca as lojas e dá PIN novo. PIN de supervisor (PP-11) fica na PDV-04. | Claude (dev) |
+| 18/11/2026 | 2.1 | Correções da revisão de segurança do PR #228: M1 (delegação no "Novo PIN" e nas lojas do usuário de operação), M2 (trava por aparelho e usuário na entrada por PIN do caixa) e B2 (segredo anterior do caixa só na tolerância). B1, B3, B4, M2 no `/fab` e o bloqueio por inatividade do `/pdv` em "Pendências de segurança". | Claude (dev) |

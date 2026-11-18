@@ -151,7 +151,12 @@ public sealed class OperationUserService(
             return stores;
         }
 
-        var before = new { name = user.Name, stores = user.OperationStoreIds.ToList() };
+        if (await TargetDelegationDeniedAsync(user.Id, actorId, cancellationToken) is { } denied)
+        {
+            return denied;
+        }
+
+        var before =new { name = user.Name, stores = user.OperationStoreIds.ToList() };
         user.Name = name;
         user.SetOperationStores(request.StoreIds!);
         Audit(user.Id, "OperationUserChanged", actorId, new { before, after = new { name, stores = user.OperationStoreIds } });
@@ -180,6 +185,11 @@ public sealed class OperationUserService(
             return Error.Validation("user_not_active", "Reative o usuário antes de dar um PIN novo.");
         }
 
+        if (await TargetDelegationDeniedAsync(user.Id, actorId, cancellationToken) is { } denied)
+        {
+            return denied;
+        }
+
         if (await pins.PinProblemAsync(user, request.Pin, request.PinConfirmation, cancellationToken) is { } pin)
         {
             return pin;
@@ -189,6 +199,30 @@ public sealed class OperationUserService(
         await pins.UpsertAsync(user, request.Pin, mustChange: true, actorId, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return Result.Success();
+    }
+
+    /// <summary>
+    /// Delegação sobre o operador (ADR 0008, revisão de segurança da PDV-01, M1): dar PIN novo ou trocar as lojas equivale a poder entrar no caixa
+    /// como ele, então o ator precisa ter tudo o que os grupos atuais do operador dão (<see cref="GroupService.GroupGrantDeniedAsync"/>) e, como na
+    /// troca de grupos (<see cref="UserService.SetGroupsAsync"/>), não pode ser membro desses grupos, salvo o Proprietário. Grupo inativo não dá
+    /// permissão e fica fora da conta da delegação.
+    /// </summary>
+    private async Task<Error?> TargetDelegationDeniedAsync(Guid userId, Guid actorId, CancellationToken cancellationToken)
+    {
+        var current = await db.UserGroups.Where(ug => ug.UserId == userId).Select(ug => ug.GroupId).ToListAsync(cancellationToken);
+        if (current.Count == 0)
+        {
+            return null;
+        }
+
+        if (!(await permissions.GetAsync(actorId, cancellationToken)).IsOwner
+            && await db.UserGroups.AnyAsync(ug => ug.UserId == actorId && current.Contains(ug.GroupId), cancellationToken))
+        {
+            return Error.Forbidden(GroupService.DelegationDeniedCode, "Você não pode alterar um grupo do qual faz parte. Peça a alguém do grupo Proprietário.");
+        }
+
+        var active = await db.Groups.Where(g => current.Contains(g.Id) && g.IsActive).Select(g => g.Id).ToListAsync(cancellationToken);
+        return await groups.GroupGrantDeniedAsync(actorId, active, cancellationToken);
     }
 
     private Error? NotReleased() =>

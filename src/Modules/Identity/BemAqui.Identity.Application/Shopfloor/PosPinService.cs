@@ -46,10 +46,11 @@ public sealed record MyPosPin(bool HasPin, DateTimeOffset? CreatedAt, DateTimeOf
 
 /// <summary>
 /// Aparelho de caixa pelo cookie <c>__Host-bq_pos</c>, sem a assinatura (ADR 0048 §2): serve à sessão por PIN do caixa, conferida a cada request, e à
-/// renovação dela. Só o caixa ativo; o segredo anterior só enquanto não foi aposentado (a aposentadoria e a revogação por reuso são do esquema
-/// <c>Device</c>, que tem a prova da chave).
+/// renovação dela. Só o caixa ativo; o segredo anterior, como no <c>/fab</c> (<see cref="ShopfloorDeviceGate"/>), só dentro da tolerância da rotação
+/// e enquanto não foi aposentado (revisão de segurança da PDV-01, B2). A aposentadoria e a revogação por reuso são do esquema <c>Device</c>, que tem a
+/// prova da chave; aqui o segredo fora da tolerância só é recusado.
 /// </summary>
-public sealed class PosDeviceCookieGate(IIdentityDb db, TimeProvider clock)
+public sealed class PosDeviceCookieGate(IIdentityDb db, TokenSigning signing, TimeProvider clock)
 {
     public async Task<ShopfloorDevice?> ResolveAsync(string? secret, CancellationToken cancellationToken = default)
     {
@@ -61,12 +62,18 @@ public sealed class PosDeviceCookieGate(IIdentityDb db, TimeProvider clock)
         var hash = OpaqueToken.Hash(secret);
         var device = await db.ShopfloorDevices.AsNoTracking()
             .FirstOrDefaultAsync(d => d.Kind == DeviceKind.Register && (d.SecretHash == hash || d.PreviousSecretHash == hash), cancellationToken);
-        if (device is null || !device.IsActive(clock.GetUtcNow()) || device.StoreId is null || device.RegisterId is null)
+        var now = clock.GetUtcNow();
+        if (device is null || !device.IsActive(now) || device.StoreId is null || device.RegisterId is null)
         {
             return null;
         }
 
-        return string.Equals(device.SecretHash, hash, StringComparison.Ordinal) || device.PreviousSecretStillValid ? device : null;
+        return device.Match(hash, now, signing.Options.RefreshReuseTolerance) switch
+        {
+            DeviceSecretMatch.Current => device,
+            DeviceSecretMatch.PreviousInTolerance when device.PreviousSecretStillValid => device,
+            _ => null,
+        };
     }
 }
 
@@ -134,10 +141,28 @@ public sealed class PosPinService(
     /// Entrar por PIN no caixa (CA 11). Usuário sem PIN, de outra loja ou PIN errado têm a mesma resposta e o mesmo custo (uma verificação PBKDF2
     /// sempre). Aceito: sessão por PIN do caixa (<c>amr = ["pin", "hwk"]</c>); o segredo do aparelho não gira aqui (gira na sincronização).
     /// </summary>
+    /// <remarks>
+    /// Tentativas em paralelo (revisão de segurança da PDV-01, M2): a tentativa roda numa transação com <c>pg_advisory_xact_lock</c> do aparelho e
+    /// do usuário, nessa ordem, antes de ler os contadores e verificar o PIN. Sem isso, N tentativas simultâneas liam o mesmo contador e somavam um
+    /// erro só. As travas valem até o commit; o erro gravado sai no commit, inclusive quando a resposta é recusa.
+    /// </remarks>
     public async Task<Result<LoginSession>> LoginAsync(DeviceIdentity identity, PosPinLoginInput input, string host, string? ip, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(identity);
         ArgumentNullException.ThrowIfNull(input);
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await LockAsync("pos.pin.device:" + identity.DeviceId.ToString("N"), cancellationToken);
+        await LockAsync("pos.pin.user:" + input.UserId.ToString("N"), cancellationToken);
+        var result = await LoginLockedAsync(identity, input, host, ip, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return result;
+    }
+
+    private async Task LockAsync(string key, CancellationToken cancellationToken) =>
+        await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({key}, 0))) AS l").ToListAsync(cancellationToken);
+
+    private async Task<Result<LoginSession>> LoginLockedAsync(DeviceIdentity identity, PosPinLoginInput input, string host, string? ip, CancellationToken cancellationToken)
+    {
         var device = await RegisterDeviceAsync(identity, tracked: true, cancellationToken);
         if (device is null)
         {
