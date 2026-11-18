@@ -13,6 +13,7 @@ dueFrom?: string;
 dueTo?: string;
 contractId?: string;
 withBillingSlip?: boolean;
+origin?: string;
 page?: number;
 pageSize?: number;
 sort?: string;

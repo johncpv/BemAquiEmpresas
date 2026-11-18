@@ -1,6 +1,6 @@
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.Finance.Contracts;
-using BemAqui.Inventory.Contracts;
+using BemAqui.Catalog.Contracts;
 using BemAqui.Sales.Application;
 using BemAqui.Sales.Contracts;
 using BemAqui.Sales.Domain;
@@ -13,8 +13,8 @@ public static class SalesInfrastructure
 {
     /// <summary>
     /// Núcleo de vendas (VND-01): contratos <see cref="ISaleIngestion"/>, <see cref="IOrderPayments"/>, <see cref="ISaleLookup"/> e
-    /// <see cref="ISalesRevenue"/>; o provedor manual de pagamento; o uso da forma de pagamento (PAG-01 CA 6); a venda auditada (cancelamento); e a
-    /// porta do produto vendável com o adaptador provisório pelo item de estoque (até a CAT-01).
+    /// <see cref="ISalesRevenue"/>; o provedor manual de pagamento; o uso da forma de pagamento (PAG-01 CA 6); a venda auditada (cancelamento); e o
+    /// uso do produto (CAT-01: produto vendido não é excluído, só desativado). O produto vendável vem do <see cref="ISellableProducts"/> do Catálogo.
     /// </summary>
     public static IServiceCollection AddSalesInfrastructure(this IServiceCollection services)
     {
@@ -28,25 +28,7 @@ public static class SalesInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPaymentProvider, ManualPaymentProvider>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IPaymentMethodUsageProvider, SalePaymentMethodUsage>());
         services.AddAuditableEntity<Sale>(SaleService.Module);
-
-        // Único acoplamento com o catálogo (CAT-01): troca-se só este registro quando o contrato do Catalog entrar na main.
-        services.TryAddScoped<ISaleProductResolver, InventoryItemProductResolver>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IProductUsageProvider, SaleProductUsage>());
         return services;
-    }
-}
-
-/// <summary>
-/// Adaptador <b>provisório</b> da porta <see cref="ISaleProductResolver"/>, até a CAT-01 (catálogo) entrar na <c>main</c>: o id do produto é o
-/// id do item de estoque (<see cref="IItems"/>), sem grade, sem preço e sem tabela (a venda grava o preço que o canal informou). Item excluído ou
-/// inativo volta como inativo. Na CAT-01, este adaptador passa a ler o <c>ISellableProducts.FindManyAsync</c>, que tem a mesma forma.
-/// </summary>
-public sealed class InventoryItemProductResolver(IItems items) : ISaleProductResolver
-{
-    public async Task<IReadOnlyList<SellableProductInfo>> FindManyAsync(IReadOnlyCollection<Guid> productIds, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(productIds);
-        return (await items.FindAsync(productIds.Distinct().ToList(), cancellationToken))
-            .Select(i => new SellableProductInfo(i.Id, null, i.Name, i.UnitId, i.UnitCode, i.Id, null, Guid.Empty, 0, i.IsActive && !i.IsDeleted, false, null))
-            .ToList();
     }
 }

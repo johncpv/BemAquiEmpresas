@@ -24,6 +24,8 @@ public static class InventoryInfrastructure
         services.TryAddScoped<CategoryService>();
         services.TryAddScoped<WarrantyDefaultService>();
         services.TryAddScoped<IItems, ItemsContract>();
+        // Mercadoria criada no formulário do produto do Catálogo (CAT-01 CA 3), pelas regras da tela de itens.
+        services.TryAddScoped<IItemRegistration, ItemRegistrationContract>();
         // Escrita da importação do Dolibarr (MIG-01c): só o módulo Migrations usa.
         services.TryAddScoped<IItemImport, ItemImport>();
         services.TryAddScoped<ILocationImport, LocationImport>();

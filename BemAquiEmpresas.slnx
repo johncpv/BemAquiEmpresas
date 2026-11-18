@@ -15,6 +15,13 @@
     <Project Path="src/Modules/Assets/BemAqui.Assets.Endpoints/BemAqui.Assets.Endpoints.csproj" />
     <Project Path="src/Modules/Assets/BemAqui.Assets.Infrastructure/BemAqui.Assets.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Catalog/">
+    <Project Path="src/Modules/Catalog/BemAqui.Catalog.Application/BemAqui.Catalog.Application.csproj" />
+    <Project Path="src/Modules/Catalog/BemAqui.Catalog.Contracts/BemAqui.Catalog.Contracts.csproj" />
+    <Project Path="src/Modules/Catalog/BemAqui.Catalog.Domain/BemAqui.Catalog.Domain.csproj" />
+    <Project Path="src/Modules/Catalog/BemAqui.Catalog.Endpoints/BemAqui.Catalog.Endpoints.csproj" />
+    <Project Path="src/Modules/Catalog/BemAqui.Catalog.Infrastructure/BemAqui.Catalog.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Commercial/">
     <Project Path="src/Modules/Commercial/BemAqui.Commercial.Application/BemAqui.Commercial.Application.csproj" />
     <Project Path="src/Modules/Commercial/BemAqui.Commercial.Contracts/BemAqui.Commercial.Contracts.csproj" />

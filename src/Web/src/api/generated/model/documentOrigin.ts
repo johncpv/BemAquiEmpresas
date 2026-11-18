@@ -20,4 +20,6 @@ export const DocumentOrigin = {
   GoodsReceipt: 'GoodsReceipt',
   PayrollForecast: 'PayrollForecast',
   IncomingInvoice: 'IncomingInvoice',
+  Sale: 'Sale',
+  CardSettlement: 'CardSettlement',
 } as const;

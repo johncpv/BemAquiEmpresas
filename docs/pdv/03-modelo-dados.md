@@ -38,18 +38,19 @@ Nomes de tabela e coluna em inglês; `tenant` não aparece como coluna porque o 
 
 | Tabela | Campos-chave | Observação |
 |---|---|---|
-| `categories` | `id`, `name`, `parent_id`, `default_margin_percent`, `default_markup_percent`, `sort_order`, `seed_key` | Categoria de produto: organiza a grade do modo Toque, a importação, os relatórios e a margem padrão usada na precificação (CPD-01) |
-| `products` | `id`, `item_id` (Estoque), `category_id`, `sale_name`, `photo_file_id`, `sellable_pos`, `sellable_online`, `is_weighable`, `plu`, `variant_of_product_id`, `variant_attributes` (jsonb: cor, tamanho), `kitchen_station_id`, `prep_minutes`, `fiscal_ready` | Um produto por item. **Variação (grade):** o produto "pai" agrupa; cada variação é um produto com item, código de barras, preço e saldo próprios e `variant_of_product_id` apontando para o pai. `fiscal_ready` = item apto a descer para caixa de loja fiscal (regra 10 do PRD) |
-| `product_barcodes` | `product_id`, `gtin`, `pack_quantity` `decimal(18,4)`, `unit_id` | Vários por produto. `gtin` único no tenant, com dígito verificador validado |
-| `price_lists` | `id`, `name`, `store_id` (nulo = todas), `channel` (`Pos`, `Online`, `Delivery`), `valid_from`, `valid_to`, `version` | Versão incrementada a cada mudança; o aparelho informa a versão em que vendeu |
-| `price_list_items` | `price_list_id`, `product_id`, `price` `decimal(18,2)`, `min_quantity` `decimal(18,4)` | `min_quantity` atende preço de atacado por faixa (Fase 12) |
+| `categories` | `id`, `name`, `parent_id`, `default_margin_percent`, `default_markup_percent` (`numeric(9,4)`, um dos dois), `sort_order`, `is_active`, `seed_key` | **Feita na CAT-01.** Categoria de produto: organiza a grade do modo Toque, a importação, os relatórios e a margem padrão usada na precificação (CPD-01). A "Geral" (`seed_key = geral`) nasce no primeiro uso do módulo; com produto, só desativa |
+| `products` | `id`, `item_id` (Estoque), `category_id`, `sale_name`, `search_text`, `sellable_pos`, `sellable_online`, `is_weighable`, `plu`, `variant_of_product_id`, `variant_attributes` (jsonb: cor, tamanho), `has_variants`, `is_active`, soft delete, `xmin`. Fase 15: `kitchen_station_id`, `prep_minutes`; regra 10: `fiscal_ready` | **Feita na CAT-01** (sem as colunas das Fases 15 e da regra 10). Um produto por item (índice único entre os não excluídos). **Variação (grade):** o pai tem item e agrupa; cada variação é um produto com item, código de barras, preço e saldo próprios e `variant_of_product_id` apontando para o pai; `has_variants` marca o pai, que não é vendido. A foto é anexo do dono `ProductPhoto` no produto raiz (a variação usa a do pai), no lugar de `photo_file_id` |
+| `product_barcodes` | `product_id`, `gtin`, `pack_quantity` `decimal(18,4)` | **Feita na CAT-01.** Vários por produto. `gtin` único no tenant, com dígito verificador validado. `unit_id` ficou de fora: a embalagem é a quantidade na unidade do item |
+| `price_lists` | `id`, `name`, `store_id` (nulo = todas), `channel` (`Pos`, `Online`, `Delivery`), `valid_from`, `valid_to`, `version`, `is_default`, `seed_key` | **Feita na CAT-01**, só com a "Balcão" (`seed_key = balcao`, criada no primeiro uso). Versão incrementada a cada mudança, com a linha travada; o aparelho informa a versão em que vendeu |
+| `price_list_items` | `price_list_id`, `product_id`, `price` `decimal(18,2)`, `min_quantity` `decimal(18,4)` | **Feita na CAT-01** (`min_quantity` = 1). `min_quantity` atende preço de atacado por faixa (Fase 12) |
+| `price_changes` | `price_list_id`, `product_id`, `previous_price`, `new_price` `decimal(18,2)`, `list_version`, `changed_at`, `changed_by` | **Feita na CAT-01.** Histórico do preço, só inclusão |
 | `promotions` | `id`, `kind` (leve X pague Y, preço por faixa, por horário), `rule` (jsonb), `valid_from`, `valid_to`, `store_id` | Fase 12 |
 | `modifier_groups`, `modifiers` | grupo: `min_select`, `max_select`; complemento: `name`, `price` `decimal(18,2)`, `item_id` opcional | Fase 15 |
 | `combos`, `combo_items` | `combo_product_id`, `product_id`, `quantity`, `swap_group` | Fase 15 |
 | `recipes`, `recipe_lines` | receita: `product_id`, `mode` (`ConsumeOnSale`, `ProduceToStock`), `yield_quantity`; linha: `ingredient_item_id`, `quantity` `decimal(18,4)`, `loss_percent` | Fase 15. A BOM da Engenharia é por OS (`production_order_id`) e não serve à ficha técnica de alimento |
 | `label_templates`, `label_queue` | modelo por tamanho; fila gerada ao mudar preço | Fase 12. Reusa a base de etiqueta do Patrimônio |
 
-Ligações: `products.item_id` → `inventory.items` (por `IItems`); custo para a margem por `IItemCosts`; disponibilidade para a loja virtual por `IStockBalances`.
+Ligações: `products.item_id` → `inventory.items` (por `IItems`; o item novo nasce pelo `IItemRegistration`, CAT-01); custo para a margem por `IItemCosts`; disponibilidade para a loja virtual por `IStockBalances`. Os outros módulos leem o catálogo por `ISellableProducts` e `ICatalogLookup` ([ADR 0047](../adr/0047-catalogo-de-produtos.md)).
 
 ## 4. Pos — schema `pos`
 

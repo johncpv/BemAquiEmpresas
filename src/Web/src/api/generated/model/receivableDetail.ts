@@ -53,4 +53,10 @@ export interface ReceivableDetail {
   /** @nullable */
   billingSlipId?: string | null;
   billingSlipStatus?: null | BillingSlipStatus;
+  /** @nullable */
+  saleChannel?: string | null;
+  /** @nullable */
+  grossAmount?: number | null;
+  /** @nullable */
+  expectedFee?: number | null;
 }

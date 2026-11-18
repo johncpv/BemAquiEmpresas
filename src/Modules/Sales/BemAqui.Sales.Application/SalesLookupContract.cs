@@ -1,3 +1,4 @@
+using BemAqui.Catalog.Contracts;
 using BemAqui.Finance.Contracts;
 using BemAqui.Sales.Contracts;
 using BemAqui.Sales.Domain;
@@ -40,4 +41,13 @@ public sealed class SalePaymentMethodUsage(ISalesDb db) : IPaymentMethodUsagePro
 {
     public async Task<string?> UsageAsync(Guid paymentMethodId, CancellationToken cancellationToken = default) =>
         await db.SalePayments.AsNoTracking().AnyAsync(p => p.PaymentMethodId == paymentMethodId, cancellationToken) ? "vendas" : null;
+}
+
+/// <summary>
+/// Produto vendido não é excluído, só desativado (CAT-01, ligado aqui): conta a linha da venda pelo produto vendido ou, numa grade, pelo pai.
+/// </summary>
+public sealed class SaleProductUsage(ISalesDb db) : IProductUsageProvider
+{
+    public async Task<string?> UsageAsync(Guid productId, CancellationToken cancellationToken = default) =>
+        await db.SaleLines.AsNoTracking().AnyAsync(l => l.ProductId == productId || l.ParentProductId == productId, cancellationToken) ? "vendas" : null;
 }

@@ -22,8 +22,8 @@ public partial class SalesTests
         var (_, owner) = await OwnerAsync();
         var methods = await MethodsAsync(owner);
         var location = await LocationAsync();
-        var product = await ItemAsync(location, 10, 4.123456m);
-        var service = await ItemAsync(type: BemAqui.Inventory.Contracts.ItemType.Service);
+        var product = await ProductAsync(location, 10, 4.123456m);
+        var service = await ProductAsync(type: BemAqui.Inventory.Contracts.ItemType.Service);
         var request = Online(Today.AddDays(-21), location, [Line(product, 2, 15m), Line(product, 1, 15m), Line(service, 1, 5m)], [Paid(methods.Pix, 50m)]);
         (await IngestAsync(request)).IsSuccess.Should().BeTrue();
         await DrainAsync();
@@ -71,7 +71,7 @@ public partial class SalesTests
         var (_, owner) = await OwnerAsync();
         var methods = await MethodsAsync(owner);
         var location = await LocationAsync();
-        var product = await ItemAsync(location, 1, 2m);
+        var product = await ProductAsync(location, 1, 2m);
         var request = Online(Today.AddDays(-22), location, [Line(product, 3, 10m)], [Paid(methods.Pix, 30m)]);
         (await IngestAsync(request)).IsSuccess.Should().BeTrue("a venda concluída entra; o saldo é problema da baixa");
         await DrainAsync();
@@ -87,7 +87,7 @@ public partial class SalesTests
         var (_, owner) = await OwnerAsync();
         var methods = await MethodsAsync(owner);
         var location = await LocationAsync();
-        var product = await ItemAsync(location, 20, 2m);
+        var product = await ProductAsync(location, 20, 2m);
         var day = Today.AddDays(-23);
 
         // Um título manual de antes não muda (regressão da Konebras: colunas novas nulas).
@@ -197,7 +197,7 @@ public partial class SalesTests
         var (_, owner) = await OwnerAsync();
         var methods = await MethodsAsync(owner);
         var location = await LocationAsync();
-        var product = await ItemAsync(location, 20, 2m);
+        var product = await ProductAsync(location, 20, 2m);
         var day = Today.AddDays(-25);
         (await IngestAsync(Online(day, location, [Line(product, 2, 50m, 10m)], [Paid(methods.Credit, 90m)]))).IsSuccess.Should().BeTrue();
         (await IngestAsync(Online(day, location, [Line(product, 1, 10m)], [Paid(methods.Pix, 10m)]) with { Channel = SaleChannel.ServiceOrder })).IsSuccess.Should().BeTrue();
@@ -223,7 +223,7 @@ public partial class SalesTests
         var (_, owner) = await OwnerAsync();
         var methods = await MethodsAsync(owner);
         var location = await LocationAsync();
-        var product = await ItemAsync(location, 5, 2m);
+        var product = await ProductAsync(location, 5, 2m);
         (await IngestAsync(Online(Today.AddDays(-26), location, [Line(product, 1, 10m)], [Paid(methods.Cash, 10m)]))).IsSuccess.Should().BeTrue();
         var refused = await owner.DeleteAsync("/api/v1/finance/payment-methods/" + methods.Cash);
         refused.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -231,6 +231,23 @@ public partial class SalesTests
         await DrainAsync();
     }
 
+    [Fact]
+    public async Task Produto_vendido_nao_e_excluido_no_catalogo_so_desativado()
+    {
+        var (_, owner) = await OwnerAsync();
+        var methods = await MethodsAsync(owner);
+        var location = await LocationAsync();
+        var sold = await ProductAsync(location, 5, 2m);
+        var unsold = await ProductAsync();
+        (await IngestAsync(Online(Today.AddDays(-28), location, [Line(sold, 1, 10m)], [Paid(methods.Pix, 10m)]))).IsSuccess.Should().BeTrue();
+
+        // IProductUsageProvider da venda: o Catálogo recusa a exclusão (409 product_in_use) e o produto sem venda sai.
+        var refused = await owner.DeleteAsync("/api/v1/catalog/products/" + sold);
+        refused.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        (await JsonAsync(refused)).GetProperty("code").GetString().Should().Be("product_in_use");
+        (await owner.DeleteAsync("/api/v1/catalog/products/" + unsold)).IsSuccessStatusCode.Should().BeTrue();
+        await DrainAsync();
+    }
 
     [Fact]
     public async Task Porta_do_catalogo_com_fake_vende_a_variacao_e_baixa_pelo_item_ligado()
@@ -238,11 +255,11 @@ public partial class SalesTests
         var (_, owner) = await OwnerAsync();
         var methods = await MethodsAsync(owner);
         var location = await LocationAsync();
-        var item = await ItemAsync(location, 5, 7m);
+        var item = ItemOf(await ProductAsync(location, 5, 7m));
         var parent = Guid.NewGuid();
         var variation = Guid.NewGuid();
         var factory = tenancy.Derive(b => Microsoft.AspNetCore.TestHost.WebHostBuilderExtensions.ConfigureTestServices(b,
-            s => s.AddScoped<ISaleProductResolver>(_ => new FakeCatalog(variation, parent, item))));
+            s => s.AddScoped<BemAqui.Catalog.Contracts.ISellableProducts>(_ => new FakeCatalog(variation, parent, item))));
         var info = (await factory.Services.GetRequiredService<BemAqui.BuildingBlocks.Tenancy.ITenantDirectory>().FindAsync(tenancy.TenantA.Id))!;
         var request = Online(Today.AddDays(-27), location, [Line(variation, 2, 40m)], [Paid(methods.Pix, 80m)]);
         await using (var scope = await factory.Services.GetRequiredService<BemAqui.BuildingBlocks.Tenancy.ITenantScopeFactory>().CreateScopeAsync(info))
@@ -256,15 +273,18 @@ public partial class SalesTests
         var line = await WithDbAsync(db => db.SaleLines.AsNoTracking().SingleAsync(l => l.SaleId == request.SaleId));
         (line.ProductId, line.ParentProductId, line.ItemId, line.Description, line.UnitCode).Should().Be((variation, (Guid?)parent, (Guid?)item, "Camiseta básica Azul M", "UN"));
         await DrainAsync();
-        (await OnHandAsync(item, location)).Should().Be(3m, "a variação baixa pelo item de estoque ligado");
+        (await WithDbAsync(db => db.StockPositions.AsNoTracking().Where(p => p.ItemId == item && p.LocationId == location).Select(p => p.QuantityOnHand).FirstOrDefaultAsync())).Should().Be(3m, "a variação baixa pelo item de estoque ligado");
     }
 
     /// <summary>Catálogo falso com a forma do <c>ISellableProducts</c> da CAT-01: uma variação de grade ligada a um item de estoque.</summary>
-    private sealed class FakeCatalog(Guid variation, Guid parent, Guid item) : ISaleProductResolver
+    private sealed class FakeCatalog(Guid variation, Guid parent, Guid item) : BemAqui.Catalog.Contracts.ISellableProducts
     {
-        public Task<IReadOnlyList<SellableProductInfo>> FindManyAsync(IReadOnlyCollection<Guid> productIds, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<SellableProductInfo>>(productIds.Where(p => p == variation)
-                .Select(_ => new SellableProductInfo(variation, parent, "Camiseta básica Azul M", Guid.NewGuid(), "UN", item, 80m, Guid.NewGuid(), 3, true, false, null)).ToList());
+        public async Task<BemAqui.Catalog.Contracts.SellableProduct?> FindAsync(Guid productId, CancellationToken cancellationToken = default) =>
+            (await FindManyAsync([productId], cancellationToken)).FirstOrDefault();
+
+        public Task<IReadOnlyList<BemAqui.Catalog.Contracts.SellableProduct>> FindManyAsync(IReadOnlyCollection<Guid> productIds, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<BemAqui.Catalog.Contracts.SellableProduct>>(productIds.Where(p => p == variation)
+                .Select(_ => new BemAqui.Catalog.Contracts.SellableProduct(variation, parent, "Camiseta básica Azul M", Guid.NewGuid(), "UN", item, 80m, Guid.NewGuid(), 3, true, false, null)).ToList());
     }
 
     private static async Task<System.Text.Json.JsonElement> JsonAsyncOk2(HttpResponseMessage response) => await response.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();

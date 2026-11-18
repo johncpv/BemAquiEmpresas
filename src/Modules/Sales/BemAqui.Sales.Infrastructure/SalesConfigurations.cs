@@ -60,6 +60,7 @@ internal sealed class SaleLineConfiguration : IEntityTypeConfiguration<SaleLine>
         b.HasOne<Sale>().WithMany().HasForeignKey(e => e.SaleId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => new { e.SaleId, e.LineNumber }).IsUnique();
         b.HasIndex(e => e.ProductId);
+        b.HasIndex(e => e.ParentProductId); // uso do produto pai da grade (IProductUsageProvider)
     }
 }
 

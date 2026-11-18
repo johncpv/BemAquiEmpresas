@@ -101,6 +101,9 @@ public static class HostEvents
             .AddHandler<BemAqui.Sales.Contracts.SaleCancelled, BemAqui.Sales.Application.SaleStockConsumer>()
             .AddHandler<BemAqui.Sales.Contracts.SaleCompleted, BemAqui.Finance.Application.SaleReceivablesConsumer>()
             .AddHandler<BemAqui.Sales.Contracts.SaleCancelled, BemAqui.Finance.Application.SaleReceivablesConsumer>()
+            // CAT-01: produto e preço mudaram; o modelo de leitura do caixa recarrega (consumidor na OFF-01).
+            .AddEvent<BemAqui.Catalog.Contracts.ProductChanged>()
+            .AddEvent<BemAqui.Catalog.Contracts.PriceChanged>()
             // RH-02c (ADR 0036 §4): o fechamento cria os títulos na própria transação; os eventos da folha são só aviso e projeção, e a folha
             // fica paga (ou volta a fechada no estorno) pela fonte, no consumidor da OP.
             .AddEvent<BemAqui.HR.Contracts.PayrollClosed>()

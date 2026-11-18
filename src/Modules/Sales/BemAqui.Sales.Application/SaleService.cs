@@ -2,6 +2,7 @@ using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.BuildingBlocks.Time;
+using BemAqui.Catalog.Contracts;
 using BemAqui.Finance.Contracts;
 using BemAqui.Inventory.Contracts;
 using BemAqui.Sales.Contracts;
@@ -18,7 +19,7 @@ namespace BemAqui.Sales.Application;
 /// </summary>
 public sealed partial class SaleService(
     ISalesDb db,
-    ISaleProductResolver products,
+    ISellableProducts products,
     IPaymentMethods paymentMethods,
     ILocations locations,
     IEnumerable<IPaymentProvider> providers,
@@ -166,7 +167,7 @@ public sealed partial class SaleService(
     private void PublishCompleted(Sale sale) =>
         events.Publish(new SaleCompleted(sale.Id, sale.Number, sale.Channel, sale.StoreId, sale.CashSessionId, sale.BusinessDate, sale.Total, sale.CompletedAt!.Value));
 
-    /// <summary>Venda com as linhas resolvidas no catálogo (pela porta <see cref="ISaleProductResolver"/>) e os totais.</summary>
+    /// <summary>Venda com as linhas resolvidas no catálogo (<see cref="ISellableProducts"/> do Catálogo) e os totais.</summary>
     private async Task<Result<(Sale Sale, List<SaleLine> Lines)>> BuildSaleAsync(Guid saleId, SaleChannel channel, string number, string sourceType, Guid? sourceId, Guid? storeId,
         Guid? registerId, Guid? cashSessionId, Guid? stockLocationId, Guid? customerId, Guid? sellerUserId, bool fromDevice, long? priceListVersion, DateTimeOffset? completedAtDevice,
         IReadOnlyList<SaleLineInput> inputs, decimal serviceFee, CancellationToken ct)

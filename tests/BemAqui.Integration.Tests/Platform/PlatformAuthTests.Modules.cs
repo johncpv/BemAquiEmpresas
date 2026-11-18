@@ -74,7 +74,8 @@ public partial class PlatformAuthTests
         await using var scope = tenancy.Factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<ITenantModulesDb>();
         var service = scope.ServiceProvider.GetRequiredService<TenantModuleService>();
-        (await db.TenantModules.CountAsync(m => m.TenantId == tenant.Id && m.Enabled)).Should().Be(ModuleCatalog.All.Count);
+        // O provisionamento aplica o perfil Fábrica (ADR 0046): liberado é o que está no plano e no perfil; o catálogo do PDV (CAT-01) fica fora.
+        (await db.TenantModules.CountAsync(m => m.TenantId == tenant.Id && m.Enabled)).Should().Be(BusinessProfileCatalog.Find(BusinessProfileCatalog.Factory)!.Modules.Count);
 
         (await service.SaveAsync(tenant.Id, [new ModuleReleaseChange("hr", false)], null, null)).IsSuccess.Should().BeTrue();
         var basic = new Plan { Name = "Básico " + Guid.NewGuid().ToString("N")[..6] };

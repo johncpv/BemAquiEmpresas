@@ -21,7 +21,7 @@ namespace BemAqui.Host.Persistence;
 /// DbContext único do banco de tenant (ADR 0006): tabelas compartilhadas da base e, conforme as stories
 /// avançam, as configurações de cada módulo. A conexão por tenant chega na FND-02.
 /// </summary>
-public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IProductionPlanDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb, BemAqui.Engineering.Application.IEngineeringDb, BemAqui.Purchasing.Application.IPurchasingDb, BemAqui.Fiscal.Application.IFiscalDb, BemAqui.Assets.Application.IAssetsDb, BemAqui.Sales.Application.ISalesDb
+public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) : BemAquiDbContext(options), IIdentityDb, IPartiesDb, IMigrationDb, IFinanceDb, IInventoryDb, IProductionDb, IProductionPlanDb, IHrDb, BemAqui.Commercial.Application.ICommercialDb, BemAqui.Engineering.Application.IEngineeringDb, BemAqui.Purchasing.Application.IPurchasingDb, BemAqui.Fiscal.Application.IFiscalDb, BemAqui.Assets.Application.IAssetsDb, BemAqui.Catalog.Application.ICatalogDb, BemAqui.Sales.Application.ISalesDb
 {
     public DbSet<User> Users => Set<User>();
 
@@ -400,6 +400,19 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BemAqui.Assets.Domain.MaintenanceOrderChecklistItem> MaintenanceOrderChecklist => Set<BemAqui.Assets.Domain.MaintenanceOrderChecklistItem>();
 
     public DbSet<BemAqui.Assets.Domain.MaintenanceOrderCost> MaintenanceOrderCosts => Set<BemAqui.Assets.Domain.MaintenanceOrderCost>();
+
+    // CAT-01: catálogo de produtos (schema catalog_products).
+    public DbSet<BemAqui.Catalog.Domain.ProductCategory> ProductCategories => Set<BemAqui.Catalog.Domain.ProductCategory>();
+
+    public DbSet<BemAqui.Catalog.Domain.Product> Products => Set<BemAqui.Catalog.Domain.Product>();
+
+    public DbSet<BemAqui.Catalog.Domain.ProductBarcode> ProductBarcodes => Set<BemAqui.Catalog.Domain.ProductBarcode>();
+
+    public DbSet<BemAqui.Catalog.Domain.PriceList> PriceLists => Set<BemAqui.Catalog.Domain.PriceList>();
+
+    public DbSet<BemAqui.Catalog.Domain.PriceListItem> PriceListItems => Set<BemAqui.Catalog.Domain.PriceListItem>();
+
+    public DbSet<BemAqui.Catalog.Domain.PriceChange> PriceChanges => Set<BemAqui.Catalog.Domain.PriceChange>();
 
     public DbSet<BemAqui.Production.Domain.Downtime> Downtimes => Set<BemAqui.Production.Domain.Downtime>();
 

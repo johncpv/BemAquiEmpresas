@@ -91,10 +91,11 @@ public partial class SalesTests(TenancyFixture tenancy) : IClassFixture<TenancyF
         return (id, client);
     }
 
-    /// <summary>Item de revenda em UN (o adaptador provisório usa o id do item como id do produto) e, com estoque, a entrada no local.</summary>
-    private async Task<Guid> ItemAsync(Guid? location = null, decimal quantity = 0, decimal cost = 0, ItemType type = ItemType.Finished, bool tracksLot = false)
+    /// <summary>Produto do Catálogo sobre um item de revenda em UN e, com estoque, a entrada no local. Devolve o id do produto; o item sai em <see cref="ItemOf"/>.</summary>
+    private async Task<Guid> ProductAsync(Guid? location = null, decimal quantity = 0, decimal cost = 0, ItemType type = ItemType.Finished, bool tracksLot = false)
     {
         Guid id;
+        Guid productId;
         await using (var scope = await ScopeAsync())
         {
             var db = scope.ServiceProvider.GetRequiredService<TenantDbContext>();
@@ -103,6 +104,15 @@ public partial class SalesTests(TenancyFixture tenancy) : IClassFixture<TenancyF
             db.Items.Add(item);
             await db.SaveChangesAsync();
             id = item.Id;
+
+            // Produto do Catálogo (CAT-01) ligado ao item, gravado direto: o serviço não passa na validação do Catálogo (sem estoque), mas a OS
+            // lança serviço e o consumidor do estoque precisa tirá-lo da baixa.
+            var category = await scope.ServiceProvider.GetRequiredService<BemAqui.Catalog.Application.CatalogDefaults>().GeneralCategoryAsync();
+            var product = new BemAqui.Catalog.Domain.Product { ItemId = item.Id, CategoryId = category.Id, SaleName = item.Name, CreatedAt = DateTimeOffset.UtcNow };
+            db.Products.Add(product);
+            await db.SaveChangesAsync();
+            itemOf[product.Id] = item.Id;
+            productId = product.Id;
         }
 
         if (location is { } loc && quantity > 0)
@@ -116,7 +126,7 @@ public partial class SalesTests(TenancyFixture tenancy) : IClassFixture<TenancyF
             await transaction.CommitAsync();
         }
 
-        return id;
+        return productId;
     }
 
     private async Task<Guid> LocationAsync()
@@ -202,6 +212,15 @@ public partial class SalesTests(TenancyFixture tenancy) : IClassFixture<TenancyF
         }
     }
 
-    private Task<decimal> OnHandAsync(Guid item, Guid location) =>
-        WithDbAsync(db => db.StockPositions.AsNoTracking().Where(p => p.ItemId == item && p.LocationId == location).Select(p => p.QuantityOnHand).FirstOrDefaultAsync());
+    private readonly Dictionary<Guid, Guid> itemOf = [];
+
+    /// <summary>O item de estoque ligado ao produto criado por <see cref="ProductAsync"/>.</summary>
+    private Guid ItemOf(Guid product) => itemOf[product];
+
+    /// <summary>Saldo do item do produto no local.</summary>
+    private Task<decimal> OnHandAsync(Guid product, Guid location)
+    {
+        var item = ItemOf(product);
+        return WithDbAsync(db => db.StockPositions.AsNoTracking().Where(p => p.ItemId == item && p.LocationId == location).Select(p => p.QuantityOnHand).FirstOrDefaultAsync());
+    }
 }

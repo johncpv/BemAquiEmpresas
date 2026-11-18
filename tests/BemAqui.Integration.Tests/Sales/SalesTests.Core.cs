@@ -18,7 +18,7 @@ public partial class SalesTests
         var (_, owner) = await OwnerAsync();
         var methods = await MethodsAsync(owner);
         var location = await LocationAsync();
-        var product = await ItemAsync(location, 10, 4m);
+        var product = await ProductAsync(location, 10, 4m);
         var day = Today.AddDays(-11);
 
         // CA 3: dentro da transação de quem chama; o rollback dela desfaz venda, linhas, partes, pagamentos e o evento.
@@ -47,7 +47,8 @@ public partial class SalesTests
         sale.CashSessionId.Should().BeNull();
         sale.Status.Should().Be(SaleStatus.Completed);
         sale.BusinessDate.Should().Be(day);
-        (await WithDbAsync(db => db.SaleLines.CountAsync(l => l.SaleId == sale.Id && l.ItemId == product))).Should().Be(2);
+        var item = ItemOf(product);
+        (await WithDbAsync(db => db.SaleLines.CountAsync(l => l.SaleId == sale.Id && l.ItemId == item))).Should().Be(2);
         (await WithDbAsync(db => db.SaleParts.CountAsync(p => p.SaleId == sale.Id && p.Paid))).Should().Be(1);
         (await WithDbAsync(db => db.OutboxMessages.Where(m => m.Type == IntegrationEventRegistry.NameOf(typeof(SaleCompleted))).Select(m => m.Payload).ToListAsync()))
             .Should().Contain(p => p.Contains(sale.Id.ToString(), StringComparison.Ordinal) && p.Contains("\"Channel\":\"Online\"", StringComparison.Ordinal));
@@ -60,7 +61,7 @@ public partial class SalesTests
         var (_, owner) = await OwnerAsync();
         var methods = await MethodsAsync(owner);
         var location = await LocationAsync();
-        var product = await ItemAsync(location, 5, 2m);
+        var product = await ProductAsync(location, 5, 2m);
         var request = Online(Today.AddDays(-12), location, [Line(product, 1, 9.9m)], [Paid(methods.Pix, 9.9m)]);
 
         var first = await IngestAsync(request);
@@ -81,7 +82,7 @@ public partial class SalesTests
         var (_, owner) = await OwnerAsync();
         var methods = await MethodsAsync(owner);
         var location = await LocationAsync();
-        var product = await ItemAsync(location, 5, 2m);
+        var product = await ProductAsync(location, 5, 2m);
         var day = Today.AddDays(-13);
 
         // CA 5: no canal sem caixa, quem chama ainda pode corrigir.
@@ -119,7 +120,7 @@ public partial class SalesTests
         var (_, owner) = await OwnerAsync();
         var methods = await MethodsAsync(owner);
         var location = await LocationAsync();
-        var product = await ItemAsync(location, 5, 2m);
+        var product = await ProductAsync(location, 5, 2m);
         var payment = Paid(methods.Credit, 20m, brand: "Visa") with { Nsu = "4111 1111 1111 1111" };
         var refused = await IngestAsync(Online(Today.AddDays(-14), location, [Line(product, 1, 20m)], [payment]));
         refused.IsFailure.Should().BeTrue();
@@ -134,7 +135,7 @@ public partial class SalesTests
         var (_, owner) = await OwnerAsync();
         var methods = await MethodsAsync(owner);
         var location = await LocationAsync();
-        var product = await ItemAsync(location, 5, 2m);
+        var product = await ProductAsync(location, 5, 2m);
         var order = new OrderSale(Guid.CreateVersion7(), SaleChannel.ServiceOrder, Unique("OS"), "ServiceOrder", Guid.NewGuid(), [Line(product, 2, 50m)], StockLocationId: location);
 
         async Task<SaleView> PayAsync(params OrderPaymentInput[] payments)
@@ -175,7 +176,7 @@ public partial class SalesTests
         var (_, owner) = await OwnerAsync();
         var methods = await MethodsAsync(owner);
         var location = await LocationAsync();
-        var product = await ItemAsync(location, 5, 3m);
+        var product = await ProductAsync(location, 5, 3m);
         var request = Online(Today.AddDays(-15), location, [Line(product, 1, 10m)], [Paid(methods.Pix, 10m)]);
         (await IngestAsync(request)).IsSuccess.Should().BeTrue();
         await DrainAsync();

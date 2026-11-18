@@ -15,4 +15,5 @@ dueTo?: string;
 contractId?: string;
 withBillingSlip?: boolean;
 sort?: string;
+origin?: string;
 };
