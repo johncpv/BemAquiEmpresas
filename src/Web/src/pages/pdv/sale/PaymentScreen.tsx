@@ -19,6 +19,9 @@ const field = 'block min-h-[56px] w-full rounded-md border-2 border-input bg-car
 /** Centavos para o campo de valor ("18,99"). */
 const moneyText = (cents: Cents) => centsToDecimal(cents).replace('.', ',')
 
+/** Instante da ação (fora da renderização). */
+const nowIso = () => new Date().toISOString()
+
 export const PIX_REMINDER = 'Confira o recebimento no aplicativo do banco, não na tela do cliente.'
 
 function MethodIcon({ method }: { method: CatalogPaymentMethod }) {
@@ -135,7 +138,7 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
     try {
       const tender = await terminal.charge({
         tenderId: uuidv7(), method, amountCents: amount, receivedCents: received, cardBrand: brand, installments, nsu: checkedNsu.value,
-        note: checkedNote.value, operatorId, at: new Date().toISOString(),
+        note: checkedNote.value, operatorId, at: nowIso(),
       }, setTerminalTender)
       setTerminalTender(tender.status === 'Captured' ? null : tender)
       await record(tender)
@@ -149,7 +152,7 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
   const resolveUnknown = async (tender: Tender, approved: boolean) => {
     setBusy(true)
     try {
-      const checked = await terminal.check(tender, approved, new Date().toISOString())
+      const checked = await terminal.check(tender, approved, nowIso())
       setTerminalTender(checked.status === 'Captured' ? null : checked)
       await record(checked)
     } catch {
