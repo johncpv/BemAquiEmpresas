@@ -1,8 +1,8 @@
 import { getGetPosCatalogChangesUrl, getGetPosCatalogSnapshotUrl, getPosCatalogChanges, getPosCatalogSnapshot } from '@/api/generated/bemaqui'
-import type { PosCatalogChanges, PosCatalogSnapshot, PosSyncItem, PosSyncStore } from '@/api/generated/model'
+import type { PosCatalogChanges, PosCatalogSnapshot, PosSyncItem, PosSyncPaymentMethod, PosSyncStore } from '@/api/generated/model'
 import type { CatalogChanges, CatalogSnapshot, CatalogSyncSource } from './catalog-sync'
 import { signRequest } from './device-signing'
-import type { CatalogBarcode, CatalogChange, CatalogCollection, CatalogData, CatalogPrice, CatalogRecords } from './local-store/catalog-types'
+import type { CatalogBarcode, CatalogChange, CatalogCollection, CatalogData, CatalogPaymentMethod, CatalogPrice, CatalogRecords } from './local-store/catalog-types'
 import type { LocalStore } from './local-store/local-store'
 
 /**
@@ -45,6 +45,11 @@ function itemRecords(item: PosSyncItem, priceListVersion: number) {
   return { record, barcodes, price }
 }
 
+/** Forma de pagamento como fica no aparelho: sem taxa (nunca desce), com as bandeiras e o teto de parcelas (PDV-03 CA 4). */
+const paymentMethodRecord = (m: PosSyncPaymentMethod): CatalogPaymentMethod => ({
+  id: m.id, name: m.name, kind: m.type, allowsChange: m.allowsChange, cardBrands: [...(m.cardBrands ?? [])], maxInstallments: m.maxInstallments ?? 1,
+})
+
 export function toSnapshot(body: PosCatalogSnapshot): CatalogSnapshot {
   const data: CatalogData = { items: [], barcodes: [], prices: [], paymentMethods: [], operators: [], printers: [] }
   for (const item of body.items) {
@@ -53,7 +58,7 @@ export function toSnapshot(body: PosCatalogSnapshot): CatalogSnapshot {
     data.barcodes.push(...barcodes)
     if (price) data.prices.push(price)
   }
-  data.paymentMethods = body.paymentMethods.map((m) => ({ id: m.id, name: m.name, kind: m.type }))
+  data.paymentMethods = body.paymentMethods.map(paymentMethodRecord)
   data.operators = body.operators.map((o) => ({ id: o.userId, displayName: o.displayName }))
   data.printers = body.printers.items.map((p) => ({ id: p.id, name: p.name, kind: 'printer' }))
   return {
@@ -95,7 +100,7 @@ export function toChanges(body: PosCatalogChanges, store: Pick<LocalStore, 'list
     changes.push(remove('items', id), remove('prices', id))
     for (const old of barcodesByItem.get(id) ?? []) changes.push(remove('barcodes', old))
   }
-  for (const m of body.paymentMethods) changes.push(upsert('paymentMethods', { id: m.id, name: m.name, kind: m.type }))
+  for (const m of body.paymentMethods) changes.push(upsert('paymentMethods', paymentMethodRecord(m)))
   for (const id of body.removedPaymentMethodIds) changes.push(remove('paymentMethods', id))
   changes.push(...replaceList('operators', body.operators.map((o) => ({ id: o.userId, displayName: o.displayName })), store))
   changes.push(...replaceList('printers', body.printers.items.map((p) => ({ id: p.id, name: p.name, kind: 'printer' })), store))

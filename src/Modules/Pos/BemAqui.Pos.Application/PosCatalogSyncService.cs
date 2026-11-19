@@ -42,8 +42,20 @@ public sealed record PosSyncItem(
     long? PriceListVersion,
     long ChangeSeq);
 
-/// <summary>Forma de pagamento ativa (CA 10): sem taxa da adquirente.</summary>
-public sealed record PosSyncPaymentMethod(Guid Id, string Name, PaymentMethodType Type, bool AllowsChange, string NfePaymentCode, bool Confirmed, long ChangeSeq);
+/// <summary>
+/// Forma de pagamento ativa (CA 10): sem taxa da adquirente. <c>CardBrands</c> e <c>MaxInstallments</c> (PDV-03 CA 4): as bandeiras que o caixa
+/// oferece (vazio: todas) e o teto de parcelas (1 fora do crédito parcelado).
+/// </summary>
+public sealed record PosSyncPaymentMethod(
+    Guid Id,
+    string Name,
+    PaymentMethodType Type,
+    bool AllowsChange,
+    string NfePaymentCode,
+    bool Confirmed,
+    IReadOnlyList<CardBrand> CardBrands,
+    int MaxInstallments,
+    long ChangeSeq);
 
 /// <summary>Operador que pode entrar por PIN nos caixas da loja: id e nome curto. O PIN nunca desce (a entrada sem rede é da OFF-03).</summary>
 public sealed record PosSyncOperator(Guid UserId, string DisplayName);
@@ -190,6 +202,7 @@ public sealed class PosCatalogSyncService(IPosDb db, PosSyncService sync, PosCat
     private static PosSyncPaymentMethod ToPaymentMethod(CatalogItem row)
     {
         var p = JsonSerializer.Deserialize<PosPaymentMethodPayload>(row.Payload, PosCatalogProjector.Json)!;
-        return new PosSyncPaymentMethod(p.Id, p.Name, p.Type, p.AllowsChange, p.NfePaymentCode, p.Confirmed, row.ChangeSeq);
+        return new PosSyncPaymentMethod(
+            p.Id, p.Name, p.Type, p.AllowsChange, p.NfePaymentCode, p.Confirmed, p.CardBrands ?? [], p.MaxInstallments ?? PosCardTerms.MaxInstallments(p.Type, []), row.ChangeSeq);
     }
 }

@@ -18,7 +18,10 @@ describe('catalog-source', () => {
     const body: PosCatalogSnapshot = {
       schemaVersion: 1, collections: [], cursor: 42, generatedAt: '', store, priceList: { id: 'p', version: 3 },
       items: [item('a', ['789', '790']), item('b', [], null)],
-      paymentMethods: [{ id: 'm', name: 'Pix', type: 'Pix' as never, allowsChange: false, nfePaymentCode: '17', confirmed: true, changeSeq: 1 }],
+      paymentMethods: [
+        { id: 'm', name: 'Pix', type: 'Pix' as never, allowsChange: false, nfePaymentCode: '17', confirmed: true, cardBrands: [], maxInstallments: 1, changeSeq: 1 },
+        { id: 'c', name: 'Crédito', type: 'CreditInstallments' as never, allowsChange: false, nfePaymentCode: '03', confirmed: true, cardBrands: ['Visa', 'Elo'], maxInstallments: 12, changeSeq: 2 },
+      ],
       operators: [{ userId: 'u', displayName: 'Ana S.' }], printers: { version: 1, items: [] },
     }
     const snap = toSnapshot(body)
@@ -28,6 +31,11 @@ describe('catalog-source', () => {
     expect(snap.data.barcodes.map((b) => b.code)).toEqual(['789', '790'])
     expect(snap.data.prices).toEqual([{ id: 'a', itemId: 'a', priceCents: 1990, tableVersion: 3 }])
     expect(snap.data.operators).toEqual([{ id: 'u', displayName: 'Ana S.' }])
+    // PDV-03 CA 4: bandeiras e parcelas descem; taxa nunca.
+    expect(snap.data.paymentMethods).toEqual([
+      { id: 'm', name: 'Pix', kind: 'Pix', allowsChange: false, cardBrands: [], maxInstallments: 1 },
+      { id: 'c', name: 'Crédito', kind: 'CreditInstallments', allowsChange: false, cardBrands: ['Visa', 'Elo'], maxInstallments: 12 },
+    ])
   })
 
   it('no delta, remove o código de barras que saiu, o item removido e o operador que deixou a loja', () => {

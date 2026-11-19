@@ -207,6 +207,7 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - Depende de: PDV-02, PAG-01, VND-01.
 - Paridade: 10 (formas diferentes na mesma venda).
 - CA: 1 a n pagamentos por venda; troco só no dinheiro; cartão pede bandeira e, opcionalmente, NSU; nunca número de cartão; `integration = Manual`; Pix conferido pelo operador marcado para conferência no fechamento; porta `PaymentTerminal` com `ManualTerminal`; venda `Completed` só com soma = total.
+- Pronta para revisão (18/11/2026, branch `feat/pdv-03-pagamento`): tela de pagamento no app do caixa sobre o `LocalStore`, eventos `PaymentStarted`, `TenderCaptured`, `TenderChanged`, `PaymentCancelled` e `SaleCompleted`; a venda concluída sobe inteira na fila de saída; bandeiras e teto de parcelas da forma no catálogo do caixa. Pendências: impressão do cupom (IMP-01); projeção em `sales.sale_payments` e validação na subida (OFF-02); lista do Pix a conferir (CX-02); estorno com supervisor (PDV-04).
 
 **CX-01 [ ] Abertura de caixa, sangria e suprimento (M)** — ordem 5 — [story](stories/CX-01-abertura-sangria-suprimento.md)
 - Depende de: PDV-01, PDV-02; PP-22.

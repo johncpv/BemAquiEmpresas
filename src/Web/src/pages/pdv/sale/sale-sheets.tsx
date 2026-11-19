@@ -8,7 +8,7 @@ import { formatQuantity, parseQuantity } from '@/pdv/sale/quantity'
 import { type Sale, type SaleLine, saleTotal } from '@/pdv/sale/sale-model'
 
 /**
- * Folhas da tela de venda (PDV-02): quantidade, observação, remoção, espera, descarte, cliente, pagamento e fechamento do caixa. As que têm
+ * Folhas da tela de venda (PDV-02): quantidade, observação, remoção, espera, descarte, cliente e fechamento do caixa (o pagamento é a `PaymentScreen`, PDV-03). As que têm
  * campo são montadas só enquanto abertas (a tela as cria de novo a cada abertura), então o campo sempre começa do valor atual.
  */
 
@@ -250,16 +250,6 @@ export function CustomerSheet({ open, online, current, searchCustomers, onCancel
         )}
       </section>
       <Problem message={error} />
-    </FloorSheet>
-  )
-}
-
-/** Pagamento: da PDV-03. A venda fica guardada no caixa até lá. */
-export function PaySheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  return (
-    <FloorSheet open={open} onOpenChange={(o) => { if (!o) onClose() }} title="Pagamento ainda não disponível"
-      actions={<FloorButton className="w-full" onClick={onClose}>Voltar para a venda</FloorButton>}>
-      <p>O recebimento (dinheiro, Pix, cartão e troco) chega na próxima versão do caixa. A venda continua guardada neste aparelho: você pode deixá-la em espera ou descartá-la.</p>
     </FloorSheet>
   )
 }

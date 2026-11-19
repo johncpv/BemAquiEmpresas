@@ -86947,6 +86947,8 @@
           "allowsChange",
           "nfePaymentCode",
           "confirmed",
+          "cardBrands",
+          "maxInstallments",
           "changeSeq"
         ],
         "type": "object",
@@ -86969,6 +86971,16 @@
           },
           "confirmed": {
             "type": "boolean"
+          },
+          "cardBrands": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CardBrand"
+            }
+          },
+          "maxInstallments": {
+            "type": "integer",
+            "format": "int32"
           },
           "changeSeq": {
             "type": "integer",
