@@ -39,8 +39,14 @@ public sealed class Store : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>Prazo para troca, em dias (PP-22): padrão 30. Usado pela PDV-06.</summary>
     public int ExchangeDays { get; set; } = 30;
 
-    /// <summary>Aviso de sangria a partir deste valor em dinheiro no caixa (PP-22), <c>numeric(18,2)</c>: padrão R$ 1.000,00. Usado pela CX-02.</summary>
+    /// <summary>Aviso de sangria a partir deste valor em dinheiro no caixa (PP-22), <c>numeric(18,2)</c>: padrão R$ 1.000,00. Usado pela CX-01 (CA 7).</summary>
     public decimal CashDropAlertAmount { get; set; } = 1000.00m;
+
+    /// <summary>
+    /// Teto de dinheiro no caixa (CX-01 CA 8), <c>numeric(18,2)</c>: acima dele a forma Dinheiro fica bloqueada até a sangria. Nulo = sem teto (o
+    /// padrão, porque a PP-22 não fixou valor).
+    /// </summary>
+    public decimal? CashCeilingAmount { get; set; }
 
     public string? SeedKey { get; init; }
 

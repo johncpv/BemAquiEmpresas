@@ -15,6 +15,7 @@ internal sealed class BankTransferConfiguration : IEntityTypeConfiguration<BankT
         b.Property(e => e.ReversalReason).HasMaxLength(200);
         b.HasIndex(e => e.FromAccountId);
         b.HasIndex(e => e.ToAccountId);
+        b.HasIndex(e => e.PosCashMovementId).IsUnique().HasFilter("pos_cash_movement_id IS NOT NULL");
     }
 }
 

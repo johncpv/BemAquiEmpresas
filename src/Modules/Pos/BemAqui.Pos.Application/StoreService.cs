@@ -10,7 +10,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Pos.Application;
 
-public sealed record StoreInput(string Code, string Name, Guid StockLocationId, Guid DefaultPriceListId, bool IsActive = true);
+/// <summary>Loja. CX-01: o aviso de sangria (nulo = mantém o atual) e o teto de dinheiro no caixa (nulo = sem teto), PP-22.</summary>
+public sealed record StoreInput(string Code, string Name, Guid StockLocationId, Guid DefaultPriceListId, bool IsActive = true, decimal? CashDropAlertAmount = null, decimal? CashCeilingAmount = null);
 
 public sealed record RegisterInput(int Number, Guid CashAccountId, RegisterUiMode UiMode, bool IsActive = true);
 
@@ -37,6 +38,8 @@ public sealed record StoreView(
     Guid DefaultPriceListId,
     string DefaultPriceListName,
     bool IsActive,
+    decimal CashDropAlertAmount,
+    decimal? CashCeilingAmount,
     uint Version,
     IReadOnlyList<RegisterView> Registers);
 
@@ -68,7 +71,7 @@ public sealed class StoreService(IPosDb db, ILocations locations, IPriceLists pr
         var now = clock.GetUtcNow();
         return stores.Select(s => new StoreView(
             s.Id, s.Code, s.Name, s.StockLocationId, locationNames.GetValueOrDefault(s.StockLocationId, "Local removido"),
-            s.DefaultPriceListId, listNames.GetValueOrDefault(s.DefaultPriceListId, "Tabela removida"), s.IsActive, s.Version,
+            s.DefaultPriceListId, listNames.GetValueOrDefault(s.DefaultPriceListId, "Tabela removida"), s.IsActive, s.CashDropAlertAmount, s.CashCeilingAmount, s.Version,
             registers.Where(r => r.StoreId == s.Id).Select(r => ToView(r, accountNames, deviceInfo, now)).ToList())).ToList();
     }
 
@@ -190,6 +193,11 @@ public sealed class StoreService(IPosDb db, ILocations locations, IPriceLists pr
             return Invalid("defaultPriceListId", "Escolha uma tabela de preço ativa.");
         }
 
+        if (CashLimitsError(input, current) is { } limits)
+        {
+            return limits;
+        }
+
         if (!input.IsActive && current is not null && await db.Registers.AnyAsync(r => r.StoreId == current.Id && r.ActiveDeviceId != null, cancellationToken))
         {
             return Error.Conflict("store_has_devices", "A loja tem caixas com aparelho. Bloqueie os aparelhos antes de desativar a loja.");
@@ -236,6 +244,27 @@ public sealed class StoreService(IPosDb db, ILocations locations, IPriceLists pr
         store.StockLocationId = input.StockLocationId;
         store.DefaultPriceListId = input.DefaultPriceListId;
         store.IsActive = input.IsActive;
+        store.CashDropAlertAmount = input.CashDropAlertAmount ?? store.CashDropAlertAmount;
+        store.CashCeilingAmount = input.CashCeilingAmount;
+    }
+
+    /// <summary>CX-01 (PP-22): aviso de sangria de 0 a R$ 9.999.999,99 e teto (opcional) acima do aviso, em reais com até 2 casas.</summary>
+    private static Error? CashLimitsError(StoreInput input, Store? current)
+    {
+        var alert = input.CashDropAlertAmount ?? current?.CashDropAlertAmount ?? 1000.00m;
+        if (alert < 0 || alert > CashSessionIngestion.MaxAmount || decimal.Round(alert, 2) != alert)
+        {
+            return Invalid("cashDropAlertAmount", "Informe o aviso de sangria em reais, com até 2 casas.");
+        }
+
+        if (input.CashCeilingAmount is { } ceiling && (ceiling <= 0 || ceiling > CashSessionIngestion.MaxAmount || decimal.Round(ceiling, 2) != ceiling))
+        {
+            return Invalid("cashCeilingAmount", "Informe o teto de dinheiro em reais, com até 2 casas, ou deixe em branco para não ter teto.");
+        }
+
+        return input.CashCeilingAmount is { } top && top <= alert
+            ? Invalid("cashCeilingAmount", "O teto de dinheiro no caixa tem de ser maior que o aviso de sangria.")
+            : null;
     }
 
     private static void Apply(Register register, RegisterInput input)

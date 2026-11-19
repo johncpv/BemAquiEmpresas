@@ -10,7 +10,8 @@ namespace BemAqui.Pos.Application;
 
 /// <summary>
 /// Parâmetros da loja que o caixa usa sem rede (PP-10 e PP-22). Dinheiro em centavos inteiros (OFF-01 CA 8). <c>OfflineWindowHours</c>: depois disso
-/// sem sincronizar, o caixa para de vender (padrão e teto de 168 h).
+/// sem sincronizar, o caixa para de vender (padrão e teto de 168 h). <c>CashDropAlertCents</c> e <c>CashCeilingCents</c> (nulo = sem teto): aviso de sangria e
+/// bloqueio do Dinheiro (CX-01 CA 7 e 8).
 /// </summary>
 public sealed record PosSyncStore(
     Guid Id,
@@ -21,7 +22,8 @@ public sealed record PosSyncStore(
     int OfflineWindowHours,
     long CashBreakToleranceCents,
     int ExchangeDays,
-    long CashDropAlertCents);
+    long CashDropAlertCents,
+    long? CashCeilingCents);
 
 /// <summary>A tabela de preço da loja e a versão mais nova que já desceu (o aparelho informa a versão em que vendeu).</summary>
 public sealed record PosSyncPriceList(Guid Id, long Version);
@@ -191,7 +193,8 @@ public sealed class PosCatalogSyncService(IPosDb db, PosSyncService sync, PosCat
 
     private static PosSyncStore ToStore(Store store, Register register) => new(
         store.Id, store.Code, store.Name, register.Id, register.Number, Math.Clamp(store.OfflineWindowHours, 1, Store.DefaultOfflineWindowHours),
-        PosCatalogProjector.ToCents(store.CashBreakTolerance), store.ExchangeDays, PosCatalogProjector.ToCents(store.CashDropAlertAmount));
+        PosCatalogProjector.ToCents(store.CashBreakTolerance), store.ExchangeDays, PosCatalogProjector.ToCents(store.CashDropAlertAmount),
+        store.CashCeilingAmount is { } ceiling ? PosCatalogProjector.ToCents(ceiling) : null);
 
     private static PosSyncItem ToItem(CatalogItem row)
     {
