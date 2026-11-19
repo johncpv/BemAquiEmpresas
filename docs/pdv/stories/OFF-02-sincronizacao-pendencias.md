@@ -126,6 +126,13 @@ A sessão de caixa nasce no aparelho (local-first) e sobe na fila de saída como
 - trata movimento de sessão desconhecida ou já fechada como quarentena (divergência "Sessão de caixa"), nunca como descarte;
 - trata a segunda abertura no mesmo caixa (conflito `cash_session_open`) como divergência com quem abriu e desde quando, e põe em quarentena os movimentos dessa sessão;
 - confere a ordem: abertura antes dos movimentos, nada depois do fechamento, e o instante de cada evento dentro da tolerância de relógio.
+- (revisão de segurança da CX-01, 19/11/2026) o caixa é o do **aparelho autenticado**, ativo e de loja ativa, e o `DeviceEpoch` do evento é a época **atual** do caixa (época antiga vai para quarentena, como as vendas);
+- a sessão citada no `RecordMovementAsync` e no `CloseAsync` pertence ao caixa do aparelho (o `CashSessionIngestion` hoje só confere que ela existe e está aberta);
+- o operador vem da **sessão por PIN do servidor**, ativo e com acesso ao PDV, e `pos.cash_out`/`pos.cash_in` são conferidos no servidor, nunca pela marca do aparelho;
+- quem fecha é o operador da sessão ou um supervisor, e `closedAt ≥ OpenedAt` (o `CloseAsync` já recusa antes da abertura; guardar quem fechou fica para a CX-02);
+- janela de horário: o `CashSessionIngestion` já recusa (`invalid_time`) evento antes da abertura da sessão ou depois de agora + 2 min; a OFF-02 trata essa recusa como divergência "Relógio do aparelho" com quarentena, não como descarte;
+- `AboveExpected` é sempre recalculado no servidor (o valor do aparelho é só indício);
+- corrida entre sangria e fechamento da mesma sessão (o `RecordMovementAsync` lê a sessão sem trava): processar os eventos de um aparelho **em série**, na ordem do `seq`, ou travar a sessão (`SELECT … FOR UPDATE` ou trava de transação por sessão) antes de gravar o movimento ou o fechamento.
 
 
 ## Change Log
@@ -137,3 +144,4 @@ A sessão de caixa nasce no aparelho (local-first) e sobe na fila de saída como
 | 18/11/2026 | 0.4 | Recebidos os requisitos da PDV-03: a venda concluída sobe com os pagamentos; o servidor refaz a soma, confere troco, forma e bandeira, recusa dado de cartão e amarra o `confirmedBy` às sessões por PIN. | Claude (dev) |
 | 18/11/2026 | 0.5 | Recebido o item 3 da revisão de segurança da PDV-03: troco coerente e totais do topo recalculados, `PaymentStarted.totalCents` conferido, máquina de estados por `tenderId` (saída de `Captured` só com a autorização da PDV-04), venda idempotente por `saleId` e número, campos de integração definidos pelo servidor, `methodType`, parcelas e bandeira conferidos, normalização do número de cartão com tamanho máximo e operador nulo recusado. | Claude (dev) |
 | 19/11/2026 | 0.6 | Recebidos os requisitos da CX-01: a sessão de caixa sobe como `pos.cash` (abertura, sangria, suprimento e fechamento) e a OFF-02 chama o `CashSessionIngestion`; caixa e época do principal, `operatorId` amarrado às sessões por PIN, permissão no instante, valores e motivo conferidos, `aboveExpected` recalculado no servidor, quarentena para sessão desconhecida ou segunda abertura. | Claude (dev) |
+| 19/11/2026 | 0.7 | Requisitos da revisão de segurança da CX-01: caixa do aparelho ativo e época atual, sessão do caixa do aparelho, operador da sessão por PIN do servidor com as permissões conferidas no servidor, quem fecha e `closedAt`, janela de horário, `AboveExpected` recalculado e eventos do aparelho em série (ou sessão travada). | Claude (dev) |

@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.Finance.Application;
@@ -129,6 +130,91 @@ public partial class PosTests
     {
         await using var scope = await ScopeAsync();
         return await action(scope.ServiceProvider.GetRequiredService<CashSessionIngestion>());
+    }
+
+    [Fact]
+    public async Task Aviso_e_teto_da_loja_gravam_no_PUT_e_voltam_na_lista()
+    {
+        var (_, owner) = await OwnerAsync();
+        var (store, _, code) = await StoreAsync(owner);
+        var view = (await OkAsync(await owner.GetAsync("/api/v1/pos/stores"))).EnumerateArray().Single(s => s.GetProperty("id").GetGuid() == store);
+        var body = new
+        {
+            code, name = "Loja " + code, stockLocationId = view.GetProperty("stockLocationId").GetGuid(), defaultPriceListId = view.GetProperty("defaultPriceListId").GetGuid(),
+            cashDropAlertAmount = 800.50m, cashCeilingAmount = 2500m,
+        };
+        var saved = await OkAsync(await owner.PutAsJsonAsync($"/api/v1/pos/stores/{store}", body));
+        saved.GetProperty("cashDropAlertAmount").GetDecimal().Should().Be(800.50m);
+        saved.GetProperty("cashCeilingAmount").GetDecimal().Should().Be(2500m);
+        (await WithDbAsync(db => db.Stores.Where(s => s.Id == store).Select(s => new { s.CashDropAlertAmount, s.CashCeilingAmount }).SingleAsync()))
+            .Should().Be(new { CashDropAlertAmount = 800.50m, CashCeilingAmount = (decimal?)2500m });
+    }
+
+    [Fact]
+    public async Task Cofre_nao_pode_ser_a_conta_do_caixa()
+    {
+        var (_, owner) = await OwnerAsync();
+        var (store, _, _) = await StoreAsync(owner);
+        var safe = new BemAqui.Finance.Domain.BankAccount { Name = "Cofre", Kind = BemAqui.Finance.Contracts.BankAccountKind.Cash, CreatedAt = DateTimeOffset.UtcNow };
+        await WithDbAsync(async db => { db.BankAccounts.Add(safe); return await db.SaveChangesAsync(); });
+        var response = await owner.PostAsJsonAsync($"/api/v1/pos/stores/{store}/registers", new { number = 2, cashAccountId = safe.Id, uiMode = "Keyboard" });
+        (await OkAsync(response, System.Net.HttpStatusCode.UnprocessableEntity)).ToString().Should().Contain("O Cofre recebe as sangrias");
+    }
+
+    [Fact]
+    public async Task Horario_do_aparelho_fora_da_janela_e_recusado()
+    {
+        var (ownerId, owner) = await OwnerAsync();
+        var (_, register, _) = await StoreAsync(owner);
+        var now = DateTimeOffset.UtcNow;
+        (await CashAsync(s => s.OpenAsync(new CashSessionOpenInput(Guid.CreateVersion7(), register, 1, ownerId, 0m, now.AddMinutes(10), Guid.CreateVersion7()))))
+            .Error!.Code.Should().Be("invalid_time", "à frente do servidor além da folga");
+        var session = Guid.CreateVersion7();
+        (await CashAsync(s => s.OpenAsync(new CashSessionOpenInput(session, register, 1, ownerId, 0m, now.AddHours(-1), Guid.CreateVersion7())))).IsSuccess.Should().BeTrue();
+        (await CashAsync(s => s.RecordMovementAsync(new CashMovementInput(Guid.CreateVersion7(), session, CashMovementKind.CashIn, 10m, "Troco", ownerId, now.AddHours(-2), false))))
+            .Error!.Code.Should().Be("invalid_time", "antes da abertura da sessão");
+    }
+
+    [Fact]
+    public async Task Movimento_da_abertura_repetido_vira_conflito()
+    {
+        var (ownerId, owner) = await OwnerAsync();
+        var (_, first, _) = await StoreAsync(owner);
+        var (_, second, _) = await StoreAsync(owner);
+        var movement = Guid.CreateVersion7();
+        (await CashAsync(s => s.OpenAsync(new CashSessionOpenInput(Guid.CreateVersion7(), first, 1, ownerId, 0m, DateTimeOffset.UtcNow, movement)))).IsSuccess.Should().BeTrue();
+        (await CashAsync(s => s.OpenAsync(new CashSessionOpenInput(Guid.CreateVersion7(), second, 1, ownerId, 0m, DateTimeOffset.UtcNow, movement))))
+            .Error!.Code.Should().Be("cash_movement_conflict");
+    }
+
+    [Fact]
+    public async Task Transferencia_em_periodo_conciliado_entra_hoje_com_observacao_e_conta_inativa_nao_grava()
+    {
+        var (ownerId, owner) = await OwnerAsync();
+        var (_, register, _) = await StoreAsync(owner);
+        var drawer = await WithDbAsync(db => db.Registers.Where(r => r.Id == register).Select(r => r.CashAccountId).SingleAsync());
+        var at = DateTimeOffset.UtcNow.AddHours(-1);
+        var businessDate = DateOnly.FromDateTime(BemAqui.BuildingBlocks.Time.BusinessTime.ToBusiness(at).DateTime);
+        await WithDbAsync(async db =>
+        {
+            db.BankReconciliationClosings.Add(new BemAqui.Finance.Domain.BankReconciliationClosing { BankAccountId = drawer, UntilDate = businessDate, ClosedAt = DateTimeOffset.UtcNow });
+            return await db.SaveChangesAsync();
+        });
+        var session = Guid.CreateVersion7();
+        var opening = Guid.CreateVersion7();
+        (await CashAsync(s => s.OpenAsync(new CashSessionOpenInput(session, register, 1, ownerId, 100m, at, opening)))).IsSuccess.Should().BeTrue();
+        await DrainAsync();
+        var transfer = await WithDbAsync(db => db.BankTransfers.AsNoTracking().SingleAsync(t => t.PosCashMovementId == opening));
+        transfer.Date.Should().Be(DateOnly.FromDateTime(BemAqui.BuildingBlocks.Time.BusinessTime.ToBusiness(DateTimeOffset.UtcNow).DateTime));
+        transfer.BackdateReason.Should().Contain("período já conciliado");
+
+        // Conta do caixa inativa: nada é gravado (log de erro), sem exceção no consumidor.
+        await WithDbAsync(async db => { (await db.BankAccounts.SingleAsync(a => a.Id == drawer)).IsActive = false; return await db.SaveChangesAsync(); });
+        var cashIn = Guid.CreateVersion7();
+        (await CashAsync(s => s.RecordMovementAsync(new CashMovementInput(cashIn, session, CashMovementKind.CashIn, 10m, "Troco", ownerId, at.AddMinutes(1), false)))).IsSuccess.Should().BeTrue();
+        await DrainAsync();
+        (await WithDbAsync(db => db.BankTransfers.CountAsync(t => t.PosCashMovementId == cashIn))).Should().Be(0);
+        (await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.DeadLetteredAt != null && m.Payload.Contains(cashIn.ToString())))).Should().Be(0);
     }
 
     private async Task DrainAsync()

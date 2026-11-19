@@ -84,7 +84,7 @@ public sealed class StoreService(IPosDb db, ILocations locations, IPriceLists pr
         return new StoreFormOptions(
             active.Select(l => new NamedOption(l.Id, l.Name)).ToList(),
             lists.Select(l => new NamedOption(l.Id, l.Name)).ToList(),
-            accounts.Where(a => !used.Contains(a.Id)).Select(a => new NamedOption(a.Id, a.Name)).ToList(),
+            accounts.Where(a => !used.Contains(a.Id) && !IsSafe(a)).Select(a => new NamedOption(a.Id, a.Name)).ToList(),
             lists.FirstOrDefault(l => l.IsDefault)?.Id);
     }
 
@@ -229,6 +229,11 @@ public sealed class StoreService(IPosDb db, ILocations locations, IPriceLists pr
             return Invalid("cashAccountId", "Escolha uma conta ativa do tipo Caixa.");
         }
 
+        if (IsSafe(account))
+        {
+            return Invalid("cashAccountId", "O Cofre recebe as sangrias e dá o troco: escolha outra conta do tipo Caixa para o caixa.");
+        }
+
         if (await db.Registers.AnyAsync(r => r.CashAccountId == input.CashAccountId && (current == null || r.Id != current.Id), cancellationToken))
         {
             return Invalid("cashAccountId", $"A conta {account.Name} já é de outro caixa. Cada caixa tem a sua conta.");
@@ -236,6 +241,10 @@ public sealed class StoreService(IPosDb db, ILocations locations, IPriceLists pr
 
         return null;
     }
+
+    /// <summary>CX-01: o Cofre (do pacote do Comércio ou chamado "Cofre") é a contrapartida das sangrias; nunca é a conta de um caixa.</summary>
+    private static bool IsSafe(CashAccountOption account) =>
+        account.SeedKey == "cofre" || string.Equals(account.Name.Trim(), "Cofre", StringComparison.OrdinalIgnoreCase);
 
     private static void Apply(Store store, StoreInput input)
     {

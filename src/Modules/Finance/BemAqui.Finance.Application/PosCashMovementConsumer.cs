@@ -1,9 +1,11 @@
 using System.Globalization;
 using BemAqui.BuildingBlocks.Messaging;
+using BemAqui.BuildingBlocks.Time;
 using BemAqui.Finance.Contracts;
 using BemAqui.Finance.Domain;
 using BemAqui.Pos.Contracts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace BemAqui.Finance.Application;
 
@@ -14,9 +16,11 @@ namespace BemAqui.Finance.Application;
 /// - sangria: Caixa do PDV → Cofre.
 /// Reprocessar não duplica: a transferência é única por movimento (<c>pos_cash_movement_id</c>, índice único). Fundo de troco zero não transfere nada.
 /// O Cofre é a conta do pacote do Comércio (<c>seed_key = cofre</c>) ou uma conta Caixa ativa chamada "Cofre"; sem ela, o consumidor cria a conta
-/// "Cofre" (tipo Caixa) para o dinheiro não ficar sem destino. Fora das travas de tela (conta nova, período fechado): o fato já aconteceu na gaveta.
+/// "Cofre" (tipo Caixa) para o dinheiro não ficar sem destino. Fora da trava de conta nova (o fato já aconteceu na gaveta); data em período de
+/// conciliação fechado entra com a data de hoje e a observação em <c>BackdateReason</c>, nunca retroativa. Conta do caixa inexistente, inativa ou
+/// igual ao Cofre: nada é gravado e fica o log de erro (o movimento continua no Pos; a CX-03 e a conciliação acham a falta).
 /// </summary>
-public sealed class PosCashMovementConsumer(IFinanceDb db, TimeProvider clock) : IIntegrationEventConsumer<CashMovementRecorded>
+public sealed partial class PosCashMovementConsumer(IFinanceDb db, TimeProvider clock, ILogger<PosCashMovementConsumer> logger) : IIntegrationEventConsumer<CashMovementRecorded>
 {
     public const string SafeSeedKey = "cofre";
     public const string SafeName = "Cofre";
@@ -30,16 +34,38 @@ public sealed class PosCashMovementConsumer(IFinanceDb db, TimeProvider clock) :
             return;
         }
 
-        var drawer = await db.BankAccounts.AsNoTracking().FirstOrDefaultAsync(a => a.Id == integrationEvent.CashAccountId, cancellationToken)
-            ?? throw new InvalidOperationException("A conta do caixa " + integrationEvent.CashAccountId + " não existe no Financeiro.");
+        var drawer = await db.BankAccounts.AsNoTracking().FirstOrDefaultAsync(a => a.Id == integrationEvent.CashAccountId, cancellationToken);
+        if (drawer is null || !drawer.IsActive)
+        {
+            LogDrawerMissing(logger, integrationEvent.MovementId, integrationEvent.RegisterId, integrationEvent.CashAccountId);
+            return;
+        }
+
         var safe = await SafeAsync(cancellationToken);
+        if (safe == drawer.Id)
+        {
+            LogDrawerIsSafe(logger, integrationEvent.MovementId, integrationEvent.RegisterId);
+            return;
+        }
+
         var toDrawer = integrationEvent.Kind != CashMovementRecorded.CashOut;
         var (from, to) = toDrawer ? (safe, drawer.Id) : (drawer.Id, safe);
+        // Período de conciliação fechado em qualquer das contas: entra hoje, com a data do caixa na observação (nunca retroativo).
+        var date = integrationEvent.BusinessDate;
+        var closedUntil = await db.BankReconciliationClosings.AsNoTracking().Where(c => c.BankAccountId == from || c.BankAccountId == to)
+            .MaxAsync(c => (DateOnly?)c.UntilDate, cancellationToken);
+        string? note = null;
+        if (closedUntil is { } until && date <= until)
+        {
+            note = $"Movimento do caixa de {date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)}, período já conciliado: lançado hoje.";
+            date = BusinessTime.Today(clock);
+        }
+
         var now = clock.GetUtcNow();
         var transfer = new BankTransfer
         {
-            FromAccountId = from, ToAccountId = to, Amount = integrationEvent.Amount, Date = integrationEvent.BusinessDate,
-            Description = Describe(integrationEvent), PosCashMovementId = integrationEvent.MovementId, CreatedAt = now,
+            FromAccountId = from, ToAccountId = to, Amount = integrationEvent.Amount, Date = date,
+            Description = Describe(integrationEvent), PosCashMovementId = integrationEvent.MovementId, BackdateReason = note, CreatedAt = now,
         };
         db.BankTransfers.Add(transfer);
         db.FinancialTransactions.AddRange(Line(transfer, from, -transfer.Amount, now), Line(transfer, to, transfer.Amount, now));
@@ -75,6 +101,12 @@ public sealed class PosCashMovementConsumer(IFinanceDb db, TimeProvider clock) :
         db.BankAccounts.Add(created);
         return created.Id;
     }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Movimento {MovementId} do caixa {RegisterId} sem transferência: a conta do caixa {AccountId} não existe ou está inativa no Financeiro.")]
+    private static partial void LogDrawerMissing(ILogger logger, Guid movementId, Guid registerId, Guid accountId);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Movimento {MovementId} do caixa {RegisterId} sem transferência: a conta do caixa é o próprio Cofre.")]
+    private static partial void LogDrawerIsSafe(ILogger logger, Guid movementId, Guid registerId);
 
     private static FinancialTransaction Line(BankTransfer transfer, Guid account, decimal amount, DateTimeOffset now) => new()
     {

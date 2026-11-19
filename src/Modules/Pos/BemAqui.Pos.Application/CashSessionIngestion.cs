@@ -33,6 +33,9 @@ public sealed class CashSessionIngestion(IPosDb db, IEventPublisher events, IUse
     public const string OpenSessionIndex = "ix_cash_sessions_register_open";
     public const decimal MaxAmount = 9_999_999.99m;
 
+    /// <summary>Folga para o relógio do aparelho à frente do servidor (os 2 min da ADR 0026).</summary>
+    public static readonly TimeSpan ClockTolerance = TimeSpan.FromMinutes(2);
+
     public async Task<Result<CashSessionView>> OpenAsync(CashSessionOpenInput input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -54,10 +57,20 @@ public sealed class CashSessionIngestion(IPosDb db, IEventPublisher events, IUse
             return Error.Validation("invalid_amount", "Informe o fundo de troco em reais, com até 2 casas.");
         }
 
+        if (TimeError(input.OpenedAt, null) is { } time)
+        {
+            return time;
+        }
+
         var register = await db.Registers.AsNoTracking().FirstOrDefaultAsync(r => r.Id == input.RegisterId, cancellationToken);
         if (register is null)
         {
             return Error.NotFound("register_not_found", "Caixa não encontrado.");
+        }
+
+        if (await db.CashMovements.AnyAsync(m => m.Id == input.OpeningMovementId, cancellationToken))
+        {
+            return Error.Conflict("cash_movement_conflict", "O movimento da abertura já foi gravado com outros dados.");
         }
 
         if (await OpenConflictAsync(register.Id, cancellationToken) is { } conflict)
@@ -79,6 +92,11 @@ public sealed class CashSessionIngestion(IPosDb db, IEventPublisher events, IUse
         {
             // Duas aberturas do mesmo caixa ao mesmo tempo: a outra gravou primeiro (a transação de quem chama já não aceita consulta).
             return Error.Conflict("cash_session_open", "Este caixa já está aberto.");
+        }
+        catch (DbUpdateException ex) when (DbErrors.IsUniqueViolation(ex))
+        {
+            // A mesma abertura (ou o mesmo movimento) gravada por outra entrega ao mesmo tempo.
+            return Error.Conflict("cash_session_conflict", "A abertura acabou de ser gravada por outra entrega. Envie de novo para receber a resposta.");
         }
 
         return ToView(session, replayed: false);
@@ -127,6 +145,11 @@ public sealed class CashSessionIngestion(IPosDb db, IEventPublisher events, IUse
             return Error.Conflict("cash_session_closed", "Esta sessão de caixa já foi fechada.");
         }
 
+        if (TimeError(input.OccurredAt, session.OpenedAt) is { } time)
+        {
+            return time;
+        }
+
         var register = await db.Registers.AsNoTracking().FirstAsync(r => r.Id == session.RegisterId, cancellationToken);
         var movement = CashMovement.FromDevice(input.MovementId, session.Id, input.Kind, input.Amount, reason, input.OperatorId, input.OccurredAt, input.AboveExpected, clock.GetUtcNow());
         db.CashMovements.Add(movement);
@@ -162,6 +185,11 @@ public sealed class CashSessionIngestion(IPosDb db, IEventPublisher events, IUse
 
         if (session.Status == CashSessionStatus.Open)
         {
+            if (TimeError(closedAt, session.OpenedAt) is { } time)
+            {
+                return time;
+            }
+
             session.Status = CashSessionStatus.Closed;
             session.ClosedAt = closedAt;
             await db.SaveChangesAsync(cancellationToken);
@@ -170,6 +198,17 @@ public sealed class CashSessionIngestion(IPosDb db, IEventPublisher events, IUse
 
         return ToView(session, replayed: true);
     }
+
+    /// <summary>
+    /// Janela de horário do evento do aparelho (o horário define a data da transferência no Financeiro): nunca antes da abertura da sessão, nem depois
+    /// de agora mais a folga do relógio.
+    /// </summary>
+    private Error? TimeError(DateTimeOffset at, DateTimeOffset? openedAt) =>
+        at > clock.GetUtcNow() + ClockTolerance
+            ? Error.Validation("invalid_time", "O horário do aparelho está à frente do servidor. Acerte o relógio do caixa.")
+            : openedAt is { } opened && at < opened
+                ? Error.Validation("invalid_time", "O horário do movimento é anterior à abertura do caixa.")
+                : null;
 
     /// <summary>"Este caixa já está aberto por Fulano desde 08:02." (CA 2), ou null se o caixa não tem sessão aberta.</summary>
     private async Task<Error?> OpenConflictAsync(Guid registerId, CancellationToken cancellationToken)
