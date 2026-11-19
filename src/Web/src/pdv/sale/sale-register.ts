@@ -128,7 +128,7 @@ export class SaleRegister {
       const same = this.options.settings().mergeSameItem ? sale.lines.find((l) => l.itemId === item.id && l.unitCents === price.priceCents && !l.note) : undefined
       if (same) {
         const quantity = addQuantities(same.quantity, parsed.value)
-        events.push(this.event('LineChanged', sale.id, { lineId: same.lineId, quantity, reason: 'same-item' }))
+        events.push(this.event('LineChanged', sale.id, { lineId: same.lineId, quantity, reason: 'same-item', operatorId: this.options.operatorId }))
         await this.commit(events)
         return { kind: 'added', line: { ...same, quantity }, merged: true }
       }
@@ -143,17 +143,35 @@ export class SaleRegister {
     })
   }
 
-  /** CA 9: a quantidade nova da linha (pesável com 3 casas; por unidade, inteiro). */
-  setQuantity(lineId: string, text: string): Promise<{ ok: true } | { ok: false; message: string }> {
+  /**
+   * CA 9: a quantidade nova da linha (pesável com 3 casas; por unidade, inteiro). Diminuir segue a regra da remoção (CA 10, revisão de
+   * segurança, achado 3): sem `pos.cancel_item` (`authorized`), só desfaz até o último lançamento da linha; reduzir uma linha antiga, ou abaixo
+   * do último lançamento, pede autorização. Toda mudança fica registrada com quem estava no caixa.
+   */
+  setQuantity(lineId: string, text: string, authorized = false): Promise<{ ok: true } | { ok: false; message: string; needsAuthorization?: true }> {
     return this.run(async () => {
       const sale = this.current()
       const line = sale?.lines.find((l) => l.lineId === lineId)
       if (!sale || !line) return { ok: false, message: 'A linha não está mais na venda.' }
       const parsed = parseQuantity(text, line.fractional)
       if (!parsed.ok) return parsed
-      if (parsed.value !== line.quantity) await this.commit([this.event('LineChanged', sale.id, { lineId, quantity: parsed.value, reason: 'quantity' })])
+      if (parsed.value === line.quantity) return { ok: true }
+      if (!authorized && !this.isFreeReduction(sale, line, parsed.value)) {
+        return { ok: false, needsAuthorization: true, message: 'Diminuir um item que não é o último lançado pede autorização. Chame quem tem a permissão de remover itens no caixa.' }
+      }
+
+      await this.commit([this.event('LineChanged', sale.id, { lineId, quantity: parsed.value, reason: 'quantity', operatorId: this.options.operatorId })])
       return { ok: true }
     })
+  }
+
+  /** Aumentar é livre; diminuir, só até o que havia antes do último lançamento e com a remoção livre ligada (a mesma regra do CA 10). */
+  private isFreeReduction(sale: Sale, line: SaleLine, quantity: string): boolean {
+    const next = toMilli(quantity) ?? 0
+    const now = toMilli(line.quantity) ?? 0
+    if (next >= now) return true
+    if (!this.isFreeRemoval(line.lineId) || !sale.lastAdd) return false
+    return next >= now - (toMilli(sale.lastAdd.quantity) ?? 0)
   }
 
   /** CA 11: observação da linha (sai no cupom). Vazia apaga. */
@@ -162,7 +180,7 @@ export class SaleRegister {
       const sale = this.current()
       if (!sale?.lines.some((l) => l.lineId === lineId)) return
       const text = note.trim().slice(0, 140) || null
-      await this.commit([this.event('LineChanged', sale.id, { lineId, note: text, reason: 'note' })])
+      await this.commit([this.event('LineChanged', sale.id, { lineId, note: text, reason: 'note', operatorId: this.options.operatorId })])
     })
   }
 

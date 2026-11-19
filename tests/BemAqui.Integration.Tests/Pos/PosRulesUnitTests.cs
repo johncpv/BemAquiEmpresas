@@ -81,7 +81,7 @@ public class PosRulesUnitTests
     }
 
     [Theory]
-    [InlineData(BemAqui.Parties.Contracts.PartyKind.PF, "52998224725", "***.982.247-**")]
+    [InlineData(BemAqui.Parties.Contracts.PartyKind.PF, "52998224725", "***.***.247-**")]
     [InlineData(BemAqui.Parties.Contracts.PartyKind.PJ, "11222333000181", "11.222.333/0001-81")]
     [InlineData(BemAqui.Parties.Contracts.PartyKind.PF, null, null)]
     [InlineData(BemAqui.Parties.Contracts.PartyKind.PF, "123", null)]

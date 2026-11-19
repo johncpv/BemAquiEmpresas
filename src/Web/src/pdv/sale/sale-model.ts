@@ -65,7 +65,7 @@ export type LineRemoveReason = 'last-item' | 'authorized'
 export interface SaleEventData {
   SaleStarted: { operatorId: string | null }
   LineAdded: { line: SaleLine }
-  LineChanged: { lineId: string; quantity?: string; note?: string | null; reason: LineChangeReason; operatorId?: string | null }
+  LineChanged: { lineId: string; quantity?: string; note?: string | null; reason: LineChangeReason; operatorId: string | null }
   LineRemoved: { lineId: string; reason: LineRemoveReason; operatorId: string | null }
   SaleParked: Record<string, never>
   SaleResumed: Record<string, never>

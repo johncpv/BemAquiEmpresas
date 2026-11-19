@@ -29,6 +29,9 @@ public sealed class AuthRateLimitOptions
 
     /// <summary>Entrada por PIN no caixa do PDV (PDV-01 CA 11, política nomeada <c>pos-pin-login</c>), por tenant, IP e aparelho.</summary>
     public int PosPinPerMinute { get; set; } = 10;
+
+    /// <summary>Busca de cliente na tela de venda (PDV-02, política nomeada <c>pos-customer-search</c>), por tenant, usuário e aparelho.</summary>
+    public int PosCustomerSearchPerMinute { get; set; } = 20;
 }
 
 /// <summary>
@@ -90,6 +93,11 @@ public static class AuthRateLimiting
                 "pos-pin|" + TenantKey(http) + "|" + PosDeviceKey(http) + "|"
                 + (http.Connection.RemoteIpAddress?.ToString() ?? "-"),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = options.PosPinPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+            // Busca de cliente na tela de venda (PDV-02, revisão de segurança, achado 1): por tenant, usuário (o operador da sessão por PIN) e
+            // aparelho (hash do cookie), contra a mineração da base de clientes pelo caixa.
+            o.AddPolicy(BemAqui.Pos.Application.PosCustomerSearchService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "pos-customer|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? "-") + "|" + PosDeviceKey(http),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, options.PosCustomerSearchPerMinute), Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
             // "2FA de novo" (BNK-01a CA 1): 10 códigos a cada 5 min por usuário e tenant (o anti-replay do código já vale; isto corta a
             // força bruta dos 6 dígitos). "Testar conexão" do Inter: 6 por minuto por usuário e rota (chamada externa com mTLS).
             o.AddPolicy(BemAqui.BuildingBlocks.Web.RecentTwoFactorEndpoints.StepUpRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(

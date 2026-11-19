@@ -42,3 +42,13 @@ export function aesDocumentCipher(getKey: () => Promise<CryptoKey>): DocumentCip
     },
   }
 }
+
+/**
+ * Busca do cliente cadastrado só por nome (revisão de segurança da PDV-02, achado 2): termo com 11 dígitos ou mais (ignorando a pontuação)
+ * parece um CPF ou CNPJ e não vai ao servidor, porque iria inteiro na URL (logs do proxy, histórico). O documento vai no campo da venda.
+ */
+export const DOCUMENT_SEARCH_MESSAGE = 'Busque pelo nome. O CPF do cliente vai no campo de documento da venda.'
+
+export function looksLikeDocument(term: string): boolean {
+  return onlyDigits(term).length >= 11
+}

@@ -71,10 +71,12 @@ internal static class PosEndpoints
                 (await service.ChangesAsync(DevicePrincipal.From(http.User)!, cursor, limit, ct)).ToHttpResult())
             .RequireDevice().WithName("GetPosCatalogChanges").Produces<PosCatalogChanges>();
 
-        // PDV-02 CA 15: o operador (sessão por PIN do caixa) acha o cliente cadastrado para ligar à venda; só nome e documento mascarado.
+        // PDV-02 CA 15: o operador (sessão por PIN do caixa) acha o cliente cadastrado para ligar à venda; só nome e documento mascarado,
+        // com rate limit por tenant, usuário e aparelho (revisão de segurança, achado 1).
         var customers = api.MapGroup("/pos/customers").WithTags("PDV: venda").RequireModule("pos");
         customers.MapGet(string.Empty, async (string? term, PosCustomerSearchService service, CancellationToken ct) => Results.Ok(await service.SearchAsync(term, ct)))
-            .RequirePermission("pos.create").AllowPosPinSession().WithName("SearchPosCustomers").Produces<IReadOnlyList<PosCustomer>>();
+            .RequirePermission("pos.create").AllowPosPinSession().RequireRateLimiting(PosCustomerSearchService.RateLimitPolicy)
+            .WithName("SearchPosCustomers").Produces<IReadOnlyList<PosCustomer>>();
         return api;
     }
 

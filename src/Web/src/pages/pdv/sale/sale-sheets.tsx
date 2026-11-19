@@ -3,7 +3,7 @@ import { type ReactNode, useState } from 'react'
 import { FloorButton, FloorSheet } from '@/components/shopfloor/kit'
 import { formatCents } from '@/pdv/money'
 import type { CatalogItem } from '@/pdv/local-store/catalog-types'
-import { checkCustomerDocument, formatDocument } from '@/pdv/sale/customer-document'
+import { checkCustomerDocument, DOCUMENT_SEARCH_MESSAGE, formatDocument, looksLikeDocument } from '@/pdv/sale/customer-document'
 import { formatQuantity, parseQuantity } from '@/pdv/sale/quantity'
 import { type Sale, type SaleLine, saleTotal } from '@/pdv/sale/sale-model'
 
@@ -187,6 +187,11 @@ export function CustomerSheet({ open, online, current, searchCustomers, onCancel
 
   const search = async () => {
     if (!searchCustomers || term.trim().length < 3) return
+    if (looksLikeDocument(term)) {
+      setHits(null)
+      setError(DOCUMENT_SEARCH_MESSAGE)
+      return
+    }
     setSearching(true)
     setError(null)
     try {
@@ -224,7 +229,7 @@ export function CustomerSheet({ open, online, current, searchCustomers, onCancel
           <>
             <div className="flex gap-2">
               <input value={term} onChange={(e) => setTerm(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void search() } }}
-                placeholder="Nome, CPF ou CNPJ (3 letras ou mais)" aria-label="Buscar cliente cadastrado" className={field} />
+                placeholder="Nome do cliente (3 letras ou mais)" aria-label="Buscar cliente cadastrado" className={field} />
               <FloorButton tone="secondary" aria-label="Buscar cliente" onClick={() => void search()} disabled={searching || term.trim().length < 3}><Search aria-hidden="true" className="size-6" /></FloorButton>
             </div>
             {hits ? hits.length === 0 ? <p className="text-muted-foreground">Nenhum cliente encontrado.</p> : (

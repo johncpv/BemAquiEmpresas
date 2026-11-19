@@ -123,9 +123,27 @@ Tudo no app do caixa (`src/Web/src/pdv-app`, `src/Web/src/pdv/sale`, `src/Web/sr
 
 Ajuda: `Ajuda/pdv-venda.md` (nova, com os atalhos), embutida na ajuda do app do caixa. Sem migration (o banco do servidor não mudou); o IndexedDB do aparelho ganhou a versão 2.
 
+## Pendências de segurança
+Revisão de segurança de 18/11/2026. Corrigidos nesta story: **achado 1** (rate limit `pos-customer-search` na busca de cliente, 20 por minuto por tenant, usuário e aparelho, configurável em `RateLimit:Auth:PosCustomerSearchPerMinute`; CPF mascarado como `***.***.247-**`, CNPJ inteiro), **achado 2** (busca só por nome; termo com 11 dígitos ou mais não sai do aparelho, para o CPF nunca ir na URL) e **achado 3** (diminuir a quantidade de uma linha que não é o último lançamento exige `pos.cancel_item`, com a mesma regra da remoção; todo `LineChanged` leva o `operatorId`).
+
+Registrados, sem implementar:
+
+- **Achado 4 (requisitos da OFF-02, que o servidor deve cumprir na subida):** a regra da venda roda no aparelho, que não é confiável; na subida, o servidor:
+  - refaz o replay da venda a partir dos eventos, sem confiar no estado que o aparelho calculou;
+  - valida `last-item` (remoção) e `remove-last` (desfazer o último lançamento que somou na linha): só valem para o último lançamento de fato, e a redução de quantidade de outra linha só vale com autorização;
+  - lê o `freeRemoveLast` da configuração do servidor (a da loja ou do caixa), nunca o valor guardado no aparelho;
+  - exige quem autorizou em `authorized` (o supervisor, não só o operador) e confere, pelo histórico de permissões, que essa pessoa tinha `pos.cancel_item` no instante do evento;
+  - amarra o `operatorId` de cada evento ao log de sessões por PIN do aparelho (o operador tinha sessão aberta naquele caixa naquele horário);
+  - gera o relatório de exceções por operador (remoções, reduções, descartes e eventos recusados na validação).
+- **Achado 5:** limpar os `customerDocs` órfãos (documento cifrado sem venda aberta, em espera ou na fila de saída) ao abrir o caixa.
+- **Achado 6:** alertar o operador quando houver 11 ou 14 dígitos seguidos na observação da linha ou no motivo do descarte (CPF ou CNPJ fora do campo cifrado); escapar a observação no XML do cupom e da NFC-e.
+- **Achado 7:** o leitor de código de barras ignora o campo de PIN e a folha aberta (PDV-04), para uma leitura não cair no PIN do supervisor nem lançar item por trás de uma folha.
+- **Achado 8:** testes de autorização da rota `GET /api/v1/pos/customers` para operador sem `pos.create`, módulo `pos` desligado e sessão de outro tenant.
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
 | 18/11/2026 | 1.0 | Implementada (branch `feat/pdv-02-tela-venda`): venda no `LocalStore` com diário de eventos, modos Toque e Teclado/leitor, leitor reconhecido em qualquer campo, espera, descarte com número, CPF cifrado fora dos eventos (PP-26) e busca do cliente cadastrado pela sessão por PIN. CA 7 parcial (sem categoria nem foto no catálogo do caixa); CA 17 provisório até a CX-01. | Claude (dev) |
+| 18/11/2026 | 1.1 | Revisão de segurança: corrigidos os achados 1 a 3 (rate limit e máscara curta do CPF na busca de cliente, busca só por nome sem CPF na URL, redução de quantidade com a regra da remoção e `operatorId` em todo `LineChanged`); achados 4 a 8 registrados em "Pendências de segurança" (o 4 copiado para a OFF-02). | Claude (dev) |

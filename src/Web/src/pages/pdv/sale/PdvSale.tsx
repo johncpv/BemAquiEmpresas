@@ -414,7 +414,7 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
           }
 
           if (sheet?.kind !== 'quantity') return null
-          const result = await guard(() => register.setQuantity(sheet.lineId, value))
+          const result = await guard(() => register.setQuantity(sheet.lineId, value, operator.canCancelItem))
           if (result && !result.ok) return result.message
           closeSheet()
           return null

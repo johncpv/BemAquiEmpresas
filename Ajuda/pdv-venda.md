@@ -21,7 +21,7 @@ Lançar os itens da venda tão rápido quanto você bipa ou toca. A tela trabalh
 - **Observação:** escolha a linha e use **Observação** (F4): ela sai no cupom.
 - **Deixar em espera:** o cliente esqueceu algo? Use **Deixar em espera** (F7) e atenda o próximo. Em **Em espera** aparecem as vendas guardadas, com a hora, os itens e o total; **Retomar** traz a venda de volta.
 - **Descartar a venda:** pede o motivo e fica registrado. A venda descartada ganha o número dela na hora.
-- **Cliente:** opcional. Digite o CPF ou o CNPJ na nota; o caixa confere o dígito na hora. Com internet, também dá para buscar o cliente cadastrado; sem internet, aparece "Disponível com internet." e o CPF avulso continua funcionando.
+- **Cliente:** opcional. Digite o CPF ou o CNPJ na nota; o caixa confere o dígito na hora. Com internet, também dá para buscar o cliente cadastrado pelo nome (o CPF vai no campo de documento da venda, não na busca); sem internet, aparece "Disponível com internet." e o CPF avulso continua funcionando.
 - **Fechar o caixa:** se houver venda na tela ou em espera, o caixa pede para retomar ou descartar antes.
 
 ## Atalhos do modo Teclado

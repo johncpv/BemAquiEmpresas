@@ -8,6 +8,7 @@ import { FloorButton, NumericKeypad } from '@/components/shopfloor/kit'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { signRequest } from '@/pdv/device-signing'
 import { usePdv } from '@/pdv/pdv-context'
+import { looksLikeDocument } from '@/pdv/sale/customer-document'
 import { useOnline } from '@/pdv/use-online'
 import { PIN_CHANGE_REQUIRED, pinBody } from '@/pdv/operator-pin'
 import { registerLabel } from '@/pages/store/stores'
@@ -87,8 +88,11 @@ function OperatorList({ keys, onDeviceGone }: { keys: CryptoKeyPair; onDeviceGon
   )
 }
 
-/** Cliente cadastrado para a venda (PDV-02 CA 15): só com rede, pela sessão por PIN do caixa; nome e documento já mascarado. */
-const searchCustomers = (term: string) => searchPosCustomers({ term })
+/**
+ * Cliente cadastrado para a venda (PDV-02 CA 15): só com rede, pela sessão por PIN do caixa; nome e documento já mascarado. Termo com cara de
+ * CPF ou CNPJ (11 dígitos ou mais) não sai do aparelho, para o documento nunca ir na URL (revisão de segurança, achado 2).
+ */
+const searchCustomers = async (term: string) => (looksLikeDocument(term) ? [] : searchPosCustomers({ term }))
 
 /** PIN no teclado grande; se o servidor pedir, o PIN novo (duas vezes) na mesma tela. */
 function PinPad({ keys, operator, onBack, onDeviceGone }: { keys: CryptoKeyPair; operator: PosOperator; onBack: () => void; onDeviceGone: () => void }) {

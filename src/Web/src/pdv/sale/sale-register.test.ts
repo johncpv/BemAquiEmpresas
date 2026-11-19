@@ -121,6 +121,31 @@ describe('editar a venda (CA 10 a 13)', () => {
     expect(await register.removeLine(lineId, false)).toEqual({ kind: 'needs-authorization' })
   })
 
+  it('diminuir a quantidade segue a regra da remoção: linha antiga pede pos.cancel_item, o último lançamento passa (achado 3)', async () => {
+    const { register, store } = await device()
+    await register.addFromInput('3*7891000100103')
+    await register.addFromInput('2*7896005800017')
+    const [arroz, cafe] = register.current()!.lines
+    expect(await register.setQuantity(arroz.lineId, '1')).toMatchObject({ ok: false, needsAuthorization: true })
+    expect(register.current()!.lines[0].quantity).toBe('3')
+    expect(await register.setQuantity(arroz.lineId, '5')).toEqual({ ok: true })
+    expect(await register.setQuantity(cafe.lineId, '1')).toEqual({ ok: true })
+    expect(await register.setQuantity(arroz.lineId, '2', true)).toEqual({ ok: true })
+    expect(register.current()!.lines.map((l) => l.quantity)).toEqual(['2', '1'])
+    const changed = (await store.saleJournal()).filter((e) => e.type === 'LineChanged').map((e) => e.data)
+    expect(changed).toHaveLength(3)
+    expect(changed.every((d) => (d as { operatorId?: string }).operatorId === 'op-1')).toBe(true)
+  })
+
+  it('o último lançamento que somou na linha só desce até o que havia antes dele', async () => {
+    const { register } = await device()
+    await register.addFromInput('2*7891000100103')
+    await register.addFromInput('7891000100103')
+    const lineId = register.current()!.lines[0].lineId
+    expect(await register.setQuantity(lineId, '1')).toMatchObject({ ok: false, needsAuthorization: true })
+    expect(await register.setQuantity(lineId, '2')).toEqual({ ok: true })
+  })
+
   it('observação fica gravada na linha (CA 11)', async () => {
     const { register, open, lock } = await device()
     await register.addFromInput('7896005800017')
