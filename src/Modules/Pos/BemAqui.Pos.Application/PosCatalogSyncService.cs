@@ -12,7 +12,7 @@ namespace BemAqui.Pos.Application;
 /// Parâmetros da loja que o caixa usa sem rede (PP-10 e PP-22). Dinheiro em centavos inteiros (OFF-01 CA 8). <c>OfflineWindowHours</c>: depois disso
 /// sem sincronizar, o caixa para de vender (padrão e teto de 168 h). <c>CashDropAlertCents</c> e <c>CashCeilingCents</c> (nulo = sem teto): aviso de sangria e
 /// bloqueio do Dinheiro (CX-01 CA 7 e 8). IMP-01: nome e CNPJ da empresa para o cabeçalho do cupom (o CNPJ próprio da loja é da NFCE-07), o modo
-/// fiscal, <c>CanSell</c> (falso: a loja não tem documento fiscal para a venda, ou seja, sem o aceite do modo não fiscal até a NFC-e da Fase 13, CA 10)
+/// fiscal, <c>CanSell</c> (falso: a loja não tem documento fiscal para a venda, ou seja, sem o aceite do modo não fiscal na versão vigente do texto até a NFC-e da Fase 13, CA 10 e 13)
 /// e o que o caixa faz com o cupom ao concluir (CA 5).
 /// </summary>
 public sealed record PosSyncStore(
@@ -205,7 +205,7 @@ public sealed class PosCatalogSyncService(
             PosCatalogProjector.ToCents(store.CashBreakTolerance), store.ExchangeDays, PosCatalogProjector.ToCents(store.CashDropAlertAmount),
             store.CashCeilingAmount is { } ceiling ? PosCatalogProjector.ToCents(ceiling) : null,
             string.IsNullOrWhiteSpace(identity.TradeName) ? identity.LegalName : identity.TradeName, identity.Document,
-            store.FiscalMode, store.NonFiscalAccepted, store.ReceiptPrintMode);
+            store.FiscalMode, store.NonFiscalAcceptedFor(NonFiscalTerms.Version), store.ReceiptPrintMode);
     }
 
     private static PosSyncItem ToItem(CatalogItem row)

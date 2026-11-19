@@ -15494,7 +15494,7 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("catalog_store_builds", "pos");
                 });
 
-            modelBuilder.Entity("BemAqui.Pos.Domain.PrintJob", b =>
+            modelBuilder.Entity("BemAqui.Pos.Domain.PrintRecord", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -15544,21 +15544,21 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnName("store_id");
 
                     b.HasKey("Id")
-                        .HasName("pk_print_jobs");
+                        .HasName("pk_print_records");
 
                     b.HasIndex("RegisterId")
-                        .HasDatabaseName("ix_print_jobs_register_id");
+                        .HasDatabaseName("ix_print_records_register_id");
 
                     b.HasIndex("SaleId")
-                        .HasDatabaseName("ix_print_jobs_sale_id")
+                        .HasDatabaseName("ix_print_records_sale_id")
                         .HasFilter("sale_id IS NOT NULL");
 
                     b.HasIndex("StoreId", "PrintedAt")
-                        .HasDatabaseName("ix_print_jobs_store_id_printed_at");
+                        .HasDatabaseName("ix_print_records_store_id_printed_at");
 
-                    b.ToTable("print_jobs", "pos", t =>
+                    b.ToTable("print_records", "pos", t =>
                         {
-                            t.HasCheckConstraint("ck_print_jobs_copy", "copy >= 1");
+                            t.HasCheckConstraint("ck_print_records_copy", "copy >= 1");
                         });
                 });
 
@@ -20785,14 +20785,14 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasConstraintName("fk_cash_sessions_registers_register_id");
                 });
 
-            modelBuilder.Entity("BemAqui.Pos.Domain.PrintJob", b =>
+            modelBuilder.Entity("BemAqui.Pos.Domain.PrintRecord", b =>
                 {
                     b.HasOne("BemAqui.Pos.Domain.Register", null)
                         .WithMany()
                         .HasForeignKey("RegisterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_print_jobs_registers_register_id");
+                        .HasConstraintName("fk_print_records_registers_register_id");
                 });
 
             modelBuilder.Entity("BemAqui.Pos.Domain.Printer", b =>

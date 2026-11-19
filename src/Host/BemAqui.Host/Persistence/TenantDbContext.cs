@@ -389,7 +389,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Pos.Domain.Printer> Printers => Set<BemAqui.Pos.Domain.Printer>();
 
-    public DbSet<BemAqui.Pos.Domain.PrintJob> PrintJobs => Set<BemAqui.Pos.Domain.PrintJob>();
+    public DbSet<BemAqui.Pos.Domain.PrintRecord> PrintRecords => Set<BemAqui.Pos.Domain.PrintRecord>();
 
     public DbSet<BemAqui.Sales.Domain.Sale> Sales => Set<BemAqui.Sales.Domain.Sale>();
 

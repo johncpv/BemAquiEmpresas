@@ -83,7 +83,7 @@ public partial class PosTests
         (await NonFiscalAsync(manager, store, false, false, null, version)).StatusCode.Should().Be(HttpStatusCode.Forbidden);
 
         // Sem marcar o aceite, ou com o texto de outra versão, não liga.
-        (await NonFiscalAsync(owner, store, true, false, NonFiscalTerms.Version, version)).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await NonFiscalAsync(owner, store, true, false, NonFiscalTerms.Version, version)).StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
         var stale = await NonFiscalAsync(owner, store, true, true, NonFiscalTerms.Version + 1, version);
         stale.StatusCode.Should().Be(HttpStatusCode.Conflict);
         Code(await JsonAsync(stale)).Should().Be("terms_changed");
@@ -102,8 +102,12 @@ public partial class PosTests
         await WithDbAsync(db => db.Database.ExecuteSqlInterpolatedAsync($"UPDATE pos.stores SET non_fiscal_terms_version = {NonFiscalTerms.Version - 1} WHERE id = {store}"));
         var old = await StoreOfAsync(owner, store);
         old.GetProperty("needsNewAcceptance").GetBoolean().Should().BeTrue();
+        var stopped = (await SnapshotAsync(device)).GetProperty("store");
+        stopped.GetProperty("canSell").GetBoolean().Should().BeFalse("o aceite de uma versão anterior do texto não libera a venda");
+        stopped.GetProperty("fiscalMode").GetString().Should().Be("NonFiscal", "o caixa diz que falta o aceite do texto novo");
         var again = await OkAsync(await NonFiscalAsync(owner, store, true, true, NonFiscalTerms.Version, old.GetProperty("version").GetUInt32()));
         again.GetProperty("needsNewAcceptance").GetBoolean().Should().BeFalse();
+        (await SnapshotAsync(device)).GetProperty("store").GetProperty("canSell").GetBoolean().Should().BeTrue();
 
         // Auditoria: cada aceite (e o desligar) fica no histórico da loja com quem, quando e a versão do texto.
         var off = await OkAsync(await NonFiscalAsync(owner, store, false, false, null, again.GetProperty("version").GetUInt32()));
@@ -126,9 +130,9 @@ public partial class PosTests
 
         // CA 3 e 6: 58 mm só com 32 colunas; conexão direta (USB, rede, Bluetooth) é da IMP-02 e da IMP-03.
         (await owner.PostAsJsonAsync("/api/v1/pos/printers", new { registerId, name = "Errada", connection = "Browser", paperWidthMm = 58, columns = 48, model = "generico-58" }))
-            .StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            .StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
         (await owner.PostAsJsonAsync("/api/v1/pos/printers", new { registerId, name = "USB", connection = "Usb", paperWidthMm = 80, columns = 48, model = "generico-80" }))
-            .StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            .StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
 
         var first = await OkAsync(await owner.PostAsJsonAsync("/api/v1/pos/printers",
             new { registerId, name = "Bobina 80", connection = "Browser", paperWidthMm = 80, columns = 48, model = "generico-80", isDefault = false, testConfirmed = true }), HttpStatusCode.Created);
@@ -162,14 +166,33 @@ public partial class PosTests
         await using var scope = await ScopeAsync();
         var service = scope.ServiceProvider.GetRequiredService<PrinterService>();
         var at = DateTimeOffset.UtcNow.AddMinutes(-5);
-        var original = new PrintJobInput(Guid.CreateVersion7(), registerId, second.GetProperty("id").GetGuid(), PrintJobKind.Receipt, saleId, "LOJA-01.1-000001", 1, operatorId, at);
-        var reprint = original with { Id = Guid.CreateVersion7(), Kind = PrintJobKind.Reprint, Copy = 2, PrintedAt = at.AddMinutes(2) };
-        (await service.RecordPrintAsync(original)).IsSuccess.Should().BeTrue();
-        (await service.RecordPrintAsync(reprint)).Value.Replayed.Should().BeFalse();
-        (await service.RecordPrintAsync(reprint)).Value.Replayed.Should().BeTrue();
-        (await service.RecordPrintAsync(reprint with { Id = Guid.CreateVersion7(), Copy = 1 })).IsFailure.Should().BeTrue("a 2ª via é a reimpressão");
+        // O caixa e o operador vêm do principal do aparelho e da sessão de PIN, não do corpo.
+        var original = new PrintRecordInput(Guid.CreateVersion7(), second.GetProperty("id").GetGuid(), PrintRecordKind.Receipt, saleId, "LOJA-01.1-000001", 1, at);
+        var reprint = original with { Id = Guid.CreateVersion7(), Kind = PrintRecordKind.Reprint, Copy = 2, PrintedAt = at.AddMinutes(2) };
+        (await service.RecordPrintAsync(registerId, operatorId, original)).IsSuccess.Should().BeTrue();
+        (await service.RecordPrintAsync(registerId, operatorId, reprint)).Value.Replayed.Should().BeFalse();
+        (await service.RecordPrintAsync(registerId, operatorId, reprint)).Value.Replayed.Should().BeTrue();
+        (await service.RecordPrintAsync(registerId, operatorId, reprint with { Id = Guid.CreateVersion7(), Copy = 1 })).IsFailure.Should().BeTrue("a 2ª via é a reimpressão");
         var jobs = await service.JobsOfSaleAsync(saleId);
-        jobs.Select(j => (j.Kind, j.Copy, j.OperatorId)).Should().Equal((PrintJobKind.Receipt, 1, operatorId), (PrintJobKind.Reprint, 2, operatorId));
+        jobs.Select(j => (j.Kind, j.Copy, j.OperatorId)).Should().Equal((PrintRecordKind.Receipt, 1, operatorId), (PrintRecordKind.Reprint, 2, operatorId));
+
+        // A venda que já está no servidor tem de ser deste caixa: o cupom de uma venda de outro caixa é recusado.
+        var otherSale = Guid.CreateVersion7();
+        var otherNumber = Unique("O", 8) + "-01.1-000001";
+        await WithDbAsync(async db =>
+        {
+            db.Sales.Add(Sale.Create(otherSale, SaleChannel.Pos, otherNumber, "pos", null, store, Guid.CreateVersion7(), Guid.CreateVersion7(), null, null, operatorId, true, 1,
+                DateTimeOffset.UtcNow, DateTimeOffset.UtcNow, operatorId));
+            return await db.SaveChangesAsync();
+        });
+        var foreign = await service.RecordPrintAsync(registerId, operatorId, original with { Id = Guid.CreateVersion7(), SaleId = otherSale, SaleNumber = otherNumber });
+        foreign.Error!.Code.Should().Be("sale_other_register");
+
+        // Caixa desativado: a impressora dele não muda mais.
+        await WithDbAsync(db => db.Database.ExecuteSqlInterpolatedAsync($"UPDATE pos.registers SET is_active = false WHERE id = {registerId}"));
+        var inactive = await owner.PutAsJsonAsync($"/api/v1/pos/printers/{second.GetProperty("id").GetGuid()}",
+            new { registerId, name = "Bobina 58", connection = "Browser", paperWidthMm = 58, columns = 32, model = "generico-58", isDefault = true, isActive = true, version = second.GetProperty("version").GetUInt32() });
+        inactive.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity, await inactive.Content.ReadAsStringAsync());
     }
 
     [Fact]
@@ -212,7 +235,7 @@ public partial class PosTests
 
         (await OkAsync(await owner.GetAsync($"/api/v1/sales/reports/non-fiscal?from=2026-03-01&to=2026-03-31&storeId={store}&operatorId={Guid.CreateVersion7()}")))
             .GetProperty("count").GetInt32().Should().Be(0);
-        (await owner.GetAsync($"/api/v1/sales/reports/non-fiscal?from=2026-03-31&to=2026-03-01")).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await owner.GetAsync($"/api/v1/sales/reports/non-fiscal?from=2026-03-31&to=2026-03-01")).StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
 
         var export = await owner.GetAsync($"/api/v1/sales/reports/non-fiscal/export?from=2026-03-01&to=2026-03-31&storeId={store}");
         export.StatusCode.Should().Be(HttpStatusCode.OK);

@@ -88,12 +88,12 @@ internal sealed class PrinterConfiguration : IEntityTypeConfiguration<Printer>
     }
 }
 
-/// <summary><c>pos.print_jobs</c> (IMP-01 CA 4): impressões e reimpressões vindas do aparelho; o id é do aparelho.</summary>
-internal sealed class PrintJobConfiguration : IEntityTypeConfiguration<PrintJob>
+/// <summary><c>pos.print_records</c> (IMP-01 CA 4): impressões e reimpressões vindas do aparelho; o id é do aparelho.</summary>
+internal sealed class PrintRecordConfiguration : IEntityTypeConfiguration<PrintRecord>
 {
-    public void Configure(EntityTypeBuilder<PrintJob> b)
+    public void Configure(EntityTypeBuilder<PrintRecord> b)
     {
-        b.ToTable("print_jobs", PosSchema.Name, t => t.HasCheckConstraint("ck_print_jobs_copy", "copy >= 1"));
+        b.ToTable("print_records", PosSchema.Name, t => t.HasCheckConstraint("ck_print_records_copy", "copy >= 1"));
         b.Property(e => e.Id).ValueGeneratedNever();
         b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(16);
         b.Property(e => e.SaleNumber).HasMaxLength(40);

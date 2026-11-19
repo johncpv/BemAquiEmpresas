@@ -70,8 +70,14 @@ public sealed class Store : Entity, IAuditable, IConcurrencyVersioned
 
     public uint Version { get; set; }
 
-    /// <summary>A loja vende só com cupom não fiscal e há um aceite registrado (de qualquer versão do texto; a versão nova pede outro aceite, CA 13).</summary>
+    /// <summary>A loja está no modo só cupom não fiscal com um aceite registrado, de qualquer versão do texto (a tela usa para pedir o aceite novo, CA 13).</summary>
     public bool NonFiscalAccepted => FiscalMode == StoreFiscalMode.NonFiscal && NonFiscalTermsVersion is not null;
+
+    /// <summary>
+    /// A loja pode vender só com cupom não fiscal: o modo está ligado e o aceite é da versão vigente do texto. Com texto novo, o caixa para de vender
+    /// até o Proprietário aceitar de novo (IMP-01 CA 13).
+    /// </summary>
+    public bool NonFiscalAcceptedFor(int currentTermsVersion) => FiscalMode == StoreFiscalMode.NonFiscal && NonFiscalTermsVersion == currentTermsVersion;
 
     /// <summary>Liga o modo "só cupom não fiscal" com o aceite do Proprietário (IMP-01 CA 10 e 13): guarda a versão do texto, quem e quando.</summary>
     public void AcceptNonFiscal(int termsVersion, Guid acceptedBy, DateTimeOffset at)
@@ -156,8 +162,8 @@ public sealed class Printer : Entity, IAuditable, IConcurrencyVersioned
 }
 
 /// <summary>O que foi impresso (IMP-01 CA 4): o cupom da venda, a 2ª via, o comprovante do caixa e a página de teste.</summary>
-[JsonConverter(typeof(JsonStringEnumConverter<PrintJobKind>))]
-public enum PrintJobKind
+[JsonConverter(typeof(JsonStringEnumConverter<PrintRecordKind>))]
+public enum PrintRecordKind
 {
     Receipt,
     Reprint,
@@ -166,10 +172,10 @@ public enum PrintJobKind
 }
 
 /// <summary>
-/// Impressão registrada (<c>pos.print_jobs</c>, IMP-01 CA 4): eventos <c>ReceiptPrinted</c> e <c>ReceiptReprinted</c> do aparelho, com quem e
+/// Impressão registrada (<c>pos.print_records</c>, IMP-01 CA 4): eventos <c>ReceiptPrinted</c> e <c>ReceiptReprinted</c> do aparelho, com quem e
 /// quando; o id vem do aparelho (reenviar não duplica). Nunca leva o CPF nem o conteúdo do cupom.
 /// </summary>
-public sealed class PrintJob : Entity
+public sealed class PrintRecord : Entity
 {
     public Guid StoreId { get; init; }
 
@@ -177,7 +183,7 @@ public sealed class PrintJob : Entity
 
     public Guid? PrinterId { get; init; }
 
-    public PrintJobKind Kind { get; init; }
+    public PrintRecordKind Kind { get; init; }
 
     /// <summary>Venda impressa (o id do aparelho) e o número dela; nulos na página de teste e no comprovante do caixa.</summary>
     public Guid? SaleId { get; init; }
@@ -193,7 +199,7 @@ public sealed class PrintJob : Entity
 
     public DateTimeOffset ReceivedAt { get; init; }
 
-    public static PrintJob FromDevice(Guid id, Guid storeId, Guid registerId, Guid? printerId, PrintJobKind kind, Guid? saleId, string? saleNumber, int copy,
+    public static PrintRecord FromDevice(Guid id, Guid storeId, Guid registerId, Guid? printerId, PrintRecordKind kind, Guid? saleId, string? saleNumber, int copy,
         Guid operatorId, DateTimeOffset printedAt, DateTimeOffset receivedAt) =>
         new()
         {

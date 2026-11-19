@@ -51,7 +51,7 @@ namespace BemAqui.Host.Persistence.Migrations
                 defaultValue: "Ask");
 
             migrationBuilder.CreateTable(
-                name: "print_jobs",
+                name: "print_records",
                 schema: "pos",
                 columns: table => new
                 {
@@ -69,10 +69,10 @@ namespace BemAqui.Host.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_print_jobs", x => x.id);
-                    table.CheckConstraint("ck_print_jobs_copy", "copy >= 1");
+                    table.PrimaryKey("pk_print_records", x => x.id);
+                    table.CheckConstraint("ck_print_records_copy", "copy >= 1");
                     table.ForeignKey(
-                        name: "fk_print_jobs_registers_register_id",
+                        name: "fk_print_records_registers_register_id",
                         column: x => x.register_id,
                         principalSchema: "pos",
                         principalTable: "registers",
@@ -120,22 +120,22 @@ namespace BemAqui.Host.Persistence.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "ix_print_jobs_register_id",
+                name: "ix_print_records_register_id",
                 schema: "pos",
-                table: "print_jobs",
+                table: "print_records",
                 column: "register_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_print_jobs_sale_id",
+                name: "ix_print_records_sale_id",
                 schema: "pos",
-                table: "print_jobs",
+                table: "print_records",
                 column: "sale_id",
                 filter: "sale_id IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "ix_print_jobs_store_id_printed_at",
+                name: "ix_print_records_store_id_printed_at",
                 schema: "pos",
-                table: "print_jobs",
+                table: "print_records",
                 columns: new[] { "store_id", "printed_at" });
 
             migrationBuilder.CreateIndex(
@@ -157,7 +157,7 @@ namespace BemAqui.Host.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "print_jobs",
+                name: "print_records",
                 schema: "pos");
 
             migrationBuilder.DropTable(

@@ -1,5 +1,6 @@
 using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.Pos.Domain;
+using BemAqui.Sales.Contracts;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,27 +34,26 @@ public sealed record PrinterView(
 
 /// <summary>
 /// Impressão vinda do aparelho (eventos <c>ReceiptPrinted</c> e <c>ReceiptReprinted</c>, IMP-01 CA 4): o id é do aparelho; nunca leva o CPF nem
-/// o conteúdo do cupom, só o que foi impresso, de qual venda, qual via, quem e quando.
+/// o conteúdo do cupom, só o que foi impresso, de qual venda, qual via e quando. O caixa e o operador não vêm no corpo: são do principal do
+/// aparelho e da sessão de PIN (parâmetros de <see cref="PrinterService.RecordPrintAsync"/>).
 /// </summary>
-public sealed record PrintJobInput(
+public sealed record PrintRecordInput(
     Guid Id,
-    Guid RegisterId,
     Guid? PrinterId,
-    PrintJobKind Kind,
+    PrintRecordKind Kind,
     Guid? SaleId,
     string? SaleNumber,
     int Copy,
-    Guid OperatorId,
     DateTimeOffset PrintedAt);
 
-public sealed record PrintJobView(Guid Id, Guid RegisterId, PrintJobKind Kind, Guid? SaleId, string? SaleNumber, int Copy, Guid OperatorId, DateTimeOffset PrintedAt, bool Replayed);
+public sealed record PrintRecordView(Guid Id, Guid RegisterId, PrintRecordKind Kind, Guid? SaleId, string? SaleNumber, int Copy, Guid OperatorId, DateTimeOffset PrintedAt, bool Replayed);
 
 /// <summary>
 /// Impressoras dos caixas (IMP-01 CA 6 e 7) e as impressões registradas (CA 4). A impressora é do caixa: todo aparelho daquele caixa a recebe na
 /// sincronização (<see cref="ForRegisterAsync"/>). Nesta story só a conexão pelo navegador funciona; USB direto, rede e Bluetooth são da IMP-02 e
 /// da IMP-03. A gravação das impressões é chamada pela subida da OFF-02, como a da sessão de caixa (CX-01).
 /// </summary>
-public sealed class PrinterService(IPosDb db, TimeProvider clock)
+public sealed class PrinterService(IPosDb db, ISaleLookup sales, TimeProvider clock)
 {
     public const string DefaultPrinterIndex = "ix_printers_register_default";
 
@@ -110,6 +110,11 @@ public sealed class PrinterService(IPosDb db, TimeProvider clock)
             return Invalid("registerId", "A impressora é do caixa em que foi instalada. Para outro caixa, instale de novo nele.");
         }
 
+        if (!await db.Registers.AnyAsync(r => r.Id == printer.RegisterId && r.IsActive, cancellationToken))
+        {
+            return Invalid("registerId", "O caixa desta impressora está desativado. Ative o caixa antes de mudar a impressora.");
+        }
+
         if (Validate(input) is { } invalid)
         {
             return invalid;
@@ -140,30 +145,31 @@ public sealed class PrinterService(IPosDb db, TimeProvider clock)
 
     /// <summary>
     /// Grava a impressão vinda do aparelho (CA 4), idempotente pelo id: reenviar devolve o que já foi gravado. A 2ª via (<c>Reprint</c>) tem
-    /// <c>Copy</c> 2 ou mais e a venda; o operador é obrigatório (quem reimprimiu).
+    /// <c>Copy</c> 2 ou mais e a venda; o operador é obrigatório (quem reimprimiu). <paramref name="registerId"/> vem do principal do aparelho e
+    /// <paramref name="operatorId"/> da sessão de PIN, nunca do corpo enviado. A venda, se já está no servidor, tem de ser deste caixa.
     /// </summary>
-    public async Task<Result<PrintJobView>> RecordPrintAsync(PrintJobInput input, CancellationToken cancellationToken = default)
+    public async Task<Result<PrintRecordView>> RecordPrintAsync(Guid registerId, Guid operatorId, PrintRecordInput input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
-        var existing = await db.PrintJobs.AsNoTracking().FirstOrDefaultAsync(j => j.Id == input.Id, cancellationToken);
+        var existing = await db.PrintRecords.AsNoTracking().FirstOrDefaultAsync(j => j.Id == input.Id, cancellationToken);
         if (existing is not null)
         {
-            return existing.RegisterId == input.RegisterId && existing.Kind == input.Kind
+            return existing.RegisterId == registerId && existing.Kind == input.Kind
                 ? ToView(existing, replayed: true)
-                : Error.Conflict("print_job_conflict", "Esta impressão já foi gravada com outros dados.");
+                : Error.Conflict("print_record_conflict", "Esta impressão já foi gravada com outros dados.");
         }
 
-        if (input.OperatorId == Guid.Empty)
+        if (operatorId == Guid.Empty)
         {
             return Error.Validation("operator_required", "Informe quem imprimiu.");
         }
 
-        if (!Enum.IsDefined(input.Kind) || input.Copy < 1 || (input.Kind == PrintJobKind.Reprint) != (input.Copy > 1))
+        if (!Enum.IsDefined(input.Kind) || input.Copy < 1 || (input.Kind == PrintRecordKind.Reprint) != (input.Copy > 1))
         {
             return Error.Validation("invalid_copy", "A 2ª via é a reimpressão; o cupom original é a 1ª via.");
         }
 
-        if (input.Kind is PrintJobKind.Receipt or PrintJobKind.Reprint && (input.SaleId is null || string.IsNullOrWhiteSpace(input.SaleNumber) || input.SaleNumber.Length > 40))
+        if (input.Kind is PrintRecordKind.Receipt or PrintRecordKind.Reprint && (input.SaleId is null || string.IsNullOrWhiteSpace(input.SaleNumber) || input.SaleNumber.Length > 40))
         {
             return Error.Validation("sale_required", "Informe a venda do cupom.");
         }
@@ -174,29 +180,36 @@ public sealed class PrinterService(IPosDb db, TimeProvider clock)
             return Error.Validation("invalid_time", "A data da impressão está no futuro. Confira o relógio do aparelho.");
         }
 
-        var register = await db.Registers.AsNoTracking().FirstOrDefaultAsync(r => r.Id == input.RegisterId, cancellationToken);
+        var register = await db.Registers.AsNoTracking().FirstOrDefaultAsync(r => r.Id == registerId, cancellationToken);
         if (register is null)
         {
             return Error.NotFound("register_not_found", "Caixa não encontrado.");
         }
 
-        var job = PrintJob.FromDevice(input.Id, register.StoreId, register.Id, input.PrinterId, input.Kind, input.SaleId, input.SaleNumber?.Trim(), input.Copy, input.OperatorId, input.PrintedAt, now);
-        db.PrintJobs.Add(job);
+        // A venda pode ainda não ter subido (a ordem da subida é da OFF-02); se já está no servidor, tem de ser deste caixa e com o mesmo número.
+        if (input.SaleId is { } saleId && await sales.FindAsync(saleId, cancellationToken) is { } sale
+            && (sale.RegisterId != register.Id || !string.Equals(sale.Number, input.SaleNumber?.Trim(), StringComparison.Ordinal)))
+        {
+            return Error.Validation("sale_other_register", "A venda do cupom é de outro caixa.");
+        }
+
+        var job = PrintRecord.FromDevice(input.Id, register.StoreId, register.Id, input.PrinterId, input.Kind, input.SaleId, input.SaleNumber?.Trim(), input.Copy, operatorId, input.PrintedAt, now);
+        db.PrintRecords.Add(job);
         try
         {
             await db.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateException ex) when (DbErrors.IsUniqueViolation(ex))
         {
-            return Error.Conflict("print_job_conflict", "A impressão acabou de ser gravada por outra entrega. Envie de novo para receber a resposta.");
+            return Error.Conflict("print_record_conflict", "A impressão acabou de ser gravada por outra entrega. Envie de novo para receber a resposta.");
         }
 
         return ToView(job, replayed: false);
     }
 
     /// <summary>Quantas vias da venda já saíram e a última (quem e quando), para a tela da venda e a conferência.</summary>
-    public async Task<IReadOnlyList<PrintJobView>> JobsOfSaleAsync(Guid saleId, CancellationToken cancellationToken = default) =>
-        (await db.PrintJobs.AsNoTracking().Where(j => j.SaleId == saleId).OrderBy(j => j.PrintedAt).ToListAsync(cancellationToken)).Select(j => ToView(j, false)).ToList();
+    public async Task<IReadOnlyList<PrintRecordView>> JobsOfSaleAsync(Guid saleId, CancellationToken cancellationToken = default) =>
+        (await db.PrintRecords.AsNoTracking().Where(j => j.SaleId == saleId).OrderBy(j => j.PrintedAt).ToListAsync(cancellationToken)).Select(j => ToView(j, false)).ToList();
 
     private static Error? Validate(PrinterInput input)
     {
@@ -275,7 +288,7 @@ public sealed class PrinterService(IPosDb db, TimeProvider clock)
     private static PrinterView ToView(Printer p) =>
         new(p.Id, p.StoreId, p.RegisterId, p.Name, p.Connection, p.PaperWidthMm, p.Columns, p.Model, p.IsDefault, p.IsActive, p.TestConfirmedAt, p.Version);
 
-    private static PrintJobView ToView(PrintJob j, bool replayed) => new(j.Id, j.RegisterId, j.Kind, j.SaleId, j.SaleNumber, j.Copy, j.OperatorId, j.PrintedAt, replayed);
+    private static PrintRecordView ToView(PrintRecord j, bool replayed) => new(j.Id, j.RegisterId, j.Kind, j.SaleId, j.SaleNumber, j.Copy, j.OperatorId, j.PrintedAt, replayed);
 
     private static Error Invalid(string field, string message) =>
         Error.Validation(Error.Codes.Validation, message, new Dictionary<string, string[]> { [field] = [message] });

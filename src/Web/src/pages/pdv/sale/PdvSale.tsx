@@ -384,11 +384,15 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
     void recordSaleInSession(store, done.tenders).then((s) => { if (s) { onCash(s); setCashNotice(cashAlert(s, limits)) } }).catch(() => { /* o painel recompõe no próximo turno */ })
   }
 
-  // IMP-01 CA 10: sem documento fiscal para a venda (o modo "só cupom não fiscal" não foi aceito e a NFC-e ainda não existe), a loja não vende.
+  // IMP-01 CA 10 e 13: sem documento fiscal para a venda (o modo "só cupom não fiscal" não foi aceito, ou o texto do aceite mudou e falta o aceite
+  // novo, e a NFC-e ainda não existe), a loja não vende.
   if (storeSettings && !storeSettings.canSell && !paying && !completed) {
+    const newTerms = storeSettings.fiscalMode === 'NonFiscal'
     return (
-      <FloorState title="Esta loja ainda não pode vender."
-        message="Falta escolher o documento fiscal da loja. O Proprietário liga o modo “só cupom não fiscal” na retaguarda, em Loja → Lojas e caixas → Documento fiscal, e o caixa libera na próxima sincronização."
+      <FloorState title={newTerms ? 'Esta loja parou de vender.' : 'Esta loja ainda não pode vender.'}
+        message={newTerms
+          ? 'O texto do aceite do modo “só cupom não fiscal” mudou. O Proprietário lê e aceita o texto novo na retaguarda, em Loja → Lojas e caixas → Documento fiscal, e o caixa libera na próxima sincronização.'
+          : 'Falta escolher o documento fiscal da loja. O Proprietário liga o modo “só cupom não fiscal” na retaguarda, em Loja → Lojas e caixas → Documento fiscal, e o caixa libera na próxima sincronização.'}
         action={<FloorButton tone="secondary" onClick={onLeave}>Sair do caixa</FloorButton>} />
     )
   }

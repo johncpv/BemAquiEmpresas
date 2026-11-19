@@ -25,7 +25,7 @@ public interface IPosDb
     /// <summary>Impressoras dos caixas e as impressões registradas (IMP-01).</summary>
     DbSet<Printer> Printers { get; }
 
-    DbSet<PrintJob> PrintJobs { get; }
+    DbSet<PrintRecord> PrintRecords { get; }
 
     /// <summary>Gravação em lote do modelo de leitura e a trava do tenant (OFF-01).</summary>
     DatabaseFacade Database { get; }

@@ -26,7 +26,7 @@ export function StoreFiscalMode({ store, onChanged }: { store: StoreView; onChan
         <p className="flex flex-wrap items-center gap-2 font-semibold">
           Documento fiscal<Dica nome="Documento fiscal" texto={MODE_DICA} />
           {nonFiscal ? <StatusChip tone="ok">Só cupom não fiscal</StatusChip> : <StatusChip tone="warn">Não vende: falta o documento fiscal</StatusChip>}
-          {needsNew ? <StatusChip tone="warn">Aceite o texto novo</StatusChip> : null}
+          {needsNew ? <StatusChip tone="warn">Não vende: aceite o texto novo</StatusChip> : null}
         </p>
         {nonFiscal && store.nonFiscalAcceptedAt ? (
           <p className="text-muted-foreground tabular-nums">Aceito por {store.nonFiscalAcceptedByName ?? 'usuário removido'} em {formatInstantDate(store.nonFiscalAcceptedAt)} (texto versão {store.nonFiscalTermsVersion}).</p>

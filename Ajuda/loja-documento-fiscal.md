@@ -14,7 +14,7 @@ Escolher que documento a loja entrega ao cliente em cada venda do balcão. Enqua
 - Só quem é do grupo **Proprietário** liga ou desliga o modo. Toque em **Ligar só cupom não fiscal**, leia o texto inteiro, marque **Li e aceito** e confirme. O aceite fica registrado no histórico da loja, com quem, quando e a versão do texto.
 - Os caixas da loja passam a vender na próxima sincronização.
 - Para desligar, toque em **Desligar**: os caixas param de vender até a loja ter outro documento fiscal.
-- Quando o texto do aceite muda, a loja mostra **Aceite o texto novo**: o Proprietário lê e aceita de novo. O aceite anterior continua no histórico.
+- Quando o texto do aceite muda, a loja mostra **Não vende: aceite o texto novo** e os caixas param de vender na próxima sincronização, com o aviso "O texto do aceite mudou". O Proprietário lê e aceita de novo, e os caixas voltam a vender na sincronização seguinte. O aceite anterior continua no histórico.
 - Em **Cupom ao concluir a venda** (na ficha da loja) você escolhe se o caixa pergunta, imprime sempre ou não imprime.
 
 ## Importante
