@@ -1,6 +1,6 @@
 import { UserRound } from 'lucide-react'
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
-import { endPosSession, listPosOperators, loginPosPin, useGetPosSession } from '@/api/generated/bemaqui'
+import { endPosSession, listPosOperators, loginPosPin, searchPosCustomers, useGetPosSession } from '@/api/generated/bemaqui'
 import type { PosHandshake, PosOperator, PosOperators } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { getAccessToken, isPosPinSession, onSessionChange, setAccessToken, setSessionDeadline } from '@/api/session'
@@ -86,6 +86,9 @@ function OperatorList({ keys, onDeviceGone }: { keys: CryptoKeyPair; onDeviceGon
     </section>
   )
 }
+
+/** Cliente cadastrado para a venda (PDV-02 CA 15): só com rede, pela sessão por PIN do caixa; nome e documento já mascarado. */
+const searchCustomers = (term: string) => searchPosCustomers({ term })
 
 /** PIN no teclado grande; se o servidor pedir, o PIN novo (duas vezes) na mesma tela. */
 function PinPad({ keys, operator, onBack, onDeviceGone }: { keys: CryptoKeyPair; operator: PosOperator; onBack: () => void; onDeviceGone: () => void }) {
@@ -188,7 +191,7 @@ function OperatorSession({ handshake, onDeviceGone }: { handshake: PosHandshake;
   const s = session.data
   if (pdv) {
     return (
-      <PdvSale store={pdv.store} handshake={handshake} online={online} searchCustomers={null} onLeave={() => void leave()}
+      <PdvSale store={pdv.store} handshake={handshake} online={online} searchCustomers={searchCustomers} onLeave={() => void leave()}
         operator={{ id: s.userId, name: s.name, canCancelItem: s.actions.includes('cancel_item') }} />
     )
   }

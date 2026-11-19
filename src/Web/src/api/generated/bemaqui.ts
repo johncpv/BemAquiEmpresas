@@ -837,6 +837,7 @@ import type {
   PlatformVerifyRequest,
   PosCatalogChanges,
   PosCatalogSnapshot,
+  PosCustomer,
   PosDeviceView,
   PosHandshake,
   PosOperatorSession,
@@ -1050,6 +1051,7 @@ import type {
   SearchPartiesParams,
   SearchPaymentMethodAcquirersParams,
   SearchPayrollPayeesParams,
+  SearchPosCustomersParams,
   SearchPrivacySubjectsParams,
   SearchShopfloorOrderParams,
   SearchStockProjectsParams,
@@ -92130,6 +92132,108 @@ export function useGetPosCatalogChanges<TData = Awaited<ReturnType<typeof getPos
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetPosCatalogChangesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSearchPosCustomersUrl = (params?: SearchPosCustomersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/pos/customers?${stringifiedParams}` : `/api/v1/pos/customers`
+}
+
+export const searchPosCustomers = async (params?: SearchPosCustomersParams, options?: Parameters<typeof apiFetch>[1]): Promise<PosCustomer[]> => {
+
+  return apiFetch<PosCustomer[]>(getSearchPosCustomersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSearchPosCustomersQueryKey = (params?: SearchPosCustomersParams,) => {
+    return [
+    `/api/v1/pos/customers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSearchPosCustomersQueryOptions = <TData = Awaited<ReturnType<typeof searchPosCustomers>>, TError = unknown>(params?: SearchPosCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPosCustomers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSearchPosCustomersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchPosCustomers>>> = ({ signal }) => searchPosCustomers(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchPosCustomers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SearchPosCustomersQueryResult = NonNullable<Awaited<ReturnType<typeof searchPosCustomers>>>
+export type SearchPosCustomersQueryError = unknown
+
+
+export function useSearchPosCustomers<TData = Awaited<ReturnType<typeof searchPosCustomers>>, TError = unknown>(
+ params: undefined |  SearchPosCustomersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPosCustomers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchPosCustomers>>,
+          TError,
+          Awaited<ReturnType<typeof searchPosCustomers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchPosCustomers<TData = Awaited<ReturnType<typeof searchPosCustomers>>, TError = unknown>(
+ params?: SearchPosCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPosCustomers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchPosCustomers>>,
+          TError,
+          Awaited<ReturnType<typeof searchPosCustomers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchPosCustomers<TData = Awaited<ReturnType<typeof searchPosCustomers>>, TError = unknown>(
+ params?: SearchPosCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPosCustomers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useSearchPosCustomers<TData = Awaited<ReturnType<typeof searchPosCustomers>>, TError = unknown>(
+ params?: SearchPosCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPosCustomers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSearchPosCustomersQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
