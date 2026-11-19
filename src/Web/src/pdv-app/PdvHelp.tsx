@@ -3,17 +3,18 @@ import { Markdown } from '@/help/markdown'
 import { helpSections } from '@/pages/shopfloor/device'
 import offlineHelp from '../../../../Ajuda/pdv-sem-conexao.md?raw'
 import registerHelp from '../../../../Ajuda/pdv-registrar-aparelho.md?raw'
+import saleHelp from '../../../../Ajuda/pdv-venda.md?raw'
 
 /** Título do documento, do campo `titulo:` do cabeçalho do Markdown. */
 function helpTitle(markdown: string): string {
   return /^titulo:\s*(.+)$/m.exec(markdown)?.[1]?.trim() ?? 'Ajuda'
 }
 
-const DOCS = [offlineHelp, registerHelp]
+const DOCS = [saleHelp, offlineHelp, registerHelp]
 
 /**
  * Ajuda do /pdv, aberta só pelo botão "Ajuda" (padrão do `FloorHelp`: no caixa ela nunca abre sozinha no meio da venda). Os textos vêm de
- * `Ajuda/pdv-sem-conexao.md` e `Ajuda/pdv-registrar-aparelho.md` embutidos no app, porque o caixa precisa da ajuda justamente sem rede e sem
+ * `Ajuda/pdv-venda.md`, `Ajuda/pdv-sem-conexao.md` e `Ajuda/pdv-registrar-aparelho.md` embutidos no app, porque o caixa precisa da ajuda justamente sem rede e sem
  * sessão de usuário (a API de ajuda não responde aí).
  */
 export function PdvHelp({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {

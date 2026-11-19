@@ -1,9 +1,10 @@
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { CircleHelp, CloudOff } from 'lucide-react'
-import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { posHandshake, registerPosDevice, useListStores } from '@/api/generated/bemaqui'
 import type { PosHandshake } from '@/api/generated/model'
 import { ApiError, OFFLINE_CODE } from '@/api/http'
+import { getAccessToken, isPosPinSession, onSessionChange } from '@/api/session'
 import { ensureSession } from '@/auth/session-guard'
 import { Field, FormError, FormGrid } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
@@ -78,6 +79,9 @@ export function PdvPage() {
   const online = useOnline()
   const [state, setState] = useState<State>({ kind: 'checking' })
   const [registering, setRegistering] = useState(false)
+  // Operador no caixa (sessão por PIN): a tela de venda ocupa a largura toda.
+  const token = useSyncExternalStore(onSessionChange, getAccessToken, () => null)
+  const selling = state.kind === 'registered' && !state.offline && !!token && isPosPinSession(token)
 
   const startRegister = useCallback(async () => {
     if (await ensureSession()) {
@@ -119,7 +123,7 @@ export function PdvPage() {
   }, [online, offlineView, refresh])
 
   return (
-    <main id="conteudo" data-surface="floor" className="mx-auto min-h-dvh max-w-2xl space-y-6 bg-background p-4 text-foreground sm:p-8">
+    <main id="conteudo" data-surface="floor" className={selling ? 'mx-auto min-h-dvh max-w-screen-2xl space-y-3 bg-background p-3 text-foreground sm:p-4' : 'mx-auto min-h-dvh max-w-2xl space-y-6 bg-background p-4 text-foreground sm:p-8'}>
       <header className="flex items-start gap-3">
         <div className="min-w-0 flex-1 space-y-1">
           <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Caixa (PDV)</p>
@@ -151,8 +155,8 @@ export function PdvPage() {
             <Card title="Sem conexão." icon={<CloudOff aria-hidden="true" className="size-6" />}
               text="O caixa abriu com os dados guardados neste aparelho. A entrada do operador ainda precisa de internet: assim que a rede voltar, a lista de quem pode entrar aparece sozinha."
               action={<button type="button" onClick={() => void refresh()} className="min-h-14 rounded-md bg-primary px-5 text-base font-semibold text-primary-foreground">Tentar de novo</button>} />
-          ) : <PdvOperatorEntry keys={state.keys} onDeviceGone={refresh} />}
-          <p className="text-sm text-muted-foreground">As vendas deste aparelho vão sair numeradas a partir de {state.register.salePrefix}000001.</p>
+          ) : <PdvOperatorEntry keys={state.keys} handshake={state.register} onDeviceGone={refresh} />}
+          {selling ? null : <p className="text-sm text-muted-foreground">As vendas deste aparelho vão sair numeradas a partir de {state.register.salePrefix}000001.</p>}
         </CatalogGate>
       ) : (
         <Card title={state.kind === 'blocked' ? 'Este aparelho foi bloqueado ou trocado por outro.' : 'Este aparelho ainda não é um caixa.'}

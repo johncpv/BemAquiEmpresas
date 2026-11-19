@@ -1,15 +1,18 @@
 import { UserRound } from 'lucide-react'
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { endPosSession, listPosOperators, loginPosPin, useGetPosSession } from '@/api/generated/bemaqui'
-import type { PosOperator, PosOperators } from '@/api/generated/model'
+import type { PosHandshake, PosOperator, PosOperators } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { getAccessToken, isPosPinSession, onSessionChange, setAccessToken, setSessionDeadline } from '@/api/session'
 import { FloorButton, NumericKeypad } from '@/components/shopfloor/kit'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { signRequest } from '@/pdv/device-signing'
+import { usePdv } from '@/pdv/pdv-context'
+import { useOnline } from '@/pdv/use-online'
 import { PIN_CHANGE_REQUIRED, pinBody } from '@/pdv/operator-pin'
 import { registerLabel } from '@/pages/store/stores'
 import { isPinComplete, PIN_LENGTH } from '@/pages/shopfloor/device'
+import { PdvSale } from './sale/PdvSale'
 
 const OPERATORS = '/api/v1/pos/sync/operators'
 const PIN = '/api/v1/pos/sync/pin'
@@ -17,12 +20,11 @@ const PIN = '/api/v1/pos/sync/pin'
 /**
  * Entrada do operador no caixa (/pdv, PDV-01 CA 11): o caixa já registrado mostra quem pode entrar (primeiro nome e inicial); o operador toca no
  * nome e digita o PIN. A lista e a entrada vão assinadas pela chave do aparelho (esquema Device), sem sessão de usuário. O PIN inicial que o gerente
- * deu ao usuário de operação vale só para a primeira entrada: a tela pede o PIN novo. Com a sessão aberta: quem está no caixa e "Sair". A tela de
- * venda chega na PDV-02.
+ * deu ao usuário de operação vale só para a primeira entrada: a tela pede o PIN novo. Com a sessão aberta, a tela de venda (PDV-02).
  */
-export function PdvOperatorEntry({ keys, onDeviceGone }: { keys: CryptoKeyPair; onDeviceGone: () => void }) {
+export function PdvOperatorEntry({ keys, handshake, onDeviceGone }: { keys: CryptoKeyPair; handshake: PosHandshake; onDeviceGone: () => void }) {
   const token = useSyncExternalStore(onSessionChange, getAccessToken, () => null)
-  if (token && isPosPinSession(token)) return <OperatorSession onDeviceGone={onDeviceGone} />
+  if (token && isPosPinSession(token)) return <OperatorSession handshake={handshake} onDeviceGone={onDeviceGone} />
   return <OperatorList keys={keys} onDeviceGone={onDeviceGone} />
 }
 
@@ -151,8 +153,13 @@ function PinPad({ keys, operator, onBack, onDeviceGone }: { keys: CryptoKeyPair;
   )
 }
 
-/** Quem está no caixa e "Sair" (a sessão cai no servidor; o PIN continua). */
-function OperatorSession({ onDeviceGone }: { onDeviceGone: () => void }) {
+/**
+ * Operador no caixa: a tela de venda (PDV-02), com "Sair" (a sessão cai no servidor; o PIN continua). Quem está no caixa e as ações dele
+ * (pos.cancel_item) vêm da sessão; a venda em si só fala com o LocalStore. Fora do app do caixa (sem LocalStore), só quem está no caixa.
+ */
+function OperatorSession({ handshake, onDeviceGone }: { handshake: PosHandshake; onDeviceGone: () => void }) {
+  const pdv = usePdv()
+  const online = useOnline()
   const session = useGetPosSession({ query: { retry: false, staleTime: 0 } })
   const [busy, setBusy] = useState(false)
   const error = session.error instanceof ApiError ? session.error : null
@@ -179,11 +186,18 @@ function OperatorSession({ onDeviceGone }: { onDeviceGone: () => void }) {
   }
 
   const s = session.data
+  if (pdv) {
+    return (
+      <PdvSale store={pdv.store} handshake={handshake} online={online} searchCustomers={null} onLeave={() => void leave()}
+        operator={{ id: s.userId, name: s.name, canCancelItem: s.actions.includes('pos.cancel_item') }} />
+    )
+  }
+
   return (
     <section className="space-y-3 rounded-md border border-border bg-card p-5">
       <h2 className="text-lg font-semibold">{s.name} está no caixa {registerLabel(s.registerNumber)} da loja {s.storeName}.</h2>
       <p className="text-muted-foreground">
-        A sessão vale até {new Date(s.sessionExpiresAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}. A tela de venda chega na próxima versão.
+        A sessão vale até {new Date(s.sessionExpiresAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}. A tela de venda abre no app do caixa.
       </p>
       <FloorButton tone="secondary" onClick={() => void leave()} disabled={busy}>{busy ? 'Saindo…' : 'Sair'}</FloorButton>
     </section>
