@@ -26,3 +26,14 @@ export function contactText(hours: number): string | null {
 }
 
 export const UI_MODE_LABEL: Record<string, string> = { Touch: 'Toque', Keyboard: 'Teclado e leitor' }
+
+/** Valor em reais para o campo ("1.000,00"). */
+export const moneyText = (value: number) => value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+/** Texto em reais ("1.000,00", "1000", "1000.5") para número; undefined se não for valor válido com até 2 casas (CX-01, aviso e teto do caixa). */
+export function parseAmount(text: string): number | undefined {
+  const clean = text.replace(/\s|R\$/g, '')
+  const normalized = clean.includes(',') ? clean.replace(/\./g, '').replace(',', '.') : clean
+  if (!/^\d{1,7}(\.\d{1,2})?$/.test(normalized)) return undefined
+  return Number(normalized)
+}

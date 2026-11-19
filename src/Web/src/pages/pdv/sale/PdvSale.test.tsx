@@ -32,8 +32,10 @@ function fastType(target: Element, text: string) {
 describe('tela de venda (PDV-02)', () => {
   it('sem caixa aberto pede para abrir; aberto, lança pelo código e avisa o código que não existe', async () => {
     const store = await openStore()
-    render(<PdvSale store={store} handshake={handshake} online operator={{ id: 'op', name: 'Diego', canCancelItem: false }} searchCustomers={null} onLeave={() => {}} />)
-    expect(await screen.findByText('Abra o caixa para começar a vender.')).toBeTruthy()
+    render(<PdvSale store={store} handshake={handshake} online operator={{ id: 'op', name: 'Diego', canCancelItem: false, canCashOut: true, canCashIn: true }} searchCustomers={null} onLeave={() => {}} />)
+    expect(await screen.findByRole('heading', { name: 'Abrir caixa' })).toBeTruthy()
+    for (const d of ['1', '5', '0', '0', '0']) fireEvent.click(screen.getByRole('button', { name: d }))
+    expect(screen.getByLabelText('Fundo de troco').textContent).toMatch(/R\$\s150,00/)
     fireEvent.click(screen.getByRole('button', { name: 'Abrir caixa' }))
     expect(await screen.findByText('Bipe ou busque um produto para começar.')).toBeTruthy()
 
@@ -50,11 +52,11 @@ describe('tela de venda (PDV-02)', () => {
 
   it('leitura com o foco em outro campo lança o item e não suja o campo', async () => {
     const store = await openStore()
-    await store.setMeta('cash.session', { openedAt: '2026-11-18T10:00:00Z', operatorId: 'op' })
+    await store.setMeta('cash.session', { id: 's1', registerId: 'r1', deviceEpoch: 1, openedAt: '2026-11-18T10:00:00Z', operatorId: 'op', operatorName: 'Diego', openingCents: 10_000, salesCount: 0, cashSalesCents: 0, movements: [] })
     render(
       <>
         <input aria-label="Outro campo" defaultValue="abc" />
-        <PdvSale store={store} handshake={handshake} online operator={{ id: 'op', name: 'Diego', canCancelItem: false }} searchCustomers={null} onLeave={() => {}} />
+        <PdvSale store={store} handshake={handshake} online operator={{ id: 'op', name: 'Diego', canCancelItem: false, canCashOut: true, canCashIn: true }} searchCustomers={null} onLeave={() => {}} />
       </>,
     )
     await screen.findByText('Bipe ou busque um produto para começar.')

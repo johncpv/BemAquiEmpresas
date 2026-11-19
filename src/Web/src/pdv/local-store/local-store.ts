@@ -16,6 +16,12 @@ export interface LocalStore {
   /** Valor solto do aparelho (último aperto de mão, aviso de armazenamento, etc.). */
   getMeta<T>(key: MetaKey): Promise<T | undefined>
   setMeta(key: MetaKey, value: unknown): Promise<void>
+  /**
+   * Lê, troca e grava um valor do aparelho e, junto, põe (ou não) um evento na fila de saída, **numa transação só** (CX-01: a sessão de caixa e o
+   * evento da abertura, da sangria ou do suprimento nunca ficam um sem o outro). `update` recebe o valor atual e devolve o novo (`null` apaga);
+   * se lançar erro, nada é gravado. `entry` é o evento fixo ou uma função do valor novo e do anterior (null = sem evento).
+   */
+  updateMeta(key: MetaKey, update: (current: unknown) => unknown, entry?: OutboxDraft | ((next: unknown, previous: unknown) => OutboxDraft | null)): Promise<OutboxEntry | null>
 
   /** Estado do catálogo guardado (null: o aparelho ainda não baixou a foto). Vem da memória, sem ir ao disco. */
   catalogState(): CatalogState | null
@@ -70,6 +76,13 @@ export interface OutboxEntry {
   kind: string
   createdAt: string
   payload: unknown
+}
+
+/** Evento para a fila de saída, antes de receber o `seq` e o id. */
+export interface OutboxDraft {
+  kind: string
+  payload: unknown
+  at: string
 }
 
 export interface PendingSummary {

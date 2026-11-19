@@ -33,6 +33,8 @@ export function createCatalogSource(keys: CryptoKeyPair, store: Pick<LocalStore,
 }
 
 const offlineWindowDays = (s: PosSyncStore) => (s.offlineWindowHours > 0 ? Math.ceil(s.offlineWindowHours / 24) : null)
+/** Aviso de sangria e teto de dinheiro da loja (PP-22, CX-01 CA 7 e 8), em centavos; zero ou ausente = sem limite. */
+const cashLimits = (s: PosSyncStore) => ({ alertCents: s.cashDropAlertCents > 0 ? s.cashDropAlertCents : null, ceilingCents: s.cashCeilingCents ?? null })
 
 const barcodeId = (itemId: string, code: string) => `${itemId}:${code}`
 
@@ -67,6 +69,7 @@ export function toSnapshot(body: PosCatalogSnapshot): CatalogSnapshot {
     storeId: body.store.id,
     storeName: body.store.name,
     offlineWindowDays: offlineWindowDays(body.store),
+    cashLimits: cashLimits(body.store),
     data,
   }
 }
@@ -109,6 +112,7 @@ export function toChanges(body: PosCatalogChanges, store: Pick<LocalStore, 'list
     schemaVersion: body.schemaVersion,
     cursor: String(body.cursor),
     offlineWindowDays: offlineWindowDays(body.store),
+    cashLimits: cashLimits(body.store),
     hasMore: body.hasMore,
     changes,
   }

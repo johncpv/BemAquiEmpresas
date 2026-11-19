@@ -11,4 +11,8 @@ export interface StoreRequest {
   stockLocationId: string;
   defaultPriceListId: string;
   isActive?: boolean;
+  /** @nullable */
+  cashDropAlertAmount?: number | null;
+  /** @nullable */
+  cashCeilingAmount?: number | null;
 }

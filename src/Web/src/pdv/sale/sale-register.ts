@@ -59,6 +59,8 @@ export interface SaleRegisterOptions {
   settings: () => SaleSettings
   cipher?: DocumentCipher | null
   now?: () => Date
+  /** Turno (sessão de caixa) em que a venda conclui (CX-01): vai na entrada da fila de saída para a OFF-02 e a CX-03 juntarem as vendas da sessão. */
+  cashSessionId?: () => string | null
 }
 
 /** Regra da venda que a tela mostra ao operador (não é erro de gravação). */
@@ -424,6 +426,7 @@ export class SaleRegister {
       at: completed.at,
       payload: {
         saleId: sale.id, number: saleNumber(prefix, seq), status: 'completed', totalCents: total, changeCents: change,
+        cashSessionId: this.options.cashSessionId?.() ?? null,
         events: [...events, ...extra, completed],
       },
     }))

@@ -15,6 +15,7 @@ Cadastrar as lojas e os caixas de cada uma, e ver qual aparelho vende em cada ca
 - Cada caixa tem a sua conta do tipo Caixa: duas lojas ou dois caixas não usam a mesma. Crie a conta em Financeiro → Contas e caixas, se faltar.
 - A coluna do aparelho mostra o último contato. "Sem contato há N h" avisa quando o caixa está desligado ou sem internet há algum tempo.
 - Para ligar um aparelho ao caixa, abra **/pdv** no computador ou tablet da loja e toque em **Registrar este aparelho**.
+- Na loja, **Aviso de sangria a partir de** (padrão R$ 1.000,00) faz o caixa pedir uma sangria quando o dinheiro na gaveta passa do valor; **Teto de dinheiro no caixa** (opcional, maior que o aviso) bloqueia o recebimento em dinheiro até a sangria. O caixa recebe os valores na próxima sincronização e nunca mostra ao operador quanto há na gaveta.
 
 ## Perguntas frequentes
 **O código da loja pode mudar?** Pode, mas as vendas já feitas continuam com o número antigo. Prefira escolher o código certo no começo.

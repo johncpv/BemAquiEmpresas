@@ -2,7 +2,7 @@ import Dexie, { type Table } from 'dexie'
 import { uuidv7 } from '@/pdv/uuid-v7'
 import { CatalogMemory } from './catalog-memory'
 import { CATALOG_COLLECTIONS, type CatalogChange, type CatalogCollection, type CatalogData, type CatalogState, type CatalogVersion, emptyCatalog } from './catalog-types'
-import { type LocalStore, type MetaKey, type OutboxEntry, type PendingSummary, ReadOnlyStoreError } from './local-store'
+import { type LocalStore, type MetaKey, type OutboxDraft, type OutboxEntry, type PendingSummary, ReadOnlyStoreError } from './local-store'
 import type { ClosedSale, CustomerDocumentRecord, SaleJournalEvent } from './sale-journal-types'
 import type { WriterLock } from './writer-lock'
 
@@ -126,8 +126,23 @@ export class DexieLocalStore implements LocalStore {
     await this.db.meta.put({ k: key, v: value })
   }
 
+  async updateMeta(key: MetaKey, update: (current: unknown) => unknown, entry?: OutboxDraft | ((next: unknown, previous: unknown) => OutboxDraft | null)): Promise<OutboxEntry | null> {
+    this.assertWritable()
+    return this.db.transaction('rw', this.db.meta, this.db.outbox, async () => {
+      const previous = (await this.db.meta.get(key))?.v
+      const next = update(previous)
+      if (next === null || next === undefined) await this.db.meta.delete(key)
+      else await this.db.meta.put({ k: key, v: next })
+      const draft = typeof entry === 'function' ? entry(next, previous) : entry ?? null
+      if (!draft) return null
+      const row: OutboxRow = { id: uuidv7(Date.parse(draft.at)), kind: draft.kind, createdAt: draft.at, payload: draft.payload }
+      const seq = await this.db.outbox.add(row)
+      return { ...row, seq }
+    })
+  }
+
   catalogState(): CatalogState | null {
-    return this.meta ? { ...this.meta, counts: this.memory.counts() } : null
+    return this.meta ? { ...this.meta, cashLimits: this.meta.cashLimits ?? null, counts: this.memory.counts() } : null
   }
 
   async replaceCatalog(version: CatalogVersion & { storeId: string; storeName?: string | null }, data: CatalogData, syncedAt: string): Promise<void> {
@@ -147,7 +162,7 @@ export class DexieLocalStore implements LocalStore {
 
     const meta: CatalogMeta = {
       schemaVersion: version.schemaVersion, cursor: version.cursor, storeId: version.storeId, storeName: version.storeName ?? null,
-      offlineWindowDays: version.offlineWindowDays ?? null, syncedAt,
+      offlineWindowDays: version.offlineWindowDays ?? null, cashLimits: version.cashLimits ?? null, syncedAt,
     }
     await this.db.transaction('rw', this.db.catalogChunks, this.db.catalogOverlay, this.db.meta, async () => {
       await this.db.catalogChunks.clear()
@@ -166,6 +181,7 @@ export class DexieLocalStore implements LocalStore {
     const meta: CatalogMeta = {
       ...this.meta, schemaVersion: version.schemaVersion, cursor: version.cursor, syncedAt,
       offlineWindowDays: version.offlineWindowDays === undefined ? this.meta.offlineWindowDays : version.offlineWindowDays,
+      cashLimits: version.cashLimits === undefined ? this.meta.cashLimits ?? null : version.cashLimits,
     }
     const rows: OverlayRow[] = changes.map((c) => c.op === 'upsert'
       ? { k: `${c.collection}:${c.record.id}`, collection: c.collection, id: c.record.id, record: c.record }

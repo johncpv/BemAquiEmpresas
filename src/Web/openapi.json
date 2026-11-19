@@ -87050,7 +87050,8 @@
           "offlineWindowHours",
           "cashBreakToleranceCents",
           "exchangeDays",
-          "cashDropAlertCents"
+          "cashDropAlertCents",
+          "cashCeilingCents"
         ],
         "type": "object",
         "properties": {
@@ -87086,6 +87087,13 @@
           },
           "cashDropAlertCents": {
             "type": "integer",
+            "format": "int64"
+          },
+          "cashCeilingCents": {
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "int64"
           }
         }
@@ -105426,6 +105434,20 @@
           "isActive": {
             "type": "boolean",
             "default": true
+          },
+          "cashDropAlertAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "cashCeilingAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -105440,6 +105462,8 @@
           "defaultPriceListId",
           "defaultPriceListName",
           "isActive",
+          "cashDropAlertAmount",
+          "cashCeilingAmount",
           "version",
           "registers"
         ],
@@ -105471,6 +105495,17 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "cashDropAlertAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "cashCeilingAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           },
           "version": {
             "type": "integer",

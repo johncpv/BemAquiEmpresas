@@ -94,6 +94,14 @@ export interface CatalogVersion {
    * mostra prazo. O bloqueio da venda quando a janela vence é da OFF-03.
    */
   offlineWindowDays?: number | null
+  /** Aviso de sangria e teto de dinheiro no caixa da loja (PP-22, CX-01), em centavos. Ausente: o servidor não mandou (mantém o guardado). */
+  cashLimits?: CashLimits | null
+}
+
+/** Limites da loja para o dinheiro na gaveta (CX-01 CA 7 e 8), em centavos; null = sem limite. */
+export interface CashLimits {
+  alertCents: number | null
+  ceilingCents: number | null
 }
 
 export interface CatalogState extends CatalogVersion {
@@ -102,6 +110,7 @@ export interface CatalogState extends CatalogVersion {
   /** Instante (ISO) da última sincronização que deu certo. */
   syncedAt: string
   offlineWindowDays: number | null
+  cashLimits: CashLimits | null
   counts: Record<CatalogCollection, number>
 }
 
