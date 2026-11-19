@@ -11,7 +11,8 @@ using Microsoft.AspNetCore.Routing;
 namespace BemAqui.Pos.Endpoints;
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record StoreRequest(string Code, string Name, Guid StockLocationId, Guid DefaultPriceListId, bool IsActive = true);
+/// <summary>Loja (PDV-01). CX-01: <c>CashDropAlertAmount</c> nulo mantém o aviso atual; <c>CashCeilingAmount</c> nulo = sem teto (a tela sempre manda).</summary>
+public sealed record StoreRequest(string Code, string Name, Guid StockLocationId, Guid DefaultPriceListId, bool IsActive = true, decimal? CashDropAlertAmount = null, decimal? CashCeilingAmount = null);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record RegisterRequest(int Number, Guid CashAccountId, RegisterUiMode UiMode, bool IsActive = true);
@@ -80,7 +81,7 @@ internal static class PosEndpoints
         return api;
     }
 
-    private static StoreInput ToInput(StoreRequest r) => new(r.Code, r.Name, r.StockLocationId, r.DefaultPriceListId, r.IsActive);
+    private static StoreInput ToInput(StoreRequest r) => new(r.Code, r.Name, r.StockLocationId, r.DefaultPriceListId, r.IsActive, r.CashDropAlertAmount, r.CashCeilingAmount);
 
     private static RegisterInput ToInput(RegisterRequest r) => new(r.Number, r.CashAccountId, r.UiMode, r.IsActive);
 }

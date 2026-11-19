@@ -22,10 +22,13 @@ public static class PosInfrastructure
         services.TryAddScoped<PosCatalogProjector>(); // OFF-01: modelo de leitura do caixa (consumidor e carga inicial)
         services.TryAddScoped<PosCatalogSyncService>();
         services.TryAddScoped<PosCustomerSearchService>(); // PDV-02 CA 15: cliente cadastrado na tela de venda
+        services.TryAddScoped<CashSessionIngestion>(); // CX-01: sessão de caixa e movimentos de dinheiro (a subida da OFF-02 chama)
         services.TryAddScoped<IPosRegisters, PosRegistersContract>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IProfileSeedPackage, PosRetailSeedPackage>());
         services.AddAuditableEntity<Store>("sales");
         services.AddAuditableEntity<Register>("sales");
+        services.AddAuditableEntity<CashSession>("sales"); // CX-01: abertura e fechamento do caixa
+        services.AddAuditableEntity<CashMovement>("sales"); // CX-01: fundo de troco, sangria e suprimento
         return services;
     }
 }

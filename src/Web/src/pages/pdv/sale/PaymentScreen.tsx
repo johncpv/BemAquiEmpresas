@@ -44,7 +44,7 @@ function tenderLabel(t: Tender): string {
  * Tela de pagamento do caixa (PDV-03): total, "Falta", as formas da loja em botões grandes e os pagamentos já feitos. Fala só com a porta
  * `PaymentTerminal` (CA 11) e grava pelo `SaleRegister`, no aparelho: nunca espera a rede (CA 12).
  */
-export function PaymentScreen({ sale, register, terminal, store, online, operatorId, onCompleted }: {
+export function PaymentScreen({ sale, register, terminal, store, online, operatorId, onCompleted, cashBlocked = null }: {
   sale: Sale
   register: SaleRegister
   terminal: PaymentTerminal
@@ -52,13 +52,16 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
   online: boolean
   operatorId: string | null
   onCompleted: (done: CompletedSale) => void
+  /** CX-01 CA 8: dinheiro na gaveta acima do teto da loja; a forma Dinheiro fica bloqueada com esta mensagem (as outras continuam). */
+  cashBlocked?: string | null
 }) {
   const total = saleTotal(sale)
   const paid = paidCents(sale.tenders)
   const remaining = remainingCents(total, sale.tenders)
   const state = salePaymentState(sale.inPayment, total, sale.tenders)
   const methods = useMemo(() => [...store.list('paymentMethods')].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
-    .map((m) => ({ method: m, availability: methodAvailability(m, online) })).filter((m) => m.availability !== 'hidden'), [store, online])
+    .map((m) => ({ method: m, availability: cashBlocked && methodGroup(m) === 'cash' ? 'cash-blocked' as const : methodAvailability(m, online) }))
+    .filter((m) => m.availability !== 'hidden'), [store, online, cashBlocked])
   const usable = methods.filter((m) => m.availability === 'enabled')
 
   const [methodId, setMethodId] = useState<string | null>(() => (usable.length === 1 ? usable[0].method.id : null))
@@ -200,12 +203,14 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
       <section aria-label="Formas de pagamento" className="min-w-0 space-y-4">
         {shown ? <TerminalStatus tender={shown} busy={busy} onResolve={(approved) => void resolveUnknown(shown, approved)} onDismiss={() => setTerminalTender(null)} /> : null}
 
+        {cashBlocked ? <p role="status" className="rounded-md border border-warn-soft bg-warn-soft p-4 text-[18px] font-semibold text-warn-ink">{cashBlocked}</p> : null}
         <div role="group" aria-label="Escolha a forma" className="grid grid-cols-2 gap-[8px] sm:grid-cols-3">
           {methods.map(({ method: m, availability }) => (
             <FloorButton key={m.id} tone="secondary" aria-pressed={m.id === methodId} disabled={availability !== 'enabled' || busy || !!open}
               onClick={() => choose(m)} className={cn('min-h-[72px] flex-col gap-1', m.id === methodId && 'border-primary')}>
               <span className="flex items-center gap-2"><MethodIcon method={m} />{m.name}</span>
               {availability === 'needs-network' ? <span className="flex items-center gap-1 text-[14px] font-normal"><CloudOff aria-hidden="true" className="size-4" />Disponível com internet.</span> : null}
+              {availability === 'cash-blocked' ? <span className="text-[14px] font-normal">Faça uma sangria.</span> : null}
             </FloorButton>
           ))}
         </div>

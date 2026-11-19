@@ -15,6 +15,9 @@ export interface StoreView {
   defaultPriceListId: string;
   defaultPriceListName: string;
   isActive: boolean;
+  cashDropAlertAmount: number;
+  /** @nullable */
+  cashCeilingAmount: number | null;
   version: number;
   registers: RegisterView[];
 }

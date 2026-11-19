@@ -17,6 +17,11 @@ public interface IPosDb
     /// <summary>Carga inicial do catálogo de cada loja (OFF-01).</summary>
     DbSet<CatalogStoreBuild> CatalogStoreBuilds { get; }
 
+    /// <summary>Sessões de caixa (turnos) e os movimentos de dinheiro: fundo de troco, sangria e suprimento (CX-01).</summary>
+    DbSet<CashSession> CashSessions { get; }
+
+    DbSet<CashMovement> CashMovements { get; }
+
     /// <summary>Gravação em lote do modelo de leitura e a trava do tenant (OFF-01).</summary>
     DatabaseFacade Database { get; }
 

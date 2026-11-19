@@ -9,7 +9,10 @@ import type { LocalStore } from '@/pdv/local-store/local-store'
 import { formatCents } from '@/pdv/money'
 import { ManualTerminal, type PaymentTerminal } from '@/pdv/payment/payment-terminal'
 import { beep } from '@/pdv/sale/beep'
-import { closeCashSession, loadCashSession, type LocalCashSession, openCashSession } from '@/pdv/sale/cash-session'
+import { applyPendingUpdate, markCashSessionOpen } from '@/pdv/app-update'
+import { cashAlert, cashBlocked, closeCashSession, lastOpeningCents, loadCashSession, type LocalCashSession, openCashSession, openedByOtherMessage, recordSaleInSession } from '@/pdv/cash/cash-session'
+import { CashArea } from '@/pages/pdv/cash/CashArea'
+import { CashBusyScreen, CashOpenScreen } from '@/pages/pdv/cash/CashScreens'
 import { parseCodeInput } from '@/pdv/sale/code-input'
 import { aesDocumentCipher, formatDocument } from '@/pdv/sale/customer-document'
 import { formatQuantity } from '@/pdv/sale/quantity'
@@ -31,6 +34,10 @@ export interface SaleOperator {
   name: string
   /** Tem `pos.cancel_item` (remove qualquer linha sem supervisor). */
   canCancelItem: boolean
+  /** Tem `pos.cash_out` (sangria, CX-01). */
+  canCashOut: boolean
+  /** Tem `pos.cash_in` (suprimento, CX-01). */
+  canCashIn: boolean
 }
 
 type Sheet =
@@ -87,6 +94,12 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
   terminal?: PaymentTerminal
 }) {
   const [cash, setCash] = useState<LocalCashSession | null | undefined>(undefined)
+  const [lastOpening, setLastOpening] = useState(0)
+  // A venda concluída leva o id do turno (a OFF-02 e a CX-03 juntam as vendas da sessão).
+  const cashIdRef = useRef<string | null>(null)
+  useEffect(() => { if (cash !== undefined) cashIdRef.current = cash?.id ?? null }, [cash])
+  // A troca de versão do app espera o turno fechar (OFF-01 CA 3): o service worker lê esta marca.
+  useEffect(() => { if (cash !== undefined) markCashSessionOpen(!!cash) }, [cash])
   const [settings, setSettings] = useState<SaleSettings>({ mode: defaultMode(handshake.uiMode), ...DEFAULT_SETTINGS })
   const settingsRef = useRef(settings)
   useEffect(() => { settingsRef.current = settings }, [settings])
@@ -98,15 +111,21 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
     let alive = true
     void (async () => {
       try {
-        const [saved, session] = await Promise.all([store.getMeta<Partial<SaleSettings>>(SETTINGS_META), loadCashSession(store)])
+        const [saved, loaded, opening] = await Promise.all([store.getMeta<Partial<SaleSettings>>(SETTINGS_META), loadCashSession(store), lastOpeningCents(store)])
         if (!alive) return
         if (saved) setSettings((s) => ({ ...s, ...saved }))
-        setCash(session)
+        setLastOpening(opening ?? 0)
+        cashIdRef.current = loaded?.id ?? null
         const opened = await SaleRegister.open({
           store, operatorId: operator.id, salePrefix: handshake.salePrefix, settings: () => settingsRef.current,
-          cipher: aesDocumentCipher(loadDocumentKey),
+          cipher: aesDocumentCipher(loadDocumentKey), cashSessionId: () => cashIdRef.current,
         })
-        if (alive) setRegister(opened)
+        // Venda concluída ao reabrir (queda entre o último pagamento e o fechamento): conta no turno como as outras.
+        let session = loaded
+        for (const done of loaded ? opened.recovered : []) session = await recordSaleInSession(store, done.tenders) ?? session
+        if (!alive) return
+        setCash(session)
+        setRegister(opened)
       } catch {
         if (alive) setFailure(STORAGE_ERROR_TITLE)
       }
@@ -125,31 +144,30 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
 
   if (!register || cash === undefined) return <FloorSkeleton rows={3} />
 
+  // CX-01 CA 1: sem turno aberto, o operador abre com o fundo de troco (padrão: o da última abertura); sem turno não se vende (PDV-02 CA 17).
   if (!cash) {
     return (
-      <section className="space-y-4">
-        <FloorState title="Abra o caixa para começar a vender." message={`${operator.name}, ao abrir, as vendas deste aparelho ficam no seu nome até você fechar o caixa ou sair.`}
-          action={(
-            <div className="flex flex-wrap justify-center gap-[16px]">
-              <FloorButton tone="secondary" onClick={onLeave}><LogOut aria-hidden="true" className="size-5" />Sair</FloorButton>
-              <FloorButton onClick={() => {
-                void openCashSession(store, operator.id).then(() => loadCashSession(store)).then(setCash).catch(() => setFailure(STORAGE_ERROR_TITLE))
-              }}>Abrir caixa</FloorButton>
-            </div>
-          )} />
-        {failure ? <p role="alert" className="text-center font-semibold text-crit-ink">{failure}</p> : null}
-      </section>
+      <CashOpenScreen operatorName={operator.name} defaultCents={lastOpening} onLeave={onLeave}
+        onOpen={async (openingCents) => {
+          const opened = await openCashSession(store, { operator, openingCents, registerId: handshake.registerId, deviceEpoch: handshake.epoch })
+          setLastOpening(openingCents)
+          setCash(opened)
+        }} />
     )
   }
 
+  // CX-01 CA 2: uma sessão por caixa; outro operador não vende no turno de quem abriu.
+  const busy = openedByOtherMessage(cash, operator.id)
+  if (busy) return <CashBusyScreen message={busy} onLeave={onLeave} />
+
   return (
     <SaleScreen store={store} register={register} operator={operator} online={online} settings={settings} onSettings={saveSettings} terminal={terminal}
-      searchCustomers={searchCustomers} onLeave={onLeave}
-      onCloseRegister={async () => { await closeCashSession(store); setCash(null) }} />
+      searchCustomers={searchCustomers} onLeave={onLeave} cash={cash} onCash={setCash} place={`${handshake.storeName} · Caixa ${String(handshake.registerNumber).padStart(2, '0')}`}
+      onCloseRegister={async () => { await closeCashSession(store, operator); setCash(null); applyPendingUpdate() }} />
   )
 }
 
-function SaleScreen({ store, register, operator, online, settings, onSettings, searchCustomers, onLeave, onCloseRegister, terminal: givenTerminal }: {
+function SaleScreen({ store, register, operator, online, settings, onSettings, searchCustomers, onLeave, onCloseRegister, terminal: givenTerminal, cash, onCash, place }: {
   store: LocalStore
   register: SaleRegister
   operator: SaleOperator
@@ -160,9 +178,15 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
   onLeave: () => void
   onCloseRegister: () => Promise<void>
   terminal?: PaymentTerminal
+  cash: LocalCashSession
+  onCash: (session: LocalCashSession) => void
+  place: string
 }) {
   const terminal = useMemo(() => givenTerminal ?? new ManualTerminal(), [givenTerminal])
   const [completed, setCompleted] = useState<CompletedSale | null>(null)
+  // CX-01: painel do caixa (CA 10), aviso de sangria (CA 7) e teto do dinheiro (CA 8). Os limites vêm da loja, no catálogo do caixa.
+  const [cashView, setCashView] = useState<null | { startWith: 'CashOut' | 'CashIn' | null }>(null)
+  const [cashNotice, setCashNotice] = useState<string | null>(null)
   const book = useSyncExternalStore(register.subscribe, register.getSnapshot)
   const sale = currentSale(book)
   const parked = parkedSales(book)
@@ -280,7 +304,7 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
 
   // Leitor em qualquer campo (CA 4) e teclas de função (CA 6).
   const handlers = useRef({ scan, runKey, sheetOpen: false, blocked: false })
-  useEffect(() => { handlers.current = { scan, runKey, sheetOpen: sheet !== null, blocked: paying || completed !== null } }, [scan, runKey, sheet, paying, completed])
+  useEffect(() => { handlers.current = { scan, runKey, sheetOpen: sheet !== null, blocked: paying || completed !== null || cashView !== null } }, [scan, runKey, sheet, paying, completed, cashView])
   useEffect(() => {
     const detector = new ScanDetector()
     let snapshot: { el: HTMLInputElement | HTMLTextAreaElement; value: string } | null = null
@@ -341,13 +365,34 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
   const discardTarget = sheet?.kind === 'discard' ? (sheet.saleId ? book.sales.find((s) => s.id === sheet.saleId) ?? null : sale) : null
   const pendingSales = parked.length + (lines.length ? 1 : 0)
 
+  const limits = store.catalogState()?.cashLimits ?? null
+  const completeSale = (done: CompletedSale) => {
+    setCompleted(done)
+    void recordSaleInSession(store, done.tenders).then((s) => { if (s) { onCash(s); setCashNotice(cashAlert(s, limits)) } }).catch(() => { /* o painel recompõe no próximo turno */ })
+  }
+
+  if (cashView) {
+    return (
+      <CashArea store={store} session={cash} operator={operator} place={place} startWith={cashView.startWith} onSession={(s) => { onCash(s); setCashNotice(null) }}
+        onBack={() => { setCashView(null); focusCode() }} onClose={() => { setCashView(null); setSheet({ kind: 'close' }) }} />
+    )
+  }
+
+  const alert = cashNotice ? (
+    <div role="status" className="flex flex-wrap items-center justify-between gap-[8px] rounded-md border border-warn-soft bg-warn-soft p-4 text-[18px] font-semibold text-warn-ink">
+      <span>{cashNotice}</span>
+      <FloorButton tone="secondary" onClick={() => { setCompleted(null); setCashView({ startWith: 'CashOut' }) }}>Fazer sangria</FloorButton>
+    </div>
+  ) : null
+
   if (completed || (sale && paying)) {
     return (
       <div className="space-y-3">
         <p className="truncate text-[18px]"><span className="text-muted-foreground">No caixa:</span> <b>{operator.name}</b> · {completed ? 'Venda concluída' : 'Pagamento'}</p>
+        {completed ? alert : null}
         {completed ? <SaleCompletedView done={completed} onNewSale={() => { setCompleted(null); setSelectedId(null); setNotice(null); focusCode() }} /> : null}
         {!completed && sale ? (
-          <PaymentScreen sale={sale} register={register} terminal={terminal} store={store} online={online} operatorId={operator.id} onCompleted={setCompleted} />
+          <PaymentScreen sale={sale} register={register} terminal={terminal} store={store} online={online} operatorId={operator.id} onCompleted={completeSale} cashBlocked={cashBlocked(cash, limits)} />
         ) : null}
       </div>
     )
@@ -374,9 +419,12 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
         </FloorButton>
         <FloorDica nome="Venda em espera" texto="O cliente esqueceu algo? Deixe a venda em espera (F7), atenda o próximo e retome depois. Ela fica guardada neste caixa, mesmo sem internet." />
         <FloorButton tone="secondary" onClick={() => setSheet({ kind: 'settings' })} aria-label="Ajustes do caixa"><Settings2 aria-hidden="true" className="size-6" /></FloorButton>
+        <FloorButton tone="secondary" onClick={() => setCashView({ startWith: null })}>Caixa</FloorButton>
         <FloorButton tone="secondary" onClick={() => setSheet({ kind: 'close' })}>Fechar caixa</FloorButton>
         <FloorButton tone="secondary" onClick={onLeave} aria-label="Sair do caixa"><LogOut aria-hidden="true" className="size-6" /><span className="max-sm:sr-only">Sair</span></FloorButton>
       </div>
+
+      {alert}
 
       {storageError ? (
         <div role="alert" className="space-y-1 rounded-md border border-crit-soft bg-crit-soft p-4 text-crit-ink">

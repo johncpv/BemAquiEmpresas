@@ -4456,6 +4456,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("from_account_id");
 
+                    b.Property<Guid?>("PosCashMovementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pos_cash_movement_id");
+
                     b.Property<string>("ReversalReason")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
@@ -4484,6 +4488,11 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasIndex("FromAccountId")
                         .HasDatabaseName("ix_bank_transfers_from_account_id");
+
+                    b.HasIndex("PosCashMovementId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_bank_transfers_pos_cash_movement_id")
+                        .HasFilter("pos_cash_movement_id IS NOT NULL");
 
                     b.HasIndex("ToAccountId")
                         .HasDatabaseName("ix_bank_transfers_to_account_id");
@@ -15293,6 +15302,130 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("party_roles", "parties");
                 });
 
+            modelBuilder.Entity("BemAqui.Pos.Domain.CashMovement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("AboveExpected")
+                        .HasColumnType("boolean")
+                        .HasColumnName("above_expected");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("kind");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid>("OperatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operator_id");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reason");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cash_movements");
+
+                    b.HasIndex("SessionId")
+                        .HasDatabaseName("ix_cash_movements_session_id");
+
+                    b.ToTable("cash_movements", "pos", t =>
+                        {
+                            t.HasCheckConstraint("ck_cash_movements_amount", "amount >= 0 AND (kind = 'Opening' OR amount > 0)");
+
+                            t.HasCheckConstraint("ck_cash_movements_reason", "kind = 'Opening' OR reason IS NOT NULL");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Pos.Domain.CashSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("DeviceEpoch")
+                        .HasColumnType("integer")
+                        .HasColumnName("device_epoch");
+
+                    b.Property<DateTimeOffset>("OpenedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("opened_at");
+
+                    b.Property<decimal>("OpeningAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("opening_amount");
+
+                    b.Property<Guid>("OperatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operator_id");
+
+                    b.Property<Guid>("RegisterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("register_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("store_id");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cash_sessions");
+
+                    b.HasIndex("RegisterId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cash_sessions_register_open")
+                        .HasFilter("status = 'Open'");
+
+                    b.HasIndex("StoreId", "OpenedAt")
+                        .HasDatabaseName("ix_cash_sessions_store_id_opened_at");
+
+                    b.ToTable("cash_sessions", "pos", t =>
+                        {
+                            t.HasCheckConstraint("ck_cash_sessions_opening", "opening_amount >= 0");
+                        });
+                });
+
             modelBuilder.Entity("BemAqui.Pos.Domain.CatalogItem", b =>
                 {
                     b.Property<Guid>("StoreId")
@@ -15446,6 +15579,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDefaultValue(5.00m)
                         .HasColumnName("cash_break_tolerance");
 
+                    b.Property<decimal?>("CashCeilingAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("cash_ceiling_amount");
+
                     b.Property<decimal>("CashDropAlertAmount")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
@@ -15518,6 +15656,8 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.ToTable("stores", "pos", t =>
                         {
+                            t.HasCheckConstraint("ck_stores_cash_ceiling", "cash_ceiling_amount IS NULL OR cash_ceiling_amount > 0");
+
                             t.HasCheckConstraint("ck_stores_offline_window", "offline_window_hours BETWEEN 1 AND 168");
 
                             t.HasCheckConstraint("ck_stores_parameters", "cash_break_tolerance >= 0 AND exchange_days >= 0 AND cash_drop_alert_amount >= 0");
@@ -20447,6 +20587,26 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_party_roles_parties_party_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Pos.Domain.CashMovement", b =>
+                {
+                    b.HasOne("BemAqui.Pos.Domain.CashSession", null)
+                        .WithMany()
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_cash_movements_cash_sessions_session_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Pos.Domain.CashSession", b =>
+                {
+                    b.HasOne("BemAqui.Pos.Domain.Register", null)
+                        .WithMany()
+                        .HasForeignKey("RegisterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_cash_sessions_registers_register_id");
                 });
 
             modelBuilder.Entity("BemAqui.Pos.Domain.Register", b =>

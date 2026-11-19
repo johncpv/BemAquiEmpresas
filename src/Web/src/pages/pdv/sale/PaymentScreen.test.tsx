@@ -24,7 +24,7 @@ async function openStore(methods = true) {
     )
   }
   await store.replaceCatalog({ schemaVersion: 1, cursor: '1', storeId: 'loja', storeName: 'Loja' }, data, '2026-11-18T10:00:00Z')
-  await store.setMeta('cash.session', { openedAt: '2026-11-18T10:00:00Z', operatorId: 'op' })
+  await store.setMeta('cash.session', { id: 's1', registerId: 'r1', deviceEpoch: 1, openedAt: '2026-11-18T10:00:00Z', operatorId: 'op', operatorName: 'Diego', openingCents: 10_000, salesCount: 0, cashSalesCents: 0, movements: [] })
   return store
 }
 
@@ -35,7 +35,7 @@ const handshake = {
 
 async function saleWithCoffee(online: boolean, methods = true) {
   const store = await openStore(methods)
-  render(<PdvSale store={store} handshake={handshake} online={online} operator={{ id: 'op', name: 'Diego', canCancelItem: false }} searchCustomers={null} onLeave={() => {}} />)
+  render(<PdvSale store={store} handshake={handshake} online={online} operator={{ id: 'op', name: 'Diego', canCancelItem: false, canCashOut: true, canCashIn: true }} searchCustomers={null} onLeave={() => {}} />)
   const code = await screen.findByLabelText('Código, quantidade (3*código) ou nome')
   fireEvent.change(code, { target: { value: '7896005800017' } })
   fireEvent.keyDown(code, { key: 'Enter' })
@@ -131,7 +131,7 @@ describe('tela de pagamento (PDV-03)', () => {
       { id: 'e3', saleId, type: 'PaymentStarted', at, data: { operatorId: 'op', totalCents: 1_899 } },
       { id: 'e4', saleId, type: 'TenderCaptured', at, data: { tender } },
     ])
-    render(<PdvSale store={store} handshake={handshake} online operator={{ id: 'op', name: 'Diego', canCancelItem: false }} searchCustomers={null} onLeave={() => {}} />)
+    render(<PdvSale store={store} handshake={handshake} online operator={{ id: 'op', name: 'Diego', canCancelItem: false, canCashOut: true, canCashIn: true }} searchCustomers={null} onLeave={() => {}} />)
     expect(await screen.findByText('Venda 001-01-000001 concluída ao reabrir o caixa. Troco: R$ 1,01.')).toBeTruthy()
     expect((await store.pendingSummary()).count).toBe(1)
   })

@@ -16,10 +16,12 @@ import { formatInstantDate } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { contactText, isValidStoreCode, nextRegisterNumber, normalizeStoreCode, registerLabel, UI_MODE_LABEL } from './stores'
+import { contactText, isValidStoreCode, moneyText, nextRegisterNumber, normalizeStoreCode, parseAmount, registerLabel, UI_MODE_LABEL } from './stores'
 
 const CODE_DICA = 'Entra no número de cada venda (LOJA-01.1-000123): código da loja, caixa, época do aparelho e sequência. Escolha um curto e estável.'
 const EPOCH_DICA = 'Sobe a cada aparelho novo no caixa. As vendas do aparelho anterior que ainda não subiram não se misturam com as do novo.'
+const ALERT_DICA = 'Quando o dinheiro na gaveta passa deste valor, o caixa avisa "Faça uma sangria." depois da venda em dinheiro. O valor da gaveta nunca aparece para o operador.'
+const CEILING_DICA = 'Acima deste valor, o caixa não recebe mais em dinheiro até a sangria (cartão e Pix continuam). Deixe em branco para não ter teto.'
 
 type Editing = { kind: 'store'; store: StoreView | null } | { kind: 'register'; store: StoreView; register: RegisterView | null }
 
@@ -108,6 +110,7 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
   const initial = {
     code: store?.code ?? '', name: store?.name ?? '', stockLocationId: store?.stockLocationId ?? '', defaultPriceListId: store?.defaultPriceListId ?? '',
     isActive: store?.isActive ?? true,
+    cashDropAlert: moneyText(store?.cashDropAlertAmount ?? 1000), cashCeiling: store?.cashCeilingAmount == null ? '' : moneyText(store.cashCeilingAmount),
   }
   const [draft, setDraft] = useState(initial)
   const [error, setError] = useState<string | null>(null)
@@ -120,7 +123,14 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
     if (!isValidStoreCode(draft.code)) { setError('Informe o código da loja com 2 a 6 letras ou números (ex.: LOJA, CENTRO).'); return false }
     if (!draft.name.trim()) { setError('Informe o nome da loja.'); return false }
     if (!locationId || !priceListId) { setError('Escolha o local de estoque e a tabela de preço.'); return false }
-    const input = { code: draft.code, name: draft.name.trim(), stockLocationId: locationId, defaultPriceListId: priceListId, isActive: draft.isActive }
+    const alert = parseAmount(draft.cashDropAlert)
+    const ceiling = draft.cashCeiling.trim() ? parseAmount(draft.cashCeiling) : null
+    if (alert === undefined) { setError('Informe o aviso de sangria em reais (ex.: 1.000,00).'); return false }
+    if (ceiling === undefined || (ceiling !== null && ceiling <= alert)) { setError('O teto de dinheiro no caixa tem de ser maior que o aviso de sangria, ou fique em branco.'); return false }
+    const input = {
+      code: draft.code, name: draft.name.trim(), stockLocationId: locationId, defaultPriceListId: priceListId, isActive: draft.isActive,
+      cashDropAlertAmount: alert, cashCeilingAmount: ceiling,
+    }
     try {
       if (store) await updateStore(store.id, input)
       else await createStore(input)
@@ -171,6 +181,12 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
                 )}
               </Field>
             ) : null}
+            <Field label="Aviso de sangria a partir de (R$)" required size="md" dica={ALERT_DICA}>
+              {(p) => <input {...p} value={draft.cashDropAlert} inputMode="decimal" onChange={(e) => setDraft({ ...draft, cashDropAlert: e.target.value })} className={inputClass} />}
+            </Field>
+            <Field label="Teto de dinheiro no caixa (R$)" size="md" dica={CEILING_DICA} hint="Em branco: sem teto.">
+              {(p) => <input {...p} value={draft.cashCeiling} inputMode="decimal" onChange={(e) => setDraft({ ...draft, cashCeiling: e.target.value })} className={inputClass} />}
+            </Field>
           </FormGrid>
         </fieldset>
       )}

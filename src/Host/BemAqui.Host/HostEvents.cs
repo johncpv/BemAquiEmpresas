@@ -104,6 +104,8 @@ public static class HostEvents
             // CAT-01: produto e preço mudaram; o modelo de leitura do caixa (pos.catalog_items) relê a fonte pelo IPosCatalogFeed (OFF-01).
             .AddHandler<BemAqui.Catalog.Contracts.ProductChanged, BemAqui.Pos.Application.PosCatalogProjector>()
             .AddHandler<BemAqui.Catalog.Contracts.PriceChanged, BemAqui.Pos.Application.PosCatalogProjector>()
+            // CX-01 CA 9: abertura, sangria e suprimento do caixa viram transferência Cofre <-> Caixa do PDV no Financeiro, uma por movimento.
+            .AddHandler<BemAqui.Pos.Contracts.CashMovementRecorded, BemAqui.Finance.Application.PosCashMovementConsumer>()
             // RH-02c (ADR 0036 §4): o fechamento cria os títulos na própria transação; os eventos da folha são só aviso e projeção, e a folha
             // fica paga (ou volta a fechada no estorno) pela fonte, no consumidor da OP.
             .AddEvent<BemAqui.HR.Contracts.PayrollClosed>()

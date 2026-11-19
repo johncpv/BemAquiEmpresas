@@ -15,4 +15,6 @@ export interface PosSyncStore {
   cashBreakToleranceCents: number;
   exchangeDays: number;
   cashDropAlertCents: number;
+  /** @nullable */
+  cashCeilingCents: number | null;
 }

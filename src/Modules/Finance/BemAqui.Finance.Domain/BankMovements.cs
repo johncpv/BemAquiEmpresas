@@ -32,6 +32,12 @@ public sealed class BankTransfer : Entity, IAuditable, IConcurrencyVersioned
 
     public string? ReversalReason { get; set; }
 
+    /// <summary>
+    /// Movimento de dinheiro do caixa do PDV que gerou a transferência (CX-01 CA 9: fundo de troco, sangria ou suprimento), único: reprocessar o
+    /// evento não duplica. Nulo nas transferências da tela.
+    /// </summary>
+    public Guid? PosCashMovementId { get; init; }
+
     public uint Version { get; set; }
 }
 

@@ -10,5 +10,6 @@
     <ProjectReference Include="..\..\Fiscal\BemAqui.Fiscal.Contracts\BemAqui.Fiscal.Contracts.csproj" />
     <ProjectReference Include="..\..\HR\BemAqui.HR.Contracts\BemAqui.HR.Contracts.csproj" />
     <ProjectReference Include="..\..\Sales\BemAqui.Sales.Contracts\BemAqui.Sales.Contracts.csproj" />
+    <ProjectReference Include="..\..\Pos\BemAqui.Pos.Contracts\BemAqui.Pos.Contracts.csproj" />
   </ItemGroup>
 </Project>

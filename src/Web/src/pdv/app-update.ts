@@ -10,12 +10,19 @@ export const PDV_SW_URL = '/pdv/sw.js'
 export const PDV_SCOPE = '/pdv/'
 
 /**
- * **Ponto de extensão da CX-01.** Há sessão de caixa (turno) aberta neste aparelho? Enquanto a CX-01 não existe, não há turno e a resposta é
- * sempre `false`, ou seja, a versão nova é aplicada assim que chega. A CX-01 troca este corpo pela leitura do turno no `LocalStore` (o turno
- * aberto fica lá, para valer sem rede) e chama `applyPendingUpdate()` ao fechar o turno.
+ * Há sessão de caixa (turno) aberta neste aparelho? (CX-01, ponto de extensão da OFF-01.) A tela do caixa marca ao ler o turno do `LocalStore`
+ * (onde ele fica, para valer sem rede) e ao abrir ou fechar; fechar o turno chama `applyPendingUpdate()`. Antes de a tela ler, vale `false`.
  */
+let cashSessionOpen = false
+
 export function hasOpenCashSession(): boolean {
-  return false
+  return cashSessionOpen
+}
+
+/** A tela do caixa avisa se há turno aberto; com versão nova esperando e o turno fechado, ela é aplicada na hora. */
+export function markCashSessionOpen(open: boolean): void {
+  cashSessionOpen = open
+  if (!open && waitingWorker) setWaiting(waitingWorker, hasOpenCashSession)
 }
 
 export type UpdateDecision = 'none' | 'apply-now' | 'wait-for-shift-change'

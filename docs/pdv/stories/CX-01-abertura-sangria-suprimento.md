@@ -5,7 +5,7 @@
 | ID | CX-01 |
 | Título | Abertura de caixa com fundo de troco, sangria e suprimento com motivo e comprovante, alerta e teto de dinheiro em caixa |
 | Tamanho | M |
-| Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
+| Status | Ready for Review (19/11/2026) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | Pedido do PO de 15/11/2026 (item 4) · [Fluxos](../04-fluxos-estados.md#2-caixa-e-turno) · [PRD do PDV](../01-PRD.md) seção 6.5 |
 | Dependências | PDV-01, PDV-02; PP-22 (alerta e teto) |
@@ -69,8 +69,55 @@ Como **operador de caixa**, quero **abrir o caixa com o troco contado e registra
 - [ ] Padrões e próximo passo propositivos avaliados; auditoria ligada.
 - [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR.
 
+## Implementação (19/11/2026)
+
+Branch `feat/cx-01-abertura-sangria`. **Local-first** (decisão do PO para esta story, no lugar de "a abertura exige rede"): abrir, sangrar, suprir e fechar gravam no aparelho e põem o evento na fila de saída na mesma transação (`LocalStore.updateMeta`); a subida é da OFF-02, que chama a gravação no servidor (`CashSessionIngestion`). Nada aqui espera a rede.
+
+| CA | Situação | Como |
+|---|---|---|
+| 1 | Feito | Sem turno, a tela "Abrir caixa" com teclado numérico grande (`MoneyPad`, os números entram pelos centavos); o fundo padrão é o da última abertura (`cash.lastOpening`); fundo zero pede confirmação. Grava a sessão `Open` com o operador e o evento `CashSessionOpened` (com o movimento do fundo). No servidor, `CashSessionIngestion.OpenAsync` grava `pos.cash_sessions` e o movimento `Opening` em `pos.cash_movements` |
+| 2 | Feito | No aparelho: outro operador vê "Este caixa já está aberto por Fulano desde 08:02." e só pode sair. No servidor: índice único parcial `ix_cash_sessions_register_open` (`status = 'Open'`) e a mesma mensagem, com o nome do `IUserDirectory` e a hora de Brasília; reenviar a mesma abertura devolve a sessão sem duplicar |
+| 3 | Feito | Sem sessão aberta a tela de venda não aparece (PDV-02 CA 17); o marcador provisório da PDV-02 (sem id) não vale como turno |
+| 4 | Parcial | Sangria com valor e motivo (1 a 200 caracteres), o operador e o comprovante em duas vias com "Assinatura de quem retira" (imprime pelo navegador). **Nada compara o valor com o dinheiro calculado**: acima dele, a sangria é aceita e vai marcada (`aboveExpected`), sem mensagem. A gaveta abrir sozinha e a impressão direta são da IMP-01/IMP-02; o `PendingReview` do fechamento é da CX-02 |
+| 5 | Feito | Suprimento com valor, motivo e comprovante (via única) |
+| 6 | Feito | Sem `pos.cash_out` ou `pos.cash_in` (as ações vêm da sessão por PIN): "Você não tem permissão para esta ação."; o "Chamar supervisor" é da PDV-04 |
+| 7 | Feito | Depois de uma venda com dinheiro, acima do aviso da loja (`cashDropAlertCents`, PP-22): "Dinheiro em caixa acima de R$ X. Faça uma sangria." com "Fazer sangria" (abre o painel já na sangria). X é o limite, nunca o saldo |
+| 8 | Feito | Teto novo e opcional da loja (`pos.stores.cash_ceiling_amount`, nulo = sem teto, desce como `cashCeilingCents`): acima dele, a forma Dinheiro fica desabilitada no pagamento com "Faça uma sangria."; as outras continuam |
+| 9 | Feito | Cada movimento publica `CashMovementRecorded` (outbox); o `PosCashMovementConsumer` do Financeiro grava a transferência Cofre → Caixa do PDV (abertura e suprimento) ou Caixa do PDV → Cofre (sangria), com as duas transações, ligada ao movimento por `finance.bank_transfers.pos_cash_movement_id` (único): reprocessar não duplica. Fundo zero não transfere. O Cofre é a conta `seed_key = cofre` (PERF-04) ou a conta Caixa ativa "Cofre"; sem ela, o consumidor cria "Cofre" |
+| 10 | Feito | "Caixa" na tela de venda abre o painel: operador, hora da abertura, número de vendas e as sangrias e suprimentos (vazio: "Nenhuma movimentação neste turno."), com "Sangria", "Suprimento" e "Fechar caixa". **Nenhum total esperado** |
+
+**Decisões e desvios:**
+- **Rotas:** o painel e a abertura são telas dentro de `/pdv/` (o app do caixa tem uma rota só, por causa do escopo do service worker), não `/pdv/caixa` e `/pdv/caixa/abrir`.
+- **Fechar caixa:** provisório até a CX-02: encerra o turno no aparelho com o evento `CashSessionClosed` (o servidor só tira a sessão de `Open`, `CloseAsync`), para o caixa poder abrir de novo. Fechar aplica a versão nova do app que estava esperando (`hasOpenCashSession` agora lê o turno; ponto de extensão da OFF-01).
+- **Dinheiro calculado:** fica só no aparelho (`cashSalesCents` e os movimentos), para o aviso e o teto; não vai para a tela nem para o servidor como saldo. A venda concluída conta no turno depois de fechar (fora da transação da venda: uma queda nesse meio deixa o contador uma venda atrás, o que só afeta o aviso; a OFF-02 e a CX-02 recalculam pelo servidor). A venda concluída leva `cashSessionId` na fila.
+- **Teto (PP-22):** a PP-22 decidiu o aviso (R$ 1.000,00) e não fixou teto; o teto nasce desligado e é editável por loja, junto com o aviso, em Loja → Lojas e caixas (backlog da OFF-01: "edição dos parâmetros da loja na CX-01"). A tolerância de quebra e o prazo de troca continuam sem tela (CX-02 e PDV-06).
+- **Mensagem "Não foi possível registrar. O movimento ficou salvo neste aparelho e será enviado.":** sem subida nesta story, não há falha de rede depois da gravação local; a constante fica pronta (`SAVED_LOCALLY`) para a OFF-02.
+- **Auditoria:** `CashSession` e `CashMovement` são `IAuditable` (módulo `sales`, como lojas e caixas).
+- **Konebras (perfil fábrica):** nada novo aparece; tudo está no app do caixa (módulo `pos`) e na tela de lojas (módulo `sales`, desligado na fábrica). Banco só por acréscimo.
+- **Migration** `20261119024155_PosCashSessionsCx01`: gerada pelo `dotnet ef` num contêiner (fontes copiadas com `docker cp`, sem montar o D:): `pos.cash_sessions`, `pos.cash_movements`, `pos.stores.cash_ceiling_amount` e `finance.bank_transfers.pos_cash_movement_id`, só acréscimo.
+- O que o servidor deve validar quando a sessão subir foi registrado na [OFF-02, "Requisitos vindos da CX-01"](OFF-02-sincronizacao-pendencias.md#requisitos-vindos-da-cx-01-sessão-de-caixa).
+
+**Testes:** Vitest `src/pdv/cash/cash-session.test.ts` (abertura com o evento na mesma transação e o fundo padrão, outro operador, validação da sangria sem revelar o saldo e a marca acima do calculado, aviso e teto, fechamento) e `src/pages/pdv/cash/CashArea.test.tsx` (painel sem o esperado, sem permissão, sangria com comprovante em duas vias, outro operador, Dinheiro bloqueado no teto com o Pix liberado); `PdvSale.test.tsx` e `PaymentScreen.test.tsx` ajustados à abertura nova. Integração (Testcontainers) `PosTests.Cash.cs`: uma sessão por caixa com a mensagem do CA 2, reenvio e fechamento idempotentes, auditoria; abertura, sangria e suprimento viram três transferências ligadas ao movimento com o Cofre, reenvio e reprocessamento sem duplicar, validações; fundo zero sem transferência. **Rodados aqui** num contêiner com as fontes copiadas por `docker cp` e o socket do Docker (o Docker desta máquina não monta o disco D:): `PosTests` (todas, com as 3 novas), `SalesTests`, `OpenApiDocumentTests` (confere a entrada nova do `openapi.json`), `EndpointAuthorizationTests`, `MigrationRulesTests`, `DataOwnershipTests`, `SolutionArchitectureTests` e `PersonalDataTests`: 79 de 79 passando. A primeira rodada achou um defeito real (consumidores em paralelo criavam dois "Cofre"); corrigido com trava de transação no consumidor. A suíte inteira fica para o CI. E2E do turno inteiro: no fechamento do marco (plano de testes).
+
+Ajuda: `Ajuda/pdv-caixa.md` (nova), embutida na ajuda do app do caixa; `Ajuda/loja-lojas-caixas.md` atualizada (aviso e teto da loja).
+
+## Revisão de segurança (19/11/2026)
+
+| Item | Situação | O quê |
+|---|---|---|
+| Média 1 | Corrigido | O `ToInput` do endpoint não repassava o aviso e o teto: nada gravava e cada edição zerava o teto. Repassa os dois; teste do PUT lendo os valores de volta |
+| Média 2 | Corrigido | Janela de horário na ingestão (`invalid_time`): evento antes da abertura da sessão ou depois de agora + 2 min é recusado (abertura, movimento e fechamento). No consumidor, data em período de conciliação fechado entra **hoje**, com a data do caixa na observação (`BackdateReason`), nunca retroativa |
+| Média 3 | Corrigido | A conta do caixa não pode ser o Cofre (`seed_key = cofre` ou nome "Cofre"): o cadastro recusa e as opções escondem. No consumidor, conta do caixa igual ao Cofre não grava e deixa aviso no log |
+| Baixa 4 | Corrigido | Id do movimento da abertura repetido vira `Conflict` (`cash_movement_conflict`), e a corrida na gravação também, sem 500 |
+| Baixa 5 | Corrigido | Conta do caixa inexistente ou inativa: o consumidor não grava, registra erro no log (`LoggerMessage`) e não lança exceção (sem retentativas inúteis; a CX-03 e a conciliação acham a falta) |
+| Requisitos | Registrado na OFF-02 | Caixa do aparelho ativo e época atual, sessão do caixa do aparelho, operador da sessão por PIN do servidor com as permissões conferidas no servidor, quem fecha e `closedAt`, janela de horário, `AboveExpected` recalculado e eventos do aparelho em série (ou sessão travada) |
+
+Testes novos em `PosTests.Cash.cs` (um por regra): aviso e teto pelo PUT, Cofre recusado como conta do caixa, janela de horário, movimento da abertura repetido, período conciliado e conta inativa. Rodados em contêiner (`docker cp`): `PosTests`, `OpenApiDocumentTests`, `EndpointAuthorizationTests`, `MigrationRulesTests`, `DataOwnershipTests`, `SolutionArchitectureTests` e `PersonalDataTests`, 70 de 70 passando. Os testes de caixa agora ligam o perfil Comércio no começo (antes dependiam da ordem).
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
+| 19/11/2026 | 1.0 | Implementada (branch `feat/cx-01-abertura-sangria`), local-first: sessão de caixa e movimentos no aparelho com o evento na fila; `pos.cash_sessions` e `pos.cash_movements` com uma sessão aberta por caixa; transferências Cofre ↔ Caixa do PDV no Financeiro, ligadas ao movimento; aviso de sangria e teto de dinheiro por loja (teto novo, opcional); painel sem o esperado; requisitos da subida registrados na OFF-02. | Claude (dev) |
+| 19/11/2026 | 1.1 | Correções da revisão de segurança (médias 1 a 3 e baixas 4 e 5) e requisitos novos na OFF-02. | Claude (dev) |

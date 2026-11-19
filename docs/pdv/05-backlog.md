@@ -195,7 +195,7 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - Depende de: PDV-01, CAT-01, PAG-01, SPK-03; PP-09.
 - Paridade: 1.
 - CA: app `/pdv` com build e service worker próprios, sem afetar `/fab` nem `/tv`; `LocalStore` com armazenamento persistente; foto e delta do catálogo da loja; a tela abre sem rede; atualização só na troca de turno; faixa "Sem conexão: N vendas a enviar".
-- Backend (18/11/2026, branch `feat/off-01-catalogo-loja`): `pos.catalog_items` com consumidor idempotente, carga inicial por loja, `GET /api/v1/pos/sync/snapshot` e `/changes?cursor=`, parâmetros da loja (PP-10, PP-22). Pendências: saldo por item (PP-02) na PDV-05; edição dos parâmetros da loja na CX-01.
+- Backend (18/11/2026, branch `feat/off-01-catalogo-loja`): `pos.catalog_items` com consumidor idempotente, carga inicial por loja, `GET /api/v1/pos/sync/snapshot` e `/changes?cursor=`, parâmetros da loja (PP-10, PP-22). Pendências: saldo por item (PP-02) na PDV-05; edição do aviso de sangria e do teto feita na CX-01 (tolerância e prazo de troca ainda sem tela).
 
 **PDV-02 [ ] Tela de venda: toque e teclado/leitor (G)** — ordem 3 — [story](stories/PDV-02-tela-de-venda.md)
 - Depende de: OFF-01; PP-26 (decidida).
@@ -213,6 +213,7 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - Depende de: PDV-01, PDV-02; PP-22.
 - Paridade: 5.
 - CA: uma sessão aberta por caixa; fundo de troco como transferência do Cofre; sangria e suprimento com motivo e comprovante, sem revelar o esperado; alerta e teto de dinheiro em caixa; sem sessão aberta não se vende.
+- Pronta para revisão (19/11/2026, branch `feat/cx-01-abertura-sangria`), local-first: turno, sangria e suprimento no aparelho com o evento na fila (`pos.cash`); `pos.cash_sessions` e `pos.cash_movements` gravados pelo `CashSessionIngestion` (a OFF-02 chama), uma sessão aberta por caixa; `CashMovementRecorded` vira transferência Cofre ↔ Caixa do PDV no Financeiro, única por movimento; aviso de sangria e teto (novo, opcional) editáveis em Lojas e caixas. Pendências: fechar com contagem (CX-02); gaveta e impressão direta (IMP-01, IMP-02); "Chamar supervisor" (PDV-04); validação na subida (OFF-02).
 
 **IMP-01 [ ] Cupom não fiscal em bobina de 58 e 80 mm e cadastro de impressora (M)** — ordem 6 — [story](stories/IMP-01-cupom-nao-fiscal-impressora.md)
 - Depende de: PDV-03.

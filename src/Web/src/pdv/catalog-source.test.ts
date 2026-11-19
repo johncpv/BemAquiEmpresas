@@ -3,7 +3,7 @@ import type { PosCatalogChanges, PosCatalogSnapshot, PosSyncItem, PosSyncStore }
 import { toChanges, toSnapshot } from './catalog-source'
 import type { CatalogCollection, CatalogRecords } from './local-store/catalog-types'
 
-const store: PosSyncStore = { id: 's1', code: 'L1', name: 'Loja Centro', registerId: 'r1', registerNumber: 1, offlineWindowHours: 168, cashBreakToleranceCents: 500, exchangeDays: 30, cashDropAlertCents: 100000 }
+const store: PosSyncStore = { id: 's1', code: 'L1', name: 'Loja Centro', registerId: 'r1', registerNumber: 1, offlineWindowHours: 168, cashBreakToleranceCents: 500, exchangeDays: 30, cashDropAlertCents: 100000, cashCeilingCents: null }
 const item = (id: string, gtins: string[], priceCents: number | null = 1990): PosSyncItem => ({
   productId: id, parentProductId: null, description: `Produto ${id}`, unitCode: 'UN', isWeighable: false, plu: null,
   barcodes: gtins.map((gtin) => ({ gtin, packQuantity: 1 })), priceCents, priceListVersion: 3, changeSeq: 1,

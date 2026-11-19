@@ -116,6 +116,25 @@ Da revisão de segurança da PDV-03 (18/11/2026, item 3), o servidor também:
 - define ele mesmo `integration`, `operatorAttested` e `needsReconciliation` (não confia no que veio); no modo Manual, `txid`, `endToEndId`, `provider`, `acquirerId` e `authorizationCode` têm de vir nulos;
 - confere que o `methodType` é o tipo da forma (`methodId`) no cadastro; `installments` só em cartão e ≤ `maxInstallments` da forma; bandeira só em cartão.
 
+## Requisitos vindos da CX-01 (sessão de caixa)
+A sessão de caixa nasce no aparelho (local-first) e sobe na fila de saída como entradas `pos.cash`, com o evento em `payload.type`: `CashSessionOpened` (`sessionId`, `registerId`, `deviceEpoch`, `operatorId`, `openingCents`, `openingMovementId`, `at`), `CashOutRecorded` e `CashInRecorded` (`sessionId`, `movementId`, `amountCents`, `reason`, `operatorId`, `aboveExpected`, `at`) e `CashSessionClosed` (`sessionId`, `operatorId`, `at`; provisório até a CX-02). A venda concluída (`pos.sale`) passa a levar o `cashSessionId`. Na subida, a OFF-02 chama o `CashSessionIngestion` do `Pos` (`OpenAsync`, `RecordMovementAsync`, `CloseAsync`), que já é idempotente pelo id do aparelho, recusa uma segunda sessão `Open` no caixa (índice único parcial) e publica o `CashMovementRecorded` para o Financeiro. Antes de chamar, o servidor:
+- tira o caixa (`registerId`) e a época do **principal do aparelho**, nunca do payload; o `registerId` do payload só é conferido contra o do principal;
+- amarra o `operatorId` de cada evento ao log de sessões por PIN do aparelho (o operador tinha sessão aberta naquele caixa naquele horário); `operatorId` nulo é recusado;
+- confere, pelo histórico de permissões, que o operador tinha `pos.create` na abertura, `pos.cash_out` na sangria e `pos.cash_in` no suprimento **no instante do evento** (com a PDV-04, quem autorizou no lugar dele);
+- confere os valores: inteiros em centavos, `openingCents ≥ 0`, sangria e suprimento `> 0`, até R$ 9.999.999,99; motivo obrigatório de 1 a 200 caracteres na sangria e no suprimento, sem dado de cartão (mesma normalização do `looksLikeCardNumber`);
+- não confia no `aboveExpected` do aparelho: recalcula o dinheiro da sessão (fundo + dinheiro das vendas da sessão − troco + suprimentos − sangrias) pela ordem dos eventos e marca a sangria acima do calculado; a CX-02 leva essa sessão a `PendingReview`;
+- trata movimento de sessão desconhecida ou já fechada como quarentena (divergência "Sessão de caixa"), nunca como descarte;
+- trata a segunda abertura no mesmo caixa (conflito `cash_session_open`) como divergência com quem abriu e desde quando, e põe em quarentena os movimentos dessa sessão;
+- confere a ordem: abertura antes dos movimentos, nada depois do fechamento, e o instante de cada evento dentro da tolerância de relógio.
+- (revisão de segurança da CX-01, 19/11/2026) o caixa é o do **aparelho autenticado**, ativo e de loja ativa, e o `DeviceEpoch` do evento é a época **atual** do caixa (época antiga vai para quarentena, como as vendas);
+- a sessão citada no `RecordMovementAsync` e no `CloseAsync` pertence ao caixa do aparelho (o `CashSessionIngestion` hoje só confere que ela existe e está aberta);
+- o operador vem da **sessão por PIN do servidor**, ativo e com acesso ao PDV, e `pos.cash_out`/`pos.cash_in` são conferidos no servidor, nunca pela marca do aparelho;
+- quem fecha é o operador da sessão ou um supervisor, e `closedAt ≥ OpenedAt` (o `CloseAsync` já recusa antes da abertura; guardar quem fechou fica para a CX-02);
+- janela de horário: o `CashSessionIngestion` já recusa (`invalid_time`) evento antes da abertura da sessão ou depois de agora + 2 min; a OFF-02 trata essa recusa como divergência "Relógio do aparelho" com quarentena, não como descarte;
+- `AboveExpected` é sempre recalculado no servidor (o valor do aparelho é só indício);
+- corrida entre sangria e fechamento da mesma sessão (o `RecordMovementAsync` lê a sessão sem trava): processar os eventos de um aparelho **em série**, na ordem do `seq`, ou travar a sessão (`SELECT … FOR UPDATE` ou trava de transação por sessão) antes de gravar o movimento ou o fechamento.
+
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
@@ -124,3 +143,5 @@ Da revisão de segurança da PDV-03 (18/11/2026, item 3), o servidor também:
 | 18/11/2026 | 0.3 | Recebidos os requisitos de segurança da PDV-02 (achado 4 da revisão de 18/11): replay no servidor, validação de `last-item` e `remove-last`, `freeRemoveLast` do servidor, quem autorizou com a permissão no instante, `operatorId` amarrado às sessões PIN e relatório de exceções por operador. | Claude (dev) |
 | 18/11/2026 | 0.4 | Recebidos os requisitos da PDV-03: a venda concluída sobe com os pagamentos; o servidor refaz a soma, confere troco, forma e bandeira, recusa dado de cartão e amarra o `confirmedBy` às sessões por PIN. | Claude (dev) |
 | 18/11/2026 | 0.5 | Recebido o item 3 da revisão de segurança da PDV-03: troco coerente e totais do topo recalculados, `PaymentStarted.totalCents` conferido, máquina de estados por `tenderId` (saída de `Captured` só com a autorização da PDV-04), venda idempotente por `saleId` e número, campos de integração definidos pelo servidor, `methodType`, parcelas e bandeira conferidos, normalização do número de cartão com tamanho máximo e operador nulo recusado. | Claude (dev) |
+| 19/11/2026 | 0.6 | Recebidos os requisitos da CX-01: a sessão de caixa sobe como `pos.cash` (abertura, sangria, suprimento e fechamento) e a OFF-02 chama o `CashSessionIngestion`; caixa e época do principal, `operatorId` amarrado às sessões por PIN, permissão no instante, valores e motivo conferidos, `aboveExpected` recalculado no servidor, quarentena para sessão desconhecida ou segunda abertura. | Claude (dev) |
+| 19/11/2026 | 0.7 | Requisitos da revisão de segurança da CX-01: caixa do aparelho ativo e época atual, sessão do caixa do aparelho, operador da sessão por PIN do servidor com as permissões conferidas no servidor, quem fecha e `closedAt`, janela de horário, `AboveExpected` recalculado e eventos do aparelho em série (ou sessão travada). | Claude (dev) |
