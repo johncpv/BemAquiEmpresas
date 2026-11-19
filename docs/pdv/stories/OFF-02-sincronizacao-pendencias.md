@@ -99,9 +99,19 @@ Da revisão de segurança da PDV-02 (18/11/2026), registrados lá em "Pendência
   - amarra o `operatorId` de cada evento ao log de sessões por PIN do aparelho (o operador tinha sessão aberta naquele caixa naquele horário);
   - gera o relatório de exceções por operador (remoções, reduções, descartes e eventos recusados na validação).
 
+## Requisitos vindos da PDV-03 (pagamento)
+A venda concluída sobe como uma entrada `pos.sale` com `status: completed`, o número, `totalCents`, `changeCents` e os eventos (`PaymentStarted`, `TenderCaptured`, `TenderChanged`, `PaymentCancelled`, `SaleCompleted`). Na subida, o servidor:
+- refaz a soma: os `TenderCaptured` somam exatamente o total refeito das linhas; troco só em forma com `AllowsChange` (dinheiro) e o `amountCents` de cada pagamento nunca passa do que faltava;
+- confere que a forma (`methodId`) existe, estava ativa e que a bandeira está na tabela da forma (ou é "Outra");
+- recusa NSU, observação ou código de autorização com sequência de 13 dígitos ou mais (parece número de cartão) e nunca grava outro dado de cartão;
+- amarra o `confirmedBy` de cada pagamento e o `operatorId` do `PaymentStarted` e do `SaleCompleted` ao log de sessões por PIN do aparelho;
+- projeta em `sales.sale_payments` com `integration = Manual`, "atestado pelo operador" e o Pix com `needsReconciliation` para a lista da CX-02;
+- trata `TenderChanged` com `Unknown` sem captura como pendência humana (não abate da venda).
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
 | 18/11/2026 | 0.3 | Recebidos os requisitos de segurança da PDV-02 (achado 4 da revisão de 18/11): replay no servidor, validação de `last-item` e `remove-last`, `freeRemoveLast` do servidor, quem autorizou com a permissão no instante, `operatorId` amarrado às sessões PIN e relatório de exceções por operador. | Claude (dev) |
+| 18/11/2026 | 0.4 | Recebidos os requisitos da PDV-03: a venda concluída sobe com os pagamentos; o servidor refaz a soma, confere troco, forma e bandeira, recusa dado de cartão e amarra o `confirmedBy` às sessões por PIN. | Claude (dev) |

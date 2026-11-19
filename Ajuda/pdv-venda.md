@@ -32,7 +32,7 @@ Lançar os itens da venda tão rápido quanto você bipa ou toca. A tela trabalh
 - **F7:** deixar em espera (sem itens na tela: ver as vendas em espera).
 - **F8:** cliente (CPF ou CNPJ).
 - **F9:** descartar a venda.
-- **F10:** pagar.
+- **F10:** pagar (abre a tela de pagamento).
 - **Setas para cima e para baixo:** escolher a linha (ou o produto na lista da busca).
 - **`3*código`:** lançar 3 do código.
 
@@ -43,4 +43,4 @@ Lançar os itens da venda tão rápido quanto você bipa ou toca. A tela trabalh
 
 **Por que o produto aparece "sem preço"?** Ele não tem preço na tabela da loja. Cadastre o preço na retaguarda (Catálogo de produtos); o caixa recebe na próxima sincronização.
 
-**E o pagamento?** O recebimento (dinheiro, Pix, cartão e troco) chega na próxima versão do caixa. Até lá, a venda fica guardada no aparelho.
+**E o pagamento?** Use **Pagar** (F10): abre a tela de pagamento, com dinheiro, Pix, cartão na maquininha e troco. Veja "Caixa (PDV) — pagamento" logo abaixo.
