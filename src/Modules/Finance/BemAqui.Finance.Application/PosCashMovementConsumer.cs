@@ -20,6 +20,7 @@ public sealed class PosCashMovementConsumer(IFinanceDb db, TimeProvider clock) :
 {
     public const string SafeSeedKey = "cofre";
     public const string SafeName = "Cofre";
+    private const string SafeLockKey = "finance.pos-cash-safe";
 
     public async Task HandleAsync(CashMovementRecorded integrationEvent, CancellationToken cancellationToken)
     {
@@ -61,6 +62,8 @@ public sealed class PosCashMovementConsumer(IFinanceDb db, TimeProvider clock) :
 
     private async Task<Guid> SafeAsync(CancellationToken cancellationToken)
     {
+        // Os consumidores rodam em paralelo: a trava (até o fim da transação) impede dois "Cofre" criados ao mesmo tempo.
+        await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({SafeLockKey}, 0))) AS l").ToListAsync(cancellationToken);
         var safe = await db.BankAccounts.Where(a => a.IsActive && a.Kind == BankAccountKind.Cash && (a.SeedKey == SafeSeedKey || a.Name == SafeName))
             .OrderByDescending(a => a.SeedKey == SafeSeedKey).ThenBy(a => a.CreatedAt).Select(a => (Guid?)a.Id).FirstOrDefaultAsync(cancellationToken);
         if (safe is not null)
