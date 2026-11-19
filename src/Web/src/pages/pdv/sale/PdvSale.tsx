@@ -7,15 +7,17 @@ import { loadDocumentKey } from '@/pdv/device-signing'
 import type { CatalogItem } from '@/pdv/local-store/catalog-types'
 import type { LocalStore } from '@/pdv/local-store/local-store'
 import { formatCents } from '@/pdv/money'
+import { ManualTerminal, type PaymentTerminal } from '@/pdv/payment/payment-terminal'
 import { beep } from '@/pdv/sale/beep'
 import { closeCashSession, loadCashSession, type LocalCashSession, openCashSession } from '@/pdv/sale/cash-session'
 import { parseCodeInput } from '@/pdv/sale/code-input'
 import { aesDocumentCipher, formatDocument } from '@/pdv/sale/customer-document'
 import { formatQuantity } from '@/pdv/sale/quantity'
 import { currentSale, lineTotal, parkedSales, type SaleLine, saleTotal } from '@/pdv/sale/sale-model'
-import { type AddResult, DEFAULT_SETTINGS, SaleRegister, type SaleSettings, SETTINGS_META } from '@/pdv/sale/sale-register'
+import { type AddResult, type CompletedSale, DEFAULT_SETTINGS, SaleRegister, SaleRuleError, type SaleSettings, SETTINGS_META } from '@/pdv/sale/sale-register'
 import { ScanDetector } from '@/pdv/sale/scanner'
-import { CloseRegisterSheet, type CustomerHit, CustomerSheet, DiscardSheet, NoteSheet, ParkedSheet, PaySheet, ProductTile, QuantitySheet, RemoveSheet } from './sale-sheets'
+import { PaymentScreen, SaleCompletedView } from './PaymentScreen'
+import { CloseRegisterSheet, type CustomerHit, CustomerSheet, DiscardSheet, NoteSheet, ParkedSheet, ProductTile, QuantitySheet, RemoveSheet } from './sale-sheets'
 
 export interface SaleOperator {
   id: string
@@ -33,7 +35,6 @@ type Sheet =
   | { kind: 'parked' }
   | { kind: 'discard'; saleId: string | null }
   | { kind: 'customer' }
-  | { kind: 'pay' }
   | { kind: 'close' }
   | { kind: 'settings' }
 
@@ -67,14 +68,16 @@ const defaultMode = (uiMode: PosHandshake['uiMode']): SaleSettings['mode'] => (u
  * - **Teclado/leitor** (CA 6): o foco fica no campo de código; `3*código` define a quantidade; F2 a F10 abrem as funções.
  * - **Toque** (CA 7): busca pelo nome e grade de produtos com botões grandes.
  * - O leitor em modo teclado é reconhecido em qualquer campo pelo tempo entre as teclas (CA 4).
+ * - **Pagar** (F10, PDV-03) leva à tela de pagamento, que só fala com a porta `PaymentTerminal` (padrão: `ManualTerminal`, maquininha externa).
  */
-export function PdvSale({ store, handshake, operator, online, searchCustomers, onLeave }: {
+export function PdvSale({ store, handshake, operator, online, searchCustomers, onLeave, terminal }: {
   store: LocalStore
   handshake: PosHandshake
   operator: SaleOperator
   online: boolean
   searchCustomers: ((term: string) => Promise<CustomerHit[]>) | null
   onLeave: () => void
+  terminal?: PaymentTerminal
 }) {
   const [cash, setCash] = useState<LocalCashSession | null | undefined>(undefined)
   const [settings, setSettings] = useState<SaleSettings>({ mode: defaultMode(handshake.uiMode), ...DEFAULT_SETTINGS })
@@ -133,13 +136,13 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
   }
 
   return (
-    <SaleScreen store={store} register={register} operator={operator} online={online} settings={settings} onSettings={saveSettings}
+    <SaleScreen store={store} register={register} operator={operator} online={online} settings={settings} onSettings={saveSettings} terminal={terminal}
       searchCustomers={searchCustomers} onLeave={onLeave}
       onCloseRegister={async () => { await closeCashSession(store); setCash(null) }} />
   )
 }
 
-function SaleScreen({ store, register, operator, online, settings, onSettings, searchCustomers, onLeave, onCloseRegister }: {
+function SaleScreen({ store, register, operator, online, settings, onSettings, searchCustomers, onLeave, onCloseRegister, terminal: givenTerminal }: {
   store: LocalStore
   register: SaleRegister
   operator: SaleOperator
@@ -149,7 +152,10 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
   searchCustomers: ((term: string) => Promise<CustomerHit[]>) | null
   onLeave: () => void
   onCloseRegister: () => Promise<void>
+  terminal?: PaymentTerminal
 }) {
+  const terminal = useMemo(() => givenTerminal ?? new ManualTerminal(), [givenTerminal])
+  const [completed, setCompleted] = useState<CompletedSale | null>(null)
   const book = useSyncExternalStore(register.subscribe, register.getSnapshot)
   const sale = currentSale(book)
   const parked = parkedSales(book)
@@ -165,6 +171,7 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
   const keyboard = settings.mode === 'keyboard'
   const selected = lines.find((l) => l.lineId === selectedId) ?? lines.at(-1) ?? null
   const total = saleTotal(sale)
+  const paying = !!sale?.inPayment
 
   // O cliente da venda para a tela: o documento é decifrado só para mostrar (nunca vai para log).
   const documentId = sale?.customer?.documentId ?? null
@@ -191,7 +198,7 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
       setStorageError(false)
       return result
     } catch (e) {
-      if (e instanceof Error && /motivo/.test(e.message)) throw e
+      if (e instanceof SaleRuleError) throw e
       setStorageError(true)
       return undefined
     }
@@ -225,6 +232,10 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
       case 'search':
         setNotice({ tone: 'error', text: `Nenhum produto com “${result.text}”.` })
         break
+      case 'locked':
+        beep()
+        setNotice({ tone: 'error', text: result.message })
+        break
     }
   }, [])
 
@@ -250,13 +261,18 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
         break
       case 'F8': if (sale) setSheet({ kind: 'customer' }); else setNotice({ tone: 'error', text: 'Lance um item antes de informar o cliente.' }); break
       case 'F9': if (sale && lines.length) setSheet({ kind: 'discard', saleId: null }); break
-      case 'F10': if (lines.length) setSheet({ kind: 'pay' }); break
+      case 'F10':
+        if (lines.length) {
+          setCompleted(null)
+          void guard(() => register.startPayment()).then((r) => { if (r && !r.ok) setNotice({ tone: 'error', text: r.message }) })
+        }
+        break
     }
   }, [guard, lines.length, register, sale, selected])
 
   // Leitor em qualquer campo (CA 4) e teclas de função (CA 6).
-  const handlers = useRef({ scan, runKey, sheetOpen: false })
-  useEffect(() => { handlers.current = { scan, runKey, sheetOpen: sheet !== null } }, [scan, runKey, sheet])
+  const handlers = useRef({ scan, runKey, sheetOpen: false, blocked: false })
+  useEffect(() => { handlers.current = { scan, runKey, sheetOpen: sheet !== null, blocked: paying || completed !== null } }, [scan, runKey, sheet, paying, completed])
   useEffect(() => {
     const detector = new ScanDetector()
     let snapshot: { el: HTMLInputElement | HTMLTextAreaElement; value: string } | null = null
@@ -271,12 +287,14 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
           e.stopPropagation()
           if (snapshot) restoreField(snapshot.el, snapshot.value)
           snapshot = null
+          // No pagamento (PDV-03) a venda não muda de itens: a leitura só avisa.
+          if (handlers.current.blocked) { beep(); return }
           void handlers.current.scan(step.code)
           return
         }
       }
 
-      if (!handlers.current.sheetOpen && F_KEYS.has(e.key)) {
+      if (!handlers.current.sheetOpen && !handlers.current.blocked && F_KEYS.has(e.key)) {
         e.preventDefault()
         handlers.current.runKey(e.key as FunctionKey)
       }
@@ -314,6 +332,18 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
   const sheetLine = sheet && 'lineId' in sheet ? lines.find((l) => l.lineId === sheet.lineId) ?? null : null
   const discardTarget = sheet?.kind === 'discard' ? (sheet.saleId ? book.sales.find((s) => s.id === sheet.saleId) ?? null : sale) : null
   const pendingSales = parked.length + (lines.length ? 1 : 0)
+
+  if (completed || (sale && paying)) {
+    return (
+      <div className="space-y-3">
+        <p className="truncate text-[18px]"><span className="text-muted-foreground">No caixa:</span> <b>{operator.name}</b> · {completed ? 'Venda concluída' : 'Pagamento'}</p>
+        {completed ? <SaleCompletedView done={completed} onNewSale={() => { setCompleted(null); setSelectedId(null); setNotice(null); focusCode() }} /> : null}
+        {!completed && sale ? (
+          <PaymentScreen sale={sale} register={register} terminal={terminal} store={store} online={online} operatorId={operator.id} onCompleted={setCompleted} />
+        ) : null}
+      </div>
+    )
+  }
 
   const linesList = (
     <section aria-label="Itens da venda" className="min-h-0 flex-1 overflow-y-auto rounded-md border border-border bg-card">
@@ -451,7 +481,6 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
           closeSheet()
           return null
         }} /> : null}
-      <PaySheet open={sheet?.kind === 'pay'} onClose={closeSheet} />
       <CloseRegisterSheet open={sheet?.kind === 'close'} pending={pendingSales} onCancel={closeSheet}
         onReview={() => setSheet({ kind: 'parked' })}
         onConfirm={async () => { await guard(onCloseRegister); setSheet(null) }} />

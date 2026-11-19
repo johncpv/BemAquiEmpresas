@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { CardBrand } from './cardBrand';
 import type { PaymentMethodType } from './paymentMethodType';
 
 export interface PosSyncPaymentMethod {
@@ -13,5 +14,7 @@ export interface PosSyncPaymentMethod {
   allowsChange: boolean;
   nfePaymentCode: string;
   confirmed: boolean;
+  cardBrands: CardBrand[];
+  maxInstallments: number;
   changeSeq: number;
 }

@@ -47,6 +47,13 @@ export interface CatalogPaymentMethod {
   name: string
   /** Tipo de meio (dinheiro, Pix, cartão...): o texto do servidor, sem tradução aqui. */
   kind: string
+  /**
+   * PDV-03: dá troco (só o dinheiro), as bandeiras da tabela da forma (vazio: todas) e o teto de parcelas. Ausentes nos catálogos baixados antes
+   * da PDV-03: valem o tipo (`Cash` dá troco), todas as bandeiras e 1 parcela, até o próximo delta da forma.
+   */
+  allowsChange?: boolean
+  cardBrands?: string[]
+  maxInstallments?: number
 }
 
 /** Quem pode entrar neste caixa (primeiro nome e inicial). O PIN nunca desce. */

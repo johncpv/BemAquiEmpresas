@@ -23,8 +23,34 @@ public sealed record PosItemPayload(
     Guid PriceListId,
     long? PriceListVersion);
 
-/// <summary>Conteúdo da linha de forma de pagamento em <c>pos.catalog_items.payload</c> (OFF-01). Sem taxa da adquirente (é custo).</summary>
-public sealed record PosPaymentMethodPayload(Guid Id, string Name, PaymentMethodType Type, bool AllowsChange, string NfePaymentCode, bool Confirmed);
+/// <summary>
+/// Conteúdo da linha de forma de pagamento em <c>pos.catalog_items.payload</c> (OFF-01). Sem taxa da adquirente (é custo). <c>CardBrands</c> e
+/// <c>MaxInstallments</c> (PDV-03 CA 4): as bandeiras da tabela da forma e o teto de parcelas; ausentes nas linhas gravadas antes da PDV-03.
+/// </summary>
+public sealed record PosPaymentMethodPayload(
+    Guid Id, string Name, PaymentMethodType Type, bool AllowsChange, string NfePaymentCode, bool Confirmed,
+    IReadOnlyList<CardBrand>? CardBrands = null, int? MaxInstallments = null);
+
+/// <summary>
+/// O que o caixa precisa para receber em cartão (PDV-03 CA 4), sem taxa nem prazo: as bandeiras que a forma tem na tabela da adquirente (sem o
+/// "qualquer bandeira"; vazio, o caixa mostra todas) e o teto de parcelas (12 no crédito parcelado, ou a maior faixa cadastrada acima disso; 1 nas
+/// outras formas).
+/// </summary>
+public static class PosCardTerms
+{
+    public const int DefaultMaxInstallments = 12;
+
+    public static bool IsCard(PaymentMethodType type) =>
+        type is PaymentMethodType.Debit or PaymentMethodType.Credit or PaymentMethodType.CreditInstallments or PaymentMethodType.Voucher;
+
+    public static IReadOnlyList<CardBrand> Brands(PaymentMethodInfo method) => IsCard(method.Type)
+        ? method.Fees.Select(f => f.Brand).Where(b => b != CardBrand.Any).Distinct().Order().ToList()
+        : [];
+
+    public static int MaxInstallments(PaymentMethodType type, IEnumerable<int> feeInstallments) => type == PaymentMethodType.CreditInstallments
+        ? Math.Max(DefaultMaxInstallments, feeInstallments.DefaultIfEmpty(1).Max())
+        : 1;
+}
 
 /// <summary>
 /// Gravação do modelo de leitura do caixa (<c>pos.catalog_items</c>, OFF-01 CA 9): pelos eventos <see cref="ProductChanged"/>,
@@ -189,7 +215,10 @@ public sealed class PosCatalogProjector(IPosDb db, IPosCatalogFeed feed, IPaymen
 
         var active = await paymentMethods.ActiveAsync(DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime), cancellationToken);
         var rows = storeIds.SelectMany(store => active.Select(m => new Row(store, CatalogItemKind.PaymentMethod, m.Id,
-            JsonSerializer.Serialize(new PosPaymentMethodPayload(m.Id, m.Name, m.Type, m.AllowsChange, m.NfePaymentCode, m.Confirmed), Json), null))).ToList();
+            JsonSerializer.Serialize(
+                new PosPaymentMethodPayload(
+                    m.Id, m.Name, m.Type, m.AllowsChange, m.NfePaymentCode, m.Confirmed, PosCardTerms.Brands(m), PosCardTerms.MaxInstallments(m.Type, m.Fees.Select(f => f.Installments))),
+                Json), null))).ToList();
         await UpsertAsync(rows, cancellationToken);
         foreach (var store in storeIds)
         {

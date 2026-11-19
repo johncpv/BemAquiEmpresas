@@ -1,11 +1,13 @@
 import type { LocalStore } from '@/pdv/local-store/local-store'
 import type { CatalogItem } from '@/pdv/local-store/catalog-types'
 import type { CustomerDocumentRecord } from '@/pdv/local-store/sale-journal-types'
+import type { Cents } from '@/pdv/money'
+import { canTransition, changeCents, CARD_NUMBER_MESSAGE, looksLikeCardNumber, paidCents, remainingCents, type Tender } from '@/pdv/payment/payment-model'
 import { uuidv7 } from '@/pdv/uuid-v7'
 import { parseCodeInput } from './code-input'
 import { checkCustomerDocument, type DocumentCipher } from './customer-document'
 import { addQuantities, packQuantityText, parseQuantity, subtractQuantities, toMilli } from './quantity'
-import { applySaleEvent, currentSale, emptyBook, parkedSales, replaySales, type Sale, type SaleBook, type SaleCustomer, type SaleEvent, type SaleEventData, type SaleEventType, type SaleLine } from './sale-model'
+import { applySaleEvent, currentSale, emptyBook, parkedSales, replaySales, type Sale, saleTotal, type SaleBook, type SaleCustomer, type SaleEvent, type SaleEventData, type SaleEventType, type SaleLine } from './sale-model'
 
 /** Ajustes do caixa que mudam a tela de venda (guardados no aparelho, `pdv.settings`). */
 export interface SaleSettings {
@@ -20,7 +22,7 @@ export interface SaleSettings {
 export const SETTINGS_META = 'pdv.settings'
 export const DEFAULT_SETTINGS: Omit<SaleSettings, 'mode'> = { mergeSameItem: true, freeRemoveLast: true }
 
-/** Fila de saída: a venda fechada (descartada aqui; concluída na PDV-03) sobe como uma entrada só. */
+/** Fila de saída: a venda fechada (descartada ou concluída) sobe como uma entrada só. */
 export const SALE_OUTBOX_KIND = 'pos.sale'
 
 export type AddResult =
@@ -30,8 +32,20 @@ export type AddResult =
   | { kind: 'needs-quantity'; item: CatalogItem; code: string | null }
   | { kind: 'invalid-quantity'; message: string }
   | { kind: 'search'; text: string }
+  | { kind: 'locked'; message: string }
 
-export type RemoveResult = { kind: 'removed' } | { kind: 'needs-authorization' }
+export type RemoveResult = { kind: 'removed' } | { kind: 'needs-authorization' } | { kind: 'locked' }
+
+/** Na tela de pagamento a venda não muda de itens (PDV-03): volta aos itens primeiro (só sem pagamento capturado). */
+export const LOCKED_MESSAGE = 'A venda está no pagamento. Volte aos itens para mudar a venda.'
+
+/** Resultado de um pagamento (PDV-03): capturado com saldo, venda concluída, ou recusado com o motivo. */
+export type TenderResult =
+  | { kind: 'recorded'; tender: Tender; remainingCents: Cents }
+  | { kind: 'completed'; tender: Tender; number: string; totalCents: Cents; changeCents: Cents; tenders: Tender[] }
+  | { kind: 'refused'; message: string }
+
+export interface CompletedSale { number: string; totalCents: Cents; changeCents: Cents; tenders: Tender[] }
 
 export interface SaleRegisterOptions {
   store: LocalStore
@@ -42,6 +56,14 @@ export interface SaleRegisterOptions {
   settings: () => SaleSettings
   cipher?: DocumentCipher | null
   now?: () => Date
+}
+
+/** Regra da venda que a tela mostra ao operador (não é erro de gravação). */
+export class SaleRuleError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'SaleRuleError'
+  }
 }
 
 /** Número da venda `{loja}-{caixa}-{seq}`, atribuído só quando a venda é concluída ou descartada. */
@@ -66,6 +88,10 @@ export class SaleRegister {
   static async open(options: SaleRegisterOptions): Promise<SaleRegister> {
     const register = new SaleRegister(options)
     register.book = replaySales(await options.store.saleJournal())
+    // Sobra de uma queda entre gravar o último pagamento e fechar a venda: a soma já fecha, então conclui agora.
+    for (const sale of register.book.sales) {
+      if (sale.inPayment && paidCents(sale.tenders) > 0 && paidCents(sale.tenders) >= saleTotal(sale)) await register.finish(sale, [])
+    }
     return register
   }
 
@@ -112,6 +138,7 @@ export class SaleRegister {
   addItem(item: CatalogItem, quantityText: string | null, code: string | null = null): Promise<AddResult> {
     return this.run(async () => {
       const price = this.options.store.priceOf(item.id)
+      if (this.current()?.inPayment) return { kind: 'locked', message: LOCKED_MESSAGE }
       if (!price) return { kind: 'no-price', item }
       if (quantityText === null && item.fractional) return { kind: 'needs-quantity', item, code }
       const parsed = parseQuantity(quantityText ?? '1', item.fractional)
@@ -122,7 +149,7 @@ export class SaleRegister {
       if (!sale) {
         const started = this.event('SaleStarted', uuidv7(), { operatorId: this.options.operatorId })
         events.push(started)
-        sale = { id: started.saleId, startedAt: started.at, status: 'open', parkedAt: null, lines: [], lastAdd: null, customer: null }
+        sale = { id: started.saleId, startedAt: started.at, status: 'open', parkedAt: null, lines: [], lastAdd: null, customer: null, inPayment: false, tenders: [] }
       }
 
       const same = this.options.settings().mergeSameItem ? sale.lines.find((l) => l.itemId === item.id && l.unitCents === price.priceCents && !l.note) : undefined
@@ -153,6 +180,7 @@ export class SaleRegister {
       const sale = this.current()
       const line = sale?.lines.find((l) => l.lineId === lineId)
       if (!sale || !line) return { ok: false, message: 'A linha não está mais na venda.' }
+      if (sale.inPayment) return { ok: false, message: LOCKED_MESSAGE }
       const parsed = parseQuantity(text, line.fractional)
       if (!parsed.ok) return parsed
       if (parsed.value === line.quantity) return { ok: true }
@@ -178,7 +206,7 @@ export class SaleRegister {
   setNote(lineId: string, note: string): Promise<void> {
     return this.run(async () => {
       const sale = this.current()
-      if (!sale?.lines.some((l) => l.lineId === lineId)) return
+      if (!sale?.lines.some((l) => l.lineId === lineId) || sale.inPayment) return
       const text = note.trim().slice(0, 140) || null
       await this.commit([this.event('LineChanged', sale.id, { lineId, note: text, reason: 'note', operatorId: this.options.operatorId })])
     })
@@ -199,6 +227,7 @@ export class SaleRegister {
       const sale = this.current()
       const line = sale?.lines.find((l) => l.lineId === lineId)
       if (!sale || !line) return { kind: 'removed' }
+      if (sale.inPayment) return { kind: 'locked' }
       const operatorId = this.options.operatorId
       if (this.isFreeRemoval(lineId) && sale.lastAdd) {
         const rest = subtractQuantities(line.quantity, sale.lastAdd.quantity)
@@ -218,7 +247,7 @@ export class SaleRegister {
   park(): Promise<boolean> {
     return this.run(async () => {
       const sale = this.current()
-      if (!sale || sale.lines.length === 0) return false
+      if (!sale || sale.lines.length === 0 || sale.inPayment) return false
       await this.commit([this.event('SaleParked', sale.id, {})])
       return true
     })
@@ -231,6 +260,7 @@ export class SaleRegister {
       if (!target) return
       const events: SaleEvent[] = []
       const sale = this.current()
+      if (sale?.inPayment) return
       if (sale && sale.lines.length > 0) events.push(this.event('SaleParked', sale.id, {}))
       else if (sale) await this.close(sale, 'Venda sem itens trocada por uma venda em espera.')
       events.push(this.event('SaleResumed', saleId, {}))
@@ -243,13 +273,14 @@ export class SaleRegister {
     return this.run(async () => {
       const sale = saleId ? this.book.sales.find((s) => s.id === saleId) : this.current()
       if (!sale) return null
+      if (paidCents(sale.tenders) > 0) throw new SaleRuleError('A venda tem pagamento recebido: o descarte pede o estorno com supervisor.')
       return { number: await this.close(sale, reason) }
     })
   }
 
   private async close(sale: Sale, reason: string): Promise<string> {
     const text = reason.trim()
-    if (!text) throw new Error('Informe o motivo do descarte.')
+    if (!text) throw new SaleRuleError('Informe o motivo do descarte.')
     const discarded = this.event('SaleDiscarded', sale.id, { reason: text, operatorId: this.options.operatorId })
     const prefix = this.options.salePrefix
     const { number } = await this.options.store.closeSale(sale.id, (seq, events) => ({
@@ -296,6 +327,92 @@ export class SaleRegister {
       if (previous && previous !== documentId) await store.deleteCustomerDocument(previous)
       return { ok: true }
     })
+  }
+
+  /** CA 1: "Pagar" leva a venda para `InPayment`, com o total daquele instante. Venda sem itens ou de valor zero não vai. */
+  startPayment(): Promise<{ ok: true } | { ok: false; message: string }> {
+    return this.run(async () => {
+      const sale = this.current()
+      if (!sale || sale.lines.length === 0) return { ok: false, message: 'Lance um item antes de pagar.' }
+      if (sale.inPayment) return { ok: true }
+      const total = saleTotal(sale)
+      if (total <= 0) return { ok: false, message: 'A venda está com total zero.' }
+      await this.commit([this.event('PaymentStarted', sale.id, { operatorId: this.options.operatorId, totalCents: total })])
+      return { ok: true }
+    })
+  }
+
+  /** CA 7 e 8: "Voltar aos itens" só sem pagamento capturado; com algo capturado, só por estorno com supervisor (PDV-04). */
+  cancelPayment(): Promise<{ ok: true } | { ok: false; message: string }> {
+    return this.run(async () => {
+      const sale = this.current()
+      if (!sale?.inPayment) return { ok: true }
+      if (paidCents(sale.tenders) > 0) {
+        return { ok: false, message: 'Já há pagamento recebido nesta venda. Ele só sai por estorno, com o supervisor; até lá, receba o que falta.' }
+      }
+      await this.commit([this.event('PaymentCancelled', sale.id, { operatorId: this.options.operatorId })])
+      return { ok: true }
+    })
+  }
+
+  /**
+   * Grava o pagamento que a porta `PaymentTerminal` devolveu (CA 2 a 7 e 10). Confere a invariante: o capturado nunca passa do que falta; troco
+   * só no dinheiro; nada que pareça número de cartão. Quando a soma dos capturados fecha o total, conclui a venda na mesma transação (CA 6):
+   * número `{loja}-{caixa}-{seq}` e a venda inteira na fila de saída (a subida é da OFF-02).
+   */
+  recordTender(tender: Tender): Promise<TenderResult> {
+    return this.run(async () => {
+      const sale = this.current()
+      if (!sale?.inPayment) return { kind: 'refused', message: 'A venda não está no pagamento.' }
+      const refused = this.checkTender(sale, tender)
+      if (refused) return { kind: 'refused', message: refused }
+      const recorded: Tender = { ...tender, confirmedBy: this.options.operatorId }
+      const total = saleTotal(sale)
+
+      if (recorded.status !== 'Captured') {
+        await this.commit([this.event('TenderChanged', sale.id, { tender: recorded })])
+        return { kind: 'recorded', tender: recorded, remainingCents: remainingCents(total, sale.tenders) }
+      }
+
+      const captured = this.event('TenderCaptured', sale.id, { tender: recorded })
+      const tenders = applySaleEvent(this.book, captured).sales.find((s) => s.id === sale.id)?.tenders ?? []
+      if (paidCents(tenders) < total) {
+        await this.commit([captured])
+        return { kind: 'recorded', tender: recorded, remainingCents: remainingCents(total, tenders) }
+      }
+
+      const done = await this.finish({ ...sale, tenders }, [captured])
+      return { kind: 'completed', tender: recorded, ...done }
+    })
+  }
+
+  private checkTender(sale: Sale, tender: Tender): string | null {
+    const previous = sale.tenders.find((t) => t.tenderId === tender.tenderId)
+    if (previous && !canTransition(previous.status, tender.status)) return 'Este pagamento já foi registrado.'
+    if (!Number.isSafeInteger(tender.amountCents) || tender.amountCents <= 0) return 'Informe um valor maior que zero.'
+    if (tender.status === 'Captured' && tender.amountCents > remainingCents(saleTotal(sale), sale.tenders)) return 'O valor passa do que falta.'
+    if (tender.changeCents > 0 && tender.methodType !== 'Cash') return 'Só o dinheiro dá troco.'
+    if ([tender.nsu, tender.note, tender.authorizationCode].some((v) => v && looksLikeCardNumber(v))) return CARD_NUMBER_MESSAGE
+    return null
+  }
+
+  /** Fecha a venda paga: `SaleCompleted` e a entrada `pos.sale` na fila, numa transação (o CPF fica no registro cifrado, fora da fila). */
+  private async finish(sale: Sale, extra: SaleEvent[]): Promise<CompletedSale> {
+    const total = saleTotal(sale)
+    const change = changeCents(sale.tenders)
+    const completed = this.event('SaleCompleted', sale.id, { operatorId: this.options.operatorId, totalCents: total, paidCents: paidCents(sale.tenders), changeCents: change })
+    const prefix = this.options.salePrefix
+    const { number } = await this.options.store.closeSale(sale.id, (seq, events) => ({
+      kind: SALE_OUTBOX_KIND,
+      at: completed.at,
+      payload: {
+        saleId: sale.id, number: saleNumber(prefix, seq), status: 'completed', totalCents: total, changeCents: change,
+        events: [...events, ...extra, completed],
+      },
+    }))
+    this.book = [...extra, completed].reduce(applySaleEvent, this.book)
+    for (const l of this.listeners) l()
+    return { number: saleNumber(prefix, number), totalCents: total, changeCents: change, tenders: sale.tenders }
   }
 
   /** O documento da venda decifrado, só para mostrar na tela (nunca para log). */
