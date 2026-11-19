@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.Identity.Application;
 using BemAqui.Identity.Domain;
 using BemAqui.Integration.Tests.Tenancy;
@@ -112,11 +113,13 @@ public partial class PosTests
         // Auditoria: cada aceite (e o desligar) fica no histórico da loja com quem, quando e a versão do texto.
         var off = await OkAsync(await NonFiscalAsync(owner, store, false, false, null, again.GetProperty("version").GetUInt32()));
         off.GetProperty("fiscalMode").GetString().Should().Be("Nfce");
+        // O diff da auditoria guarda os campos em camelCase; a criação da loja (que também traz fiscalMode) fica de fora.
         var audit = await WithDbAsync(db => db.AuditEntries.AsNoTracking()
-            .Where(a => a.Entity == nameof(Store) && a.EntityId == store.ToString() && a.UserId == ownerId).OrderBy(a => a.At).ToListAsync());
-        var fiscal = audit.Where(a => a.Changes.Contains("FiscalMode", StringComparison.Ordinal) || a.Changes.Contains("NonFiscalTermsVersion", StringComparison.Ordinal)).ToList();
+            .Where(a => a.Entity == nameof(Store) && a.EntityId == store.ToString() && a.UserId == ownerId && a.Action == AuditActions.Updated)
+            .OrderBy(a => a.At).ThenBy(a => a.Id).ToListAsync());
+        var fiscal = audit.Where(a => a.Changes.Contains("\"fiscalMode\"", StringComparison.Ordinal) || a.Changes.Contains("\"nonFiscalTermsVersion\"", StringComparison.Ordinal)).ToList();
         fiscal.Should().HaveCount(3, "ligar, aceitar a versão nova e desligar ficam registrados");
-        fiscal[0].Changes.Should().Contain("NonFiscal").And.Contain("NonFiscalAcceptedBy");
+        fiscal[0].Changes.Should().Contain("NonFiscal").And.Contain("nonFiscalAcceptedBy");
         (await SnapshotAsync(device)).GetProperty("store").GetProperty("canSell").GetBoolean().Should().BeFalse();
     }
 
@@ -151,9 +154,12 @@ public partial class PosTests
         items[0].GetProperty("isDefault").GetBoolean().Should().BeTrue();
         items[1].GetProperty("isDefault").GetBoolean().Should().BeFalse("uma padrão por caixa");
 
-        // Desativar tira do caixa; a versão da coleção muda (o aparelho troca a lista inteira).
-        var changed = await OkAsync(await owner.PutAsJsonAsync($"/api/v1/pos/printers/{first.GetProperty("id").GetGuid()}",
-            new { registerId, name = "Bobina 80", connection = "Browser", paperWidthMm = 80, columns = 42, model = "generico-80", isDefault = false, isActive = false, version = first.GetProperty("version").GetUInt32() }));
+        // Desativar tira do caixa; a versão da coleção muda (o aparelho troca a lista inteira). A 2ª virou a padrão e mudou a 1ª: relê a versão.
+        var firstId = first.GetProperty("id").GetGuid();
+        var current = (await OkAsync(await owner.GetAsync($"/api/v1/pos/printers?registerId={registerId}"))).EnumerateArray().Single(p => p.GetProperty("id").GetGuid() == firstId);
+        current.GetProperty("version").GetUInt32().Should().NotBe(first.GetProperty("version").GetUInt32(), "tirar a padrão da 1ª muda a versão dela");
+        var changed = await OkAsync(await owner.PutAsJsonAsync($"/api/v1/pos/printers/{firstId}",
+            new { registerId, name = "Bobina 80", connection = "Browser", paperWidthMm = 80, columns = 42, model = "generico-80", isDefault = false, isActive = false, version = current.GetProperty("version").GetUInt32() }));
         changed.GetProperty("isActive").GetBoolean().Should().BeFalse();
         var cursor = (await SnapshotAsync(device)).GetProperty("cursor").GetInt64();
         var delta = await OkAsync(await Anonymous().SendAsync(SignedGet(device, $"/api/v1/pos/sync/changes?cursor={cursor}")));
