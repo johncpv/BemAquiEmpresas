@@ -23,10 +23,12 @@ public static class PosInfrastructure
         services.TryAddScoped<PosCatalogSyncService>();
         services.TryAddScoped<PosCustomerSearchService>(); // PDV-02 CA 15: cliente cadastrado na tela de venda
         services.TryAddScoped<CashSessionIngestion>(); // CX-01: sessão de caixa e movimentos de dinheiro (a subida da OFF-02 chama)
+        services.TryAddScoped<PrinterService>(); // IMP-01: impressoras do caixa e as impressões registradas (a subida da OFF-02 chama)
         services.TryAddScoped<IPosRegisters, PosRegistersContract>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IProfileSeedPackage, PosRetailSeedPackage>());
-        services.AddAuditableEntity<Store>("sales");
+        services.AddAuditableEntity<Store>("sales"); // IMP-01: o aceite do modo não fiscal (ligar, desligar, versão do texto) fica no histórico da loja
         services.AddAuditableEntity<Register>("sales");
+        services.AddAuditableEntity<Printer>("pos");
         services.AddAuditableEntity<CashSession>("sales"); // CX-01: abertura e fechamento do caixa
         services.AddAuditableEntity<CashMovement>("sales"); // CX-01: fundo de troco, sangria e suprimento
         return services;

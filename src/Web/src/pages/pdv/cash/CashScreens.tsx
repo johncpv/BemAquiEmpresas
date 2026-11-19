@@ -2,7 +2,12 @@ import { ArrowDownToLine, ArrowUpFromLine, Delete, LogOut, Printer } from 'lucid
 import { useState } from 'react'
 import { FloorButton, FloorConfirm, FloorDica, FloorSheet, FloorState } from '@/components/shopfloor/kit'
 import { checkMovement, clock, type LocalCashMovement, type LocalCashSession, MAX_REASON_LENGTH } from '@/pdv/cash/cash-session'
+import type { CatalogPrinter } from '@/pdv/local-store/catalog-types'
 import { type Cents, formatCents } from '@/pdv/money'
+import { usePdv } from '@/pdv/pdv-context'
+import { BrowserPrintBridge, PRINT_FAILED_MESSAGE } from '@/pdv/print/hardware-bridge'
+import { INSTALLED_PRINTER_META, printDocument, printersOf, targetOf } from '@/pdv/print/print-jobs'
+import { buildCashReceipt } from '@/pdv/print/receipt-model'
 
 export const NO_PERMISSION = 'Você não tem permissão para esta ação.'
 export const SAVED_LOCALLY = 'Não foi possível registrar. O movimento ficou salvo neste aparelho e será enviado.'
@@ -161,19 +166,31 @@ export function CashMovementSheet({ kind, onCancel, onConfirm }: {
   )
 }
 
-/** Comprovante da sangria (duas vias, com assinatura de quem retira) ou do suprimento (CA 4 e 5). Imprime pelo navegador até a IMP-01. */
+/**
+ * Comprovante da sangria (duas vias, com assinatura de quem retira) ou do suprimento (CA 4 e 5). IMP-01: imprime pela porta `HardwareBridge`, na
+ * impressora padrão do caixa; a falha não desfaz o movimento (já gravado) e permite tentar de novo.
+ */
 export function CashReceiptSheet({ movement, place, onDone }: { movement: LocalCashMovement | null; place: string; onDone: () => void }) {
+  const store = usePdv()?.store ?? null
+  const [failed, setFailed] = useState(false)
   if (!movement) return null
   const copies = movement.kind === 'CashOut' ? ['1ª via — caixa', '2ª via — quem retira'] : ['Via única']
   const title = movement.kind === 'CashOut' ? 'Sangria registrada' : 'Suprimento registrado'
+  const print = async () => {
+    const printers = store ? printersOf(store.list('printers'), await store.getMeta<CatalogPrinter>(INSTALLED_PRINTER_META).catch(() => undefined)) : []
+    const doc = buildCashReceipt({ kind: movement.kind === 'CashOut' ? 'CashOut' : 'CashIn', place, at: movement.at, amountCents: movement.amountCents, reason: movement.reason ?? '', operatorName: movement.operatorName ?? null })
+    const result = await printDocument(new BrowserPrintBridge(), doc, targetOf(printers[0]))
+    setFailed(!result.ok)
+  }
   return (
     <FloorSheet open onOpenChange={(o) => { if (!o) onDone() }} title={title}
       actions={(
         <div className="flex gap-[16px]">
-          <FloorButton tone="secondary" className="flex-1" onClick={() => window.print()}><Printer aria-hidden="true" className="size-5" />Imprimir</FloorButton>
+          <FloorButton tone="secondary" className="flex-1" onClick={() => void print()}><Printer aria-hidden="true" className="size-5" />{failed ? 'Tentar de novo' : 'Imprimir'}</FloorButton>
           <FloorButton className="flex-1" onClick={onDone}>Concluir</FloorButton>
         </div>
       )}>
+      {failed ? <p role="alert" className="rounded-md border border-crit-soft bg-crit-soft p-4 text-[18px] font-semibold text-crit-ink">{PRINT_FAILED_MESSAGE} O movimento já está gravado.</p> : null}
       {copies.map((copy) => (
         <article key={copy} aria-label={`Comprovante ${copy}`} className="space-y-1 rounded-md border-2 border-dashed border-border bg-card p-4 font-mono text-[16px]">
           <p className="font-semibold">{movement.kind === 'CashOut' ? 'COMPROVANTE DE SANGRIA' : 'COMPROVANTE DE SUPRIMENTO'} · {copy}</p>

@@ -387,6 +387,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Pos.Domain.CashMovement> CashMovements => Set<BemAqui.Pos.Domain.CashMovement>();
 
+    public DbSet<BemAqui.Pos.Domain.Printer> Printers => Set<BemAqui.Pos.Domain.Printer>();
+
+    public DbSet<BemAqui.Pos.Domain.PrintRecord> PrintRecords => Set<BemAqui.Pos.Domain.PrintRecord>();
+
     public DbSet<BemAqui.Sales.Domain.Sale> Sales => Set<BemAqui.Sales.Domain.Sale>();
 
     public DbSet<BemAqui.Sales.Domain.SaleLine> SaleLines => Set<BemAqui.Sales.Domain.SaleLine>();

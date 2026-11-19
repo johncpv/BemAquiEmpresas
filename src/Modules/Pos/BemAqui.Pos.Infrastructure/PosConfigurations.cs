@@ -18,6 +18,9 @@ internal sealed class StoreConfiguration : IEntityTypeConfiguration<Store>
         });
         // CX-01 (PP-22): teto de dinheiro no caixa, opcional (nulo = sem teto).
         b.Property(e => e.CashCeilingAmount).HasPrecision(18, 2);
+        // IMP-01 (PP-05): modo fiscal da loja (padrão NFC-e, ou seja, o não fiscal desligado) e o aceite do Proprietário; o cupom pós-venda.
+        b.Property(e => e.FiscalMode).HasConversion<string>().HasMaxLength(16).HasDefaultValue(StoreFiscalMode.Nfce).HasSentinel(StoreFiscalMode.Nfce);
+        b.Property(e => e.ReceiptPrintMode).HasConversion<string>().HasMaxLength(16).HasDefaultValue(ReceiptPrintMode.Ask).HasSentinel(ReceiptPrintMode.Ask);
         // OFF-01 (PP-10 e PP-22): parâmetros da loja com os padrões do PO; as lojas que já existiam recebem os padrões na migration.
         b.Property(e => e.OfflineWindowHours).HasDefaultValue(Store.DefaultOfflineWindowHours);
         b.Property(e => e.CashBreakTolerance).HasPrecision(18, 2).HasDefaultValue(5.00m);
@@ -66,6 +69,37 @@ internal sealed class CatalogItemConfiguration : IEntityTypeConfiguration<Catalo
         b.Property(e => e.Payload).HasColumnType("jsonb");
         b.Property(e => e.ChangeSeq).HasDefaultValueSql("nextval('pos.catalog_change_seq')");
         b.HasIndex(e => new { e.StoreId, e.ChangeSeq }).HasDatabaseName("ix_catalog_items_store_change_seq");
+    }
+}
+
+/// <summary><c>pos.printers</c> (IMP-01 CA 6 e 7): impressora do caixa; largura e colunas conferidas por CHECK; uma padrão por caixa.</summary>
+internal sealed class PrinterConfiguration : IEntityTypeConfiguration<Printer>
+{
+    public void Configure(EntityTypeBuilder<Printer> b)
+    {
+        b.ToTable("printers", PosSchema.Name, t =>
+            t.HasCheckConstraint("ck_printers_layout", "(paper_width_mm = 58 AND columns = 32) OR (paper_width_mm = 80 AND columns IN (42, 48))"));
+        b.Property(e => e.Name).HasMaxLength(Printer.MaxNameLength);
+        b.Property(e => e.Model).HasMaxLength(Printer.MaxModelLength);
+        b.Property(e => e.Connection).HasConversion<string>().HasMaxLength(16);
+        b.HasOne<Register>().WithMany().HasForeignKey(e => e.RegisterId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<Store>().WithMany().HasForeignKey(e => e.StoreId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => e.RegisterId).IsUnique().HasFilter("is_default AND is_active").HasDatabaseName(PrinterService.DefaultPrinterIndex);
+    }
+}
+
+/// <summary><c>pos.print_records</c> (IMP-01 CA 4): impressões e reimpressões vindas do aparelho; o id é do aparelho.</summary>
+internal sealed class PrintRecordConfiguration : IEntityTypeConfiguration<PrintRecord>
+{
+    public void Configure(EntityTypeBuilder<PrintRecord> b)
+    {
+        b.ToTable("print_records", PosSchema.Name, t => t.HasCheckConstraint("ck_print_records_copy", "copy >= 1"));
+        b.Property(e => e.Id).ValueGeneratedNever();
+        b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.SaleNumber).HasMaxLength(40);
+        b.HasOne<Register>().WithMany().HasForeignKey(e => e.RegisterId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => e.SaleId).HasFilter("sale_id IS NOT NULL");
+        b.HasIndex(e => new { e.StoreId, e.PrintedAt });
     }
 }
 

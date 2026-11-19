@@ -1,5 +1,5 @@
 import { Banknote, CloudOff, CreditCard, QrCode, Wallet } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { type ReactNode, useMemo, useRef, useState } from 'react'
 import { FloorButton, FloorDica, FloorState } from '@/components/shopfloor/kit'
 import { cn } from '@/lib/utils'
 import type { CatalogPaymentMethod } from '@/pdv/local-store/catalog-types'
@@ -363,8 +363,8 @@ function TerminalStatus({ tender, busy, onResolve, onDismiss }: { tender: Tender
   return null
 }
 
-/** CA 6: venda concluída, troco em destaque, "Imprimir cupom" e "Nova venda" (foco padrão). */
-export function SaleCompletedView({ done, onNewSale }: { done: CompletedSale; onNewSale: () => void }) {
+/** CA 6: venda concluída, troco em destaque, o cupom (IMP-01: `print`, pela porta `HardwareBridge`) e "Nova venda" (foco padrão). */
+export function SaleCompletedView({ done, onNewSale, print = null }: { done: CompletedSale; onNewSale: () => void; print?: ReactNode }) {
   const pix = done.tenders.some((t) => isCaptured(t) && t.needsReconciliation)
   return (
     <section aria-label="Venda concluída" className="mx-auto max-w-xl space-y-4 rounded-md border border-border bg-card p-6 text-center">
@@ -382,11 +382,10 @@ export function SaleCompletedView({ done, onNewSale }: { done: CompletedSale; on
         ))}
       </ul>
       {pix ? <p className="text-muted-foreground">O Pix conferido pelo operador aparece no fechamento do caixa para conferir contra o extrato.</p> : null}
+      {print}
       <div className="flex flex-wrap justify-center gap-[16px]">
-        <FloorButton tone="secondary" disabled aria-describedby="cupom-hint">Imprimir cupom</FloorButton>
         <FloorButton autoFocus onClick={onNewSale}>Nova venda</FloorButton>
       </div>
-      <p id="cupom-hint" className="text-[16px] text-muted-foreground">A impressão do cupom chega com a configuração da impressora do caixa.</p>
     </section>
   )
 }

@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using BemAqui.BuildingBlocks.Authorization;
+using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Sales.Application;
 using BemAqui.Sales.Contracts;
@@ -38,6 +39,17 @@ internal static class SalesEndpoints
                 return result.IsSuccess ? Results.Ok(await MaskAsync(result.Value, permissions, ct)) : result.Error!.ToProblem();
             })
             .RequirePermission("sales.approve").WithName("CancelSale").Produces<SaleView>();
+
+        // IMP-01 CA 12: vendas sem documento fiscal por período (data de negócio), loja e operador, com exportação em CSV.
+        sales.MapGet("/reports/non-fiscal", async (DateOnly from, DateOnly to, Guid? storeId, Guid? operatorId, NonFiscalSalesReportService service, CancellationToken ct) =>
+                (await service.QueryAsync(from, to, storeId, operatorId, ct)).ToHttpResult())
+            .RequirePermission("sales.view").WithName("GetNonFiscalSalesReport").Produces<NonFiscalSalesReport>();
+        sales.MapGet("/reports/non-fiscal/export", async (DateOnly from, DateOnly to, Guid? storeId, Guid? operatorId, NonFiscalSalesReportService service, CancellationToken ct) =>
+            {
+                var file = await service.ExportAsync(from, to, storeId, operatorId, ct);
+                return file.IsSuccess ? Results.File(file.Value.Content, SafeCsv.ContentType, file.Value.FileName) : file.Error!.ToProblem();
+            })
+            .RequirePermission("sales.view").WithName("ExportNonFiscalSalesReport");
         return api;
     }
 

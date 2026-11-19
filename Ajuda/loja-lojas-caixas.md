@@ -17,6 +17,10 @@ Cadastrar as lojas e os caixas de cada uma, e ver qual aparelho vende em cada ca
 - Para ligar um aparelho ao caixa, abra **/pdv** no computador ou tablet da loja e toque em **Registrar este aparelho**.
 - Na loja, **Aviso de sangria a partir de** (padrão R$ 1.000,00) faz o caixa pedir uma sangria quando o dinheiro na gaveta passa do valor; **Teto de dinheiro no caixa** (opcional, maior que o aviso) bloqueia o recebimento em dinheiro até a sangria. O caixa recebe os valores na próxima sincronização e nunca mostra ao operador quanto há na gaveta.
 
+- Cada loja mostra o **Documento fiscal**. Uma loja nova não vende até o Proprietário ligar o modo **só cupom não fiscal**, com o aceite (veja a ajuda "Documento fiscal").
+- Na loja, **Cupom ao concluir a venda** escolhe se o caixa pergunta, imprime sempre ou não imprime o cupom.
+- **Vendas sem documento fiscal**, no topo da tela, abre o relatório por período, loja e operador.
+
 ## Perguntas frequentes
 **O código da loja pode mudar?** Pode, mas as vendas já feitas continuam com o número antigo. Prefira escolher o código certo no começo.
 

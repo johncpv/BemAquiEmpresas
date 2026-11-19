@@ -157,6 +157,9 @@ export function PdvPage() {
               action={<button type="button" onClick={() => void refresh()} className="min-h-14 rounded-md bg-primary px-5 text-base font-semibold text-primary-foreground">Tentar de novo</button>} />
           ) : <PdvOperatorEntry keys={state.keys} handshake={state.register} onDeviceGone={refresh} />}
           {selling ? null : <p className="text-sm text-muted-foreground">As vendas deste aparelho vão sair numeradas a partir de {state.register.salePrefix}000001.</p>}
+          {selling ? null : (
+            <p className="text-sm"><a href="/pdv/config/impressora/" className="font-semibold text-primary underline">Impressora do caixa</a>: instale e teste a impressora do cupom.</p>
+          )}
         </CatalogGate>
       ) : (
         <Card title={state.kind === 'blocked' ? 'Este aparelho foi bloqueado ou trocado por outro.' : 'Este aparelho ainda não é um caixa.'}

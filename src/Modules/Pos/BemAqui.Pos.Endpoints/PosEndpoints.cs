@@ -11,8 +11,23 @@ using Microsoft.AspNetCore.Routing;
 namespace BemAqui.Pos.Endpoints;
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-/// <summary>Loja (PDV-01). CX-01: <c>CashDropAlertAmount</c> nulo mantém o aviso atual; <c>CashCeilingAmount</c> nulo = sem teto (a tela sempre manda).</summary>
-public sealed record StoreRequest(string Code, string Name, Guid StockLocationId, Guid DefaultPriceListId, bool IsActive = true, decimal? CashDropAlertAmount = null, decimal? CashCeilingAmount = null);
+/// <summary>
+/// Loja (PDV-01). CX-01: <c>CashDropAlertAmount</c> nulo mantém o aviso atual; <c>CashCeilingAmount</c> nulo = sem teto (a tela sempre manda).
+/// IMP-01: <c>ReceiptPrintMode</c> nulo mantém o atual. O modo fiscal não muda por aqui (só o Proprietário, pela rota própria).
+/// </summary>
+public sealed record StoreRequest(
+    string Code, string Name, Guid StockLocationId, Guid DefaultPriceListId, bool IsActive = true, decimal? CashDropAlertAmount = null, decimal? CashCeilingAmount = null,
+    ReceiptPrintMode? ReceiptPrintMode = null);
+
+/// <summary>IMP-01 CA 10: ligar (com o aceite do texto na versão informada) ou desligar o modo "só cupom não fiscal". <c>Version</c>: a da loja.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record NonFiscalModeRequest(bool Enabled, bool Accepted, int? TermsVersion, uint Version);
+
+/// <summary>IMP-01 CA 6: impressora do caixa. Na alteração, <c>Version</c> é a da impressora.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record PrinterRequest(
+    Guid RegisterId, string Name, PrinterConnection Connection, int PaperWidthMm, int Columns, string Model, bool IsDefault = true, bool IsActive = true,
+    bool TestConfirmed = false, uint Version = 0);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record RegisterRequest(int Number, Guid CashAccountId, RegisterUiMode UiMode, bool IsActive = true);
@@ -43,6 +58,26 @@ internal static class PosEndpoints
         stores.MapPut("/{id:guid}/registers/{registerId:guid}", async (Guid id, Guid registerId, RegisterRequest input, StoreService service, CancellationToken ct) =>
                 (await service.UpdateRegisterAsync(id, registerId, ToInput(input), ct)).ToHttpResult())
             .RequirePermission("sales.edit").WithName("UpdateRegister").Produces<StoreView>();
+
+        // IMP-01 CA 10, 11 e 13: o texto do aceite (versionado) e o modo "só cupom não fiscal", que só o Proprietário liga ou desliga (403 para quem
+        // edita lojas sem ser do grupo). O aceite fica no histórico da loja (auditoria).
+        stores.MapGet("/non-fiscal-terms", () => Results.Ok(StoreService.Terms()))
+            .RequireAnyPermission("sales.view", "sales.edit").WithName("GetNonFiscalTerms").Produces<NonFiscalTermsView>();
+        stores.MapPost("/{id:guid}/non-fiscal-mode", async (Guid id, NonFiscalModeRequest input, StoreService service, CancellationToken ct) =>
+                (await service.SetNonFiscalModeAsync(id, new NonFiscalModeInput(input.Enabled, input.Accepted, input.TermsVersion, input.Version), ct)).ToHttpResult())
+            .RequirePermission("sales.edit").WithName("SetStoreNonFiscalMode").Produces<StoreView>();
+
+        // IMP-01 CA 6 e 7: impressoras do caixa (o assistente "Instalar impressora" do /pdv, com login de quem registra aparelhos). Descem para os
+        // aparelhos do caixa na sincronização.
+        var printers = api.MapGroup("/pos/printers").WithTags("PDV: impressoras").RequireModule("pos");
+        printers.MapGet(string.Empty, async (Guid? registerId, PrinterService service, CancellationToken ct) => Results.Ok(await service.ListAsync(registerId, ct)))
+            .RequireAnyPermissionOf("pos.manage_devices", "sales.view").WithName("ListPrinters").Produces<IReadOnlyList<PrinterView>>();
+        printers.MapPost(string.Empty, async (PrinterRequest input, PrinterService service, CancellationToken ct) =>
+                (await service.CreateAsync(ToInput(input), ct)).ToHttpResult(p => Results.Created("/api/v1/pos/printers/" + p.Id, p)))
+            .RequirePermission("pos.manage_devices").WithName("CreatePrinter").Produces<PrinterView>(StatusCodes.Status201Created);
+        printers.MapPut("/{id:guid}", async (Guid id, PrinterRequest input, PrinterService service, CancellationToken ct) =>
+                (await service.UpdateAsync(id, ToInput(input), input.Version, ct)).ToHttpResult())
+            .RequirePermission("pos.manage_devices").WithName("UpdatePrinter").Produces<PrinterView>();
 
         // CA 8 a 10: só o principal do aparelho (esquema Device, lista fechada por teste). A loja e o caixa vêm do principal, nunca do corpo.
         var sync = api.MapGroup("/pos/sync").WithTags("PDV: sincronização").RequireModule("pos")
@@ -81,7 +116,9 @@ internal static class PosEndpoints
         return api;
     }
 
-    private static StoreInput ToInput(StoreRequest r) => new(r.Code, r.Name, r.StockLocationId, r.DefaultPriceListId, r.IsActive, r.CashDropAlertAmount, r.CashCeilingAmount);
+    private static StoreInput ToInput(StoreRequest r) => new(r.Code, r.Name, r.StockLocationId, r.DefaultPriceListId, r.IsActive, r.CashDropAlertAmount, r.CashCeilingAmount, r.ReceiptPrintMode);
+
+    private static PrinterInput ToInput(PrinterRequest r) => new(r.RegisterId, r.Name, r.Connection, r.PaperWidthMm, r.Columns, r.Model, r.IsDefault, r.IsActive, r.TestConfirmed);
 
     private static RegisterInput ToInput(RegisterRequest r) => new(r.Number, r.CashAccountId, r.UiMode, r.IsActive);
 }

@@ -219,6 +219,7 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - Depende de: PDV-03.
 - Paridade: 2 (cupom não fiscal).
 - CA: modo "só cupom não fiscal" ligado pelo Proprietário, com aceite registrado em auditoria; porta `HardwareBridge`; assistente "Instalar impressora" com página de teste; recibo com "Não é documento fiscal"; reimpressão marca "2ª VIA"; relatório de vendas sem documento fiscal; falha na impressora não trava a venda.
+- Pronta para revisão (19/11/2026, branch `feat/imp-01-cupom-nao-fiscal`): recibo montado no aparelho (modelo estruturado em 32/42/48 colunas) e impresso pela porta `HardwareBridge` (`BrowserPrintBridge`); 2ª via com evento `ReceiptReprinted` na fila e `pos.print_records` no servidor (a subida é da OFF-02); `pos.printers` por caixa, descendo na sincronização; assistente `/pdv/config/impressora`; `pos.stores.fiscal_mode` com aceite versionado só do Proprietário (sem o aceite, o caixa não vende); cupom pós-venda por loja (perguntar, sempre, nunca); relatório `/app/loja/vendas-sem-documento-fiscal` com CSV. CPF mascarado no papel (PP-26). Pendências: e-mail e WhatsApp do cupom (OFF-02, ADR 0041); testes no kit e lista de modelos testados (PP-19); USB/rede/Bluetooth direto, corte e gaveta (IMP-02/03, PP-08); CNPJ do estabelecimento (NFCE-07).
 
 **OFF-02 [ ] Sincronização idempotente e Pendências do PDV (G)** — ordem 7 — [story](stories/OFF-02-sincronizacao-pendencias.md)
 - Depende de: OFF-01, PDV-03, VND-01, SPK-03.

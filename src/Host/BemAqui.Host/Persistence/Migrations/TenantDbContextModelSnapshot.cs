@@ -15494,6 +15494,154 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("catalog_store_builds", "pos");
                 });
 
+            modelBuilder.Entity("BemAqui.Pos.Domain.PrintRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Copy")
+                        .HasColumnType("integer")
+                        .HasColumnName("copy");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("OperatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operator_id");
+
+                    b.Property<DateTimeOffset>("PrintedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("printed_at");
+
+                    b.Property<Guid?>("PrinterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("printer_id");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.Property<Guid>("RegisterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("register_id");
+
+                    b.Property<Guid?>("SaleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sale_id");
+
+                    b.Property<string>("SaleNumber")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("sale_number");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("store_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_print_records");
+
+                    b.HasIndex("RegisterId")
+                        .HasDatabaseName("ix_print_records_register_id");
+
+                    b.HasIndex("SaleId")
+                        .HasDatabaseName("ix_print_records_sale_id")
+                        .HasFilter("sale_id IS NOT NULL");
+
+                    b.HasIndex("StoreId", "PrintedAt")
+                        .HasDatabaseName("ix_print_records_store_id_printed_at");
+
+                    b.ToTable("print_records", "pos", t =>
+                        {
+                            t.HasCheckConstraint("ck_print_records_copy", "copy >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Pos.Domain.Printer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Columns")
+                        .HasColumnType("integer")
+                        .HasColumnName("columns");
+
+                    b.Property<string>("Connection")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("connection");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_default");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("model");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("PaperWidthMm")
+                        .HasColumnType("integer")
+                        .HasColumnName("paper_width_mm");
+
+                    b.Property<Guid>("RegisterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("register_id");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("store_id");
+
+                    b.Property<DateTimeOffset?>("TestConfirmedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("test_confirmed_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_printers");
+
+                    b.HasIndex("RegisterId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_printers_register_default")
+                        .HasFilter("is_default AND is_active");
+
+                    b.HasIndex("StoreId")
+                        .HasDatabaseName("ix_printers_store_id");
+
+                    b.ToTable("printers", "pos", t =>
+                        {
+                            t.HasCheckConstraint("ck_printers_layout", "(paper_width_mm = 58 AND columns = 32) OR (paper_width_mm = 80 AND columns IN (42, 48))");
+                        });
+                });
+
             modelBuilder.Entity("BemAqui.Pos.Domain.Register", b =>
                 {
                     b.Property<Guid>("Id")
@@ -15611,6 +15759,14 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDefaultValue(30)
                         .HasColumnName("exchange_days");
 
+                    b.Property<string>("FiscalMode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasDefaultValue("Nfce")
+                        .HasColumnName("fiscal_mode");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("is_active");
@@ -15621,11 +15777,31 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(80)")
                         .HasColumnName("name");
 
+                    b.Property<DateTimeOffset?>("NonFiscalAcceptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("non_fiscal_accepted_at");
+
+                    b.Property<Guid?>("NonFiscalAcceptedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("non_fiscal_accepted_by");
+
+                    b.Property<int?>("NonFiscalTermsVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("non_fiscal_terms_version");
+
                     b.Property<int>("OfflineWindowHours")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasDefaultValue(168)
                         .HasColumnName("offline_window_hours");
+
+                    b.Property<string>("ReceiptPrintMode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasDefaultValue("Ask")
+                        .HasColumnName("receipt_print_mode");
 
                     b.Property<string>("SeedKey")
                         .HasMaxLength(40)
@@ -20607,6 +20783,33 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_cash_sessions_registers_register_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Pos.Domain.PrintRecord", b =>
+                {
+                    b.HasOne("BemAqui.Pos.Domain.Register", null)
+                        .WithMany()
+                        .HasForeignKey("RegisterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_print_records_registers_register_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Pos.Domain.Printer", b =>
+                {
+                    b.HasOne("BemAqui.Pos.Domain.Register", null)
+                        .WithMany()
+                        .HasForeignKey("RegisterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_printers_registers_register_id");
+
+                    b.HasOne("BemAqui.Pos.Domain.Store", null)
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_printers_stores_store_id");
                 });
 
             modelBuilder.Entity("BemAqui.Pos.Domain.Register", b =>

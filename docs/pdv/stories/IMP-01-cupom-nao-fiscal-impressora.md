@@ -5,7 +5,7 @@
 | ID | IMP-01 |
 | Título | Cupom não fiscal em bobina de 58 e 80 mm: modo "só cupom não fiscal" ligado pelo Proprietário com aceite registrado, a porta `HardwareBridge` com a impressão pelo navegador, o assistente "Instalar impressora" e o relatório de vendas sem documento fiscal |
 | Tamanho | M |
-| Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
+| Status | Ready for Review (19/11/2026, branch `feat/imp-01-cupom-nao-fiscal`) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | Pedido do PO de 15/11/2026 (item 7: impressoras com NFC-e ou cupom não fiscal) · [Rascunho B](../adr/rascunho-B-impressao-perifericos.md) itens 1, 3, 4, 9 e 10 · ADR 0041 (WhatsApp) · ADR 0045 (PDF) |
 | Dependências | PDV-03 (a PP-05 foi decidida pelo PO em 15/11/2026) |
@@ -47,7 +47,7 @@ Como **operador de caixa**, quero **entregar um comprovante impresso ao cliente*
 - **Permissões:** `pos.create` (imprimir e reimprimir); `pos.manage_devices` (instalar impressora); ligar o modo não fiscal é reservado ao grupo Proprietário; `sales.view` para o relatório.
 - **Endpoints:** `GET|POST|PUT /api/v1/pos/printers`; `POST /api/v1/pos/stores/{id}/non-fiscal-mode` (aceite); `GET /api/v1/sales/reports/non-fiscal`, `GET .../export`. A configuração desce pela sincronização.
 - **Eventos do aparelho:** `ReceiptPrinted`, `ReceiptReprinted`.
-- **Tabelas:** `pos.printers`, `pos.print_jobs`; `fiscal_mode` e o aceite em `pos.stores`.
+- **Tabelas:** `pos.printers`, `pos.print_records`; `fiscal_mode` e o aceite em `pos.stores`.
 - **Auditoria:** aceite do modo não fiscal (ligar, desligar, nova versão do texto).
 
 ## Telas e estados
@@ -79,8 +79,57 @@ Como **operador de caixa**, quero **entregar um comprovante impresso ao cliente*
 - [ ] Padrões e próximo passo propositivos avaliados; auditoria ligada.
 - [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR.
 
+## Implementação (19/11/2026)
+
+Branch `feat/imp-01-cupom-nao-fiscal`. O recibo é montado **no aparelho**, do dado local, a partir de um modelo estruturado (`src/pdv/print/receipt-model.ts`: texto, par "descrição … valor", régua, QR, corte, gaveta); **toda** impressão do PDV passa pela porta `HardwareBridge` (`src/pdv/print/hardware-bridge.ts`), cujo adaptador desta story é o `BrowserPrintBridge` (HTML em `iframe` escondido + `print()` do navegador, sem rede). A IMP-02 só troca o adaptador (ESC/POS).
+
+| CA | Situação | Como |
+|---|---|---|
+| 1 | Feito | Cupom, 2ª via, comprovante de sangria/suprimento (o `window.print()` da CX-01 saiu) e página de teste passam por `HardwareBridge.print(doc, printer)`; `BrowserPrintBridge` é o único adaptador |
+| 2 | Feito (CNPJ da loja pendente) | `buildSaleReceipt`: nome e CNPJ da empresa (`ICompanyIdentity`, descem no catálogo da loja como `companyName`/`companyDocument`), nome da loja, número da venda, data e hora (Brasília), operador, itens (quantidade, unidade, unitário, total, observação), descontos (linha aparece quando houver; o desconto em si é da PDV-04), total, pagamentos por forma (com bandeira e parcelas), troco, cliente e CPF/CNPJ e **"NÃO É DOCUMENTO FISCAL"** em destaque no topo (negrito, fonte dupla) e no rodapé, fixo no modelo. **Pendente:** o CNPJ próprio da loja (estabelecimento) não existe no cadastro (é da NFCE-07); o campo `storeDocument` já está no modelo |
+| 3 | Feito no código; **conferência no papel pendente (PP-19)** | `layoutReceipt` em 32, 42 ou 48 colunas, do cadastro da impressora: quebra por palavra, valor à direita na mesma linha quando cabe e, quando não cabe, na linha de baixo alinhado à direita; nada é cortado (Vitest com nome longo e valor de R$ 12 milhões nas três larguras). Sem cadastro, a impressora do navegador com 42 colunas. Conferir nas impressoras do kit depende do kit (PP-19) |
+| 4 | Feito | Depois da 1ª via, toda impressão sai com **"2ª VIA"** (3ª...) e a hora da reimpressão; "Reimprimir" na tela de venda lista as últimas 30 vendas do aparelho. Cada impressão confirmada vai para a fila (`pos.print`, eventos `ReceiptPrinted`/`ReceiptReprinted` com operador, impressora, via e hora), na mesma transação que conta a via. No servidor, `pos.print_records` + `PrinterService.RecordPrintAsync` (idempotente pelo id do aparelho), que a subida da OFF-02 chama, como a `CashSessionIngestion` da CX-01 |
+| 5 | Parcial | Novo parâmetro da loja **Cupom ao concluir a venda** (`pos.stores.receipt_print_mode`: Perguntar, padrão; Imprimir sempre; Não imprimir), editável em Lojas e caixas e no catálogo do caixa. "Perguntar" mostra **Imprimir** e **Não imprimir**. **Pendente: "Enviar por e-mail" e "Enviar por WhatsApp"**: precisam da venda no servidor (a subida é da OFF-02) para gerar o comprovante a enviar, e do consentimento do cliente da ADR 0041; nada foi simulado |
+| 6 | Feito no código; **lista de modelos testados pendente (PP-19)** | `/pdv/config/impressora` ("Impressora do caixa" na tela do caixa): vazio "Nenhuma impressora instalada neste caixa." com "Instalar impressora"; 1) conexão (só "Pelo navegador" ativa; USB direto, rede e Bluetooth direto aparecem como "próxima versão", IMP-02/IMP-03); 2) largura (58/80) e colunas (80 mm: 48 ou 42) e o modelo de uma lista curta (`printer-models.ts`); 3) "Imprimir teste" com régua de colunas, acentos, valores alinhados, QR Code e corte, e "Saiu certo?" (sim salva; não mostra o que ajustar). Salvar pede o login de quem tem `pos.manage_devices` (`POST /api/v1/pos/printers`). A lista de modelos não foi testada com o kit de hardware (PP-19): anotado na ajuda |
+| 7 | Feito | `pos.printers` é do caixa; a foto e o delta (`/api/v1/pos/sync/*`) trazem as impressoras ativas do caixa do aparelho (colunas, largura, modelo, padrão) com uma versão que muda a cada alteração; o aparelho troca a lista inteira. O aparelho que instalou usa a impressora na hora (guardada no aparelho até a sincronização) |
+| 8 | Feito (com o limite do navegador) | Falha da porta: "Não foi possível imprimir." com **Tentar de novo**, **Outra impressora** (as do caixa e a do navegador) e **Seguir sem imprimir**; a venda já está gravada e não muda; a via não conta. **Limite:** a impressão pelo navegador não informa papel acabado nem impressora desligada; a detecção real é da IMP-02 (ESC/POS) |
+| 9 | Feito | Tudo no aparelho; o diálogo de impressão do navegador não usa a rede |
+| 10 | Feito | `pos.stores.fiscal_mode` (padrão `Nfce` = modo não fiscal desligado) e o aceite (`non_fiscal_terms_version`, `_accepted_at`, `_accepted_by`). `POST /api/v1/pos/stores/{id}/non-fiscal-mode` só para o grupo Proprietário; o texto versionado vem de `GET /api/v1/pos/stores/non-fiscal-terms` (obrigação fiscal é da empresa, o BemAqui não avalia dispensa, orientar-se com a contadora). A loja é `IAuditable`: o histórico guarda quem, quando, a loja e a versão. Sem o aceite, o catálogo do caixa desce `canSell = false` e a tela de venda mostra "Esta loja ainda não pode vender." (até a NFC-e, Fase 13) |
+| 11 | Feito | Quem tem `sales.edit` sem ser do grupo Proprietário recebe 403 ao ligar e ao desligar (teste de integração) |
+| 12 | Feito | `GET /api/v1/sales/reports/non-fiscal` e `/export` (CSV seguro) com `sales.view`: vendas do canal PDV concluídas sem NFC-e/NF-e (`fiscal_status` e `invoice_id` nulos), por período (data de negócio, até um ano), loja e operador; tela `/app/loja/vendas-sem-documento-fiscal` (link em Lojas e caixas) com carregando, vazio ("Nenhuma venda sem documento fiscal no período.") e erro. O critério é a venda sem documento, então as vendas com `pos.skip_fiscal` em loja com NFC-e (Fase 13) entram sozinhas. Até a OFF-02, as vendas do caixa ainda não chegam ao servidor: o relatório fica vazio na prática |
+| 13 | Feito | `NonFiscalTerms.Version`: com o aceite numa versão anterior, a loja mostra "Não vende: aceite o texto novo" e o botão "Ler e aceitar o texto novo" (só para o Proprietário); o aceite novo troca a versão e o anterior fica no histórico. O caixa **para de vender** até o aceite novo: `canSell` exige o aceite da versão vigente (`Store.NonFiscalAcceptedFor`), e a tela de venda diz "Esta loja parou de vender." com o motivo (o texto do aceite mudou). Revisto na revisão de segurança de 19/11 (antes, a loja continuava vendendo com o aceite anterior) |
+
+**Decisões e desvios:**
+- **CPF no papel (PP-26):** sai **mascarado** (`***.456.789-**`); o número inteiro continua só no registro cifrado do aparelho e é decifrado na hora de imprimir, nunca vai para a fila nem para log. CNPJ de cliente empresa sai inteiro. Os cupons guardados para a 2ª via (`pdv.receipts`, últimos 30) levam só o id do registro cifrado.
+- **Quem instala:** o assistente salva com o login completo de quem tem `pos.manage_devices` (como o registro do aparelho), não com a sessão por PIN do operador.
+- **"Só cupom não fiscal" por loja:** o PO decidiu "padrão da empresa e exceção por loja" (PP-05); nesta story o modo é por loja (não há ainda o padrão da empresa, que só faz sentido com a NFC-e).
+- **Konebras (perfil `factory`):** nada novo aparece: o caixa é do módulo `pos` e as telas de retaguarda, do `sales` (fora do perfil da fábrica). Banco só por acréscimo.
+- **Migration** `20261119225633_Imp01PrintersAndNonFiscalMode`: `pos.printers`, `pos.print_records` e cinco colunas em `pos.stores` (com padrão), só acréscimo.
+- **Sales → Pos.Contracts:** o relatório usa `IPosRegisters.ListStoresAsync` para o nome da loja (referência só ao `Contracts`, ADR 0006).
+- **Rota do caixa:** `/pdv/config/impressora/` é a segunda rota do app do caixa (mesmo escopo `/pdv/` do service worker).
+
+**Pendências (com motivo):**
+- PP-19 (kit de hardware): testes manuais dos CA 2, 3 e 6 nas impressoras do kit e a lista de "modelos testados" na ajuda.
+- PP-08 (ponte no Windows): conexão USB direta, rede e Bluetooth direto, corte e gaveta comandados (IMP-02, IMP-03). O corte, aqui, depende do driver.
+- CA 5: envio por e-mail e WhatsApp (OFF-02 e ADR 0041).
+- CA 2: CNPJ do estabelecimento (NFCE-07).
+- A redação final do texto do aceite (jurídico; QC-13 e RP-17): trocar o texto = subir `NonFiscalTerms.Version`.
+
+**Testes:** ver o relatório da story abaixo.
+
+## Revisão de segurança (19/11/2026)
+| # | Gravidade | Achado | O que foi feito |
+|---|---|---|---|
+| 1 | Média | `NonFiscalAccepted`/`CanSell` aceitava o aceite de qualquer versão do texto | `Store.NonFiscalAcceptedFor(NonFiscalTerms.Version)`: o catálogo do caixa só desce `canSell = true` com o modo ligado e o aceite da versão vigente. Com texto novo, o caixa para de vender até o Proprietário aceitar de novo (CA 13); a tela de venda diz o motivo e a de Lojas e caixas mostra "Não vende: aceite o texto novo". Teste: aceite de versão anterior desce `canSell = false` e o aceite novo libera |
+| 2 | Média | O caixa offline, ou um aparelho adulterado, ignora o `canSell` | Requisito levado à OFF-02: na subida, o servidor confere pelo histórico do aceite se a loja tinha o modo não fiscal aceito na versão vigente no `completedAt`; se não tinha, a venda vai para quarentena ou pendência do Proprietário, nunca é descartada |
+| 3 | Baixa | `PrintJobInput` (hoje `PrintRecordInput`) trazia `RegisterId` e `OperatorId` no corpo | `RecordPrintAsync(registerId, operatorId, input)`: o caixa vem do principal do aparelho e o operador da sessão de PIN (a OFF-02 passa os dois). A venda, se já está no servidor (`ISaleLookup`), tem de ser do mesmo caixa e com o mesmo número (`sale_other_register`). Teste: cupom de venda de outro caixa é recusado |
+| 4 | Baixa | `PrinterService.UpdateAsync` não conferia o caixa ativo | Mudar a impressora de caixa desativado devolve 422, como na criação. Teste no mesmo cenário |
+
+Migration conferida: o `TenantDbContextModelSnapshot` difere da main (que já tem a CX-01) só pelo acréscimo da IMP-01 (`pos.printers`, `pos.print_records` e as colunas de `pos.stores`), e o modelo do Designer da `20261119225633_Imp01PrintersAndNonFiscalMode` é igual ao do snapshot. A entidade da impressão registrada passou de `PrintJob` para `PrintRecord` (tabela `pos.print_records`): a regra de arquitetura trata todo tipo terminado em `Job` como job do Hangfire. A migration foi gerada de novo, não editada à mão.
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
+| 19/11/2026 | 0.3 | Correções da revisão de segurança: `canSell` só com o aceite da versão vigente do texto (o caixa para de vender com texto novo, CA 13, com o motivo na tela); conferência do modo não fiscal na subida da venda levada à OFF-02; `RecordPrintAsync` recebe caixa e operador do principal e da sessão de PIN e confere a venda do caixa; mudar impressora exige caixa ativo. Entidade `PrintJob` renomeada para `PrintRecord` (`pos.print_records`, regra de jobs da arquitetura) e migration gerada de novo; erros de validação nos testes são 422. Migration conferida contra a main. | Claude (dev) |

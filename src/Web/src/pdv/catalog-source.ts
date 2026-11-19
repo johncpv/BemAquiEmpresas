@@ -1,8 +1,8 @@
 import { getGetPosCatalogChangesUrl, getGetPosCatalogSnapshotUrl, getPosCatalogChanges, getPosCatalogSnapshot } from '@/api/generated/bemaqui'
-import type { PosCatalogChanges, PosCatalogSnapshot, PosSyncItem, PosSyncPaymentMethod, PosSyncStore } from '@/api/generated/model'
+import type { PosCatalogChanges, PosCatalogSnapshot, PosSyncItem, PosSyncPaymentMethod, PosSyncPrinter, PosSyncStore } from '@/api/generated/model'
 import type { CatalogChanges, CatalogSnapshot, CatalogSyncSource } from './catalog-sync'
 import { signRequest } from './device-signing'
-import type { CatalogBarcode, CatalogChange, CatalogCollection, CatalogData, CatalogPaymentMethod, CatalogPrice, CatalogRecords } from './local-store/catalog-types'
+import type { CatalogBarcode, CatalogChange, CatalogCollection, CatalogData, CatalogPaymentMethod, CatalogPrice, CatalogPrinter, CatalogRecords, StoreSettings } from './local-store/catalog-types'
 import type { LocalStore } from './local-store/local-store'
 
 /**
@@ -35,6 +35,15 @@ export function createCatalogSource(keys: CryptoKeyPair, store: Pick<LocalStore,
 const offlineWindowDays = (s: PosSyncStore) => (s.offlineWindowHours > 0 ? Math.ceil(s.offlineWindowHours / 24) : null)
 /** Aviso de sangria e teto de dinheiro da loja (PP-22, CX-01 CA 7 e 8), em centavos; zero ou ausente = sem limite. */
 const cashLimits = (s: PosSyncStore) => ({ alertCents: s.cashDropAlertCents > 0 ? s.cashDropAlertCents : null, ceilingCents: s.cashCeilingCents ?? null })
+/** IMP-01: empresa (cabeçalho do cupom), modo fiscal, se a loja vende (aceite do não fiscal, CA 10) e o cupom pós-venda (CA 5). */
+const storeSettings = (s: PosSyncStore): StoreSettings => ({
+  companyName: s.companyName ?? null, companyDocument: s.companyDocument ?? null, fiscalMode: s.fiscalMode ?? 'Nfce', canSell: s.canSell ?? true,
+  receiptPrintMode: s.receiptPrintMode ?? 'Ask',
+})
+/** Impressora do caixa como fica no aparelho (CA 7). */
+const printerRecord = (p: PosSyncPrinter): CatalogPrinter => ({
+  id: p.id, name: p.name, kind: 'printer', connection: p.connection, paperWidthMm: p.paperWidthMm, columns: p.columns, model: p.model, isDefault: p.isDefault,
+})
 
 const barcodeId = (itemId: string, code: string) => `${itemId}:${code}`
 
@@ -62,7 +71,7 @@ export function toSnapshot(body: PosCatalogSnapshot): CatalogSnapshot {
   }
   data.paymentMethods = body.paymentMethods.map(paymentMethodRecord)
   data.operators = body.operators.map((o) => ({ id: o.userId, displayName: o.displayName }))
-  data.printers = body.printers.items.map((p) => ({ id: p.id, name: p.name, kind: 'printer' }))
+  data.printers = body.printers.items.map(printerRecord)
   return {
     schemaVersion: body.schemaVersion,
     cursor: String(body.cursor),
@@ -70,6 +79,7 @@ export function toSnapshot(body: PosCatalogSnapshot): CatalogSnapshot {
     storeName: body.store.name,
     offlineWindowDays: offlineWindowDays(body.store),
     cashLimits: cashLimits(body.store),
+    storeSettings: storeSettings(body.store),
     data,
   }
 }
@@ -106,13 +116,14 @@ export function toChanges(body: PosCatalogChanges, store: Pick<LocalStore, 'list
   for (const m of body.paymentMethods) changes.push(upsert('paymentMethods', paymentMethodRecord(m)))
   for (const id of body.removedPaymentMethodIds) changes.push(remove('paymentMethods', id))
   changes.push(...replaceList('operators', body.operators.map((o) => ({ id: o.userId, displayName: o.displayName })), store))
-  changes.push(...replaceList('printers', body.printers.items.map((p) => ({ id: p.id, name: p.name, kind: 'printer' })), store))
+  changes.push(...replaceList('printers', body.printers.items.map(printerRecord), store))
 
   return {
     schemaVersion: body.schemaVersion,
     cursor: String(body.cursor),
     offlineWindowDays: offlineWindowDays(body.store),
     cashLimits: cashLimits(body.store),
+    storeSettings: storeSettings(body.store),
     hasMore: body.hasMore,
     changes,
   }
