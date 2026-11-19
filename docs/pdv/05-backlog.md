@@ -201,6 +201,7 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - Depende de: OFF-01; PP-26 (decidida).
 - Paridade: 22.
 - CA: item por leitor, busca ou grade por categoria em menos de 100 ms; quantidade, remover e observação; venda em espera; cliente opcional e CPF; os dois modos por caixa; atalhos na ajuda; funciona igual sem rede.
+- Pronta para revisão (18/11/2026, branch `feat/pdv-02-tela-venda`): tudo no `LocalStore`, com diário de eventos e recuperação; busca de cliente em `GET /api/v1/pos/customers`. Pendências: categoria e foto na grade do modo Toque (o catálogo do caixa não traz; CA 7 parcial); abrir o caixa é marcador no aparelho até a CX-01; remoção com PIN do supervisor na PDV-04.
 
 **PDV-03 [ ] Pagamento com várias formas e troco, com maquininha externa (M)** — ordem 4 — [story](stories/PDV-03-pagamento-varias-formas.md)
 - Depende de: PDV-02, PAG-01, VND-01.

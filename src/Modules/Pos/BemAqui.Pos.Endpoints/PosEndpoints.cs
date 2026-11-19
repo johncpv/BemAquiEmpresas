@@ -70,6 +70,11 @@ internal static class PosEndpoints
         sync.MapGet("/changes", async (long cursor, int? limit, HttpContext http, PosCatalogSyncService service, CancellationToken ct) =>
                 (await service.ChangesAsync(DevicePrincipal.From(http.User)!, cursor, limit, ct)).ToHttpResult())
             .RequireDevice().WithName("GetPosCatalogChanges").Produces<PosCatalogChanges>();
+
+        // PDV-02 CA 15: o operador (sessão por PIN do caixa) acha o cliente cadastrado para ligar à venda; só nome e documento mascarado.
+        var customers = api.MapGroup("/pos/customers").WithTags("PDV: venda").RequireModule("pos");
+        customers.MapGet(string.Empty, async (string? term, PosCustomerSearchService service, CancellationToken ct) => Results.Ok(await service.SearchAsync(term, ct)))
+            .RequirePermission("pos.create").AllowPosPinSession().WithName("SearchPosCustomers").Produces<IReadOnlyList<PosCustomer>>();
         return api;
     }
 

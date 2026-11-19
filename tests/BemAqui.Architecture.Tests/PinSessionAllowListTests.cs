@@ -64,6 +64,8 @@ public static partial class PinSessionAllowList
     {
         ["GetPosSession"] = "quem está no caixa: o operador da sessão, a loja, o caixa e as ações do caixa dele",
         ["EndPosSession"] = "sair do caixa: encerra a sessão por PIN do operador neste aparelho",
+        // PDV-02 CA 15: com rede, ligar o cliente cadastrado à venda (pos.create); só nome e documento mascarado, 10 por busca.
+        ["SearchPosCustomers"] = "cliente cadastrado na tela de venda: nome e documento mascarado, só clientes ativos",
     };
 
     [GeneratedRegex("""\.AllowPosPinSession\(\)""")]

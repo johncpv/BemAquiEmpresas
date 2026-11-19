@@ -189,7 +189,7 @@ function OperatorSession({ handshake, onDeviceGone }: { handshake: PosHandshake;
   if (pdv) {
     return (
       <PdvSale store={pdv.store} handshake={handshake} online={online} searchCustomers={null} onLeave={() => void leave()}
-        operator={{ id: s.userId, name: s.name, canCancelItem: s.actions.includes('pos.cancel_item') }} />
+        operator={{ id: s.userId, name: s.name, canCancelItem: s.actions.includes('cancel_item') }} />
     )
   }
 
