@@ -122,6 +122,24 @@ public sealed partial class BankMovementService
         return Detail(transfer);
     }
 
+    /// <summary>
+    /// Transferência Cofre ⇄ Caixa do PDV vinda do consumidor do caixa (CX-01 CA 9): as duas pernas ligadas, sem usuário (o fato já aconteceu na
+    /// gaveta). Fica aqui para só o extrato criar transferência (FIN-04 CA 15); quem chama já validou contas, valor e período.
+    /// </summary>
+    public static void AddPosCashTransfer(IFinanceDb db, BankTransfer transfer)
+    {
+        ArgumentNullException.ThrowIfNull(db);
+        ArgumentNullException.ThrowIfNull(transfer);
+        db.BankTransfers.Add(transfer);
+        db.FinancialTransactions.AddRange(PosLine(transfer, transfer.FromAccountId, -transfer.Amount), PosLine(transfer, transfer.ToAccountId, transfer.Amount));
+    }
+
+    private static FinancialTransaction PosLine(BankTransfer transfer, Guid account, decimal amount) => new()
+    {
+        BankAccountId = account, Date = transfer.Date, Amount = amount, Type = TransactionType.Transfer, Description = transfer.Description,
+        TransferId = transfer.Id, CreatedAt = transfer.CreatedAt,
+    };
+
     private FinancialTransaction TransferLine(BankTransfer transfer, Guid account, decimal amount, Guid? reverses) => new()
     {
         BankAccountId = account, Date = reverses is null ? transfer.Date : Today, Amount = amount, Type = TransactionType.Transfer,

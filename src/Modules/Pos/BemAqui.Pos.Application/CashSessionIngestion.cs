@@ -228,7 +228,7 @@ public sealed class CashSessionIngestion(IPosDb db, IEventPublisher events, IUse
     private void Publish(CashMovement movement, Register register) =>
         events.Publish(new CashMovementRecorded(
             movement.Id, movement.SessionId, register.StoreId, register.Id, register.Number, register.CashAccountId, movement.Kind.ToString(), movement.Amount,
-            movement.Reason, DateOnly.FromDateTime(BusinessTime.ToBusiness(movement.OccurredAt).DateTime), movement.OccurredAt));
+            DateOnly.FromDateTime(BusinessTime.ToBusiness(movement.OccurredAt).DateTime), movement.OccurredAt));
 
     private static CashSessionView ToView(CashSession s, bool replayed) => new(s.Id, s.RegisterId, s.OperatorId, s.Status, s.OpeningAmount, s.OpenedAt, replayed);
 

@@ -99,7 +99,7 @@ public partial class PosTests
         (await WithDbAsync(db => db.BankAccounts.Where(a => a.Id == safe).Select(a => a.Name).SingleAsync())).Should().Be(PosCashMovementConsumer.SafeName);
         var dropTransfer = transfers.Single(t => t.PosCashMovementId == cashOut);
         (dropTransfer.FromAccountId, dropTransfer.ToAccountId, dropTransfer.Amount).Should().Be((drawer, safe, 400m));
-        dropTransfer.Description.Should().Be("Sangria do caixa 01: Depósito no banco");
+        dropTransfer.Description.Should().Be("Sangria do caixa 01");
         var supply = transfers.Single(t => t.PosCashMovementId == cashIn);
         (supply.FromAccountId, supply.ToAccountId, supply.Amount).Should().Be((safe, drawer, 50m));
         var ids = transfers.Select(t => (Guid?)t.Id).ToList();
@@ -108,7 +108,7 @@ public partial class PosTests
         // Reprocessar o evento (outra entrega) não duplica a transferência.
         await using (var scope = await ScopeAsync())
         {
-            var evt = new CashMovementRecorded(cashOut, session, Guid.Empty, register, 1, drawer, CashMovementRecorded.CashOut, 400m, "Depósito no banco",
+            var evt = new CashMovementRecorded(cashOut, session, Guid.Empty, register, 1, drawer, CashMovementRecorded.CashOut, 400m,
                 DateOnly.FromDateTime(at.UtcDateTime), at);
             await scope.ServiceProvider.GetRequiredService<PosCashMovementConsumer>().HandleAsync(evt, default);
         }

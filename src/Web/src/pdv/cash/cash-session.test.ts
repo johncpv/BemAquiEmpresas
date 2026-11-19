@@ -17,7 +17,11 @@ async function openStore() {
 }
 
 const ana = { id: 'ana', name: 'Ana' }
-const at = (hhmm: string) => new Date(`2026-11-18T${hhmm}:00-03:00`)
+// Hora local do aparelho (o CI roda em UTC): a mensagem mostra a hora do relógio da loja.
+const at = (hhmm: string) => {
+  const [h, m] = hhmm.split(':').map(Number)
+  return new Date(2026, 10, 18, h, m)
+}
 
 describe('sessão de caixa no aparelho (CX-01)', () => {
   it('abre com o fundo de troco, grava o evento junto e guarda o fundo como padrão da próxima (CA 1)', async () => {

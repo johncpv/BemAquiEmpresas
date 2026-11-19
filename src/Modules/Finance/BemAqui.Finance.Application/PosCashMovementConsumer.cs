@@ -67,23 +67,22 @@ public sealed partial class PosCashMovementConsumer(IFinanceDb db, TimeProvider 
             FromAccountId = from, ToAccountId = to, Amount = integrationEvent.Amount, Date = date,
             Description = Describe(integrationEvent), PosCashMovementId = integrationEvent.MovementId, BackdateReason = note, CreatedAt = now,
         };
-        db.BankTransfers.Add(transfer);
-        db.FinancialTransactions.AddRange(Line(transfer, from, -transfer.Amount, now), Line(transfer, to, transfer.Amount, now));
+        BankMovementService.AddPosCashTransfer(db, transfer);
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    /// <summary>"Sangria do caixa 01: Depósito no banco", "Suprimento do caixa 01: Troco" ou "Fundo de troco do caixa 01".</summary>
+    /// <summary>"Sangria do caixa 01", "Suprimento do caixa 01" ou "Fundo de troco do caixa 01". O motivo fica no Pos (evento leva só ids, ADR 0037 §2).</summary>
     public static string Describe(CashMovementRecorded e)
     {
         ArgumentNullException.ThrowIfNull(e);
         var register = e.RegisterNumber.ToString("00", CultureInfo.InvariantCulture);
         var text = e.Kind switch
         {
-            CashMovementRecorded.CashOut => $"Sangria do caixa {register}: {e.Reason}",
-            CashMovementRecorded.CashIn => $"Suprimento do caixa {register}: {e.Reason}",
+            CashMovementRecorded.CashOut => $"Sangria do caixa {register}",
+            CashMovementRecorded.CashIn => $"Suprimento do caixa {register}",
             _ => $"Fundo de troco do caixa {register}",
         };
-        return text.Length <= 200 ? text : text[..200];
+        return text;
     }
 
     private async Task<Guid> SafeAsync(CancellationToken cancellationToken)
@@ -108,9 +107,4 @@ public sealed partial class PosCashMovementConsumer(IFinanceDb db, TimeProvider 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Movimento {MovementId} do caixa {RegisterId} sem transferência: a conta do caixa é o próprio Cofre.")]
     private static partial void LogDrawerIsSafe(ILogger logger, Guid movementId, Guid registerId);
 
-    private static FinancialTransaction Line(BankTransfer transfer, Guid account, decimal amount, DateTimeOffset now) => new()
-    {
-        BankAccountId = account, Date = transfer.Date, Amount = amount, Type = TransactionType.Transfer, Description = transfer.Description,
-        TransferId = transfer.Id, CreatedAt = now,
-    };
 }
