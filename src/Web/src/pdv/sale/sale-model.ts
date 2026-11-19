@@ -90,7 +90,8 @@ export interface SaleEventData {
   PaymentCancelled: { operatorId: string | null }
   TenderCaptured: { tender: Tender }
   TenderChanged: { tender: Tender }
-  SaleCompleted: { operatorId: string | null; totalCents: Cents; paidCents: Cents; changeCents: Cents }
+  /** `operatorId`: quem fechou (na conclusão ao reabrir, quem confirmou o último pagamento); `recoveredBy`: quem reabriu o caixa nesse caso. */
+  SaleCompleted: { operatorId: string | null; recoveredBy?: string | null; totalCents: Cents; paidCents: Cents; changeCents: Cents }
 }
 
 export type SaleEvent = { [K in SaleEventType]: SaleJournalEvent & { type: K; data: SaleEventData[K] } }[SaleEventType]

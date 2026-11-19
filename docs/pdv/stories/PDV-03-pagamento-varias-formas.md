@@ -103,9 +103,22 @@ Tudo no app do caixa (`src/Web/src/pdv/payment`, `src/Web/src/pdv/sale`, `src/We
 
 Ajuda: `Ajuda/pdv-pagamento.md` (nova), embutida na ajuda do app do caixa; `Ajuda/pdv-venda.md` atualizada (F10 abre o pagamento).
 
+## Pendências de segurança
+Da revisão de segurança da PDV-03 (18/11/2026):
+
+| Item | Situação | O quê |
+|---|---|---|
+| 1 | Corrigido | `recordTender` recusa qualquer mudança de um pagamento já `Captured` ("Este pagamento já foi recebido. Ele só sai por estorno ou cancelamento, com o supervisor."). A saída de `Captured` (estorno ou cancelamento) será um método próprio da PDV-04, com quem autorizou. Teste em `sale-payment.test.ts` |
+| 2 | Corrigido | `looksLikeCardNumber` normaliza antes de contar: NFKC (dígitos fullwidth viram ASCII), tira `\p{Cf}` (zero-width space, word joiner), trata qualquer não-alfanumérico entre dígitos como separador (barra, sublinhado, vírgula, asterisco, travessões) e testa `\p{Nd}{13,}` com a flag `u`. Teste em `payment-model.test.ts` com os casos da revisão |
+| 3 | Registrado na OFF-02 | O que o servidor valida na subida (o aparelho não é confiável): troco coerente e totais do topo recalculados, `PaymentStarted.totalCents` igual ao total refeito, máquina de estados por `tenderId` com saída de `Captured` só pela PDV-04, `tenderId` único, venda idempotente por `saleId` e número, `integration`/`operatorAttested`/`needsReconciliation` definidos pelo servidor e campos de integração nulos no Manual, `methodType`, parcelas e bandeira conferidos, a mesma normalização do número de cartão com tamanho máximo (140 e 12), `operatorId` e `confirmedBy` nulos recusados. Em [OFF-02, "Requisitos vindos da PDV-03"](OFF-02-sincronizacao-pendencias.md#requisitos-vindos-da-pdv-03-pagamento) |
+| 4 | Corrigido | Conclusão ao reabrir o caixa: o `SaleCompleted` leva como `operatorId` o `confirmedBy` do último `TenderCaptured` e marca `recoveredBy` com o operador que reabriu; `finish` exige a soma dos capturados **igual** ao total (acima do total não conclui e a venda fica para conferência); a tela avisa "Venda {número} concluída ao reabrir o caixa." com o troco, se houver. Testes em `sale-payment.test.ts` e `PaymentScreen.test.tsx` |
+| 5 | Corrigido | `PaymentScreen`: guarda síncrona (`useRef`) contra o duplo envio do Confirmar (e do "Foi aprovado"/"Não foi aprovado"). Teste com dois cliques no mesmo ato: uma captura só (sem a guarda, o teste falha com duas) |
+| 6 | Corrigido | Troco acima de R$ 200 no dinheiro pede um segundo toque: "Troco de R$ X: confira o valor recebido. Se estiver certo, toque em Confirmar recebimento de novo." O limite é constante da tela (`HIGH_CHANGE_CENTS`), não regra de terceiro. Teste em `PaymentScreen.test.tsx` |
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
 | 18/11/2026 | 1.0 | Implementada (branch `feat/pdv-03-pagamento`): tela de pagamento no app do caixa com várias formas, troco, bandeira e NSU sem dado de cartão, Pix conferido marcado para conferência, porta `PaymentTerminal` com `ManualTerminal` e os estados `Pending`, `Failed` e `Unknown` com tela; venda concluída com número na fila de saída; bandeiras e teto de parcelas no catálogo do caixa. CA 6 parcial (cupom com a IMP-01). | Claude (dev) |
+| 18/11/2026 | 1.1 | Revisão de segurança: pagamento `Captured` não muda pelo `recordTender` (saída só pela PDV-04), número de cartão normalizado (NFKC, invisíveis, qualquer separador, fullwidth), conclusão ao reabrir com o operador do último pagamento, `recoveredBy`, soma exata e aviso na tela, guarda contra duplo envio do Confirmar e confirmação de troco acima de R$ 200; requisitos do servidor (item 3) registrados na OFF-02. Ver "Pendências de segurança". | Claude (dev) |

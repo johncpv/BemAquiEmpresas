@@ -22,7 +22,10 @@ const moneyText = (cents: Cents) => centsToDecimal(cents).replace('.', ',')
 /** Instante da ação (fora da renderização). */
 const nowIso = () => new Date().toISOString()
 
-export const PIX_REMINDER = 'Confira o recebimento no aplicativo do banco, não na tela do cliente.'
+/** Troco acima disto (R$ 200) pede confirmação: protege do valor recebido digitado errado ("1000" no lugar de "10,00"). */
+const HIGH_CHANGE_CENTS: Cents = 20_000
+
+export const PIX_REMINDER ='Confira o recebimento no aplicativo do banco, não na tela do cliente.'
 
 function MethodIcon({ method }: { method: CatalogPaymentMethod }) {
   const group = methodGroup(method)
@@ -70,6 +73,11 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
   const [busy, setBusy] = useState(false)
   const [terminalTender, setTerminalTender] = useState<Tender | null>(null)
   const valueRef = useRef<HTMLInputElement>(null)
+  // Guarda síncrona contra o duplo envio (revisão de segurança): o `busy` do estado só muda na próxima renderização, e dois toques seguidos
+  // chegariam antes dela. O ref fecha a porta no mesmo instante.
+  const sending = useRef(false)
+  // Troco acima de R$ 200 pede um segundo toque (revisão de segurança, item 6): guarda o valor recebido já conferido.
+  const [highChangeAck, setHighChangeAck] = useState<Cents | null>(null)
 
   // Pagamento à espera de resposta ou sem resposta (integrações da PAG-02 a PAG-04; no manual não acontece): a tela própria vem do dado gravado.
   const open = sale.tenders.find((t) => t.status === 'Pending' || t.status === 'Unknown') ?? null
@@ -83,6 +91,7 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
     setNsu('')
     setNote('')
     setMessage(null)
+    setHighChangeAck(null)
     requestAnimationFrame(() => { valueRef.current?.focus(); valueRef.current?.select() })
   }
 
@@ -115,13 +124,19 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
   }
 
   const confirm = async () => {
-    if (!method || busy) return
+    if (!method || busy || sending.current) return
     if (cents === null || cents <= 0) { setMessage({ tone: 'error', text: 'Informe o valor.' }); return }
     let amount = cents
     let received: Cents | null = null
     if (allowsChange(method)) {
       received = cents
-      amount = splitCash(cents, remaining).amountCents
+      const split = splitCash(cents, remaining)
+      amount = split.amountCents
+      if (split.changeCents > HIGH_CHANGE_CENTS && highChangeAck !== cents) {
+        setHighChangeAck(cents)
+        setMessage({ tone: 'error', text: `Troco de ${formatCents(split.changeCents)}: confira o valor recebido. Se estiver certo, toque em Confirmar recebimento de novo.` })
+        return
+      }
     } else if (cents > remaining) {
       onValue(value)
       return
@@ -133,6 +148,7 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
     const checkedNote = checkTenderNote(note)
     if (!checkedNote.ok) { setMessage({ tone: 'error', text: checkedNote.message }); return }
 
+    sending.current = true
     setBusy(true)
     setMessage(null)
     try {
@@ -145,11 +161,14 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
     } catch {
       setMessage({ tone: 'error', text: 'Não foi possível gravar neste aparelho. Toque em Confirmar de novo; o que já foi recebido continua guardado.' })
     } finally {
+      sending.current = false
       setBusy(false)
     }
   }
 
   const resolveUnknown = async (tender: Tender, approved: boolean) => {
+    if (sending.current) return
+    sending.current = true
     setBusy(true)
     try {
       const checked = await terminal.check(tender, approved, nowIso())
@@ -158,6 +177,7 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
     } catch {
       setMessage({ tone: 'error', text: 'Não foi possível gravar neste aparelho. Tente de novo.' })
     } finally {
+      sending.current = false
       setBusy(false)
     }
   }

@@ -8,7 +8,7 @@ import type { Tender } from '@/pdv/payment/payment-model'
 import { ManualTerminal, tenderFrom } from '@/pdv/payment/payment-terminal'
 import { aesDocumentCipher } from './customer-document'
 import { saleTotal } from './sale-model'
-import { DEFAULT_SETTINGS, LOCKED_MESSAGE, SaleRegister, type SaleSettings } from './sale-register'
+import { CAPTURED_LOCKED_MESSAGE, DEFAULT_SETTINGS, LOCKED_MESSAGE, SaleRegister, type SaleSettings } from './sale-register'
 
 /** PDV-03: o pagamento sobre o LocalStore de verdade (Dexie no IndexedDB falso). Arroz 25,90 + café 18,99 = 44,89. */
 const CASH: CatalogPaymentMethod = { id: 'cash', name: 'Dinheiro', kind: 'Cash', allowsChange: true }
@@ -21,10 +21,10 @@ async function device() {
   const dbName = `pagamento-${Math.random()}`
   const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt'])
   const settings: SaleSettings = { mode: 'keyboard', ...DEFAULT_SETTINGS }
-  const open = async () => {
+  const open = async (operatorId = 'op-1') => {
     const lock = await acquireWriterLock(writerLockName(dbName), locks)
     const store = await DexieLocalStore.open({ dbName, lock, indexedDB, IDBKeyRange, attempts: 1 })
-    const register = await SaleRegister.open({ store, operatorId: 'op-1', salePrefix: '001-01-', settings: () => settings, cipher: aesDocumentCipher(async () => key) })
+    const register = await SaleRegister.open({ store, operatorId, salePrefix: '001-01-', settings: () => settings, cipher: aesDocumentCipher(async () => key) })
     return { store, register, lock }
   }
 
@@ -124,14 +124,48 @@ describe('pagamento da venda (PDV-03)', () => {
     expect(sale?.tenders.map((t) => t.amountCents)).toEqual([1_001])
 
     // Simula a queda: o último pagamento gravado no diário, sem o fechamento.
-    const last = tenderFrom({ tenderId: 'ultimo', method: CASH, amountCents: 3_488, receivedCents: 3_488, operatorId: 'op-1', at: '2026-11-18T12:01:00Z' }, 'Manual', 'Captured')
+    const last = tenderFrom({ tenderId: 'ultimo', method: CASH, amountCents: 3_488, receivedCents: 4_000, operatorId: 'op-1', at: '2026-11-18T12:01:00Z' }, 'Manual', 'Captured')
     await second.store.appendSaleEvents([{ id: 'e-ultimo', saleId: sale!.id, type: 'TenderCaptured', at: last.at, data: { tender: last } }])
     second.lock.release()
 
-    const third = await first.open()
+    // Reabre outro operador: quem fechou é quem confirmou o último pagamento; quem reabriu fica em recoveredBy.
+    const close = vi.spyOn(DexieLocalStore.prototype, 'closeSale')
+    const third = await first.open('op-2')
     expect(third.register.current()).toBeNull()
     expect(await third.store.saleJournal()).toHaveLength(0)
     expect((await third.store.pendingSummary()).count).toBe(1)
+    expect(third.register.recovered).toMatchObject([{ number: '001-01-000001', totalCents: 4_489, changeCents: 512 }])
+    const { entry } = await (close.mock.results[0].value as Promise<{ entry: OutboxEntry }>)
+    close.mockRestore()
+    const events = (entry.payload as { events: { type: string; data: Record<string, unknown> }[] }).events
+    expect(events.at(-1)).toMatchObject({ type: 'SaleCompleted', data: { operatorId: 'op-1', recoveredBy: 'op-2', paidCents: 4_489 } })
+  })
+
+  it('ao reabrir, pago acima do total não conclui: a venda fica para conferência', async () => {
+    const first = await device()
+    await first.register.startPayment()
+    const saleId = first.register.current()!.id
+    // Diário adulterado ou com defeito: um pagamento que passa do total.
+    const over = tenderFrom({ tenderId: 'demais', method: PIX, amountCents: 5_000, operatorId: 'op-1', at: '2026-11-18T12:01:00Z' }, 'Manual', 'Captured')
+    await first.store.appendSaleEvents([{ id: 'e-demais', saleId, type: 'TenderCaptured', at: over.at, data: { tender: over } }])
+    first.lock.release()
+
+    const second = await first.open()
+    expect(second.register.recovered).toEqual([])
+    expect(second.register.current()).toMatchObject({ id: saleId, inPayment: true })
+    expect((await second.store.pendingSummary()).count).toBe(0)
+  })
+
+  it('pagamento capturado não muda por aqui: estorno e cancelamento são da PDV-04 (revisão de segurança)', async () => {
+    const { register } = await device()
+    await register.startPayment()
+    const pix = await charge(PIX, 1_000)
+    await register.recordTender(pix)
+    for (const status of ['Voided', 'Refunded', 'Failed', 'Captured', 'Pending'] as const) {
+      expect(await register.recordTender({ ...pix, status })).toEqual({ kind: 'refused', message: CAPTURED_LOCKED_MESSAGE })
+    }
+    expect(await register.recordTender({ ...pix, amountCents: 500 })).toEqual({ kind: 'refused', message: CAPTURED_LOCKED_MESSAGE })
+    expect(register.current()?.tenders).toMatchObject([{ tenderId: pix.tenderId, status: 'Captured', amountCents: 1_000 }])
   })
 
   it('pagamento sem resposta (Unknown) fica gravado e, conferido como aprovado, fecha a venda (CA 11)', async () => {

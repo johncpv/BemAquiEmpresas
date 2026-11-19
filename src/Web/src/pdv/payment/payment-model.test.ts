@@ -118,6 +118,22 @@ describe('cartão sem dado de cartão (CA 4, segurança)', () => {
     expect(checkTenderNote('cliente pediu nota')).toEqual({ ok: true, value: 'cliente pediu nota' })
   })
 
+  it('normaliza antes de contar: qualquer separador, travessões, invisíveis e dígitos fullwidth (revisão de segurança)', () => {
+    const disguised = [
+      '4111/1111/1111/1111', '4111_1111_1111_1111', '4111,1111,1111,1111', '4111*1111*1111*1111',
+      '4111–1111–1111–1111', '4111—1111—1111—1111',
+      '4111​1111​1111​1111', '4111⁠1111⁠1111⁠1111',
+      '４１１１１１１１１１１１１１１１',
+      'cartão: 4111 / 1111 . 1111 - 1111',
+    ]
+    for (const text of disguised) expect(looksLikeCardNumber(text), text).toBe(true)
+    for (const text of disguised) expect(checkTenderNote(text)).toEqual({ ok: false, message: 'Não digite o número do cartão.' })
+    // O que não é cartão continua passando: NSU de 12, data e hora, valor com parcelas.
+    expect(looksLikeCardNumber('NSU 123456789012')).toBe(false)
+    expect(looksLikeCardNumber('18/11/2026 12:00')).toBe(false)
+    expect(looksLikeCardNumber('R$ 1.234,56 em 3x')).toBe(false)
+  })
+
   it('a bandeira vem da forma; sem bandeira própria, todas', () => {
     expect(brandsOf(method('Credit', { cardBrands: ['Visa', 'Elo'] }))).toEqual(['Visa', 'Elo'])
     expect(brandsOf(method('Credit'))).toContain('Mastercard')

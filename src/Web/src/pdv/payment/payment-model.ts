@@ -155,12 +155,14 @@ export function parseMoney(text: string): Cents | null {
 export const CARD_NUMBER_MESSAGE = 'Não digite o número do cartão.'
 
 /**
- * CA 4 (segurança): o texto tem uma sequência que parece número de cartão (13 ou mais dígitos seguidos, mesmo separados por espaço, ponto ou
- * traço)? O NSU tem até 12 dígitos; número de cartão tem de 13 a 19.
+ * CA 4 (segurança): o texto tem uma sequência que parece número de cartão (13 ou mais dígitos)? O NSU tem até 12 dígitos; número de cartão
+ * tem de 13 a 19. Antes de contar, normaliza (revisão de segurança): NFKC (dígitos fullwidth viram ASCII), tira os caracteres invisíveis de
+ * formatação (`\p{Cf}`: zero-width space, word joiner...) e trata qualquer coisa que não seja letra nem número entre dígitos como separador
+ * (espaço, ponto, traço, barra, sublinhado, vírgula, asterisco, travessões).
  */
 export function looksLikeCardNumber(text: string): boolean {
-  const joined = text.replace(/(\d)[\s.-]+(?=\d)/g, '$1')
-  return /\d{13,}/.test(joined)
+  const joined = text.normalize('NFKC').replace(/\p{Cf}/gu, '').replace(/(\d)[^\p{L}\p{N}]+(?=\d)/gu, '$1')
+  return /\p{Nd}{13,}/u.test(joined)
 }
 
 /** NSU (opcional): letras e números, até 12. */

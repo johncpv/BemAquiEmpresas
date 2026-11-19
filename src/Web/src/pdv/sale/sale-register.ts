@@ -47,6 +47,9 @@ export type TenderResult =
 
 export interface CompletedSale { number: string; totalCents: Cents; changeCents: Cents; tenders: Tender[] }
 
+/** Pagamento capturado é fato (revisão de segurança): só sai por estorno ou cancelamento, com quem autorizou (método próprio da PDV-04). */
+export const CAPTURED_LOCKED_MESSAGE = 'Este pagamento já foi recebido. Ele só sai por estorno ou cancelamento, com o supervisor.'
+
 export interface SaleRegisterOptions {
   store: LocalStore
   /** Quem está no caixa (vai nos eventos de remoção e descarte). */
@@ -79,6 +82,8 @@ export class SaleRegister {
   private readonly listeners = new Set<() => void>()
   private queue: Promise<unknown> = Promise.resolve()
   private readonly options: SaleRegisterOptions
+  /** Vendas concluídas ao reabrir (a queda foi entre o último pagamento e o fechamento): a tela avisa o número e o troco. */
+  readonly recovered: CompletedSale[] = []
 
   private constructor(options: SaleRegisterOptions) {
     this.options = options
@@ -87,10 +92,16 @@ export class SaleRegister {
   /** Abre o caixa com o que estava no diário (CA 18: a venda volta como estava). */
   static async open(options: SaleRegisterOptions): Promise<SaleRegister> {
     const register = new SaleRegister(options)
-    register.book = replaySales(await options.store.saleJournal())
-    // Sobra de uma queda entre gravar o último pagamento e fechar a venda: a soma já fecha, então conclui agora.
-    for (const sale of register.book.sales) {
-      if (sale.inPayment && paidCents(sale.tenders) > 0 && paidCents(sale.tenders) >= saleTotal(sale)) await register.finish(sale, [])
+    const journal = await options.store.saleJournal()
+    register.book = replaySales(journal)
+    // Sobra de uma queda entre gravar o último pagamento e fechar a venda: a soma fecha o total exato, então conclui agora. Quem fechou é quem
+    // confirmou o último pagamento (`confirmedBy`); quem reabriu fica em `recoveredBy`. Pago acima do total não conclui: fica para conferência.
+    for (const sale of [...register.book.sales]) {
+      const paid = paidCents(sale.tenders)
+      if (!sale.inPayment || paid <= 0 || paid !== saleTotal(sale)) continue
+      const last = journal.filter((e) => e.saleId === sale.id && e.type === 'TenderCaptured').at(-1)
+      const confirmedBy = (last?.data as SaleEventData['TenderCaptured'] | undefined)?.tender.confirmedBy ?? null
+      register.recovered.push(await register.finish(sale, [], { operatorId: confirmedBy ?? options.operatorId, recoveredBy: options.operatorId }))
     }
     return register
   }
@@ -388,6 +399,7 @@ export class SaleRegister {
 
   private checkTender(sale: Sale, tender: Tender): string | null {
     const previous = sale.tenders.find((t) => t.tenderId === tender.tenderId)
+    if (previous?.status === 'Captured') return CAPTURED_LOCKED_MESSAGE
     if (previous && !canTransition(previous.status, tender.status)) return 'Este pagamento já foi registrado.'
     if (!Number.isSafeInteger(tender.amountCents) || tender.amountCents <= 0) return 'Informe um valor maior que zero.'
     if (tender.status === 'Captured' && tender.amountCents > remainingCents(saleTotal(sale), sale.tenders)) return 'O valor passa do que falta.'
@@ -396,11 +408,16 @@ export class SaleRegister {
     return null
   }
 
-  /** Fecha a venda paga: `SaleCompleted` e a entrada `pos.sale` na fila, numa transação (o CPF fica no registro cifrado, fora da fila). */
-  private async finish(sale: Sale, extra: SaleEvent[]): Promise<CompletedSale> {
+  /**
+   * Fecha a venda paga: `SaleCompleted` e a entrada `pos.sale` na fila, numa transação (o CPF fica no registro cifrado, fora da fila). Só com a
+   * soma dos capturados igual ao total (acima do total não conclui: fica para conferência).
+   */
+  private async finish(sale: Sale, extra: SaleEvent[], by: { operatorId: string | null; recoveredBy: string | null } = { operatorId: this.options.operatorId, recoveredBy: null }): Promise<CompletedSale> {
     const total = saleTotal(sale)
+    const paid = paidCents(sale.tenders)
+    if (paid !== total) throw new SaleRuleError('A soma dos pagamentos não fecha o total da venda.')
     const change = changeCents(sale.tenders)
-    const completed = this.event('SaleCompleted', sale.id, { operatorId: this.options.operatorId, totalCents: total, paidCents: paidCents(sale.tenders), changeCents: change })
+    const completed = this.event('SaleCompleted', sale.id, { ...by, totalCents: total, paidCents: paid, changeCents: change })
     const prefix = this.options.salePrefix
     const { number } = await this.options.store.closeSale(sale.id, (seq, events) => ({
       kind: SALE_OUTBOX_KIND,

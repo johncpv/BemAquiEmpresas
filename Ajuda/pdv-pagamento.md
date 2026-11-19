@@ -11,7 +11,7 @@ Receber a venda em uma ou mais formas (parte em dinheiro, parte no cartão, por 
 
 ## Como usar
 - **Pagar:** com os itens lançados, toque em **Pagar** (F10). A tela mostra o total, o quanto **falta** e as formas de pagamento da loja.
-- **Dinheiro:** digite o valor que o cliente entregou ou use os botões de valor rápido (o exato e as notas acima). O **troco** aparece em destaque. O pagamento é gravado com o valor da venda e o troco à parte.
+- **Dinheiro:** digite o valor que o cliente entregou ou use os botões de valor rápido (o exato e as notas acima). O **troco** aparece em destaque. O pagamento é gravado com o valor da venda e o troco à parte. Se o troco passar de R$ 200, o caixa pede para conferir o valor recebido: toque em **Confirmar recebimento** de novo se estiver certo.
 - **Cartão (débito, crédito ou parcelado):** cobre na maquininha e, depois de aprovado, escolha a **bandeira** e as **parcelas** (quando a forma for parcelada) e toque em **Cartão aprovado**. O **NSU** é opcional. A tela nunca pede o número do cartão, a validade nem o código de segurança.
 - **Pix:** confira o recebimento **no aplicativo do banco, não na tela do cliente**, e toque em **Recebi o Pix**. Esse Pix fica marcado para conferência contra o extrato no fechamento do caixa.
 - **Várias formas:** pague uma parte, escolha outra forma e receba o que falta. A venda conclui sozinha quando a soma fecha o total.
@@ -32,5 +32,7 @@ Receber a venda em uma ou mais formas (parte em dinheiro, parte no cartão, por 
 **Apareceu "Nenhuma forma de pagamento ativa nesta loja."** Cadastre as formas em Financeiro → Formas de pagamento, no sistema. O caixa recebe a lista na próxima sincronização.
 
 **E se a maquininha não respondeu?** Com a maquininha integrada (próximas versões), o caixa pode mostrar "Não sabemos se o pagamento foi aprovado". Confira o último comprovante na maquininha antes de cobrar de novo e escolha **Foi aprovado** ou **Não foi aprovado**.
+
+**Apareceu "Venda ... concluída ao reabrir o caixa".** O caixa foi fechado (ou faltou energia) logo depois do último pagamento. A venda já estava paga e foi concluída ao reabrir; se o aviso mostrar troco, confira se ele foi entregue ao cliente.
 
 **E o cupom?** A impressão do cupom chega com a configuração da impressora do caixa.

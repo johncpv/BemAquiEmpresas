@@ -1,10 +1,11 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { IDBFactory, IDBKeyRange } from 'fake-indexeddb'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { PosHandshake } from '@/api/generated/model'
 import { emptyCatalog } from '@/pdv/local-store/catalog-types'
 import { DexieLocalStore } from '@/pdv/local-store/dexie-local-store'
 import { acquireWriterLock, InMemoryLockManager, writerLockName } from '@/pdv/local-store/writer-lock'
+import { ManualTerminal, tenderFrom } from '@/pdv/payment/payment-terminal'
 import { PdvSale } from './PdvSale'
 
 /** PDV-03 na tela: dinheiro + cartão na mesma venda, troco em destaque, cartão sem número e as formas que precisam de rede. */
@@ -92,6 +93,47 @@ describe('tela de pagamento (PDV-03)', () => {
     expect(fiado.textContent).toContain('Disponível com internet.')
     fireEvent.click(screen.getByRole('button', { name: 'Voltar aos itens' }))
     expect(await screen.findByLabelText('Total a pagar: R$ 18,99')).toBeTruthy()
+  })
+
+  it('dois toques seguidos no Confirmar geram uma captura só (revisão de segurança)', async () => {
+    const store = await saleWithCoffee(true)
+    fireEvent.click(await screen.findByRole('button', { name: /Dinheiro/ }))
+    const confirmButton = screen.getByRole('button', { name: 'Confirmar recebimento' })
+    const charge = vi.spyOn(ManualTerminal.prototype, 'charge')
+    // Os dois cliques no mesmo ato: a tela não renderiza entre eles, então o `busy` do estado ainda é falso no segundo.
+    act(() => { confirmButton.click(); confirmButton.click() })
+    expect(await screen.findByText('Venda concluída', { selector: 'h2' })).toBeTruthy()
+    expect(charge).toHaveBeenCalledTimes(1)
+    charge.mockRestore()
+    expect((await store.pendingSummary()).count).toBe(1)
+  })
+
+  it('troco acima de R$ 200 pede um segundo toque para conferir o valor recebido', async () => {
+    await saleWithCoffee(true)
+    fireEvent.click(await screen.findByRole('button', { name: /Dinheiro/ }))
+    fireEvent.change(screen.getByLabelText('Valor recebido'), { target: { value: '250,00' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar recebimento' }))
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^Troco de R\$\s231,01: confira o valor recebido/)
+    expect(screen.queryByText('Venda concluída', { selector: 'h2' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar recebimento' }))
+    expect(await screen.findByLabelText('Troco: R$ 231,01')).toBeTruthy()
+  })
+
+  it('venda concluída ao reabrir o caixa: a tela avisa o número e o troco', async () => {
+    const store = await openStore()
+    const saleId = 'venda-queda'
+    const at = '2026-11-18T12:00:00Z'
+    const line = { lineId: 'l1', itemId: 'cafe', name: 'Café Pilão 500g', unit: 'UN', fractional: false, quantity: '1', unitCents: 1_899, priceTableVersion: 1, code: null, note: null }
+    const tender = tenderFrom({ tenderId: 't1', method: { id: 'cash', name: 'Dinheiro', kind: 'Cash', allowsChange: true }, amountCents: 1_899, receivedCents: 2_000, operatorId: 'op', at }, 'Manual', 'Captured')
+    await store.appendSaleEvents([
+      { id: 'e1', saleId, type: 'SaleStarted', at, data: { operatorId: 'op' } },
+      { id: 'e2', saleId, type: 'LineAdded', at, data: { line } },
+      { id: 'e3', saleId, type: 'PaymentStarted', at, data: { operatorId: 'op', totalCents: 1_899 } },
+      { id: 'e4', saleId, type: 'TenderCaptured', at, data: { tender } },
+    ])
+    render(<PdvSale store={store} handshake={handshake} online operator={{ id: 'op', name: 'Diego', canCancelItem: false }} searchCustomers={null} onLeave={() => {}} />)
+    expect(await screen.findByText('Venda 001-01-000001 concluída ao reabrir o caixa. Troco: R$ 1,01.')).toBeTruthy()
+    expect((await store.pendingSummary()).count).toBe(1)
   })
 
   it('sem forma de pagamento na loja, explica o caminho para cadastrar', async () => {

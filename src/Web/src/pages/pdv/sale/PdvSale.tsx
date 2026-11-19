@@ -19,6 +19,13 @@ import { ScanDetector } from '@/pdv/sale/scanner'
 import { PaymentScreen, SaleCompletedView } from './PaymentScreen'
 import { CloseRegisterSheet, type CustomerHit, CustomerSheet, DiscardSheet, NoteSheet, ParkedSheet, ProductTile, QuantitySheet, RemoveSheet } from './sale-sheets'
 
+/** "Venda {número} concluída ao reabrir o caixa", com o troco quando houver (PDV-03, revisão de segurança). */
+function recoveredNotice(sales: readonly CompletedSale[]): { tone: 'ok'; text: string } | null {
+  if (sales.length === 0) return null
+  const text = sales.map((s) => `Venda ${s.number} concluída ao reabrir o caixa.${s.changeCents > 0 ? ` Troco: ${formatCents(s.changeCents)}.` : ''}`).join(' ')
+  return { tone: 'ok', text }
+}
+
 export interface SaleOperator {
   id: string
   name: string
@@ -161,7 +168,8 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
   const parked = parkedSales(book)
   const lines = useMemo(() => sale?.lines ?? [], [sale])
   const [code, setCode] = useState('')
-  const [notice, setNotice] = useState<{ tone: 'error' | 'ok'; text: string } | null>(null)
+  // Venda que fechou ao reabrir (a queda foi entre o último pagamento e o fechamento): avisa o número e o troco a devolver.
+  const [notice, setNotice] = useState<{ tone: 'error' | 'ok'; text: string } | null>(() => recoveredNotice(register.recovered))
   const [storageError, setStorageError] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [suggestion, setSuggestion] = useState(0)
