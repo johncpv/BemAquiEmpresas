@@ -22,6 +22,7 @@ public partial class PosTests
     [Fact]
     public async Task Uma_sessao_aberta_por_caixa_com_quem_abriu_e_desde_quando()
     {
+        await CommerceAsync(true);
         var (ownerId, owner) = await OwnerAsync(name: "Paula Lima");
         var (_, register, _) = await StoreAsync(owner);
         var (otherId, _) = await OwnerAsync(name: "Rui Souza");
@@ -59,6 +60,7 @@ public partial class PosTests
     [Fact]
     public async Task Abertura_sangria_e_suprimento_viram_transferencias_do_Cofre_ligadas_ao_movimento_sem_duplicar()
     {
+        await CommerceAsync(true);
         var (ownerId, owner) = await OwnerAsync();
         var (_, register, _) = await StoreAsync(owner);
         var drawer = await WithDbAsync(db => db.Registers.Where(r => r.Id == register).Select(r => r.CashAccountId).SingleAsync());
@@ -117,6 +119,7 @@ public partial class PosTests
     [Fact]
     public async Task Fundo_de_troco_zero_abre_sem_transferencia()
     {
+        await CommerceAsync(true);
         var (ownerId, owner) = await OwnerAsync();
         var (_, register, _) = await StoreAsync(owner);
         var movement = Guid.CreateVersion7();
@@ -135,6 +138,7 @@ public partial class PosTests
     [Fact]
     public async Task Aviso_e_teto_da_loja_gravam_no_PUT_e_voltam_na_lista()
     {
+        await CommerceAsync(true);
         var (_, owner) = await OwnerAsync();
         var (store, _, code) = await StoreAsync(owner);
         var view = (await OkAsync(await owner.GetAsync("/api/v1/pos/stores"))).EnumerateArray().Single(s => s.GetProperty("id").GetGuid() == store);
@@ -153,6 +157,7 @@ public partial class PosTests
     [Fact]
     public async Task Cofre_nao_pode_ser_a_conta_do_caixa()
     {
+        await CommerceAsync(true);
         var (_, owner) = await OwnerAsync();
         var (store, _, _) = await StoreAsync(owner);
         var safe = new BemAqui.Finance.Domain.BankAccount { Name = "Cofre", Kind = BemAqui.Finance.Contracts.BankAccountKind.Cash, CreatedAt = DateTimeOffset.UtcNow };
@@ -164,6 +169,7 @@ public partial class PosTests
     [Fact]
     public async Task Horario_do_aparelho_fora_da_janela_e_recusado()
     {
+        await CommerceAsync(true);
         var (ownerId, owner) = await OwnerAsync();
         var (_, register, _) = await StoreAsync(owner);
         var now = DateTimeOffset.UtcNow;
@@ -178,6 +184,7 @@ public partial class PosTests
     [Fact]
     public async Task Movimento_da_abertura_repetido_vira_conflito()
     {
+        await CommerceAsync(true);
         var (ownerId, owner) = await OwnerAsync();
         var (_, first, _) = await StoreAsync(owner);
         var (_, second, _) = await StoreAsync(owner);
@@ -190,6 +197,7 @@ public partial class PosTests
     [Fact]
     public async Task Transferencia_em_periodo_conciliado_entra_hoje_com_observacao_e_conta_inativa_nao_grava()
     {
+        await CommerceAsync(true);
         var (ownerId, owner) = await OwnerAsync();
         var (_, register, _) = await StoreAsync(owner);
         var drawer = await WithDbAsync(db => db.Registers.Where(r => r.Id == register).Select(r => r.CashAccountId).SingleAsync());
@@ -214,7 +222,7 @@ public partial class PosTests
         (await CashAsync(s => s.RecordMovementAsync(new CashMovementInput(cashIn, session, CashMovementKind.CashIn, 10m, "Troco", ownerId, at.AddMinutes(1), false)))).IsSuccess.Should().BeTrue();
         await DrainAsync();
         (await WithDbAsync(db => db.BankTransfers.CountAsync(t => t.PosCashMovementId == cashIn))).Should().Be(0);
-        (await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.DeadLetteredAt != null && m.Payload.Contains(cashIn.ToString())))).Should().Be(0);
+        (await WithDbAsync(db => db.OutboxMessages.CountAsync(m => m.Type.EndsWith("CashMovementRecorded") && m.Error != null))).Should().Be(0, "sem exceção no consumidor");
     }
 
     private async Task DrainAsync()

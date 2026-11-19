@@ -101,9 +101,21 @@ Branch `feat/cx-01-abertura-sangria`. **Local-first** (decisão do PO para esta 
 
 Ajuda: `Ajuda/pdv-caixa.md` (nova), embutida na ajuda do app do caixa; `Ajuda/loja-lojas-caixas.md` atualizada (aviso e teto da loja).
 
+## Revisão de segurança (19/11/2026)
+
+| Item | Situação | O quê |
+|---|---|---|
+| Média 1 | Corrigido | O `ToInput` do endpoint não repassava o aviso e o teto: nada gravava e cada edição zerava o teto. Repassa os dois; teste do PUT lendo os valores de volta |
+| Média 2 | Corrigido | Janela de horário na ingestão (`invalid_time`): evento antes da abertura da sessão ou depois de agora + 2 min é recusado (abertura, movimento e fechamento). No consumidor, data em período de conciliação fechado entra **hoje**, com a data do caixa na observação (`BackdateReason`), nunca retroativa |
+| Média 3 | Corrigido | A conta do caixa não pode ser o Cofre (`seed_key = cofre` ou nome "Cofre"): o cadastro recusa e as opções escondem. No consumidor, conta do caixa igual ao Cofre não grava e deixa aviso no log |
+| Baixa 4 | Corrigido | Id do movimento da abertura repetido vira `Conflict` (`cash_movement_conflict`), e a corrida na gravação também, sem 500 |
+| Baixa 5 | Corrigido | Conta do caixa inexistente ou inativa: o consumidor não grava, registra erro no log (`LoggerMessage`) e não lança exceção (sem retentativas inúteis; a CX-03 e a conciliação acham a falta) |
+| Requisitos | Registrado na OFF-02 | Caixa do aparelho ativo e época atual, sessão do caixa do aparelho, operador da sessão por PIN do servidor com as permissões conferidas no servidor, quem fecha e `closedAt`, janela de horário, `AboveExpected` recalculado e eventos do aparelho em série (ou sessão travada) |
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
 | 19/11/2026 | 1.0 | Implementada (branch `feat/cx-01-abertura-sangria`), local-first: sessão de caixa e movimentos no aparelho com o evento na fila; `pos.cash_sessions` e `pos.cash_movements` com uma sessão aberta por caixa; transferências Cofre ↔ Caixa do PDV no Financeiro, ligadas ao movimento; aviso de sangria e teto de dinheiro por loja (teto novo, opcional); painel sem o esperado; requisitos da subida registrados na OFF-02. | Claude (dev) |
+| 19/11/2026 | 1.1 | Correções da revisão de segurança (médias 1 a 3 e baixas 4 e 5) e requisitos novos na OFF-02. | Claude (dev) |
