@@ -79,4 +79,12 @@ public class PosRulesUnitTests
         principal.FindFirst("sub").Should().BeNull();
         DevicePrincipal.From(principal).Should().Be(device);
     }
+
+    [Theory]
+    [InlineData(BemAqui.Parties.Contracts.PartyKind.PF, "52998224725", "***.***.247-**")]
+    [InlineData(BemAqui.Parties.Contracts.PartyKind.PJ, "11222333000181", "11.222.333/0001-81")]
+    [InlineData(BemAqui.Parties.Contracts.PartyKind.PF, null, null)]
+    [InlineData(BemAqui.Parties.Contracts.PartyKind.PF, "123", null)]
+    public void Cliente_na_tela_de_venda_desce_com_o_CPF_mascarado(BemAqui.Parties.Contracts.PartyKind kind, string? document, string? expected) =>
+        BemAqui.Pos.Application.PosCustomerSearchService.Mask(kind, document).Should().Be(expected);
 }

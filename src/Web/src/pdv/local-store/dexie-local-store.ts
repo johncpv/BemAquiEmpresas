@@ -3,6 +3,7 @@ import { uuidv7 } from '@/pdv/uuid-v7'
 import { CatalogMemory } from './catalog-memory'
 import { CATALOG_COLLECTIONS, type CatalogChange, type CatalogCollection, type CatalogData, type CatalogState, type CatalogVersion, emptyCatalog } from './catalog-types'
 import { type LocalStore, type MetaKey, type OutboxEntry, type PendingSummary, ReadOnlyStoreError } from './local-store'
+import type { ClosedSale, CustomerDocumentRecord, SaleJournalEvent } from './sale-journal-types'
 import type { WriterLock } from './writer-lock'
 
 /** Banco local do caixa (um por origem, ou seja, por empresa). A chave do aparelho fica à parte, em `bemaqui-pdv` (PDV-01). */
@@ -18,6 +19,10 @@ type ChunkRow = { k: string; collection: CatalogCollection; records: { id: strin
 type OverlayRow = { k: string; collection: CatalogCollection; id: string; record: { id: string } | null }
 type OutboxRow = { seq?: number; id: string; kind: string; createdAt: string; payload: unknown }
 type CatalogMeta = Omit<CatalogState, 'counts'>
+type SaleEventRow = SaleJournalEvent & { seq?: number }
+
+/** Último número de venda usado por este caixa (o próximo é este + 1). */
+export const SALE_SEQ_META = 'sale.seq'
 
 export function chunkOf(id: string): number {
   let h = 0
@@ -30,11 +35,15 @@ class PdvDatabase extends Dexie {
   catalogChunks!: Table<ChunkRow, string>
   catalogOverlay!: Table<OverlayRow, string>
   outbox!: Table<OutboxRow, number>
+  saleEvents!: Table<SaleEventRow, number>
+  customerDocs!: Table<CustomerDocumentRecord, string>
 
   constructor(name: string, deps?: { indexedDB: IDBFactory; IDBKeyRange: typeof IDBKeyRange }) {
     // 'strict': cada transação concluída já está no disco (fsync) antes de a promessa resolver; o caixa não perde venda concluída numa queda.
     super(name, { chromeTransactionDurability: 'strict', ...(deps ?? {}) })
     this.version(1).stores({ meta: 'k', catalogChunks: 'k', catalogOverlay: 'k', outbox: '++seq' })
+    // PDV-02: diário da venda em andamento e documento do consumidor cifrado (só acréscimo; nada da versão 1 muda).
+    this.version(2).stores({ meta: 'k', catalogChunks: 'k', catalogOverlay: 'k', outbox: '++seq', saleEvents: '++seq, saleId', customerDocs: 'id' })
   }
 }
 
@@ -194,6 +203,7 @@ export class DexieLocalStore implements LocalStore {
   list<K extends CatalogCollection>(collection: K) { return this.memory.list(collection) }
   get<K extends CatalogCollection>(collection: K, id: string) { return this.memory.get(collection, id) }
   findByBarcode(code: string) { return this.memory.findByBarcode(code) }
+  lookupBarcode(code: string) { return this.memory.lookupBarcode(code) }
   priceOf(itemId: string) { return this.memory.priceOf(itemId) }
   searchItems(term: string, limit?: number) { return this.memory.searchItems(term, limit) }
 
@@ -207,6 +217,47 @@ export class DexieLocalStore implements LocalStore {
   async pendingSummary(): Promise<PendingSummary> {
     const [count, oldest] = await this.db.transaction('r', this.db.outbox, async () => [await this.db.outbox.count(), await this.db.outbox.orderBy('seq').first()] as const)
     return { count, oldestAt: oldest?.createdAt ?? null }
+  }
+
+  async appendSaleEvents(events: readonly SaleJournalEvent[]): Promise<void> {
+    this.assertWritable()
+    if (events.length === 0) return
+    await this.db.transaction('rw', this.db.saleEvents, async () => { await this.db.saleEvents.bulkAdd(events.map((e) => ({ ...e }))) })
+  }
+
+  async saleJournal(): Promise<SaleJournalEvent[]> {
+    const rows = await this.db.saleEvents.orderBy('seq').toArray()
+    return rows.map(({ seq: _seq, ...event }) => event)
+  }
+
+  async closeSale(saleId: string, build: (number: number, events: SaleJournalEvent[]) => ClosedSale, deleteDocumentId?: string | null): Promise<{ number: number; entry: OutboxEntry }> {
+    this.assertWritable()
+    return this.db.transaction('rw', [this.db.meta, this.db.saleEvents, this.db.outbox, this.db.customerDocs], async () => {
+      const last = Number((await this.db.meta.get(SALE_SEQ_META))?.v ?? 0)
+      const number = last + 1
+      const rows = await this.db.saleEvents.where('saleId').equals(saleId).sortBy('seq')
+      const closed = build(number, rows.map(({ seq: _seq, ...event }) => event))
+      const row: OutboxRow = { id: uuidv7(Date.parse(closed.at)), kind: closed.kind, createdAt: closed.at, payload: closed.payload }
+      const seq = await this.db.outbox.add(row)
+      await this.db.saleEvents.where('saleId').equals(saleId).delete()
+      await this.db.meta.put({ k: SALE_SEQ_META, v: number })
+      if (deleteDocumentId) await this.db.customerDocs.delete(deleteDocumentId)
+      return { number, entry: { ...row, seq } }
+    })
+  }
+
+  async putCustomerDocument(doc: CustomerDocumentRecord): Promise<void> {
+    this.assertWritable()
+    await this.db.customerDocs.put(doc)
+  }
+
+  async getCustomerDocument(id: string): Promise<CustomerDocumentRecord | null> {
+    return (await this.db.customerDocs.get(id)) ?? null
+  }
+
+  async deleteCustomerDocument(id: string): Promise<void> {
+    this.assertWritable()
+    await this.db.customerDocs.delete(id)
   }
 
   close(): void {

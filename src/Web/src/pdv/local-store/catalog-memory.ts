@@ -1,4 +1,4 @@
-import { CATALOG_COLLECTIONS, type CatalogChange, type CatalogCollection, type CatalogData, type CatalogItem, type CatalogPrice, type CatalogRecords } from './catalog-types'
+import { CATALOG_COLLECTIONS, type CatalogBarcode, type CatalogChange, type CatalogCollection, type CatalogData, type CatalogItem, type CatalogPrice, type CatalogRecords } from './catalog-types'
 
 /** Texto de busca: minúsculo, sem acento, espaços simples. */
 export function normalizeSearch(text: string): string {
@@ -14,7 +14,7 @@ type Maps = { [K in CatalogCollection]: Map<string, CatalogRecords[K]> }
  */
 export class CatalogMemory {
   private maps: Maps = emptyMaps()
-  private byCode = new Map<string, string>()
+  private byCode = new Map<string, CatalogBarcode>()
   private priceByItem = new Map<string, CatalogPrice>()
   private names: { text: string; item: CatalogItem }[] | null = null
 
@@ -40,7 +40,7 @@ export class CatalogMemory {
 
   private reindex(): void {
     this.byCode = new Map()
-    for (const b of this.maps.barcodes.values()) this.byCode.set(b.code, b.itemId)
+    for (const b of this.maps.barcodes.values()) this.byCode.set(b.code, b)
     this.priceByItem = new Map()
     for (const p of this.maps.prices.values()) {
       const current = this.priceByItem.get(p.itemId)
@@ -67,8 +67,14 @@ export class CatalogMemory {
   }
 
   findByBarcode(code: string): CatalogItem | null {
-    const itemId = this.byCode.get(code.trim())
-    return itemId ? (this.maps.items.get(itemId) ?? null) : null
+    return this.lookupBarcode(code)?.item ?? null
+  }
+
+  /** O item e o código lido, com a quantidade da embalagem (PDV-02 CA 2). */
+  lookupBarcode(code: string): { item: CatalogItem; barcode: CatalogBarcode } | null {
+    const barcode = this.byCode.get(code.trim())
+    const item = barcode ? this.maps.items.get(barcode.itemId) : undefined
+    return barcode && item ? { item, barcode } : null
   }
 
   priceOf(itemId: string): CatalogPrice | null {

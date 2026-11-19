@@ -36372,6 +36372,38 @@
         }
       }
     },
+    "/api/v1/pos/customers": {
+      "get": {
+        "tags": [
+          "PDV: venda"
+        ],
+        "operationId": "SearchPosCustomers",
+        "parameters": [
+          {
+            "name": "term",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PosCustomer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/fiscal/integration": {
       "get": {
         "tags": [
@@ -86249,6 +86281,29 @@
           }
         }
       },
+      "PosCustomer": {
+        "required": [
+          "id",
+          "name",
+          "document"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "PosDeviceView": {
         "required": [
           "id",
@@ -112160,6 +112215,9 @@
     },
     {
       "name": "Lojas e caixas"
+    },
+    {
+      "name": "PDV: venda"
     },
     {
       "name": "Fiscal"

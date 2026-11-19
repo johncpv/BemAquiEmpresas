@@ -363,6 +363,28 @@ public partial class PosTests
         row.LockedUntil.Should().NotBeNull();
     }
 
+    [Fact]
+    public async Task Operador_no_caixa_acha_o_cliente_cadastrado_so_com_nome_e_documento_mascarado()
+    {
+        // PDV-02 CA 15: com rede, a sessão por PIN do caixa busca o cliente pelo contrato de Terceiros (lista [PosPinSessionAllowed]).
+        await CommerceAsync(true);
+        var (owner, store, device) = await RegisterAsync();
+        using var registered = device;
+        var id = await CreateOperationUserAsync(owner, await CashierGroupAsync(), store, "Bia Caixa");
+        await OkAsync(await PinLoginAsync(device, id, InitialPin, OwnPin));
+        var tag = Unique("Pdv", 6);
+        var created = await owner.PostAsJsonAsync("/api/v1/parties", new { kind = "PF", document = (string?)null, legalName = "Cliente " + tag, roles = new[] { "Customer" } });
+        created.StatusCode.Should().Be(HttpStatusCode.Created, await created.Content.ReadAsStringAsync());
+        var customer = (await JsonAsync(created)).GetProperty("id").GetGuid();
+
+        var op = Operator(await PinTokenAsync(device, id, OwnPin), device);
+        var hits = (await OkAsync(await op.GetAsync("/api/v1/pos/customers?term=" + Uri.EscapeDataString(tag)))).EnumerateArray().ToList();
+        hits.Should().ContainSingle(h => h.GetProperty("id").GetGuid() == customer && h.GetProperty("name").GetString() == "Cliente " + tag);
+        hits.Single().EnumerateObject().Select(p => p.Name).Should().BeEquivalentTo(["id", "name", "document"], "só o que a tela de venda precisa");
+        (await OkAsync(await op.GetAsync("/api/v1/pos/customers?term=Pd"))).GetArrayLength().Should().Be(0, "menos de 3 letras não busca");
+        (await Anonymous().GetAsync("/api/v1/pos/customers?term=" + tag)).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
     /// <summary>Usuário completo (não Proprietário) num grupo próprio com as ações pedidas.</summary>
     private async Task<HttpClient> ManagerAsync(params string[] grants)
     {

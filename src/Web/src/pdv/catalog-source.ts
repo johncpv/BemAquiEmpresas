@@ -38,7 +38,7 @@ const barcodeId = (itemId: string, code: string) => `${itemId}:${code}`
 
 function itemRecords(item: PosSyncItem, priceListVersion: number) {
   const record = { id: item.productId, name: item.description, unit: item.unitCode, sku: item.plu, fractional: item.isWeighable }
-  const barcodes: CatalogBarcode[] = item.barcodes.map((b) => ({ id: barcodeId(item.productId, b.gtin), code: b.gtin, itemId: item.productId }))
+  const barcodes: CatalogBarcode[] = item.barcodes.map((b) => ({ id: barcodeId(item.productId, b.gtin), code: b.gtin, itemId: item.productId, packQuantity: b.packQuantity }))
   const price: CatalogPrice | null = item.priceCents === null
     ? null
     : { id: item.productId, itemId: item.productId, priceCents: item.priceCents as CatalogPrice['priceCents'], tableVersion: item.priceListVersion ?? priceListVersion }

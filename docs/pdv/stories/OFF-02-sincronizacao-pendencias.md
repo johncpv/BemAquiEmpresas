@@ -88,8 +88,20 @@ Como **dono**, quero **que toda venda feita no caixa chegue ao sistema uma vez s
 - [ ] Padrões e próximo passo propositivos avaliados; auditoria ligada.
 - [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR.
 
+## Requisitos de segurança vindos da PDV-02
+Da revisão de segurança da PDV-02 (18/11/2026), registrados lá em "Pendências de segurança":
+
+- **Achado 4 (requisitos da OFF-02, que o servidor deve cumprir na subida):** a regra da venda roda no aparelho, que não é confiável; na subida, o servidor:
+  - refaz o replay da venda a partir dos eventos, sem confiar no estado que o aparelho calculou;
+  - valida `last-item` (remoção) e `remove-last` (desfazer o último lançamento que somou na linha): só valem para o último lançamento de fato, e a redução de quantidade de outra linha só vale com autorização;
+  - lê o `freeRemoveLast` da configuração do servidor (a da loja ou do caixa), nunca o valor guardado no aparelho;
+  - exige quem autorizou em `authorized` (o supervisor, não só o operador) e confere, pelo histórico de permissões, que essa pessoa tinha `pos.cancel_item` no instante do evento;
+  - amarra o `operatorId` de cada evento ao log de sessões por PIN do aparelho (o operador tinha sessão aberta naquele caixa naquele horário);
+  - gera o relatório de exceções por operador (remoções, reduções, descartes e eventos recusados na validação).
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
+| 18/11/2026 | 0.3 | Recebidos os requisitos de segurança da PDV-02 (achado 4 da revisão de 18/11): replay no servidor, validação de `last-item` e `remove-last`, `freeRemoveLast` do servidor, quem autorizou com a permissão no instante, `operatorId` amarrado às sessões PIN e relatório de exceções por operador. | Claude (dev) |

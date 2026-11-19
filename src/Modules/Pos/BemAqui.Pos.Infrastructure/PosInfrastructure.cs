@@ -21,6 +21,7 @@ public static class PosInfrastructure
         services.TryAddScoped<PosSyncService>();
         services.TryAddScoped<PosCatalogProjector>(); // OFF-01: modelo de leitura do caixa (consumidor e carga inicial)
         services.TryAddScoped<PosCatalogSyncService>();
+        services.TryAddScoped<PosCustomerSearchService>(); // PDV-02 CA 15: cliente cadastrado na tela de venda
         services.TryAddScoped<IPosRegisters, PosRegistersContract>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IProfileSeedPackage, PosRetailSeedPackage>());
         services.AddAuditableEntity<Store>("sales");
