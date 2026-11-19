@@ -112,6 +112,8 @@ Ajuda: `Ajuda/pdv-caixa.md` (nova), embutida na ajuda do app do caixa; `Ajuda/lo
 | Baixa 5 | Corrigido | Conta do caixa inexistente ou inativa: o consumidor não grava, registra erro no log (`LoggerMessage`) e não lança exceção (sem retentativas inúteis; a CX-03 e a conciliação acham a falta) |
 | Requisitos | Registrado na OFF-02 | Caixa do aparelho ativo e época atual, sessão do caixa do aparelho, operador da sessão por PIN do servidor com as permissões conferidas no servidor, quem fecha e `closedAt`, janela de horário, `AboveExpected` recalculado e eventos do aparelho em série (ou sessão travada) |
 
+Testes novos em `PosTests.Cash.cs` (um por regra): aviso e teto pelo PUT, Cofre recusado como conta do caixa, janela de horário, movimento da abertura repetido, período conciliado e conta inativa. Rodados em contêiner (`docker cp`): `PosTests`, `OpenApiDocumentTests`, `EndpointAuthorizationTests`, `MigrationRulesTests`, `DataOwnershipTests`, `SolutionArchitectureTests` e `PersonalDataTests`, 70 de 70 passando. Os testes de caixa agora ligam o perfil Comércio no começo (antes dependiam da ordem).
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
