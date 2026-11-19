@@ -62,10 +62,19 @@ export interface CatalogOperator {
   displayName: string
 }
 
+/**
+ * Impressora do caixa (IMP-01 CA 3, 6 e 7): conexão, bobina (58 ou 80 mm), colunas (32, 42 ou 48), modelo e se é a padrão. Os campos novos ficam
+ * ausentes nos catálogos baixados antes da IMP-01 (a coleção descia vazia): o próximo delta traz a lista inteira.
+ */
 export interface CatalogPrinter {
   id: string
   name: string
   kind: string
+  connection?: string
+  paperWidthMm?: number
+  columns?: number
+  model?: string
+  isDefault?: boolean
 }
 
 export interface CatalogRecords {
@@ -96,6 +105,20 @@ export interface CatalogVersion {
   offlineWindowDays?: number | null
   /** Aviso de sangria e teto de dinheiro no caixa da loja (PP-22, CX-01), em centavos. Ausente: o servidor não mandou (mantém o guardado). */
   cashLimits?: CashLimits | null
+  /** Empresa e documento fiscal da loja e o cupom pós-venda (IMP-01). Ausente: o servidor não mandou (mantém o guardado). */
+  storeSettings?: StoreSettings | null
+}
+
+/**
+ * Parâmetros da loja para o cupom (IMP-01): nome e CNPJ da empresa no cabeçalho, o modo fiscal, se a loja pode vender (`canSell` falso: sem o
+ * aceite do modo "só cupom não fiscal", até a NFC-e, CA 10) e o que fazer com o cupom ao concluir (CA 5).
+ */
+export interface StoreSettings {
+  companyName: string | null
+  companyDocument: string | null
+  fiscalMode: 'Nfce' | 'NonFiscal'
+  canSell: boolean
+  receiptPrintMode: 'Ask' | 'Always' | 'Never'
 }
 
 /** Limites da loja para o dinheiro na gaveta (CX-01 CA 7 e 8), em centavos; null = sem limite. */
@@ -111,6 +134,7 @@ export interface CatalogState extends CatalogVersion {
   syncedAt: string
   offlineWindowDays: number | null
   cashLimits: CashLimits | null
+  storeSettings?: StoreSettings | null
   counts: Record<CatalogCollection, number>
 }
 

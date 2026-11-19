@@ -48,11 +48,164 @@ public sealed class Store : Entity, IAuditable, IConcurrencyVersioned
     /// </summary>
     public decimal? CashCeilingAmount { get; set; }
 
+    /// <summary>
+    /// Documento fiscal da loja (IMP-01, PP-05): <see cref="StoreFiscalMode.Nfce"/> (o padrão; a NFC-e chega na Fase 13) ou "só cupom não fiscal",
+    /// que só o Proprietário liga, com aceite registrado. Até existir a NFC-e, a loja só vende com o modo não fiscal aceito.
+    /// </summary>
+    public StoreFiscalMode FiscalMode { get; private set; } = StoreFiscalMode.Nfce;
+
+    /// <summary>Versão do texto do aceite que o Proprietário aceitou ao ligar o modo não fiscal (nula: nunca aceitou ou o modo está desligado).</summary>
+    public int? NonFiscalTermsVersion { get; private set; }
+
+    public DateTimeOffset? NonFiscalAcceptedAt { get; private set; }
+
+    public Guid? NonFiscalAcceptedBy { get; private set; }
+
+    /// <summary>Cupom depois da venda (IMP-01 CA 5): perguntar (o padrão), imprimir sempre ou não imprimir.</summary>
+    public ReceiptPrintMode ReceiptPrintMode { get; set; } = ReceiptPrintMode.Ask;
+
     public string? SeedKey { get; init; }
 
     public DateTimeOffset CreatedAt { get; init; }
 
     public uint Version { get; set; }
+
+    /// <summary>A loja vende só com cupom não fiscal e há um aceite registrado (de qualquer versão do texto; a versão nova pede outro aceite, CA 13).</summary>
+    public bool NonFiscalAccepted => FiscalMode == StoreFiscalMode.NonFiscal && NonFiscalTermsVersion is not null;
+
+    /// <summary>Liga o modo "só cupom não fiscal" com o aceite do Proprietário (IMP-01 CA 10 e 13): guarda a versão do texto, quem e quando.</summary>
+    public void AcceptNonFiscal(int termsVersion, Guid acceptedBy, DateTimeOffset at)
+    {
+        FiscalMode = StoreFiscalMode.NonFiscal;
+        NonFiscalTermsVersion = termsVersion;
+        NonFiscalAcceptedBy = acceptedBy;
+        NonFiscalAcceptedAt = at;
+    }
+
+    /// <summary>Volta ao modo NFC-e (desliga o não fiscal); o aceite anterior continua no histórico da auditoria.</summary>
+    public void DisableNonFiscal()
+    {
+        FiscalMode = StoreFiscalMode.Nfce;
+        NonFiscalTermsVersion = null;
+        NonFiscalAcceptedBy = null;
+        NonFiscalAcceptedAt = null;
+    }
+}
+
+/// <summary>Documento fiscal da venda na loja (IMP-01, PP-05): NFC-e (Fase 13) ou só cupom não fiscal, com aceite do Proprietário.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<StoreFiscalMode>))]
+public enum StoreFiscalMode
+{
+    Nfce,
+    NonFiscal,
+}
+
+/// <summary>O que o caixa faz com o cupom ao concluir a venda (IMP-01 CA 5).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<ReceiptPrintMode>))]
+public enum ReceiptPrintMode
+{
+    Ask,
+    Always,
+    Never,
+}
+
+/// <summary>Conexão da impressora (IMP-01 CA 6): nesta story só a do navegador funciona; USB direto, rede e Bluetooth chegam na IMP-02 e na IMP-03.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<PrinterConnection>))]
+public enum PrinterConnection
+{
+    Browser,
+    Usb,
+    Network,
+    Bluetooth,
+}
+
+/// <summary>
+/// Impressora de um caixa (<c>pos.printers</c>, IMP-01 CA 6 e 7): bobina de 58 mm (32 colunas) ou 80 mm (42 ou 48), o modelo da lista curta e a
+/// conexão. Desce para o aparelho do caixa na sincronização. Não é apagada: desativa.
+/// </summary>
+[DocumentName("Impressora")]
+public sealed class Printer : Entity, IAuditable, IConcurrencyVersioned
+{
+    public const int MaxNameLength = 60;
+    public const int MaxModelLength = 40;
+
+    public Guid StoreId { get; init; }
+
+    public Guid RegisterId { get; init; }
+
+    public string Name { get; set; } = string.Empty;
+
+    public PrinterConnection Connection { get; set; } = PrinterConnection.Browser;
+
+    public int PaperWidthMm { get; set; } = 80;
+
+    public int Columns { get; set; } = 48;
+
+    public string Model { get; set; } = string.Empty;
+
+    public bool IsDefault { get; set; }
+
+    public bool IsActive { get; set; } = true;
+
+    /// <summary>"Saiu certo?" respondido com sim na página de teste (CA 6); nulo enquanto não foi confirmada.</summary>
+    public DateTimeOffset? TestConfirmedAt { get; set; }
+
+    public DateTimeOffset CreatedAt { get; init; }
+
+    public uint Version { get; set; }
+}
+
+/// <summary>O que foi impresso (IMP-01 CA 4): o cupom da venda, a 2ª via, o comprovante do caixa e a página de teste.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<PrintJobKind>))]
+public enum PrintJobKind
+{
+    Receipt,
+    Reprint,
+    CashReceipt,
+    Test,
+}
+
+/// <summary>
+/// Impressão registrada (<c>pos.print_jobs</c>, IMP-01 CA 4): eventos <c>ReceiptPrinted</c> e <c>ReceiptReprinted</c> do aparelho, com quem e
+/// quando; o id vem do aparelho (reenviar não duplica). Nunca leva o CPF nem o conteúdo do cupom.
+/// </summary>
+public sealed class PrintJob : Entity
+{
+    public Guid StoreId { get; init; }
+
+    public Guid RegisterId { get; init; }
+
+    public Guid? PrinterId { get; init; }
+
+    public PrintJobKind Kind { get; init; }
+
+    /// <summary>Venda impressa (o id do aparelho) e o número dela; nulos na página de teste e no comprovante do caixa.</summary>
+    public Guid? SaleId { get; init; }
+
+    public string? SaleNumber { get; init; }
+
+    /// <summary>1 = original; 2 em diante = 2ª via, 3ª via...</summary>
+    public int Copy { get; init; } = 1;
+
+    public Guid OperatorId { get; init; }
+
+    public DateTimeOffset PrintedAt { get; init; }
+
+    public DateTimeOffset ReceivedAt { get; init; }
+
+    public static PrintJob FromDevice(Guid id, Guid storeId, Guid registerId, Guid? printerId, PrintJobKind kind, Guid? saleId, string? saleNumber, int copy,
+        Guid operatorId, DateTimeOffset printedAt, DateTimeOffset receivedAt) =>
+        new()
+        {
+            Id = id, StoreId = storeId, RegisterId = registerId, PrinterId = printerId, Kind = kind, SaleId = saleId, SaleNumber = saleNumber, Copy = copy,
+            OperatorId = operatorId, PrintedAt = printedAt, ReceivedAt = receivedAt,
+        };
+}
+
+/// <summary>Regras da impressora (IMP-01 CA 3 e 6): 58 mm com 32 colunas; 80 mm com 42 ou 48.</summary>
+public static class PrinterRules
+{
+    public static bool IsValidLayout(int paperWidthMm, int columns) => (paperWidthMm, columns) is (58, 32) or (80, 42) or (80, 48);
 }
 
 /// <summary>Modo de tela do caixa (PDV-01 CA 3): toque (grade de produtos) ou teclado e leitor de código de barras.</summary>

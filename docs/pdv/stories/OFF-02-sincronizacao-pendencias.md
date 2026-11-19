@@ -134,6 +134,9 @@ A sessão de caixa nasce no aparelho (local-first) e sobe na fila de saída como
 - `AboveExpected` é sempre recalculado no servidor (o valor do aparelho é só indício);
 - corrida entre sangria e fechamento da mesma sessão (o `RecordMovementAsync` lê a sessão sem trava): processar os eventos de um aparelho **em série**, na ordem do `seq`, ou travar a sessão (`SELECT … FOR UPDATE` ou trava de transação por sessão) antes de gravar o movimento ou o fechamento.
 
+## Requisitos vindos da IMP-01 (impressões)
+A impressão do cupom e a 2ª via sobem como `pos.print` (payload: `type` = `ReceiptPrinted` ou `ReceiptReprinted`, `id`, `registerId`, `printerId`, `kind`, `saleId`, `saleNumber`, `copy`, `operatorId`, `printedAt`). A OFF-02 chama o `PrinterService.RecordPrintAsync` (idempotente pelo `id`) e deve: tirar o caixa do principal do aparelho (nunca do payload); amarrar o `operatorId` às sessões por PIN do aparelho; conferir que a venda (`saleId`) é do mesmo caixa quando ela já tiver subido. O payload nunca traz CPF nem o conteúdo do cupom.
+
 
 ## Change Log
 | Data | Versão | Descrição | Autor |
@@ -145,3 +148,4 @@ A sessão de caixa nasce no aparelho (local-first) e sobe na fila de saída como
 | 18/11/2026 | 0.5 | Recebido o item 3 da revisão de segurança da PDV-03: troco coerente e totais do topo recalculados, `PaymentStarted.totalCents` conferido, máquina de estados por `tenderId` (saída de `Captured` só com a autorização da PDV-04), venda idempotente por `saleId` e número, campos de integração definidos pelo servidor, `methodType`, parcelas e bandeira conferidos, normalização do número de cartão com tamanho máximo e operador nulo recusado. | Claude (dev) |
 | 19/11/2026 | 0.6 | Recebidos os requisitos da CX-01: a sessão de caixa sobe como `pos.cash` (abertura, sangria, suprimento e fechamento) e a OFF-02 chama o `CashSessionIngestion`; caixa e época do principal, `operatorId` amarrado às sessões por PIN, permissão no instante, valores e motivo conferidos, `aboveExpected` recalculado no servidor, quarentena para sessão desconhecida ou segunda abertura. | Claude (dev) |
 | 19/11/2026 | 0.7 | Requisitos da revisão de segurança da CX-01: caixa do aparelho ativo e época atual, sessão do caixa do aparelho, operador da sessão por PIN do servidor com as permissões conferidas no servidor, quem fecha e `closedAt`, janela de horário, `AboveExpected` recalculado e eventos do aparelho em série (ou sessão travada). | Claude (dev) |
+| 19/11/2026 | 0.8 | Recebidos os requisitos da IMP-01: as impressões sobem como `pos.print` e a OFF-02 chama o `PrinterService.RecordPrintAsync`. | Claude (dev) |

@@ -281,6 +281,7 @@ import type {
   ExportMaintenanceOrdersParams,
   ExportMaterialRequisitionsParams,
   ExportNonConformitiesParams,
+  ExportNonFiscalSalesReportParams,
   ExportOutgoingInvoicesParams,
   ExportPartiesParams,
   ExportPayablesParams,
@@ -365,6 +366,7 @@ import type {
   GetMissingLaborCostsParams,
   GetMyAgendaParams,
   GetNonConformityHistoryParams,
+  GetNonFiscalSalesReportParams,
   GetOrderBomHistoryParams,
   GetOrderReservationHistoryParams,
   GetOutgoingInvoiceHistoryParams,
@@ -552,6 +554,7 @@ import type {
   ListPlanningQueueChangesParams,
   ListPosDevicesParams,
   ListPositionsParams,
+  ListPrintersParams,
   ListPrivacyRequestsParams,
   ListProductCategoriesParams,
   ListProductionCapacityReferencesParams,
@@ -655,6 +658,9 @@ import type {
   NonConformityDetail,
   NonConformityPage,
   NonConformityUpdateInput,
+  NonFiscalModeRequest,
+  NonFiscalSalesReport,
+  NonFiscalTermsView,
   NotificationPage,
   NumberFormatInput,
   NumberFormatRow,
@@ -858,6 +864,8 @@ import type {
   PriceInput,
   PriceListView,
   PricingModeInput,
+  PrinterRequest,
+  PrinterView,
   PrivacyAnonymizationPreview,
   PrivacyAnonymizationStarted,
   PrivacyCorrectionTarget,
@@ -91356,6 +91364,210 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCancelSaleMutationOptions(options), queryClient);
     }
 
+export const getGetNonFiscalSalesReportUrl = (params: GetNonFiscalSalesReportParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/sales/reports/non-fiscal?${stringifiedParams}` : `/api/v1/sales/reports/non-fiscal`
+}
+
+export const getNonFiscalSalesReport = async (params: GetNonFiscalSalesReportParams, options?: Parameters<typeof apiFetch>[1]): Promise<NonFiscalSalesReport> => {
+
+  return apiFetch<NonFiscalSalesReport>(getGetNonFiscalSalesReportUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetNonFiscalSalesReportQueryKey = (params?: GetNonFiscalSalesReportParams,) => {
+    return [
+    `/api/v1/sales/reports/non-fiscal`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetNonFiscalSalesReportQueryOptions = <TData = Awaited<ReturnType<typeof getNonFiscalSalesReport>>, TError = unknown>(params: GetNonFiscalSalesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonFiscalSalesReport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNonFiscalSalesReportQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNonFiscalSalesReport>>> = ({ signal }) => getNonFiscalSalesReport(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNonFiscalSalesReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetNonFiscalSalesReportQueryResult = NonNullable<Awaited<ReturnType<typeof getNonFiscalSalesReport>>>
+export type GetNonFiscalSalesReportQueryError = unknown
+
+
+export function useGetNonFiscalSalesReport<TData = Awaited<ReturnType<typeof getNonFiscalSalesReport>>, TError = unknown>(
+ params: GetNonFiscalSalesReportParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonFiscalSalesReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getNonFiscalSalesReport>>,
+          TError,
+          Awaited<ReturnType<typeof getNonFiscalSalesReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetNonFiscalSalesReport<TData = Awaited<ReturnType<typeof getNonFiscalSalesReport>>, TError = unknown>(
+ params: GetNonFiscalSalesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonFiscalSalesReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getNonFiscalSalesReport>>,
+          TError,
+          Awaited<ReturnType<typeof getNonFiscalSalesReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetNonFiscalSalesReport<TData = Awaited<ReturnType<typeof getNonFiscalSalesReport>>, TError = unknown>(
+ params: GetNonFiscalSalesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonFiscalSalesReport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetNonFiscalSalesReport<TData = Awaited<ReturnType<typeof getNonFiscalSalesReport>>, TError = unknown>(
+ params: GetNonFiscalSalesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonFiscalSalesReport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetNonFiscalSalesReportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getExportNonFiscalSalesReportUrl = (params: ExportNonFiscalSalesReportParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/sales/reports/non-fiscal/export?${stringifiedParams}` : `/api/v1/sales/reports/non-fiscal/export`
+}
+
+export const exportNonFiscalSalesReport = async (params: ExportNonFiscalSalesReportParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getExportNonFiscalSalesReportUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportNonFiscalSalesReportQueryKey = (params?: ExportNonFiscalSalesReportParams,) => {
+    return [
+    `/api/v1/sales/reports/non-fiscal/export`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getExportNonFiscalSalesReportQueryOptions = <TData = Awaited<ReturnType<typeof exportNonFiscalSalesReport>>, TError = unknown>(params: ExportNonFiscalSalesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportNonFiscalSalesReport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportNonFiscalSalesReportQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportNonFiscalSalesReport>>> = ({ signal }) => exportNonFiscalSalesReport(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportNonFiscalSalesReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportNonFiscalSalesReportQueryResult = NonNullable<Awaited<ReturnType<typeof exportNonFiscalSalesReport>>>
+export type ExportNonFiscalSalesReportQueryError = unknown
+
+
+export function useExportNonFiscalSalesReport<TData = Awaited<ReturnType<typeof exportNonFiscalSalesReport>>, TError = unknown>(
+ params: ExportNonFiscalSalesReportParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportNonFiscalSalesReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportNonFiscalSalesReport>>,
+          TError,
+          Awaited<ReturnType<typeof exportNonFiscalSalesReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportNonFiscalSalesReport<TData = Awaited<ReturnType<typeof exportNonFiscalSalesReport>>, TError = unknown>(
+ params: ExportNonFiscalSalesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportNonFiscalSalesReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportNonFiscalSalesReport>>,
+          TError,
+          Awaited<ReturnType<typeof exportNonFiscalSalesReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportNonFiscalSalesReport<TData = Awaited<ReturnType<typeof exportNonFiscalSalesReport>>, TError = unknown>(
+ params: ExportNonFiscalSalesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportNonFiscalSalesReport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useExportNonFiscalSalesReport<TData = Awaited<ReturnType<typeof exportNonFiscalSalesReport>>, TError = unknown>(
+ params: ExportNonFiscalSalesReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportNonFiscalSalesReport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExportNonFiscalSalesReportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListStoresUrl = () => {
 
 
@@ -91877,6 +92089,451 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getUpdateRegisterMutationOptions(options), queryClient);
+    }
+
+export const getGetNonFiscalTermsUrl = () => {
+
+
+
+
+  return `/api/v1/pos/stores/non-fiscal-terms`
+}
+
+export const getNonFiscalTerms = async ( options?: Parameters<typeof apiFetch>[1]): Promise<NonFiscalTermsView> => {
+
+  return apiFetch<NonFiscalTermsView>(getGetNonFiscalTermsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetNonFiscalTermsQueryKey = () => {
+    return [
+    `/api/v1/pos/stores/non-fiscal-terms`
+    ] as const;
+    }
+
+
+export const getGetNonFiscalTermsQueryOptions = <TData = Awaited<ReturnType<typeof getNonFiscalTerms>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonFiscalTerms>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNonFiscalTermsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNonFiscalTerms>>> = ({ signal }) => getNonFiscalTerms({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNonFiscalTerms>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetNonFiscalTermsQueryResult = NonNullable<Awaited<ReturnType<typeof getNonFiscalTerms>>>
+export type GetNonFiscalTermsQueryError = unknown
+
+
+export function useGetNonFiscalTerms<TData = Awaited<ReturnType<typeof getNonFiscalTerms>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonFiscalTerms>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getNonFiscalTerms>>,
+          TError,
+          Awaited<ReturnType<typeof getNonFiscalTerms>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetNonFiscalTerms<TData = Awaited<ReturnType<typeof getNonFiscalTerms>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonFiscalTerms>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getNonFiscalTerms>>,
+          TError,
+          Awaited<ReturnType<typeof getNonFiscalTerms>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetNonFiscalTerms<TData = Awaited<ReturnType<typeof getNonFiscalTerms>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonFiscalTerms>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetNonFiscalTerms<TData = Awaited<ReturnType<typeof getNonFiscalTerms>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNonFiscalTerms>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetNonFiscalTermsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSetStoreNonFiscalModeUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/pos/stores/${id}/non-fiscal-mode`
+}
+
+export const setStoreNonFiscalMode = async (id: string,
+    nonFiscalModeRequest: NonFiscalModeRequest, options?: Parameters<typeof apiFetch>[1]): Promise<StoreView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StoreView>(getSetStoreNonFiscalModeUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(nonFiscalModeRequest)
+  }
+);}
+
+
+
+
+
+export const getSetStoreNonFiscalModeMutationKey = () => ['setStoreNonFiscalMode'] as const;
+
+export const getSetStoreNonFiscalModeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setStoreNonFiscalMode>>, TError,SetStoreNonFiscalModeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setStoreNonFiscalMode>>, TError,SetStoreNonFiscalModeMutationVariables, TContext> => {
+
+const mutationKey = getSetStoreNonFiscalModeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setStoreNonFiscalMode>>, SetStoreNonFiscalModeMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  setStoreNonFiscalMode(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetStoreNonFiscalModeMutationResult = NonNullable<Awaited<ReturnType<typeof setStoreNonFiscalMode>>>
+    export type SetStoreNonFiscalModeMutationBody = NonFiscalModeRequest
+    export type SetStoreNonFiscalModeMutationError = unknown
+    export type SetStoreNonFiscalModeMutationVariables = {id: string;data: NonFiscalModeRequest}
+
+    export const useSetStoreNonFiscalMode = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setStoreNonFiscalMode>>, TError,SetStoreNonFiscalModeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setStoreNonFiscalMode>>,
+        TError,
+        SetStoreNonFiscalModeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetStoreNonFiscalModeMutationOptions(options), queryClient);
+    }
+
+export const getListPrintersUrl = (params?: ListPrintersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/pos/printers?${stringifiedParams}` : `/api/v1/pos/printers`
+}
+
+export const listPrinters = async (params?: ListPrintersParams, options?: Parameters<typeof apiFetch>[1]): Promise<PrinterView[]> => {
+
+  return apiFetch<PrinterView[]>(getListPrintersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPrintersQueryKey = (params?: ListPrintersParams,) => {
+    return [
+    `/api/v1/pos/printers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListPrintersQueryOptions = <TData = Awaited<ReturnType<typeof listPrinters>>, TError = unknown>(params?: ListPrintersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPrinters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPrintersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPrinters>>> = ({ signal }) => listPrinters(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPrinters>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPrintersQueryResult = NonNullable<Awaited<ReturnType<typeof listPrinters>>>
+export type ListPrintersQueryError = unknown
+
+
+export function useListPrinters<TData = Awaited<ReturnType<typeof listPrinters>>, TError = unknown>(
+ params: undefined |  ListPrintersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPrinters>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPrinters>>,
+          TError,
+          Awaited<ReturnType<typeof listPrinters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPrinters<TData = Awaited<ReturnType<typeof listPrinters>>, TError = unknown>(
+ params?: ListPrintersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPrinters>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPrinters>>,
+          TError,
+          Awaited<ReturnType<typeof listPrinters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPrinters<TData = Awaited<ReturnType<typeof listPrinters>>, TError = unknown>(
+ params?: ListPrintersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPrinters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPrinters<TData = Awaited<ReturnType<typeof listPrinters>>, TError = unknown>(
+ params?: ListPrintersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPrinters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPrintersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreatePrinterUrl = () => {
+
+
+
+
+  return `/api/v1/pos/printers`
+}
+
+export const createPrinter = async (printerRequest: PrinterRequest, options?: Parameters<typeof apiFetch>[1]): Promise<PrinterView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PrinterView>(getCreatePrinterUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(printerRequest)
+  }
+);}
+
+
+
+
+
+export const getCreatePrinterMutationKey = () => ['createPrinter'] as const;
+
+export const getCreatePrinterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPrinter>>, TError,CreatePrinterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPrinter>>, TError,CreatePrinterMutationVariables, TContext> => {
+
+const mutationKey = getCreatePrinterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPrinter>>, CreatePrinterMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPrinter(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePrinterMutationResult = NonNullable<Awaited<ReturnType<typeof createPrinter>>>
+    export type CreatePrinterMutationBody = PrinterRequest
+    export type CreatePrinterMutationError = unknown
+    export type CreatePrinterMutationVariables = {data: PrinterRequest}
+
+    export const useCreatePrinter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPrinter>>, TError,CreatePrinterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createPrinter>>,
+        TError,
+        CreatePrinterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreatePrinterMutationOptions(options), queryClient);
+    }
+
+export const getUpdatePrinterUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/pos/printers/${id}`
+}
+
+export const updatePrinter = async (id: string,
+    printerRequest: PrinterRequest, options?: Parameters<typeof apiFetch>[1]): Promise<PrinterView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PrinterView>(getUpdatePrinterUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(printerRequest)
+  }
+);}
+
+
+
+
+
+export const getUpdatePrinterMutationKey = () => ['updatePrinter'] as const;
+
+export const getUpdatePrinterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePrinter>>, TError,UpdatePrinterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePrinter>>, TError,UpdatePrinterMutationVariables, TContext> => {
+
+const mutationKey = getUpdatePrinterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePrinter>>, UpdatePrinterMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updatePrinter(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePrinterMutationResult = NonNullable<Awaited<ReturnType<typeof updatePrinter>>>
+    export type UpdatePrinterMutationBody = PrinterRequest
+    export type UpdatePrinterMutationError = unknown
+    export type UpdatePrinterMutationVariables = {id: string;data: PrinterRequest}
+
+    export const useUpdatePrinter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePrinter>>, TError,UpdatePrinterMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updatePrinter>>,
+        TError,
+        UpdatePrinterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdatePrinterMutationOptions(options), queryClient);
     }
 
 export const getPosHandshakeUrl = () => {

@@ -4,8 +4,14 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { PrinterConnection } from './printerConnection';
 
 export interface PosSyncPrinter {
   id: string;
   name: string;
+  connection: PrinterConnection;
+  paperWidthMm: number;
+  columns: number;
+  model: string;
+  isDefault: boolean;
 }

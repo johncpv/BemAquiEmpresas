@@ -1,4 +1,4 @@
-import { Keyboard, LogOut, Pointer, Settings2 } from 'lucide-react'
+import { Keyboard, LogOut, Pointer, Printer, Settings2 } from 'lucide-react'
 import { type KeyboardEvent as ReactKeyboardEvent, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { PosHandshake } from '@/api/generated/model'
 import { FloorButton, FloorDica, FloorSheet, FloorSkeleton, FloorState } from '@/components/shopfloor/kit'
@@ -19,6 +19,9 @@ import { formatQuantity } from '@/pdv/sale/quantity'
 import { currentSale, lineTotal, parkedSales, type SaleLine, saleTotal } from '@/pdv/sale/sale-model'
 import { type AddResult, type CompletedSale, DEFAULT_SETTINGS, SaleRegister, SaleRuleError, type SaleSettings, SETTINGS_META } from '@/pdv/sale/sale-register'
 import { ScanDetector } from '@/pdv/sale/scanner'
+import { rememberReceipt, storedReceiptOf } from '@/pdv/print/print-jobs'
+import { ReprintSheet, SalePrint } from '@/pages/pdv/print/ReceiptPrinting'
+import { receiptHeader } from '@/pdv/print/use-printing'
 import { PaymentScreen, SaleCompletedView } from './PaymentScreen'
 import { CloseRegisterSheet, type CustomerHit, CustomerSheet, DiscardSheet, NoteSheet, ParkedSheet, ProductTile, QuantitySheet, RemoveSheet } from './sale-sheets'
 
@@ -51,6 +54,7 @@ type Sheet =
   | { kind: 'customer' }
   | { kind: 'close' }
   | { kind: 'settings' }
+  | { kind: 'reprint' }
 
 /** Teclas de função (CA 6), iguais nos dois modos. */
 const FUNCTION_KEYS = [
@@ -162,13 +166,16 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
 
   return (
     <SaleScreen store={store} register={register} operator={operator} online={online} settings={settings} onSettings={saveSettings} terminal={terminal}
+      registerId={handshake.registerId} storeName={handshake.storeName}
       searchCustomers={searchCustomers} onLeave={onLeave} cash={cash} onCash={setCash} place={`${handshake.storeName} · Caixa ${String(handshake.registerNumber).padStart(2, '0')}`}
       onCloseRegister={async () => { await closeCashSession(store, operator); setCash(null); applyPendingUpdate() }} />
   )
 }
 
-function SaleScreen({ store, register, operator, online, settings, onSettings, searchCustomers, onLeave, onCloseRegister, terminal: givenTerminal, cash, onCash, place }: {
+function SaleScreen({ store, register, operator, online, settings, onSettings, searchCustomers, onLeave, onCloseRegister, terminal: givenTerminal, cash, onCash, place, registerId, storeName }: {
   store: LocalStore
+  registerId: string
+  storeName: string
   register: SaleRegister
   operator: SaleOperator
   online: boolean
@@ -366,9 +373,24 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
   const pendingSales = parked.length + (lines.length ? 1 : 0)
 
   const limits = store.catalogState()?.cashLimits ?? null
-  const completeSale = (done: CompletedSale) => {
+  const storeSettings = store.catalogState()?.storeSettings ?? null
+  const header = receiptHeader(store, storeName)
+  const decryptDocument = useCallback((id: string) => register.decryptDocument(id), [register])
+  const completeSale = async (done: CompletedSale) => {
+    // IMP-01: a venda fica guardada para o cupom e a 2ª via antes de a tela oferecer a impressão (o CPF continua só no registro cifrado).
+    const receipt = storedReceiptOf(done, operator.name)
+    if (receipt) await rememberReceipt(store, receipt).catch(() => { /* sem o registro, a tela só não imprime esta venda */ })
     setCompleted(done)
     void recordSaleInSession(store, done.tenders).then((s) => { if (s) { onCash(s); setCashNotice(cashAlert(s, limits)) } }).catch(() => { /* o painel recompõe no próximo turno */ })
+  }
+
+  // IMP-01 CA 10: sem documento fiscal para a venda (o modo "só cupom não fiscal" não foi aceito e a NFC-e ainda não existe), a loja não vende.
+  if (storeSettings && !storeSettings.canSell && !paying && !completed) {
+    return (
+      <FloorState title="Esta loja ainda não pode vender."
+        message="Falta escolher o documento fiscal da loja. O Proprietário liga o modo “só cupom não fiscal” na retaguarda, em Loja → Lojas e caixas → Documento fiscal, e o caixa libera na próxima sincronização."
+        action={<FloorButton tone="secondary" onClick={onLeave}>Sair do caixa</FloorButton>} />
+    )
   }
 
   if (cashView) {
@@ -390,9 +412,13 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
       <div className="space-y-3">
         <p className="truncate text-[18px]"><span className="text-muted-foreground">No caixa:</span> <b>{operator.name}</b> · {completed ? 'Venda concluída' : 'Pagamento'}</p>
         {completed ? alert : null}
-        {completed ? <SaleCompletedView done={completed} onNewSale={() => { setCompleted(null); setSelectedId(null); setNotice(null); focusCode() }} /> : null}
+        {completed ? <SaleCompletedView done={completed} onNewSale={() => { setCompleted(null); setSelectedId(null); setNotice(null); focusCode() }}
+          print={completed.saleId ? (
+            <SalePrint store={store} saleId={completed.saleId} header={header} operatorId={operator.id} registerId={registerId}
+              mode={storeSettings?.receiptPrintMode ?? 'Ask'} decryptDocument={decryptDocument} />
+          ) : null} /> : null}
         {!completed && sale ? (
-          <PaymentScreen sale={sale} register={register} terminal={terminal} store={store} online={online} operatorId={operator.id} onCompleted={completeSale} cashBlocked={cashBlocked(cash, limits)} />
+          <PaymentScreen sale={sale} register={register} terminal={terminal} store={store} online={online} operatorId={operator.id} onCompleted={(done) => void completeSale(done)} cashBlocked={cashBlocked(cash, limits)} />
         ) : null}
       </div>
     )
@@ -419,6 +445,7 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
         </FloorButton>
         <FloorDica nome="Venda em espera" texto="O cliente esqueceu algo? Deixe a venda em espera (F7), atenda o próximo e retome depois. Ela fica guardada neste caixa, mesmo sem internet." />
         <FloorButton tone="secondary" onClick={() => setSheet({ kind: 'settings' })} aria-label="Ajustes do caixa"><Settings2 aria-hidden="true" className="size-6" /></FloorButton>
+        <FloorButton tone="secondary" onClick={() => setSheet({ kind: 'reprint' })} aria-label="Reimprimir cupom"><Printer aria-hidden="true" className="size-6" /><span className="max-sm:sr-only">Reimprimir</span></FloorButton>
         <FloorButton tone="secondary" onClick={() => setCashView({ startWith: null })}>Caixa</FloorButton>
         <FloorButton tone="secondary" onClick={() => setSheet({ kind: 'close' })}>Fechar caixa</FloorButton>
         <FloorButton tone="secondary" onClick={onLeave} aria-label="Sair do caixa"><LogOut aria-hidden="true" className="size-6" /><span className="max-sm:sr-only">Sair</span></FloorButton>
@@ -514,6 +541,7 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
           const result = await guard(() => register.removeLine(sheet.lineId, operator.canCancelItem))
           if (result?.kind === 'removed') { setSelectedId(null); closeSheet() }
         }} />
+      <ReprintSheet open={sheet?.kind === 'reprint'} store={store} header={header} operatorId={operator.id} registerId={registerId} decryptDocument={decryptDocument} onClose={closeSheet} />
       <ParkedSheet open={sheet?.kind === 'parked'} sales={parked} onClose={closeSheet}
         onResume={async (id) => { await guard(() => register.resume(id)); setSelectedId(null); closeSheet() }}
         onDiscard={(id) => setSheet({ kind: 'discard', saleId: id })} />

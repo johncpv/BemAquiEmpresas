@@ -1,3 +1,4 @@
+using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.Catalog.Contracts;
 using BemAqui.Finance.Contracts;
@@ -11,7 +12,9 @@ using Microsoft.EntityFrameworkCore;
 namespace BemAqui.Pos.Application;
 
 /// <summary>Loja. CX-01: o aviso de sangria (nulo = mantém o atual) e o teto de dinheiro no caixa (nulo = sem teto), PP-22.</summary>
-public sealed record StoreInput(string Code, string Name, Guid StockLocationId, Guid DefaultPriceListId, bool IsActive = true, decimal? CashDropAlertAmount = null, decimal? CashCeilingAmount = null);
+public sealed record StoreInput(
+    string Code, string Name, Guid StockLocationId, Guid DefaultPriceListId, bool IsActive = true, decimal? CashDropAlertAmount = null, decimal? CashCeilingAmount = null,
+    ReceiptPrintMode? ReceiptPrintMode = null);
 
 public sealed record RegisterInput(int Number, Guid CashAccountId, RegisterUiMode UiMode, bool IsActive = true);
 
@@ -29,6 +32,10 @@ public sealed record RegisterView(
     int DeviceEpoch,
     RegisterDeviceView? Device);
 
+/// <summary>
+/// Loja na retaguarda. IMP-01: o modo fiscal (<c>NonFiscal</c> = "só cupom não fiscal"), a versão do texto aceito, quem e quando aceitou,
+/// se o texto mudou desde o aceite (<c>NeedsNewAcceptance</c>, CA 13) e o que o caixa faz com o cupom depois da venda.
+/// </summary>
 public sealed record StoreView(
     Guid Id,
     string Code,
@@ -41,7 +48,36 @@ public sealed record StoreView(
     decimal CashDropAlertAmount,
     decimal? CashCeilingAmount,
     uint Version,
-    IReadOnlyList<RegisterView> Registers);
+    IReadOnlyList<RegisterView> Registers,
+    StoreFiscalMode FiscalMode = StoreFiscalMode.Nfce,
+    int? NonFiscalTermsVersion = null,
+    DateTimeOffset? NonFiscalAcceptedAt = null,
+    string? NonFiscalAcceptedByName = null,
+    bool NeedsNewAcceptance = false,
+    ReceiptPrintMode ReceiptPrintMode = ReceiptPrintMode.Ask);
+
+/// <summary>Ligar ou desligar o modo "só cupom não fiscal" (IMP-01 CA 10): ligar exige o aceite do texto na versão atual.</summary>
+public sealed record NonFiscalModeInput(bool Enabled, bool Accepted, int? TermsVersion, uint Version);
+
+/// <summary>O texto do aceite e a versão dele (IMP-01 CA 10 e 13).</summary>
+public sealed record NonFiscalTermsView(int Version, string Title, string Text);
+
+/// <summary>
+/// Texto do aceite do modo "só cupom não fiscal" (PP-05). Versionado: mudou a redação, sobe <see cref="Version"/> e o Proprietário aceita de novo
+/// (CA 13); o aceite anterior fica no histórico da auditoria da loja. A redação final passa pelo jurídico (QC-13 como orientação; RP-17).
+/// </summary>
+public static class NonFiscalTerms
+{
+    public const int Version = 1;
+
+    public const string Title = "Vender só com cupom não fiscal";
+
+    public const string Text =
+        "Ao ligar este modo, esta loja passa a vender entregando ao cliente um comprovante que diz \"Não é documento fiscal\", sem emitir NFC-e.\n\n"
+        + "A obrigação de emitir documento fiscal é da empresa. O BemAqui não avalia se a sua empresa está dispensada dessa obrigação nem responde por essa escolha.\n\n"
+        + "Antes de ligar, oriente-se com a contadora da sua empresa. Você pode desligar o modo a qualquer momento, e o relatório \"Vendas sem documento fiscal\" mostra tudo o que foi vendido assim.\n\n"
+        + "Ao aceitar, você declara que leu este texto e que a decisão é da empresa.";
+}
 
 public sealed record NamedOption(Guid Id, string Name);
 
@@ -53,7 +89,9 @@ public sealed record StoreFormOptions(IReadOnlyList<NamedOption> Locations, IRea
 /// de preço; caixa com número único na loja, conta do tipo Caixa que nenhum outro caixa usa e o modo de tela. O aparelho do caixa é do Identity
 /// (<see cref="IRegisterDevices"/>); aqui só se mostra o último contato. Os outros módulos entram só pelos contratos.
 /// </summary>
-public sealed class StoreService(IPosDb db, ILocations locations, IPriceLists priceLists, ICashAccounts cashAccounts, IRegisterDevices devices, TimeProvider clock)
+public sealed class StoreService(
+    IPosDb db, ILocations locations, IPriceLists priceLists, ICashAccounts cashAccounts, IRegisterDevices devices, ICurrentUser currentUser, IPermissionService permissions,
+    IUserDirectory users, TimeProvider clock)
 {
     public const string Module = "pos";
     public const string StoreCodeIndex = "ix_stores_code";
@@ -69,10 +107,74 @@ public sealed class StoreService(IPosDb db, ILocations locations, IPriceLists pr
         var accountNames = (await cashAccounts.FindAsync(registers.Select(r => r.CashAccountId).Distinct().ToList(), cancellationToken)).ToDictionary(a => a.Id, a => a.Name);
         var deviceInfo = await devices.FindAsync(registers.Where(r => r.ActiveDeviceId != null).Select(r => r.ActiveDeviceId!.Value).ToList(), cancellationToken);
         var now = clock.GetUtcNow();
+        var acceptedBy = new Dictionary<Guid, string?>();
+        foreach (var id in stores.Where(s => s.NonFiscalAcceptedBy is not null).Select(s => s.NonFiscalAcceptedBy!.Value).Distinct())
+        {
+            acceptedBy[id] = await users.DisplayNameAsync(id, cancellationToken);
+        }
+
         return stores.Select(s => new StoreView(
             s.Id, s.Code, s.Name, s.StockLocationId, locationNames.GetValueOrDefault(s.StockLocationId, "Local removido"),
             s.DefaultPriceListId, listNames.GetValueOrDefault(s.DefaultPriceListId, "Tabela removida"), s.IsActive, s.CashDropAlertAmount, s.CashCeilingAmount, s.Version,
-            registers.Where(r => r.StoreId == s.Id).Select(r => ToView(r, accountNames, deviceInfo, now)).ToList())).ToList();
+            registers.Where(r => r.StoreId == s.Id).Select(r => ToView(r, accountNames, deviceInfo, now)).ToList(),
+            s.FiscalMode, s.NonFiscalTermsVersion, s.NonFiscalAcceptedAt, s.NonFiscalAcceptedBy is { } by ? acceptedBy.GetValueOrDefault(by) : null,
+            s.NonFiscalAccepted && s.NonFiscalTermsVersion < NonFiscalTerms.Version, s.ReceiptPrintMode)).ToList();
+    }
+
+    public static NonFiscalTermsView Terms() => new(NonFiscalTerms.Version, NonFiscalTerms.Title, NonFiscalTerms.Text);
+
+    /// <summary>
+    /// Liga ou desliga o modo "só cupom não fiscal" (IMP-01 CA 10, 11 e 13). Só o grupo Proprietário, mesmo para quem edita lojas (403). Ligar
+    /// exige o aceite do texto na versão atual; aceitar de novo (texto novo) troca a versão. A loja é auditada: o histórico guarda quem, quando,
+    /// a loja e a versão de cada aceite (o anterior fica lá).
+    /// </summary>
+    public async Task<Result<StoreView>> SetNonFiscalModeAsync(Guid storeId, NonFiscalModeInput input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        if (currentUser.UserId is not { } me || !(await permissions.GetAsync(me, cancellationToken)).IsOwner)
+        {
+            return Error.Forbidden(Error.Codes.Forbidden, "Só o Proprietário liga ou desliga o modo \"só cupom não fiscal\".");
+        }
+
+        var store = await db.Stores.FirstOrDefaultAsync(s => s.Id == storeId, cancellationToken);
+        if (store is null)
+        {
+            return StoreNotFound();
+        }
+
+        if (store.Version != input.Version)
+        {
+            return Error.Conflict("concurrency_conflict", "A loja mudou desde que você abriu. Recarregue a tela.");
+        }
+
+        if (!input.Enabled)
+        {
+            if (store.FiscalMode == StoreFiscalMode.Nfce)
+            {
+                return (await ListAsync(cancellationToken)).First(s => s.Id == storeId);
+            }
+
+            store.DisableNonFiscal();
+            return await SaveAsync(store.Id, cancellationToken);
+        }
+
+        if (!input.Accepted)
+        {
+            return Invalid("accepted", "Leia o texto e marque o aceite para ligar o modo \"só cupom não fiscal\".");
+        }
+
+        if (input.TermsVersion != NonFiscalTerms.Version)
+        {
+            return Error.Conflict("terms_changed", "O texto do aceite mudou. Leia a versão nova e aceite de novo.");
+        }
+
+        if (store.NonFiscalAccepted && store.NonFiscalTermsVersion == NonFiscalTerms.Version)
+        {
+            return (await ListAsync(cancellationToken)).First(s => s.Id == storeId);
+        }
+
+        store.AcceptNonFiscal(NonFiscalTerms.Version, me, clock.GetUtcNow());
+        return await SaveAsync(store.Id, cancellationToken);
     }
 
     public async Task<StoreFormOptions> OptionsAsync(CancellationToken cancellationToken = default)
@@ -198,6 +300,11 @@ public sealed class StoreService(IPosDb db, ILocations locations, IPriceLists pr
             return limits;
         }
 
+        if (input.ReceiptPrintMode is { } printMode && !Enum.IsDefined(printMode))
+        {
+            return Invalid("receiptPrintMode", "Escolha o que o caixa faz com o cupom: perguntar, imprimir sempre ou não imprimir.");
+        }
+
         if (!input.IsActive && current is not null && await db.Registers.AnyAsync(r => r.StoreId == current.Id && r.ActiveDeviceId != null, cancellationToken))
         {
             return Error.Conflict("store_has_devices", "A loja tem caixas com aparelho. Bloqueie os aparelhos antes de desativar a loja.");
@@ -255,6 +362,7 @@ public sealed class StoreService(IPosDb db, ILocations locations, IPriceLists pr
         store.IsActive = input.IsActive;
         store.CashDropAlertAmount = input.CashDropAlertAmount ?? store.CashDropAlertAmount;
         store.CashCeilingAmount = input.CashCeilingAmount;
+        store.ReceiptPrintMode = input.ReceiptPrintMode ?? store.ReceiptPrintMode;
     }
 
     /// <summary>CX-01 (PP-22): aviso de sangria de 0 a R$ 9.999.999,99 e teto (opcional) acima do aviso, em reais com até 2 casas.</summary>

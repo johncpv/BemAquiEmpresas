@@ -45,7 +45,21 @@ export type TenderResult =
   | { kind: 'completed'; tender: Tender; number: string; totalCents: Cents; changeCents: Cents; tenders: Tender[] }
   | { kind: 'refused'; message: string }
 
-export interface CompletedSale { number: string; totalCents: Cents; changeCents: Cents; tenders: Tender[] }
+/**
+ * Venda concluída para a tela e o cupom (IMP-01): número, total, troco, pagamentos e, para montar o recibo no aparelho, os itens, o cliente (o
+ * documento só pelo id do registro cifrado), o instante e quem fechou.
+ */
+export interface CompletedSale {
+  number: string
+  totalCents: Cents
+  changeCents: Cents
+  tenders: Tender[]
+  saleId?: string
+  completedAt?: string
+  operatorId?: string | null
+  lines?: SaleLine[]
+  customer?: SaleCustomer | null
+}
 
 /** Pagamento capturado é fato (revisão de segurança): só sai por estorno ou cancelamento, com quem autorizou (método próprio da PDV-04). */
 export const CAPTURED_LOCKED_MESSAGE = 'Este pagamento já foi recebido. Ele só sai por estorno ou cancelamento, com o supervisor.'
@@ -432,7 +446,17 @@ export class SaleRegister {
     }))
     this.book = [...extra, completed].reduce(applySaleEvent, this.book)
     for (const l of this.listeners) l()
-    return { number: saleNumber(prefix, number), totalCents: total, changeCents: change, tenders: sale.tenders }
+    return {
+      number: saleNumber(prefix, number), totalCents: total, changeCents: change, tenders: sale.tenders,
+      saleId: sale.id, completedAt: completed.at, operatorId: by.operatorId, lines: sale.lines, customer: sale.customer,
+    }
+  }
+
+  /** IMP-01: o documento do consumidor decifrado só para o cupom (sai mascarado no papel; nunca vai para log nem fila). */
+  async decryptDocument(documentId: string): Promise<string | null> {
+    if (!this.options.cipher) return null
+    const record = await this.options.store.getCustomerDocument(documentId)
+    return record ? this.options.cipher.decrypt(record) : null
   }
 
   /** O documento da venda decifrado, só para mostrar na tela (nunca para log). */

@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
   createRegister, createStore, getListStoresQueryKey, updateRegister, updateStore, useGetStoreFormOptions, useListStores,
 } from '@/api/generated/bemaqui'
-import type { RegisterUiMode, RegisterView, StoreView } from '@/api/generated/model'
+import type { ReceiptPrintMode, RegisterUiMode, RegisterView, StoreView } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { Field, FormError, FormGrid } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
@@ -16,12 +17,15 @@ import { formatInstantDate } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
+import { StoreFiscalMode } from './StoreFiscalMode'
 import { contactText, isValidStoreCode, moneyText, nextRegisterNumber, normalizeStoreCode, parseAmount, registerLabel, UI_MODE_LABEL } from './stores'
 
 const CODE_DICA = 'Entra no número de cada venda (LOJA-01.1-000123): código da loja, caixa, época do aparelho e sequência. Escolha um curto e estável.'
 const EPOCH_DICA = 'Sobe a cada aparelho novo no caixa. As vendas do aparelho anterior que ainda não subiram não se misturam com as do novo.'
 const ALERT_DICA = 'Quando o dinheiro na gaveta passa deste valor, o caixa avisa "Faça uma sangria." depois da venda em dinheiro. O valor da gaveta nunca aparece para o operador.'
 const CEILING_DICA = 'Acima deste valor, o caixa não recebe mais em dinheiro até a sangria (cartão e Pix continuam). Deixe em branco para não ter teto.'
+
+const PRINT_DICA = 'O que o caixa faz com o cupom quando a venda termina. "Perguntar" mostra Imprimir e Não imprimir; nos outros, o botão Imprimir cupom continua lá.'
 
 type Editing = { kind: 'store'; store: StoreView | null } | { kind: 'register'; store: StoreView; register: RegisterView | null }
 
@@ -35,11 +39,17 @@ export function StoresPage() {
   const [editing, setEditing] = useState<Editing | null>(null)
   const refresh = () => void client.invalidateQueries({ queryKey: getListStoresQueryKey() })
   const newStore = <Can perm="sales.create"><button type="button" onClick={() => setEditing({ kind: 'store', store: null })} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Nova loja</button></Can>
+  const actions = (
+    <div className="flex flex-wrap gap-2">
+      <Link to="/app/loja/vendas-sem-documento-fiscal" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Vendas sem documento fiscal</Link>
+      {newStore}
+    </div>
+  )
   const stores = query.data ?? []
 
   return (
     <>
-      <PageHeading title="Lojas e caixas" description="Cada venda do balcão sai de um caixa conhecido, num aparelho registrado." actions={newStore} />
+      <PageHeading title="Lojas e caixas" description="Cada venda do balcão sai de um caixa conhecido, num aparelho registrado." actions={actions} />
       {query.isPending ? <Skeleton className="h-64" /> : query.isError ? <ErrorState title="Não foi possível carregar as lojas." onRetry={() => query.refetch()} /> : stores.length === 0 ? (
         <EmptyState title="Nenhuma loja ainda." description="Cadastre a loja com o local de estoque e a tabela de preço do balcão; depois, os caixas." action={newStore} />
       ) : (
@@ -59,6 +69,7 @@ export function StoresPage() {
                   <button type="button" onClick={() => setEditing({ kind: 'register', store, register: null })} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Novo caixa</button>
                 </Can>
               </div>
+              <StoreFiscalMode store={store} onChanged={refresh} />
               {store.registers.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Nenhum caixa nesta loja. Clique em <strong>Novo caixa</strong> para criar o primeiro.</p>
               ) : (
@@ -111,6 +122,7 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
     code: store?.code ?? '', name: store?.name ?? '', stockLocationId: store?.stockLocationId ?? '', defaultPriceListId: store?.defaultPriceListId ?? '',
     isActive: store?.isActive ?? true,
     cashDropAlert: moneyText(store?.cashDropAlertAmount ?? 1000), cashCeiling: store?.cashCeilingAmount == null ? '' : moneyText(store.cashCeilingAmount),
+    receiptPrintMode: (store?.receiptPrintMode ?? 'Ask') as ReceiptPrintMode,
   }
   const [draft, setDraft] = useState(initial)
   const [error, setError] = useState<string | null>(null)
@@ -129,7 +141,7 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
     if (ceiling === undefined || (ceiling !== null && ceiling <= alert)) { setError('O teto de dinheiro no caixa tem de ser maior que o aviso de sangria, ou fique em branco.'); return false }
     const input = {
       code: draft.code, name: draft.name.trim(), stockLocationId: locationId, defaultPriceListId: priceListId, isActive: draft.isActive,
-      cashDropAlertAmount: alert, cashCeilingAmount: ceiling,
+      cashDropAlertAmount: alert, cashCeilingAmount: ceiling, receiptPrintMode: draft.receiptPrintMode,
     }
     try {
       if (store) await updateStore(store.id, input)
@@ -186,6 +198,15 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
             </Field>
             <Field label="Teto de dinheiro no caixa (R$)" size="md" dica={CEILING_DICA} hint="Em branco: sem teto.">
               {(p) => <input {...p} value={draft.cashCeiling} inputMode="decimal" onChange={(e) => setDraft({ ...draft, cashCeiling: e.target.value })} className={inputClass} />}
+            </Field>
+            <Field label="Cupom ao concluir a venda" size="md" dica={PRINT_DICA}>
+              {(p) => (
+                <select {...p} value={draft.receiptPrintMode} onChange={(e) => setDraft({ ...draft, receiptPrintMode: e.target.value as ReceiptPrintMode })} className={inputClass}>
+                  <option value="Ask">Perguntar</option>
+                  <option value="Always">Imprimir sempre</option>
+                  <option value="Never">Não imprimir</option>
+                </select>
+              )}
             </Field>
           </FormGrid>
         </fieldset>

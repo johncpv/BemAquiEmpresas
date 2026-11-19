@@ -4,7 +4,9 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { ReceiptPrintMode } from './receiptPrintMode';
 import type { RegisterView } from './registerView';
+import type { StoreFiscalMode } from './storeFiscalMode';
 
 export interface StoreView {
   id: string;
@@ -20,4 +22,13 @@ export interface StoreView {
   cashCeilingAmount: number | null;
   version: number;
   registers: RegisterView[];
+  fiscalMode?: StoreFiscalMode;
+  /** @nullable */
+  nonFiscalTermsVersion?: number | null;
+  /** @nullable */
+  nonFiscalAcceptedAt?: string | null;
+  /** @nullable */
+  nonFiscalAcceptedByName?: string | null;
+  needsNewAcceptance?: boolean;
+  receiptPrintMode?: ReceiptPrintMode;
 }

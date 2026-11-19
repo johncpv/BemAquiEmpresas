@@ -22,6 +22,11 @@ public interface IPosDb
 
     DbSet<CashMovement> CashMovements { get; }
 
+    /// <summary>Impressoras dos caixas e as impressões registradas (IMP-01).</summary>
+    DbSet<Printer> Printers { get; }
+
+    DbSet<PrintJob> PrintJobs { get; }
+
     /// <summary>Gravação em lote do modelo de leitura e a trava do tenant (OFF-01).</summary>
     DatabaseFacade Database { get; }
 

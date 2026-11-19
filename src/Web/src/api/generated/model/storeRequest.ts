@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { ReceiptPrintMode } from './receiptPrintMode';
 
 export interface StoreRequest {
   code: string;
@@ -15,4 +16,5 @@ export interface StoreRequest {
   cashDropAlertAmount?: number | null;
   /** @nullable */
   cashCeilingAmount?: number | null;
+  receiptPrintMode?: null | ReceiptPrintMode;
 }

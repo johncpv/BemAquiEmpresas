@@ -4,6 +4,8 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { ReceiptPrintMode } from './receiptPrintMode';
+import type { StoreFiscalMode } from './storeFiscalMode';
 
 export interface PosSyncStore {
   id: string;
@@ -17,4 +19,11 @@ export interface PosSyncStore {
   cashDropAlertCents: number;
   /** @nullable */
   cashCeilingCents: number | null;
+  /** @nullable */
+  companyName?: string | null;
+  /** @nullable */
+  companyDocument?: string | null;
+  fiscalMode?: StoreFiscalMode;
+  canSell?: boolean;
+  receiptPrintMode?: ReceiptPrintMode;
 }

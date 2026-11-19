@@ -142,7 +142,7 @@ export class DexieLocalStore implements LocalStore {
   }
 
   catalogState(): CatalogState | null {
-    return this.meta ? { ...this.meta, cashLimits: this.meta.cashLimits ?? null, counts: this.memory.counts() } : null
+    return this.meta ? { ...this.meta, cashLimits: this.meta.cashLimits ?? null, storeSettings: this.meta.storeSettings ?? null, counts: this.memory.counts() } : null
   }
 
   async replaceCatalog(version: CatalogVersion & { storeId: string; storeName?: string | null }, data: CatalogData, syncedAt: string): Promise<void> {
@@ -162,7 +162,7 @@ export class DexieLocalStore implements LocalStore {
 
     const meta: CatalogMeta = {
       schemaVersion: version.schemaVersion, cursor: version.cursor, storeId: version.storeId, storeName: version.storeName ?? null,
-      offlineWindowDays: version.offlineWindowDays ?? null, cashLimits: version.cashLimits ?? null, syncedAt,
+      offlineWindowDays: version.offlineWindowDays ?? null, cashLimits: version.cashLimits ?? null, storeSettings: version.storeSettings ?? null, syncedAt,
     }
     await this.db.transaction('rw', this.db.catalogChunks, this.db.catalogOverlay, this.db.meta, async () => {
       await this.db.catalogChunks.clear()
@@ -182,6 +182,7 @@ export class DexieLocalStore implements LocalStore {
       ...this.meta, schemaVersion: version.schemaVersion, cursor: version.cursor, syncedAt,
       offlineWindowDays: version.offlineWindowDays === undefined ? this.meta.offlineWindowDays : version.offlineWindowDays,
       cashLimits: version.cashLimits === undefined ? this.meta.cashLimits ?? null : version.cashLimits,
+      storeSettings: version.storeSettings === undefined ? this.meta.storeSettings ?? null : version.storeSettings,
     }
     const rows: OverlayRow[] = changes.map((c) => c.op === 'upsert'
       ? { k: `${c.collection}:${c.record.id}`, collection: c.collection, id: c.record.id, record: c.record }
