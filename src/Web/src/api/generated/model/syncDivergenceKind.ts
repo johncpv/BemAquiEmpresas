@@ -10,11 +10,13 @@ export type SyncDivergenceKind = typeof SyncDivergenceKind[keyof typeof SyncDive
 
 export const SyncDivergenceKind = {
   PriceOutdated: 'PriceOutdated',
+  PriceMismatch: 'PriceMismatch',
   DeviceClock: 'DeviceClock',
   BrokenSequence: 'BrokenSequence',
   ReplacedDevice: 'ReplacedDevice',
   SchemaVersion: 'SchemaVersion',
   Validation: 'Validation',
+  Authorization: 'Authorization',
   Payment: 'Payment',
   CashSession: 'CashSession',
   FiscalDocument: 'FiscalDocument',

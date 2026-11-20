@@ -30,9 +30,17 @@ public sealed partial class PosEventIngestion
             violations.Add($"Número da venda fora do formato do caixa ({prefix}000001).");
         }
 
+        // M1: os instantes da venda ficam perto do instante do evento (nada depois dele além da folga, nem mais de 24 h antes) e não voltam no tempo.
+        var times = replay.Times;
+        if (times.Any(t => t > occurredAt + ClockTolerance || t < occurredAt - MaxSaleSpan) || times.Zip(times.Skip(1)).Any(p => p.Second < p.First - ClockTolerance))
+        {
+            violations.Add("Os instantes da venda estão fora de ordem ou longe do instante do evento (relógio do aparelho mexido).");
+        }
+
+        var soft = new List<string>(replay.AuthorizationNotes);
         if (!context.Trusted)
         {
-            await CheckPeopleAsync(context, replay.Checks, violations, ct);
+            await CheckPeopleAsync(context, replay.Checks, violations, soft, ct);
         }
 
         if (violations.Count > 0 && !context.Trusted)
@@ -61,6 +69,17 @@ public sealed partial class PosEventIngestion
         {
             projection.Quarantine = new Finding(SyncDivergenceKind.CashSession, "Venda sem sessão de caixa conhecida deste caixa: a abertura não chegou ou é de outro caixa.");
             return projection;
+        }
+
+        // M1: a venda tem de estar dentro da sessão (da abertura ao fechamento, ou a agora, com a folga). Fora dela, ou em sessão já fechada, entra com a
+        // divergência "Sessão de caixa" e não soma no dinheiro da sessão.
+        var sessionEnd = (session.ClosedAt ?? clock.GetUtcNow()) + ClockTolerance;
+        var outsideSession = session.Status != CashSessionStatus.Open || completedAtDevice < session.OpenedAt - ClockTolerance || completedAtDevice > sessionEnd;
+        if (outsideSession)
+        {
+            projection.Divergences.Add(new Finding(SyncDivergenceKind.CashSession,
+                $"Venda às {Local(completedAtDevice)} fora da sessão de caixa (aberta às {Local(session.OpenedAt)}{(session.ClosedAt is { } closed ? $", fechada às {Local(closed)}" : string.Empty)}): o dinheiro dela não soma na sessão.",
+                new { sessionId = session.Id }));
         }
 
         // Modo não fiscal aceito na versão vigente no instante da venda (revisão de segurança da IMP-01).
@@ -111,7 +130,7 @@ public sealed partial class PosEventIngestion
                 var brands = method.CardBrands ?? [];
                 if (!card || !known || (brand != CardBrand.Other && brands.Count > 0 && !brands.Contains(brand)))
                 {
-                    paymentProblems.Add($"Bandeira {tender.CardBrand} fora da tabela da forma {method.Name}.");
+                    paymentProblems.Add($"Bandeira fora da tabela da forma {method.Name}.");
                 }
             }
         }
@@ -122,16 +141,15 @@ public sealed partial class PosEventIngestion
             return projection;
         }
 
-        // Preço desatualizado (CA 9): vale o preço do aparelho; a divergência leva o vendido e o vigente.
+        // CA 9 e revisão de segurança (A1): o preço vem do aparelho e é sempre conferido com o catálogo do servidor. Vale o preço do aparelho (a venda
+        // aconteceu); versão anterior com preço diferente é "Preço desatualizado"; preço diferente na versão vigente, versão nula ou futura, ou produto
+        // fora do catálogo da loja é "Preço divergente". A venda entra com a divergência.
         var items = await context.ItemsAsync(db, replay.Lines.Select(l => l.ProductId).Distinct().ToList(), ct);
         foreach (var line in replay.Lines)
         {
-            if (items.TryGetValue(line.ProductId, out var item) && item.PriceListVersion is { } current && line.PriceVersion is { } sold && sold < current
-                && item.PriceCents is { } currentCents && currentCents != line.UnitCents)
+            if (PriceFinding(line, items.GetValueOrDefault(line.ProductId)) is { } finding)
             {
-                projection.Divergences.Add(new Finding(SyncDivergenceKind.PriceOutdated,
-                    $"{Cut(line.Name, 80)}: vendido a {PosSaleReplay.Money(line.UnitCents)}; vigente {PosSaleReplay.Money(currentCents)}.",
-                    new { productId = line.ProductId, soldCents = line.UnitCents, currentCents, soldVersion = sold, currentVersion = current }));
+                projection.Divergences.Add(finding);
             }
         }
 
@@ -168,7 +186,18 @@ public sealed partial class PosEventIngestion
             projection.Divergences.Add(new Finding(SyncDivergenceKind.Payment, note));
         }
 
-        if (!ingested.Value.Replayed)
+        // M3: o documento do consumidor só é guardado com a venda aceita e gravada agora por este caixa (nunca para venda em quarentena ou de outro caixa).
+        if (!ingested.Value.Replayed && context.Documents.TryGetValue(replay.SaleId, out var doc) && replay.DocumentId is not null)
+        {
+            await documents.AttachAsync(new SaleCustomerDocumentInput(doc.SaleId, doc.Kind, doc.Value), ct);
+        }
+
+        foreach (var note in soft.Distinct())
+        {
+            projection.Divergences.Add(new Finding(SyncDivergenceKind.Authorization, note));
+        }
+
+        if (!ingested.Value.Replayed && !outsideSession)
         {
             var cashKept = replay.Tenders.Where(t => t.Status == "Captured" && t.MethodId is { } m && methods.TryGetValue(m, out var method) && method.Type == PaymentMethodType.Cash)
                 .Sum(t => t.AmountCents);
@@ -179,7 +208,7 @@ public sealed partial class PosEventIngestion
         return projection;
     }
 
-    private async Task<Projection> ProjectCashAsync(SyncContext context, JsonElement root, CancellationToken ct)
+    private async Task<Projection> ProjectCashAsync(SyncContext context, JsonElement root, DateTimeOffset occurredAt, CancellationToken ct)
     {
         var type = PosSaleReplay.StringOf(root, "type");
         var operatorId = PosSaleReplay.GuidOf(root, "operatorId");
@@ -190,6 +219,11 @@ public sealed partial class PosEventIngestion
         if (operatorId is null || sessionId is null || at is null)
         {
             problems.Add("Evento do caixa sem operador, sessão ou instante.");
+        }
+        else if ((at.Value - occurredAt).Duration() > ClockTolerance)
+        {
+            // M1: o instante do movimento é o do evento (os dois nascem juntos no aparelho).
+            return Hold(projection, SyncDivergenceKind.DeviceClock, "O instante do movimento não bate com o do evento: o relógio do aparelho foi mexido.");
         }
 
         if (PosSaleReplay.GuidOf(root, "registerId") is { } claimed && claimed != context.Register.Id)
@@ -212,7 +246,7 @@ public sealed partial class PosEventIngestion
 
         if (problems.Count == 0 && !context.Trusted)
         {
-            await CheckPeopleAsync(context, [new ReplayCheck(operatorId, at!.Value, "operador do caixa", permission, NeedsPinSession: true)], problems, ct);
+            await CheckPeopleAsync(context, [new ReplayCheck(operatorId, at!.Value, "operador do caixa", permission, NeedsPinSession: true)], problems, problems, ct);
         }
 
         if (problems.Count > 0)
@@ -229,7 +263,7 @@ public sealed partial class PosEventIngestion
                 return Hold(projection, SyncDivergenceKind.Validation, "Abertura com fundo de troco inválido (centavos inteiros, de zero a R$ 9.999.999,99).");
             }
 
-            if (PosSaleReplay.LongOf(root, "deviceEpoch") is { } epoch && epoch != context.Register.DeviceEpoch)
+            if (!context.Trusted && PosSaleReplay.LongOf(root, "deviceEpoch") is { } epoch && epoch != context.Register.DeviceEpoch)
             {
                 return Hold(projection, SyncDivergenceKind.CashSession, "Abertura de uma época anterior do caixa (outro aparelho).");
             }
@@ -294,7 +328,7 @@ public sealed partial class PosEventIngestion
         return projection;
     }
 
-    private async Task<Projection> ProjectPrintAsync(SyncContext context, JsonElement root, CancellationToken ct)
+    private async Task<Projection> ProjectPrintAsync(SyncContext context, JsonElement root, DateTimeOffset occurredAt, CancellationToken ct)
     {
         var operatorId = PosSaleReplay.GuidOf(root, "operatorId");
         var printedAt = PosSaleReplay.DateOf(root, "printedAt");
@@ -306,6 +340,11 @@ public sealed partial class PosEventIngestion
             return Hold(projection, SyncDivergenceKind.Validation, "Impressão sem operador, instante, id, tipo ou via.");
         }
 
+        if ((printedAt.Value - occurredAt).Duration() > ClockTolerance)
+        {
+            return Hold(projection, SyncDivergenceKind.DeviceClock, "O instante da impressão não bate com o do evento: o relógio do aparelho foi mexido.");
+        }
+
         if (PosSaleReplay.GuidOf(root, "registerId") is { } claimed && claimed != context.Register.Id)
         {
             problems.Add("A impressão diz ser de outro caixa.");
@@ -313,7 +352,7 @@ public sealed partial class PosEventIngestion
 
         if (!context.Trusted)
         {
-            await CheckPeopleAsync(context, [new ReplayCheck(operatorId, printedAt.Value, "quem imprimiu", "pos.create", NeedsPinSession: true)], problems, ct);
+            await CheckPeopleAsync(context, [new ReplayCheck(operatorId, printedAt.Value, "quem imprimiu", "pos.create", NeedsPinSession: true)], problems, problems, ct);
         }
 
         if (problems.Count > 0)
@@ -327,6 +366,37 @@ public sealed partial class PosEventIngestion
     }
 
     private const long MaxCents = 999_999_999;
+
+    /// <summary>O tipo da divergência de preço da linha (null quando bate com o catálogo da loja).</summary>
+    public static SyncDivergenceKind? PriceCheck(ReplayLine line, PosItemPayload? item) => PriceFinding(line, item)?.Kind;
+
+    /// <summary>A conferência do preço da linha contra o catálogo da loja no servidor (null quando bate).</summary>
+    internal static Finding? PriceFinding(ReplayLine line, PosItemPayload? item)
+    {
+        var name = Cut(line.Name, 80);
+        if (item is null)
+        {
+            return new Finding(SyncDivergenceKind.PriceMismatch, $"{name}: produto fora do catálogo desta loja, vendido a {PosSaleReplay.Money(line.UnitCents)}.",
+                new { productId = line.ProductId, soldCents = line.UnitCents });
+        }
+
+        var current = item.PriceListVersion;
+        var details = new { productId = line.ProductId, soldCents = line.UnitCents, currentCents = item.PriceCents, soldVersion = line.PriceVersion, currentVersion = current };
+        var vigente = item.PriceCents is { } cents ? PosSaleReplay.Money(cents) : "sem preço";
+        if (line.PriceVersion is not { } sold || current is null || sold > current)
+        {
+            return new Finding(SyncDivergenceKind.PriceMismatch, $"{name}: versão da tabela de preço desconhecida no aparelho; vendido a {PosSaleReplay.Money(line.UnitCents)}, vigente {vigente}.", details);
+        }
+
+        if (item.PriceCents == line.UnitCents)
+        {
+            return null;
+        }
+
+        return sold < current
+            ? new Finding(SyncDivergenceKind.PriceOutdated, $"{name}: vendido a {PosSaleReplay.Money(line.UnitCents)}; vigente {vigente}.", details)
+            : new Finding(SyncDivergenceKind.PriceMismatch, $"{name}: vendido a {PosSaleReplay.Money(line.UnitCents)} na versão vigente da tabela, que tem {vigente}.", details);
+    }
 
     private static Projection Hold(Projection projection, SyncDivergenceKind kind, string summary)
     {
@@ -350,7 +420,7 @@ public sealed partial class PosEventIngestion
     /// Operador presente numa sessão por PIN deste aparelho no instante e com a permissão no instante (requisitos da PDV-02, PDV-03 e CX-01). Quem
     /// autorizou (supervisor) é conferido pela permissão; a sessão por PIN do supervisor chega com a PDV-04.
     /// </summary>
-    private async Task CheckPeopleAsync(SyncContext context, IEnumerable<ReplayCheck> checks, List<string> problems, CancellationToken ct)
+    private async Task CheckPeopleAsync(SyncContext context, IEnumerable<ReplayCheck> checks, List<string> problems, List<string> soft, CancellationToken ct)
     {
         foreach (var check in checks)
         {
@@ -362,7 +432,7 @@ public sealed partial class PosEventIngestion
 
             if (check.NeedsPinSession && !await context.HadSessionAsync(operators, user, check.At, ct))
             {
-                problems.Add($"{Capital(check.Role)} não tinha sessão por PIN neste caixa às {Local(check.At)}.");
+                (check.Soft ? soft : problems).Add($"{Capital(check.Role)} não tinha sessão por PIN neste caixa às {Local(check.At)}.");
                 continue;
             }
 

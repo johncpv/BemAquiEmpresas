@@ -71,6 +71,9 @@ public enum SyncDivergenceKind
     /// <summary>Preço desatualizado: o aparelho vendeu com uma tabela mais antiga que a vigente (vale o preço do aparelho).</summary>
     PriceOutdated,
 
+    /// <summary>Preço divergente: diferente do catálogo na versão vigente, versão nula ou futura, ou produto fora do catálogo da loja (vale o do aparelho).</summary>
+    PriceMismatch,
+
     /// <summary>Relógio do aparelho fora da tolerância (as duas datas ficam gravadas).</summary>
     DeviceClock,
 
@@ -85,6 +88,12 @@ public enum SyncDivergenceKind
 
     /// <summary>Venda ou evento que não passou na conferência do servidor (operador, permissão, autorização, pagamento, dado de cartão).</summary>
     Validation,
+
+    /// <summary>
+    /// Autorização sem supervisor conferido (revisão de segurança M2, até a PDV-04): quem autorizou não tinha sessão por PIN neste aparelho no instante,
+    /// ou é o próprio operador numa ação que pede supervisor. A venda entra; a pendência fica para o gerente.
+    /// </summary>
+    Authorization,
 
     /// <summary>Soma dos pagamentos diferente do total, ou pagamento sem confirmação (precisa de alguém olhar).</summary>
     Payment,

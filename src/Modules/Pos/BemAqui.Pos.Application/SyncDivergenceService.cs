@@ -62,11 +62,13 @@ public sealed class SyncDivergenceService(IPosDb db, PosEventIngestion ingestion
     public static string Label(SyncDivergenceKind kind) => kind switch
     {
         SyncDivergenceKind.PriceOutdated => "Preço desatualizado",
+        SyncDivergenceKind.PriceMismatch => "Preço divergente",
         SyncDivergenceKind.DeviceClock => "Relógio do aparelho",
         SyncDivergenceKind.BrokenSequence => "Sequência quebrada",
         SyncDivergenceKind.ReplacedDevice => "Aparelho substituído",
         SyncDivergenceKind.SchemaVersion => "Versão do aparelho",
         SyncDivergenceKind.Validation => "Recusado na conferência",
+        SyncDivergenceKind.Authorization => "Autorização sem supervisor",
         SyncDivergenceKind.Payment => "Pagamento",
         SyncDivergenceKind.CashSession => "Sessão de caixa",
         SyncDivergenceKind.FiscalDocument => "Documento fiscal",
@@ -133,17 +135,17 @@ public sealed class SyncDivergenceService(IPosDb db, PosEventIngestion ingestion
         var now = clock.GetUtcNow();
         if (input.Resolution == SyncResolution.ReleaseQuarantine)
         {
-            var stored = await db.DeviceEvents.AsNoTracking().FirstAsync(e => e.EventId == divergence.EventId, cancellationToken);
-            if (await db.SyncDivergences.AnyAsync(d => d.EventId == stored.EventId && d.Quarantined && d.Status == SyncDivergenceStatus.Resolved
-                    && d.Resolution == SyncResolution.ReleaseQuarantine, cancellationToken))
+            // M4: quem libera não pode ser o operador do evento.
+            if (divergence.OperatorId is { } op && op == currentUser.UserId)
             {
-                return Error.Conflict("already_released", "Este evento já foi liberado.");
+                return Error.Forbidden("release_own_event", "Você é o operador deste evento: outra pessoa precisa liberar.");
             }
 
+            var eventId = divergence.EventId;
             // O efeito e o fechamento da pendência (e das outras quarentenas do mesmo evento) na mesma transação, auditados.
-            var released = await ingestion.ReleaseAsync(stored, async ct =>
+            var released = await ingestion.ReleaseAsync(divergence, async ct =>
             {
-                foreach (var held in await db.SyncDivergences.Where(d => d.EventId == stored.EventId && d.Quarantined && d.Status == SyncDivergenceStatus.Open).ToListAsync(ct))
+                foreach (var held in await db.SyncDivergences.Where(d => d.EventId == eventId && d.Quarantined && d.Status == SyncDivergenceStatus.Open).ToListAsync(ct))
                 {
                     held.Resolve(SyncResolution.ReleaseQuarantine, reason, currentUser.UserId, now);
                 }

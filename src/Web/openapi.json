@@ -107522,11 +107522,13 @@
       "SyncDivergenceKind": {
         "enum": [
           "PriceOutdated",
+          "PriceMismatch",
           "DeviceClock",
           "BrokenSequence",
           "ReplacedDevice",
           "SchemaVersion",
           "Validation",
+          "Authorization",
           "Payment",
           "CashSession",
           "FiscalDocument"

@@ -13,7 +13,8 @@ public sealed record ReplayTender(
     string? AuthorizationCode, string? Note, string Integration, Guid? ConfirmedBy, DateTimeOffset At, bool IntegrationFieldsFilled);
 
 /// <summary>Quem precisa ser conferido: o operador numa sessão por PIN do aparelho e, quando há, a permissão no instante.</summary>
-public sealed record ReplayCheck(Guid? UserId, DateTimeOffset At, string Role, string? Permission, bool NeedsPinSession);
+/// <summary><c>Soft</c>: a falha vira divergência (a venda entra), não quarentena (sessão por PIN de quem autorizou, revisão de segurança M2).</summary>
+public sealed record ReplayCheck(Guid? UserId, DateTimeOffset At, string Role, string? Permission, bool NeedsPinSession, bool Soft = false);
 
 public sealed record ReplayIncident(OperatorIncidentKind Kind, Guid? OperatorId, Guid? AuthorizedBy, DateTimeOffset At);
 
@@ -56,6 +57,12 @@ public sealed class SaleReplayResult
 
     public List<ReplayCheck> Checks { get; } = [];
 
+    /// <summary>Autorização que pede supervisor feita pelo próprio operador (M2): divergência, até a PDV-04.</summary>
+    public List<string> AuthorizationNotes { get; } = [];
+
+    /// <summary>Os instantes dos eventos da venda, na ordem (M1: perto do evento e sem voltar no tempo).</summary>
+    public List<DateTimeOffset> Times { get; } = [];
+
     public List<ReplayIncident> Exceptions { get; } = [];
 }
 
@@ -73,6 +80,10 @@ public static class PosSaleReplay
     public const int MaxNsuLength = 12;
     public const int MaxAuthorizationLength = 12;
     public const int MaxDiscardReasonLength = 200;
+
+    /// <summary>Limites de sanidade (B2): R$ 9.999.999,99 por preço ou pagamento e 99.999 unidades por linha.</summary>
+    public const long MaxCents = 999_999_999;
+    public const decimal MaxQuantity = 99_999m;
 
     private static readonly Dictionary<string, string[]> Transitions = new(StringComparer.Ordinal)
     {
@@ -133,6 +144,7 @@ public static class PosSaleReplay
             }
 
             started = true;
+            result.Times.Add(at.Value);
             state.Apply(type, at.Value, data);
         }
 
@@ -223,7 +235,7 @@ public static class PosSaleReplay
             var quantity = QuantityOf(line, "quantity");
             var unit = LongOf(line, "unitCents");
             var note = StringOf(line, "note");
-            if (lineId is null || productId is null || quantity is not > 0 || unit is not >= 0 || result.Lines.Any(x => x.LineId == lineId))
+            if (lineId is null || productId is null || quantity is not > 0 || quantity > MaxQuantity || unit is not >= 0 || unit > MaxCents || result.Lines.Any(x => x.LineId == lineId))
             {
                 result.Violations.Add("Item lançado sem linha, produto, quantidade maior que zero ou preço válido.");
                 return;
@@ -272,7 +284,7 @@ public static class PosSaleReplay
             }
 
             var quantity = QuantityOf(data, "quantity");
-            if (quantity is not > 0)
+            if (quantity is not > 0 || quantity > MaxQuantity)
             {
                 result.Violations.Add("Quantidade nova inválida.");
                 return;
@@ -290,11 +302,11 @@ public static class PosSaleReplay
                 var free = freeRemoveLast && _lastAdd is { } last && last.LineId == line.LineId && reduced <= last.Quantity;
                 if (reason == "remove-last" && !(free && reduced == _lastAdd!.Value.Quantity))
                 {
-                    NeedsAuthorization(authorizedBy, at, "o desfazer do último lançamento não era o último lançamento de fato");
+                    NeedsAuthorization(authorizedBy, at, "o desfazer do último lançamento não era o último lançamento de fato", operatorId: operatorId);
                 }
                 else if (reason != "remove-last" && !free)
                 {
-                    NeedsAuthorization(authorizedBy, at, "redução de quantidade de uma linha que não é o último lançamento");
+                    NeedsAuthorization(authorizedBy, at, "redução de quantidade de uma linha que não é o último lançamento", operatorId: operatorId);
                 }
 
                 result.Exceptions.Add(new ReplayIncident(OperatorIncidentKind.QuantityReduced, operatorId, authorizedBy, at));
@@ -330,11 +342,11 @@ public static class PosSaleReplay
             var isLast = freeRemoveLast && _lastAdd is { } last && last.LineId == line.LineId && last.Quantity == line.Quantity;
             if (reason == "last-item" && !isLast)
             {
-                NeedsAuthorization(authorizedBy, at, "a remoção do último item não era do último lançamento de fato");
+                NeedsAuthorization(authorizedBy, at, "a remoção do último item não era do último lançamento de fato", operatorId: operatorId);
             }
             else if (reason != "last-item")
             {
-                NeedsAuthorization(authorizedBy, at, "remoção de item que não é o último lançado");
+                NeedsAuthorization(authorizedBy, at, "remoção de item que não é o último lançado", operatorId: operatorId);
             }
 
             result.Exceptions.Add(new ReplayIncident(OperatorIncidentKind.ItemRemoved, operatorId, authorizedBy, at));
@@ -412,12 +424,19 @@ public static class PosSaleReplay
                 return;
             }
 
+            if (previous >= 0 && from == status && Differs(result.Tenders[previous], GuidOf(tender, "methodId"), LongOf(tender, "amountCents"), LongOf(tender, "receivedCents"), LongOf(tender, "changeCents") ?? 0, confirmedBy))
+            {
+                // B3: o mesmo pagamento de novo no mesmo estado só vale com os mesmos valores (Captured → Captured com outro valor é adulteração).
+                result.Violations.Add($"Pagamento repetido como {status} com outros valores.");
+                return;
+            }
+
             if (from == "Captured" && status is "Voided" or "Refunded")
             {
                 NeedsAuthorization(authorizedBy, at, "estorno de pagamento capturado", "pos.cancel_sale");
             }
 
-            if (amount is not > 0 || change < 0 || received is < 0)
+            if (amount is not > 0 or > MaxCents || change is < 0 or > MaxCents || received is < 0 or > MaxCents)
             {
                 result.Violations.Add("Pagamento com valor inválido (centavos inteiros, maior que zero; troco e recebido não negativos).");
                 return;
@@ -523,7 +542,7 @@ public static class PosSaleReplay
             return id;
         }
 
-        private void NeedsAuthorization(Guid? authorizedBy, DateTimeOffset at, string what, string permission = "pos.cancel_item")
+        private void NeedsAuthorization(Guid? authorizedBy, DateTimeOffset at, string what, string permission = "pos.cancel_item", Guid? operatorId = null)
         {
             if (authorizedBy is null)
             {
@@ -531,8 +550,21 @@ public static class PosSaleReplay
                 return;
             }
 
-            result.Checks.Add(new ReplayCheck(authorizedBy, at, "quem autorizou (" + what + ")", permission, NeedsPinSession: false));
+            // M2 (até a PDV-04): quem autorizou precisa da permissão no instante (senão, quarentena) e de sessão por PIN neste aparelho; sem a sessão,
+            // ou sendo o próprio operador, a venda entra com a pendência "Autorização sem supervisor".
+            var role = "quem autorizou (" + what + ")";
+            result.Checks.Add(new ReplayCheck(authorizedBy, at, role, permission, NeedsPinSession: false));
+            result.Checks.Add(new ReplayCheck(authorizedBy, at, role, null, NeedsPinSession: true, Soft: true));
+            if (authorizedBy == operatorId)
+            {
+                result.AuthorizationNotes.Add($"{Capitalize(what)}: autorizada pelo próprio operador, sem supervisor.");
+            }
         }
+
+        private static string Capitalize(string text) => text.Length == 0 ? text : char.ToUpperInvariant(text[0]) + text[1..];
+
+        private static bool Differs(ReplayTender previous, Guid? methodId, long? amount, long? received, long change, Guid? confirmedBy) =>
+            previous.MethodId != methodId || previous.AmountCents != amount || previous.ReceivedCents != received || previous.ChangeCents != change || previous.ConfirmedBy != confirmedBy;
     }
 
     /// <summary>Texto livre dentro do tamanho e sem sequência de cartão; null quando está bom.</summary>

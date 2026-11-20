@@ -67,6 +67,13 @@ public sealed partial class PosEventIngestion(
     public const int MaxEvents = 200;
     public const int MaxPayloadLength = 256 * 1024;
 
+    /// <summary>Rate limit da subida por aparelho (revisão de segurança M3).</summary>
+    public const string RateLimitPolicy = "pos-sync-events";
+    public const int RateLimitPerMinute = 120;
+
+    /// <summary>Maior distância entre o primeiro evento da venda e a conclusão (venda em espera por um turno inteiro).</summary>
+    public static readonly TimeSpan MaxSaleSpan = TimeSpan.FromHours(24);
+
     /// <summary>Tolerância do relógio do aparelho (ponto em aberto da story: os 2 min da ADR 0026).</summary>
     public static readonly TimeSpan ClockTolerance = TimeSpan.FromMinutes(2);
 
@@ -103,7 +110,11 @@ public sealed partial class PosEventIngestion(
             results.Add(await ProcessAsync(context, input, cancellationToken));
         }
 
-        await alerts.OnContactAsync(store, register, batch.OldestPendingAt, cancellationToken);
+        // M3: o aparelho revogado ou substituído não dispara o aviso (o OldestPendingAt dele é ignorado).
+        if (!context.Replaced)
+        {
+            await alerts.OnContactAsync(store, register, batch.OldestPendingAt, cancellationToken);
+        }
         var acks = new List<PosSyncAck>();
         foreach (var epoch in results.Select(r => r.DeviceEpoch).Distinct())
         {
@@ -113,42 +124,85 @@ public sealed partial class PosEventIngestion(
         return new PosSyncBatchResult(results, acks, clock.GetUtcNow());
     }
 
-    /// <summary>Liberar da quarentena (CA 15): projeta o evento como chegou, sem refazer a conferência que o segurou (quem liberou decidiu).</summary>
-    public async Task<Result<IReadOnlyList<SyncDivergence>>> ReleaseAsync(DeviceEvent stored, Func<CancellationToken, Task> beforeCommit, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Liberar da quarentena (CA 15). A conferência roda de novo, sem o modo confiável: se passar, o evento entra como qualquer outro; se não passar,
+    /// entra mesmo assim (quem liberou decidiu) e o que a conferência achou fica gravado como divergência visível, "Liberado apesar de: …" (revisão de
+    /// segurança M4). A pendência de aparelho substituído agrupa os eventos dele: liberar libera todos, na ordem. A checagem de "já liberado" roda
+    /// dentro da trava do caixa (B5).
+    /// </summary>
+    public async Task<Result<IReadOnlyList<SyncDivergence>>> ReleaseAsync(SyncDivergence held, Func<CancellationToken, Task> beforeCommit, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(stored);
-        var register = await db.Registers.AsNoTracking().FirstAsync(r => r.Id == stored.RegisterId, cancellationToken);
-        var store = await db.Stores.AsNoTracking().FirstAsync(s => s.Id == stored.StoreId, cancellationToken);
-        var device = new DeviceIdentity(stored.DeviceId, "Register", store.Id, register.Id, stored.DeviceEpoch, Revoked: false);
-        var context = new SyncContext(device, store, register, TimeSpan.FromMilliseconds(stored.ClockSkewMs), new Dictionary<Guid, PosSyncDocumentInput>(), trusted: true);
+        ArgumentNullException.ThrowIfNull(held);
+        ArgumentNullException.ThrowIfNull(beforeCommit);
+        var register = await db.Registers.AsNoTracking().FirstAsync(r => r.Id == held.RegisterId, cancellationToken);
+        var store = await db.Stores.AsNoTracking().FirstAsync(s => s.Id == held.StoreId, cancellationToken);
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         await LockAsync(register.Id, cancellationToken);
-        await transaction.CreateSavepointAsync("projection", cancellationToken);
-        Projection projection;
-        try
+        if (await db.SyncDivergences.AnyAsync(d => d.EventId == held.EventId && d.Quarantined && d.Status == SyncDivergenceStatus.Resolved
+                && d.Resolution == SyncResolution.ReleaseQuarantine, cancellationToken))
         {
-            projection = await ProjectAsync(context, stored.EventId, stored.Kind, stored.Payload, stored.OccurredAt, cancellationToken);
-        }
-        catch (ProjectionFailedException failed)
-        {
-            return Error.Validation("release_failed", "Não foi possível liberar: " + failed.Message);
+            return Error.Conflict("already_released", "Este evento já foi liberado.");
         }
 
-        if (projection.Quarantine is { } still)
-        {
-            return Error.Validation("release_failed", "Não foi possível liberar: " + still.Summary);
-        }
-
+        var events = held.Kind == SyncDivergenceKind.ReplacedDevice
+            ? await db.DeviceEvents.AsNoTracking().Where(e => e.DeviceId == held.DeviceId && e.RegisterId == held.RegisterId && e.DeviceRevoked && e.Outcome == DeviceEventOutcome.Quarantined)
+                .OrderBy(e => e.DeviceEpoch).ThenBy(e => e.Seq).ToListAsync(cancellationToken)
+            : await db.DeviceEvents.AsNoTracking().Where(e => e.EventId == held.EventId).ToListAsync(cancellationToken);
         var now = clock.GetUtcNow();
-        var added = projection.Divergences.Select(d => NewDivergence(context, stored.EventId, stored.Kind, stored.DeviceEpoch, stored.Seq, stored.OccurredAt, projection, d, quarantined: false, now)).ToList();
-        db.SyncDivergences.AddRange(added);
-        AddExceptions(context, stored.EventId, stored.OccurredAt, projection, now);
-        ArgumentNullException.ThrowIfNull(beforeCommit);
+        var added = new List<SyncDivergence>();
+        foreach (var stored in events)
+        {
+            var device = new DeviceIdentity(stored.DeviceId, "Register", store.Id, register.Id, stored.DeviceEpoch, Revoked: false);
+            var skew = TimeSpan.FromMilliseconds(stored.ClockSkewMs);
+            var empty = new Dictionary<Guid, PosSyncDocumentInput>();
+            await transaction.CreateSavepointAsync(Savepoint, cancellationToken);
+            Projection projection;
+            string? finding;
+            try
+            {
+                projection = await ProjectAsync(new SyncContext(device, store, register, skew, empty, trusted: false), stored.EventId, stored.Kind, stored.Payload, stored.OccurredAt, cancellationToken);
+                finding = projection.Quarantine?.Summary;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                projection = new Projection();
+                finding = ex is ProjectionFailedException ? ex.Message : "o evento não pôde ser conferido.";
+            }
+
+            if (finding is not null)
+            {
+                await RollbackAsync(transaction, cancellationToken);
+                try
+                {
+                    projection = await ProjectAsync(new SyncContext(device, store, register, skew, empty, trusted: true), stored.EventId, stored.Kind, stored.Payload, stored.OccurredAt, cancellationToken);
+                }
+                catch (ProjectionFailedException failed)
+                {
+                    return Error.Validation("release_failed", "Não foi possível liberar: " + failed.Message);
+                }
+
+                if (projection.Quarantine is { } still)
+                {
+                    return Error.Validation("release_failed", "Não foi possível liberar: " + still.Summary);
+                }
+
+                projection.Divergences.Add(new Finding(SyncDivergenceKind.Validation, "Liberado da quarentena apesar de: " + finding));
+            }
+
+            var context = new SyncContext(device, store, register, skew, empty, trusted: true);
+            var rows = projection.Divergences.Select(d => NewDivergence(context, stored.EventId, stored.Kind, stored.DeviceEpoch, stored.Seq, stored.OccurredAt, projection, d, quarantined: false, now)).ToList();
+            db.SyncDivergences.AddRange(rows);
+            added.AddRange(rows);
+            AddExceptions(context, stored.EventId, stored.OccurredAt, projection, now);
+        }
+
         await beforeCommit(cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return added;
     }
+
+    private const string Savepoint = "projection";
 
     private async Task<PosSyncEventResult> ProcessAsync(SyncContext context, PosSyncEventInput input, CancellationToken cancellationToken)
     {
@@ -171,21 +225,15 @@ public sealed partial class PosEventIngestion(
         var (payload, redacted) = PosText.RedactCardNumbers(input.Payload);
         var clockOff = context.ClockOff || occurredAt > now + ClockTolerance;
 
-        // Documento do consumidor: guardado cifrado à parte (sem chave estrangeira), mesmo se a venda ficar na quarentena.
-        if (input.Kind == SaleKind && SaleIdOf(payload) is { } docSale && context.Documents.TryGetValue(docSale, out var doc))
-        {
-            await documents.AttachAsync(new SaleCustomerDocumentInput(doc.SaleId, doc.Kind, doc.Value), cancellationToken);
-        }
-
-        var hold = context.Device.Revoked || context.Register.ActiveDeviceId != context.Device.DeviceId || context.Register.DeviceEpoch != context.Device.Epoch
-            ? new Finding(SyncDivergenceKind.ReplacedDevice, "Evento de um aparelho revogado ou substituído: confira antes de liberar.")
+        var hold = context.Replaced
+            ? new Finding(SyncDivergenceKind.ReplacedDevice, "Eventos de um aparelho revogado ou substituído: confira com o operador antes de liberar (liberar libera todos os eventos dele).")
             : !context.Register.IsActive || !context.Store.IsActive ? new Finding(SyncDivergenceKind.Validation, "Evento de um caixa ou loja desativados.")
             : !claimOk ? new Finding(SyncDivergenceKind.Validation, "O evento diz ser de outro aparelho, caixa ou época.")
             : !chainOk ? new Finding(SyncDivergenceKind.BrokenSequence, hashOk ? $"Sequência quebrada no evento {input.Seq}: falta evento antes dele ou o anterior está em quarentena." : $"O hash do evento {input.Seq} não fecha.")
             : !PosEventChain.IsSupported(input.SchemaVersion) ? new Finding(SyncDivergenceKind.SchemaVersion, $"Versão {input.SchemaVersion} do evento fora do prazo de suporte.")
             : !Kinds.Contains(input.Kind) ? new Finding(SyncDivergenceKind.Validation, $"Tipo de evento desconhecido: {input.Kind}.")
             : redacted ? new Finding(SyncDivergenceKind.Validation, "O evento tinha texto que parece número de cartão: o texto foi apagado antes de gravar.")
-            : null;
+            : await TimeOrderAsync(context.Register.Id, epoch, input.Seq, occurredAt, cancellationToken);
 
         Projection projection;
         if (hold is not null)
@@ -194,7 +242,7 @@ public sealed partial class PosEventIngestion(
         }
         else
         {
-            await transaction.CreateSavepointAsync("projection", cancellationToken);
+            await transaction.CreateSavepointAsync(Savepoint, cancellationToken);
             try
             {
                 projection = await ProjectAsync(context, input.EventId, input.Kind, payload, occurredAt, cancellationToken);
@@ -207,6 +255,12 @@ public sealed partial class PosEventIngestion(
             {
                 await RollbackAsync(transaction, cancellationToken);
                 projection = Projection.Held(new Finding(failed.Kind, failed.Message), payload, input.Kind);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // B2: erro inesperado leva o evento à quarentena (guardado, sem efeito) em vez de travar a fila do aparelho com 500.
+                await RollbackAsync(transaction, cancellationToken);
+                projection = Projection.Held(new Finding(SyncDivergenceKind.Validation, $"O evento não pôde ser processado ({ex.GetType().Name}); fica guardado para revisão."), payload, input.Kind);
             }
         }
 
@@ -224,7 +278,7 @@ public sealed partial class PosEventIngestion(
             INSERT INTO pos.device_events (event_id, device_id, store_id, register_id, device_epoch, seq, schema_version, kind, occurred_at, received_at, clock_skew_ms,
                 prev_hash, hash, chain_ok, payload, outcome, device_revoked)
             VALUES ({input.EventId}, {context.Device.DeviceId}, {context.Store.Id}, {context.Register.Id}, {epoch}, {input.Seq}, {input.SchemaVersion}, {Cut(input.Kind, 40)},
-                {occurredAt}, {now}, {(long)context.ClockSkew.TotalMilliseconds}, {input.PrevHash}, {input.Hash}, {chainOk}, {payload}, {outcome.ToString()}, {context.Device.Revoked})
+                {occurredAt}, {now}, {(long)context.ClockSkew.TotalMilliseconds}, {input.PrevHash}, {input.Hash}, {chainOk}, {payload}, {outcome.ToString()}, {context.Replaced})
             ON CONFLICT (event_id) DO NOTHING
             """, cancellationToken);
         if (inserted == 0)
@@ -238,10 +292,19 @@ public sealed partial class PosEventIngestion(
 
         if (projection.Quarantine is { } quarantine)
         {
-            db.SyncDivergences.Add(NewDivergence(context, input.EventId, input.Kind, epoch, input.Seq, occurredAt, projection, quarantine, quarantined: true, now));
+            // M3: o aparelho revogado tem uma pendência só (a primeira ainda aberta agrupa os eventos dele), não uma por evento.
+            var grouped = context.Replaced && await db.SyncDivergences.AnyAsync(
+                d => d.DeviceId == context.Device.DeviceId && d.Kind == SyncDivergenceKind.ReplacedDevice && d.Status == SyncDivergenceStatus.Open, cancellationToken);
+            if (!grouped)
+            {
+                db.SyncDivergences.Add(NewDivergence(context, input.EventId, input.Kind, epoch, input.Seq, occurredAt, projection, quarantine, quarantined: true, now));
+            }
+
+            // M3: a exceção por operador só leva o operador conferido (com sessão por PIN neste aparelho no instante).
+            var verified = projection.OperatorId is { } op && await context.HadSessionAsync(operators, op, occurredAt, cancellationToken) ? op : (Guid?)null;
             db.OperatorIncidents.Add(new OperatorIncident
             {
-                StoreId = context.Store.Id, RegisterId = context.Register.Id, OperatorId = projection.OperatorId, Kind = OperatorIncidentKind.EventRejected, EventId = input.EventId,
+                StoreId = context.Store.Id, RegisterId = context.Register.Id, OperatorId = verified, Kind = OperatorIncidentKind.EventRejected, EventId = input.EventId,
                 SaleId = projection.SaleId, SaleNumber = projection.SaleNumber, OccurredAt = occurredAt, CreatedAt = now,
             });
         }
@@ -260,9 +323,23 @@ public sealed partial class PosEventIngestion(
         return new PosSyncEventResult(input.EventId, epoch, input.Seq, outcome, Replayed: false);
     }
 
+    /// <summary>
+    /// M1: o instante não volta no tempo. O evento não pode ser anterior (além da tolerância de relógio) ao último evento aceito antes dele na mesma
+    /// época do caixa; se for, fica na quarentena "Relógio do aparelho".
+    /// </summary>
+    private async Task<Finding?> TimeOrderAsync(Guid registerId, int epoch, long seq, DateTimeOffset occurredAt, CancellationToken cancellationToken)
+    {
+        var previous = await db.DeviceEvents.AsNoTracking()
+            .Where(e => e.RegisterId == registerId && e.DeviceEpoch == epoch && e.Seq < seq && e.Outcome != DeviceEventOutcome.Quarantined)
+            .OrderByDescending(e => e.Seq).Select(e => (DateTimeOffset?)e.OccurredAt).FirstOrDefaultAsync(cancellationToken);
+        return previous is { } at && occurredAt < at - ClockTolerance
+            ? new Finding(SyncDivergenceKind.DeviceClock, $"O evento diz {Local(occurredAt)}, antes do evento aceito anterior ({Local(at)}): o relógio do aparelho voltou no tempo.")
+            : null;
+    }
+
     private async Task RollbackAsync(IDbContextTransaction transaction, CancellationToken cancellationToken)
     {
-        await transaction.RollbackToSavepointAsync("projection", cancellationToken);
+        await transaction.RollbackToSavepointAsync(Savepoint, cancellationToken);
         db.ChangeTracker.Clear();
     }
 
@@ -333,23 +410,10 @@ public sealed partial class PosEventIngestion(
         return kind switch
         {
             SaleKind => ProjectSaleAsync(context, eventId, root, occurredAt, cancellationToken),
-            CashKind => ProjectCashAsync(context, root, cancellationToken),
-            PrintKind => ProjectPrintAsync(context, root, cancellationToken),
+            CashKind => ProjectCashAsync(context, root, occurredAt, cancellationToken),
+            PrintKind => ProjectPrintAsync(context, root, occurredAt, cancellationToken),
             _ => Task.FromResult(Projection.Held(new Finding(SyncDivergenceKind.Validation, $"Tipo de evento desconhecido: {kind}."), payload, kind)),
         };
-    }
-
-    private static Guid? SaleIdOf(string payload)
-    {
-        try
-        {
-            using var document = JsonDocument.Parse(payload);
-            return PosSaleReplay.GuidOf(document.RootElement, "saleId");
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
     }
 
     private static SyncDivergence NewDivergence(SyncContext context, Guid eventId, string kind, int epoch, long seq, DateTimeOffset occurredAt, Projection projection, Finding finding,
@@ -443,6 +507,9 @@ public sealed partial class PosEventIngestion(
 
         public bool ClockOff => ClockSkew.Duration() > ClockTolerance;
 
+        /// <summary>Aparelho revogado ou que não é mais o do caixa (outra época).</summary>
+        public bool Replaced => Device.Revoked || Register.ActiveDeviceId != Device.DeviceId || Register.DeviceEpoch != Device.Epoch;
+
         public IReadOnlyDictionary<Guid, PosSyncDocumentInput> Documents { get; } = documents;
 
         /// <summary>Liberação da quarentena: quem liberou decidiu; a conferência de operador, permissão e autorização não roda de novo.</summary>
@@ -478,7 +545,7 @@ public sealed partial class PosEventIngestion(
                 .Select(p => JsonSerializer.Deserialize<PosPaymentMethodPayload>(p, PosCatalogProjector.Json)!).ToDictionary(m => m.Id);
 
         public async Task<IReadOnlyDictionary<Guid, PosItemPayload>> ItemsAsync(IPosDb db, IReadOnlyCollection<Guid> productIds, CancellationToken ct) =>
-            _items = (await db.CatalogItems.AsNoTracking().Where(i => i.StoreId == Store.Id && i.Kind == CatalogItemKind.Product && productIds.Contains(i.EntityId))
+            _items = (await db.CatalogItems.AsNoTracking().Where(i => i.StoreId == Store.Id && i.Kind == CatalogItemKind.Product && !i.Deleted && productIds.Contains(i.EntityId))
                 .Select(i => i.Payload).ToListAsync(ct))
                 .Select(p => JsonSerializer.Deserialize<PosItemPayload>(p, PosCatalogProjector.Json)!).ToDictionary(m => m.ProductId);
     }

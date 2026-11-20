@@ -134,6 +134,39 @@ public class PosSyncUnitTests
         Run([Line(a, "1"), .. Pay(1000)]).Checks.Where(c => c.NeedsPinSession).Select(c => c.UserId).Should().OnlyContain(id => id == Operator);
     }
 
+    [Fact]
+    public void Preco_do_aparelho_e_sempre_conferido_com_o_catalogo_da_loja()
+    {
+        var line = new ReplayLine(Guid.CreateVersion7(), Product, "Arroz", 1, 1000, 5, null);
+        PosItemPayload Item(long? cents, long? version) => new(Product, null, "Arroz", "UN", false, null, [], cents, Guid.Empty, version);
+        PosEventIngestion.PriceCheck(line, Item(1000, 5)).Should().BeNull();
+        PosEventIngestion.PriceCheck(line, Item(1250, 6)).Should().Be(SyncDivergenceKind.PriceOutdated);
+        PosEventIngestion.PriceCheck(line, Item(1250, 5)).Should().Be(SyncDivergenceKind.PriceMismatch, "preço diferente na versão vigente");
+        PosEventIngestion.PriceCheck(line, Item(1000, 4)).Should().Be(SyncDivergenceKind.PriceMismatch, "versão do aparelho maior que a vigente");
+        PosEventIngestion.PriceCheck(line with { PriceVersion = null }, Item(1000, 5)).Should().Be(SyncDivergenceKind.PriceMismatch);
+        PosEventIngestion.PriceCheck(line, null).Should().Be(SyncDivergenceKind.PriceMismatch, "fora do catálogo da loja");
+    }
+
+    [Fact]
+    public void Pagamento_repetido_no_mesmo_estado_com_outro_valor_e_recusado()
+    {
+        var a = Guid.CreateVersion7();
+        var tender = Guid.CreateVersion7();
+        Run([Line(a, "2"), Ev("PaymentStarted", new { operatorId = Operator, totalCents = 2000 }), Ev("TenderCaptured", new { tender = Tender(tender, "Captured", 2000) }),
+            Ev("TenderCaptured", new { tender = Tender(tender, "Captured", 1500) }), Ev("SaleCompleted", new { operatorId = Operator, totalCents = 2000, paidCents = 2000, changeCents = 0 })])
+            .Violations.Should().ContainSingle(v => v.Contains("repetido", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Autorizacao_pelo_proprio_operador_vira_pendencia_e_a_sessao_de_quem_autoriza_e_conferida()
+    {
+        var a = Guid.CreateVersion7();
+        var self = Run([Line(a, "2"), Line(Guid.CreateVersion7(), "1"), Ev("LineRemoved", new { lineId = a, reason = "authorized", operatorId = Operator, authorizedBy = Operator }), .. Pay(1000)]);
+        self.Violations.Should().BeEmpty();
+        self.AuthorizationNotes.Should().ContainSingle();
+        self.Checks.Should().Contain(c => c.UserId == Operator && c.NeedsPinSession && c.Soft);
+    }
+
     private static readonly JsonSerializerOptions Web = new(JsonSerializerDefaults.Web);
 
     private static readonly Guid SaleId = Guid.Parse("019a0000-0000-7000-8000-000000000001");

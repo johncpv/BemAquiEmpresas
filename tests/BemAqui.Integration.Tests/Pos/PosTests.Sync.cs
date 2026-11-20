@@ -263,6 +263,17 @@ public partial class PosTests
         var old = Seal(other.Till, PosEventIngestion.CashKind, OpenCash(other.Till, Guid.CreateVersion7(), now), now, schemaVersion: 99);
         Outcomes(await OkAsync(await PostEventsAsync(otherDevice, new { events = new[] { old } })))[IdOf(old)].Should().Be("Quarantined");
         (await DivergencesAsync(IdOf(old))).Should().ContainSingle(d => d.Kind == SyncDivergenceKind.SchemaVersion);
+
+        // M1: o relógio não volta no tempo em relação ao evento aceito anterior da época.
+        var third = await TillAsync();
+        using var thirdDevice = third.Till.Device;
+        var thirdSession = Guid.CreateVersion7();
+        var opened = Seal(third.Till, PosEventIngestion.CashKind, OpenCash(third.Till, thirdSession, now), now);
+        var past = now.AddMinutes(-10);
+        var back = Seal(third.Till, PosEventIngestion.CashKind, new { type = "CashInRecorded", sessionId = thirdSession, movementId = Guid.CreateVersion7(), amountCents = 100L, reason = "Troco", operatorId = third.Till.OperatorId, aboveExpected = false, at = past }, past);
+        var backResult = await OkAsync(await PostEventsAsync(thirdDevice, new { events = new[] { opened, back } }));
+        Outcomes(backResult)[IdOf(back)].Should().Be("Quarantined");
+        (await DivergencesAsync(IdOf(back))).Should().ContainSingle(d => d.Kind == SyncDivergenceKind.DeviceClock);
     }
 
     [Fact]
@@ -277,9 +288,12 @@ public partial class PosTests
         // Outro aparelho entra no caixa (época 2); o antigo ainda tinha um evento gravado.
         using var fresh = new Device();
         await OkAsync(await RegisterDeviceAsync(owner, fresh, till.Store, till.Register, replace: true), HttpStatusCode.Created);
-        var result = await OkAsync(await PostEventsAsync(oldDevice, new { events = new[] { oldOpen } }));
-        Outcomes(result)[IdOf(oldOpen)].Should().Be("Quarantined", "CA 12: o endpoint de subida continua aberto para o revogado");
-        (await DivergencesAsync(IdOf(oldOpen))).Should().ContainSingle(d => d.Kind == SyncDivergenceKind.ReplacedDevice);
+        var oldPrint = Seal(till, PosEventIngestion.PrintKind, new { type = "ReceiptPrinted", id = Guid.CreateVersion7(), registerId = till.Register, kind = "Test", copy = 1, operatorId = till.OperatorId, printedAt = now }, now);
+        var result = await OkAsync(await PostEventsAsync(oldDevice, new { events = new[] { oldOpen, oldPrint }, oldestPendingAt = now.AddHours(-9) }));
+        Outcomes(result).Values.Should().OnlyContain(o => o == "Quarantined", "CA 12: o endpoint de subida continua aberto para o revogado");
+        // M3: uma pendência por aparelho revogado, não uma por evento; e o aparelho revogado não dispara o aviso de caixa.
+        (await WithDbAsync(db => db.SyncDivergences.CountAsync(d => d.DeviceId == till.DeviceId && d.Kind == SyncDivergenceKind.ReplacedDevice))).Should().Be(1);
+        (await NotificationsAsync("Caixa 01 sem enviar vendas há 9")).Should().BeEmpty();
         (await WithDbAsync(db => db.CashSessions.CountAsync(s => s.Id == session))).Should().Be(0, "quarentena não projeta");
 
         // A época nova começa no seq 1 e não colide com a anterior.
@@ -349,7 +363,7 @@ public partial class PosTests
         using var device = till.Device;
         var now = DateTimeOffset.UtcNow;
         var session = Guid.CreateVersion7();
-        var (outsider, _) = await OwnerAsync(name: "Gerente Fora");
+        var (outsider, outsiderClient) = await OwnerAsync(name: "Gerente Fora");
         var open = Seal(till, PosEventIngestion.CashKind, OpenCash(till, session, now.AddMinutes(-1)), now.AddMinutes(-1));
         var (saleId, sale) = SaleOf(till, session, now, operatorId: outsider);
         var held = Seal(till, PosEventIngestion.SaleKind, sale, now);
@@ -368,12 +382,17 @@ public partial class PosTests
             .StatusCode.Should().Be(HttpStatusCode.Forbidden, "resolver exige sales.approve");
 
         // CA 15: liberar da quarentena projeta a venda; a pendência fica Resolved e auditada.
+        // M4: o operador do evento não libera o próprio evento.
+        (await outsiderClient.PostAsJsonAsync($"/api/v1/pos/divergences/{id}/resolve", new { resolution = "ReleaseQuarantine", reason = "Eu mesmo", version }))
+            .StatusCode.Should().Be(HttpStatusCode.Forbidden);
         var (_, approver) = await MemberAsync("sales.view", "sales.approve");
         (await approver.PostAsJsonAsync($"/api/v1/pos/divergences/{id}/resolve", new { resolution = "AcceptAsIs", reason = "x", version }))
             .StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity, "evento em quarentena só se libera ou mantém fora");
         var resolved = await OkAsync(await approver.PostAsJsonAsync($"/api/v1/pos/divergences/{id}/resolve", new { resolution = "ReleaseQuarantine", reason = "Gerente conferiu com o operador", version }));
         resolved.GetProperty("status").GetString().Should().Be("Resolved");
         (await WithDbAsync(db => db.Sales.CountAsync(s => s.Id == saleId))).Should().Be(1);
+        // M4: a conferência rodou de novo e o achado ficou visível.
+        (await DivergencesAsync(IdOf(held))).Should().Contain(d => !d.Quarantined && d.Summary.StartsWith("Liberado da quarentena apesar de", StringComparison.Ordinal));
         (await WithDbAsync(db => db.AuditEntries.AsNoTracking().CountAsync(a => a.Entity == nameof(SyncDivergence) && a.EntityId == id.ToString() && a.Action == "Updated"))).Should().Be(1);
 
         // A exportação e o relatório de exceções por operador.
