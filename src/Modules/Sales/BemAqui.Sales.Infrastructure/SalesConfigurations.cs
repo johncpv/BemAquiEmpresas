@@ -125,3 +125,28 @@ internal sealed class SaleStockPostingConfiguration : IEntityTypeConfiguration<S
         b.HasIndex(e => e.StockMovementId);
     }
 }
+
+/// <summary><c>sales.sale_customer_documents</c> (OFF-02 CA 17): uma linha por venda (o id da venda do aparelho); busca pelo índice cego.</summary>
+internal sealed class SaleCustomerDocumentConfiguration : IEntityTypeConfiguration<SaleCustomerDocument>
+{
+    public void Configure(EntityTypeBuilder<SaleCustomerDocument> b)
+    {
+        b.ToTable("sale_customer_documents", SalesSchema.Name, t => t.HasCheckConstraint("ck_sale_customer_documents_kind", "kind IN ('cpf', 'cnpj')"));
+        b.Property(e => e.Id).ValueGeneratedNever();
+        b.Property(e => e.Kind).HasMaxLength(4);
+        b.Property(e => e.BlindIndex).HasMaxLength(64);
+        b.HasIndex(e => e.SaleId).IsUnique();
+        // Sem chave estrangeira: o documento chega no mesmo lote da venda e fica guardado mesmo com a venda em quarentena (OFF-02).
+        b.HasIndex(e => e.BlindIndex);
+    }
+}
+
+/// <summary><c>sales.blind_index_keys</c>: a chave do índice cego do tenant, cifrada.</summary>
+internal sealed class BlindIndexKeyConfiguration : IEntityTypeConfiguration<BlindIndexKey>
+{
+    public void Configure(EntityTypeBuilder<BlindIndexKey> b)
+    {
+        b.ToTable("blind_index_keys", SalesSchema.Name);
+        b.Property(e => e.Id).ValueGeneratedNever();
+    }
+}

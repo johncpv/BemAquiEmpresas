@@ -2,7 +2,7 @@
  * Texto da faixa de estado fixa no topo do /pdv (OFF-01 CA 2 e 13). Função pura, para a faixa e os testes falarem a mesma coisa:
  * - sem rede e com fila: "Sem conexão: N vendas a enviar" e a idade da mais antiga;
  * - sem rede e sem fila: "Sem conexão" e a hora da última sincronização;
- * - com rede e com fila: "N vendas a enviar" e a idade da mais antiga (a subida é da OFF-02);
+ * - com rede e com fila: "N vendas a enviar" e a idade da mais antiga (a fila real: a OFF-02 sobe e tira o que o servidor confirmou);
  * - com rede e sem fila: "Sincronizado às HH:MM".
  * Com a janela sem sincronizar da loja (PP-10) vinda da foto, mostra também até quando o caixa vende sem conexão. O bloqueio é da OFF-03.
  */
@@ -18,6 +18,8 @@ export interface StatusInput {
   /** Janela da loja em dias, se a foto trouxe. */
   offlineWindowDays: number | null
   now: Date
+  /** OFF-02: a última subida falhou por um motivo que pede ação (relógio, registro); null quando subiu ou só faltou rede. */
+  uploadIssue?: string | null
 }
 
 export interface StatusView {
@@ -52,7 +54,7 @@ export function ageText(iso: string, now: Date): string {
 const sales = (n: number) => (n === 1 ? '1 venda a enviar' : `${n} vendas a enviar`)
 
 export function statusView(input: StatusInput): StatusView {
-  const { online, pendingCount, oldestPendingAt, lastSyncAt, offlineWindowDays, now } = input
+  const { online, pendingCount, oldestPendingAt, lastSyncAt, offlineWindowDays, now, uploadIssue } = input
   const details: string[] = []
   if (pendingCount > 0 && oldestPendingAt) details.push(`a mais antiga ${ageText(oldestPendingAt, now)}`)
   if (lastSyncAt && (!online || pendingCount > 0)) details.push(`última sincronização ${whenText(lastSyncAt, now)}`)
@@ -62,7 +64,9 @@ export function statusView(input: StatusInput): StatusView {
     details.push(`vende sem conexão até ${until.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${time(until.toISOString())}`)
   }
 
+  if (uploadIssue && online) details.push(uploadIssue)
   if (!online) return { tone: pendingCount > 0 ? 'crit' : 'warn', title: pendingCount > 0 ? `Sem conexão: ${sales(pendingCount)}` : 'Sem conexão', details }
+  if (uploadIssue) return { tone: 'crit', title: pendingCount > 0 ? sales(pendingCount) : 'Conectado', details }
   if (pendingCount > 0) return { tone: 'warn', title: sales(pendingCount), details }
   return { tone: 'ok', title: lastSyncAt ? `Sincronizado ${whenText(lastSyncAt, now)}` : 'Conectado', details }
 }

@@ -13,7 +13,7 @@ namespace BemAqui.Pos.Application;
 /// sem sincronizar, o caixa para de vender (padrão e teto de 168 h). <c>CashDropAlertCents</c> e <c>CashCeilingCents</c> (nulo = sem teto): aviso de sangria e
 /// bloqueio do Dinheiro (CX-01 CA 7 e 8). IMP-01: nome e CNPJ da empresa para o cabeçalho do cupom (o CNPJ próprio da loja é da NFCE-07), o modo
 /// fiscal, <c>CanSell</c> (falso: a loja não tem documento fiscal para a venda, ou seja, sem o aceite do modo não fiscal na versão vigente do texto até a NFC-e da Fase 13, CA 10 e 13)
-/// e o que o caixa faz com o cupom ao concluir (CA 5).
+/// e o que o caixa faz com o cupom ao concluir (CA 5). OFF-02: <c>FreeRemoveLast</c>, o último item sai sem supervisor (o servidor confere por ele).
 /// </summary>
 public sealed record PosSyncStore(
     Guid Id,
@@ -30,7 +30,8 @@ public sealed record PosSyncStore(
     string? CompanyDocument = null,
     StoreFiscalMode FiscalMode = StoreFiscalMode.Nfce,
     bool CanSell = true,
-    ReceiptPrintMode ReceiptPrintMode = ReceiptPrintMode.Ask);
+    ReceiptPrintMode ReceiptPrintMode = ReceiptPrintMode.Ask,
+    bool FreeRemoveLast = true);
 
 /// <summary>A tabela de preço da loja e a versão mais nova que já desceu (o aparelho informa a versão em que vendeu).</summary>
 public sealed record PosSyncPriceList(Guid Id, long Version);
@@ -205,7 +206,7 @@ public sealed class PosCatalogSyncService(
             PosCatalogProjector.ToCents(store.CashBreakTolerance), store.ExchangeDays, PosCatalogProjector.ToCents(store.CashDropAlertAmount),
             store.CashCeilingAmount is { } ceiling ? PosCatalogProjector.ToCents(ceiling) : null,
             string.IsNullOrWhiteSpace(identity.TradeName) ? identity.LegalName : identity.TradeName, identity.Document,
-            store.FiscalMode, store.NonFiscalAcceptedFor(NonFiscalTerms.Version), store.ReceiptPrintMode);
+            store.FiscalMode, store.NonFiscalAcceptedFor(NonFiscalTerms.Version), store.ReceiptPrintMode, store.FreeRemoveLast);
     }
 
     private static PosSyncItem ToItem(CatalogItem row)

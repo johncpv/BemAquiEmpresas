@@ -15,6 +15,8 @@ Explicar o que o caixa faz quando a internet cai e o que quer dizer a faixa colo
 - **Faixa verde, "Sincronizado às 14:05":** está tudo em dia; a hora é a da última vez que o caixa conversou com o servidor.
 - **Faixa amarela, "Sem conexão":** a rede caiu. O caixa continua aberto com os dados guardados e mostra a hora da última sincronização.
 - **Faixa vermelha, "Sem conexão: 3 vendas a enviar":** há vendas feitas sem rede esperando para subir, e a faixa diz há quanto tempo está a mais antiga. Elas sobem sozinhas quando a rede volta; não feche o navegador nem apague os dados do site.
+- **Faixa amarela com rede, "3 vendas a enviar":** as vendas estão subindo; o caixa envia a fila a cada poucos segundos e tira dela o que o servidor confirmou. Se a rede cair no meio, ele reenvia a partir da primeira venda não confirmada, sem duplicar nada.
+- **"As vendas não sobem: acerte o relógio do aparelho":** a data e a hora do aparelho estão erradas e o servidor recusou o envio. Acerte o relógio; as vendas continuam guardadas e sobem sozinhas depois.
 - **"Vende sem conexão até 25/11 às 14:05":** o prazo que a loja deu para o caixa ficar sem sincronizar (até 7 dias). Antes dele, reconecte o aparelho.
 - **"O navegador pode apagar dados deste caixa. Instale o aplicativo.":** o navegador não garantiu guardar os dados. Instale o caixa como aplicativo (no Chrome ou no Edge, menu ⋮ → **Instalar aplicativo**) e abra por ele.
 - **"O caixa já está aberto em outra janela.":** só uma janela do caixa vende por vez. Use a outra; se fechar a outra, esta assume sozinha.
@@ -26,5 +28,7 @@ Explicar o que o caixa faz quando a internet cai e o que quer dizer a faixa colo
 **Perco as vendas se a energia cair?** Cada venda concluída é gravada no aparelho na hora. Ao religar, abra o caixa de novo: as vendas guardadas continuam na fila e sobem quando houver rede.
 
 **Posso limpar os dados do navegador?** Não no aparelho do caixa. Limpar os dados do site apaga as vendas que ainda não subiram e o registro do aparelho.
+
+**O caixa foi bloqueado ou trocado. E as vendas que ele tinha?** Elas continuam subindo, mesmo com o aparelho bloqueado, e ficam em **Pendências do PDV** para o gerente conferir antes de entrar.
 
 **O preço mudou na retaguarda. Quando chega ao caixa?** Na próxima sincronização, alguns minutos depois, se houver rede. Sem rede, o caixa usa o último preço que baixou.

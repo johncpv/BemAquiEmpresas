@@ -24,3 +24,9 @@ public sealed record CashMovementRecorded(
     public const string CashOut = "CashOut";
     public const string CashIn = "CashIn";
 }
+
+/// <summary>
+/// Venda descartada no caixa (outbox, OFF-02): a venda ganhou número e saiu sem pagamento. Só ids (ADR 0037 §2): o motivo fica no registro de
+/// eventos do caixa e no relatório de exceções por operador.
+/// </summary>
+public sealed record PosSaleDiscarded(Guid SaleId, string Number, Guid StoreId, Guid RegisterId, Guid? CashSessionId, Guid? OperatorId, DateTimeOffset DiscardedAt) : IIntegrationEvent;

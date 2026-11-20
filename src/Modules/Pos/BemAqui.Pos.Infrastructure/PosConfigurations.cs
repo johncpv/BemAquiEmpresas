@@ -25,6 +25,8 @@ internal sealed class StoreConfiguration : IEntityTypeConfiguration<Store>
         b.Property(e => e.OfflineWindowHours).HasDefaultValue(Store.DefaultOfflineWindowHours);
         b.Property(e => e.CashBreakTolerance).HasPrecision(18, 2).HasDefaultValue(5.00m);
         b.Property(e => e.ExchangeDays).HasDefaultValue(30);
+        b.Property(e => e.FreeRemoveLast).HasDefaultValue(true).HasSentinel(true);
+        b.Property(e => e.SyncAlertHours).HasDefaultValue(Store.DefaultSyncAlertHours);
         b.Property(e => e.CashDropAlertAmount).HasPrecision(18, 2).HasDefaultValue(1000.00m);
         b.Property(e => e.Code).HasMaxLength(6);
         b.Property(e => e.Name).HasMaxLength(Store.MaxNameLength);
@@ -149,6 +151,73 @@ internal sealed class CashMovementConfiguration : IEntityTypeConfiguration<CashM
         b.Property(e => e.Amount).HasPrecision(18, 2);
         b.Property(e => e.Reason).HasMaxLength(CashMovement.MaxReasonLength);
         b.HasOne<CashSession>().WithMany().HasForeignKey(e => e.SessionId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => e.SessionId);
+    }
+}
+
+/// <summary>
+/// <c>pos.device_events</c> (OFF-02 CA 3): chave no <c>event_id</c> do aparelho; a sequência por caixa e época indexada (não única: um seq repetido
+/// de outro evento também é guardado, em quarentena). Imutável por trigger (a migration cria): UPDATE e DELETE falham.
+/// </summary>
+internal sealed class DeviceEventConfiguration : IEntityTypeConfiguration<DeviceEvent>
+{
+    public void Configure(EntityTypeBuilder<DeviceEvent> b)
+    {
+        b.ToTable("device_events", PosSchema.Name);
+        b.HasKey(e => e.EventId);
+        b.Property(e => e.EventId).ValueGeneratedNever();
+        b.Property(e => e.Kind).HasMaxLength(40);
+        b.Property(e => e.PrevHash).HasMaxLength(64);
+        b.Property(e => e.Hash).HasMaxLength(64);
+        b.Property(e => e.Payload).HasColumnType("text");
+        b.Property(e => e.Outcome).HasConversion<string>().HasMaxLength(24);
+        b.HasIndex(e => new { e.RegisterId, e.DeviceEpoch, e.Seq }).HasDatabaseName("ix_device_events_register_epoch_seq");
+        b.HasIndex(e => new { e.RegisterId, e.ReceivedAt });
+    }
+}
+
+/// <summary><c>pos.sync_divergences</c> (OFF-02 CA 14 e 15): as pendências abertas por loja e tipo; detalhe em jsonb.</summary>
+internal sealed class SyncDivergenceConfiguration : IEntityTypeConfiguration<SyncDivergence>
+{
+    public void Configure(EntityTypeBuilder<SyncDivergence> b)
+    {
+        b.ToTable("sync_divergences", PosSchema.Name);
+        b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(24);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.Resolution).HasConversion<string>().HasMaxLength(24);
+        b.Property(e => e.EventKind).HasMaxLength(40);
+        b.Property(e => e.SaleNumber).HasMaxLength(40);
+        b.Property(e => e.Summary).HasMaxLength(SyncDivergence.MaxSummaryLength);
+        b.Property(e => e.ResolutionReason).HasMaxLength(SyncDivergence.MaxReasonLength);
+        b.Property(e => e.Details).HasColumnType("jsonb");
+        b.HasIndex(e => new { e.Status, e.StoreId, e.Kind });
+        b.HasIndex(e => e.EventId);
+    }
+}
+
+/// <summary><c>pos.operator_exceptions</c>: o relatório de exceções por operador (remoção, redução, descarte, recusa).</summary>
+internal sealed class OperatorIncidentConfiguration : IEntityTypeConfiguration<OperatorIncident>
+{
+    public void Configure(EntityTypeBuilder<OperatorIncident> b)
+    {
+        b.ToTable("operator_incidents", PosSchema.Name);
+        b.Property(e => e.Id).ValueGeneratedNever();
+        b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(24);
+        b.Property(e => e.SaleNumber).HasMaxLength(40);
+        b.HasIndex(e => new { e.OccurredAt, e.StoreId });
+        b.HasIndex(e => e.EventId);
+    }
+}
+
+/// <summary><c>pos.session_sales</c>: o dinheiro que cada venda deixou na sessão de caixa (sangria acima do calculado, CX-01).</summary>
+internal sealed class SessionSaleConfiguration : IEntityTypeConfiguration<SessionSale>
+{
+    public void Configure(EntityTypeBuilder<SessionSale> b)
+    {
+        b.ToTable("session_sales", PosSchema.Name);
+        b.HasKey(e => e.SaleId);
+        b.Property(e => e.SaleId).ValueGeneratedNever();
+        b.Property(e => e.CashAmount).HasPrecision(18, 2);
         b.HasIndex(e => e.SessionId);
     }
 }

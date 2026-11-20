@@ -32,10 +32,12 @@ public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant
             return EffectivePermissions.None;
         }
 
-        var grants = await cache.GetOrCreateAsync($"perm:{resolved.Tenant.Id}:{userId}:{user.PermVersion}", entry =>
+        var grants = await cache.GetOrCreateAsync($"perm:{resolved.Tenant.Id}:{userId}:{user.PermVersion}", async entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = Ttl;
-            return LoadAsync(userId, cancellationToken);
+            var loaded = await LoadAsync(userId, cancellationToken);
+            await SnapshotAsync(userId, user.PermVersion, loaded, cancellationToken);
+            return loaded;
         }) ?? new Grants(false, new HashSet<string>());
 
         var released = grants.IsOwner
@@ -61,6 +63,15 @@ public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant
                     return Task.CompletedTask;
                 }, cancellationToken);
             }
+
+            // OFF-02: o retrato da versão nova nasce logo depois do commit, para a conferência "tinha a permissão no instante do evento".
+            await afterCommit.RunAsync(async ct =>
+            {
+                foreach (var id in ids)
+                {
+                    await GetAsync(id, ct);
+                }
+            }, cancellationToken);
         }
     }
 
@@ -82,6 +93,25 @@ public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant
             .Where(p => enabled.Contains((p.GroupId, p.ModuleCode)) && ModuleCatalog.IsKnownPermission(p.ModuleCode + "." + p.Action))
             .Select(p => p.ModuleCode + "." + p.Action)
             .ToHashSet(StringComparer.Ordinal));
+    }
+
+    /// <summary>
+    /// Retrato da versão (OFF-02, <see cref="PermissionSnapshot"/>): grava uma vez por usuário e versão (<c>ON CONFLICT DO NOTHING</c>, várias
+    /// instâncias podem avaliar a mesma versão). Melhor esforço: falhar aqui não pode derrubar a autorização do request.
+    /// </summary>
+    private async Task SnapshotAsync(Guid userId, int version, Grants grants, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var list = grants.Permissions.Order(StringComparer.Ordinal).ToArray();
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"INSERT INTO identity.permission_snapshots (user_id, perm_version, valid_from, is_owner, permissions) VALUES ({userId}, {version}, {DateTimeOffset.UtcNow}, {grants.IsOwner}, {list}) ON CONFLICT DO NOTHING",
+                cancellationToken);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            // Sem a tabela (banco ainda sem a migration) ou transação já abortada: a conferência usa o retrato seguinte.
+        }
     }
 
     // Os ocultos (ADR 0046) entram no hash só quando o tenant tem perfil além da fábrica: trocar o perfil muda a versão e o front recarrega o

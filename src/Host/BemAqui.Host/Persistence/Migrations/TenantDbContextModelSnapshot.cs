@@ -11759,6 +11759,38 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("password_resets", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.PermissionSnapshot", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("PermVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("perm_version");
+
+                    b.Property<bool>("IsOwner")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_owner");
+
+                    b.PrimitiveCollection<List<string>>("Permissions")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("permissions");
+
+                    b.Property<DateTimeOffset>("ValidFrom")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("valid_from");
+
+                    b.HasKey("UserId", "PermVersion")
+                        .HasName("pk_permission_snapshots");
+
+                    b.HasIndex("UserId", "ValidFrom")
+                        .HasDatabaseName("ix_permission_snapshots_user_id_valid_from");
+
+                    b.ToTable("permission_snapshots", "identity");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.PosPin", b =>
                 {
                     b.Property<Guid>("Id")
@@ -15494,6 +15526,157 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("catalog_store_builds", "pos");
                 });
 
+            modelBuilder.Entity("BemAqui.Pos.Domain.DeviceEvent", b =>
+                {
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("event_id");
+
+                    b.Property<bool>("ChainOk")
+                        .HasColumnType("boolean")
+                        .HasColumnName("chain_ok");
+
+                    b.Property<long>("ClockSkewMs")
+                        .HasColumnType("bigint")
+                        .HasColumnName("clock_skew_ms");
+
+                    b.Property<int>("DeviceEpoch")
+                        .HasColumnType("integer")
+                        .HasColumnName("device_epoch");
+
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("device_id");
+
+                    b.Property<bool>("DeviceRevoked")
+                        .HasColumnType("boolean")
+                        .HasColumnName("device_revoked");
+
+                    b.Property<string>("Hash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("hash");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("kind");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("outcome");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("payload");
+
+                    b.Property<string>("PrevHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("prev_hash");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.Property<Guid>("RegisterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("register_id");
+
+                    b.Property<int>("SchemaVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("schema_version");
+
+                    b.Property<long>("Seq")
+                        .HasColumnType("bigint")
+                        .HasColumnName("seq");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("store_id");
+
+                    b.HasKey("EventId")
+                        .HasName("pk_device_events");
+
+                    b.HasIndex("RegisterId", "ReceivedAt")
+                        .HasDatabaseName("ix_device_events_register_id_received_at");
+
+                    b.HasIndex("RegisterId", "DeviceEpoch", "Seq")
+                        .HasDatabaseName("ix_device_events_register_epoch_seq");
+
+                    b.ToTable("device_events", "pos");
+                });
+
+            modelBuilder.Entity("BemAqui.Pos.Domain.OperatorIncident", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AuthorizedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("authorized_by");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("event_id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("kind");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid?>("OperatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operator_id");
+
+                    b.Property<Guid>("RegisterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("register_id");
+
+                    b.Property<Guid?>("SaleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sale_id");
+
+                    b.Property<string>("SaleNumber")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("sale_number");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("store_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_operator_incidents");
+
+                    b.HasIndex("EventId")
+                        .HasDatabaseName("ix_operator_incidents_event_id");
+
+                    b.HasIndex("OccurredAt", "StoreId")
+                        .HasDatabaseName("ix_operator_incidents_occurred_at_store_id");
+
+                    b.ToTable("operator_incidents", "pos");
+                });
+
             modelBuilder.Entity("BemAqui.Pos.Domain.PrintRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -15713,6 +15896,34 @@ namespace BemAqui.Host.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BemAqui.Pos.Domain.SessionSale", b =>
+                {
+                    b.Property<Guid>("SaleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sale_id");
+
+                    b.Property<decimal>("CashAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("cash_amount");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
+                    b.HasKey("SaleId")
+                        .HasName("pk_session_sales");
+
+                    b.HasIndex("SessionId")
+                        .HasDatabaseName("ix_session_sales_session_id");
+
+                    b.ToTable("session_sales", "pos");
+                });
+
             modelBuilder.Entity("BemAqui.Pos.Domain.Store", b =>
                 {
                     b.Property<Guid>("Id")
@@ -15767,6 +15978,12 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDefaultValue("Nfce")
                         .HasColumnName("fiscal_mode");
 
+                    b.Property<bool>("FreeRemoveLast")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("free_remove_last");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("is_active");
@@ -15812,6 +16029,12 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("stock_location_id");
 
+                    b.Property<int>("SyncAlertHours")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(4)
+                        .HasColumnName("sync_alert_hours");
+
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -15838,6 +16061,126 @@ namespace BemAqui.Host.Persistence.Migrations
 
                             t.HasCheckConstraint("ck_stores_parameters", "cash_break_tolerance >= 0 AND exchange_days >= 0 AND cash_drop_alert_amount >= 0");
                         });
+                });
+
+            modelBuilder.Entity("BemAqui.Pos.Domain.SyncDivergence", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("details");
+
+                    b.Property<int>("DeviceEpoch")
+                        .HasColumnType("integer")
+                        .HasColumnName("device_epoch");
+
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("device_id");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("event_id");
+
+                    b.Property<string>("EventKind")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("event_kind");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("kind");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid?>("OperatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operator_id");
+
+                    b.Property<bool>("Quarantined")
+                        .HasColumnType("boolean")
+                        .HasColumnName("quarantined");
+
+                    b.Property<Guid>("RegisterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("register_id");
+
+                    b.Property<string>("Resolution")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("resolution");
+
+                    b.Property<string>("ResolutionReason")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("resolution_reason");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at");
+
+                    b.Property<Guid?>("ResolvedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resolved_by");
+
+                    b.Property<Guid?>("SaleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sale_id");
+
+                    b.Property<string>("SaleNumber")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("sale_number");
+
+                    b.Property<long>("Seq")
+                        .HasColumnType("bigint")
+                        .HasColumnName("seq");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("store_id");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("summary");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sync_divergences");
+
+                    b.HasIndex("EventId")
+                        .HasDatabaseName("ix_sync_divergences_event_id");
+
+                    b.HasIndex("Status", "StoreId", "Kind")
+                        .HasDatabaseName("ix_sync_divergences_status_store_id_kind");
+
+                    b.ToTable("sync_divergences", "pos");
                 });
 
             modelBuilder.Entity("BemAqui.Production.Domain.Calendar", b =>
@@ -18865,6 +19208,27 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("rfq_suppliers", "purchasing");
                 });
 
+            modelBuilder.Entity("BemAqui.Sales.Domain.BlindIndexKey", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("KeyCipher")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("key_cipher");
+
+                    b.HasKey("Id")
+                        .HasName("pk_blind_index_keys");
+
+                    b.ToTable("blind_index_keys", "sales");
+                });
+
             modelBuilder.Entity("BemAqui.Sales.Domain.Sale", b =>
                 {
                     b.Property<Guid>("Id")
@@ -19035,6 +19399,53 @@ namespace BemAqui.Host.Persistence.Migrations
                             t.HasCheckConstraint("ck_sales_pos_register", "channel <> 'Pos' OR (register_id IS NOT NULL AND cash_session_id IS NOT NULL)");
 
                             t.HasCheckConstraint("ck_sales_totals", "subtotal >= 0 AND discount_total >= 0 AND service_fee >= 0 AND total >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Sales.Domain.SaleCustomerDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BlindIndex")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("blind_index");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DocumentCipher")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("document_cipher");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("SaleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sale_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sale_customer_documents");
+
+                    b.HasIndex("BlindIndex")
+                        .HasDatabaseName("ix_sale_customer_documents_blind_index");
+
+                    b.HasIndex("SaleId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sale_customer_documents_sale_id");
+
+                    b.ToTable("sale_customer_documents", "sales", t =>
+                        {
+                            t.HasCheckConstraint("ck_sale_customer_documents_kind", "kind IN ('cpf', 'cnpj')");
                         });
                 });
 
@@ -20248,6 +20659,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_password_resets_users_user_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.PermissionSnapshot", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_permission_snapshots_users_user_id");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.PosPin", b =>

@@ -2,7 +2,7 @@ import Dexie, { type Table } from 'dexie'
 import { uuidv7 } from '@/pdv/uuid-v7'
 import { CatalogMemory } from './catalog-memory'
 import { CATALOG_COLLECTIONS, type CatalogChange, type CatalogCollection, type CatalogData, type CatalogState, type CatalogVersion, emptyCatalog } from './catalog-types'
-import { type LocalStore, type MetaKey, type OutboxDraft, type OutboxEntry, type PendingSummary, ReadOnlyStoreError } from './local-store'
+import { CHAIN_META, type ChainHead, type LocalStore, type MetaKey, type OutboxDraft, type OutboxEntry, type OutboxSeal, type PendingSummary, ReadOnlyStoreError } from './local-store'
 import type { ClosedSale, CustomerDocumentRecord, SaleJournalEvent } from './sale-journal-types'
 import type { WriterLock } from './writer-lock'
 
@@ -17,7 +17,7 @@ export const OVERLAY_COMPACT_AT = 2_000
 type MetaRow = { k: string; v: unknown }
 type ChunkRow = { k: string; collection: CatalogCollection; records: { id: string }[] }
 type OverlayRow = { k: string; collection: CatalogCollection; id: string; record: { id: string } | null }
-type OutboxRow = { seq?: number; id: string; kind: string; createdAt: string; payload: unknown }
+type OutboxRow = { seq?: number; id: string; kind: string; createdAt: string; payload: unknown; seal?: OutboxSeal }
 type CatalogMeta = Omit<CatalogState, 'counts'>
 type SaleEventRow = SaleJournalEvent & { seq?: number }
 
@@ -229,6 +229,33 @@ export class DexieLocalStore implements LocalStore {
     const row: OutboxRow = { id: uuidv7(Date.parse(at)), kind, createdAt: at, payload }
     const seq = await this.db.outbox.add(row)
     return { ...row, seq }
+  }
+
+  async outbox(limit = 500): Promise<OutboxEntry[]> {
+    const rows = await this.db.outbox.orderBy('seq').limit(limit).toArray()
+    return rows.map((r) => ({ ...r, seq: r.seq! }))
+  }
+
+  async sealOutbox(seals: readonly { seq: number; seal: OutboxSeal }[], expected: ChainHead | null, next: ChainHead): Promise<boolean> {
+    this.assertWritable()
+    return this.db.transaction('rw', this.db.meta, this.db.outbox, async () => {
+      const current = ((await this.db.meta.get(CHAIN_META))?.v as ChainHead | undefined) ?? null
+      if (JSON.stringify(current) !== JSON.stringify(expected)) return false
+      for (const { seq, seal } of seals) {
+        const row = await this.db.outbox.get(seq)
+        if (!row || row.seal) return false
+        await this.db.outbox.put({ ...row, seal })
+      }
+
+      await this.db.meta.put({ k: CHAIN_META, v: next })
+      return true
+    })
+  }
+
+  async removeOutbox(seqs: readonly number[]): Promise<void> {
+    this.assertWritable()
+    if (seqs.length === 0) return
+    await this.db.outbox.bulkDelete([...seqs])
   }
 
   async pendingSummary(): Promise<PendingSummary> {

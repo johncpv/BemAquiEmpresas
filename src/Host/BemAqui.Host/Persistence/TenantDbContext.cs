@@ -33,6 +33,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<PosPin> PosPins => Set<PosPin>();
 
+    public DbSet<PermissionSnapshot> PermissionSnapshots => Set<PermissionSnapshot>();
+
     public DbSet<KioskScreen> KioskScreens => Set<KioskScreen>();
 
     public DbSet<KioskSession> KioskSessions => Set<KioskSession>();
@@ -391,6 +393,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Pos.Domain.PrintRecord> PrintRecords => Set<BemAqui.Pos.Domain.PrintRecord>();
 
+    public DbSet<BemAqui.Pos.Domain.DeviceEvent> DeviceEvents => Set<BemAqui.Pos.Domain.DeviceEvent>();
+
+    public DbSet<BemAqui.Pos.Domain.SyncDivergence> SyncDivergences => Set<BemAqui.Pos.Domain.SyncDivergence>();
+
+    public DbSet<BemAqui.Pos.Domain.OperatorIncident> OperatorIncidents => Set<BemAqui.Pos.Domain.OperatorIncident>();
+
+    public DbSet<BemAqui.Pos.Domain.SessionSale> SessionSales => Set<BemAqui.Pos.Domain.SessionSale>();
+
     public DbSet<BemAqui.Sales.Domain.Sale> Sales => Set<BemAqui.Sales.Domain.Sale>();
 
     public DbSet<BemAqui.Sales.Domain.SaleLine> SaleLines => Set<BemAqui.Sales.Domain.SaleLine>();
@@ -398,6 +408,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<BemAqui.Sales.Domain.SalePart> SaleParts => Set<BemAqui.Sales.Domain.SalePart>();
 
     public DbSet<BemAqui.Sales.Domain.SalePayment> SalePayments => Set<BemAqui.Sales.Domain.SalePayment>();
+
+    public DbSet<BemAqui.Sales.Domain.SaleCustomerDocument> SaleCustomerDocuments => Set<BemAqui.Sales.Domain.SaleCustomerDocument>();
+
+    public DbSet<BemAqui.Sales.Domain.BlindIndexKey> BlindIndexKeys => Set<BemAqui.Sales.Domain.BlindIndexKey>();
 
     public DbSet<BemAqui.Sales.Domain.SaleStockPosting> SaleStockPostings => Set<BemAqui.Sales.Domain.SaleStockPosting>();
 

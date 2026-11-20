@@ -31,4 +31,6 @@ export interface StoreView {
   nonFiscalAcceptedByName?: string | null;
   needsNewAcceptance?: boolean;
   receiptPrintMode?: ReceiptPrintMode;
+  freeRemoveLast?: boolean;
+  syncAlertHours?: number;
 }

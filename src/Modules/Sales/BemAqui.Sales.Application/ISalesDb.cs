@@ -17,6 +17,11 @@ public interface ISalesDb
 
     DbSet<SaleStockPosting> SaleStockPostings { get; }
 
+    /// <summary>CPF/CNPJ do consumidor da venda do caixa, cifrado e com índice cego (OFF-02 CA 17).</summary>
+    DbSet<SaleCustomerDocument> SaleCustomerDocuments { get; }
+
+    DbSet<BlindIndexKey> BlindIndexKeys { get; }
+
     /// <summary>Para conferir se a ingestão roda na transação de quem chama (CA 3).</summary>
     DatabaseFacade Database { get; }
 

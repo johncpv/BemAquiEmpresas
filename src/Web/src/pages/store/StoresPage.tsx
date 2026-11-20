@@ -25,6 +25,9 @@ const EPOCH_DICA = 'Sobe a cada aparelho novo no caixa. As vendas do aparelho an
 const ALERT_DICA = 'Quando o dinheiro na gaveta passa deste valor, o caixa avisa "Faça uma sangria." depois da venda em dinheiro. O valor da gaveta nunca aparece para o operador.'
 const CEILING_DICA = 'Acima deste valor, o caixa não recebe mais em dinheiro até a sangria (cartão e Pix continuam). Deixe em branco para não ter teto.'
 
+const FREE_REMOVE_DICA = 'Ligado, o operador tira o último item que lançou sem chamar ninguém. Outro item, ou com isto desligado, pede quem tem a permissão de cancelar item. O servidor confere cada remoção por esta regra.'
+const SYNC_ALERT_DICA = 'Quem aprova vendas recebe "Caixa 02 sem enviar vendas há N horas." quando um caixa passa deste tempo com venda esperando para subir, ou aberto e sem contato.'
+
 const PRINT_DICA = 'O que o caixa faz com o cupom quando a venda termina. "Perguntar" mostra Imprimir e Não imprimir; nos outros, o botão Imprimir cupom continua lá.'
 
 type Editing = { kind: 'store'; store: StoreView | null } | { kind: 'register'; store: StoreView; register: RegisterView | null }
@@ -41,6 +44,7 @@ export function StoresPage() {
   const newStore = <Can perm="sales.create"><button type="button" onClick={() => setEditing({ kind: 'store', store: null })} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Nova loja</button></Can>
   const actions = (
     <div className="flex flex-wrap gap-2">
+      <Link to="/app/loja/pendencias" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Pendências do PDV</Link>
       <Link to="/app/loja/vendas-sem-documento-fiscal" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Vendas sem documento fiscal</Link>
       {newStore}
     </div>
@@ -123,6 +127,7 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
     isActive: store?.isActive ?? true,
     cashDropAlert: moneyText(store?.cashDropAlertAmount ?? 1000), cashCeiling: store?.cashCeilingAmount == null ? '' : moneyText(store.cashCeilingAmount),
     receiptPrintMode: (store?.receiptPrintMode ?? 'Ask') as ReceiptPrintMode,
+    freeRemoveLast: store?.freeRemoveLast ?? true, syncAlertHours: String(store?.syncAlertHours ?? 4),
   }
   const [draft, setDraft] = useState(initial)
   const [error, setError] = useState<string | null>(null)
@@ -139,9 +144,11 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
     const ceiling = draft.cashCeiling.trim() ? parseAmount(draft.cashCeiling) : null
     if (alert === undefined) { setError('Informe o aviso de sangria em reais (ex.: 1.000,00).'); return false }
     if (ceiling === undefined || (ceiling !== null && ceiling <= alert)) { setError('O teto de dinheiro no caixa tem de ser maior que o aviso de sangria, ou fique em branco.'); return false }
+    const syncAlertHours = Number(draft.syncAlertHours)
+    if (!Number.isInteger(syncAlertHours) || syncAlertHours < 1 || syncAlertHours > 72) { setError('Informe o aviso de caixa sem enviar vendas entre 1 e 72 horas.'); return false }
     const input = {
       code: draft.code, name: draft.name.trim(), stockLocationId: locationId, defaultPriceListId: priceListId, isActive: draft.isActive,
-      cashDropAlertAmount: alert, cashCeilingAmount: ceiling, receiptPrintMode: draft.receiptPrintMode,
+      cashDropAlertAmount: alert, cashCeilingAmount: ceiling, receiptPrintMode: draft.receiptPrintMode, freeRemoveLast: draft.freeRemoveLast, syncAlertHours,
     }
     try {
       if (store) await updateStore(store.id, input)
@@ -207,6 +214,14 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
                   <option value="Never">Não imprimir</option>
                 </select>
               )}
+            </Field>
+            <Field label="Último item sem supervisor" size="md" dica={FREE_REMOVE_DICA}>
+              {(p) => (
+                <label className="flex items-center gap-2 text-sm"><input {...p} type="checkbox" checked={draft.freeRemoveLast} onChange={(e) => setDraft({ ...draft, freeRemoveLast: e.target.checked })} /> O operador tira o último item lançado</label>
+              )}
+            </Field>
+            <Field label="Aviso de caixa sem enviar vendas (horas)" required size="sm" dica={SYNC_ALERT_DICA}>
+              {(p) => <input {...p} value={draft.syncAlertHours} inputMode="numeric" maxLength={2} onChange={(e) => setDraft({ ...draft, syncAlertHours: e.target.value.replace(/\D/g, '') })} className={inputClass} />}
             </Field>
           </FormGrid>
         </fieldset>

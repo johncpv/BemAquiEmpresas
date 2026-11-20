@@ -33,7 +33,7 @@
 
 ### 4. Aparelho revogado ou substituído
 - Perde a descida (aperto de mão, catálogo) e a entrada por PIN: 401 `device_revoked`, e a tela pede novo registro.
-- **Continua subindo** o que já tinha gravado: o esquema reconhece o aparelho revogado (com o segredo e a assinatura dele) e marca o principal como revogado; só um endpoint marcado `RequireDevice(allowRevoked: true)` aceita. Nesta story nenhum endpoint usa a marca; a subida de eventos (OFF-02) entra com revisão e põe esses eventos em quarentena. Nenhuma venda se perde pela revogação.
+- **Continua subindo** o que já tinha gravado: o esquema reconhece o aparelho revogado (com o segredo e a assinatura dele) e marca o principal como revogado; só um endpoint marcado `RequireDevice(allowRevoked: true)` aceita. Nesta story nenhum endpoint usa a marca; a subida de eventos (OFF-02) entra com revisão e põe esses eventos em quarentena. **OFF-02:** só `POST /api/v1/pos/sync/events` usa a marca (ADR 0050). Nenhuma venda se perde pela revogação.
 - Revogar solta o caixa (`active_device_id` volta a nulo); a época não volta.
 
 ### 5. Exceção nomeada ao TOTP no balcão (PP-11)

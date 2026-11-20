@@ -26,4 +26,5 @@ export interface PosSyncStore {
   fiscalMode?: StoreFiscalMode;
   canSell?: boolean;
   receiptPrintMode?: ReceiptPrintMode;
+  freeRemoveLast?: boolean;
 }

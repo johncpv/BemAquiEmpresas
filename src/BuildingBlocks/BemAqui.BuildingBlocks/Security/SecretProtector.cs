@@ -73,6 +73,8 @@ public sealed class SecretProtector(IDataProtectionProvider provider) : ISecretP
         SecretKind.InterCredentials => "inter-credentials",
         SecretKind.InterCertificate => "inter-certificate",
         SecretKind.FiscalApiKey => "fiscal-api-key",
+        SecretKind.CustomerDocument => "customer-document",
+        SecretKind.BlindIndexKey => "blind-index-key",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Tipo de segredo sem propósito definido."),
     };
 

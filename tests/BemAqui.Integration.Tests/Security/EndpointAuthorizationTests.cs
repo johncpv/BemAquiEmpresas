@@ -215,8 +215,8 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
         endpoints.Where(e => e.Metadata.GetMetadata<DeviceEndpointAttribute>() != null).Should().OnlyContain(e => UsesDevice(e), "a marca sem o esquema não vale");
         endpoints.Where(e => e.RoutePattern.RawText!.StartsWith(DeviceEndpoints.PathPrefix, StringComparison.Ordinal)).Should()
             .OnlyContain(e => IsDevice(e), "toda rota de sincronização é do aparelho");
-        device.Where(e => e.Metadata.GetMetadata<DeviceEndpointAttribute>()!.AllowRevoked).Should()
-            .BeEmpty("nesta story nenhum endpoint aceita o aparelho revogado; a subida de eventos (OFF-02) entra com revisão");
+        device.Where(e => e.Metadata.GetMetadata<DeviceEndpointAttribute>()!.AllowRevoked).Select(e => e.RoutePattern.RawText).Should()
+            .Equal(["/api/v1/pos/sync/events"], "só a subida de eventos (OFF-02) aceita o aparelho revogado; o que ele envia entra em quarentena");
     }
 
     /// <summary>
