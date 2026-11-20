@@ -20,6 +20,8 @@ Cadastrar as lojas e os caixas de cada uma, e ver qual aparelho vende em cada ca
 - Cada loja mostra o **Documento fiscal**. Uma loja nova não vende até o Proprietário ligar o modo **só cupom não fiscal**, com o aceite (veja a ajuda "Documento fiscal").
 - Na loja, **Cupom ao concluir a venda** escolhe se o caixa pergunta, imprime sempre ou não imprime o cupom.
 - **Vendas sem documento fiscal**, no topo da tela, abre o relatório por período, loja e operador.
+- **Pendências do PDV**, no topo da tela, mostra o que a sincronização dos caixas achou (preço desatualizado, relógio, vendas em quarentena) e as exceções por operador.
+- Na loja, **Último item sem supervisor** (ligado por padrão) deixa o operador tirar o último item que lançou sem chamar ninguém; o servidor confere cada remoção por esta regra. **Aviso de caixa sem enviar vendas** (padrão 4 horas) avisa quem aprova vendas quando um caixa passa desse tempo sem subir as vendas.
 
 ## Perguntas frequentes
 **O código da loja pode mudar?** Pode, mas as vendas já feitas continuam com o número antigo. Prefira escolher o código certo no começo.

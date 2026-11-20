@@ -97,6 +97,10 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
         recurring.AddOrUpdate<BemAqui.Production.Application.PlanningRecalculateRecurringJob>(BemAqui.Production.Application.PlanningRecalculateRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Production.Application.PlanningRecalculateRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         // Aparelhos da fábrica sem uso há 30 dias ou vencidos (PRD-03b CA 8): 00:30 de São Paulo.
+        recurring.AddOrUpdate<BemAqui.Pos.Application.PosSyncAlertRecurringJob>(BemAqui.Pos.Application.PosSyncAlertRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Pos.Application.PosSyncAlertRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        recurring.AddOrUpdate<BemAqui.Sales.Application.SaleCustomerDocumentPurgeRecurringJob>(BemAqui.Sales.Application.SaleCustomerDocumentPurgeRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Sales.Application.SaleCustomerDocumentPurgeRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.Identity.Application.Shopfloor.ShopfloorDevicesRecurringJob>(BemAqui.Identity.Application.Shopfloor.ShopfloorDevicesRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Identity.Application.Shopfloor.ShopfloorDevicesRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         // Resumo diário dos lançamentos manuais do estoque ao Proprietário (EST-01a CA 12, D7): 06:30 de São Paulo, valor inicial.

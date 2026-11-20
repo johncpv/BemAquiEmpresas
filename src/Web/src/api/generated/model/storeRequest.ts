@@ -17,4 +17,8 @@ export interface StoreRequest {
   /** @nullable */
   cashCeilingAmount?: number | null;
   receiptPrintMode?: null | ReceiptPrintMode;
+  /** @nullable */
+  freeRemoveLast?: boolean | null;
+  /** @nullable */
+  syncAlertHours?: number | null;
 }

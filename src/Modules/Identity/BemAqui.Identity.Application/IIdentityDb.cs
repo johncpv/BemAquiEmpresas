@@ -18,6 +18,9 @@ public interface IIdentityDb
     /// <summary>PIN do caixa do PDV, um por usuário (PDV-01 CA 11).</summary>
     DbSet<PosPin> PosPins { get; }
 
+    /// <summary>Retratos das permissões por versão (OFF-02): a permissão no instante do evento do caixa.</summary>
+    DbSet<PermissionSnapshot> PermissionSnapshots { get; }
+
     /// <summary>Telas de TV (<c>identity.kiosk_tokens</c>, PNL-01a).</summary>
     DbSet<KioskScreen> KioskScreens { get; }
 

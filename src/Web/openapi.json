@@ -36640,6 +36640,222 @@
         }
       }
     },
+    "/api/v1/pos/sync/events": {
+      "post": {
+        "tags": [
+          "PDV: sincroniza\u00E7\u00E3o"
+        ],
+        "operationId": "PostPosSyncEvents",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PosSyncBatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PosSyncBatchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/divergences": {
+      "get": {
+        "tags": [
+          "PDV: pend\u00EAncias"
+        ],
+        "operationId": "ListSyncDivergences",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SyncDivergenceStatus"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SyncDivergenceKind"
+            }
+          },
+          {
+            "name": "storeId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "registerId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncDivergenceList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/divergences/{id}/resolve": {
+      "post": {
+        "tags": [
+          "PDV: pend\u00EAncias"
+        ],
+        "operationId": "ResolveSyncDivergence",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncResolveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncDivergenceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/divergences/export": {
+      "get": {
+        "tags": [
+          "PDV: pend\u00EAncias"
+        ],
+        "operationId": "ExportSyncDivergences",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SyncDivergenceStatus"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SyncDivergenceKind"
+            }
+          },
+          {
+            "name": "storeId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "registerId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/pos/divergences/operator-exceptions": {
+      "get": {
+        "tags": [
+          "PDV: pend\u00EAncias"
+        ],
+        "operationId": "GetOperatorExceptions",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "storeId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperatorExceptionReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pos/customers": {
       "get": {
         "tags": [
@@ -56032,6 +56248,13 @@
           "Parent",
           "Ward",
           "Other"
+        ]
+      },
+      "DeviceEventOutcome": {
+        "enum": [
+          "Accepted",
+          "AcceptedWithDivergence",
+          "Quarantined"
         ]
       },
       "DeviceKind": {
@@ -75784,6 +76007,69 @@
           }
         }
       },
+      "OperatorExceptionReport": {
+        "required": [
+          "from",
+          "to",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OperatorExceptionRow"
+            }
+          }
+        }
+      },
+      "OperatorExceptionRow": {
+        "required": [
+          "operatorId",
+          "operatorName",
+          "itemsRemoved",
+          "quantitiesReduced",
+          "salesDiscarded",
+          "eventsRejected"
+        ],
+        "type": "object",
+        "properties": {
+          "operatorId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "operatorName": {
+            "type": "string"
+          },
+          "itemsRemoved": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quantitiesReduced": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "salesDiscarded": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "eventsRejected": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "OrderCompletionPreview": {
         "required": [
           "orderId",
@@ -87232,6 +87518,23 @@
           }
         }
       },
+      "PosSyncAck": {
+        "required": [
+          "deviceEpoch",
+          "seq"
+        ],
+        "type": "object",
+        "properties": {
+          "deviceEpoch": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "seq": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "PosSyncBarcode": {
         "required": [
           "gtin",
@@ -87245,6 +87548,175 @@
           "packQuantity": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "PosSyncBatch": {
+        "required": [
+          "events"
+        ],
+        "type": "object",
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PosSyncEventInput"
+            }
+          },
+          "documents": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PosSyncDocumentInput"
+            }
+          },
+          "oldestPendingAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PosSyncBatchResult": {
+        "required": [
+          "results",
+          "acks",
+          "serverTime"
+        ],
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PosSyncEventResult"
+            }
+          },
+          "acks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PosSyncAck"
+            }
+          },
+          "serverTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PosSyncDocumentInput": {
+        "required": [
+          "saleId",
+          "kind",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "saleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PosSyncEventInput": {
+        "required": [
+          "eventId",
+          "deviceId",
+          "registerId",
+          "deviceEpoch",
+          "seq",
+          "schemaVersion",
+          "kind",
+          "occurredAt",
+          "prevHash",
+          "hash",
+          "payload"
+        ],
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "registerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceEpoch": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "seq": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "schemaVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string"
+          },
+          "prevHash": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hash": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PosSyncEventResult": {
+        "required": [
+          "eventId",
+          "deviceEpoch",
+          "seq",
+          "outcome",
+          "replayed"
+        ],
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceEpoch": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "seq": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/DeviceEventOutcome"
+          },
+          "replayed": {
+            "type": "boolean"
           }
         }
       },
@@ -87531,6 +88003,10 @@
           },
           "receiptPrintMode": {
             "$ref": "#/components/schemas/ReceiptPrintMode"
+          },
+          "freeRemoveLast": {
+            "type": "boolean",
+            "default": true
           }
         }
       },
@@ -106034,6 +106510,19 @@
                 "$ref": "#/components/schemas/ReceiptPrintMode"
               }
             ]
+          },
+          "freeRemoveLast": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "syncAlertHours": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -106132,6 +106621,15 @@
           },
           "receiptPrintMode": {
             "$ref": "#/components/schemas/ReceiptPrintMode"
+          },
+          "freeRemoveLast": {
+            "type": "boolean",
+            "default": true
+          },
+          "syncAlertHours": {
+            "type": "integer",
+            "format": "int32",
+            "default": 4
           }
         }
       },
@@ -107020,6 +107518,225 @@
             "type": "string"
           }
         }
+      },
+      "SyncDivergenceKind": {
+        "enum": [
+          "PriceOutdated",
+          "PriceMismatch",
+          "DeviceClock",
+          "BrokenSequence",
+          "ReplacedDevice",
+          "SchemaVersion",
+          "Validation",
+          "Authorization",
+          "Payment",
+          "CashSession",
+          "FiscalDocument"
+        ]
+      },
+      "SyncDivergenceList": {
+        "required": [
+          "items",
+          "openByKind",
+          "total",
+          "truncated"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyncDivergenceView"
+            }
+          },
+          "openByKind": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SyncDivergenceStatus": {
+        "enum": [
+          "Open",
+          "Resolved"
+        ]
+      },
+      "SyncDivergenceView": {
+        "required": [
+          "id",
+          "kind",
+          "kindLabel",
+          "status",
+          "quarantined",
+          "storeId",
+          "storeName",
+          "registerId",
+          "registerNumber",
+          "saleId",
+          "saleNumber",
+          "operatorId",
+          "operatorName",
+          "summary",
+          "eventKind",
+          "seq",
+          "occurredAt",
+          "createdAt",
+          "resolution",
+          "resolutionReason",
+          "resolvedByName",
+          "resolvedAt",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/SyncDivergenceKind"
+          },
+          "kindLabel": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SyncDivergenceStatus"
+          },
+          "quarantined": {
+            "type": "boolean"
+          },
+          "storeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storeName": {
+            "type": "string"
+          },
+          "registerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "registerNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "saleId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "saleNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "operatorId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "operatorName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "summary": {
+            "type": "string"
+          },
+          "eventKind": {
+            "type": "string"
+          },
+          "seq": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolution": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SyncResolution"
+              }
+            ]
+          },
+          "resolutionReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "resolvedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "resolvedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "SyncResolution": {
+        "enum": [
+          "AcceptAsIs",
+          "ReleaseQuarantine",
+          "KeepOut",
+          null
+        ]
+      },
+      "SyncResolveRequest": {
+        "required": [
+          "resolution",
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "resolution": {
+            "$ref": "#/components/schemas/SyncResolution"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
       },
       "TaxBracket": {
         "required": [
@@ -112881,6 +113598,9 @@
     },
     {
       "name": "PDV: impressoras"
+    },
+    {
+      "name": "PDV: pend\u00EAncias"
     },
     {
       "name": "PDV: venda"

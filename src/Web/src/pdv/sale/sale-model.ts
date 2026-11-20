@@ -80,8 +80,9 @@ export type LineRemoveReason = 'last-item' | 'authorized'
 export interface SaleEventData {
   SaleStarted: { operatorId: string | null }
   LineAdded: { line: SaleLine }
-  LineChanged: { lineId: string; quantity?: string; note?: string | null; reason: LineChangeReason; operatorId: string | null }
-  LineRemoved: { lineId: string; reason: LineRemoveReason; operatorId: string | null }
+  /** `authorizedBy`: quem autorizou a redução que não é o último lançamento (OFF-02: o servidor exige e confere a permissão no instante). */
+  LineChanged: { lineId: string; quantity?: string; note?: string | null; reason: LineChangeReason; operatorId: string | null; authorizedBy?: string | null }
+  LineRemoved: { lineId: string; reason: LineRemoveReason; operatorId: string | null; authorizedBy?: string | null }
   SaleParked: Record<string, never>
   SaleResumed: Record<string, never>
   SaleDiscarded: { reason: string; operatorId: string | null }

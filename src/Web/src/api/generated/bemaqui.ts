@@ -300,6 +300,7 @@ import type {
   ExportStockAdjustmentsParams,
   ExportStockBalancesParams,
   ExportStockMovementsParams,
+  ExportSyncDivergencesParams,
   ExportTimesheetOverviewParams,
   ExtendValidityInput,
   FabricationBatchInput,
@@ -367,6 +368,7 @@ import type {
   GetMyAgendaParams,
   GetNonConformityHistoryParams,
   GetNonFiscalSalesReportParams,
+  GetOperatorExceptionsParams,
   GetOrderBomHistoryParams,
   GetOrderReservationHistoryParams,
   GetOutgoingInvoiceHistoryParams,
@@ -591,6 +593,7 @@ import type {
   ListStockMovementsParams,
   ListStockShortagesParams,
   ListSupplierOptionsParams,
+  ListSyncDivergencesParams,
   ListTaxRulesParams,
   ListTenantsParams,
   ListTimeAdjustmentsParams,
@@ -678,6 +681,7 @@ import type {
   OpeningStatus,
   OperationStoreOption,
   OperationUserCreated,
+  OperatorExceptionReport,
   OrderCompletionPreview,
   OrderCost,
   OrderForecastInfo,
@@ -850,6 +854,8 @@ import type {
   PosOperators,
   PosPinLoginInput,
   PosPinSessionResponse,
+  PosSyncBatch,
+  PosSyncBatchResult,
   PositionChangeInput,
   PositionDetail,
   PositionInput,
@@ -1126,6 +1132,9 @@ import type {
   SupplierCodeInput,
   SupplierOption,
   SuspendTenantRequest,
+  SyncDivergenceList,
+  SyncDivergenceView,
+  SyncResolveRequest,
   TaxRuleList,
   TaxRuleValues,
   TaxRuleView,
@@ -92789,6 +92798,477 @@ export function useGetPosCatalogChanges<TData = Awaited<ReturnType<typeof getPos
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetPosCatalogChangesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getPostPosSyncEventsUrl = () => {
+
+
+
+
+  return `/api/v1/pos/sync/events`
+}
+
+export const postPosSyncEvents = async (posSyncBatch: PosSyncBatch, options?: Parameters<typeof apiFetch>[1]): Promise<PosSyncBatchResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PosSyncBatchResult>(getPostPosSyncEventsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(posSyncBatch)
+  }
+);}
+
+
+
+
+
+export const getPostPosSyncEventsMutationKey = () => ['postPosSyncEvents'] as const;
+
+export const getPostPosSyncEventsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postPosSyncEvents>>, TError,PostPosSyncEventsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof postPosSyncEvents>>, TError,PostPosSyncEventsMutationVariables, TContext> => {
+
+const mutationKey = getPostPosSyncEventsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postPosSyncEvents>>, PostPosSyncEventsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  postPosSyncEvents(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostPosSyncEventsMutationResult = NonNullable<Awaited<ReturnType<typeof postPosSyncEvents>>>
+    export type PostPosSyncEventsMutationBody = PosSyncBatch
+    export type PostPosSyncEventsMutationError = unknown
+    export type PostPosSyncEventsMutationVariables = {data: PosSyncBatch}
+
+    export const usePostPosSyncEvents = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postPosSyncEvents>>, TError,PostPosSyncEventsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postPosSyncEvents>>,
+        TError,
+        PostPosSyncEventsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPostPosSyncEventsMutationOptions(options), queryClient);
+    }
+
+export const getListSyncDivergencesUrl = (params?: ListSyncDivergencesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/pos/divergences?${stringifiedParams}` : `/api/v1/pos/divergences`
+}
+
+export const listSyncDivergences = async (params?: ListSyncDivergencesParams, options?: Parameters<typeof apiFetch>[1]): Promise<SyncDivergenceList> => {
+
+  return apiFetch<SyncDivergenceList>(getListSyncDivergencesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListSyncDivergencesQueryKey = (params?: ListSyncDivergencesParams,) => {
+    return [
+    `/api/v1/pos/divergences`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListSyncDivergencesQueryOptions = <TData = Awaited<ReturnType<typeof listSyncDivergences>>, TError = unknown>(params?: ListSyncDivergencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSyncDivergences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSyncDivergencesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSyncDivergences>>> = ({ signal }) => listSyncDivergences(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSyncDivergences>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListSyncDivergencesQueryResult = NonNullable<Awaited<ReturnType<typeof listSyncDivergences>>>
+export type ListSyncDivergencesQueryError = unknown
+
+
+export function useListSyncDivergences<TData = Awaited<ReturnType<typeof listSyncDivergences>>, TError = unknown>(
+ params: undefined |  ListSyncDivergencesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSyncDivergences>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSyncDivergences>>,
+          TError,
+          Awaited<ReturnType<typeof listSyncDivergences>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSyncDivergences<TData = Awaited<ReturnType<typeof listSyncDivergences>>, TError = unknown>(
+ params?: ListSyncDivergencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSyncDivergences>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSyncDivergences>>,
+          TError,
+          Awaited<ReturnType<typeof listSyncDivergences>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSyncDivergences<TData = Awaited<ReturnType<typeof listSyncDivergences>>, TError = unknown>(
+ params?: ListSyncDivergencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSyncDivergences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListSyncDivergences<TData = Awaited<ReturnType<typeof listSyncDivergences>>, TError = unknown>(
+ params?: ListSyncDivergencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSyncDivergences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListSyncDivergencesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getResolveSyncDivergenceUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/pos/divergences/${id}/resolve`
+}
+
+export const resolveSyncDivergence = async (id: string,
+    syncResolveRequest: SyncResolveRequest, options?: Parameters<typeof apiFetch>[1]): Promise<SyncDivergenceView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<SyncDivergenceView>(getResolveSyncDivergenceUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(syncResolveRequest)
+  }
+);}
+
+
+
+
+
+export const getResolveSyncDivergenceMutationKey = () => ['resolveSyncDivergence'] as const;
+
+export const getResolveSyncDivergenceMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resolveSyncDivergence>>, TError,ResolveSyncDivergenceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resolveSyncDivergence>>, TError,ResolveSyncDivergenceMutationVariables, TContext> => {
+
+const mutationKey = getResolveSyncDivergenceMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resolveSyncDivergence>>, ResolveSyncDivergenceMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  resolveSyncDivergence(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResolveSyncDivergenceMutationResult = NonNullable<Awaited<ReturnType<typeof resolveSyncDivergence>>>
+    export type ResolveSyncDivergenceMutationBody = SyncResolveRequest
+    export type ResolveSyncDivergenceMutationError = unknown
+    export type ResolveSyncDivergenceMutationVariables = {id: string;data: SyncResolveRequest}
+
+    export const useResolveSyncDivergence = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resolveSyncDivergence>>, TError,ResolveSyncDivergenceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof resolveSyncDivergence>>,
+        TError,
+        ResolveSyncDivergenceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getResolveSyncDivergenceMutationOptions(options), queryClient);
+    }
+
+export const getExportSyncDivergencesUrl = (params?: ExportSyncDivergencesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/pos/divergences/export?${stringifiedParams}` : `/api/v1/pos/divergences/export`
+}
+
+export const exportSyncDivergences = async (params?: ExportSyncDivergencesParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getExportSyncDivergencesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportSyncDivergencesQueryKey = (params?: ExportSyncDivergencesParams,) => {
+    return [
+    `/api/v1/pos/divergences/export`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getExportSyncDivergencesQueryOptions = <TData = Awaited<ReturnType<typeof exportSyncDivergences>>, TError = unknown>(params?: ExportSyncDivergencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSyncDivergences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportSyncDivergencesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportSyncDivergences>>> = ({ signal }) => exportSyncDivergences(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportSyncDivergences>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportSyncDivergencesQueryResult = NonNullable<Awaited<ReturnType<typeof exportSyncDivergences>>>
+export type ExportSyncDivergencesQueryError = unknown
+
+
+export function useExportSyncDivergences<TData = Awaited<ReturnType<typeof exportSyncDivergences>>, TError = unknown>(
+ params: undefined |  ExportSyncDivergencesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSyncDivergences>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportSyncDivergences>>,
+          TError,
+          Awaited<ReturnType<typeof exportSyncDivergences>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportSyncDivergences<TData = Awaited<ReturnType<typeof exportSyncDivergences>>, TError = unknown>(
+ params?: ExportSyncDivergencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSyncDivergences>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportSyncDivergences>>,
+          TError,
+          Awaited<ReturnType<typeof exportSyncDivergences>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportSyncDivergences<TData = Awaited<ReturnType<typeof exportSyncDivergences>>, TError = unknown>(
+ params?: ExportSyncDivergencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSyncDivergences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useExportSyncDivergences<TData = Awaited<ReturnType<typeof exportSyncDivergences>>, TError = unknown>(
+ params?: ExportSyncDivergencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSyncDivergences>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExportSyncDivergencesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetOperatorExceptionsUrl = (params: GetOperatorExceptionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/pos/divergences/operator-exceptions?${stringifiedParams}` : `/api/v1/pos/divergences/operator-exceptions`
+}
+
+export const getOperatorExceptions = async (params: GetOperatorExceptionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<OperatorExceptionReport> => {
+
+  return apiFetch<OperatorExceptionReport>(getGetOperatorExceptionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOperatorExceptionsQueryKey = (params?: GetOperatorExceptionsParams,) => {
+    return [
+    `/api/v1/pos/divergences/operator-exceptions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetOperatorExceptionsQueryOptions = <TData = Awaited<ReturnType<typeof getOperatorExceptions>>, TError = unknown>(params: GetOperatorExceptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOperatorExceptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOperatorExceptionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOperatorExceptions>>> = ({ signal }) => getOperatorExceptions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOperatorExceptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOperatorExceptionsQueryResult = NonNullable<Awaited<ReturnType<typeof getOperatorExceptions>>>
+export type GetOperatorExceptionsQueryError = unknown
+
+
+export function useGetOperatorExceptions<TData = Awaited<ReturnType<typeof getOperatorExceptions>>, TError = unknown>(
+ params: GetOperatorExceptionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOperatorExceptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOperatorExceptions>>,
+          TError,
+          Awaited<ReturnType<typeof getOperatorExceptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOperatorExceptions<TData = Awaited<ReturnType<typeof getOperatorExceptions>>, TError = unknown>(
+ params: GetOperatorExceptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOperatorExceptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOperatorExceptions>>,
+          TError,
+          Awaited<ReturnType<typeof getOperatorExceptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOperatorExceptions<TData = Awaited<ReturnType<typeof getOperatorExceptions>>, TError = unknown>(
+ params: GetOperatorExceptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOperatorExceptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOperatorExceptions<TData = Awaited<ReturnType<typeof getOperatorExceptions>>, TError = unknown>(
+ params: GetOperatorExceptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOperatorExceptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOperatorExceptionsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -225,6 +225,7 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - Depende de: OFF-01, PDV-03, VND-01, SPK-03.
 - Paridade: 1.
 - CA: lote de eventos com `event_id`, época, `seq` e cadeia de hash; reenvio não duplica (teste com 50 reenvios em paralelo); venda entra no `Sales` pelo contrato `ISaleIngestion`; venda concluída nunca é recusada; aparelho revogado ainda consegue subir; CPF fora do evento imutável; tela "Pendências do PDV".
+- Pronta para revisão (19/11/2026, branch `feat/off-02-sincronizacao`, [ADR 0050](../adr/0050-subida-de-eventos-do-pdv.md)): `POST /api/v1/pos/sync/events` (único endpoint aberto ao aparelho revogado), `pos.device_events` imutável por trigger, cada evento numa transação curta em série por caixa, replay da venda no servidor com os requisitos de segurança da PDV-02, PDV-03, CX-01 e IMP-01, quarentena e divergência em `pos.sync_divergences`, exceções por operador (`pos.operator_incidents`), permissão no instante (`identity.permission_snapshots`), CPF cifrado com índice cego em `sales.sale_customer_documents`, aviso "Caixa 02 sem enviar vendas há N horas.", tela `/app/loja/pendencias` com exportação, e no aparelho o selo da fila (seq e hash) e a subida a cada 20 s. Pendências: sessão por PIN do supervisor que autoriza (PDV-04); entrada por PIN sem rede (OFF-03); particionamento de `device_events`.
 
 **CX-02 [ ] Fechamento com conferência cega, quebra e recolhimento (G)** — ordem 8 — [story](stories/CX-02-fechamento-conferencia-cega.md)
 - Depende de: CX-01, PDV-03, IMP-01; PP-22.

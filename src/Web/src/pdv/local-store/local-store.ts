@@ -41,6 +41,15 @@ export interface LocalStore {
 
   /** Põe um evento na fila de saída (a subida e o protocolo são da OFF-02). */
   enqueue(kind: string, payload: unknown, at?: string): Promise<OutboxEntry>
+  /** OFF-02: a fila de saída na ordem (as mais antigas primeiro), com o selo de envio quando já tem. */
+  outbox(limit?: number): Promise<OutboxEntry[]>
+  /**
+   * OFF-02: grava o selo (seq da época e hash encadeado) nos eventos ainda sem selo e avança a cabeça da cadeia, numa transação. Só grava se a
+   * cabeça guardada ainda for `expected` (o hash é calculado fora da transação, com o WebCrypto); devolve falso se outra gravação passou na frente.
+   */
+  sealOutbox(seals: readonly { seq: number; seal: OutboxSeal }[], expected: ChainHead | null, next: ChainHead): Promise<boolean>
+  /** OFF-02: tira da fila os eventos que o servidor confirmou (aceitos, com divergência ou em quarentena: todos estão guardados lá). */
+  removeOutbox(seqs: readonly number[]): Promise<void>
   /** Quantas vendas esperam para subir e desde quando (faixa de estado, CA 13). */
   pendingSummary(): Promise<PendingSummary>
 
@@ -66,6 +75,7 @@ export type MetaKey =
   | 'register'           // último aperto de mão que deu certo: caixa e loja, para abrir sem rede (CA 2)
   | 'storage.persist'    // resultado do navigator.storage.persist() (CA 5), para subir na sincronização
   | 'catalog'            // versão e cursor do catálogo (uso interno do LocalStore)
+  | 'sync.chain'         // OFF-02: cabeça da cadeia de eventos selados (uso interno do LocalStore)
   | (string & {})
 
 export interface OutboxEntry {
@@ -76,6 +86,34 @@ export interface OutboxEntry {
   kind: string
   createdAt: string
   payload: unknown
+  /** OFF-02: o selo de envio (nasce na primeira tentativa e nunca muda: o reenvio manda o mesmo evento, com o mesmo hash). */
+  seal?: OutboxSeal
+}
+
+/**
+ * Selo do evento na subida (OFF-02 CA 2): aparelho, caixa e época do aperto de mão, `seq` contínuo por caixa e época, versão do formato, instante
+ * do aparelho, o hash do anterior e o próprio, e o conteúdo **já em texto** (o hash é sobre ele; sem dado pessoal).
+ */
+export interface OutboxSeal {
+  deviceId: string
+  registerId: string
+  deviceEpoch: number
+  seq: number
+  schemaVersion: number
+  occurredAt: string
+  prevHash: string | null
+  hash: string
+  payload: string
+}
+
+/** OFF-02: chave da cabeça da cadeia de eventos selados no aparelho. */
+export const CHAIN_META = 'sync.chain'
+
+/** Último evento selado da época (a cadeia continua dele). */
+export interface ChainHead {
+  deviceEpoch: number
+  seq: number
+  hash: string | null
 }
 
 /** Evento para a fila de saída, antes de receber o `seq` e o id. */

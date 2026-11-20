@@ -49,6 +49,14 @@ describe('faixa de estado do caixa', () => {
     expect(statusView({ ...base, online: false }).details.some((d) => d.startsWith('vende sem conexão'))).toBe(false)
   })
 
+  it('OFF-02: a subida recusada por algo que pede ação (relógio) fica vermelha com o motivo; sem rede, a fila só espera', () => {
+    const view = statusView({ ...base, online: true, pendingCount: 2, oldestPendingAt: at(14, 0), uploadIssue: 'as vendas não sobem: acerte o relógio do aparelho' })
+    expect(view.tone).toBe('crit')
+    expect(view.title).toBe('2 vendas a enviar')
+    expect(view.details).toContain('as vendas não sobem: acerte o relógio do aparelho')
+    expect(statusView({ ...base, online: false, pendingCount: 2, oldestPendingAt: at(14, 0), uploadIssue: 'x' }).details).not.toContain('x')
+  })
+
   it('idade curta', () => {
     expect(ageText(now.toISOString(), now)).toBe('agora')
     expect(ageText(at(12, 50), now)).toBe('há 2 h 10 min')

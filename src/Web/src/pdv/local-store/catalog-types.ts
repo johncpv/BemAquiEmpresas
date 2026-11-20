@@ -119,6 +119,8 @@ export interface StoreSettings {
   fiscalMode: 'Nfce' | 'NonFiscal'
   canSell: boolean
   receiptPrintMode: 'Ask' | 'Always' | 'Never'
+  /** OFF-02: o último item sai sem supervisor (a loja decide; o servidor confere pelo mesmo valor). Ausente = ligado. */
+  freeRemoveLast?: boolean
 }
 
 /** Limites da loja para o dinheiro na gaveta (CX-01 CA 7 e 8), em centavos; null = sem limite. */

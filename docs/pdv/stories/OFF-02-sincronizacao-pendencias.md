@@ -5,7 +5,7 @@
 | ID | OFF-02 |
 | Título | Sincronização idempotente: lote de eventos assinado pelo aparelho, registro imutável no servidor, projeção em vendas, regras de conflito e a tela "Pendências do PDV" |
 | Tamanho | G |
-| Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
+| Status | Pronta para revisão (19/11/2026, branch `feat/off-02-sincronizacao`) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | Pedido do PO de 15/11/2026 (item 5) · [Rascunho A](../adr/rascunho-A-offline.md) itens 6 e 8 · [Rascunho F](../adr/rascunho-F-escala-hospedagem.md) (ingestão em dois tempos) · [Fluxos](../04-fluxos-estados.md#8-sincronização-offline) |
 | Dependências | OFF-01, PDV-03, VND-01; SPK-03 concluído; PP-26 (CPF) |
@@ -77,16 +77,16 @@ Como **dono**, quero **que toda venda feita no caixa chegue ao sistema uma vez s
 - Particionamento de `device_events`.
 
 ## Pontos em aberto
-- O prazo de suporte a `schema_version` antiga (proposta: duas versões).
-- O limite de idade da tabela de preço e a tolerância de relógio, por loja (proposta: herdar os 2 min da ADR 0026 para o relógio).
+- O prazo de suporte a `schema_version` antiga (proposta: duas versões). **Decidido na [ADR 0050](../../adr/0050-subida-de-eventos-do-pdv.md): a versão atual e a anterior.**
+- O limite de idade da tabela de preço e a tolerância de relógio, por loja (proposta: herdar os 2 min da ADR 0026 para o relógio). **ADR 0050: relógio com 2 min para todas as lojas; preço desatualizado = versão da linha anterior à vigente com preço diferente.** Configurar por loja fica para quando houver pedido.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade e de integração (Testcontainers) passando; Vitest no front.
-- [ ] Migration criada; permissões só do `ModuleCatalog`.
-- [ ] Telas com estados de carregando, vazio e erro; ajuda escrita ou atualizada em `Ajuda/` no mesmo commit.
-- [ ] Padrões e próximo passo propositivos avaliados; auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade e de integração (Testcontainers) passando; Vitest no front.
+- [x] Migration criada; permissões só do `ModuleCatalog`.
+- [x] Telas com estados de carregando, vazio e erro; ajuda escrita ou atualizada em `Ajuda/` no mesmo commit.
+- [x] Padrões e próximo passo propositivos avaliados; auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR.
 
 ## Requisitos de segurança vindos da PDV-02
 Da revisão de segurança da PDV-02 (18/11/2026), registrados lá em "Pendências de segurança":
@@ -139,6 +139,16 @@ A impressão do cupom e a 2ª via sobem como `pos.print` (payload: `type` = `Rec
 - (revisão de segurança da IMP-01, 19/11/2026) **Modo não fiscal na subida da venda.** O caixa offline, ou um aparelho adulterado, ignora o `canSell` do catálogo. Na subida de cada venda (`pos.sale`), o servidor confere, pelo histórico do aceite da loja (auditoria de `Store`: `FiscalMode` e `NonFiscalTermsVersion`), se a loja estava com o modo "só cupom não fiscal" ligado e aceito **na versão vigente do texto no `completedAt`** (até existir a NFC-e, Fase 13). Se não estava, a venda vai para quarentena ou para a pendência do Proprietário (divergência "Documento fiscal"), **nunca é descartada**.
 
 
+## Implementação (19/11/2026)
+- **Servidor:** `POST /api/v1/pos/sync/events` (`PosEventIngestion`), o único endpoint com `RequireDevice(allowRevoked: true)`. Cada evento numa transação curta, em série por caixa (`pg_advisory_xact_lock`), `INSERT … ON CONFLICT (event_id) DO NOTHING` em `pos.device_events` (imutável por trigger) e a projeção depois de um ponto de salvamento. Venda pelo `ISaleIngestion` (o `SaleCompleted` vai para o outbox na mesma transação), sessão de caixa pelo `CashSessionIngestion` e impressão pelo `PrinterService.RecordPrintAsync`, sempre com o caixa do principal. `PosSaleReplay` refaz a venda no servidor. Divergências e quarentena em `pos.sync_divergences` (auditada); exceções por operador em `pos.operator_incidents`; dinheiro das vendas por sessão em `pos.session_sales`.
+- **Requisitos herdados:** operador amarrado à sessão por PIN do aparelho no instante (família de refresh `PosPin`) e permissão no instante (`identity.permission_snapshots`, `IPosOperatorHistory`); `last-item`, `remove-last` e redução conferidos com o `free_remove_last` da loja; `authorizedBy` com `pos.cancel_item`; pagamento refeito (soma, troco, máquina de estados, campos de integração, forma, tipo, parcelas, bandeira, texto de cartão com a normalização do aparelho, removido antes de gravar); `integration`, `operatorAttested` e `needsReconciliation` definidos pelo servidor (manual); `confirmedBy` gravado como quem confirmou; sessão de caixa do caixa do aparelho, época atual, valores, motivo, `aboveExpected` recalculado, quem fecha, janela de horário como "Relógio do aparelho"; modo não fiscal aceito na versão vigente no `completedAt` pelo histórico da auditoria da loja.
+- **Dado pessoal:** CPF/CNPJ em `sales.sale_customer_documents` (cifrado, índice cego HMAC, chave do tenant em `sales.blind_index_keys`), expurgo em 5 anos; o nome do cliente não sobe.
+- **Aviso (CA 16):** no contato do aparelho (evento mais antigo da fila) e pelo job `pos-sync-alerts` (30 min), para quem tem `sales.approve`; o prazo é da loja (`sync_alert_hours`, padrão 4 h, na tela da loja junto com "Último item sem supervisor").
+- **Aparelho:** a fila de saída ganha o selo (seq da época e hash encadeado, `src/pdv/sync/event-chain.ts`), a subida em lotes a cada 20 s (`event-upload.ts`, `device-upload.ts`) e a faixa de estado mostra o motivo quando a subida pede ação. A remoção e a redução autorizadas levam `authorizedBy`; a remoção livre segue a regra da loja.
+- **Rotas:** as telas de retaguarda ficam em `/api/v1/pos/divergences` (não `sync-divergences`): todo caminho que começa com `/api/v1/pos/sync` é do aparelho (teste de varredura do esquema `Device`).
+- **Tela:** Loja → Pendências do PDV (`/app/loja/pendencias`), com chips por tipo, filtros, resolução com motivo, exportação e as exceções por operador; ajuda `Ajuda/loja-pendencias-pdv.md`.
+- **Testes (19/11/2026, contêiner Linux com Testcontainers):** `PosTests` + `PosSyncUnitTests` 50/50 (50 reenvios em paralelo, imutabilidade, outbox e CPF, conflitos de preço, relógio, sequência e versão, aparelho substituído e épocas, segurança herdada, liberar da quarentena e auditoria, aviso de caixa, sangria recalculada); `EndpointAuthorizationTests`, `SecretProtectorTests` e `OpenApiDocumentTests` verdes; `Architecture.Tests` verdes; Vitest 152 arquivos e 822 testes; lint e typecheck limpos.
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
@@ -151,3 +161,5 @@ A impressão do cupom e a 2ª via sobem como `pos.print` (payload: `type` = `Rec
 | 19/11/2026 | 0.7 | Requisitos da revisão de segurança da CX-01: caixa do aparelho ativo e época atual, sessão do caixa do aparelho, operador da sessão por PIN do servidor com as permissões conferidas no servidor, quem fecha e `closedAt`, janela de horário, `AboveExpected` recalculado e eventos do aparelho em série (ou sessão travada). | Claude (dev) |
 | 19/11/2026 | 0.8 | Recebidos os requisitos da IMP-01: as impressões sobem como `pos.print` e a OFF-02 chama o `PrinterService.RecordPrintAsync`. | Claude (dev) |
 | 19/11/2026 | 0.9 | Requisitos da revisão de segurança da IMP-01: na subida da venda, o servidor confere pelo histórico do aceite que a loja tinha o modo não fiscal aceito na versão vigente no `completedAt` (senão, quarentena ou pendência do Proprietário, nunca descarte); `RecordPrintAsync` recebe caixa e operador do principal e da sessão de PIN. | Claude (dev) |
+| 19/11/2026 | 1.0 | Implementada (ADR 0050): subida, registro imutável, replay e conferência no servidor, quarentena, Pendências do PDV, aviso de caixa sem enviar vendas e o selo da fila no aparelho. | Claude (dev) |
+| 19/11/2026 | 1.1 | Revisão de segurança da OFF-02 (ADR 0050, adendo): preço sempre conferido com o catálogo ("Preço divergente"), instantes sem voltar no tempo e dentro da sessão, sessão por PIN de quem autoriza e autorização pelo próprio operador como pendência, rate limit e pendência única do aparelho revogado, CPF só com a venda aceita, aviso por janela do servidor, liberação com nova conferência e sem o próprio operador, limites, erro inesperado em quarentena, pagamento repetido com outro valor recusado, permissão sem retrato até o instante (com a folga de 2 min) recusada, varredura de cartão em todo texto. | Claude (dev) |

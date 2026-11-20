@@ -83,7 +83,8 @@ public sealed record SalePartInput(Guid Id, string Label, SalePartKind Kind, dec
 /// <summary>
 /// Pagamento entregue pelo canal. Do cartão só ficam bandeira, NSU, código de autorização e a referência do provedor (CA 8): não existe campo
 /// para número, validade, código de segurança nem trilha, e os campos livres recusam sequência que pareça número de cartão.
-/// <c>Amount</c> é o valor entregue; <c>ChangeAmount</c>, o troco (só em forma que dá troco).
+/// <c>Amount</c> é o valor entregue; <c>ChangeAmount</c>, o troco (só em forma que dá troco). <c>ConfirmedBy</c>: quem atestou
+/// (no caixa, o operador da sessão por PIN conferido na subida da OFF-02); nulo = o usuário do request.
 /// </summary>
 public sealed record SalePaymentInput(
     Guid Id,
@@ -100,7 +101,8 @@ public sealed record SalePaymentInput(
     string? Nsu = null,
     string? AuthorizationCode = null,
     string? Txid = null,
-    string? EndToEndId = null);
+    string? EndToEndId = null,
+    Guid? ConfirmedBy = null);
 
 /// <summary>
 /// Venda concluída entregue por um módulo (VND-01 CA 3). <c>SaleId</c> é a chave de idempotência (no PDV, nasce no aparelho). <c>Number</c> é o
@@ -278,3 +280,23 @@ public sealed record SaleCompleted(Guid SaleId, string Number, SaleChannel Chann
 /// <summary>Venda cancelada (outbox): o estoque estorna a baixa e o financeiro refaz o recebível do dia e canal.</summary>
 public sealed record SaleCancelled(Guid SaleId, string Number, SaleChannel Channel, Guid? StoreId, Guid? CashSessionId, DateOnly BusinessDate, decimal Total, DateTimeOffset CancelledAt)
     : IIntegrationEvent;
+
+/// <summary>Documento do consumidor da venda do caixa (OFF-02 CA 17): <c>Kind</c> é <c>cpf</c> ou <c>cnpj</c>; <c>Value</c>, só para cifrar.</summary>
+public sealed record SaleCustomerDocumentInput(Guid SaleId, string Kind, string Value)
+{
+    /// <summary>Nunca o documento em texto em log ou exceção.</summary>
+    public override string ToString() => $"SaleCustomerDocumentInput {{ SaleId = {SaleId}, Kind = {Kind} }}";
+}
+
+/// <summary>
+/// CPF/CNPJ do consumidor da venda (OFF-02 CA 17, PP-26), em registro à parte e apagável: cifrado e com índice cego, fora do registro de eventos
+/// do caixa, do log e do outbox. O <c>Sales</c> é o dono de <c>sales.sale_customer_documents</c>; a gravação entra na transação de quem chama.
+/// </summary>
+public interface ISaleCustomerDocuments
+{
+    /// <summary>Grava o documento da venda (idempotente: a venda que já tem documento fica como está). Documento inválido: erro de validação.</summary>
+    Task<Result> AttachAsync(SaleCustomerDocumentInput input, CancellationToken cancellationToken = default);
+
+    /// <summary>As vendas com este documento, pelo índice cego (localizar a devolução, PP-26).</summary>
+    Task<IReadOnlyList<Guid>> FindSalesAsync(string document, CancellationToken cancellationToken = default);
+}

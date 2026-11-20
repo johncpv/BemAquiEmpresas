@@ -92,7 +92,7 @@ public sealed partial class SaleService(
         {
             var payment = SalePayment.Create(p.Id, sale.Id, p.PartId ?? saleParts[0].Id, p.PaymentMethodId, SaleRules.Money(p.Amount), SaleRules.Money(p.ChangeAmount), p.Integration,
                 p.Installments, Clean(p.Provider), p.AcquirerPartyId, Clean(p.CardBrand), Clean(p.Nsu), Clean(p.AuthorizationCode), Clean(p.Txid), Clean(p.EndToEndId), now);
-            if (!payment.Arrive(p.Status, currentUser.UserId, now))
+            if (!payment.Arrive(p.Status, p.ConfirmedBy ?? currentUser.UserId, now))
             {
                 return Field("payments", "Situação de pagamento inválida: " + p.Status + ".");
             }

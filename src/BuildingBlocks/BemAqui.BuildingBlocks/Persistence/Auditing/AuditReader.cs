@@ -21,6 +21,12 @@ public interface IAuditReader
     /// recente; com <paramref name="usersOnly"/>, só as feitas por usuário (sem as do seed). A permissão é conferida pelo módulo que chama.
     /// </summary>
     Task<IReadOnlyList<AuditChange>> ChangesSinceAsync(IReadOnlyCollection<string> entities, DateTimeOffset? since, bool usersOnly, int take, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Criações e edições de um registro, da mais antiga à mais recente, até <paramref name="until"/> (OFF-02: o modo fiscal que a loja tinha no
+    /// instante da venda). A permissão é conferida pelo módulo dono.
+    /// </summary>
+    Task<IReadOnlyList<AuditChange>> HistoryAsync(string entity, string entityId, DateTimeOffset until, CancellationToken cancellationToken = default);
 }
 
 public sealed class AuditReader(BemAquiDbContext db) : IAuditReader
@@ -51,4 +57,10 @@ public sealed class AuditReader(BemAquiDbContext db) : IAuditReader
         recent.Reverse();
         return recent;
     }
+
+    public async Task<IReadOnlyList<AuditChange>> HistoryAsync(string entity, string entityId, DateTimeOffset until, CancellationToken cancellationToken = default) =>
+        await db.AuditEntries.AsNoTracking()
+            .Where(a => a.Entity == entity && a.EntityId == entityId && (a.Action == AuditActions.Created || a.Action == AuditActions.Updated) && a.At <= until)
+            .OrderBy(a => a.At).ThenBy(a => a.Id).Take(1000)
+            .Select(a => new AuditChange(a.Id, a.Entity, a.EntityId, a.Action, a.UserId, a.At, a.Changes, a.Origin)).ToListAsync(cancellationToken);
 }

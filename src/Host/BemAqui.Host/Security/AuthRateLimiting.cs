@@ -93,6 +93,11 @@ public static class AuthRateLimiting
                 "pos-pin|" + TenantKey(http) + "|" + PosDeviceKey(http) + "|"
                 + (http.Connection.RemoteIpAddress?.ToString() ?? "-"),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = options.PosPinPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+            // Subida dos eventos do caixa (OFF-02, revisão de segurança M3): por tenant e aparelho (hash do cookie), inclusive o aparelho revogado, que
+            // continua com o endpoint aberto. O lote leva até 200 eventos; o caixa sobe a cada 20 s, então o limite só corta abuso.
+            o.AddPolicy(BemAqui.Pos.Application.PosEventIngestion.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "pos-sync|" + TenantKey(http) + "|" + PosDeviceKey(http),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = BemAqui.Pos.Application.PosEventIngestion.RateLimitPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
             // Busca de cliente na tela de venda (PDV-02, revisão de segurança, achado 1): por tenant, usuário (o operador da sessão por PIN) e
             // aparelho (hash do cookie), contra a mineração da base de clientes pelo caixa.
             o.AddPolicy(BemAqui.Pos.Application.PosCustomerSearchService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(

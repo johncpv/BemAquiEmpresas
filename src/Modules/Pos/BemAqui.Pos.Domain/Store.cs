@@ -20,6 +20,9 @@ public sealed class Store : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>PP-10: padrão e teto da janela sem sincronizar (7 dias).</summary>
     public const int DefaultOfflineWindowHours = 168;
 
+    /// <summary>OFF-02 CA 16: padrão do aviso de caixa sem enviar vendas.</summary>
+    public const int DefaultSyncAlertHours = 4;
+
     public string Code { get; set; } = string.Empty;
 
     public string Name { get; set; } = string.Empty;
@@ -63,6 +66,15 @@ public sealed class Store : Entity, IAuditable, IConcurrencyVersioned
 
     /// <summary>Cupom depois da venda (IMP-01 CA 5): perguntar (o padrão), imprimir sempre ou não imprimir.</summary>
     public ReceiptPrintMode ReceiptPrintMode { get; set; } = ReceiptPrintMode.Ask;
+
+    /// <summary>
+    /// OFF-02 (requisito da PDV-02): o último item lançado sai sem supervisor. O servidor confere a remoção do aparelho por este valor, nunca pelo
+    /// guardado no aparelho. Padrão: ligado.
+    /// </summary>
+    public bool FreeRemoveLast { get; set; } = true;
+
+    /// <summary>OFF-02 CA 16: o gerente é avisado quando um caixa fica este número de horas sem enviar vendas (padrão 4 h, de 1 a 72).</summary>
+    public int SyncAlertHours { get; set; } = DefaultSyncAlertHours;
 
     public string? SeedKey { get; init; }
 

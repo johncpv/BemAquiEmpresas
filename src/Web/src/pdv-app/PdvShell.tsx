@@ -4,12 +4,15 @@ import { createCatalogSource } from '@/pdv/catalog-source'
 import type { LocalStore, PendingSummary } from '@/pdv/local-store/local-store'
 import { PdvContext, type PdvContextValue } from '@/pdv/pdv-context'
 import { statusView } from '@/pdv/status-bar'
+import { uploadDeviceEvents, uploadIssue as issueOf } from '@/pdv/sync/device-upload'
 import { ensurePersistence, PERSIST_DENIED_MESSAGE } from '@/pdv/storage-persistence'
 import { PdvHelp } from './PdvHelp'
 import { PdvStatusBar } from './PdvStatusBar'
 import { useOnline } from '@/pdv/use-online'
 
 const POLL_MS = 15_000
+/** OFF-02: a fila de saída sobe ao abrir, quando a rede volta e a cada 20 s (local-first: a venda nunca espera a rede). */
+const UPLOAD_MS = 20_000
 
 /**
  * Casca do app do caixa: a faixa de estado fixa no topo (CA 13), o aviso de atualização que espera a troca de turno (CA 3), o aviso de
@@ -23,6 +26,7 @@ export function PdvShell({ store, children }: { store: LocalStore; children: Rea
   const [helpOpen, setHelpOpen] = useState(false)
   const [updatePending, setUpdatePending] = useState(false)
   const [persistDenied, setPersistDenied] = useState(false)
+  const [uploadIssue, setUploadIssue] = useState<string | null>(null)
 
   const refreshStatus = useCallback(() => { setNow(new Date()); setTick((t) => t + 1) }, [])
 
@@ -37,6 +41,30 @@ export function PdvShell({ store, children }: { store: LocalStore; children: Rea
     return () => clearInterval(timer)
   }, [refreshStatus])
 
+  useEffect(() => {
+    if (!online) return
+    let running = false
+    const run = async () => {
+      if (running) return
+      running = true
+      try {
+        const result = await uploadDeviceEvents(store)
+        setUploadIssue(null)
+        if (result && result.sent > 0) refreshStatus()
+      } catch (e) {
+        setUploadIssue(issueOf(e))
+      } finally {
+        running = false
+      }
+    }
+    const first = setTimeout(() => void run(), 1_000)
+    const timer = setInterval(() => void run(), UPLOAD_MS)
+    return () => {
+      clearTimeout(first)
+      clearInterval(timer)
+    }
+  }, [online, store, refreshStatus])
+
   useEffect(() => onUpdatePending(setUpdatePending), [])
 
   useEffect(() => {
@@ -46,7 +74,7 @@ export function PdvShell({ store, children }: { store: LocalStore; children: Rea
   }, [store])
 
   const catalog = store.catalogState()
-  const view = statusView({ online, pendingCount: pending.count, oldestPendingAt: pending.oldestAt, lastSyncAt: catalog?.syncedAt ?? null, offlineWindowDays: catalog?.offlineWindowDays ?? null, now })
+  const view = statusView({ online, pendingCount: pending.count, oldestPendingAt: pending.oldestAt, lastSyncAt: catalog?.syncedAt ?? null, offlineWindowDays: catalog?.offlineWindowDays ?? null, now, uploadIssue })
 
   const value = useMemo<PdvContextValue>(() => ({ store, createCatalogSource, openHelp: () => setHelpOpen(true), refreshStatus }), [store, refreshStatus])
 

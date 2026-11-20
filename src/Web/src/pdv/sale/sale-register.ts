@@ -215,7 +215,8 @@ export class SaleRegister {
         return { ok: false, needsAuthorization: true, message: 'Diminuir um item que não é o último lançado pede autorização. Chame quem tem a permissão de remover itens no caixa.' }
       }
 
-      await this.commit([this.event('LineChanged', sale.id, { lineId, quantity: parsed.value, reason: 'quantity', operatorId: this.options.operatorId })])
+      const free = this.isFreeReduction(sale, line, parsed.value)
+      await this.commit([this.event('LineChanged', sale.id, { lineId, quantity: parsed.value, reason: 'quantity', operatorId: this.options.operatorId, ...(free ? {} : { authorizedBy: this.options.operatorId }) })])
       return { ok: true }
     })
   }
@@ -265,7 +266,7 @@ export class SaleRegister {
       }
 
       if (!authorized) return { kind: 'needs-authorization' }
-      await this.commit([this.event('LineRemoved', sale.id, { lineId, reason: 'authorized', operatorId })])
+      await this.commit([this.event('LineRemoved', sale.id, { lineId, reason: 'authorized', operatorId, authorizedBy: operatorId })])
       return { kind: 'removed' }
     })
   }

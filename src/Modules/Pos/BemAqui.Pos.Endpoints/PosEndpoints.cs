@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Pos.Application;
@@ -13,11 +14,11 @@ namespace BemAqui.Pos.Endpoints;
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 /// <summary>
 /// Loja (PDV-01). CX-01: <c>CashDropAlertAmount</c> nulo mantém o aviso atual; <c>CashCeilingAmount</c> nulo = sem teto (a tela sempre manda).
-/// IMP-01: <c>ReceiptPrintMode</c> nulo mantém o atual. O modo fiscal não muda por aqui (só o Proprietário, pela rota própria).
+/// IMP-01: <c>ReceiptPrintMode</c> nulo mantém o atual. OFF-02: <c>FreeRemoveLast</c> e <c>SyncAlertHours</c> nulos mantêm os atuais. O modo fiscal não muda por aqui (só o Proprietário, pela rota própria).
 /// </summary>
 public sealed record StoreRequest(
     string Code, string Name, Guid StockLocationId, Guid DefaultPriceListId, bool IsActive = true, decimal? CashDropAlertAmount = null, decimal? CashCeilingAmount = null,
-    ReceiptPrintMode? ReceiptPrintMode = null);
+    ReceiptPrintMode? ReceiptPrintMode = null, bool? FreeRemoveLast = null, int? SyncAlertHours = null);
 
 /// <summary>IMP-01 CA 10: ligar (com o aceite do texto na versão informada) ou desligar o modo "só cupom não fiscal". <c>Version</c>: a da loja.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -28,6 +29,10 @@ public sealed record NonFiscalModeRequest(bool Enabled, bool Accepted, int? Term
 public sealed record PrinterRequest(
     Guid RegisterId, string Name, PrinterConnection Connection, int PaperWidthMm, int Columns, string Model, bool IsDefault = true, bool IsActive = true,
     bool TestConfirmed = false, uint Version = 0);
+
+/// <summary>OFF-02 CA 15: resolver a pendência com o motivo; <c>Version</c> é a da pendência.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record SyncResolveRequest(SyncResolution Resolution, string Reason, uint Version);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record RegisterRequest(int Number, Guid CashAccountId, RegisterUiMode UiMode, bool IsActive = true);
@@ -107,6 +112,36 @@ internal static class PosEndpoints
                 (await service.ChangesAsync(DevicePrincipal.From(http.User)!, cursor, limit, ct)).ToHttpResult())
             .RequireDevice().WithName("GetPosCatalogChanges").Produces<PosCatalogChanges>();
 
+        // OFF-02 CA 1 a 6: subida dos eventos da fila de saída, assinada pela chave do aparelho e sem operador com sessão. É o único endpoint que
+        // continua aberto para o aparelho revogado ou substituído (PDV-01 CA 8): o que ele envia entra em quarentena. A loja e o caixa vêm do principal.
+        sync.MapPost("/events", async (PosSyncBatch input, HttpContext http, PosEventIngestion service, TimeProvider clock, CancellationToken ct) =>
+            {
+                var skew = long.TryParse(http.Request.Headers[DeviceSignatureHeaders.Timestamp].ToString(), System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture, out var ms)
+                    ? DateTimeOffset.FromUnixTimeMilliseconds(ms) - clock.GetUtcNow()
+                    : TimeSpan.Zero;
+                return (await service.IngestAsync(DevicePrincipal.From(http.User)!, input, skew, ct)).ToHttpResult();
+            })
+            .RequireDevice(allowRevoked: true).RequireRateLimiting(PosEventIngestion.RateLimitPolicy).WithName("PostPosSyncEvents").Produces<PosSyncBatchResult>();
+
+        // OFF-02 CA 14 e 15: Pendências do PDV (retaguarda, sales.*), a exportação e o relatório de exceções por operador.
+        var pending = api.MapGroup("/pos/divergences").WithTags("PDV: pendências").RequireModule("sales");
+        pending.MapGet(string.Empty, async (SyncDivergenceStatus? status, SyncDivergenceKind? kind, Guid? storeId, Guid? registerId, SyncDivergenceService service, CancellationToken ct) =>
+                Results.Ok(await service.ListAsync(new SyncDivergenceFilter(status, kind, storeId, registerId), ct)))
+            .RequirePermission("sales.view").WithName("ListSyncDivergences").Produces<SyncDivergenceList>();
+        pending.MapPost("/{id:guid}/resolve", async (Guid id, SyncResolveRequest input, SyncDivergenceService service, CancellationToken ct) =>
+                (await service.ResolveAsync(id, new SyncResolveInput(input.Resolution, input.Reason, input.Version), ct)).ToHttpResult())
+            .RequirePermission("sales.approve").WithName("ResolveSyncDivergence").Produces<SyncDivergenceView>();
+        pending.MapGet("/export", async (SyncDivergenceStatus? status, SyncDivergenceKind? kind, Guid? storeId, Guid? registerId, SyncDivergenceService service, CancellationToken ct) =>
+            {
+                var file = await service.ExportAsync(new SyncDivergenceFilter(status, kind, storeId, registerId), ct);
+                return Results.File(file.Content, SafeCsv.ContentType, file.FileName);
+            })
+            .RequirePermission("sales.view").WithName("ExportSyncDivergences");
+        pending.MapGet("/operator-exceptions", async (DateOnly from, DateOnly to, Guid? storeId, SyncDivergenceService service, CancellationToken ct) =>
+                (await service.ExceptionsAsync(from, to, storeId, ct)).ToHttpResult())
+            .RequirePermission("sales.view").WithName("GetOperatorExceptions").Produces<OperatorExceptionReport>();
+
         // PDV-02 CA 15: o operador (sessão por PIN do caixa) acha o cliente cadastrado para ligar à venda; só nome e documento mascarado,
         // com rate limit por tenant, usuário e aparelho (revisão de segurança, achado 1).
         var customers = api.MapGroup("/pos/customers").WithTags("PDV: venda").RequireModule("pos");
@@ -116,7 +151,7 @@ internal static class PosEndpoints
         return api;
     }
 
-    private static StoreInput ToInput(StoreRequest r) => new(r.Code, r.Name, r.StockLocationId, r.DefaultPriceListId, r.IsActive, r.CashDropAlertAmount, r.CashCeilingAmount, r.ReceiptPrintMode);
+    private static StoreInput ToInput(StoreRequest r) => new(r.Code, r.Name, r.StockLocationId, r.DefaultPriceListId, r.IsActive, r.CashDropAlertAmount, r.CashCeilingAmount, r.ReceiptPrintMode, r.FreeRemoveLast, r.SyncAlertHours);
 
     private static PrinterInput ToInput(PrinterRequest r) => new(r.RegisterId, r.Name, r.Connection, r.PaperWidthMm, r.Columns, r.Model, r.IsDefault, r.IsActive, r.TestConfirmed);
 

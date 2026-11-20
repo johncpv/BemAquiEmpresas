@@ -121,7 +121,7 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
         setLastOpening(opening ?? 0)
         cashIdRef.current = loaded?.id ?? null
         const opened = await SaleRegister.open({
-          store, operatorId: operator.id, salePrefix: handshake.salePrefix, settings: () => settingsRef.current,
+          store, operatorId: operator.id, salePrefix: handshake.salePrefix, settings: () => ({ ...settingsRef.current, freeRemoveLast: settingsRef.current.freeRemoveLast && (store.catalogState()?.storeSettings?.freeRemoveLast ?? true) }),
           cipher: aesDocumentCipher(loadDocumentKey), cashSessionId: () => cashIdRef.current,
         })
         // Venda concluída ao reabrir (queda entre o último pagamento e o fechamento): conta no turno como as outras.

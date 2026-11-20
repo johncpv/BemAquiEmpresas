@@ -84,6 +84,18 @@ internal sealed class UserPinConfiguration : IEntityTypeConfiguration<UserPin>
     }
 }
 
+/// <summary>Retrato das permissões por versão (OFF-02): chave (usuário, versão), gravado por SQL com <c>ON CONFLICT DO NOTHING</c>.</summary>
+internal sealed class PermissionSnapshotConfiguration : IEntityTypeConfiguration<PermissionSnapshot>
+{
+    public void Configure(EntityTypeBuilder<PermissionSnapshot> b)
+    {
+        b.ToTable("permission_snapshots", IdentitySchema.Name);
+        b.HasKey(e => new { e.UserId, e.PermVersion });
+        b.HasIndex(e => new { e.UserId, e.ValidFrom });
+        b.HasOne<User>().WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 /// <summary>PIN do caixa do PDV (PDV-01 CA 11): um por usuário, só o hash PBKDF2.</summary>
 internal sealed class PosPinConfiguration : IEntityTypeConfiguration<PosPin>
 {
