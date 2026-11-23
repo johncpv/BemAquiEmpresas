@@ -288,6 +288,9 @@ public partial class SalesTests
         public Task<IReadOnlyList<BemAqui.Catalog.Contracts.SellableProduct>> FindManyAsync(IReadOnlyCollection<Guid> productIds, CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<BemAqui.Catalog.Contracts.SellableProduct>>(productIds.Where(p => p == variation)
                 .Select(_ => new BemAqui.Catalog.Contracts.SellableProduct(variation, parent, "Camiseta básica Azul M", Guid.NewGuid(), "UN", item, 80m, Guid.NewGuid(), 3, true, false, null)).ToList());
+
+        public Task<IReadOnlyList<BemAqui.Catalog.Contracts.ProductItemLink>> ItemLinksAsync(IReadOnlyCollection<Guid>? productIds, IReadOnlyCollection<Guid>? itemIds, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<BemAqui.Catalog.Contracts.ProductItemLink>>([new(variation, item)]);
     }
 
     private static async Task<System.Text.Json.JsonElement> JsonAsyncOk2(HttpResponseMessage response) => await response.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();

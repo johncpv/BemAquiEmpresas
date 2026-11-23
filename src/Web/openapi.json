@@ -2605,6 +2605,36 @@
         }
       }
     },
+    "/api/v1/settings/parameters/sell-without-stock": {
+      "put": {
+        "tags": [
+          "Configura\u00E7\u00F5es"
+        ],
+        "operationId": "SaveSellWithoutStock",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SellWithoutStockInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantParametersDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/shopfloor/device": {
       "get": {
         "tags": [
@@ -26147,6 +26177,89 @@
         }
       }
     },
+    "/api/v1/inventory/shortfalls": {
+      "get": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ListStockShortfalls",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfStockShortfallRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/shortfalls/apply": {
+      "post": {
+        "tags": [
+          "Estoque"
+        ],
+        "operationId": "ApplyStockShortfall",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyStockShortfallInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplyStockShortfallResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/purchasing/purchase-requests": {
       "get": {
         "tags": [
@@ -36640,6 +36753,36 @@
         }
       }
     },
+    "/api/v1/pos/sync/stock": {
+      "get": {
+        "tags": [
+          "PDV: sincroniza\u00E7\u00E3o"
+        ],
+        "operationId": "GetPosStock",
+        "parameters": [
+          {
+            "name": "since",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PosStockSnapshot"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pos/sync/events": {
       "post": {
         "tags": [
@@ -45929,6 +46072,45 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          }
+        }
+      },
+      "ApplyStockShortfallInput": {
+        "required": [
+          "itemId",
+          "locationId"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "ApplyStockShortfallResult": {
+        "required": [
+          "applied",
+          "appliedQuantity",
+          "remaining"
+        ],
+        "type": "object",
+        "properties": {
+          "applied": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "appliedQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "remaining": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -79024,6 +79206,35 @@
           }
         }
       },
+      "PagedListOfStockShortfallRow": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockShortfallRow"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedListOfTenantRow": {
         "required": [
           "items",
@@ -87515,6 +87726,55 @@
           "sessionExpiresAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "PosStockLevel": {
+        "required": [
+          "productId",
+          "available"
+        ],
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "available": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PosStockSnapshot": {
+        "required": [
+          "sellWithoutStock",
+          "full",
+          "cursor",
+          "generatedAt",
+          "levels"
+        ],
+        "type": "object",
+        "properties": {
+          "sellWithoutStock": {
+            "type": "boolean"
+          },
+          "full": {
+            "type": "boolean"
+          },
+          "cursor": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "levels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PosStockLevel"
+            }
           }
         }
       },
@@ -102625,6 +102885,17 @@
           }
         }
       },
+      "SellWithoutStockInput": {
+        "required": [
+          "enabled"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
       "SerialState": {
         "enum": [
           "InStock",
@@ -106403,6 +106674,92 @@
           }
         }
       },
+      "StockShortfallRow": {
+        "required": [
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unitCode",
+          "locationId",
+          "locationName",
+          "quantity",
+          "available",
+          "since",
+          "sales"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "available": {
+            "type": "number",
+            "format": "double"
+          },
+          "since": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sales": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockShortfallSale"
+            }
+          }
+        }
+      },
+      "StockShortfallSale": {
+        "required": [
+          "shortfallId",
+          "sourceId",
+          "sourceNumber",
+          "quantity",
+          "occurredAt"
+        ],
+        "type": "object",
+        "properties": {
+          "shortfallId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceNumber": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "StockSituation": {
         "enum": [
           "Normal",
@@ -108702,6 +109059,17 @@
             "default": 20
           },
           "emailDispatchSettingId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "sellWithoutStock": {
+            "type": "boolean",
+            "default": false
+          },
+          "sellWithoutStockSettingId": {
             "type": [
               "null",
               "string"

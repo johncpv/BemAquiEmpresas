@@ -110,7 +110,7 @@ public partial class SalesTests
         accepted.Value.PaymentDifference.Should().Be(-1m);
         await DrainAsync();
         (await WithDbAsync(db => db.Sales.Where(s => s.Id == device.SaleId).Select(s => s.StockStatus).SingleAsync()))
-            .Should().Be(SaleStockStatus.Pending, "venda com sessão de caixa fica para a baixa agregada do PDV (PDV-05)");
+            .Should().Be(SaleStockStatus.Posted, "a venda do caixa também baixa pelo consumidor, por venda (PDV-05)");
         (await WithDbAsync(db => db.Receivables.CountAsync(r => r.CashSessionId == device.CashSessionId))).Should().Be(0, "o recebível do PDV é do fechamento (CX-03)");
     }
 

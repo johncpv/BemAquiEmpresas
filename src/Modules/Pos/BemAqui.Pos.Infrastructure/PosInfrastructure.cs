@@ -21,6 +21,7 @@ public static class PosInfrastructure
         services.TryAddScoped<PosSyncService>();
         services.TryAddScoped<PosCatalogProjector>(); // OFF-01: modelo de leitura do caixa (consumidor e carga inicial)
         services.TryAddScoped<PosCatalogSyncService>();
+        services.TryAddScoped<PosStockSyncService>(); // PDV-05: saldo da loja e a opção "vender sem saldo" descem ao caixa
         services.TryAddScoped<PosCustomerSearchService>(); // PDV-02 CA 15: cliente cadastrado na tela de venda
         services.TryAddScoped<CashSessionIngestion>(); // CX-01: sessão de caixa e movimentos de dinheiro (a subida da OFF-02 chama)
         services.TryAddScoped<PrinterService>(); // IMP-01: impressoras do caixa e as impressões registradas (a subida da OFF-02 chama)

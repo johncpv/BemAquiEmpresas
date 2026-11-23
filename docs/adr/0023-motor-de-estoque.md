@@ -59,3 +59,11 @@
 - **EST-01b, EST-03, EST-05, CMP-04, PRD-06a2 e PRD-06b** chamam o motor de forma síncrona; a EST-05 gera o ajuste em modo Delta.
 - **PRD-01** estende o `ProjectItemCreated`; **ENG-02** liga o bloqueio por BOM; **PRD-06a1** cria o estado "Pronta para concluir" e o estorno.
 - Migrations sem nada destrutivo; o trigger e os `CHECK`s são testados sobre cópia do banco do tenant `konebras` (ADR 0020).
+
+## Adendo (23/11/2026): venda do caixa sem saldo (PDV-05, PP-02 opção B)
+- **Decisão do PO (18/11/2026):** a venda concluída no caixa nunca é recusada por saldo. A opção "vender sem saldo" fica nas Configurações da empresa (`identity.tenant_settings`, `pos.sell_without_stock`), padrão desligada: desligada, o próprio caixa não deixa lançar item sem saldo, pelo último saldo recebido (`GET /api/v1/pos/sync/stock`, esquema `Device`, só o disponível, sem custo). Ligada ou não, o servidor aceita a venda concluída.
+- **O motor e o `CHECK quantity_on_hand >= 0` não mudam.** A baixa da venda do caixa roda no consumidor do `SaleCompleted` (outbox), fora da transação da subida, uma perna por item e por venda (SPK-03, item 7): sai o disponível do local da loja e o restante vira uma falta aberta em `inventory.stock_shortfalls` (contrato `IStockShortfalls`), única por origem, item e local.
+- **Aplicar baixa** (Estoque → Divergências, `inventory.adjust`, `Idempotency-Key`): trava o item (§3), lança pelo motor cada falta aberta que o disponível cobre, da mais antiga para a mais nova, com a origem `StockShortfall` e o id da falta, e publica `StockShortfallApplied` (só ids e valores); o Sales tira a falta da baixa da venda.
+- **Cancelamento da venda:** primeiro a falta aberta fecha sem movimento (o que nunca saiu não volta), a baixa já aplicada é estornada pelo próprio movimento, e depois a parte que saiu volta por estorno (§4).
+- **Custo da linha:** o custo médio da baixa; sem nada em saldo, o custo médio vigente (o que a saída usaria); aplicada depois sem baixa anterior, o da baixa aplicada.
+- Item com lote ou série na venda do caixa fica `Blocked` (sem falta no Estoque), a regularizar pelo estoque. O canal sem caixa (VND-01) não muda: sem saldo, nada sai e a baixa fica com falta.

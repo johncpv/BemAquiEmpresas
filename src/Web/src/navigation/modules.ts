@@ -4,7 +4,7 @@ import {
   Contact, CreditCard, DraftingCompass, Eye, EyeOff, Factory, FileChartColumn, FileCog, FileInput, FileOutput, FilePlus, FileSpreadsheet,
   FileText, Filter, FolderKanban, FolderTree, Gauge, Hammer, HandCoins, HardHat, Hash, Home, Hourglass, Import, Landmark, LayoutDashboard,
   List, ListTree, Lock, type LucideIcon, MapPin, MessagesSquare, MonitorPlay, MonitorSmartphone, Network, OctagonAlert,
-  PackageCheck, PackageMinus, PackageX, Plug, Receipt, Repeat, Rocket, Route, Ruler, Scale, ScanSearch, Settings, Settings2, ShieldCheck,
+  PackageCheck, PackageMinus, PackageSearch, PackageX, Plug, Receipt, Repeat, Rocket, Route, Ruler, Scale, ScanSearch, Settings, Settings2, ShieldCheck,
   ShieldPlus, ShoppingCart, SlidersHorizontal, Sparkles, Store, SquareKanban, SquarePen, Table, Tag, Tags, Tally5, Target, Timer, TreePalm, Truck,
   UserCog, Users, UsersRound, Wallet, Warehouse, Wrench,
 } from 'lucide-react'
@@ -97,6 +97,10 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'ajustes', label: 'Ajustes', icon: SquarePen, group: STOCK_OPERATION },
     { slug: 'inventarios', label: 'Inventários', icon: Tally5, group: STOCK_OPERATION },
     { slug: 'faltas', label: 'Faltas', icon: PackageX, group: STOCK_OPERATION },
+    // PDV-05: vendas do caixa que saíram sem saldo (só comércio).
+    { slug: 'divergencias', label: 'Divergências', icon: PackageSearch, group: STOCK_OPERATION, profiles: COMMERCE_PROFILES },
+    // PDV-05: vendas do caixa que saíram sem saldo (só comércio).
+    { slug: 'divergencias', label: 'Divergências', icon: PackageSearch, group: STOCK_OPERATION, profiles: COMMERCE_PROFILES },
     { slug: 'capacidade', label: 'Capacidade de produzir', icon: Gauge, group: STOCK_OPERATION },
     { slug: 'requisicoes', label: 'Requisições', icon: PackageMinus, group: STOCK_OPERATION },
     { slug: 'rastreabilidade', label: 'Rastreabilidade', icon: ScanSearch, group: STOCK_OPERATION },

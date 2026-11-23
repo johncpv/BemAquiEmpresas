@@ -26,4 +26,11 @@ public interface ITenantParameters
     /// compra somados; padrão 20, de 1 a 50 (o teto do tenant).
     /// </summary>
     Task<int> EmailDispatchMaxPerUserDayAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Vender sem saldo de estoque no caixa (PDV-05, PP-02 de 18/11/2026, <c>pos.sell_without_stock</c>): padrão falso, o caixa não deixa vender item
+    /// sem saldo (sem rede, pelo último saldo recebido). Ligada, a falta não impede a venda e vira pendência no Estoque. A venda concluída nunca é
+    /// recusada depois, ligada ou não.
+    /// </summary>
+    Task<bool> SellWithoutStockAsync(CancellationToken cancellationToken = default);
 }

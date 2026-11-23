@@ -16,4 +16,7 @@ export interface TenantParametersDto {
   emailDispatchMaxPerUserDay?: number;
   /** @nullable */
   emailDispatchSettingId?: string | null;
+  sellWithoutStock?: boolean;
+  /** @nullable */
+  sellWithoutStockSettingId?: string | null;
 }

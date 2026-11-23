@@ -141,6 +141,8 @@ public sealed class ReversePolicy(IInventoryDb db, IPermissionChecker permission
         StockSources.Shipment => "Romaneio",
         StockSources.InventoryCount => "Inventário",
         StockSources.CatalogImport => "Importação de produtos",
+        StockSources.Sale => "Venda",
+        StockSources.StockShortfall => "Divergência de estoque",
         _ => sourceType,
     };
 
@@ -153,6 +155,8 @@ public sealed class ReversePolicy(IInventoryDb db, IPermissionChecker permission
         StockSources.GoodsReceipt => "/app/compras/recebimentos/" + sourceId,
         // CAT-02: o saldo inicial da importação aponta para o produto.
         StockSources.CatalogImport => "/app/catalogo/produtos/" + sourceId,
+        // PDV-05: a baixa aplicada de uma falta aponta para as divergências do estoque.
+        StockSources.StockShortfall => StockShortfallService.Link,
         _ => null,
     };
 }

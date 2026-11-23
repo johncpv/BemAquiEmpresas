@@ -12,9 +12,12 @@ namespace BemAqui.Identity.Application;
 /// <param name="EmailDispatchMaxPerUserDay">Envios de documento por e-mail por usuário por dia (CMP-03b CA 5).</param>
 public sealed record TenantParametersDto(
     decimal PayrollChargesPct, PricingMode PricingMode, Guid? ChargesSettingId, Guid? PricingSettingId, int EmailDispatchMaxPerUserDay = TenantParametersService.DefaultEmailDispatch,
-    Guid? EmailDispatchSettingId = null);
+    Guid? EmailDispatchSettingId = null, bool SellWithoutStock = false, Guid? SellWithoutStockSettingId = null);
 
 public sealed record PayrollChargesInput(decimal Pct);
+
+/// <summary>PDV-05 (PP-02): ligar ou desligar a venda sem saldo no caixa.</summary>
+public sealed record SellWithoutStockInput(bool Enabled);
 
 public sealed record EmailDispatchLimitInput(int MaxPerUserDay);
 
@@ -35,14 +38,37 @@ public sealed class TenantParametersService(IIdentityDb db, IEventPublisher even
     public const int DefaultEmailDispatch = 20;
     public const int MaxEmailDispatch = 50;
 
+    /// <summary>Vender sem saldo no caixa (PDV-05, PP-02 de 18/11/2026): <c>true</c> ou <c>false</c>; sem linha = desligado.</summary>
+    public const string SellWithoutStockKey = "pos.sell_without_stock";
+
     public async Task<TenantParametersDto> GetAsync(CancellationToken cancellationToken = default)
     {
-        var rows = await db.TenantSettings.AsNoTracking().Where(s => s.Key == ChargesKey || s.Key == PricingKey || s.Key == EmailDispatchKey).ToListAsync(cancellationToken);
+        var rows = await db.TenantSettings.AsNoTracking()
+            .Where(s => s.Key == ChargesKey || s.Key == PricingKey || s.Key == EmailDispatchKey || s.Key == SellWithoutStockKey).ToListAsync(cancellationToken);
         var charges = rows.FirstOrDefault(r => r.Key == ChargesKey);
         var pricing = rows.FirstOrDefault(r => r.Key == PricingKey);
         var dispatch = rows.FirstOrDefault(r => r.Key == EmailDispatchKey);
-        return new TenantParametersDto(ParseCharges(charges?.Value), ParsePricing(pricing?.Value), charges?.Id, pricing?.Id, ParseDispatch(dispatch?.Value), dispatch?.Id);
+        var sellWithoutStock = rows.FirstOrDefault(r => r.Key == SellWithoutStockKey);
+        return new TenantParametersDto(
+            ParseCharges(charges?.Value), ParsePricing(pricing?.Value), charges?.Id, pricing?.Id, ParseDispatch(dispatch?.Value), dispatch?.Id,
+            sellWithoutStock?.Value == "true", sellWithoutStock?.Id);
     }
+
+    /// <summary>
+    /// Configurações → Parâmetros → Loja (PDV-05, PP-02): vender sem saldo no caixa, padrão desligado. Auditado (o histórico mostra quem ligou e
+    /// quando). O caixa recebe a opção junto com o saldo da loja.
+    /// </summary>
+    public async Task<Result<TenantParametersDto>> SaveSellWithoutStockAsync(bool enabled, CancellationToken cancellationToken = default)
+    {
+        var row = await RowAsync(SellWithoutStockKey, cancellationToken);
+        row.Value = enabled ? "true" : "false";
+        row.UpdatedAt = clock.GetUtcNow();
+        await db.SaveChangesAsync(cancellationToken);
+        return await GetAsync(cancellationToken);
+    }
+
+    public async Task<bool> SellWithoutStockAsync(CancellationToken cancellationToken = default) =>
+        await db.TenantSettings.AsNoTracking().Where(s => s.Key == SellWithoutStockKey).Select(s => s.Value).FirstOrDefaultAsync(cancellationToken) == "true";
 
     /// <summary>Configurações → Parâmetros → Envios por e-mail (CMP-03b CA 5): de 1 a 50 por usuário por dia, auditado.</summary>
     public async Task<Result<TenantParametersDto>> SaveEmailDispatchLimitAsync(int maxPerUserDay, CancellationToken cancellationToken = default)

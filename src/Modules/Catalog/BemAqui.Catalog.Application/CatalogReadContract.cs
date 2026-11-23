@@ -34,6 +34,22 @@ public sealed class CatalogReadContract(ICatalogDb db, CatalogDefaults defaults,
         return await ProjectAsync(products, null, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ProductItemLink>> ItemLinksAsync(IReadOnlyCollection<Guid>? productIds, IReadOnlyCollection<Guid>? itemIds, CancellationToken cancellationToken = default)
+    {
+        var query = db.Products.AsNoTracking().Where(p => !p.HasVariants);
+        if (productIds is not null)
+        {
+            query = query.Where(p => productIds.Contains(p.Id));
+        }
+
+        if (itemIds is not null)
+        {
+            query = query.Where(p => itemIds.Contains(p.ItemId));
+        }
+
+        return await query.Select(p => new ProductItemLink(p.Id, p.ItemId)).ToListAsync(cancellationToken);
+    }
+
     public async Task<CatalogLookupHit?> ByGtinAsync(string gtin, Guid? priceListId = null, CancellationToken cancellationToken = default)
     {
         var code = GtinRules.Normalize(gtin);

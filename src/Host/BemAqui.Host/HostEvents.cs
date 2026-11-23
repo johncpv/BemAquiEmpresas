@@ -99,6 +99,8 @@ public static class HostEvents
             // recebível do dia e canal pela fonte (ISaleLookup). Os dois são idempotentes (inbox + regra).
             .AddHandler<BemAqui.Sales.Contracts.SaleCompleted, BemAqui.Sales.Application.SaleStockConsumer>()
             .AddHandler<BemAqui.Sales.Contracts.SaleCancelled, BemAqui.Sales.Application.SaleStockConsumer>()
+            // PDV-05: a falta da venda do caixa foi aplicada em Estoque → Divergências; a baixa da venda deixa de ter falta.
+            .AddHandler<BemAqui.Inventory.Contracts.StockShortfallApplied, BemAqui.Sales.Application.SaleStockConsumer>()
             .AddHandler<BemAqui.Sales.Contracts.SaleCompleted, BemAqui.Finance.Application.SaleReceivablesConsumer>()
             .AddHandler<BemAqui.Sales.Contracts.SaleCancelled, BemAqui.Finance.Application.SaleReceivablesConsumer>()
             // CAT-01: produto e preço mudaram; o modelo de leitura do caixa (pos.catalog_items) relê a fonte pelo IPosCatalogFeed (OFF-01).

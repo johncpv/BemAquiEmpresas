@@ -111,6 +111,10 @@ internal static class PosEndpoints
         sync.MapGet("/changes", async (long cursor, int? limit, HttpContext http, PosCatalogSyncService service, CancellationToken ct) =>
                 (await service.ChangesAsync(DevicePrincipal.From(http.User)!, cursor, limit, ct)).ToHttpResult())
             .RequireDevice().WithName("GetPosCatalogChanges").Produces<PosCatalogChanges>();
+        // PDV-05 (PP-02): saldo da loja do aparelho e a opção "vender sem saldo"; sem since, a lista inteira; com since, só o que mudou.
+        sync.MapGet("/stock", async (long? since, HttpContext http, PosStockSyncService service, CancellationToken ct) =>
+                (await service.StockAsync(DevicePrincipal.From(http.User)!, since, ct)).ToHttpResult())
+            .RequireDevice().WithName("GetPosStock").Produces<PosStockSnapshot>();
 
         // OFF-02 CA 1 a 6: subida dos eventos da fila de saída, assinada pela chave do aparelho e sem operador com sessão. É o único endpoint que
         // continua aberto para o aparelho revogado ou substituído (PDV-01 CA 8): o que ele envia entra em quarentena. A loja e o caixa vêm do principal.
