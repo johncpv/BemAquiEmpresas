@@ -287,8 +287,9 @@ public enum SaleStockPostingStatus
 }
 
 /// <summary>
-/// Baixa de estoque da venda (<c>sales.stock_postings</c>): no canal sem caixa, uma por venda e item, com o movimento do estoque e o custo
-/// unitário (<c>decimal(18,6)</c>). A forma agregada do PDV (por item, caixa e janela) sai do SPK-03 e da PDV-05.
+/// Baixa de estoque da venda (<c>sales.stock_postings</c>): uma por venda e item, com o movimento do estoque e o custo unitário
+/// (<c>decimal(18,6)</c>). No PDV a baixa também é por venda (SPK-03, item 7) e nunca recusa: sai o que há em saldo (<see cref="StockMovementId"/>)
+/// e o restante (<see cref="ShortfallQuantity"/>) fica numa falta aberta no Estoque até alguém aplicar a baixa (PDV-05, opção B da PP-02).
 /// </summary>
 public sealed class SaleStockPosting : Entity
 {
@@ -299,6 +300,9 @@ public sealed class SaleStockPosting : Entity
     public Guid LocationId { get; init; }
 
     public decimal Quantity { get; init; }
+
+    /// <summary>PDV-05: a parte da quantidade que ainda não saiu do estoque (falta aberta); zero quando tudo baixou.</summary>
+    public decimal ShortfallQuantity { get; set; }
 
     public decimal? UnitCost { get; set; }
 

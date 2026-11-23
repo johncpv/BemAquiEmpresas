@@ -35,6 +35,12 @@ public static class StockSources
     public const string Sale = "Sale";
     /// <summary>Saldo inicial da importação de produtos por planilha (CAT-02): <c>SourceId</c> é o produto, então reimportar não lança de novo.</summary>
     public const string CatalogImport = "CatalogImport";
+
+    /// <summary>
+    /// Baixa aplicada de uma falta de saldo (PDV-05, opção B da PP-02): <c>SourceId</c> é a falta (<c>inventory.stock_shortfalls</c>), e o
+    /// <c>SourceNumber</c>, o número da venda que faltou.
+    /// </summary>
+    public const string StockShortfall = "StockShortfall";
 }
 
 /// <summary>

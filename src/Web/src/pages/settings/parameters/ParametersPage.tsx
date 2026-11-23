@@ -21,6 +21,9 @@ import { HrParametersSection } from './HrParametersSection'
 import { ProductionParametersSection } from './ProductionParametersSection'
 import { PurchasingParametersSection } from './PurchasingParametersSection'
 import { RevenueTargetsSection } from './RevenueTargetsSection'
+import { SellWithoutStockSection } from './SellWithoutStockSection'
+import { COMMERCE_PROFILES } from '@/navigation/modules'
+import { useHasProfile } from '@/navigation/navigation-context'
 import { useCanSettings } from '../use-can-settings'
 
 const CHARGES_DICA = 'Custo-hora do cargo = salário × (1 + % de encargos) ÷ horas do mês. Valor sugerido. Confirme com a contadora.'
@@ -34,6 +37,7 @@ export function ParametersPage() {
   const query = useGetTenantParameters()
   const canEdit = useCanSettings('edit')
   const search = useSearch({ strict: false }) as Record<string, unknown>
+  const commerce = useHasProfile(COMMERCE_PROFILES)
   const loaded = !!query.data
   // ?secao=rh (RH-02a CA 3): abre já na seção do módulo dono.
   useEffect(() => {
@@ -59,6 +63,7 @@ export function ParametersPage() {
           <HrParametersSection canEdit={canEdit} />
           <div id="secao-patrimonio"><AssetsParametersSection canEdit={canEdit} /></div>
           <EmailDispatchSection key={`e${query.data.emailDispatchMaxPerUserDay}`} params={query.data} canEdit={canEdit} />
+          {commerce ? <div id="secao-loja"><SellWithoutStockSection key={`s${String(query.data.sellWithoutStock)}`} params={query.data} canEdit={canEdit} /></div> : null}
         </div>
       )}
       </FormLayout>

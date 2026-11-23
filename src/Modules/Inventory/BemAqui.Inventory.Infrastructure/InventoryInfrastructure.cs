@@ -108,6 +108,11 @@ public static class InventoryInfrastructure
         services.TryAddScoped<InventoryCountService>();
         services.AddAuditableEntity<InventoryCount>("inventory");
         services.AddAuditableEntity<InventoryCountLine>("inventory");
+        // Divergências do PDV (PDV-05, opção B da PP-02): a falta da venda do caixa fica aberta até aplicar a baixa; o saldo do local desce ao caixa.
+        services.TryAddScoped<StockShortfallService>();
+        services.TryAddScoped<IStockShortfalls>(sp => sp.GetRequiredService<StockShortfallService>());
+        services.TryAddScoped<IStockLocationFeed, StockLocationFeed>();
+        services.AddAuditableEntity<StockShortfall>("inventory");
         return services;
     }
 }

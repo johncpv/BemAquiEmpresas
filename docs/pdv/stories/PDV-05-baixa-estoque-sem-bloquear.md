@@ -5,7 +5,7 @@
 | ID | PDV-05 |
 | Título | Baixa de estoque da venda sem bloquear: a falta de saldo nunca recusa a venda, a baixa acontece fora do caminho do caixa e a falta fica visível na retaguarda com ação de ajuste |
 | Tamanho | M |
-| Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
+| Status | Pronta para revisão (23/11/2026, branch `feat/pdv-05-baixa-estoque`); PP-02 decidida em 18/11/2026 (opção B, configurável) e SPK-03 (baixa por venda) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | [PRD do PDV](../01-PRD.md) regra 1 · [Rascunho F](../adr/rascunho-F-escala-hospedagem.md) itens 2 a 4 · ADR 0023 (motor de estoque) · **[PP-02](../06-pendencias-riscos.md#pp-02--venda-com-saldo-insuficiente)** |
 | Dependências | OFF-02, VND-01; **PP-02 decidida**; SPK-03 (baixa agregada ou por venda) |
@@ -78,3 +78,4 @@ Como **dono**, quero **que o estoque baixe a cada venda sem nunca travar o caixa
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
+| 23/11/2026 | 1.0 | Implementada com a PP-02 decidida (opção B, configurável: `pos.sell_without_stock`, padrão desligado) e a baixa por venda do SPK-03. CA 1 a 5, 6B, 7, 8, 9 (cancelamento) e 10. O saldo da loja desce ao caixa (`GET /api/v1/pos/sync/stock`) e o caixa recusa item sem saldo com a opção desligada. Fora: devolução (PDV-06, ainda sem `SaleReturned`), chip na venda (PDV-07), teste de carga, item com lote ou série no caixa (fica `Blocked`). Adendo à ADR 0023. | Claude |

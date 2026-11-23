@@ -117,6 +117,7 @@ internal sealed class SaleStockPostingConfiguration : IEntityTypeConfiguration<S
     {
         b.ToTable("stock_postings", SalesSchema.Name);
         b.Property(e => e.Quantity).HasPrecision(18, 4);
+        b.Property(e => e.ShortfallQuantity).HasPrecision(18, 4);
         b.Property(e => e.UnitCost).HasPrecision(18, 6);
         b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
         b.Property(e => e.Note).HasMaxLength(200);

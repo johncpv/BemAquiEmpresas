@@ -45,6 +45,12 @@ public interface ISellableProducts
 
     /// <summary>Lote de ids numa consulta só; os que não existem (ou são pais de grade) ficam fora da lista.</summary>
     Task<IReadOnlyList<SellableProduct>> FindManyAsync(IReadOnlyCollection<Guid> productIds, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Item de estoque de cada produto vendável (PDV-05: o saldo da loja desce ao caixa por produto). Pelos produtos (<paramref name="productIds"/>)
+    /// ou pelos itens (<paramref name="itemIds"/>, os que tiveram movimento); o outro filtro fica nulo. Sem preço nem nome: só o par.
+    /// </summary>
+    Task<IReadOnlyList<ProductItemLink>> ItemLinksAsync(IReadOnlyCollection<Guid>? productIds, IReadOnlyCollection<Guid>? itemIds, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Como o produto foi achado na consulta rápida (CAT-01 CA 12).</summary>
@@ -154,3 +160,6 @@ public interface IPosCatalogFeed
     /// <summary>Ids dos produtos vendáveis no caixa, em ordem de id, depois de <paramref name="after"/> (página da carga inicial).</summary>
     Task<IReadOnlyList<Guid>> SellableIdsAsync(Guid? after, int take, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Produto vendável e o item de estoque dele (PDV-05).</summary>
+public sealed record ProductItemLink(Guid ProductId, Guid ItemId);
