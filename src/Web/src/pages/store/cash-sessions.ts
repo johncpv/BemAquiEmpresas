@@ -14,6 +14,16 @@ export const STATUS_LABEL: Record<CashSessionStatus, string> = {
   Closed: 'Fechado',
 }
 
+/**
+ * Opções do filtro de situação. Sem `sales.approve` (sem o esperado), "em conferência" e "fechado" são a mesma situação, "Enviado": a situação não
+ * pode revelar a quebra que a pessoa não vê.
+ */
+export function statusOptions(expectedVisible: boolean): { value: CashSessionStatus; label: string }[] {
+  return expectedVisible
+    ? CASH_STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] }))
+    : CASH_STATUSES.filter((s) => s !== 'PendingReview').map((s) => ({ value: s, label: s === 'Closed' ? 'Enviado' : STATUS_LABEL[s] }))
+}
+
 export const STATUS_TONE: Record<CashSessionStatus, StatusTone> = {
   Open: 'info',
   Counting: 'info',

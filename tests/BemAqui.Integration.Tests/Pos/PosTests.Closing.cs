@@ -54,7 +54,10 @@ public partial class PosTests
         var result = await OkAsync(await PostEventsAsync(device, new { events }));
 
         var closed = await WithDbAsync(db => db.CashSessions.AsNoTracking().SingleAsync(s => s.Id == first));
-        closed.Status.Should().Be(CashSessionStatus.Closed, "CA 5: diferença de R$ 3,00 dentro da tolerância");
+        // Diagnóstico para o CI: o resultado de cada evento e as pendências do caixa, se a sessão não fechar.
+        var held = await WithDbAsync(db => db.SyncDivergences.AsNoTracking().Where(d => d.RegisterId == till.Register).Select(d => d.Seq + ":" + d.Summary).ToListAsync());
+        closed.Status.Should().Be(CashSessionStatus.Closed, "CA 5: diferença de R$ 3,00 dentro da tolerância ({0} :: {1})",
+            string.Join(", ", Outcomes(result).Values), string.Join(" | ", held));
         closed.DepositAmount.Should().Be((total + 300) / 100m, "CA 12: recolhimento = contado − fundo que fica");
         var row = await WithDbAsync(db => db.CashCounts.AsNoTracking().SingleAsync(c => c.SessionId == first));
         (row.Expected, row.Difference).Should().Be(((10000 + total) / 100m, 3m), "o esperado é do servidor, nunca do aparelho");
@@ -107,7 +110,20 @@ public partial class PosTests
 
         // CA 3: sem sales.approve, a API não devolve o esperado nem a diferença (nem na lista, nem na via do gerente).
         var hidden = await OkAsync(await viewer.GetAsync($"/api/v1/pos/cash-sessions/{first}"));
-        hidden.GetProperty("status").GetString().Should().Be("PendingReview");
+        // M3 da revisão: sem sales.approve, em conferência e fechado são o mesmo "Enviado" (nem o filtro nem o total revelam a quebra).
+        (hidden.GetProperty("status").GetString(), hidden.GetProperty("statusLabel").GetString()).Should().Be(("Closed", "Enviado"));
+        var viewerList = await OkAsync(await viewer.GetAsync($"/api/v1/pos/cash-sessions?registerId={register}&status=PendingReview"));
+        viewerList.GetProperty("pendingReview").GetInt32().Should().Be(0);
+        viewerList.GetProperty("items").EnumerateArray().Should().ContainSingle().Which.GetProperty("statusLabel").GetString().Should().Be("Enviado");
+
+        // B3: a exportação da lista fica na auditoria, como o PDF.
+        (await viewer.GetAsync($"/api/v1/pos/cash-sessions/export?registerId={register}")).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await WithDbAsync(db => db.AuditEntries.AsNoTracking().CountAsync(a => a.Entity == nameof(CashSession) && a.EntityId == "lista")))
+            .Should().BeGreaterThan(0);
+
+        // M2: quem operou o caixa não confere o Pix dele.
+        (await operatorClient.PostAsJsonAsync($"/api/v1/pos/cash-sessions/{first}/pix-check", new { paymentId = Guid.CreateVersion7(), status = "Found" }))
+            .StatusCode.Should().Be(HttpStatusCode.Forbidden);
         hidden.GetProperty("expectedVisible").GetBoolean().Should().BeFalse();
         hidden.GetProperty("lines")[0].GetProperty("expected").ValueKind.Should().Be(System.Text.Json.JsonValueKind.Null);
         hidden.GetProperty("lines")[0].GetProperty("difference").ValueKind.Should().Be(System.Text.Json.JsonValueKind.Null);
@@ -121,6 +137,11 @@ public partial class PosTests
         Code(await JsonAsync(own)).Should().Be("own_cash_session");
         var approved = await OkAsync(await manager.PostAsJsonAsync($"/api/v1/pos/cash-sessions/{first}/approve", new { reason = "Falta de troco conferida", version = shown.GetProperty("version").GetUInt32() }));
         approved.GetProperty("status").GetString().Should().Be("Closed");
+
+        // M2: no caixa fechado a quebra já saiu; conferir o Pix exige reabrir.
+        var closedPix = await manager.PostAsJsonAsync($"/api/v1/pos/cash-sessions/{first}/pix-check", new { paymentId = Guid.CreateVersion7(), status = "Found" });
+        closedPix.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+        Code(await JsonAsync(closedPix)).Should().Be("cash_session_closed");
 
         // CA 10: só a última sessão do caixa reabre; quem operou não reabre; a reabertura avisa o Proprietário e devolve o recolhimento à gaveta.
         var second = await CountedSessionAsync(register, operatorId, now.AddMinutes(-10), openingCents: 5000, countedCents: 15000);
@@ -138,6 +159,65 @@ public partial class PosTests
         (await WithDbAsync(db => db.CashMovements.AsNoTracking().CountAsync(m => m.SessionId == second && m.Kind == CashMovementKind.DepositReturn && m.Amount == 100m))).Should().Be(1);
         (await NotificationsAsync("Caixa 01 da loja")).Should().Contain(t => t.Contains("reaberto"));
         (await OutboxAsync("CashSessionReopened")).Count(p => p.Contains(second.ToString(), StringComparison.Ordinal)).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Fechamento_sem_contagem_da_CX_01_vai_para_a_quarentena_e_a_sessao_continua_aberta()
+    {
+        var (_, till) = await TillAsync();
+        using var device = till.Device;
+        var now = DateTimeOffset.UtcNow;
+        var session = Guid.CreateVersion7();
+        var open = Seal(till, PosEventIngestion.CashKind, OpenCash(till, session, now.AddSeconds(-2)), now.AddSeconds(-2));
+        var legacy = Seal(till, PosEventIngestion.CashKind, new { type = "CashSessionClosed", sessionId = session, operatorId = till.OperatorId, at = now.AddSeconds(-1) }, now.AddSeconds(-1));
+        var result = await OkAsync(await PostEventsAsync(device, new { events = new[] { open, legacy } }));
+
+        Outcomes(result)[IdOf(legacy)].Should().Be("Quarantined");
+        (await DivergencesAsync(IdOf(legacy))).Should().ContainSingle(d => d.Kind == SyncDivergenceKind.CashSession && d.Summary == PosEventIngestion.LegacyClosedMessage);
+        (await WithDbAsync(db => db.CashSessions.AsNoTracking().SingleAsync(s => s.Id == session))).Status.Should().Be(CashSessionStatus.Open);
+    }
+
+    [Fact]
+    public async Task Depois_da_reabertura_so_as_vendas_novas_contam_contra_o_numero_do_aparelho()
+    {
+        await CommerceAsync(true);
+        var (_, owner) = await OwnerAsync();
+        var (_, register, _) = await StoreAsync(owner);
+        var (operatorId, _) = await StaffAsync("sales.view");
+        var (_, manager) = await StaffAsync("sales.view", "sales.approve");
+        var now = DateTimeOffset.UtcNow;
+        var session = await CountedSessionAsync(register, operatorId, now.AddMinutes(-30), openingCents: 10000, countedCents: 10000);
+        await WithDbAsync(async db =>
+        {
+            db.SessionSales.Add(new SessionSale { SaleId = Guid.CreateVersion7(), SessionId = session, CashAmount = 0m, CreatedAt = now.AddMinutes(-20) });
+            return await db.SaveChangesAsync();
+        });
+        var view = await OkAsync(await manager.GetAsync($"/api/v1/pos/cash-sessions/{session}"));
+        await OkAsync(await manager.PostAsJsonAsync($"/api/v1/pos/cash-sessions/{session}/reopen", new { reason = "Contagem errada", version = view.GetProperty("version").GetUInt32() }));
+
+        // O aparelho zerou a contagem ao retomar: 1 venda nova. A venda de antes da reabertura não conta: a sessão espera a nova.
+        await using (var scope = await ScopeAsync())
+        {
+            var closing = scope.ServiceProvider.GetRequiredService<CashClosingService>();
+            var at = DateTimeOffset.UtcNow;
+            (await closing.StartCountAsync(session, at)).IsSuccess.Should().BeTrue();
+            (await closing.CountAsync(new CashCountInput(session, Guid.CreateVersion7(), operatorId, at, 10000, Guid.CreateVersion7(), 1,
+                [new CashCountLineInput(null, 10000, null)]))).IsSuccess.Should().BeTrue();
+        }
+
+        var waiting = await OkAsync(await manager.GetAsync($"/api/v1/pos/cash-sessions/{session}"));
+        (waiting.GetProperty("status").GetString(), waiting.GetProperty("awaitingSales").GetBoolean()).Should().Be(("Counted", true));
+        await WithDbAsync(async db =>
+        {
+            db.SessionSales.Add(new SessionSale { SaleId = Guid.CreateVersion7(), SessionId = session, CashAmount = 0m, CreatedAt = DateTimeOffset.UtcNow });
+            return await db.SaveChangesAsync();
+        });
+        await using (var scope = await ScopeAsync())
+        {
+            await scope.ServiceProvider.GetRequiredService<CashClosingService>().OnSaleArrivedAsync(session);
+        }
+
+        (await WithDbAsync(db => db.CashSessions.AsNoTracking().SingleAsync(s => s.Id == session))).Status.Should().Be(CashSessionStatus.Closed);
     }
 
     private Task<List<string>> OutboxAsync(string type) =>

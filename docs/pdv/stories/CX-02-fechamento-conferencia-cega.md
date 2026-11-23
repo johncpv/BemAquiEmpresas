@@ -117,6 +117,15 @@ Ajuda: `Ajuda/pdv-fechar-caixa.md` (nova, embutida no `/pdv`), `Ajuda/loja-caixa
 
 Migration `20261120024415_PosCashClosingCx02`: colunas novas em `pos.cash_sessions` e as tabelas `pos.cash_counts` e `pos.cash_pix_checks`, só acréscimo.
 
+**Revisão de segurança (PR #238, 23/11/2026):**
+- **A1:** o `CashSessionClosed` da CX-01 vindo do aparelho (fechar sem contagem, sem quebra e sem fundo que fica) vai para a quarentena com "use Fechar caixa (contagem)"; o `CashSessionIngestion.CloseAsync` saiu. O caixa só fecha pelo "Fechar caixa".
+- **M1:** depois de uma reabertura, o número de vendas do aparelho (que recomeça do zero ao retomar a sessão) é comparado só com as vendas que chegaram depois da reabertura. Limite: venda contada antes da reabertura que só chega depois dela (aprovada como "contado esperando vendas") conta como nova.
+- **M2:** conferir o Pix: 403 para quem operou ou contou o caixa e para quem atestou aquele Pix; no caixa `Closed`, 422 "Reabra o caixa para conferir o Pix." (a quebra já foi publicada; reabrir faz a CX-03 estornar e lançar de novo).
+- **M3:** sem `sales.approve`, `PendingReview` e `Closed` aparecem iguais ("Enviado"); o filtro "em conferência" e o total dele não aparecem, nem quem aprovou.
+- **B2:** Aprovar, Reabrir e Conferir Pix devolvem 409 no conflito de concorrência; a conferência do Pix grava junto com a sessão (a versão da sessão barra a corrida com Aprovar e Reabrir). Sem versão própria em `cash_counts` (exigiria migration; a da sessão cobre os três caminhos).
+- **B3:** a exportação CSV da lista fica na auditoria (com os filtros), como o PDF.
+- **B1 (limite do modo offline):** aceito, sem mudança de código.
+
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|

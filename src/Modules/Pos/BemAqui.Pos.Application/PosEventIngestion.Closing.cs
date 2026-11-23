@@ -14,6 +14,10 @@ public sealed partial class PosEventIngestion
     public const string CountStartedType = "CashCountStarted";
     public const string CountedType = "CashCounted";
 
+    /// <summary>Fechamento da CX-01, sem contagem: vai para a quarentena (o caixa fecha só pelo "Fechar caixa").</summary>
+    public const string LegacyClosedType = "CashSessionClosed";
+    public const string LegacyClosedMessage = "Fechamento sem contagem recusado: use \"Fechar caixa\" (contagem).";
+
     private async Task<Projection> ProjectCountAsync(SyncContext context, JsonElement root, string type, CashSession session, Guid operatorId, DateTimeOffset at,
         Projection projection, CancellationToken ct)
     {

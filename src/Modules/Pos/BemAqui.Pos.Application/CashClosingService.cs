@@ -179,7 +179,7 @@ public sealed class CashClosingService(
             return;
         }
 
-        var arrived = await db.SessionSales.CountAsync(s => s.SessionId == session.Id, cancellationToken);
+        var arrived = await ArrivedSales(db, [session.Id]).CountAsync(cancellationToken);
         if (arrived < (session.DeviceSalesCount ?? 0))
         {
             return;
@@ -219,6 +219,14 @@ public sealed class CashClosingService(
 
         await db.SaveChangesAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// As vendas que contam contra o número de vendas do aparelho (revisão de segurança, M1): o aparelho zera a contagem ao retomar a sessão
+    /// reaberta, então só valem as que chegaram ao servidor depois da última reabertura (as de antes já fecharam a contagem anterior).
+    /// </summary>
+    internal static IQueryable<SessionSale> ArrivedSales(IPosDb db, IReadOnlyCollection<Guid> sessionIds) =>
+        db.SessionSales.AsNoTracking().Where(sale => sessionIds.Contains(sale.SessionId)
+            && db.CashSessions.Any(s => s.Id == sale.SessionId && (s.ReopenedAt == null || sale.CreatedAt >= s.ReopenedAt)));
 
     /// <summary>
     /// Refaz o esperado, o Pix não localizado e a diferença de cada forma da contagem vigente e grava nas linhas (as formas com venda e sem contagem

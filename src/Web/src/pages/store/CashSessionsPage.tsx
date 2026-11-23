@@ -17,7 +17,7 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDateTime, formatMoney } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
-import { CASH_STATUSES, BREAK_DICA, BLIND_DICA, differenceText, EMPTY, reportUrl, STATUS_LABEL, STATUS_TONE } from './cash-sessions'
+import { BREAK_DICA, BLIND_DICA, differenceText, EMPTY, reportUrl, STATUS_TONE, statusOptions } from './cash-sessions'
 import { registerLabel } from './stores'
 import { todayInBrazil } from './pos-pending'
 
@@ -86,7 +86,7 @@ export function CashSessionsPage() {
           {(p) => (
             <select {...p} value={status} onChange={(e) => setStatus(e.target.value as CashSessionStatus | '')} className={inputClass}>
               <option value="">Todas</option>
-              {CASH_STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
+              {statusOptions(list.data?.expectedVisible ?? false).map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
           )}
         </Field>
@@ -280,8 +280,13 @@ function SessionPanel({ id, onClose }: { id: string; onClose: () => void }) {
                       <span className="tabular-nums">{p.confirmedAt ? formatDateTime(p.confirmedAt) : '—'} · {formatMoney(p.amount)} · {p.operatorName ?? '—'} · Venda {p.saleNumber}</span>
                       <span className="flex gap-2">
                         {p.status ? <StatusChip tone={p.status === 'Found' ? 'ok' : 'crit'}>{p.status === 'Found' ? 'Conferido' : 'Não localizado'}</StatusChip> : null}
-                        <button type="button" onClick={() => void checkPix(p.paymentId, 'Found')} className="rounded-md border border-border px-2 py-1 font-semibold">Conferido</button>
-                        <button type="button" onClick={() => void checkPix(p.paymentId, 'NotFound')} className="rounded-md border border-border px-2 py-1 font-semibold">Não localizado</button>
+                        {/* Confere quem pode aprovar este fechamento (não quem operou ou contou), antes de fechar; no fechado, reabra. */}
+                        {s.canApprove ? (
+                          <>
+                            <button type="button" onClick={() => void checkPix(p.paymentId, 'Found')} className="rounded-md border border-border px-2 py-1 font-semibold">Conferido</button>
+                            <button type="button" onClick={() => void checkPix(p.paymentId, 'NotFound')} className="rounded-md border border-border px-2 py-1 font-semibold">Não localizado</button>
+                          </>
+                        ) : null}
                       </span>
                     </li>
                   ))}

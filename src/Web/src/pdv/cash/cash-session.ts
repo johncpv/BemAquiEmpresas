@@ -16,7 +16,7 @@ export const CASH_SESSION_META = 'cash.session'
 /** O fundo de troco da última abertura, padrão da próxima (CA 1). */
 export const LAST_OPENING_META = 'cash.lastOpening'
 
-/** Tipo da entrada da fila de saída; o evento vai em `payload.type` (`CashSessionOpened`, `CashOutRecorded`, `CashInRecorded`, `CashSessionClosed`). */
+/** Tipo da entrada da fila de saída; o evento vai em `payload.type` (`CashSessionOpened`, `CashOutRecorded`, `CashInRecorded`, `CashCountStarted`, `CashCounted`). */
 export const CASH_OUTBOX_KIND = 'pos.cash'
 
 export const MAX_REASON_LENGTH = 200

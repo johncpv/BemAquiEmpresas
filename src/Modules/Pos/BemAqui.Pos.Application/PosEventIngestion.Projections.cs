@@ -220,6 +220,12 @@ public sealed partial class PosEventIngestion
         var sessionId = PosSaleReplay.GuidOf(root, "sessionId");
         var at = PosSaleReplay.DateOf(root, "at");
         var projection = new Projection { OperatorId = operatorId };
+        if (type == LegacyClosedType)
+        {
+            // Revisão de segurança da CX-02 (A1): o fechamento da CX-01, sem contagem, quebra nem fundo que fica, não fecha mais a sessão.
+            return Hold(projection, SyncDivergenceKind.CashSession, LegacyClosedMessage);
+        }
+
         var problems = new List<string>();
         if (operatorId is null || sessionId is null || at is null)
         {
@@ -241,7 +247,6 @@ public sealed partial class PosEventIngestion
             "CashSessionOpened" => "pos.create",
             "CashOutRecorded" => "pos.cash_out",
             "CashInRecorded" => "pos.cash_in",
-            "CashSessionClosed" => "pos.create",
             CountStartedType or CountedType => "pos.create",
             _ => null,
         };
@@ -297,17 +302,6 @@ public sealed partial class PosEventIngestion
         if (session.Status != CashSessionStatus.Open)
         {
             return Hold(projection, SyncDivergenceKind.CashSession, "Movimento depois do fechamento da sessão de caixa.");
-        }
-
-        if (type == "CashSessionClosed")
-        {
-            if (!context.Trusted && operatorId != session.OperatorId && !await context.HadPermissionAsync(operators, operatorId!.Value, "sales.approve", at!.Value, ct))
-            {
-                return Hold(projection, SyncDivergenceKind.Validation, "Quem fechou não é o operador da sessão nem supervisor.");
-            }
-
-            var closed = await cash.CloseAsync(session.Id, operatorId!.Value, at!.Value, ct);
-            return closed.IsSuccess ? projection : throw CashFailure(closed.Error!);
         }
 
         var amount = PosSaleReplay.LongOf(root, "amountCents");

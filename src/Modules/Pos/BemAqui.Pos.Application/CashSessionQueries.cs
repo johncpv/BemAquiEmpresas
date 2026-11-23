@@ -4,6 +4,7 @@ using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Notifications;
 using BemAqui.BuildingBlocks.Persistence;
+using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Time;
 using BemAqui.Pos.Contracts;
 using BemAqui.Pos.Domain;
@@ -60,8 +61,10 @@ public sealed record CashSessionFile(byte[] Content, string FileName);
 /// </summary>
 public sealed class CashSessionQueries(
     IPosDb db, CashClosingService closing, ICashSessionSales sales, IEventPublisher events, INotificationService notifications, IUserDirectory users,
-    ICurrentUser currentUser, IPermissionService permissions, TimeProvider clock)
+    ICurrentUser currentUser, IPermissionService permissions, IAuditWriter audit, TimeProvider clock)
 {
+    private static readonly Error ConcurrencyError = Error.Conflict(BemAqui.BuildingBlocks.Web.ConcurrencyExceptionHandler.Code, "O caixa mudou desde que você abriu. Recarregue.");
+
     public const int MaxRows = 500;
     public const int MaxReasonLength = 300;
     public const string OwnSessionMessage = "Quem operou o caixa não pode aprovar o próprio fechamento.";
@@ -69,6 +72,19 @@ public sealed class CashSessionQueries(
     public const string ReopenNotificationType = "pos.cash_reopened";
 
     public static readonly IReadOnlyList<string> CsvHeader = ["Loja", "Caixa", "Operador", "Situação", "Abertura", "Fechamento", "Quebra (R$)", "Reaberturas"];
+
+    public const string SentLabel = "Enviado";
+    public const string PixClosedMessage = "Reabra o caixa para conferir o Pix.";
+    public const string OwnPixMessage = "Quem operou, contou o caixa ou atestou o Pix não pode conferi-lo.";
+
+    /// <summary>
+    /// A situação que o usuário vê (revisão de segurança, M3): sem <c>sales.approve</c>, "em conferência" e "fechado" são a mesma coisa ("Enviado"),
+    /// para a situação não revelar a quebra que o operador não pode ver.
+    /// </summary>
+    public static (CashSessionStatus Status, string Label) Shown(CashSessionStatus status, bool expectedVisible) =>
+        expectedVisible ? (status, Label(status))
+        : status is CashSessionStatus.PendingReview or CashSessionStatus.Closed ? (CashSessionStatus.Closed, SentLabel)
+        : (status, Label(status));
 
     public static string Label(CashSessionStatus status) => status switch
     {
@@ -127,9 +143,9 @@ public sealed class CashSessionQueries(
     {
         ArgumentNullException.ThrowIfNull(filter);
         var visible = await ExpectedVisibleAsync(cancellationToken);
-        var query = Filtered(filter);
+        var query = Filtered(filter, visible);
         var sessions = await query.OrderByDescending(s => s.OpenedAt).Take(MaxRows + 1).ToListAsync(cancellationToken);
-        var pending = await db.CashSessions.CountAsync(s => s.Status == CashSessionStatus.PendingReview, cancellationToken);
+        var pending = visible ? await db.CashSessions.CountAsync(s => s.Status == CashSessionStatus.PendingReview, cancellationToken) : 0;
         var truncated = sessions.Count > MaxRows;
         sessions = sessions.Take(MaxRows).ToList();
         var ids = sessions.Select(s => s.Id).ToList();
@@ -142,10 +158,14 @@ public sealed class CashSessionQueries(
         var names = await NamesAsync(sessions.Select(s => s.OperatorId), cancellationToken);
         var places = await PlacesAsync(cancellationToken);
         var arrived = await ArrivedAsync(ids, cancellationToken);
-        var rows = sessions.Select(s => new CashSessionRow(
-            s.Id, s.StoreId, places.Stores.GetValueOrDefault(s.StoreId, "Loja removida"), s.RegisterId, places.Registers.GetValueOrDefault(s.RegisterId),
-            s.OperatorId, names.GetValueOrDefault(s.OperatorId, "Usuário removido"), s.Status, Label(s.Status), s.OpenedAt, s.ClosedAt,
-            Awaiting(s, arrived), visible ? differences.GetValueOrDefault(s.Id) : null, s.ReopenCount)).ToList();
+        var rows = sessions.Select(s =>
+        {
+            var shown = Shown(s.Status, visible);
+            return new CashSessionRow(
+                s.Id, s.StoreId, places.Stores.GetValueOrDefault(s.StoreId, "Loja removida"), s.RegisterId, places.Registers.GetValueOrDefault(s.RegisterId),
+                s.OperatorId, names.GetValueOrDefault(s.OperatorId, "Usuário removido"), shown.Status, shown.Label, s.OpenedAt, s.ClosedAt,
+                Awaiting(s, arrived), visible ? differences.GetValueOrDefault(s.Id) : null, s.ReopenCount);
+        }).ToList();
         return new CashSessionList(rows, pending, truncated, visible);
     }
 
@@ -195,7 +215,11 @@ public sealed class CashSessionQueries(
         session.ApprovedAt = now;
         session.ApprovalReason = input.Reason.Trim();
         closing.Close(session, register, user, now, lines);
-        await db.SaveChangesAsync(cancellationToken);
+        if (await SaveAsync(cancellationToken) is { } conflict)
+        {
+            return conflict;
+        }
+
         return await DetailAsync(session, cancellationToken);
     }
 
@@ -279,6 +303,10 @@ public sealed class CashSessionQueries(
         {
             await db.SaveChangesAsync(cancellationToken);
         }
+        catch (DbUpdateConcurrencyException)
+        {
+            return ConcurrencyError;
+        }
         catch (DbUpdateException ex) when (DbErrors.IsUniqueViolation(ex, CashSessionIngestion.OpenSessionIndex))
         {
             return Error.Conflict("cash_session_open", "Este caixa já tem outra sessão aberta.");
@@ -307,6 +335,18 @@ public sealed class CashSessionQueries(
             return Error.Conflict("cash_session_not_counted", "Confira o Pix depois da contagem do caixa.");
         }
 
+        // Revisão de segurança (M2): no caixa fechado a quebra já foi publicada; mudar o Pix exige reabrir (a CX-03 estorna e lança de novo).
+        if (session.Status == CashSessionStatus.Closed)
+        {
+            return Error.Validation("cash_session_closed", PixClosedMessage);
+        }
+
+        // Segregação (M2): quem operou ou contou o caixa, ou atestou este Pix, não confere o Pix.
+        if (currentUser.UserId is not { } user || user == session.OperatorId || user == session.CountedBy)
+        {
+            return Error.Forbidden("own_cash_session", OwnPixMessage);
+        }
+
         var methods = await closing.MethodTypesAsync(session.StoreId, cancellationToken);
         var pixMethods = methods.Where(m => m.Value == CashClosing.PixType).Select(m => m.Key).ToList();
         var payment = (await sales.SummaryAsync(session.Id, pixMethods, cancellationToken)).ManualPayments.FirstOrDefault(p => p.PaymentId == input.PaymentId);
@@ -315,7 +355,11 @@ public sealed class CashSessionQueries(
             return Error.NotFound("pix_not_found", "Este Pix não é desta sessão de caixa.");
         }
 
-        var user = currentUser.UserId ?? Guid.Empty;
+        if (user == payment.ConfirmedBy)
+        {
+            return Error.Forbidden("own_cash_session", OwnPixMessage);
+        }
+
         var now = clock.GetUtcNow();
         var check = await db.CashPixChecks.FirstOrDefaultAsync(c => c.SessionId == session.Id && c.PaymentId == payment.PaymentId, cancellationToken);
         if (check is null)
@@ -333,11 +377,16 @@ public sealed class CashSessionQueries(
             check.CheckedAt = now;
         }
 
-        await db.SaveChangesAsync(cancellationToken);
         if (session.CountId is not null)
         {
             await closing.RecalculateAsync(session, cancellationToken);
-            await db.SaveChangesAsync(cancellationToken);
+        }
+
+        // A conferência grava junto com a sessão (B2): a versão dela barra a corrida com Aprovar ou Reabrir.
+        db.CashSessions.Entry(session).Property(s => s.Status).IsModified = true;
+        if (await SaveAsync(cancellationToken) is { } conflict)
+        {
+            return conflict;
         }
 
         return await DetailAsync(session, cancellationToken);
@@ -352,6 +401,12 @@ public sealed class CashSessionQueries(
             r.StoreName, r.RegisterNumber.ToString("00", pt), r.OperatorName, r.StatusLabel, BusinessTime.ToBusiness(r.OpenedAt).ToString("dd/MM/yyyy HH:mm", pt),
             r.ClosedAt is { } c ? BusinessTime.ToBusiness(c).ToString("dd/MM/yyyy HH:mm", pt) : string.Empty, r.TotalDifference?.ToString("N2", pt) ?? string.Empty,
             r.ReopenCount.ToString(pt)]);
+        await audit.RecordExportAsync(nameof(CashSession), "lista", "csv", list.Items.Count, new Dictionary<string, string?>
+        {
+            ["storeId"] = filter.StoreId?.ToString(), ["registerId"] = filter.RegisterId?.ToString(), ["operatorId"] = filter.OperatorId?.ToString(),
+            ["status"] = filter.Status?.ToString(), ["from"] = filter.From?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            ["to"] = filter.To?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+        }, cancellationToken);
         return new CashSessionFile(SafeCsv.Bytes(SafeCsv.Text(CsvHeader, rows)), $"caixas-{BusinessTime.Today(clock):yyyy-MM-dd}.csv");
     }
 
@@ -383,9 +438,10 @@ public sealed class CashSessionQueries(
         var user = currentUser.UserId;
         var own = user is null || user == session.OperatorId || user == session.CountedBy;
         var last = !await db.CashSessions.AnyAsync(s => s.RegisterId == session.RegisterId && s.Id != session.Id && s.OpenedAt >= session.OpenedAt, cancellationToken);
+        var shown = Shown(session.Status, visible);
         return new CashSessionDetail(
             session.Id, session.StoreId, store.Name, session.RegisterId, places.Registers.GetValueOrDefault(session.RegisterId), session.OperatorId, NameOf(session.OperatorId)!,
-            session.Status, Label(session.Status), session.OpenedAt, session.CountedAt, NameOf(session.CountedBy), session.ClosedAt, Awaiting(session, arrived), session.DeviceSalesCount,
+            shown.Status, shown.Label, session.OpenedAt, session.CountedAt, NameOf(session.CountedBy), session.ClosedAt, Awaiting(session, arrived), session.DeviceSalesCount,
             session.OpeningAmount, session.KeptAmount, session.DepositAmount, store.CashBreakTolerance, visible ? Labels(session.ReviewReasons) : [],
             lines,
             new CashSessionSalesView(summary.Sales, summary.Cancelled, summary.Offline, visible ? summary.Total : null, visible ? summary.Discounts : null, visible ? summary.CancelledTotal : null),
@@ -395,14 +451,29 @@ public sealed class CashSessionQueries(
                 ? summary.ManualPayments.Select(p => new CashSessionPixView(p.PaymentId, p.SaleId, p.SaleNumber, p.Amount, p.ConfirmedAt, NameOf(p.ConfirmedBy),
                     checks.TryGetValue(p.PaymentId, out var c) ? c.Status : null, checks.TryGetValue(p.PaymentId, out var by) ? NameOf(by.CheckedBy) : null)).ToList()
                 : [],
-            NameOf(session.ApprovedBy), session.ApprovedAt, session.ApprovalReason, session.ReopenCount, NameOf(session.ReopenedBy), session.ReopenedAt, session.ReopenReason,
+            // A aprovação revela que houve conferência: só para quem aprova (M3).
+            visible ? NameOf(session.ApprovedBy) : null, visible ? session.ApprovedAt : null, visible ? session.ApprovalReason : null, session.ReopenCount, NameOf(session.ReopenedBy), session.ReopenedAt, session.ReopenReason,
             visible,
             visible && !own && session.Status is CashSessionStatus.PendingReview or CashSessionStatus.Counted,
             visible && !own && session.Status == CashSessionStatus.Closed && last,
             session.Version);
     }
 
-    private IQueryable<CashSession> Filtered(CashSessionFilter f)
+    /// <summary>Grava; a sessão (ou a conferência) que mudou desde a leitura vira 409 (B2).</summary>
+    private async Task<Error?> SaveAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+            return null;
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return ConcurrencyError;
+        }
+    }
+
+    private IQueryable<CashSession> Filtered(CashSessionFilter f, bool expectedVisible)
     {
         var query = db.CashSessions.AsNoTracking();
         if (f.StoreId is { } store)
@@ -422,7 +493,10 @@ public sealed class CashSessionQueries(
 
         if (f.Status is { } status)
         {
-            query = query.Where(s => s.Status == status);
+            // Sem sales.approve, "Enviado" (Closed) cobre também a em conferência, e o filtro "em conferência" não existe (M3).
+            query = expectedVisible ? query.Where(s => s.Status == status)
+                : status is CashSessionStatus.Closed or CashSessionStatus.PendingReview ? query.Where(s => s.Status == CashSessionStatus.Closed || s.Status == CashSessionStatus.PendingReview)
+                : query.Where(s => s.Status == status);
         }
 
         if (f.From is { } from)
@@ -444,7 +518,7 @@ public sealed class CashSessionQueries(
         s.Status == CashSessionStatus.Counted && arrived.GetValueOrDefault(s.Id) < (s.DeviceSalesCount ?? 0);
 
     private async Task<IReadOnlyDictionary<Guid, int>> ArrivedAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken) =>
-        await db.SessionSales.AsNoTracking().Where(s => ids.Contains(s.SessionId)).GroupBy(s => s.SessionId)
+        await CashClosingService.ArrivedSales(db, ids).GroupBy(s => s.SessionId)
             .Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(g => g.Key, g => g.Count, cancellationToken);
 
     private async Task<(IReadOnlyDictionary<Guid, string> Stores, IReadOnlyDictionary<Guid, int> Registers)> PlacesAsync(CancellationToken cancellationToken)

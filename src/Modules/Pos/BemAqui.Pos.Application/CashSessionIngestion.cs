@@ -171,39 +171,6 @@ public sealed class CashSessionIngestion(IPosDb db, IEventPublisher events, IUse
     }
 
     /// <summary>
-    /// Fechamento provisório (<c>CashSessionClosed</c>): só tira a sessão de <c>Open</c>, para o caixa poder abrir de novo. A contagem, a conferência
-    /// cega e o recolhimento são da CX-02, que troca este passo. Idempotente: fechar a sessão já fechada não muda nada.
-    /// </summary>
-    public async Task<Result<CashSessionView>> CloseAsync(Guid sessionId, Guid operatorId, DateTimeOffset closedAt, CancellationToken cancellationToken = default)
-    {
-        if (operatorId == Guid.Empty)
-        {
-            return Error.Validation("operator_required", "Informe o operador.");
-        }
-
-        var session = await db.CashSessions.FirstOrDefaultAsync(s => s.Id == sessionId, cancellationToken);
-        if (session is null)
-        {
-            return Error.NotFound("cash_session_not_found", "Sessão de caixa não encontrada.");
-        }
-
-        if (session.Status == CashSessionStatus.Open)
-        {
-            if (TimeError(closedAt, session.OpenedAt) is { } time)
-            {
-                return time;
-            }
-
-            session.Status = CashSessionStatus.Closed;
-            session.ClosedAt = closedAt;
-            await db.SaveChangesAsync(cancellationToken);
-            return ToView(session, replayed: false);
-        }
-
-        return ToView(session, replayed: true);
-    }
-
-    /// <summary>
     /// Janela de horário do evento do aparelho (o horário define a data da transferência no Financeiro): nunca antes da abertura da sessão, nem depois
     /// de agora mais a folga do relógio.
     /// </summary>
