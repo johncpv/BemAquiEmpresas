@@ -50,6 +50,9 @@ public partial class PosTests
         (delta.GetProperty("sellWithoutStock").GetBoolean(), delta.GetProperty("full").GetBoolean()).Should().Be((true, false));
         Level(delta, product).Should().Be(4m);
         Level(delta, empty).Should().BeNull();
+        // Delta mais antigo que 7 dias vira a lista inteira (revisão de segurança B2).
+        var old = DateTimeOffset.UtcNow.AddDays(-8).ToUnixTimeMilliseconds();
+        (await OkAsync(await Anonymous().SendAsync(SignedGet(device, $"/api/v1/pos/sync/stock?since={old}")))).GetProperty("full").GetBoolean().Should().BeTrue();
         (await owner.PutAsJsonAsync("/api/v1/settings/parameters/sell-without-stock", new { enabled = false })).StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }

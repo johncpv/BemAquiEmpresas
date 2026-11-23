@@ -34,7 +34,7 @@ public sealed record ApplyStockShortfallResult(int Applied, decimal AppliedQuant
 /// cancelamento da venda e as outras saídas do item ficam em série.
 /// </summary>
 public sealed class StockShortfallService(
-    IInventoryDb db, IStockMovements movements, ReservationAllocator allocator, IEventPublisher events, ICurrentUser currentUser, TimeProvider clock)
+    IInventoryDb db, IStockMovements movements, ReservationAllocator allocator, ILocationCountLock locks, IEventPublisher events, ICurrentUser currentUser, TimeProvider clock)
     : IStockShortfalls
 {
     public const string Link = "/app/estoque/divergencias";
@@ -106,7 +106,7 @@ public sealed class StockShortfallService(
         return closed;
     }
 
-    /// <summary>Estoque → Divergências (CA 7): as faltas abertas por local e item, a mais antiga primeiro.</summary>
+    /// <summary>Estoque → Divergências (CA 7): as faltas abertas por local e item, a mais antiga primeiro (agrupadas e paginadas no banco).</summary>
     public async Task<PagedList<StockShortfallRow>> ListAsync(StockShortfallListQuery query, PageRequest page, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -117,9 +117,22 @@ public sealed class StockShortfallService(
             open = open.Where(s => s.LocationId == location);
         }
 
-        var shortfalls = await open.OrderBy(s => s.OccurredAt).ToListAsync(cancellationToken);
-        var itemIds = shortfalls.Select(s => s.ItemId).Distinct().ToList();
-        var locationIds = shortfalls.Select(s => s.LocationId).Distinct().ToList();
+        if (!string.IsNullOrWhiteSpace(query.Term))
+        {
+            var term = SearchText.Normalize(query.Term);
+            open = open.Where(s => db.Items.Any(i => i.Id == s.ItemId && i.SearchText.Contains(term)));
+        }
+
+        // Revisão de segurança B5: agrupa e pagina no banco; só a página volta com as vendas de cada linha.
+        var groups = open.GroupBy(s => new { s.LocationId, s.ItemId })
+            .Select(g => new { g.Key.LocationId, g.Key.ItemId, Quantity = g.Sum(s => s.Quantity), Since = g.Min(s => s.OccurredAt) });
+        var normalized = page.Normalize();
+        var total = await groups.CountAsync(cancellationToken);
+        var pageRows = await groups.OrderBy(g => g.Since).ThenBy(g => g.ItemId).Skip(normalized.Skip).Take(normalized.PageSize).ToListAsync(cancellationToken);
+        var itemIds = pageRows.Select(r => r.ItemId).Distinct().ToList();
+        var locationIds = pageRows.Select(r => r.LocationId).Distinct().ToList();
+        var sales = (await open.Where(s => itemIds.Contains(s.ItemId) && locationIds.Contains(s.LocationId)).OrderBy(s => s.OccurredAt).ToListAsync(cancellationToken))
+            .ToLookup(s => (s.LocationId, s.ItemId));
         var items = await (from i in db.Items.AsNoTracking()
                            join u in db.Units.AsNoTracking() on i.UnitId equals u.Id
                            where itemIds.Contains(i.Id)
@@ -127,30 +140,33 @@ public sealed class StockShortfallService(
         var locations = await db.Locations.AsNoTracking().Where(l => locationIds.Contains(l.Id)).ToDictionaryAsync(l => l.Id, l => l.Name, cancellationToken);
         var available = await db.StockPositions.AsNoTracking().Where(p => itemIds.Contains(p.ItemId) && locationIds.Contains(p.LocationId))
             .Select(p => new { p.ItemId, p.LocationId, Available = p.QuantityOnHand - p.QuantityReserved }).ToListAsync(cancellationToken);
-        var term = string.IsNullOrWhiteSpace(query.Term) ? null : SearchText.Normalize(query.Term);
-        var rows = shortfalls.GroupBy(s => (s.LocationId, s.ItemId))
-            .Select(g =>
+        var rows = pageRows.Select(r =>
             {
-                var item = items.GetValueOrDefault(g.Key.ItemId);
+                var item = items.GetValueOrDefault(r.ItemId);
                 return new StockShortfallRow(
-                    g.Key.ItemId, item?.Code ?? string.Empty, item?.Name ?? "Item removido", item?.Unit ?? string.Empty, g.Key.LocationId,
-                    locations.GetValueOrDefault(g.Key.LocationId) ?? "Local removido", g.Sum(s => s.Quantity),
-                    available.FirstOrDefault(a => a.ItemId == g.Key.ItemId && a.LocationId == g.Key.LocationId)?.Available ?? 0m, g.Min(s => s.OccurredAt),
-                    g.Select(s => new StockShortfallSale(s.Id, s.SourceId, s.SourceNumber, s.Quantity, s.OccurredAt)).ToList());
+                    r.ItemId, item?.Code ?? string.Empty, item?.Name ?? "Item removido", item?.Unit ?? string.Empty, r.LocationId,
+                    locations.GetValueOrDefault(r.LocationId) ?? "Local removido", r.Quantity,
+                    available.FirstOrDefault(a => a.ItemId == r.ItemId && a.LocationId == r.LocationId)?.Available ?? 0m, r.Since,
+                    sales[(r.LocationId, r.ItemId)].Select(s => new StockShortfallSale(s.Id, s.SourceId, s.SourceNumber, s.Quantity, s.OccurredAt)).ToList());
             })
-            .Where(r => term is null || SearchText.Normalize(r.ItemCode + " " + r.ItemName).Contains(term, StringComparison.Ordinal))
-            .OrderBy(r => r.LocationName, StringComparer.CurrentCulture).ThenBy(r => r.Since).ToList();
-        var normalized = page.Normalize();
-        return new PagedList<StockShortfallRow>(rows.Skip(normalized.Skip).Take(normalized.PageSize).ToList(), normalized.Page, normalized.PageSize, rows.Count);
+            .ToList();
+        return new PagedList<StockShortfallRow>(rows, normalized.Page, normalized.PageSize, total);
     }
 
     /// <summary>
     /// "Aplicar baixa" (CA 6B): com o estoque regularizado, lança pelo motor cada falta aberta do item no local que o disponível cobre, da mais
-    /// antiga para a mais nova, e avisa o dono da origem pelo outbox. Nada coberto: 409 <c>insufficient_stock</c>, nada é gravado.
+    /// antiga para a mais nova, e avisa o dono da origem pelo outbox. Nada coberto: 409 <c>insufficient_stock</c>, nada é gravado. É baixa de
+    /// documento (a quantidade vem da venda, não de quem digita): sem o limite <c>manual_approval_amount</c> nem aprovador (adendo da ADR 0023).
     /// </summary>
     public async Task<Result<ApplyStockShortfallResult>> ApplyAsync(ApplyStockShortfallInput input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
+        // Revisão de segurança M1: com inventário em contagem no local, a baixa espera (409 location_counting), como o ajuste.
+        if (await locks.CheckAsync([input.LocationId], cancellationToken) is { } counting)
+        {
+            return counting;
+        }
+
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         await allocator.LockItemAsync(input.ItemId, cancellationToken);
         var open = await db.StockShortfalls

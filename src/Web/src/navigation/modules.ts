@@ -99,8 +99,6 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
     { slug: 'faltas', label: 'Faltas', icon: PackageX, group: STOCK_OPERATION },
     // PDV-05: vendas do caixa que saíram sem saldo (só comércio).
     { slug: 'divergencias', label: 'Divergências', icon: PackageSearch, group: STOCK_OPERATION, profiles: COMMERCE_PROFILES },
-    // PDV-05: vendas do caixa que saíram sem saldo (só comércio).
-    { slug: 'divergencias', label: 'Divergências', icon: PackageSearch, group: STOCK_OPERATION, profiles: COMMERCE_PROFILES },
     { slug: 'capacidade', label: 'Capacidade de produzir', icon: Gauge, group: STOCK_OPERATION },
     { slug: 'requisicoes', label: 'Requisições', icon: PackageMinus, group: STOCK_OPERATION },
     { slug: 'rastreabilidade', label: 'Rastreabilidade', icon: ScanSearch, group: STOCK_OPERATION },

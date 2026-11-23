@@ -67,3 +67,7 @@
 - **Cancelamento da venda:** primeiro a falta aberta fecha sem movimento (o que nunca saiu não volta), a baixa já aplicada é estornada pelo próprio movimento, e depois a parte que saiu volta por estorno (§4).
 - **Custo da linha:** o custo médio da baixa; sem nada em saldo, o custo médio vigente (o que a saída usaria); aplicada depois sem baixa anterior, o da baixa aplicada.
 - Item com lote ou série na venda do caixa fica `Blocked` (sem falta no Estoque), a regularizar pelo estoque. O canal sem caixa (VND-01) não muda: sem saldo, nada sai e a baixa fica com falta.
+- **Revisão de segurança da PDV-05 (23/11/2026):**
+  - "Aplicar baixa" é **baixa de documento**, não lançamento manual: a quantidade vem da venda (a falta registrada pelo consumidor), não de quem clica. Por isso não passa pelo limite `inventory.manual_approval_amount` nem pede aprovador (§5 vale para entrada e saída digitadas). Continua exigindo `inventory.adjust` e respeita o bloqueio do local com inventário em contagem (409 `location_counting`), como o ajuste.
+  - A API de Divergências (`/api/v1/inventory/shortfalls`) só existe para os perfis que vendem (recurso `inventory.stock_shortfalls` do `BusinessProfileCatalog`); na fábrica responde 403 `module_not_released`.
+  - `GET /api/v1/pos/sync/stock` tem rate limit por tenant e aparelho (`pos-sync-stock`); `since` zero, no futuro ou mais antigo que 7 dias (o teto da janela sem sincronizar, PP-10) devolve a lista inteira.

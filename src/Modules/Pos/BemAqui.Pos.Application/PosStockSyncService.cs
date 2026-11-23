@@ -30,6 +30,14 @@ public sealed class PosStockSyncService(
     /// <summary>Folga do cursor: um movimento lançado há menos que isso, mas confirmado depois da leitura, ainda desce no próximo delta.</summary>
     public static readonly TimeSpan Overlap = TimeSpan.FromMinutes(2);
 
+    /// <summary>Delta mais antigo que isso (o teto da janela sem sincronizar, PP-10) vira foto completa: o caixa nunca pede uma varredura longa.</summary>
+    public static readonly TimeSpan MaxDeltaAge = TimeSpan.FromDays(7);
+
+    /// <summary>Rate limit por tenant e aparelho (revisão de segurança B2); o caixa pede a cada 60 s.</summary>
+    public const string RateLimitPolicy = "pos-sync-stock";
+
+    public const int RateLimitPerMinute = 30;
+
     public async Task<Result<PosStockSnapshot>> StockAsync(DeviceIdentity device, long? since, CancellationToken cancellationToken = default)
     {
         var place = await sync.ResolveAsync(device, cancellationToken);
@@ -42,7 +50,7 @@ public sealed class PosStockSyncService(
         var now = clock.GetUtcNow();
         var sellWithoutStock = await parameters.SellWithoutStockAsync(cancellationToken);
         var cursor = (now - Overlap).ToUnixTimeMilliseconds();
-        var full = since is not { } ms || ms <= 0 || ms > now.ToUnixTimeMilliseconds();
+        var full = since is not { } ms || ms <= 0 || ms > now.ToUnixTimeMilliseconds() || ms < (now - MaxDeltaAge).ToUnixTimeMilliseconds();
         var storeProducts = db.CatalogItems.AsNoTracking().Where(i => i.StoreId == store.Id && i.Kind == CatalogItemKind.Product && !i.Deleted).Select(i => i.EntityId);
 
         if (full)

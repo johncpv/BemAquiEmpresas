@@ -98,6 +98,10 @@ public static class AuthRateLimiting
             o.AddPolicy(BemAqui.Pos.Application.PosEventIngestion.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
                 "pos-sync|" + TenantKey(http) + "|" + PosDeviceKey(http),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = BemAqui.Pos.Application.PosEventIngestion.RateLimitPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+            // Saldo da loja para o caixa (PDV-05, revisão de segurança B2): por tenant e aparelho, no mesmo padrão da subida dos eventos.
+            o.AddPolicy(BemAqui.Pos.Application.PosStockSyncService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "pos-stock|" + TenantKey(http) + "|" + PosDeviceKey(http),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = BemAqui.Pos.Application.PosStockSyncService.RateLimitPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
             // Busca de cliente na tela de venda (PDV-02, revisão de segurança, achado 1): por tenant, usuário (o operador da sessão por PIN) e
             // aparelho (hash do cookie), contra a mineração da base de clientes pelo caixa.
             o.AddPolicy(BemAqui.Pos.Application.PosCustomerSearchService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(

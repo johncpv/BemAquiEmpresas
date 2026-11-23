@@ -20,7 +20,8 @@ describe('caixa sem vender item sem saldo (PDV-05, PP-02)', () => {
 
     await syncStock(store, async () => ({ sellWithoutStock: false, full: true, cursor: 1, levels: [{ productId: 'arroz', available: 2 }] }))
     expect(await register.addItem(data.items[0], '2')).toMatchObject({ kind: 'added' })
-    expect(await register.addItem(data.items[0], '1')).toMatchObject({ kind: 'no-stock', message: 'Arroz está sem saldo nesta loja. A empresa não vende item sem saldo.' })
+    // A venda já tem as 2 do saldo: a terceira passa do disponível (a mensagem diz o saldo da loja).
+    expect(await register.addItem(data.items[0], '1')).toMatchObject({ kind: 'no-stock', message: 'Arroz: só 2 UN em saldo nesta loja. A empresa não vende item sem saldo.' })
 
     await syncStock(store, async (since) => {
       expect(since).toBe(1)

@@ -9,13 +9,14 @@ namespace BemAqui.Inventory.Endpoints;
 
 /// <summary>
 /// Estoque → Divergências (PDV-05 CA 7): as faltas de saldo das vendas do caixa, por local e item, com <c>inventory.view</c>; "Aplicar baixa"
-/// com a permissão de ajuste que já existe (<c>inventory.adjust</c>) e <c>Idempotency-Key</c>, porque cria movimento.
+/// (revisão de segurança B3: só para os perfis que vendem, 403 <c>module_not_released</c> na fábrica) com a permissão de ajuste que já existe (<c>inventory.adjust</c>) e <c>Idempotency-Key</c>, porque cria movimento.
 /// </summary>
 internal static class ShortfallEndpoints
 {
     public static IEndpointRouteBuilder MapShortfallEndpoints(this IEndpointRouteBuilder api)
     {
-        var shortfalls = api.MapGroup("/inventory/shortfalls").WithTags("Estoque").RequireModule("inventory");
+        var shortfalls = api.MapGroup("/inventory/shortfalls").WithTags("Estoque").RequireModule("inventory")
+            .RequireProfileFeature("inventory", BemAqui.BuildingBlocks.Modules.BusinessProfileCatalog.StockShortfallsFeature);
         shortfalls.MapGet(string.Empty, async (string? q, Guid? locationId, int? page, int? pageSize, StockShortfallService service, CancellationToken ct) =>
                 Results.Ok(await service.ListAsync(new StockShortfallListQuery(q, locationId), new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)))
             .RequirePermission("inventory.view").WithName("ListStockShortfalls").Produces<PagedList<StockShortfallRow>>();

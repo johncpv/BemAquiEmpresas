@@ -85,6 +85,7 @@ public static class BusinessProfileCatalog
         [FirstStepsFeature] = [Retail],
         [PosDevicesFeature] = [Retail],
         [OperationUsersFeature] = [Retail],
+        [StockShortfallsFeature] = [Retail, Services, Ecommerce],
     };
 
     /// <summary>
@@ -98,6 +99,9 @@ public static class BusinessProfileCatalog
 
     /// <summary>Checklist "Primeiros passos" do Início (PERF-04): só o Comércio, por enquanto; a fábrica não vê o cartão nem a ajuda.</summary>
     public const string FirstStepsFeature = "dashboard.first_steps";
+
+    /// <summary>Estoque → Divergências (PDV-05): faltas de saldo das vendas do caixa. Só os perfis que vendem; a fábrica (Konebras) não tem a tela nem a API.</summary>
+    public const string StockShortfallsFeature = "inventory.stock_shortfalls";
 
     public static bool HasFeature(IEnumerable<string> profiles, string feature)
     {
