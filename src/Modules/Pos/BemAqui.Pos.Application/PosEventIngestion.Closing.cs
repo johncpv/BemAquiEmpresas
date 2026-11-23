@@ -74,8 +74,21 @@ public sealed partial class PosEventIngestion
         return projection;
     }
 
+    /// <summary>
+    /// M1 da OFF-02 com a CX-02: a venda tem de estar na janela da sessão (da abertura ao "Fechar caixa", ou a agora, com a folga do relógio). Fora
+    /// dela entra com a divergência "Sessão de caixa" e não soma no dinheiro da sessão. A venda concluída antes do "Fechar caixa" (sessão em contagem
+    /// ou contada, inclusive saindo da quarentena) soma: o fechamento espera por ela.
+    /// </summary>
+    public static bool OutsideSession(CashSession session, DateTimeOffset completedAt, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        var end = (session.CountStartedAt ?? session.ClosedAt ?? now) + ClockTolerance;
+        return session.Status is not (CashSessionStatus.Open or CashSessionStatus.Counting or CashSessionStatus.Counted)
+            || completedAt < session.OpenedAt - ClockTolerance || completedAt > end;
+    }
+
     /// <summary>A venda é de depois do "Fechar caixa", ou a sessão já foi fechada: não entra (CX-02, "nada é lançado depois do fechamento").</summary>
-    private static string? AfterCountStarted(CashSession session, DateTimeOffset completedAt) => session.Status switch
+    public static string? AfterCountStarted(CashSession session, DateTimeOffset completedAt) => session.Status switch
     {
         CashSessionStatus.Closed or CashSessionStatus.PendingReview => "Venda de uma sessão de caixa já fechada: reabra o caixa antes de liberar.",
         CashSessionStatus.Counting or CashSessionStatus.Counted when session.CountStartedAt is { } started && completedAt > started

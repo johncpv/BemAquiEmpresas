@@ -75,21 +75,14 @@ public partial class PosTests
         transfer.FromAccountId.Should().Be(drawer);
 
         // CA 6: falta de R$ 10,00 no dinheiro, acima da tolerância: em conferência, e quem aprova vendas é avisado. Uma contagem só por fechamento.
+        // Selados na ordem da fila do aparelho (o seq vem do Seal): abertura, "Fechar caixa", contagem e a recontagem.
         var second = Guid.CreateVersion7();
+        var secondOpen = Seal(till, PosEventIngestion.CashKind, OpenCash(till, second, now.AddSeconds(6), openingCents: 5000), now.AddSeconds(6));
+        var secondStart = Seal(till, PosEventIngestion.CashKind, CountStarted(till, second, now.AddSeconds(7)), now.AddSeconds(7));
         var secondCount = Seal(till, PosEventIngestion.CashKind, Counted(till, second, now.AddSeconds(8), 4000, 4000, 0), now.AddSeconds(8));
         var recount = Seal(till, PosEventIngestion.CashKind, Counted(till, second, now.AddSeconds(9), 5000, 5000, 0), now.AddSeconds(9));
-        var again = await OkAsync(await PostEventsAsync(device, new
-        {
-            events = new[]
-            {
-                Seal(till, PosEventIngestion.CashKind, OpenCash(till, second, now.AddSeconds(6), openingCents: 5000), now.AddSeconds(6)),
-                Seal(till, PosEventIngestion.CashKind, CountStarted(till, second, now.AddSeconds(7)), now.AddSeconds(7)),
-                secondCount,
-                recount,
-            },
-        }));
-        var dbg = string.Join(" | ", Outcomes(again).Select(o => o.Value)) + " :: " + string.Join(" | ", (await WithDbAsync(db => db.SyncDivergences.AsNoTracking().Where(d => d.RegisterId == till.Register).Select(d => d.Kind + ":" + d.Summary).ToListAsync())));
-        (await WithDbAsync(db => db.CashSessions.AsNoTracking().SingleAsync(s => s.Id == second))).Status.Should().Be(CashSessionStatus.PendingReview, dbg);
+        var again = await OkAsync(await PostEventsAsync(device, new { events = new[] { secondOpen, secondStart, secondCount, recount } }));
+        (await WithDbAsync(db => db.CashSessions.AsNoTracking().SingleAsync(s => s.Id == second))).Status.Should().Be(CashSessionStatus.PendingReview);
         (await NotificationsAsync("Fechamento do caixa 01")).Should().NotBeEmpty();
         Outcomes(again)[IdOf(recount)].Should().Be("Quarantined", "recontar exige o supervisor");
 

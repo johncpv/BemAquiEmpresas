@@ -78,12 +78,7 @@ public sealed partial class PosEventIngestion
             return projection;
         }
 
-        // M1 (OFF-02): a venda tem de estar na janela da sessão (da abertura ao "Fechar caixa", ou a agora, com a folga). Fora dela entra com a
-        // divergência "Sessão de caixa" e não soma no dinheiro da sessão. A venda concluída antes do "Fechar caixa" (sessão em contagem) soma: o
-        // fechamento espera por ela.
-        var sessionEnd = (session.CountStartedAt ?? session.ClosedAt ?? clock.GetUtcNow()) + ClockTolerance;
-        var outsideSession = session.Status is not (CashSessionStatus.Open or CashSessionStatus.Counting or CashSessionStatus.Counted)
-            || completedAtDevice < session.OpenedAt - ClockTolerance || completedAtDevice > sessionEnd;
+        var outsideSession = OutsideSession(session, completedAtDevice, clock.GetUtcNow());
         if (outsideSession)
         {
             projection.Divergences.Add(new Finding(SyncDivergenceKind.CashSession,

@@ -1,3 +1,4 @@
+using BemAqui.Pos.Application;
 using BemAqui.Pos.Domain;
 using FluentAssertions;
 
@@ -39,6 +40,25 @@ public class CashClosingUnitTests
         var crossed = CashClosing.Lines(sales, Types, [new CashCountedLine(Cash, "Cash", 108m), new CashCountedLine(Debit, "Debit", 92m)], 0m);
         crossed.Sum(l => l.Difference).Should().Be(0m);
         CashClosing.WithinTolerance(crossed, 5m).Should().BeFalse();
+    }
+
+    [Fact]
+    public void Venda_antes_do_Fechar_caixa_soma_mesmo_com_a_sessao_contada_e_depois_dele_nao_entra()
+    {
+        var opened = new DateTimeOffset(2026, 11, 20, 12, 0, 0, TimeSpan.Zero);
+        var started = opened.AddHours(8);
+        var now = started.AddHours(1);
+        var counted = new CashSession { OpenedAt = opened, Status = CashSessionStatus.Counted, CountStartedAt = started };
+
+        // Venda das 19h que saiu da quarentena com a sessão já contada: soma (o fechamento espera por ela).
+        PosEventIngestion.AfterCountStarted(counted, started.AddHours(-1)).Should().BeNull();
+        PosEventIngestion.OutsideSession(counted, started.AddHours(-1), now).Should().BeFalse();
+
+        // Depois do "Fechar caixa", ou em sessão fechada: quarentena (CX-02). Antes da abertura: divergência, sem somar (M1 da OFF-02).
+        PosEventIngestion.AfterCountStarted(counted, started.AddSeconds(1)).Should().NotBeNull();
+        PosEventIngestion.AfterCountStarted(new CashSession { OpenedAt = opened, Status = CashSessionStatus.PendingReview }, started.AddHours(-1)).Should().NotBeNull();
+        PosEventIngestion.OutsideSession(counted, opened.AddMinutes(-5), now).Should().BeTrue();
+        PosEventIngestion.OutsideSession(new CashSession { OpenedAt = opened, Status = CashSessionStatus.Open }, now.AddMinutes(5), now).Should().BeTrue();
     }
 
     [Fact]
