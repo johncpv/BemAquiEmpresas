@@ -1,4 +1,3 @@
-using BemAqui.BuildingBlocks.Identity;
 using BemAqui.Identity.Contracts;
 using BemAqui.Identity.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +8,7 @@ namespace BemAqui.Identity.Application.Shopfloor;
 /// Sessões por PIN do caixa e retratos das permissões (OFF-02). A sessão por PIN é a família de refresh tokens <c>PosPin</c> do usuário no
 /// aparelho: começa no primeiro token e termina na primeira revogação (sair, PIN apagado, usuário desativado, reuso) ou no fim das 12 h.
 /// </summary>
-public sealed class PosOperatorHistory(IIdentityDb db, IPermissionService permissions) : IPosOperatorHistory
+public sealed class PosOperatorHistory(IIdentityDb db) : IPosOperatorHistory
 {
     /// <summary>Folga de relógio do aparelho (ADR 0026: 2 min).</summary>
     public static readonly TimeSpan ClockTolerance = TimeSpan.FromMinutes(2);
@@ -49,19 +48,12 @@ public sealed class PosOperatorHistory(IIdentityDb db, IPermissionService permis
             return false;
         }
 
-        var snapshot = await SnapshotAtAsync(userId, at, cancellationToken);
-        if (snapshot is null)
-        {
-            // Nenhum retrato ainda: avaliar agora grava o da versão atual, que passa a ser o mais antigo conhecido.
-            await permissions.GetAsync(userId, cancellationToken);
-            snapshot = await SnapshotAtAsync(userId, at, cancellationToken);
-        }
-
+        // B4: sem retrato que valia no instante, recusa (nunca usa um retrato posterior). Não avalia as permissões aqui: a avaliação gravaria o retrato
+        // dentro da transação da subida, que pode voltar ao ponto de salvamento.
+        // A mesma folga de relógio da sessão por PIN (o retrato pode nascer no próprio login, segundos depois do instante que o aparelho marcou).
+        var latest = at + ClockTolerance;
+        var snapshot = await db.PermissionSnapshots.AsNoTracking().Where(s => s.UserId == userId && s.ValidFrom <= latest).OrderByDescending(s => s.ValidFrom).FirstOrDefaultAsync(cancellationToken);
         return snapshot?.Has(permission) == true;
-    }
 
-    /// <summary>O retrato que valia no instante; sem retrato anterior, o mais antigo (a melhor informação que existe sobre aquele momento).</summary>
-    private async Task<PermissionSnapshot?> SnapshotAtAsync(Guid userId, DateTimeOffset at, CancellationToken cancellationToken) =>
-        await db.PermissionSnapshots.AsNoTracking().Where(s => s.UserId == userId && s.ValidFrom <= at).OrderByDescending(s => s.ValidFrom).FirstOrDefaultAsync(cancellationToken)
-        ?? await db.PermissionSnapshots.AsNoTracking().Where(s => s.UserId == userId).OrderBy(s => s.ValidFrom).FirstOrDefaultAsync(cancellationToken);
+    }
 }

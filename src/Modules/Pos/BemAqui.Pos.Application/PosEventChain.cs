@@ -93,7 +93,7 @@ public static partial class PosText
             case JsonObject obj:
                 foreach (var key in obj.Select(p => p.Key).ToList())
                 {
-                    if (FreeText.Contains(key) && obj[key] is JsonValue value && value.TryGetValue<string>(out var text) && LooksLikeCardNumber(text))
+                    if (!NotText(key) && obj[key] is JsonValue value && value.TryGetValue<string>(out var text) && !IdOrInstant(text) && LooksLikeCardNumber(text))
                     {
                         obj[key] = null;
                         found = true;
@@ -108,7 +108,15 @@ public static partial class PosText
             case JsonArray array:
                 for (var i = 0; i < array.Count; i++)
                 {
-                    found |= Walk(array[i]);
+                    if (array[i] is JsonValue value && value.TryGetValue<string>(out var text) && !IdOrInstant(text) && LooksLikeCardNumber(text))
+                    {
+                        array[i] = null;
+                        found = true;
+                    }
+                    else
+                    {
+                        found |= Walk(array[i]);
+                    }
                 }
 
                 break;
@@ -117,8 +125,13 @@ public static partial class PosText
         return found;
     }
 
-    /// <summary>Campos de texto livre do aparelho: só eles são conferidos (ids, datas e o GTIN, que tem 13 dígitos, ficam de fora).</summary>
-    private static readonly HashSet<string> FreeText = new(StringComparer.Ordinal) { "nsu", "note", "authorizationCode", "reason", "txid", "endToEndId", "provider" };
+    /// <summary>B1: todo campo de texto é conferido, menos os que não são texto livre: ids, instantes, número da venda e o GTIN (13 dígitos).</summary>
+    private static readonly HashSet<string> NotTextKeys = new(StringComparer.Ordinal) { "id", "code", "at", "occurredAt", "printedAt", "number", "saleNumber", "quantity" };
+
+    private static bool NotText(string key) => NotTextKeys.Contains(key) || key.EndsWith("Id", StringComparison.Ordinal);
+
+    private static bool IdOrInstant(string text) =>
+        Guid.TryParse(text, out _) || (text.Length >= 20 && DateTimeOffset.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out _));
 
     [GeneratedRegex(@"\p{Cf}")]
     private static partial Regex FormatChars();

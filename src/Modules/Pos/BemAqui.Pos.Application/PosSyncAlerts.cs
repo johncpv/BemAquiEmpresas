@@ -38,7 +38,7 @@ public sealed class PosSyncAlerts(IPosDb db, IUserDirectory users, INotification
         var age = clock.GetUtcNow() - oldest;
         if (age >= TimeSpan.FromHours(store.SyncAlertHours))
         {
-            await NotifyAsync(register, (int)age.TotalHours, "fila:" + oldest.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture), cancellationToken);
+            await NotifyAsync(register, (int)age.TotalHours, Window(store), cancellationToken);
         }
     }
 
@@ -69,13 +69,22 @@ public sealed class PosSyncAlerts(IPosDb db, IUserDirectory users, INotification
             var silence = now - lastContact;
             if (silence >= TimeSpan.FromHours(row.SyncAlertHours))
             {
-                await NotifyAsync(row.Register, (int)silence.TotalHours, "silencio:" + lastContact.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture), cancellationToken);
+                await NotifyAsync(row.Register, (int)silence.TotalHours, Window(row.SyncAlertHours), cancellationToken);
                 sent++;
             }
         }
 
         return sent;
     }
+
+    /// <summary>
+    /// Janela do servidor para o aviso (revisão de segurança M3): um aviso por caixa a cada período do aviso da loja, contado no relógio do servidor;
+    /// o aparelho não escolhe a chave (antes, o instante da fila dele).
+    /// </summary>
+    private string Window(Store store) => Window(store.SyncAlertHours);
+
+    private string Window(int hours) =>
+        (clock.GetUtcNow().ToUnixTimeSeconds() / (Math.Max(hours, 1) * 3600L)).ToString(CultureInfo.InvariantCulture);
 
     private async Task NotifyAsync(Register register, int hours, string window, CancellationToken cancellationToken)
     {

@@ -122,7 +122,7 @@ internal static class PosEndpoints
                     : TimeSpan.Zero;
                 return (await service.IngestAsync(DevicePrincipal.From(http.User)!, input, skew, ct)).ToHttpResult();
             })
-            .RequireDevice(allowRevoked: true).WithName("PostPosSyncEvents").Produces<PosSyncBatchResult>();
+            .RequireDevice(allowRevoked: true).RequireRateLimiting(PosEventIngestion.RateLimitPolicy).WithName("PostPosSyncEvents").Produces<PosSyncBatchResult>();
 
         // OFF-02 CA 14 e 15: Pendências do PDV (retaguarda, sales.*), a exportação e o relatório de exceções por operador.
         var pending = api.MapGroup("/pos/divergences").WithTags("PDV: pendências").RequireModule("sales");
