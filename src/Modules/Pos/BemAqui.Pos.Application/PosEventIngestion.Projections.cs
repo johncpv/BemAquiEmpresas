@@ -63,6 +63,13 @@ public sealed partial class PosEventIngestion
             return projection;
         }
 
+        // CX-02: nada entra depois do "Fechar caixa" nem na sessão fechada (nem liberando da quarentena: reabra o caixa antes).
+        if (AfterCountStarted(session, completedAtDevice) is { } late)
+        {
+            projection.Quarantine = new Finding(SyncDivergenceKind.CashSession, late);
+            return projection;
+        }
+
         // Modo não fiscal aceito na versão vigente no instante da venda (revisão de segurança da IMP-01).
         if (!context.Trusted && !await NonFiscalAcceptedAtAsync(context.Store.Id, completedAtDevice, ct))
         {
@@ -173,6 +180,7 @@ public sealed partial class PosEventIngestion
             var cashKept = replay.Tenders.Where(t => t.Status == "Captured" && t.MethodId is { } m && methods.TryGetValue(m, out var method) && method.Type == PaymentMethodType.Cash)
                 .Sum(t => t.AmountCents);
             db.SessionSales.Add(new SessionSale { SaleId = replay.SaleId, SessionId = sessionId, CashAmount = cashKept / 100m, CreatedAt = now });
+            await closing.OnSaleArrivedAsync(sessionId, ct); // CX-02: a sessão contada esperava esta venda para fechar
         }
 
         projection.Exceptions.AddRange(replay.Exceptions);
@@ -203,6 +211,7 @@ public sealed partial class PosEventIngestion
             "CashOutRecorded" => "pos.cash_out",
             "CashInRecorded" => "pos.cash_in",
             "CashSessionClosed" => "pos.create",
+            CountStartedType or CountedType => "pos.create",
             _ => null,
         };
         if (permission is null)
@@ -247,6 +256,11 @@ public sealed partial class PosEventIngestion
         if (session.RegisterId != context.Register.Id)
         {
             return Hold(projection, SyncDivergenceKind.CashSession, "Movimento de uma sessão de outro caixa.");
+        }
+
+        if (type is CountStartedType or CountedType)
+        {
+            return await ProjectCountAsync(context, root, type, session, operatorId!.Value, at!.Value, projection, ct);
         }
 
         if (session.Status != CashSessionStatus.Open)

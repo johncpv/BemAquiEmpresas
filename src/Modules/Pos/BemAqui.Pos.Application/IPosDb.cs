@@ -22,6 +22,11 @@ public interface IPosDb
 
     DbSet<CashMovement> CashMovements { get; }
 
+    /// <summary>CX-02: a contagem do fechamento por forma (esperado e diferença só no servidor) e a conferência dos Pix contra o extrato.</summary>
+    DbSet<CashCount> CashCounts { get; }
+
+    DbSet<CashPixCheck> CashPixChecks { get; }
+
     /// <summary>Impressoras dos caixas e as impressões registradas (IMP-01).</summary>
     DbSet<Printer> Printers { get; }
 

@@ -263,7 +263,7 @@ export function CloseRegisterSheet({ open, pending, onCancel, onReview, onConfir
         : <Actions><FloorButton tone="secondary" className="flex-1" onClick={onCancel}>Voltar</FloorButton><FloorButton className="flex-1" onClick={() => void onConfirm()}>Fechar caixa</FloorButton></Actions>}>
       {pending
         ? <p>{pending === 1 ? '1 venda está' : `${pending} vendas estão`} na tela ou em espera. Retome e conclua, ou descarte, antes de fechar o caixa.</p>
-        : <p className="text-muted-foreground">O caixa fica fechado neste aparelho até alguém abrir de novo. A conferência do dinheiro chega com o fechamento completo do caixa.</p>}
+        : <p className="text-muted-foreground">Depois de fechar, este turno não vende mais: você conta o dinheiro e os comprovantes de cada forma, sem ver quanto deveria haver.</p>}
     </FloorSheet>
   )
 }

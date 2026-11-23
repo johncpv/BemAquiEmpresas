@@ -23,6 +23,12 @@ public sealed record CashMovementRecorded(
     public const string Opening = "Opening";
     public const string CashOut = "CashOut";
     public const string CashIn = "CashIn";
+
+    /// <summary>CX-02 CA 12: recolhimento do fechamento (Caixa do PDV → Cofre).</summary>
+    public const string Deposit = "Deposit";
+
+    /// <summary>CX-02 CA 10: o recolhimento volta ao caixa na reabertura (Cofre → Caixa do PDV).</summary>
+    public const string DepositReturn = "DepositReturn";
 }
 
 /// <summary>
@@ -30,3 +36,27 @@ public sealed record CashMovementRecorded(
 /// eventos do caixa e no relatório de exceções por operador.
 /// </summary>
 public sealed record PosSaleDiscarded(Guid SaleId, string Number, Guid StoreId, Guid RegisterId, Guid? CashSessionId, Guid? OperatorId, DateTimeOffset DiscardedAt) : IIntegrationEvent;
+
+/// <summary>Quebra de uma forma de pagamento no fechamento: esperado, contado e a diferença (sobra positiva, falta negativa). Só ids e valores.</summary>
+public sealed record CashSessionBreak(Guid? PaymentMethodId, decimal Expected, decimal Counted, decimal Difference);
+
+/// <summary>
+/// Sessão de caixa fechada (outbox, CX-02): publicada quando a sessão chega a <c>Closed</c> (não em <c>Counted</c>), direto ou pela aprovação do
+/// gerente. O Financeiro (CX-03) lança os resumos por forma e a quebra. Só ids e valores (ADR 0037 §2): os motivos ficam no <c>Pos</c>.
+/// </summary>
+public sealed record CashSessionClosed(
+    Guid SessionId,
+    Guid StoreId,
+    Guid RegisterId,
+    Guid CashAccountId,
+    Guid OperatorId,
+    DateTimeOffset OpenedAt,
+    DateTimeOffset ClosedAt,
+    DateOnly BusinessDate,
+    decimal KeptAmount,
+    decimal DepositAmount,
+    int ReopenCount,
+    IReadOnlyList<CashSessionBreak> Breaks) : IIntegrationEvent;
+
+/// <summary>Sessão de caixa reaberta (outbox, CX-02 CA 10): a CX-03 estorna os lançamentos do fechamento. Só ids.</summary>
+public sealed record CashSessionReopened(Guid SessionId, Guid StoreId, Guid RegisterId, Guid ReopenedBy, DateTimeOffset ReopenedAt, int ReopenCount) : IIntegrationEvent;

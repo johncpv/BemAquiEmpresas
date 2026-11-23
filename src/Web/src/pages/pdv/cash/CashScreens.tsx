@@ -55,6 +55,7 @@ export function CashOpenScreen({ operatorName, defaultCents, onOpen, onLeave }: 
     <section aria-label="Abrir caixa" className="mx-auto max-w-md space-y-4">
       <div>
         <h2 className="font-display text-[26px] font-bold">Abrir caixa</h2>
+        <p className="text-[18px] font-semibold">Abra o caixa para começar a vender.</p>
         <p className="text-[18px] text-muted-foreground">{operatorName}, conte o dinheiro da gaveta e informe o fundo de troco. As vendas deste aparelho ficam no seu nome até você fechar o caixa.</p>
       </div>
       <MoneyPad label="Fundo de troco" cents={cents} onChange={setCents} />

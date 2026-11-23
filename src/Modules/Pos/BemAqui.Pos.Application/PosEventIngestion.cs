@@ -54,6 +54,7 @@ public sealed partial class PosEventIngestion(
     ISaleIngestion sales,
     ISaleCustomerDocuments documents,
     CashSessionIngestion cash,
+    CashClosingService closing,
     PrinterService printers,
     IPosOperatorHistory operators,
     IAuditReader audit,

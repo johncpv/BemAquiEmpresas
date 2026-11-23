@@ -21,7 +21,14 @@ public sealed record PosHandshake(
     int Epoch,
     RegisterUiMode UiMode,
     string SalePrefix,
-    DateTimeOffset ServerTime);
+    DateTimeOffset ServerTime,
+    PosReopenedCashSession? ReopenedCashSession = null);
+
+/// <summary>
+/// CX-02 CA 10: a sessão do caixa reaberta na retaguarda. O aparelho que não tem sessão aberta retoma esta (sem esperado: só o fundo, o operador
+/// e quantas vezes foi reaberta, para não retomar de novo a mesma reabertura).
+/// </summary>
+public sealed record PosReopenedCashSession(Guid Id, Guid OperatorId, DateTimeOffset OpenedAt, long OpeningCents, int ReopenCount);
 
 /// <summary>Aperto de mão e o segredo novo (só para o cookie).</summary>
 public sealed record PosHandshakeResult(PosHandshake Handshake, DeviceSecretRotation Rotation);
@@ -85,7 +92,9 @@ public sealed class PosSyncService(IPosDb db, IRegisterDevices devices, TimeProv
 
         var handshake = new PosHandshake(
             device.DeviceId, store.Id, store.Code, store.Name, register.Id, register.Number, register.DeviceEpoch, register.UiMode,
-            PosSaleNumber.Prefix(store.Code, register.Number, register.DeviceEpoch), clock.GetUtcNow());
+            PosSaleNumber.Prefix(store.Code, register.Number, register.DeviceEpoch), clock.GetUtcNow(),
+            await db.CashSessions.AsNoTracking().Where(s => s.RegisterId == register.Id && s.Status == CashSessionStatus.Open && s.ReopenCount > 0)
+                .Select(s => new PosReopenedCashSession(s.Id, s.OperatorId, s.OpenedAt, (long)(s.OpeningAmount * 100), s.ReopenCount)).FirstOrDefaultAsync(cancellationToken));
         return new PosHandshakeResult(handshake, rotation);
     }
 }

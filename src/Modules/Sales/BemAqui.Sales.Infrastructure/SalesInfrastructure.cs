@@ -27,6 +27,7 @@ public static class SalesInfrastructure
         services.TryAddScoped<SalesLookupContract>();
         services.TryAddScoped<ISaleLookup>(sp => sp.GetRequiredService<SalesLookupContract>());
         services.TryAddScoped<ISalesRevenue>(sp => sp.GetRequiredService<SalesLookupContract>());
+        services.TryAddScoped<ICashSessionSales, CashSessionSalesContract>(); // CX-02: resumo das vendas da sessão para o fechamento do caixa
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPaymentProvider, ManualPaymentProvider>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IPaymentMethodUsageProvider, SalePaymentMethodUsage>());
         services.AddAuditableEntity<Sale>(SaleService.Module);

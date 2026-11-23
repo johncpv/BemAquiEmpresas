@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { PosReopenedCashSession } from './posReopenedCashSession';
 import type { RegisterUiMode } from './registerUiMode';
 
 export interface PosHandshake {
@@ -17,4 +18,5 @@ export interface PosHandshake {
   uiMode: RegisterUiMode;
   salePrefix: string;
   serverTime: string;
+  reopenedCashSession?: null | PosReopenedCashSession;
 }

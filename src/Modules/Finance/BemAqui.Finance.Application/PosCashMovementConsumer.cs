@@ -48,7 +48,8 @@ public sealed partial class PosCashMovementConsumer(IFinanceDb db, TimeProvider 
             return;
         }
 
-        var toDrawer = integrationEvent.Kind != CashMovementRecorded.CashOut;
+        // CX-02: o recolhimento do fechamento sai do caixa como a sangria; a devolução na reabertura entra como o suprimento.
+        var toDrawer = integrationEvent.Kind is not (CashMovementRecorded.CashOut or CashMovementRecorded.Deposit);
         var (from, to) = toDrawer ? (safe, drawer.Id) : (drawer.Id, safe);
         // Período de conciliação fechado em qualquer das contas: entra hoje, com a data do caixa na observação (nunca retroativo).
         var date = integrationEvent.BusinessDate;
@@ -80,6 +81,8 @@ public sealed partial class PosCashMovementConsumer(IFinanceDb db, TimeProvider 
         {
             CashMovementRecorded.CashOut => $"Sangria do caixa {register}",
             CashMovementRecorded.CashIn => $"Suprimento do caixa {register}",
+            CashMovementRecorded.Deposit => $"Recolhimento do caixa {register}",
+            CashMovementRecorded.DepositReturn => $"Recolhimento devolvido ao caixa {register}",
             _ => $"Fundo de troco do caixa {register}",
         };
         return text;

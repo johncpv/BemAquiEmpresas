@@ -27,6 +27,7 @@ const CEILING_DICA = 'Acima deste valor, o caixa não recebe mais em dinheiro at
 
 const FREE_REMOVE_DICA = 'Ligado, o operador tira o último item que lançou sem chamar ninguém. Outro item, ou com isto desligado, pede quem tem a permissão de cancelar item. O servidor confere cada remoção por esta regra.'
 const SYNC_ALERT_DICA = 'Quem aprova vendas recebe "Caixa 02 sem enviar vendas há N horas." quando um caixa passa deste tempo com venda esperando para subir, ou aberto e sem contato.'
+const BREAK_TOLERANCE_DICA = 'Quebra de caixa é a diferença entre o contado e o esperado no fechamento. Até este valor, por forma de pagamento, o caixa fecha sozinho; acima, vai para a conferência do gerente. Sobra numa forma não compensa falta em outra.'
 
 const PRINT_DICA = 'O que o caixa faz com o cupom quando a venda termina. "Perguntar" mostra Imprimir e Não imprimir; nos outros, o botão Imprimir cupom continua lá.'
 
@@ -44,6 +45,7 @@ export function StoresPage() {
   const newStore = <Can perm="sales.create"><button type="button" onClick={() => setEditing({ kind: 'store', store: null })} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Nova loja</button></Can>
   const actions = (
     <div className="flex flex-wrap gap-2">
+      <Link to="/app/loja/caixas" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Caixas</Link>
       <Link to="/app/loja/pendencias" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Pendências do PDV</Link>
       <Link to="/app/loja/vendas-sem-documento-fiscal" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Vendas sem documento fiscal</Link>
       {newStore}
@@ -128,6 +130,7 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
     cashDropAlert: moneyText(store?.cashDropAlertAmount ?? 1000), cashCeiling: store?.cashCeilingAmount == null ? '' : moneyText(store.cashCeilingAmount),
     receiptPrintMode: (store?.receiptPrintMode ?? 'Ask') as ReceiptPrintMode,
     freeRemoveLast: store?.freeRemoveLast ?? true, syncAlertHours: String(store?.syncAlertHours ?? 4),
+    cashBreakTolerance: moneyText(store?.cashBreakTolerance ?? 5),
   }
   const [draft, setDraft] = useState(initial)
   const [error, setError] = useState<string | null>(null)
@@ -146,9 +149,11 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
     if (ceiling === undefined || (ceiling !== null && ceiling <= alert)) { setError('O teto de dinheiro no caixa tem de ser maior que o aviso de sangria, ou fique em branco.'); return false }
     const syncAlertHours = Number(draft.syncAlertHours)
     if (!Number.isInteger(syncAlertHours) || syncAlertHours < 1 || syncAlertHours > 72) { setError('Informe o aviso de caixa sem enviar vendas entre 1 e 72 horas.'); return false }
+    const cashBreakTolerance = parseAmount(draft.cashBreakTolerance)
+    if (cashBreakTolerance === undefined || cashBreakTolerance > 9999.99) { setError('Informe a tolerância de quebra em reais (ex.: 5,00).'); return false }
     const input = {
       code: draft.code, name: draft.name.trim(), stockLocationId: locationId, defaultPriceListId: priceListId, isActive: draft.isActive,
-      cashDropAlertAmount: alert, cashCeilingAmount: ceiling, receiptPrintMode: draft.receiptPrintMode, freeRemoveLast: draft.freeRemoveLast, syncAlertHours,
+      cashDropAlertAmount: alert, cashCeilingAmount: ceiling, receiptPrintMode: draft.receiptPrintMode, freeRemoveLast: draft.freeRemoveLast, syncAlertHours, cashBreakTolerance,
     }
     try {
       if (store) await updateStore(store.id, input)
@@ -219,6 +224,9 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
               {(p) => (
                 <label className="flex items-center gap-2 text-sm"><input {...p} type="checkbox" checked={draft.freeRemoveLast} onChange={(e) => setDraft({ ...draft, freeRemoveLast: e.target.checked })} /> O operador tira o último item lançado</label>
               )}
+            </Field>
+            <Field label="Tolerância de quebra por forma (R$)" required size="md" dica={BREAK_TOLERANCE_DICA}>
+              {(p) => <input {...p} value={draft.cashBreakTolerance} inputMode="decimal" onChange={(e) => setDraft({ ...draft, cashBreakTolerance: e.target.value })} className={inputClass} />}
             </Field>
             <Field label="Aviso de caixa sem enviar vendas (horas)" required size="sm" dica={SYNC_ALERT_DICA}>
               {(p) => <input {...p} value={draft.syncAlertHours} inputMode="numeric" maxLength={2} onChange={(e) => setDraft({ ...draft, syncAlertHours: e.target.value.replace(/\D/g, '') })} className={inputClass} />}

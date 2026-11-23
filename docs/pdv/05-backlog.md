@@ -231,6 +231,7 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - Depende de: CX-01, PDV-03, IMP-01; PP-22.
 - Paridade: 5.
 - CA: o operador não vê o esperado; contado por forma; tolerância **por forma**; acima vai para `PendingReview`; recolhimento do dinheiro ao Cofre no fechamento; Pix conferido pelo operador conferido contra o extrato; relatório em PDF e em bobina; reabrir só a última, por pessoa diferente do operador, com aviso ao Proprietário.
+- Pronta para revisão (19/11/2026, branch `feat/cx-02-fechamento`): "Fechar caixa" e a contagem cega no aparelho (`CashCountStarted`, `CashCounted`, sem esperado no aparelho); quebra recalculada no servidor por forma (`ICashSessionSales`, tolerância da loja editável), `Closed` com `CashSessionClosed` ou `PendingReview` com aviso; recolhimento ao Cofre pelo consumidor da CX-01; `/app/loja/caixas` com o quadro só para `sales.approve`, aprovação e reabertura por quem não operou, conferência do Pix (`pos.cash_pix_checks`), CSV e PDF (vias do operador e do gerente); bobina do fechamento no aparelho. Pendências: recontar com o supervisor no caixa (PDV-04); casamento do Pix pelo extrato integrado; lançamentos da quebra e estorno na reabertura (CX-03).
 
 **CX-03 [ ] Fechamento de caixa no financeiro e recebíveis de cartão (G)** — ordem 9 — [story](stories/CX-03-fechamento-financeiro-recebiveis.md)
 - Depende de: CX-02, PAG-01, VND-01, OFF-02.
