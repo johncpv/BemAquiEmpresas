@@ -7,6 +7,7 @@ import { uuidv7 } from '@/pdv/uuid-v7'
 import { parseCodeInput } from './code-input'
 import { checkCustomerDocument, type DocumentCipher } from './customer-document'
 import { addQuantities, packQuantityText, parseQuantity, subtractQuantities, toMilli } from './quantity'
+import { checkStockMessage, type StockGuard } from '@/pdv/stock/stock-guard'
 import { applySaleEvent, currentSale, emptyBook, parkedSales, replaySales, type Sale, saleTotal, type SaleBook, type SaleCustomer, type SaleEvent, type SaleEventData, type SaleEventType, type SaleLine } from './sale-model'
 
 /** Ajustes do caixa que mudam a tela de venda (guardados no aparelho, `pdv.settings`). */
@@ -33,6 +34,8 @@ export type AddResult =
   | { kind: 'invalid-quantity'; message: string }
   | { kind: 'search'; text: string }
   | { kind: 'locked'; message: string }
+  /** PDV-05: a empresa não vende sem saldo e o último saldo recebido não cobre a quantidade. */
+  | { kind: 'no-stock'; message: string }
 
 export type RemoveResult = { kind: 'removed' } | { kind: 'needs-authorization' } | { kind: 'locked' }
 
@@ -75,6 +78,8 @@ export interface SaleRegisterOptions {
   now?: () => Date
   /** Turno (sessão de caixa) em que a venda conclui (CX-01): vai na entrada da fila de saída para a OFF-02 e a CX-03 juntarem as vendas da sessão. */
   cashSessionId?: () => string | null
+  /** PDV-05 (PP-02): confere o saldo da loja antes de lançar ou aumentar um item (ausente: não confere). */
+  stock?: StockGuard
 }
 
 /** Regra da venda que a tela mostra ao operador (não é erro de gravação). */
@@ -170,6 +175,9 @@ export class SaleRegister {
       if (quantityText === null && item.fractional) return { kind: 'needs-quantity', item, code }
       const parsed = parseQuantity(quantityText ?? '1', item.fractional)
       if (!parsed.ok) return { kind: 'invalid-quantity', message: parsed.message }
+      const inSale = (this.current()?.lines ?? []).filter((l) => l.itemId === item.id).reduce((sum, l) => sum + (toMilli(l.quantity) ?? 0), 0)
+      const refused = await checkStockMessage(this.options.stock, item, inSale + (toMilli(parsed.value) ?? 0))
+      if (refused) return { kind: 'no-stock', message: refused }
 
       const events: SaleEvent[] = []
       let sale = this.current()
@@ -211,6 +219,12 @@ export class SaleRegister {
       const parsed = parseQuantity(text, line.fractional)
       if (!parsed.ok) return parsed
       if (parsed.value === line.quantity) return { ok: true }
+      const others = sale.lines.filter((l) => l.itemId === line.itemId && l.lineId !== lineId).reduce((sum, l) => sum + (toMilli(l.quantity) ?? 0), 0)
+      const wanted = others + (toMilli(parsed.value) ?? 0)
+      if ((toMilli(parsed.value) ?? 0) > (toMilli(line.quantity) ?? 0)) {
+        const refused = await checkStockMessage(this.options.stock, { id: line.itemId, name: line.name, unit: line.unit }, wanted)
+        if (refused) return { ok: false, message: refused }
+      }
       if (!authorized && !this.isFreeReduction(sale, line, parsed.value)) {
         return { ok: false, needsAuthorization: true, message: 'Diminuir um item que não é o último lançado pede autorização. Chame quem tem a permissão de remover itens no caixa.' }
       }

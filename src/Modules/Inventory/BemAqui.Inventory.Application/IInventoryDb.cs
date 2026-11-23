@@ -63,6 +63,9 @@ public interface IInventoryDb
 
     DbSet<InventoryCountLine> InventoryCountLines { get; }
 
+    /// <summary>Faltas de saldo das vendas do caixa (PDV-05, opção B da PP-02): só o <see cref="StockShortfallService"/> escreve.</summary>
+    DbSet<StockShortfall> StockShortfalls { get; }
+
     /// <summary>Para trocar o local padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

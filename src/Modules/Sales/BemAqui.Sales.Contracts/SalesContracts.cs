@@ -272,7 +272,8 @@ public interface ISalesRevenue
 
 /// <summary>
 /// Venda concluída (outbox). Sem dado pessoal: o consumidor relê a venda pelo id. <c>CashSessionId</c> nulo = canal sem caixa (o estoque baixa
-/// por venda e o financeiro agrupa por dia e canal); com sessão, quem trata é o fechamento do caixa (CX-03) e a baixa agregada (PDV-05).
+/// por venda e o financeiro agrupa por dia e canal); com sessão, o recebível é do fechamento do caixa (CX-03) e o estoque também baixa por venda, sem
+/// nunca recusar (PDV-05: a falta vira divergência no Estoque).
 /// </summary>
 public sealed record SaleCompleted(Guid SaleId, string Number, SaleChannel Channel, Guid? StoreId, Guid? CashSessionId, DateOnly BusinessDate, decimal Total, DateTimeOffset CompletedAt)
     : IIntegrationEvent;

@@ -58,6 +58,8 @@ import type {
   AmendmentSummary,
   AmendmentVersionInput,
   AnonymizePrivacySubjectInput,
+  ApplyStockShortfallInput,
+  ApplyStockShortfallResult,
   ApprovalCostView,
   ApprovalPreview,
   ApprovalResult,
@@ -380,6 +382,7 @@ import type {
   GetOutgoingInvoiceHistoryParams,
   GetPayrollTaxTableForCompetenceParams,
   GetPosCatalogChangesParams,
+  GetPosStockParams,
   GetProductionBoardParams,
   GetProductionCapacityParams,
   GetProjectBillingParams,
@@ -599,6 +602,7 @@ import type {
   ListStockBalancesParams,
   ListStockMovementsParams,
   ListStockShortagesParams,
+  ListStockShortfallsParams,
   ListSupplierOptionsParams,
   ListSyncDivergencesParams,
   ListTaxRulesParams,
@@ -739,6 +743,7 @@ import type {
   PagedListOfRoutingTemplateSummary,
   PagedListOfShortageRow,
   PagedListOfStockAdjustmentSummary,
+  PagedListOfStockShortfallRow,
   PagedListOfTenantRow,
   PagedListOfWorkCenterDetail,
   PartyAddressInfo,
@@ -861,6 +866,7 @@ import type {
   PosOperators,
   PosPinLoginInput,
   PosPinSessionResponse,
+  PosStockSnapshot,
   PosSyncBatch,
   PosSyncBatchResult,
   PositionChangeInput,
@@ -1078,6 +1084,7 @@ import type {
   SearchStockProjectsParams,
   SearchTraceabilityParams,
   SecuritySettingsDto,
+  SellWithoutStockInput,
   SerialTrace,
   SetGroupMembersRequest,
   SetPosPinInput,
@@ -8985,6 +8992,88 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getSaveEmailDispatchLimitMutationOptions(options), queryClient);
+    }
+
+export const getSaveSellWithoutStockUrl = () => {
+
+
+
+
+  return `/api/v1/settings/parameters/sell-without-stock`
+}
+
+export const saveSellWithoutStock = async (sellWithoutStockInput: SellWithoutStockInput, options?: Parameters<typeof apiFetch>[1]): Promise<TenantParametersDto> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TenantParametersDto>(getSaveSellWithoutStockUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(sellWithoutStockInput)
+  }
+);}
+
+
+
+
+
+export const getSaveSellWithoutStockMutationKey = () => ['saveSellWithoutStock'] as const;
+
+export const getSaveSellWithoutStockMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveSellWithoutStock>>, TError,SaveSellWithoutStockMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveSellWithoutStock>>, TError,SaveSellWithoutStockMutationVariables, TContext> => {
+
+const mutationKey = getSaveSellWithoutStockMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveSellWithoutStock>>, SaveSellWithoutStockMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveSellWithoutStock(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveSellWithoutStockMutationResult = NonNullable<Awaited<ReturnType<typeof saveSellWithoutStock>>>
+    export type SaveSellWithoutStockMutationBody = SellWithoutStockInput
+    export type SaveSellWithoutStockMutationError = unknown
+    export type SaveSellWithoutStockMutationVariables = {data: SellWithoutStockInput}
+
+    export const useSaveSellWithoutStock = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveSellWithoutStock>>, TError,SaveSellWithoutStockMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveSellWithoutStock>>,
+        TError,
+        SaveSellWithoutStockMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveSellWithoutStockMutationOptions(options), queryClient);
     }
 
 export const getGetShopfloorDeviceUrl = () => {
@@ -67352,6 +67441,190 @@ export function useExportInventoryCounts<TData = Awaited<ReturnType<typeof expor
 
 
 
+export const getListStockShortfallsUrl = (params?: ListStockShortfallsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/inventory/shortfalls?${stringifiedParams}` : `/api/v1/inventory/shortfalls`
+}
+
+export const listStockShortfalls = async (params?: ListStockShortfallsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfStockShortfallRow> => {
+
+  return apiFetch<PagedListOfStockShortfallRow>(getListStockShortfallsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStockShortfallsQueryKey = (params?: ListStockShortfallsParams,) => {
+    return [
+    `/api/v1/inventory/shortfalls`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListStockShortfallsQueryOptions = <TData = Awaited<ReturnType<typeof listStockShortfalls>>, TError = unknown>(params?: ListStockShortfallsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockShortfalls>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStockShortfallsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStockShortfalls>>> = ({ signal }) => listStockShortfalls(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStockShortfalls>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStockShortfallsQueryResult = NonNullable<Awaited<ReturnType<typeof listStockShortfalls>>>
+export type ListStockShortfallsQueryError = unknown
+
+
+export function useListStockShortfalls<TData = Awaited<ReturnType<typeof listStockShortfalls>>, TError = unknown>(
+ params: undefined |  ListStockShortfallsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockShortfalls>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStockShortfalls>>,
+          TError,
+          Awaited<ReturnType<typeof listStockShortfalls>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStockShortfalls<TData = Awaited<ReturnType<typeof listStockShortfalls>>, TError = unknown>(
+ params?: ListStockShortfallsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockShortfalls>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStockShortfalls>>,
+          TError,
+          Awaited<ReturnType<typeof listStockShortfalls>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStockShortfalls<TData = Awaited<ReturnType<typeof listStockShortfalls>>, TError = unknown>(
+ params?: ListStockShortfallsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockShortfalls>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListStockShortfalls<TData = Awaited<ReturnType<typeof listStockShortfalls>>, TError = unknown>(
+ params?: ListStockShortfallsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStockShortfalls>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStockShortfallsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getApplyStockShortfallUrl = () => {
+
+
+
+
+  return `/api/v1/inventory/shortfalls/apply`
+}
+
+export const applyStockShortfall = async (applyStockShortfallInput: ApplyStockShortfallInput, options?: Parameters<typeof apiFetch>[1]): Promise<ApplyStockShortfallResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ApplyStockShortfallResult>(getApplyStockShortfallUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(applyStockShortfallInput)
+  }
+);}
+
+
+
+
+
+export const getApplyStockShortfallMutationKey = () => ['applyStockShortfall'] as const;
+
+export const getApplyStockShortfallMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof applyStockShortfall>>, TError,ApplyStockShortfallMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof applyStockShortfall>>, TError,ApplyStockShortfallMutationVariables, TContext> => {
+
+const mutationKey = getApplyStockShortfallMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof applyStockShortfall>>, ApplyStockShortfallMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  applyStockShortfall(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApplyStockShortfallMutationResult = NonNullable<Awaited<ReturnType<typeof applyStockShortfall>>>
+    export type ApplyStockShortfallMutationBody = ApplyStockShortfallInput
+    export type ApplyStockShortfallMutationError = unknown
+    export type ApplyStockShortfallMutationVariables = {data: ApplyStockShortfallInput}
+
+    export const useApplyStockShortfall = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof applyStockShortfall>>, TError,ApplyStockShortfallMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof applyStockShortfall>>,
+        TError,
+        ApplyStockShortfallMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApplyStockShortfallMutationOptions(options), queryClient);
+    }
+
 export const getListPurchaseRequestsUrl = (params?: ListPurchaseRequestsParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -92805,6 +93078,108 @@ export function useGetPosCatalogChanges<TData = Awaited<ReturnType<typeof getPos
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetPosCatalogChangesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPosStockUrl = (params?: GetPosStockParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/pos/sync/stock?${stringifiedParams}` : `/api/v1/pos/sync/stock`
+}
+
+export const getPosStock = async (params?: GetPosStockParams, options?: Parameters<typeof apiFetch>[1]): Promise<PosStockSnapshot> => {
+
+  return apiFetch<PosStockSnapshot>(getGetPosStockUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPosStockQueryKey = (params?: GetPosStockParams,) => {
+    return [
+    `/api/v1/pos/sync/stock`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetPosStockQueryOptions = <TData = Awaited<ReturnType<typeof getPosStock>>, TError = unknown>(params?: GetPosStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosStock>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPosStockQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPosStock>>> = ({ signal }) => getPosStock(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPosStock>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPosStockQueryResult = NonNullable<Awaited<ReturnType<typeof getPosStock>>>
+export type GetPosStockQueryError = unknown
+
+
+export function useGetPosStock<TData = Awaited<ReturnType<typeof getPosStock>>, TError = unknown>(
+ params: undefined |  GetPosStockParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosStock>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPosStock>>,
+          TError,
+          Awaited<ReturnType<typeof getPosStock>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPosStock<TData = Awaited<ReturnType<typeof getPosStock>>, TError = unknown>(
+ params?: GetPosStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosStock>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPosStock>>,
+          TError,
+          Awaited<ReturnType<typeof getPosStock>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPosStock<TData = Awaited<ReturnType<typeof getPosStock>>, TError = unknown>(
+ params?: GetPosStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosStock>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPosStock<TData = Awaited<ReturnType<typeof getPosStock>>, TError = unknown>(
+ params?: GetPosStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosStock>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPosStockQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

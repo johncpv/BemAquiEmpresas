@@ -1,4 +1,5 @@
 import { Keyboard, LogOut, Pointer, Printer, Settings2 } from 'lucide-react'
+import { localStockGuard } from '@/pdv/stock/stock-guard'
 import { type KeyboardEvent as ReactKeyboardEvent, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { PosHandshake } from '@/api/generated/model'
 import { FloorButton, FloorDica, FloorSheet, FloorSkeleton, FloorState } from '@/components/shopfloor/kit'
@@ -131,7 +132,7 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
         cashIdRef.current = loaded?.id ?? null
         const opened = await SaleRegister.open({
           store, operatorId: operator.id, salePrefix: handshake.salePrefix, settings: () => ({ ...settingsRef.current, freeRemoveLast: settingsRef.current.freeRemoveLast && (store.catalogState()?.storeSettings?.freeRemoveLast ?? true) }),
-          cipher: aesDocumentCipher(loadDocumentKey), cashSessionId: () => cashIdRef.current,
+          cipher: aesDocumentCipher(loadDocumentKey), cashSessionId: () => cashIdRef.current, stock: localStockGuard(store),
         })
         // Venda concluída ao reabrir (queda entre o último pagamento e o fechamento): conta no turno como as outras.
         let session = loaded
@@ -308,6 +309,7 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
       case 'search':
         setNotice({ tone: 'error', text: `Nenhum produto com “${result.text}”.` })
         break
+      case 'no-stock':
       case 'locked':
         beep()
         setNotice({ tone: 'error', text: result.message })

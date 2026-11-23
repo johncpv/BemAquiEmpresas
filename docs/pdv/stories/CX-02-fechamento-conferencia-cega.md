@@ -115,7 +115,7 @@ Branch `feat/cx-02-fechamento`, sobre a OFF-02 (o fechamento sobe do aparelho pe
 
 Ajuda: `Ajuda/pdv-fechar-caixa.md` (nova, embutida no `/pdv`), `Ajuda/loja-caixas.md` (nova), `Ajuda/pdv-caixa.md` e `Ajuda/loja-lojas-caixas.md` atualizadas. `<Dica>` em "Conferência cega", "Quebra de caixa", "Fundo que fica" e "Tolerância de quebra por forma".
 
-Migration `20261120024415_PosCashClosingCx02`: colunas novas em `pos.cash_sessions` e as tabelas `pos.cash_counts` e `pos.cash_pix_checks`, só acréscimo.
+Migration `20261123210529_PosCashClosingCx02`: colunas novas em `pos.cash_sessions` e as tabelas `pos.cash_counts` e `pos.cash_pix_checks`, só acréscimo.
 
 **Revisão de segurança (PR #238, 23/11/2026):**
 - **A1:** o `CashSessionClosed` da CX-01 vindo do aparelho (fechar sem contagem, sem quebra e sem fundo que fica) vai para a quarentena com "use Fechar caixa (contagem)"; o `CashSessionIngestion.CloseAsync` saiu. O caixa só fecha pelo "Fechar caixa".

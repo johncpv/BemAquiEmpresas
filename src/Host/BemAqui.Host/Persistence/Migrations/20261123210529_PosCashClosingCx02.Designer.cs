@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BemAqui.Host.Persistence.Migrations
 {
     [DbContext(typeof(TenantDbContext))]
-    [Migration("20261120024415_PosCashClosingCx02")]
+    [Migration("20261123210529_PosCashClosingCx02")]
     partial class PosCashClosingCx02
     {
         /// <inheritdoc />
@@ -14777,6 +14777,107 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("stock_positions", "inventory");
                 });
 
+            modelBuilder.Entity("BemAqui.Inventory.Domain.StockShortfall", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
+
+                    b.Property<Guid?>("MovementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("movement_id");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at");
+
+                    b.Property<Guid?>("ResolvedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resolved_by");
+
+                    b.Property<Guid?>("ReversalMovementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversal_movement_id");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_id");
+
+                    b.Property<string>("SourceNumber")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("source_number");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("source_type");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_stock_shortfalls");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_stock_shortfalls_item_id");
+
+                    b.HasIndex("MovementId")
+                        .HasDatabaseName("ix_stock_shortfalls_movement_id");
+
+                    b.HasIndex("ReversalMovementId")
+                        .HasDatabaseName("ix_stock_shortfalls_reversal_movement_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_stock_shortfalls_open")
+                        .HasFilter("status = 'Open'");
+
+                    b.HasIndex("LocationId", "ItemId", "Status")
+                        .HasDatabaseName("ix_stock_shortfalls_location_item_status");
+
+                    b.HasIndex("SourceType", "SourceId", "ItemId", "LocationId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_stock_shortfalls_source_item_location");
+
+                    b.ToTable("stock_shortfalls", "inventory", t =>
+                        {
+                            t.HasCheckConstraint("ck_stock_shortfalls_quantity", "quantity > 0");
+                        });
+                });
+
             modelBuilder.Entity("BemAqui.Inventory.Domain.WarrantyDefault", b =>
                 {
                     b.Property<Guid>("Id")
@@ -19931,6 +20032,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("sale_id");
 
+                    b.Property<decimal>("ShortfallQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("shortfall_quantity");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -21343,6 +21449,35 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_stock_positions_locations_location_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Inventory.Domain.StockShortfall", b =>
+                {
+                    b.HasOne("BemAqui.Inventory.Domain.Item", null)
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_stock_shortfalls_items_item_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.Location", null)
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_stock_shortfalls_locations_location_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.StockMovement", null)
+                        .WithMany()
+                        .HasForeignKey("MovementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_stock_shortfalls_stock_movements_movement_id");
+
+                    b.HasOne("BemAqui.Inventory.Domain.StockMovement", null)
+                        .WithMany()
+                        .HasForeignKey("ReversalMovementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_stock_shortfalls_stock_movements_reversal_movement_id");
                 });
 
             modelBuilder.Entity("BemAqui.Migrations.Domain.ImportItem", b =>

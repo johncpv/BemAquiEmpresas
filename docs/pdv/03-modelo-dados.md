@@ -88,7 +88,7 @@ Dono das tabelas abaixo e das rotas `/api/v1/sales/…`. O núcleo (as quatro pr
 | `sale_payments` (`tenders`) | `id`, `sale_id`, `sale_part_id`, `payment_method_id` (Finance), `amount` `decimal(18,2)`, `change_amount` `decimal(18,2)`, `status` (`Created`, `Pending`, `Captured`, `Voided`, `Refunded`, `Failed`, `Unknown`), `integration` (`Manual`, `Tef`, `SmartPos`, `PixApi`, `Gateway`), `installments`, `provider`, `acquirer_party_id`, `card_brand`, `nsu`, `authorization_code`, `txid`, `end_to_end_id`, `confirmed_by`, `statement_checked_at` | Os campos de TEF e Pix existem desde o início, vazios no modo manual. **Nunca número de cartão, CVV ou trilha.** `statement_checked_at` marca o Pix conferido pelo operador que já foi conferido contra o extrato |
 | `sale_returns`, `sale_return_lines` | devolução: `sale_id`, `status` (`Requested`, `Approved`, `Completed`), `refund_kind` (`Cash`, `StoreCredit`, `CardReversal`), `exchange_sale_id`, `approved_by`; linha: `sale_line_id`, `quantity`, `restock` (volta ao estoque ou perda) | Troca = devolução + venda nova ligadas |
 | `store_credits` | `id`, `code`, `customer_id`, `amount`, `balance` (`decimal(18,2)`), `expires_at`, `origin_return_id` | Vale-troca (passivo). Não funciona sem rede |
-| `stock_postings` | `id`, `store_id`, `register_id`, `item_id`, `window_start`, `window_end`, `quantity` `decimal(18,4)`, `stock_movement_id`, `status` (`Posted`, `Shortfall`) | Baixa agregada por item, caixa e janela, com rastreio até as vendas (`stock_posting_sales`). A forma final sai do SPK-03 |
+| `stock_postings` | `id`, `sale_id`, `item_id`, `location_id`, `quantity` `decimal(18,4)`, `shortfall_quantity` `decimal(18,4)`, `unit_cost` `decimal(18,6)`, `stock_movement_id`, `reversal_movement_id`, `status` (`Posted`, `Shortfall`, `Blocked`, `Reversed`) | Baixa **por venda** e item (SPK-03, item 7; PDV-05): sai o que há em saldo e o restante (`shortfall_quantity`) fica em `inventory.stock_shortfalls` |
 
 ## 6. Finance (extensões)
 
@@ -107,8 +107,8 @@ Dono das tabelas abaixo e das rotas `/api/v1/sales/…`. O núcleo (as quatro pr
 |---|---|---|
 | `inventory.items` | + valor `Merchandise` em `ItemType` (mercadoria para revenda) | Aditivo |
 | `inventory.stock_movements` | + origens `PosSale` (ou `PosStockBatch`, se agregado), `SaleReturn`, `Loss` | Aditivo |
-| `inventory.locations` | + `store_id` (opcional) e, **só na opção A da PP-02**, `allow_negative` | A opção A exige afrouxar o `CHECK quantity_on_hand >= 0`: migration com ADR |
-| `inventory.stock_shortfalls` (nova, **só na opção B da PP-02**) | `id`, `item_id`, `location_id`, `quantity` `decimal(18,4)`, `source_posting_id`, `status` (`Open`, `Adjusted`), `adjusted_movement_id` | Fila de pendência: a falta fica estacionada até o ajuste |
+| `inventory.locations` | + `store_id` (opcional). A opção A da PP-02 (`allow_negative`) **não** foi escolhida (18/11/2026) | O `CHECK quantity_on_hand >= 0` não muda |
+| `inventory.stock_shortfalls` (nova, opção B da PP-02, PDV-05) | `id`, `item_id`, `location_id`, `quantity` `decimal(18,4)`, `source_type`, `source_id`, `source_number`, `occurred_at`, `status` (`Open`, `Applied`, `Cancelled`), `movement_id`, `reversal_movement_id`, `resolved_at`, `resolved_by` | Uma por origem, item e local. "Aplicar baixa" lança pelo motor com a origem `StockShortfall`; o cancelamento da venda fecha a falta aberta sem movimento. Auditada |
 
 ## 8. Fiscal (extensões)
 

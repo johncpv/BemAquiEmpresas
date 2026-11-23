@@ -245,6 +245,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<InventoryCountLine> InventoryCountLines => Set<InventoryCountLine>();
 
+    public DbSet<StockShortfall> StockShortfalls => Set<StockShortfall>();
+
     public DbSet<WorkCenter> WorkCenters => Set<WorkCenter>();
 
     public DbSet<Calendar> Calendars => Set<Calendar>();
