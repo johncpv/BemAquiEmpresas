@@ -26,8 +26,10 @@ public sealed class CashSessionSalesContract(ISalesDb db) : ICashSessionSales
         var ids = reconcileMethodIds.ToList();
         var manual = ids.Count == 0 ? [] : await completed
             .Join(captured.Where(p => p.Integration == PaymentIntegration.Manual && ids.Contains(p.PaymentMethodId)), s => s.Id, p => p.SaleId,
-                (s, p) => new CashSessionManualPayment(p.Id, s.Id, s.Number, p.PaymentMethodId, p.Amount - p.ChangeAmount, p.ConfirmedAt, p.ConfirmedBy))
-            .OrderBy(p => p.ConfirmedAt).ToListAsync(cancellationToken);
+                (s, p) => new { p.Id, SaleId = s.Id, s.Number, p.PaymentMethodId, Net = p.Amount - p.ChangeAmount, p.ConfirmedAt, p.ConfirmedBy })
+            .OrderBy(x => x.ConfirmedAt)
+            .Select(x => new CashSessionManualPayment(x.Id, x.SaleId, x.Number, x.PaymentMethodId, x.Net, x.ConfirmedAt, x.ConfirmedBy))
+            .ToListAsync(cancellationToken);
         var done = totals.FirstOrDefault(t => t.Status == SaleStatus.Completed);
         var cancelled = totals.FirstOrDefault(t => t.Status == SaleStatus.Cancelled);
         return new CashSessionSalesSummary(done?.Count ?? 0, cancelled?.Count ?? 0, cancelled?.Total ?? 0m, done?.Discounts ?? 0m, done?.Total ?? 0m, offline, byMethod, manual);
