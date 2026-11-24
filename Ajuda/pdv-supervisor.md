@@ -23,6 +23,10 @@ Algumas ações do caixa pedem a senha de um supervisor para ninguém fazer sozi
 
 **"Esta venda é de outro caixa. Use a devolução."** Só se cancela venda do turno aberto neste caixa. Venda de outro dia ou de outro caixa volta pela devolução.
 
+**A venda foi para a quarentena depois da aprovação.** A aprovação vale só para aquela ação, naquele item e com aqueles valores, e por 10 minutos. Se o valor mudou depois, ou passou o prazo, chame o supervisor de novo. Autorização de outra pessoa sem o PIN dela no caixa também vai para a quarentena: o Proprietário confere e libera.
+
+**O desconto no total pediu supervisor, mesmo dentro do limite.** O limite da loja vale para a venda inteira: o desconto no total somado aos descontos dos itens não pode passar dele.
+
 **Sem internet.** A aprovação do supervisor precisa de rede nesta versão. Remova o último item lançado (sai sem supervisor) ou espere a conexão.
 
 **O supervisor não aparece na lista.** Ele precisa ter o PIN do caixa (Meu perfil → Segurança) e a permissão da ação no grupo dele.
