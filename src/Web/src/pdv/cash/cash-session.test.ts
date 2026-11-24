@@ -4,7 +4,8 @@ import { emptyCatalog } from '@/pdv/local-store/catalog-types'
 import { DexieLocalStore } from '@/pdv/local-store/dexie-local-store'
 import { acquireWriterLock, InMemoryLockManager, writerLockName } from '@/pdv/local-store/writer-lock'
 import {
-  cashAlert, cashBlocked, cashKeptCents, checkMovement, closeCashSession, drawerCents, lastOpeningCents, loadCashSession, openCashSession, openedByOtherMessage,
+  adoptReopenedSession, cashAlert, cashBlocked, cashKeptCents, checkMovement, confirmCashCount, drawerCents, lastOpeningCents, loadCashSession, openCashSession,
+  openedByOtherMessage, startCashCount,
   recordMovement, recordSaleInSession,
 } from './cash-session'
 
@@ -94,14 +95,46 @@ describe('sessão de caixa no aparelho (CX-01)', () => {
     expect(cashAlert(after.session, limits)).toBeNull()
   })
 
-  it('fechar encerra o turno com o evento; sem turno, a venda não conta', async () => {
+  it('fechar caixa (CX-02): o turno entra em contagem uma vez e o aparelho apaga o dinheiro calculado (conferência cega, CA 1 e 3)', async () => {
     const store = await openStore()
-    await openCashSession(store, { operator: ana, openingCents: 0, registerId: 'r1', deviceEpoch: 1 })
-    await closeCashSession(store, ana)
+    await openCashSession(store, { operator: ana, openingCents: 10_000, registerId: 'r1', deviceEpoch: 1 })
+    await recordSaleInSession(store, [{ status: 'Captured', methodType: 'Cash', amountCents: 25_000 }])
+    const counting = await startCashCount(store, ana)
+    expect(counting.counting).toBe(true)
+    expect(counting.cashSalesCents).toBe(0)
+    expect((await loadCashSession(store))?.cashSalesCents).toBe(0)
+    await startCashCount(store, ana)
+    const events = (await store.outbox()).map((e) => (e.payload as { type: string }).type)
+    expect(events.filter((t) => t === 'CashCountStarted')).toHaveLength(1)
+  })
+
+  it('confirmar a contagem grava o contado e o recolhimento, sem esperado, e encerra o turno (CA 2, 4 e 12)', async () => {
+    const store = await openStore()
+    await openCashSession(store, { operator: ana, openingCents: 10_000, registerId: 'r1', deviceEpoch: 1 })
+    await recordSaleInSession(store, [{ status: 'Captured', methodType: 'Cash', amountCents: 25_000 }])
+    await startCashCount(store, ana)
+    const cashIds = new Set(['dinheiro'])
+    const lines = [{ methodId: 'dinheiro', countedCents: 35_300 }, { methodId: 'debito', countedCents: 4_000 }]
+    await expect(confirmCashCount(store, { operator: ana, lines, keptCents: 40_000, cashMethodIds: cashIds })).rejects.toThrow('O fundo que fica não pode passar do dinheiro contado.')
+    const result = await confirmCashCount(store, { operator: ana, lines, keptCents: 10_000, cashMethodIds: cashIds })
+    expect(result.depositCents).toBe(25_300)
     expect(await loadCashSession(store)).toBeNull()
-    expect((await store.pendingSummary()).count).toBe(2)
-    expect(await recordSaleInSession(store, [{ status: 'Captured', methodType: 'Cash', amountCents: 100 }])).toBeNull()
-    await closeCashSession(store, ana)
-    expect((await store.pendingSummary()).count).toBe(2)
+    expect(await lastOpeningCents(store)).toBe(10_000)
+    const counted = (await store.outbox()).map((e) => e.payload as Record<string, unknown>).find((p) => p.type === 'CashCounted')!
+    expect(counted).toMatchObject({ keptCents: 10_000, salesCount: 1 })
+    expect(Object.keys(counted).sort()).toEqual(['at', 'countId', 'depositMovementId', 'keptCents', 'lines', 'operatorId', 'salesCount', 'sessionId', 'type'])
+    expect(JSON.stringify(counted)).not.toMatch(/expected|difference/i)
+  })
+
+  it('retoma a sessão reaberta na retaguarda uma vez só (CA 10)', async () => {
+    const store = await openStore()
+    const opened = await openCashSession(store, { operator: ana, openingCents: 10_000, registerId: 'r1', deviceEpoch: 1 })
+    await startCashCount(store, ana)
+    await confirmCashCount(store, { operator: ana, lines: [{ methodId: null, countedCents: 10_000 }], keptCents: 10_000, cashMethodIds: new Set() })
+    const reopened = { id: opened.id, operatorId: 'ana', openedAt: opened.openedAt, openingCents: 10_000, reopenCount: 0 }
+    expect(await adoptReopenedSession(store, reopened, 'Ana')).toBeNull()
+    const back = await adoptReopenedSession(store, { ...reopened, reopenCount: 1 }, 'Ana')
+    expect(back?.id).toBe(opened.id)
+    expect((await loadCashSession(store))?.reopenCount).toBe(1)
   })
 })

@@ -3,12 +3,19 @@ using BemAqui.SharedKernel;
 
 namespace BemAqui.Pos.Domain;
 
-/// <summary>Situação da sessão de caixa (turno). A CX-02 acrescenta a contagem, a revisão e o fechamento.</summary>
+/// <summary>
+/// Situação da sessão de caixa (turno). CX-02: <c>Open → Counting</c> ("Fechar caixa") <c>→ Counted</c> (contagem confirmada; espera as vendas
+/// da sessão subirem) <c>→ Closed</c> (quebra dentro da tolerância) ou <c>PendingReview</c> (acima dela, ou sangria acima do calculado)
+/// <c>→ Closed</c> (aprovação). A última sessão <c>Closed</c> do caixa pode voltar a <c>Open</c> (reabertura).
+/// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<CashSessionStatus>))]
 public enum CashSessionStatus
 {
     Open,
     Closed,
+    Counting,
+    Counted,
+    PendingReview,
 }
 
 /// <summary>
@@ -39,6 +46,49 @@ public sealed class CashSession : Entity, IAuditable, IConcurrencyVersioned
 
     public DateTimeOffset? ClosedAt { get; set; }
 
+    /// <summary>CX-02: quem fechou (o operador que contou, ou quem aprovou o fechamento em revisão).</summary>
+    public Guid? ClosedBy { get; set; }
+
+    /// <summary>CX-02 CA 1: "Fechar caixa" no aparelho (instante do aparelho); depois dele nada entra na sessão.</summary>
+    public DateTimeOffset? CountStartedAt { get; set; }
+
+    /// <summary>CX-02 CA 4: a contagem vigente (id do aparelho) e quem contou. Uma só por fechamento; recontar é do supervisor.</summary>
+    public Guid? CountId { get; set; }
+
+    public Guid? CountedBy { get; set; }
+
+    public DateTimeOffset? CountedAt { get; set; }
+
+    /// <summary>Vendas que o aparelho concluiu na sessão: o fechamento espera todas subirem antes de calcular a quebra ("Aguardando envio das vendas").</summary>
+    public int? DeviceSalesCount { get; set; }
+
+    /// <summary>CX-02 CA 12: o fundo de troco que fica na gaveta para o próximo turno e o recolhimento ao Cofre (contado em dinheiro − fundo que fica).</summary>
+    public decimal? KeptAmount { get; set; }
+
+    public decimal? DepositAmount { get; set; }
+
+    /// <summary>O movimento do recolhimento da contagem vigente (fica fora do esperado: o dinheiro foi contado antes de sair).</summary>
+    public Guid? DepositMovementId { get; set; }
+
+    /// <summary>CX-02 CA 6: por que a sessão foi para revisão.</summary>
+    public CashReviewReasons ReviewReasons { get; set; }
+
+    /// <summary>CX-02 CA 7: quem aprovou o fechamento em revisão, quando e o motivo.</summary>
+    public Guid? ApprovedBy { get; set; }
+
+    public DateTimeOffset? ApprovedAt { get; set; }
+
+    public string? ApprovalReason { get; set; }
+
+    /// <summary>CX-02 CA 10: reaberturas (a última: quem, quando e o motivo; o histórico fica na auditoria).</summary>
+    public int ReopenCount { get; set; }
+
+    public Guid? ReopenedBy { get; set; }
+
+    public DateTimeOffset? ReopenedAt { get; set; }
+
+    public string? ReopenReason { get; set; }
+
     /// <summary>Quando o servidor recebeu a abertura.</summary>
     public DateTimeOffset CreatedAt { get; init; }
 
@@ -60,6 +110,12 @@ public enum CashMovementKind
     Opening,
     CashOut,
     CashIn,
+
+    /// <summary>CX-02 CA 12: recolhimento do fechamento (Caixa do PDV → Cofre): o dinheiro contado menos o fundo que fica.</summary>
+    Deposit,
+
+    /// <summary>CX-02 CA 10: a reabertura devolve o recolhimento à gaveta (Cofre → Caixa do PDV), para a nova contagem fechar.</summary>
+    DepositReturn,
 }
 
 /// <summary>
@@ -103,4 +159,12 @@ public sealed class CashMovement : Entity, IAuditable
         };
 
     public static bool NeedsReason(CashMovementKind kind) => kind is CashMovementKind.CashOut or CashMovementKind.CashIn;
+
+    /// <summary>Efeito no dinheiro da gaveta (CX-02); o fundo de troco entra pela abertura da sessão, não por aqui.</summary>
+    public static decimal DrawerEffect(CashMovementKind kind, decimal amount) => kind switch
+    {
+        CashMovementKind.CashIn or CashMovementKind.DepositReturn => amount,
+        CashMovementKind.CashOut or CashMovementKind.Deposit => -amount,
+        _ => 0m,
+    };
 }

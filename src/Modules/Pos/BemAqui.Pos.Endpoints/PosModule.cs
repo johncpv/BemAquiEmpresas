@@ -16,5 +16,5 @@ public sealed class PosModule : IModule
 
     public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddPosInfrastructure();
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapPosEndpoints();
+    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapPosEndpoints().MapCashSessionEndpoints();
 }

@@ -33,4 +33,5 @@ export interface StoreView {
   receiptPrintMode?: ReceiptPrintMode;
   freeRemoveLast?: boolean;
   syncAlertHours?: number;
+  cashBreakTolerance?: number;
 }

@@ -12,6 +12,7 @@ using BemAqui.Sales.Contracts;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 
 namespace BemAqui.Pos.Application;
 
@@ -54,13 +55,18 @@ public sealed partial class PosEventIngestion(
     ISaleIngestion sales,
     ISaleCustomerDocuments documents,
     CashSessionIngestion cash,
+    CashClosingService closing,
     PrinterService printers,
     IPosOperatorHistory operators,
     IAuditReader audit,
     IEventPublisher events,
     PosSyncAlerts alerts,
-    TimeProvider clock)
+    TimeProvider clock,
+    ILogger<PosEventIngestion> logger)
 {
+    [LoggerMessage(Level = LogLevel.Error, Message = "Evento {EventId} ({Kind}) do caixa {RegisterId} falhou na projeção e foi para a quarentena.")]
+    private static partial void LogProjectionFailed(ILogger logger, Exception exception, Guid eventId, string kind, Guid registerId);
+
     public const string SaleKind = "pos.sale";
     public const string CashKind = "pos.cash";
     public const string PrintKind = "pos.print";
@@ -259,6 +265,7 @@ public sealed partial class PosEventIngestion(
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 // B2: erro inesperado leva o evento à quarentena (guardado, sem efeito) em vez de travar a fila do aparelho com 500.
+                LogProjectionFailed(logger, ex, input.EventId, input.Kind, context.Register.Id);
                 await RollbackAsync(transaction, cancellationToken);
                 projection = Projection.Held(new Finding(SyncDivergenceKind.Validation, $"O evento não pôde ser processado ({ex.GetType().Name}); fica guardado para revisão."), payload, input.Kind);
             }

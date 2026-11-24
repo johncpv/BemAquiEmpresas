@@ -25,6 +25,9 @@ public static class PosInfrastructure
         services.TryAddScoped<PosCustomerSearchService>(); // PDV-02 CA 15: cliente cadastrado na tela de venda
         services.TryAddScoped<CashSessionIngestion>(); // CX-01: sessão de caixa e movimentos de dinheiro (a subida da OFF-02 chama)
         services.TryAddScoped<PrinterService>(); // IMP-01: impressoras do caixa e as impressões registradas (a subida da OFF-02 chama)
+        services.TryAddScoped<CashClosingService>(); // CX-02: fechamento com conferência cega (a subida da OFF-02 chama)
+        services.TryAddScoped<CashSessionQueries>(); // CX-02: Loja → Caixas (lista, quadro, aprovação, reabertura, Pix)
+        services.TryAddScoped<CashSessionReportService>(); // CX-02 CA 9: relatório do fechamento em PDF
         services.TryAddScoped<PosEventIngestion>(); // OFF-02: subida dos eventos do caixa
         services.TryAddScoped<PosSyncAlerts>(); // OFF-02 CA 16: caixa sem enviar vendas
         services.TryAddScoped<SyncDivergenceService>(); // OFF-02 CA 14 e 15: Pendências do PDV
@@ -35,6 +38,8 @@ public static class PosInfrastructure
         services.AddAuditableEntity<Printer>("pos");
         services.AddAuditableEntity<CashSession>("sales"); // CX-01: abertura e fechamento do caixa
         services.AddAuditableEntity<CashMovement>("sales"); // CX-01: fundo de troco, sangria e suprimento
+        services.AddAuditableEntity<CashCount>("sales"); // CX-02: contagem do fechamento
+        services.AddAuditableEntity<CashPixCheck>("sales"); // CX-02 CA 13: conferência do Pix contra o extrato
         services.AddAuditableEntity<SyncDivergence>("sales"); // OFF-02 CA 15: a resolução da pendência fica no histórico
         return services;
     }

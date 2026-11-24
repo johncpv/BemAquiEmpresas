@@ -16,7 +16,7 @@ export const CASH_SESSION_META = 'cash.session'
 /** O fundo de troco da última abertura, padrão da próxima (CA 1). */
 export const LAST_OPENING_META = 'cash.lastOpening'
 
-/** Tipo da entrada da fila de saída; o evento vai em `payload.type` (`CashSessionOpened`, `CashOutRecorded`, `CashInRecorded`, `CashSessionClosed`). */
+/** Tipo da entrada da fila de saída; o evento vai em `payload.type` (`CashSessionOpened`, `CashOutRecorded`, `CashInRecorded`, `CashCountStarted`, `CashCounted`). */
 export const CASH_OUTBOX_KIND = 'pos.cash'
 
 export const MAX_REASON_LENGTH = 200
@@ -49,6 +49,10 @@ export interface LocalCashSession {
   /** Dinheiro que ficou na gaveta pelas vendas (recebido − troco). **Interno**: nunca vai para a tela. */
   cashSalesCents: Cents
   movements: LocalCashMovement[]
+  /** CX-02: "Fechar caixa" acionado; o turno espera a contagem (não volta a vender). */
+  counting?: boolean
+  /** CX-02 CA 10: quantas vezes a sessão foi reaberta na retaguarda (a retomada neste aparelho). */
+  reopenCount?: number
 }
 
 export interface CashOperator {
@@ -186,14 +190,112 @@ export async function recordSaleInSession(store: LocalStore, tenders: readonly P
   return updated
 }
 
+/** A última sessão fechada neste aparelho e quantas vezes ela tinha sido reaberta: a mesma reabertura não é retomada duas vezes (CX-02 CA 10). */
+export const LAST_CLOSED_META = 'cash.lastClosed'
+
+/** Uma linha da contagem (CX-02 CA 2): a forma (null = dinheiro sem forma cadastrada), o contado e, no dinheiro, as peças (opcional). */
+export interface CashCountLine {
+  methodId: string | null
+  countedCents: Cents
+  denominations?: { cents: Cents; quantity: number }[] | null
+}
+
+/** O que sai da contagem para o comprovante: o recolhimento ao Cofre, o fundo que fica e o contado por forma. Nunca esperado nem diferença. */
+export interface CashCountResult {
+  sessionId: string
+  operatorName: string
+  openedAt: string
+  countedAt: string
+  salesCount: number
+  depositCents: Cents
+  keptCents: Cents
+  lines: CashCountLine[]
+  movements: LocalCashMovement[]
+}
+
 /**
- * Fecha a sessão neste aparelho com o evento `CashSessionClosed`. **Provisório até a CX-02**, que traz a contagem e a conferência cega: aqui só se
- * encerra o turno (as vendas em espera já foram tratadas pela tela).
+ * "Fechar caixa" (CX-02 CA 1): o turno passa a "em contagem" e o evento `CashCountStarted` vai para a fila. **Conferência cega (CA 3):** o
+ * dinheiro calculado das vendas (`cashSalesCents`) é apagado do aparelho neste momento; a tela de contagem não tem de onde tirar o esperado.
  */
-export async function closeCashSession(store: LocalStore, operator: CashOperator, now = new Date()): Promise<void> {
+export async function startCashCount(store: LocalStore, operator: CashOperator, now = new Date()): Promise<LocalCashSession> {
   const at = now.toISOString()
-  await store.updateMeta(CASH_SESSION_META, () => null, (_next, previous) => {
-    const session = previous as LocalCashSession | undefined
-    return session?.id ? { kind: CASH_OUTBOX_KIND, at, payload: { type: 'CashSessionClosed', sessionId: session.id, operatorId: operator.id, at } } : null
+  let result: LocalCashSession | null = null
+  await store.updateMeta(CASH_SESSION_META, (current) => {
+    const session = current as LocalCashSession | undefined
+    if (!session?.id) throw new CashSessionError('Abra o caixa antes.')
+    result = { ...session, counting: true, cashSalesCents: 0 }
+    return result
+  }, (next, previous) => ((previous as LocalCashSession | undefined)?.counting
+    ? null
+    : { kind: CASH_OUTBOX_KIND, at, payload: { type: 'CashCountStarted', sessionId: (next as LocalCashSession).id, operatorId: operator.id, at } }))
+  return result!
+}
+
+/** Dinheiro contado: a linha da forma Dinheiro (ou sem forma). */
+export const countedCashCents = (lines: readonly CashCountLine[], cashMethodIds: ReadonlySet<string>): Cents =>
+  sumCents(lines.filter((l) => l.methodId === null || cashMethodIds.has(l.methodId)).map((l) => l.countedCents))
+
+/** CX-02 CA 12: recolhimento = dinheiro contado − fundo que fica. */
+export const depositCents = (countedCash: Cents, keptCents: Cents): Cents => Math.max(0, countedCash - keptCents)
+
+/**
+ * "Confirmar contagem" (CX-02 CA 2, 4 e 12): grava o evento `CashCounted` (o contado por forma, o fundo que fica, o recolhimento e quantas vendas o
+ * aparelho concluiu) e encerra o turno neste aparelho, na mesma transação. Uma contagem só: depois dela, recontar é do supervisor. O fundo que
+ * fica vira o padrão da próxima abertura.
+ */
+export async function confirmCashCount(store: LocalStore, input: { operator: CashOperator; lines: CashCountLine[]; keptCents: Cents; cashMethodIds: ReadonlySet<string> }, now = new Date()): Promise<CashCountResult> {
+  const lines = input.lines.map((l) => ({ methodId: l.methodId, countedCents: l.countedCents, denominations: l.denominations?.length ? l.denominations : null }))
+  if (lines.some((l) => !Number.isSafeInteger(l.countedCents) || l.countedCents < 0 || l.countedCents > MAX_AMOUNT_CENTS)) throw new CashSessionError('Valor contado inválido.')
+  const cash = countedCashCents(lines, input.cashMethodIds)
+  if (!Number.isSafeInteger(input.keptCents) || input.keptCents < 0 || input.keptCents > cash) throw new CashSessionError('O fundo que fica não pode passar do dinheiro contado.')
+  const at = now.toISOString()
+  let result: CashCountResult | null = null
+  let reopenCount = 0
+  await store.updateMeta(CASH_SESSION_META, (current) => {
+    const session = current as LocalCashSession | undefined
+    if (!session?.id) throw new CashSessionError('Abra o caixa antes.')
+    reopenCount = session.reopenCount ?? 0
+    result = {
+      sessionId: session.id, operatorName: input.operator.name, openedAt: session.openedAt, countedAt: at, salesCount: session.salesCount,
+      depositCents: depositCents(cash, input.keptCents), keptCents: input.keptCents, lines, movements: session.movements,
+    }
+    return null
+  }, () => ({
+    kind: CASH_OUTBOX_KIND, at,
+    payload: {
+      type: 'CashCounted', sessionId: result!.sessionId, countId: uuidv7(now.getTime()), operatorId: input.operator.id, at, keptCents: input.keptCents,
+      depositMovementId: uuidv7(now.getTime()), salesCount: result!.salesCount, lines,
+    },
+  }))
+  await store.setMeta(LAST_OPENING_META, input.keptCents)
+  await store.setMeta(LAST_CLOSED_META, { id: result!.sessionId, reopenCount })
+  return result!
+}
+
+/** A sessão reaberta na retaguarda (CX-02 CA 10), como chega no aperto de mão. */
+export interface ReopenedCashSession {
+  id: string
+  operatorId: string
+  openedAt: string
+  openingCents: Cents
+  reopenCount: number
+}
+
+/**
+ * Retoma neste aparelho a sessão reaberta na retaguarda, se o aparelho não tem turno aberto e ainda não retomou esta reabertura. Volta sem o
+ * dinheiro calculado (só o aviso e o teto o usam; a próxima contagem é cega do mesmo jeito).
+ */
+export async function adoptReopenedSession(store: LocalStore, reopened: ReopenedCashSession, operatorName: string): Promise<LocalCashSession | null> {
+  const last = await store.getMeta<{ id: string; reopenCount: number }>(LAST_CLOSED_META)
+  if (last && last.id === reopened.id && last.reopenCount >= reopened.reopenCount) return null
+  let adopted: LocalCashSession | null = null
+  await store.updateMeta(CASH_SESSION_META, (current) => {
+    if (current && typeof (current as Partial<LocalCashSession>).id === 'string') return current
+    adopted = {
+      id: reopened.id, registerId: null, deviceEpoch: null, openedAt: reopened.openedAt, operatorId: reopened.operatorId, operatorName,
+      openingCents: reopened.openingCents, salesCount: 0, cashSalesCents: 0, movements: [], reopenCount: reopened.reopenCount,
+    }
+    return adopted
   })
+  return adopted
 }

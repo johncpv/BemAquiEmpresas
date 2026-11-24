@@ -83,7 +83,11 @@ public sealed class CashSessionIngestion(IPosDb db, IEventPublisher events, IUse
         db.CashSessions.Add(session);
         var opening = CashMovement.FromDevice(input.OpeningMovementId, session.Id, CashMovementKind.Opening, input.OpeningAmount, null, input.OperatorId, input.OpenedAt, false, now);
         db.CashMovements.Add(opening);
-        Publish(opening, register);
+        // CX-02 CA 12: o fundo que ficou na gaveta no último fechamento do caixa já está na conta do caixa; a abertura transfere só a diferença
+        // (a menos, a sobra volta ao Cofre). O movimento guarda o fundo inteiro (é o dinheiro da gaveta para o esperado).
+        var carried = await db.CashSessions.AsNoTracking().Where(s => s.RegisterId == register.Id && s.KeptAmount != null)
+            .OrderByDescending(s => s.OpenedAt).Select(s => s.KeptAmount).FirstOrDefaultAsync(cancellationToken) ?? 0m;
+        Publish(opening, register, input.OpeningAmount - carried);
         try
         {
             await db.SaveChangesAsync(cancellationToken);
@@ -167,39 +171,6 @@ public sealed class CashSessionIngestion(IPosDb db, IEventPublisher events, IUse
     }
 
     /// <summary>
-    /// Fechamento provisório (<c>CashSessionClosed</c>): só tira a sessão de <c>Open</c>, para o caixa poder abrir de novo. A contagem, a conferência
-    /// cega e o recolhimento são da CX-02, que troca este passo. Idempotente: fechar a sessão já fechada não muda nada.
-    /// </summary>
-    public async Task<Result<CashSessionView>> CloseAsync(Guid sessionId, Guid operatorId, DateTimeOffset closedAt, CancellationToken cancellationToken = default)
-    {
-        if (operatorId == Guid.Empty)
-        {
-            return Error.Validation("operator_required", "Informe o operador.");
-        }
-
-        var session = await db.CashSessions.FirstOrDefaultAsync(s => s.Id == sessionId, cancellationToken);
-        if (session is null)
-        {
-            return Error.NotFound("cash_session_not_found", "Sessão de caixa não encontrada.");
-        }
-
-        if (session.Status == CashSessionStatus.Open)
-        {
-            if (TimeError(closedAt, session.OpenedAt) is { } time)
-            {
-                return time;
-            }
-
-            session.Status = CashSessionStatus.Closed;
-            session.ClosedAt = closedAt;
-            await db.SaveChangesAsync(cancellationToken);
-            return ToView(session, replayed: false);
-        }
-
-        return ToView(session, replayed: true);
-    }
-
-    /// <summary>
     /// Janela de horário do evento do aparelho (o horário define a data da transferência no Financeiro): nunca antes da abertura da sessão, nem depois
     /// de agora mais a folga do relógio.
     /// </summary>
@@ -225,10 +196,15 @@ public sealed class CashSessionIngestion(IPosDb db, IEventPublisher events, IUse
         return Error.Conflict("cash_session_open", $"Este caixa já está aberto por {name} desde {since}.");
     }
 
-    private void Publish(CashMovement movement, Register register) =>
+    /// <summary><paramref name="transfer"/>: o valor a transferir quando difere do movimento (abertura com fundo deixado, CX-02); negativo = volta ao Cofre.</summary>
+    private void Publish(CashMovement movement, Register register, decimal? transfer = null)
+    {
+        var amount = transfer ?? movement.Amount;
+        var kind = amount < 0 ? CashMovementKind.Deposit : movement.Kind;
         events.Publish(new CashMovementRecorded(
-            movement.Id, movement.SessionId, register.StoreId, register.Id, register.Number, register.CashAccountId, movement.Kind.ToString(), movement.Amount,
+            movement.Id, movement.SessionId, register.StoreId, register.Id, register.Number, register.CashAccountId, kind.ToString(), Math.Abs(amount),
             DateOnly.FromDateTime(BusinessTime.ToBusiness(movement.OccurredAt).DateTime), movement.OccurredAt));
+    }
 
     private static CashSessionView ToView(CashSession s, bool replayed) => new(s.Id, s.RegisterId, s.OperatorId, s.Status, s.OpeningAmount, s.OpenedAt, replayed);
 

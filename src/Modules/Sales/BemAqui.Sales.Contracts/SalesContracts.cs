@@ -301,3 +301,33 @@ public interface ISaleCustomerDocuments
     /// <summary>As vendas com este documento, pelo índice cego (localizar a devolução, PP-26).</summary>
     Task<IReadOnlyList<Guid>> FindSalesAsync(string document, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Vendas líquidas de uma forma de pagamento na sessão de caixa (pagamentos capturados − troco, sem as vendas canceladas).</summary>
+public sealed record CashSessionMethodTotal(Guid PaymentMethodId, decimal Amount);
+
+/// <summary>Pagamento manual (atestado pelo operador) de uma forma a conferir contra o extrato, na sessão (CX-02 CA 13).</summary>
+public sealed record CashSessionManualPayment(Guid PaymentId, Guid SaleId, string SaleNumber, Guid PaymentMethodId, decimal Amount, DateTimeOffset? ConfirmedAt, Guid? ConfirmedBy);
+
+/// <summary>
+/// Resumo das vendas de uma sessão de caixa para o fechamento (CX-02): quantidade, canceladas, descontos, total, as feitas sem rede (chegaram ao
+/// servidor mais de <see cref="CashSessionSalesSummary.OfflineAfter"/> depois de concluídas), o total por forma e os pagamentos manuais das formas
+/// pedidas (Pix a conferir).
+/// </summary>
+public sealed record CashSessionSalesSummary(
+    int Sales,
+    int Cancelled,
+    decimal CancelledTotal,
+    decimal Discounts,
+    decimal Total,
+    int Offline,
+    IReadOnlyList<CashSessionMethodTotal> ByMethod,
+    IReadOnlyList<CashSessionManualPayment> ManualPayments)
+{
+    public static readonly TimeSpan OfflineAfter = TimeSpan.FromMinutes(5);
+}
+
+/// <summary>Vendas da sessão de caixa para o fechamento do PDV (CX-02): o <c>Pos</c> não lê <c>sales.*</c>; pergunta por aqui.</summary>
+public interface ICashSessionSales
+{
+    Task<CashSessionSalesSummary> SummaryAsync(Guid cashSessionId, IReadOnlyCollection<Guid> reconcileMethodIds, CancellationToken cancellationToken = default);
+}

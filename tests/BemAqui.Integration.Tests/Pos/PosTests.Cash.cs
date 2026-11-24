@@ -47,9 +47,9 @@ public partial class PosTests
         replay.Value.Replayed.Should().BeTrue();
         (await WithDbAsync(db => db.CashSessions.CountAsync(s => s.RegisterId == register))).Should().Be(1);
 
-        // Fechada a primeira, o caixa abre de novo; o fechamento também é idempotente.
-        (await CashAsync(s => s.CloseAsync(first, ownerId, openedAt.AddHours(8)))).IsSuccess.Should().BeTrue();
-        (await CashAsync(s => s.CloseAsync(first, ownerId, openedAt.AddHours(8)))).IsSuccess.Should().BeTrue();
+        // Fechada a primeira (o fechamento com contagem é da CX-02), o caixa abre de novo.
+        await WithDbAsync(db => db.CashSessions.Where(s => s.Id == first)
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.Status, CashSessionStatus.Closed).SetProperty(p => p.ClosedAt, openedAt.AddHours(8))));
         var reopened = await CashAsync(s => s.OpenAsync(new CashSessionOpenInput(second, register, 1, otherId, 50m, openedAt.AddHours(9), Guid.CreateVersion7())));
         reopened.IsSuccess.Should().BeTrue(reopened.Error?.Message);
 

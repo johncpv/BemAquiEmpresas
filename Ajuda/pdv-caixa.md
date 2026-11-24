@@ -16,7 +16,7 @@ Abrir o turno com o troco contado e registrar toda retirada (**sangria**) e todo
 - **Suprimento:** no painel, toque em **Suprimento**, digite o valor que entra na gaveta e o motivo (ex.: "Troco") e confirme. Sai o comprovante.
 - **Aviso de sangria:** quando o dinheiro na gaveta passa do limite da loja, aparece "Dinheiro em caixa acima de R$ X. Faça uma sangria." com o botão **Fazer sangria**.
 - **Teto de dinheiro:** se a loja tiver teto e o dinheiro na gaveta passar dele, a forma **Dinheiro** fica bloqueada no pagamento até a sangria. Cartão, Pix e as outras formas continuam.
-- **Fechar caixa:** encerra o turno. A contagem com conferência cega chega numa próxima versão.
+- **Fechar caixa:** encerra o turno com a contagem cega do dinheiro e dos comprovantes (veja "Caixa (PDV) — fechamento com conferência cega").
 
 ## Regras
 - **Um caixa, uma sessão aberta.** Se outra pessoa abriu o caixa, aparece "Este caixa já está aberto por Fulano desde 08:02.": peça para quem abriu fechar o caixa.

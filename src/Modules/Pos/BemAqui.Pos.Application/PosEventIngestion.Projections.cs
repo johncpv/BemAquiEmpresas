@@ -71,10 +71,14 @@ public sealed partial class PosEventIngestion
             return projection;
         }
 
-        // M1: a venda tem de estar dentro da sessão (da abertura ao fechamento, ou a agora, com a folga). Fora dela, ou em sessão já fechada, entra com a
-        // divergência "Sessão de caixa" e não soma no dinheiro da sessão.
-        var sessionEnd = (session.ClosedAt ?? clock.GetUtcNow()) + ClockTolerance;
-        var outsideSession = session.Status != CashSessionStatus.Open || completedAtDevice < session.OpenedAt - ClockTolerance || completedAtDevice > sessionEnd;
+        // CX-02: nada entra depois do "Fechar caixa" nem na sessão fechada (nem liberando da quarentena: reabra o caixa antes).
+        if (AfterCountStarted(session, completedAtDevice) is { } late)
+        {
+            projection.Quarantine = new Finding(SyncDivergenceKind.CashSession, late);
+            return projection;
+        }
+
+        var outsideSession = OutsideSession(session, completedAtDevice, clock.GetUtcNow());
         if (outsideSession)
         {
             projection.Divergences.Add(new Finding(SyncDivergenceKind.CashSession,
@@ -202,6 +206,7 @@ public sealed partial class PosEventIngestion
             var cashKept = replay.Tenders.Where(t => t.Status == "Captured" && t.MethodId is { } m && methods.TryGetValue(m, out var method) && method.Type == PaymentMethodType.Cash)
                 .Sum(t => t.AmountCents);
             db.SessionSales.Add(new SessionSale { SaleId = replay.SaleId, SessionId = sessionId, CashAmount = cashKept / 100m, CreatedAt = now });
+            await closing.OnSaleArrivedAsync(sessionId, ct); // CX-02: a sessão contada esperava esta venda para fechar
         }
 
         projection.Exceptions.AddRange(replay.Exceptions);
@@ -215,6 +220,12 @@ public sealed partial class PosEventIngestion
         var sessionId = PosSaleReplay.GuidOf(root, "sessionId");
         var at = PosSaleReplay.DateOf(root, "at");
         var projection = new Projection { OperatorId = operatorId };
+        if (type == LegacyClosedType)
+        {
+            // Revisão de segurança da CX-02 (A1): o fechamento da CX-01, sem contagem, quebra nem fundo que fica, não fecha mais a sessão.
+            return Hold(projection, SyncDivergenceKind.CashSession, LegacyClosedMessage);
+        }
+
         var problems = new List<string>();
         if (operatorId is null || sessionId is null || at is null)
         {
@@ -236,7 +247,7 @@ public sealed partial class PosEventIngestion
             "CashSessionOpened" => "pos.create",
             "CashOutRecorded" => "pos.cash_out",
             "CashInRecorded" => "pos.cash_in",
-            "CashSessionClosed" => "pos.create",
+            CountStartedType or CountedType => "pos.create",
             _ => null,
         };
         if (permission is null)
@@ -283,20 +294,14 @@ public sealed partial class PosEventIngestion
             return Hold(projection, SyncDivergenceKind.CashSession, "Movimento de uma sessão de outro caixa.");
         }
 
+        if (type is CountStartedType or CountedType)
+        {
+            return await ProjectCountAsync(context, root, type, session, operatorId!.Value, at!.Value, projection, ct);
+        }
+
         if (session.Status != CashSessionStatus.Open)
         {
             return Hold(projection, SyncDivergenceKind.CashSession, "Movimento depois do fechamento da sessão de caixa.");
-        }
-
-        if (type == "CashSessionClosed")
-        {
-            if (!context.Trusted && operatorId != session.OperatorId && !await context.HadPermissionAsync(operators, operatorId!.Value, "sales.approve", at!.Value, ct))
-            {
-                return Hold(projection, SyncDivergenceKind.Validation, "Quem fechou não é o operador da sessão nem supervisor.");
-            }
-
-            var closed = await cash.CloseAsync(session.Id, operatorId!.Value, at!.Value, ct);
-            return closed.IsSuccess ? projection : throw CashFailure(closed.Error!);
         }
 
         var amount = PosSaleReplay.LongOf(root, "amountCents");

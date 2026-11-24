@@ -72,7 +72,7 @@ describe('tela de pagamento (PDV-03)', () => {
     expect((screen.getByRole('button', { name: 'Voltar aos itens' }) as HTMLButtonElement).disabled).toBe(true)
 
     fireEvent.click(screen.getByRole('button', { name: /Dinheiro/ }))
-    fireEvent.change(screen.getByLabelText('Valor recebido'), { target: { value: '20,00' } })
+    fireEvent.change(await screen.findByLabelText('Valor recebido'), { target: { value: '20,00' } })
     expect(screen.getByText('R$ 11,01')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar recebimento' }))
 
@@ -111,7 +111,7 @@ describe('tela de pagamento (PDV-03)', () => {
   it('troco acima de R$ 200 pede um segundo toque para conferir o valor recebido', async () => {
     await saleWithCoffee(true)
     fireEvent.click(await screen.findByRole('button', { name: /Dinheiro/ }))
-    fireEvent.change(screen.getByLabelText('Valor recebido'), { target: { value: '250,00' } })
+    fireEvent.change(await screen.findByLabelText('Valor recebido'), { target: { value: '250,00' } })
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar recebimento' }))
     expect((await screen.findByRole('alert')).textContent).toMatch(/^Troco de R\$\s231,01: confira o valor recebido/)
     expect(screen.queryByText('Venda concluída', { selector: 'h2' })).toBeNull()

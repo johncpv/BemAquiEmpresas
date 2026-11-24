@@ -21,4 +21,6 @@ export interface StoreRequest {
   freeRemoveLast?: boolean | null;
   /** @nullable */
   syncAlertHours?: number | null;
+  /** @nullable */
+  cashBreakTolerance?: number | null;
 }

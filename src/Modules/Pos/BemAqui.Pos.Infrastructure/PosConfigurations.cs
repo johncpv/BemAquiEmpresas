@@ -127,7 +127,15 @@ internal sealed class CashSessionConfiguration : IEntityTypeConfiguration<CashSe
         b.Property(e => e.Id).ValueGeneratedNever();
         b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
         b.Property(e => e.OpeningAmount).HasPrecision(18, 2);
+        // CX-02: contagem, recolhimento, revisão e reabertura.
+        b.Property(e => e.KeptAmount).HasPrecision(18, 2);
+        b.Property(e => e.DepositAmount).HasPrecision(18, 2);
+        b.Property(e => e.ReviewReasons).HasDefaultValue(CashReviewReasons.None).HasSentinel(CashReviewReasons.None);
+        b.Property(e => e.ApprovalReason).HasMaxLength(CashSessionQueries.MaxReasonLength);
+        b.Property(e => e.ReopenReason).HasMaxLength(CashSessionQueries.MaxReasonLength);
+        b.Property(e => e.ReopenCount).HasDefaultValue(0);
         b.HasOne<Register>().WithMany().HasForeignKey(e => e.RegisterId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.RegisterId, e.OpenedAt });
         b.HasIndex(e => e.RegisterId).IsUnique().HasFilter("status = 'Open'").HasDatabaseName(CashSessionIngestion.OpenSessionIndex);
         b.HasIndex(e => new { e.StoreId, e.OpenedAt });
     }
@@ -152,6 +160,38 @@ internal sealed class CashMovementConfiguration : IEntityTypeConfiguration<CashM
         b.Property(e => e.Reason).HasMaxLength(CashMovement.MaxReasonLength);
         b.HasOne<CashSession>().WithMany().HasForeignKey(e => e.SessionId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => e.SessionId);
+    }
+}
+
+/// <summary>
+/// <c>pos.cash_counts</c> (CX-02): uma linha por forma em cada contagem (id da contagem do aparelho); o esperado e a diferença são do servidor.
+/// </summary>
+internal sealed class CashCountConfiguration : IEntityTypeConfiguration<CashCount>
+{
+    public void Configure(EntityTypeBuilder<CashCount> b)
+    {
+        b.ToTable("cash_counts", PosSchema.Name, t => t.HasCheckConstraint("ck_cash_counts_counted", "counted >= 0"));
+        b.Property(e => e.MethodType).HasMaxLength(24);
+        b.Property(e => e.Counted).HasPrecision(18, 2);
+        b.Property(e => e.Expected).HasPrecision(18, 2);
+        b.Property(e => e.PixNotFound).HasPrecision(18, 2);
+        b.Property(e => e.Difference).HasPrecision(18, 2);
+        b.Property(e => e.Denominations).HasColumnType("jsonb");
+        b.HasOne<CashSession>().WithMany().HasForeignKey(e => e.SessionId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.SessionId, e.CountId });
+    }
+}
+
+/// <summary><c>pos.cash_pix_checks</c> (CX-02 CA 13): uma conferência por pagamento Pix da sessão.</summary>
+internal sealed class CashPixCheckConfiguration : IEntityTypeConfiguration<CashPixCheck>
+{
+    public void Configure(EntityTypeBuilder<CashPixCheck> b)
+    {
+        b.ToTable("cash_pix_checks", PosSchema.Name);
+        b.Property(e => e.Amount).HasPrecision(18, 2);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        b.HasOne<CashSession>().WithMany().HasForeignKey(e => e.SessionId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.SessionId, e.PaymentId }).IsUnique();
     }
 }
 

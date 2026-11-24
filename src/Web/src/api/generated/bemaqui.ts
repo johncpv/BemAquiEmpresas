@@ -161,6 +161,10 @@ import type {
   CashFlowResult,
   CashForecastCard,
   CashForecastSummary,
+  CashPixCheckRequest,
+  CashSessionDecisionRequest,
+  CashSessionDetail,
+  CashSessionList,
   CategoryDetail,
   CategoryInput,
   ChallengeRequest,
@@ -228,6 +232,7 @@ import type {
   DocumentCheck,
   DownloadAccountantExportParams,
   DownloadBankStatementPdfParams,
+  DownloadCashSessionReportParams,
   DownloadDrePdfParams,
   DownloadPrivacyExportParams,
   DownloadQualityInspectionPdfParams,
@@ -267,6 +272,7 @@ import type {
   ExportBankStatementLinesParams,
   ExportBankStatementParams,
   ExportCashFlowParams,
+  ExportCashSessionsParams,
   ExportContractsParams,
   ExportCostCentersParams,
   ExportDiscountsAndCancellationsParams,
@@ -519,6 +525,7 @@ import type {
   ListBomItemOptionsParams,
   ListBomsParams,
   ListCalendarExceptionsParams,
+  ListCashSessionsParams,
   ListContractsParams,
   ListDashboardProjectResultsParams,
   ListEmployeePayslipsParams,
@@ -93746,6 +93753,664 @@ export function useSearchPosCustomers<TData = Awaited<ReturnType<typeof searchPo
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getSearchPosCustomersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListCashSessionsUrl = (params?: ListCashSessionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/pos/cash-sessions?${stringifiedParams}` : `/api/v1/pos/cash-sessions`
+}
+
+export const listCashSessions = async (params?: ListCashSessionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<CashSessionList> => {
+
+  return apiFetch<CashSessionList>(getListCashSessionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCashSessionsQueryKey = (params?: ListCashSessionsParams,) => {
+    return [
+    `/api/v1/pos/cash-sessions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListCashSessionsQueryOptions = <TData = Awaited<ReturnType<typeof listCashSessions>>, TError = unknown>(params?: ListCashSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashSessions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCashSessionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCashSessions>>> = ({ signal }) => listCashSessions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCashSessions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCashSessionsQueryResult = NonNullable<Awaited<ReturnType<typeof listCashSessions>>>
+export type ListCashSessionsQueryError = unknown
+
+
+export function useListCashSessions<TData = Awaited<ReturnType<typeof listCashSessions>>, TError = unknown>(
+ params: undefined |  ListCashSessionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashSessions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCashSessions>>,
+          TError,
+          Awaited<ReturnType<typeof listCashSessions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCashSessions<TData = Awaited<ReturnType<typeof listCashSessions>>, TError = unknown>(
+ params?: ListCashSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashSessions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCashSessions>>,
+          TError,
+          Awaited<ReturnType<typeof listCashSessions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCashSessions<TData = Awaited<ReturnType<typeof listCashSessions>>, TError = unknown>(
+ params?: ListCashSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashSessions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListCashSessions<TData = Awaited<ReturnType<typeof listCashSessions>>, TError = unknown>(
+ params?: ListCashSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCashSessions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCashSessionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getExportCashSessionsUrl = (params?: ExportCashSessionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/pos/cash-sessions/export?${stringifiedParams}` : `/api/v1/pos/cash-sessions/export`
+}
+
+export const exportCashSessions = async (params?: ExportCashSessionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getExportCashSessionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportCashSessionsQueryKey = (params?: ExportCashSessionsParams,) => {
+    return [
+    `/api/v1/pos/cash-sessions/export`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getExportCashSessionsQueryOptions = <TData = Awaited<ReturnType<typeof exportCashSessions>>, TError = unknown>(params?: ExportCashSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportCashSessions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportCashSessionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportCashSessions>>> = ({ signal }) => exportCashSessions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportCashSessions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportCashSessionsQueryResult = NonNullable<Awaited<ReturnType<typeof exportCashSessions>>>
+export type ExportCashSessionsQueryError = unknown
+
+
+export function useExportCashSessions<TData = Awaited<ReturnType<typeof exportCashSessions>>, TError = unknown>(
+ params: undefined |  ExportCashSessionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportCashSessions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportCashSessions>>,
+          TError,
+          Awaited<ReturnType<typeof exportCashSessions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportCashSessions<TData = Awaited<ReturnType<typeof exportCashSessions>>, TError = unknown>(
+ params?: ExportCashSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportCashSessions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportCashSessions>>,
+          TError,
+          Awaited<ReturnType<typeof exportCashSessions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportCashSessions<TData = Awaited<ReturnType<typeof exportCashSessions>>, TError = unknown>(
+ params?: ExportCashSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportCashSessions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useExportCashSessions<TData = Awaited<ReturnType<typeof exportCashSessions>>, TError = unknown>(
+ params?: ExportCashSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportCashSessions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExportCashSessionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetCashSessionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/pos/cash-sessions/${id}`
+}
+
+export const getCashSession = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<CashSessionDetail> => {
+
+  return apiFetch<CashSessionDetail>(getGetCashSessionUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCashSessionQueryKey = (id: string,) => {
+    return [
+    `/api/v1/pos/cash-sessions/${id}`
+    ] as const;
+    }
+
+
+export const getGetCashSessionQueryOptions = <TData = Awaited<ReturnType<typeof getCashSession>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashSession>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCashSessionQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCashSession>>> = ({ signal }) => getCashSession(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCashSession>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCashSessionQueryResult = NonNullable<Awaited<ReturnType<typeof getCashSession>>>
+export type GetCashSessionQueryError = unknown
+
+
+export function useGetCashSession<TData = Awaited<ReturnType<typeof getCashSession>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashSession>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCashSession>>,
+          TError,
+          Awaited<ReturnType<typeof getCashSession>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCashSession<TData = Awaited<ReturnType<typeof getCashSession>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashSession>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCashSession>>,
+          TError,
+          Awaited<ReturnType<typeof getCashSession>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCashSession<TData = Awaited<ReturnType<typeof getCashSession>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashSession>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetCashSession<TData = Awaited<ReturnType<typeof getCashSession>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashSession>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCashSessionQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getApproveCashSessionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/pos/cash-sessions/${id}/approve`
+}
+
+export const approveCashSession = async (id: string,
+    cashSessionDecisionRequest: CashSessionDecisionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<CashSessionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CashSessionDetail>(getApproveCashSessionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(cashSessionDecisionRequest)
+  }
+);}
+
+
+
+
+
+export const getApproveCashSessionMutationKey = () => ['approveCashSession'] as const;
+
+export const getApproveCashSessionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveCashSession>>, TError,ApproveCashSessionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof approveCashSession>>, TError,ApproveCashSessionMutationVariables, TContext> => {
+
+const mutationKey = getApproveCashSessionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveCashSession>>, ApproveCashSessionMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  approveCashSession(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApproveCashSessionMutationResult = NonNullable<Awaited<ReturnType<typeof approveCashSession>>>
+    export type ApproveCashSessionMutationBody = CashSessionDecisionRequest
+    export type ApproveCashSessionMutationError = unknown
+    export type ApproveCashSessionMutationVariables = {id: string;data: CashSessionDecisionRequest}
+
+    export const useApproveCashSession = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveCashSession>>, TError,ApproveCashSessionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof approveCashSession>>,
+        TError,
+        ApproveCashSessionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApproveCashSessionMutationOptions(options), queryClient);
+    }
+
+export const getReopenCashSessionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/pos/cash-sessions/${id}/reopen`
+}
+
+export const reopenCashSession = async (id: string,
+    cashSessionDecisionRequest: CashSessionDecisionRequest, options?: Parameters<typeof apiFetch>[1]): Promise<CashSessionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CashSessionDetail>(getReopenCashSessionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(cashSessionDecisionRequest)
+  }
+);}
+
+
+
+
+
+export const getReopenCashSessionMutationKey = () => ['reopenCashSession'] as const;
+
+export const getReopenCashSessionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenCashSession>>, TError,ReopenCashSessionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reopenCashSession>>, TError,ReopenCashSessionMutationVariables, TContext> => {
+
+const mutationKey = getReopenCashSessionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reopenCashSession>>, ReopenCashSessionMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reopenCashSession(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReopenCashSessionMutationResult = NonNullable<Awaited<ReturnType<typeof reopenCashSession>>>
+    export type ReopenCashSessionMutationBody = CashSessionDecisionRequest
+    export type ReopenCashSessionMutationError = unknown
+    export type ReopenCashSessionMutationVariables = {id: string;data: CashSessionDecisionRequest}
+
+    export const useReopenCashSession = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenCashSession>>, TError,ReopenCashSessionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reopenCashSession>>,
+        TError,
+        ReopenCashSessionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReopenCashSessionMutationOptions(options), queryClient);
+    }
+
+export const getCheckCashSessionPixUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/pos/cash-sessions/${id}/pix-check`
+}
+
+export const checkCashSessionPix = async (id: string,
+    cashPixCheckRequest: CashPixCheckRequest, options?: Parameters<typeof apiFetch>[1]): Promise<CashSessionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CashSessionDetail>(getCheckCashSessionPixUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(cashPixCheckRequest)
+  }
+);}
+
+
+
+
+
+export const getCheckCashSessionPixMutationKey = () => ['checkCashSessionPix'] as const;
+
+export const getCheckCashSessionPixMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkCashSessionPix>>, TError,CheckCashSessionPixMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof checkCashSessionPix>>, TError,CheckCashSessionPixMutationVariables, TContext> => {
+
+const mutationKey = getCheckCashSessionPixMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof checkCashSessionPix>>, CheckCashSessionPixMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  checkCashSessionPix(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CheckCashSessionPixMutationResult = NonNullable<Awaited<ReturnType<typeof checkCashSessionPix>>>
+    export type CheckCashSessionPixMutationBody = CashPixCheckRequest
+    export type CheckCashSessionPixMutationError = unknown
+    export type CheckCashSessionPixMutationVariables = {id: string;data: CashPixCheckRequest}
+
+    export const useCheckCashSessionPix = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkCashSessionPix>>, TError,CheckCashSessionPixMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof checkCashSessionPix>>,
+        TError,
+        CheckCashSessionPixMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCheckCashSessionPixMutationOptions(options), queryClient);
+    }
+
+export const getDownloadCashSessionReportUrl = (id: string,
+    params?: DownloadCashSessionReportParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/pos/cash-sessions/${id}/report.pdf?${stringifiedParams}` : `/api/v1/pos/cash-sessions/${id}/report.pdf`
+}
+
+export const downloadCashSessionReport = async (id: string,
+    params?: DownloadCashSessionReportParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDownloadCashSessionReportUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadCashSessionReportQueryKey = (id: string,
+    params?: DownloadCashSessionReportParams,) => {
+    return [
+    `/api/v1/pos/cash-sessions/${id}/report.pdf`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getDownloadCashSessionReportQueryOptions = <TData = Awaited<ReturnType<typeof downloadCashSessionReport>>, TError = unknown>(id: string,
+    params?: DownloadCashSessionReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadCashSessionReport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadCashSessionReportQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadCashSessionReport>>> = ({ signal }) => downloadCashSessionReport(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadCashSessionReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadCashSessionReportQueryResult = NonNullable<Awaited<ReturnType<typeof downloadCashSessionReport>>>
+export type DownloadCashSessionReportQueryError = unknown
+
+
+export function useDownloadCashSessionReport<TData = Awaited<ReturnType<typeof downloadCashSessionReport>>, TError = unknown>(
+ id: string,
+    params: undefined |  DownloadCashSessionReportParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadCashSessionReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadCashSessionReport>>,
+          TError,
+          Awaited<ReturnType<typeof downloadCashSessionReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadCashSessionReport<TData = Awaited<ReturnType<typeof downloadCashSessionReport>>, TError = unknown>(
+ id: string,
+    params?: DownloadCashSessionReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadCashSessionReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadCashSessionReport>>,
+          TError,
+          Awaited<ReturnType<typeof downloadCashSessionReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadCashSessionReport<TData = Awaited<ReturnType<typeof downloadCashSessionReport>>, TError = unknown>(
+ id: string,
+    params?: DownloadCashSessionReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadCashSessionReport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDownloadCashSessionReport<TData = Awaited<ReturnType<typeof downloadCashSessionReport>>, TError = unknown>(
+ id: string,
+    params?: DownloadCashSessionReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadCashSessionReport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadCashSessionReportQueryOptions(id,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

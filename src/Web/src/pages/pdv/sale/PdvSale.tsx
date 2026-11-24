@@ -11,8 +11,12 @@ import { formatCents } from '@/pdv/money'
 import { ManualTerminal, type PaymentTerminal } from '@/pdv/payment/payment-terminal'
 import { beep } from '@/pdv/sale/beep'
 import { applyPendingUpdate, markCashSessionOpen } from '@/pdv/app-update'
-import { cashAlert, cashBlocked, closeCashSession, lastOpeningCents, loadCashSession, type LocalCashSession, openCashSession, openedByOtherMessage, recordSaleInSession } from '@/pdv/cash/cash-session'
+import {
+  adoptReopenedSession, type CashCountResult, cashAlert, cashBlocked, confirmCashCount, lastOpeningCents, loadCashSession, type LocalCashSession, openCashSession,
+  openedByOtherMessage, recordSaleInSession, startCashCount,
+} from '@/pdv/cash/cash-session'
 import { CashArea } from '@/pages/pdv/cash/CashArea'
+import { CashClosedScreen, CashCountScreen } from '@/pages/pdv/cash/CashCountScreen'
 import { CashBusyScreen, CashOpenScreen } from '@/pages/pdv/cash/CashScreens'
 import { parseCodeInput } from '@/pdv/sale/code-input'
 import { aesDocumentCipher, formatDocument } from '@/pdv/sale/customer-document'
@@ -111,6 +115,11 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
   const [register, setRegister] = useState<SaleRegister | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
+  const [closed, setClosed] = useState<CashCountResult | null>(null)
+  // CX-02 CA 10: a sessão reaberta na retaguarda (chega no aperto de mão); a chave muda só numa reabertura nova.
+  const reopenedRef = useRef(handshake.reopenedCashSession)
+  useEffect(() => { reopenedRef.current = handshake.reopenedCashSession }, [handshake.reopenedCashSession])
+  const reopenKey = handshake.reopenedCashSession ? `${handshake.reopenedCashSession.id}:${handshake.reopenedCashSession.reopenCount}` : ''
 
   useEffect(() => {
     let alive = true
@@ -127,6 +136,12 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
         })
         // Venda concluída ao reabrir (queda entre o último pagamento e o fechamento): conta no turno como as outras.
         let session = loaded
+        // CX-02 CA 10: sessão reaberta na retaguarda e este aparelho sem turno: retoma (uma vez por reabertura).
+        const reopened = reopenedRef.current
+        if (!session && reopened) {
+          const name = store.list('operators').find((o) => o.id === reopened.operatorId)?.displayName ?? 'Operador'
+          session = await adoptReopenedSession(store, reopened, name)
+        }
         for (const done of loaded ? opened.recovered : []) session = await recordSaleInSession(store, done.tenders) ?? session
         if (!alive) return
         setCash(session)
@@ -136,7 +151,7 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
       }
     })()
     return () => { alive = false }
-  }, [store, operator.id, handshake.salePrefix, attempt])
+  }, [store, operator.id, handshake.salePrefix, reopenKey, attempt])
 
   const saveSettings = async (next: SaleSettings) => {
     setSettings(next)
@@ -148,6 +163,13 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
   }
 
   if (!register || cash === undefined) return <FloorSkeleton rows={3} />
+
+  const place = `${handshake.storeName} · Caixa ${String(handshake.registerNumber).padStart(2, '0')}`
+  const methods = store.list('paymentMethods')
+  const methodName = (id: string | null) => (id ? methods.find((m) => m.id === id)?.name ?? 'Forma removida' : 'Dinheiro')
+
+  // CX-02 CA 6, 9 e 12: depois da contagem, só "Fechamento enviado para conferência." e o comprovante; "Concluir" leva à abertura (CA 11).
+  if (closed) return <CashClosedScreen result={closed} place={place} methodName={methodName} onDone={() => setClosed(null)} />
 
   // CX-01 CA 1: sem turno aberto, o operador abre com o fundo de troco (padrão: o da última abertura); sem turno não se vende (PDV-02 CA 17).
   if (!cash) {
@@ -165,11 +187,26 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
   const busy = openedByOtherMessage(cash, operator.id)
   if (busy) return <CashBusyScreen message={busy} onLeave={onLeave} />
 
+  // CX-02 CA 1 a 4: "Fechar caixa" acionado: só a contagem cega; o turno não volta a vender.
+  if (cash.counting) {
+    return (
+      <CashCountScreen methods={methods} operatorName={operator.name} defaultKeptCents={cash.openingCents}
+        onConfirm={async (lines, keptCents) => {
+          const cashMethodIds = new Set(methods.filter((m) => m.kind === 'Cash').map((m) => m.id))
+          const result = await confirmCashCount(store, { operator, lines, keptCents, cashMethodIds })
+          setLastOpening(keptCents)
+          setClosed(result)
+          setCash(null)
+          applyPendingUpdate()
+        }} />
+    )
+  }
+
   return (
     <SaleScreen store={store} register={register} operator={operator} online={online} settings={settings} onSettings={saveSettings} terminal={terminal}
       registerId={handshake.registerId} storeName={handshake.storeName}
-      searchCustomers={searchCustomers} onLeave={onLeave} cash={cash} onCash={setCash} place={`${handshake.storeName} · Caixa ${String(handshake.registerNumber).padStart(2, '0')}`}
-      onCloseRegister={async () => { await closeCashSession(store, operator); setCash(null); applyPendingUpdate() }} />
+      searchCustomers={searchCustomers} onLeave={onLeave} cash={cash} onCash={setCash} place={place}
+      onCloseRegister={async () => { setCash(await startCashCount(store, operator)) }} />
   )
 }
 
