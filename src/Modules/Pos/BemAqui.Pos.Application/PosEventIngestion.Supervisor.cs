@@ -31,11 +31,27 @@ public sealed partial class PosEventIngestion
         foreach (var approval in cited)
         {
             var row = await db.SupervisorApprovals.FirstOrDefaultAsync(a => a.Id == approval.ApprovalId, ct);
+            // Achado 1: a linha é exatamente a aprovada (linha nula só na ação da venda ou do total).
             if (row is null || row.StoreId != context.Store.Id || row.RegisterId != context.Register.Id || row.DeviceId != context.Device.DeviceId
                 || row.Action != approval.Action || row.SaleId != saleId || row.OperatorId != approval.OperatorId || row.SupervisorId != approval.SupervisorId
-                || (row.LineId is not null && row.LineId != approval.LineId) || (row.UsedByEventId is not null && row.UsedByEventId != eventId))
+                || row.LineId != approval.LineId || (row.UsedByEventId is not null && row.UsedByEventId != eventId))
             {
-                problems.Add($"{SupervisorActions.Label(approval.Action)} com uma aprovação de supervisor que não confere (outra venda, ação, pessoa ou caixa, ou já usada).");
+                problems.Add($"{SupervisorActions.Label(approval.Action)} com uma aprovação de supervisor que não confere (outra venda, linha, ação, pessoa ou caixa, ou já usada).");
+                continue;
+            }
+
+            // Achado 1: os valores aplicados são os aprovados, ao centavo (antes e depois).
+            if ((approval.BeforeCents is { } before && row.BeforeAmount != before / 100m) || (approval.AfterCents is { } after && row.AfterAmount != after / 100m))
+            {
+                problems.Add($"{SupervisorActions.Label(approval.Action)} com valores diferentes dos aprovados pelo supervisor "
+                    + $"(aprovado de {PosSaleReplay.Money((long)(row.BeforeAmount * 100))} para {PosSaleReplay.Money((long)(row.AfterAmount * 100))}).");
+                continue;
+            }
+
+            // Achado 6: a aprovação vale por pouco tempo.
+            if (approval.At > row.ApprovedAt + SupervisorApproval.MaxUseDelay)
+            {
+                problems.Add($"{SupervisorActions.Label(approval.Action)}: ação feita mais de {SupervisorApproval.MaxUseDelay.TotalMinutes:0} minutos depois da aprovação do supervisor.");
                 continue;
             }
 
@@ -87,8 +103,8 @@ public sealed partial class PosEventIngestion
             {
                 new ReplayCheck(operatorId, at, "quem cancelou a venda", "pos.cancel_sale", NeedsPinSession: true),
             };
-            await CheckPeopleAsync(context, checks, problems, [], ct);
-            await CheckApprovalsAsync(context, eventId, saleId!.Value, [new ReplayApproval(approvalId!.Value, SupervisorAction.CancelSale, operatorId, supervisorId, null, at)],
+            await CheckPeopleAsync(context, checks, problems, ct);
+            await CheckApprovalsAsync(context, eventId, saleId!.Value, [new ReplayApproval(approvalId!.Value, SupervisorAction.CancelSale, operatorId, supervisorId, null, at, AfterCents: 0)],
                 problems, approvals, ct);
         }
 
@@ -109,6 +125,14 @@ public sealed partial class PosEventIngestion
         if (sale.Status == SaleStatus.Cancelled)
         {
             return projection; // reenvio ou cancelado na retaguarda: nada a fazer
+        }
+
+        // Achado 1: o supervisor aprovou o cancelamento deste valor (o total da venda no servidor).
+        if (approvals.Any(a => a.BeforeAmount != sale.Total))
+        {
+            projection.Quarantine = new Finding(SyncDivergenceKind.Validation,
+                $"Cancelamento recusado na conferência: o supervisor aprovou o cancelamento de outro valor (a venda é de {PosSaleReplay.Money((long)(sale.Total * 100))}).");
+            return projection;
         }
 
         var session = sale.CashSessionId is { } sessionId ? await db.CashSessions.FirstOrDefaultAsync(s => s.Id == sessionId, ct) : null;

@@ -73,6 +73,11 @@ public sealed class SupervisorApprovalService(IPosDb db, IPosSupervisorPins pins
             return Invalid("beforeAmount", "Informe os valores antes e depois em reais, com até 2 casas.");
         }
 
+        if (DirectionProblem(input.Action, input.BeforeAmount, input.AfterAmount) is { } direction)
+        {
+            return Invalid("afterAmount", direction);
+        }
+
         // CA 11: o supervisor nunca aprova a própria ação (conferido de novo no Identity e na subida, e no banco por CHECK).
         if (input.SupervisorId == operatorId)
         {
@@ -105,6 +110,19 @@ public sealed class SupervisorApprovalService(IPosDb db, IPosSupervisorPins pins
         var name = await users.DisplayNameAsync(input.SupervisorId, cancellationToken) ?? "Supervisor";
         return new SupervisorApprovalGranted(approval.Id, approval.Action, approval.SupervisorId, name, now);
     }
+
+    /// <summary>
+    /// Revisão de segurança, achado 7: os valores combinam com a ação. Desconto: o depois não passa do antes; troca de preço: o preço muda; cancelamento
+    /// de item: o valor da linha não sobe; cancelamento de venda: o depois é zero. Null quando está bom (os dois já são maiores ou iguais a zero).
+    /// </summary>
+    public static string? DirectionProblem(SupervisorAction action, decimal before, decimal after) => action switch
+    {
+        SupervisorAction.Discount when after > before => "No desconto, o valor depois não pode passar do valor antes.",
+        SupervisorAction.ChangePrice when after == before => "Na troca de preço, o preço novo tem de ser diferente do atual.",
+        SupervisorAction.CancelItem when after > before => "No cancelamento de item, o valor depois não pode passar do valor antes.",
+        SupervisorAction.CancelSale when after != 0 => "No cancelamento de venda, o valor depois tem de ser zero.",
+        _ => null,
+    };
 
     /// <summary>A venda já está no servidor e não é da sessão aberta deste caixa (sem a venda ainda, a subida confere depois).</summary>
     private async Task<bool> OtherRegisterAsync(Guid saleId, Guid registerId, CancellationToken cancellationToken)

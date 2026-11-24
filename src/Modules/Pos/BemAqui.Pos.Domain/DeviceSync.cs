@@ -91,7 +91,8 @@ public enum SyncDivergenceKind
 
     /// <summary>
     /// Autorização sem supervisor conferido (revisão de segurança M2, até a PDV-04): quem autorizou não tinha sessão por PIN neste aparelho no instante,
-    /// ou é o próprio operador numa ação que pede supervisor. A venda entra; a pendência fica para o gerente.
+    /// ou é o próprio operador numa ação que pede supervisor. A venda entra; a pendência fica para o gerente. Desde a revisão de segurança da PDV-04 não é
+    /// mais gerada (autorização de outra pessoa sem a aprovação por PIN vai para a quarentena); fica para as pendências antigas.
     /// </summary>
     Authorization,
 

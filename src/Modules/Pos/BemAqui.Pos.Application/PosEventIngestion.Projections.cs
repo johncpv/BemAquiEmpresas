@@ -37,11 +37,10 @@ public sealed partial class PosEventIngestion
             violations.Add("Os instantes da venda estão fora de ordem ou longe do instante do evento (relógio do aparelho mexido).");
         }
 
-        var soft = new List<string>(replay.AuthorizationNotes);
         var approvals = new List<SupervisorApproval>();
         if (!context.Trusted)
         {
-            await CheckPeopleAsync(context, replay.Checks, violations, soft, ct);
+            await CheckPeopleAsync(context, replay.Checks, violations, ct);
             await CheckApprovalsAsync(context, eventId, replay.SaleId, replay.Approvals, violations, approvals, ct);
         }
 
@@ -207,11 +206,6 @@ public sealed partial class PosEventIngestion
             await documents.AttachAsync(new SaleCustomerDocumentInput(doc.SaleId, doc.Kind, doc.Value), ct);
         }
 
-        foreach (var note in soft.Distinct())
-        {
-            projection.Divergences.Add(new Finding(SyncDivergenceKind.Authorization, note));
-        }
-
         if (!ingested.Value.Replayed && !outsideSession)
         {
             var cashKept = replay.Tenders.Where(t => t.Status == "Captured" && t.MethodId is { } m && methods.TryGetValue(m, out var method) && method.Type == PaymentMethodType.Cash)
@@ -268,7 +262,7 @@ public sealed partial class PosEventIngestion
 
         if (problems.Count == 0 && !context.Trusted)
         {
-            await CheckPeopleAsync(context, [new ReplayCheck(operatorId, at!.Value, "operador do caixa", permission, NeedsPinSession: true)], problems, problems, ct);
+            await CheckPeopleAsync(context, [new ReplayCheck(operatorId, at!.Value, "operador do caixa", permission, NeedsPinSession: true)], problems, ct);
         }
 
         if (problems.Count > 0)
@@ -368,7 +362,7 @@ public sealed partial class PosEventIngestion
 
         if (!context.Trusted)
         {
-            await CheckPeopleAsync(context, [new ReplayCheck(operatorId, printedAt.Value, "quem imprimiu", "pos.create", NeedsPinSession: true)], problems, problems, ct);
+            await CheckPeopleAsync(context, [new ReplayCheck(operatorId, printedAt.Value, "quem imprimiu", "pos.create", NeedsPinSession: true)], problems, ct);
         }
 
         if (problems.Count > 0)
@@ -434,9 +428,9 @@ public sealed partial class PosEventIngestion
 
     /// <summary>
     /// Operador presente numa sessão por PIN deste aparelho no instante e com a permissão no instante (requisitos da PDV-02, PDV-03 e CX-01). Quem
-    /// autorizou (supervisor) é conferido pela permissão; a sessão por PIN do supervisor chega com a PDV-04.
+    /// autoriza é o próprio operador com a permissão no instante, ou o supervisor pela aprovação por PIN (PDV-04, conferida à parte). Toda falha é quarentena.
     /// </summary>
-    private async Task CheckPeopleAsync(SyncContext context, IEnumerable<ReplayCheck> checks, List<string> problems, List<string> soft, CancellationToken ct)
+    private async Task CheckPeopleAsync(SyncContext context, IEnumerable<ReplayCheck> checks, List<string> problems, CancellationToken ct)
     {
         foreach (var check in checks)
         {
@@ -448,7 +442,7 @@ public sealed partial class PosEventIngestion
 
             if (check.NeedsPinSession && !await context.HadSessionAsync(operators, user, check.At, ct))
             {
-                (check.Soft ? soft : problems).Add($"{Capital(check.Role)} não tinha sessão por PIN neste caixa às {Local(check.At)}.");
+                problems.Add($"{Capital(check.Role)} não tinha sessão por PIN neste caixa às {Local(check.At)}.");
                 continue;
             }
 

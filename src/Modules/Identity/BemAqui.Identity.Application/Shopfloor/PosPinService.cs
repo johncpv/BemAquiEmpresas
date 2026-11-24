@@ -513,17 +513,29 @@ public sealed class PosPinService(
             user = null;
         }
 
-        if (row is null || user is null || !PinRules.IsWellFormed(pin))
+        if (row is null || user is null)
         {
-            hasher.VerifyHashedPassword(user ?? probe, row is not null && user is not null ? row.PinHash : AuthService.DummyHash, pin);
-            if (row is not null && user is not null)
-            {
-                return await SupervisorFailAsync(device, row, user.Id, "bad_format", cancellationToken);
-            }
-
+            hasher.VerifyHashedPassword(probe, AuthService.DummyHash, pin);
             await DeviceFailureAsync(device, request.SupervisorId, "unknown_user", cancellationToken);
             await db.SaveChangesAsync(cancellationToken);
             return Error.Validation("auth.pin_invalid", InvalidPin);
+        }
+
+        // Revisão de segurança, achado 4: quem não tem a ação pedida entre as de supervisor nem tem o PIN conferido. A resposta é a mesma do PIN errado,
+        // sem contar falha no usuário nem no aparelho: não vira oráculo do PIN de quem não aprova nem trava o PIN do colega.
+        var effective = await permissions.GetAsync(user.Id, cancellationToken);
+        if (!PinProfile.SupervisorActions(effective).Contains(request.Permission, StringComparer.Ordinal))
+        {
+            hasher.VerifyHashedPassword(probe, AuthService.DummyHash, pin);
+            revocations.Audit("Auth", user.Id.ToString(), "PosSupervisorPinRefused", user.Id, new { audit.device, audit.@operator, audit.permission, reason = "not_supervisor" });
+            await db.SaveChangesAsync(cancellationToken);
+            return Error.Validation("auth.pin_invalid", InvalidPin);
+        }
+
+        if (!PinRules.IsWellFormed(pin))
+        {
+            hasher.VerifyHashedPassword(user, row.PinHash, pin);
+            return await SupervisorFailAsync(device, row, user.Id, "bad_format", cancellationToken);
         }
 
         if (row.IsLocked(now))
@@ -541,8 +553,7 @@ public sealed class PosPinService(
         }
 
         // O PIN inicial do usuário de operação vale só para a primeira entrada (ADR 0049): o supervisor troca entrando no caixa antes de aprovar.
-        var effective = await permissions.GetAsync(user.Id, cancellationToken);
-        if (row.MustChange || !PinProfile.SupervisorActions(effective).Contains(request.Permission, StringComparer.Ordinal) || !await EmployeeOkAsync(user, cancellationToken))
+        if (row.MustChange || !await EmployeeOkAsync(user, cancellationToken))
         {
             revocations.Audit("Auth", user.Id.ToString(), "PosSupervisorPinRefused", user.Id, new { audit.device, audit.@operator, audit.permission, reason = row.MustChange ? "pin_change_required" : "not_allowed" });
             await db.SaveChangesAsync(cancellationToken);

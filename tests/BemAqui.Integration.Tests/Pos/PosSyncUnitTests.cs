@@ -67,10 +67,9 @@ public class PosSyncUnitTests
         Run([Line(a, "2"), Line(b, "1"), Ev("LineRemoved", new { lineId = b, reason = "last-item", operatorId = Operator }), .. Pay(2000)], freeRemoveLast: false)
             .Violations.Should().ContainSingle(v => v.Contains("Sem quem autorizou", StringComparison.Ordinal));
 
-        // Com quem autorizou: a regra passa e a permissão dele no instante entra na conferência.
-        var authorized = Run([Line(a, "2"), Line(b, "1"), Ev("LineRemoved", new { lineId = a, reason = "authorized", operatorId = Operator, authorizedBy = Supervisor }), .. Pay(1000)]);
-        authorized.Violations.Should().BeEmpty();
-        authorized.Checks.Should().Contain(c => c.UserId == Supervisor && c.Permission == "pos.cancel_item" && !c.NeedsPinSession);
+        // PDV-04 (achado 2): outra pessoa que autoriza sem a aprovação do supervisor por PIN vai para a quarentena (antes era só divergência, OFF-02).
+        Run([Line(a, "2"), Line(b, "1"), Ev("LineRemoved", new { lineId = a, reason = "authorized", operatorId = Operator, authorizedBy = Supervisor }), .. Pay(1000)])
+            .Violations.Should().ContainSingle(v => v.Contains("sem a aprovação do supervisor", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -164,16 +163,15 @@ public class PosSyncUnitTests
         var a = Guid.CreateVersion7();
         var self = Run([Line(a, "2"), Line(Guid.CreateVersion7(), "1"), Ev("LineRemoved", new { lineId = a, reason = "authorized", operatorId = Operator, authorizedBy = Operator }), .. Pay(1000)]);
         self.Violations.Should().BeEmpty();
-        self.AuthorizationNotes.Should().BeEmpty();
         self.Checks.Should().Contain(c => c.UserId == Operator && c.Permission == "pos.cancel_item" && !c.NeedsPinSession);
-        self.Checks.Should().NotContain(c => c.Soft);
 
         // CA 10: com a aprovação, a subida confere a trilha (ação, linha, operador e supervisor); sem conferência de sessão do supervisor.
         var approval = Guid.CreateVersion7();
         var approved = Run([Line(a, "2"), Line(Guid.CreateVersion7(), "1"),
             Ev("LineRemoved", new { lineId = a, reason = "authorized", operatorId = Operator, authorizedBy = Supervisor, approvalId = approval }), .. Pay(1000)]);
         approved.Violations.Should().BeEmpty();
-        approved.Approvals.Should().ContainSingle(x => x.ApprovalId == approval && x.Action == SupervisorAction.CancelItem && x.SupervisorId == Supervisor && x.LineId == a);
+        approved.Approvals.Should().ContainSingle(x => x.ApprovalId == approval && x.Action == SupervisorAction.CancelItem && x.SupervisorId == Supervisor && x.LineId == a
+            && x.BeforeCents == 2000 && x.AfterCents == 0);
         approved.Checks.Should().NotContain(c => c.UserId == Supervisor);
 
         // CA 11: aprovação com o próprio operador como supervisor é recusada.
@@ -214,6 +212,79 @@ public class PosSyncUnitTests
         total.SaleDiscountCents.Should().Be(100);
         Run([Line(a, "2"), Ev("DiscountApplied", new { lineId = (Guid?)null, discountCents = 100L, reason = "Negociação", operatorId = Operator }), Line(b, "1"), .. Pay(3000)], limit: 5m)
             .SaleDiscountCents.Should().Be(0);
+    }
+
+    [Fact]
+    public void Aprovacao_leva_os_valores_aplicados_de_cada_acao()
+    {
+        // Achado 1: o replay devolve, por ação, o antes e o depois que a subida compara com a aprovação, ao centavo.
+        var a = Guid.CreateVersion7();
+        var b = Guid.CreateVersion7();
+        var (discount, total, price) = (Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7());
+        var result = Run([Line(a, "2"), Line(b, "1"),
+            Ev("PriceOverridden", new { lineId = b, unitCents = 800L, reason = "Erro na etiqueta", operatorId = Operator, authorizedBy = Supervisor, approvalId = price }),
+            Ev("DiscountApplied", new { lineId = a, discountCents = 500L, reason = "Cliente fiel", operatorId = Operator, authorizedBy = Supervisor, approvalId = discount }),
+            Ev("DiscountApplied", new { lineId = (Guid?)null, discountCents = 300L, reason = "Negociação", operatorId = Operator, authorizedBy = Supervisor, approvalId = total }),
+            .. Pay(2000)], limit: 5m);
+        result.Violations.Should().BeEmpty();
+        result.Approvals.Should().ContainSingle(x => x.ApprovalId == price && x.Action == SupervisorAction.ChangePrice && x.LineId == b && x.BeforeCents == 1000 && x.AfterCents == 800);
+        result.Approvals.Should().ContainSingle(x => x.ApprovalId == discount && x.Action == SupervisorAction.Discount && x.LineId == a && x.BeforeCents == 2000 && x.AfterCents == 1500);
+        result.Approvals.Should().ContainSingle(x => x.ApprovalId == total && x.Action == SupervisorAction.Discount && x.LineId == null && x.BeforeCents == 2300 && x.AfterCents == 2000);
+    }
+
+    [Fact]
+    public void Desconto_no_total_nao_empilha_com_o_desconto_do_item()
+    {
+        // Achado 3: limite de 10%; R$ 20,00 + R$ 20,00. O item com R$ 2,00 (10%) e o total com R$ 3,80 (10% de 38,00) somam 14,5% da base bruta.
+        var a = Guid.CreateVersion7();
+        var b = Guid.CreateVersion7();
+        object[] Events(object? authorization) =>
+        [
+            Line(a, "2"), Line(b, "2"),
+            Ev("DiscountApplied", new { lineId = a, discountCents = 200L, reason = "Cliente fiel", operatorId = Operator }),
+            Ev("DiscountApplied", authorization ?? new { lineId = (Guid?)null, discountCents = 380L, reason = "Negociação", operatorId = Operator }),
+            .. Pay(3420),
+        ];
+        Run(Events(null), limit: 10m).Violations.Should().ContainSingle(v => v.Contains("Sem quem autorizou: desconto no total que, somado aos dos itens", StringComparison.Ordinal));
+        Run(Events(new { lineId = (Guid?)null, discountCents = 380L, reason = "Negociação", operatorId = Operator, authorizedBy = Operator }), limit: 10m)
+            .Checks.Should().Contain(c => c.UserId == Operator && c.Permission == "pos.discount");
+
+        // Somando até o limite (2,00 + 2,00 = 10% de 40,00), passa sem autorização.
+        Run([Line(a, "2"), Line(b, "2"), Ev("DiscountApplied", new { lineId = a, discountCents = 200L, reason = "Cliente fiel", operatorId = Operator }),
+                Ev("DiscountApplied", new { lineId = (Guid?)null, discountCents = 200L, reason = "Negociação", operatorId = Operator }), .. Pay(3600)], limit: 10m)
+            .Violations.Should().BeEmpty();
+
+        // O desconto do item já aprovado fica fora da conta: o item entra pelo líquido.
+        var lines = new List<ReplayLine>
+        {
+            new(a, Product, "Arroz", 2, 1000, 1, null, DiscountCents: 1000, DiscountApproved: true),
+            new(b, Product, "Arroz", 2, 1000, 1, null),
+        };
+        PosSaleReplay.StackedAboveLimit(lines, 300, 10m).Should().BeFalse();
+        PosSaleReplay.StackedAboveLimit(lines, 301, 10m).Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(SupervisorAction.Discount, 10.0, 8.0, true)]
+    [InlineData(SupervisorAction.Discount, 10.0, 10.5, false)]
+    [InlineData(SupervisorAction.ChangePrice, 10.0, 12.0, true)]
+    [InlineData(SupervisorAction.ChangePrice, 10.0, 10.0, false)]
+    [InlineData(SupervisorAction.CancelItem, 10.0, 0.0, true)]
+    [InlineData(SupervisorAction.CancelItem, 10.0, 11.0, false)]
+    [InlineData(SupervisorAction.CancelSale, 10.0, 0.0, true)]
+    [InlineData(SupervisorAction.CancelSale, 10.0, 1.0, false)]
+    public void Valores_da_aprovacao_combinam_com_a_acao(SupervisorAction action, double before, double after, bool ok) =>
+        (SupervisorApprovalService.DirectionProblem(action, (decimal)before, (decimal)after) is null).Should().Be(ok);
+
+    [Fact]
+    public void Autorizacao_de_outra_pessoa_sem_aprovacao_vai_para_a_quarentena_em_toda_acao()
+    {
+        // Achado 2: desconto acima do limite e troca de preço autorizados por outra pessoa sem approvalId não passam (nem como divergência).
+        var a = Guid.CreateVersion7();
+        Run([Line(a, "2"), Ev("DiscountApplied", new { lineId = a, discountCents = 500L, reason = "Cliente fiel", operatorId = Operator, authorizedBy = Supervisor }), .. Pay(1500)], limit: 5m)
+            .Violations.Should().ContainSingle(v => v.Contains("sem a aprovação do supervisor", StringComparison.Ordinal));
+        Run([Line(a, "2"), Ev("PriceOverridden", new { lineId = a, unitCents = 800L, reason = "Erro na etiqueta", operatorId = Operator, authorizedBy = Supervisor }), .. Pay(1600)])
+            .Violations.Should().ContainSingle(v => v.Contains("sem a aprovação do supervisor", StringComparison.Ordinal));
     }
 
     [Theory]

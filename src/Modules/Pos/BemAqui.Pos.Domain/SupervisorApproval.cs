@@ -56,6 +56,9 @@ public sealed class SupervisorApproval : Entity, IAuditable
     public const int MaxReasonLength = 140;
     public const int MaxRefundLength = 60;
 
+    /// <summary>A ação aprovada tem de acontecer até este tempo depois da aprovação (revisão de segurança, achado 6); depois disso, quarentena.</summary>
+    public static readonly TimeSpan MaxUseDelay = TimeSpan.FromMinutes(10);
+
     public Guid StoreId { get; init; }
 
     public Guid RegisterId { get; init; }

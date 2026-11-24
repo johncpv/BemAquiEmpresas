@@ -90,11 +90,12 @@ public partial class PosTests
 
     /// <summary>Venda concluída: <paramref name="quantity"/> do produto, paga em dinheiro com troco; <paramref name="extra"/> entra antes do pagamento.</summary>
     private static (Guid SaleId, object Payload) SaleOf(Till till, Guid session, DateTimeOffset at, int quantity = 2, long? unitCents = null, long? priceVersion = null,
-        Guid? operatorId = null, Guid? documentId = null, Func<Guid, Guid, List<object>>? extra = null, string? nsu = null, Guid? fixedSaleId = null)
+        Guid? operatorId = null, Guid? documentId = null, Func<Guid, Guid, List<object>>? extra = null, string? nsu = null, Guid? fixedSaleId = null,
+        Guid? fixedLineId = null)
     {
         var saleId = fixedSaleId ?? Guid.CreateVersion7();
         var op = operatorId ?? till.OperatorId;
-        var lineId = Guid.CreateVersion7();
+        var lineId = fixedLineId ?? Guid.CreateVersion7();
         var unit = unitCents ?? till.PriceCents;
         var events = new List<object>
         {
