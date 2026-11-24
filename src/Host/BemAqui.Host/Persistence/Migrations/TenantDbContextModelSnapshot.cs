@@ -4460,6 +4460,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("pos_cash_movement_id");
 
+                    b.Property<Guid?>("PosCashSessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pos_cash_session_id");
+
                     b.Property<string>("ReversalReason")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
@@ -4493,6 +4497,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_bank_transfers_pos_cash_movement_id")
                         .HasFilter("pos_cash_movement_id IS NOT NULL");
+
+                    b.HasIndex("PosCashSessionId")
+                        .HasDatabaseName("ix_bank_transfers_pos_cash_session_id")
+                        .HasFilter("pos_cash_session_id IS NOT NULL");
 
                     b.HasIndex("ToAccountId")
                         .HasDatabaseName("ix_bank_transfers_to_account_id");
@@ -6206,6 +6214,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasIndex("BillingSlipId")
                         .HasDatabaseName("ix_receivables_billing_slip_id")
                         .HasFilter("billing_slip_id IS NOT NULL");
+
+                    b.HasIndex("CashSessionId")
+                        .HasDatabaseName("ix_receivables_cash_session_id")
+                        .HasFilter("cash_session_id IS NOT NULL");
 
                     b.HasIndex("ContractId")
                         .HasDatabaseName("ix_receivables_contract_id");

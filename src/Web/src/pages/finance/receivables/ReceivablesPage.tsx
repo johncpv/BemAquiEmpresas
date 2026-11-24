@@ -23,7 +23,7 @@ import { REVIEW_DICAS, REVIEW_FILTER } from './payment-review'
 import { PaymentReviewList } from './PaymentReviewList'
 import { COMMERCE_PROFILES } from '@/navigation/modules'
 import { useHasProfile } from '@/navigation/navigation-context'
-import { awaits, channelLabel, ORIGIN_OPTIONS, RECEIVABLE_DICAS, SALES_DICA, situation, SITUATION_OPTIONS, today } from './receivables'
+import { awaits, CARDS_DICA, channelLabel, ORIGIN_OPTIONS, originFilter, RECEIVABLE_DICAS, SALES_DICA, situation, SITUATION_OPTIONS, today } from './receivables'
 
 const PERIODS = [
   { value: 'ontem', label: 'Venceram ontem' },
@@ -53,7 +53,7 @@ export function ReceivablesPage() {
   const reviewing = filtro === REVIEW_FILTER
   const toReview = useListPaymentsToReview()
   const reviewCount = toReview.data?.count ?? 0
-  const filters = { q: search.q, situation: situacao || undefined, partyId: cliente || undefined, contractId: contrato || undefined, withBillingSlip: boleto === 'com' ? true : undefined, origin: sells && origem === 'vendas' ? 'vendas' : undefined, ...period(vencimento), sort: search.sort }
+  const filters = { q: search.q, situation: situacao || undefined, partyId: cliente || undefined, contractId: contrato || undefined, withBillingSlip: boleto === 'com' ? true : undefined, origin: originFilter(sells, origem), ...period(vencimento), sort: search.sort }
   const query = useListReceivables({ ...filters, page: search.page, pageSize: search.pageSize })
   const table = { ...query, data: query.data?.page }
   const totals = query.data?.totals
@@ -80,6 +80,8 @@ export function ReceivablesPage() {
     { id: 'slip', header: 'Boleto', meta: { secondary: true }, cell: ({ row: { original: r } }) => <BillingSlipShortcut receivable={r} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-primary sm:min-h-0" /> },
   ]
   if (sells) columns.splice(2, 0, { id: 'channel', header: 'Canal', meta: { secondary: true }, cell: ({ row: { original: r } }) => channelLabel(r.saleChannel) })
+  // CX-03: o líquido previsto (bruto menos a taxa da maquininha) dos recebíveis de venda.
+  if (sells) columns.splice(columns.findIndex((c) => c.id === 'amount') + 1, 0, { id: 'net', header: 'Líquido previsto', meta: { numeric: true, secondary: true }, cell: ({ row: { original: r } }) => (r.netAmount != null ? <Money value={r.netAmount} /> : '—') })
 
   return (
     <>
@@ -112,6 +114,11 @@ export function ReceivablesPage() {
       {sells && origem === 'vendas' ? (
         <p role="note" className="mb-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           Mostrando os recebíveis das vendas.<Dica nome="Recebível de venda" texto={SALES_DICA} />
+        </p>
+      ) : null}
+      {sells && origem === 'cartoes' ? (
+        <p role="note" className="mb-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          Mostrando os recebíveis de cartão, contra a maquininha. Baixe pelo depósito em Conciliação.<Dica nome="Recebível de cartão" texto={CARDS_DICA} />
         </p>
       ) : null}
       {cliente ? (

@@ -1,5 +1,6 @@
 using BemAqui.BuildingBlocks.Time;
 using BemAqui.Finance.Contracts;
+using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Finance.Application;
@@ -15,7 +16,7 @@ public sealed partial class AgingService
     public async Task<int> NotifyOverdueAsync(CancellationToken cancellationToken = default)
     {
         var yesterday = BusinessTime.Today(clock).AddDays(-1);
-        var due = await db.Receivables.AsNoTracking().Where(r => Open.Contains(r.Status) && r.DueDate == yesterday)
+        var due = await db.Receivables.AsNoTracking().Where(r => Open.Contains(r.Status) && r.Origin != DocumentOrigin.CardSettlement && r.DueDate == yesterday)
             .GroupBy(_ => 1).Select(g => new { Count = g.Count(), Total = g.Sum(r => r.Amount - r.PaidAmount) }).FirstOrDefaultAsync(cancellationToken);
         if (due is null || due.Count == 0)
         {

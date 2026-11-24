@@ -11,4 +11,5 @@ export type SettlementSource = typeof SettlementSource[keyof typeof SettlementSo
 export const SettlementSource = {
   Manual: 'Manual',
   Bank: 'Bank',
+  Pos: 'Pos',
 } as const;

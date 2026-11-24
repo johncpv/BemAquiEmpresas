@@ -93,6 +93,15 @@ public sealed partial class ReceivableService(
         {
             receivables = receivables.Where(r => r.Origin == DocumentOrigin.Sale || r.Origin == DocumentOrigin.CardSettlement);
         }
+        else if (string.Equals(query.Origin, "cartoes", StringComparison.Ordinal))
+        {
+            receivables = receivables.Where(r => r.Origin == DocumentOrigin.CardSettlement);
+        }
+        else if (query.PartyId is null && query.ContractId is null)
+        {
+            // CX-03: o título contra a adquirente fica fora da visão padrão de clientes (filtro "Origem: Cartões" ou "Vendas").
+            receivables = receivables.Where(r => r.Origin != DocumentOrigin.CardSettlement);
+        }
 
         if (query.WithBillingSlip)
         {
@@ -187,7 +196,7 @@ public sealed partial class ReceivableService(
             r.IsOverdue(today), r.IsDueToday(today), r.Origin, r.OriginId, r.OpeningReference, r.InstallmentGroupId, r.CancelReason, r.CancelledAt, r.Version,
             r.ProjectId is { } project ? projectNumbers.GetValueOrDefault(project) : null, r.TriggerEvent, r.ContractId,
             r.BillingSlipId, r.BillingSlipId is { } slip && slipStatus.TryGetValue(slip, out var st) ? (BillingSlipStatus?)st : null,
-            r.SaleChannel, r.GrossAmount, r.ExpectedFee)).ToList();
+            r.SaleChannel, r.GrossAmount, r.ExpectedFee, r.CashSessionId, r.NetAmount)).ToList();
     }
 
     private async Task NotifyOwnersAsync(string title, Guid receivableId, CancellationToken ct)

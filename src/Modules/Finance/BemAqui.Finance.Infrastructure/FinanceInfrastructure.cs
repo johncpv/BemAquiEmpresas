@@ -58,6 +58,9 @@ public static class FinanceInfrastructure
         // Recebível de venda (VND-01 CA 11 e 13): a escrita por origem de venda, usada pelo consumidor do canal sem caixa e, na CX-03, pelo fechamento do caixa.
         services.TryAddScoped<SaleReceivableWriter>();
         services.TryAddScoped<ISaleReceivables>(sp => sp.GetRequiredService<SaleReceivableWriter>());
+        // CX-03: o fechamento de caixa no Financeiro (seção "No financeiro" da sessão e a trava da reabertura).
+        services.TryAddScoped<CashSessionFinanceService>();
+        services.TryAddScoped<ICashSessionFinance>(sp => sp.GetRequiredService<CashSessionFinanceService>());
         // CA 12: a receita das vendas no DRE (ISalesRevenue), pelo roteador da receita.
         services.TryAddScoped<SalesRevenueSource>();
         services.TryAddScoped<IFinancialOpening, FinancialOpeningContract>();

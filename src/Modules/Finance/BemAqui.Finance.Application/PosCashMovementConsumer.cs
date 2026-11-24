@@ -66,7 +66,8 @@ public sealed partial class PosCashMovementConsumer(IFinanceDb db, TimeProvider 
         var transfer = new BankTransfer
         {
             FromAccountId = from, ToAccountId = to, Amount = integrationEvent.Amount, Date = date,
-            Description = Describe(integrationEvent), PosCashMovementId = integrationEvent.MovementId, BackdateReason = note, CreatedAt = now,
+            Description = Describe(integrationEvent), PosCashMovementId = integrationEvent.MovementId, PosCashSessionId = integrationEvent.SessionId, BackdateReason = note,
+            CreatedAt = now,
         };
         BankMovementService.AddPosCashTransfer(db, transfer);
         await db.SaveChangesAsync(cancellationToken);

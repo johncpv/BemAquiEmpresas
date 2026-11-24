@@ -278,7 +278,7 @@ public sealed class CashClosingService(
         events.Publish(new CashSessionClosed(
             session.Id, session.StoreId, session.RegisterId, register.CashAccountId, session.OperatorId, session.OpenedAt, closedAt,
             DateOnly.FromDateTime(BusinessTime.ToBusiness(session.OpenedAt).DateTime), session.KeptAmount ?? 0m, session.DepositAmount ?? 0m, session.ReopenCount,
-            lines.Select(l => new CashSessionBreak(l.MethodId, l.Expected, l.Counted - l.PixNotFound, l.Difference)).ToList()));
+            lines.Select(l => new CashSessionBreak(l.MethodId, l.Expected, l.Counted - l.PixNotFound, l.Difference, l.PixNotFound)).ToList()));
     }
 
     internal void Publish(CashMovement movement, Register register) =>

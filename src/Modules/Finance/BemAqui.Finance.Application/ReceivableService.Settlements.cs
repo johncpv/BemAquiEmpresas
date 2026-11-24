@@ -174,6 +174,11 @@ public sealed partial class ReceivableService
             return Error.Forbidden(BankSettlementRequiresApproval, "Este pagamento foi confirmado pelo Inter: o estorno pede quem aprova em Caixa e pagamentos e o código do 2FA.");
         }
 
+        if (settlement.Source == SettlementSource.Pos)
+        {
+            return Error.Conflict("settlement_from_cash_closing", "Esta baixa vem do fechamento do caixa. Para desfazer, reabra o caixa.");
+        }
+
         if (settlement.Source != SettlementSource.Bank && bankReversal)
         {
             return Error.Conflict("settlement_not_from_bank", "Esta baixa não veio do banco: use o estorno comum.");

@@ -35053,6 +35053,129 @@
         }
       }
     },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/card-receivables": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "ListCardReceivablesToSettle",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CardReceivableCandidate"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bank-accounts/{id}/reconciliation/lines/{lineId}/settle-cards": {
+      "post": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "SettleCardsFromLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "lineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LineCardSettlementInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardSettlementResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/cash-sessions/{sessionId}": {
+      "get": {
+        "tags": [
+          "Financeiro"
+        ],
+        "operationId": "GetCashSessionFinance",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashSessionFinanceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/bank-accounts/{id}/reconciliation": {
       "get": {
         "tags": [
@@ -53056,6 +53179,106 @@
           "Other"
         ]
       },
+      "CardReceivableCandidate": {
+        "required": [
+          "id",
+          "number",
+          "description",
+          "partyId",
+          "dueDate",
+          "grossAmount",
+          "expectedFee",
+          "balance",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "grossAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedFee": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "CardSettlementResult": {
+        "required": [
+          "reconciliation",
+          "expected",
+          "received",
+          "difference",
+          "openReceivableId",
+          "openReceivableNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "reconciliation": {
+            "$ref": "#/components/schemas/ReconcileResult"
+          },
+          "expected": {
+            "type": "number",
+            "format": "double"
+          },
+          "received": {
+            "type": "number",
+            "format": "double"
+          },
+          "difference": {
+            "type": "number",
+            "format": "double"
+          },
+          "openReceivableId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "openReceivableNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "CarrierOption": {
         "required": [
           "id",
@@ -53925,6 +54148,27 @@
           }
         }
       },
+      "CashSessionFinanceView": {
+        "required": [
+          "receivables",
+          "transfers"
+        ],
+        "type": "object",
+        "properties": {
+          "receivables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashSessionReceivableView"
+            }
+          },
+          "transfers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashSessionTransferView"
+            }
+          }
+        }
+      },
       "CashSessionLineView": {
         "required": [
           "paymentMethodId",
@@ -54118,6 +54362,68 @@
           }
         }
       },
+      "CashSessionReceivableView": {
+        "required": [
+          "id",
+          "number",
+          "description",
+          "origin",
+          "grossAmount",
+          "expectedFee",
+          "amount",
+          "balance",
+          "dueDate",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/DocumentOrigin"
+          },
+          "grossAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedFee": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReceivableStatus"
+          }
+        }
+      },
       "CashSessionRow": {
         "required": [
           "id",
@@ -54250,6 +54556,44 @@
           "Counted",
           "PendingReview"
         ]
+      },
+      "CashSessionTransferView": {
+        "required": [
+          "id",
+          "description",
+          "amount",
+          "date",
+          "fromAccountName",
+          "toAccountName",
+          "reversed"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "fromAccountName": {
+            "type": "string"
+          },
+          "toAccountName": {
+            "type": "string"
+          },
+          "reversed": {
+            "type": "boolean"
+          }
+        }
       },
       "CashWeekItem": {
         "required": [
@@ -71106,6 +71450,32 @@
             "format": "uint32"
           }
         }
+      },
+      "LineCardSettlementInput": {
+        "required": [
+          "receivables",
+          "lineVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "receivables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VersionedRef"
+            }
+          },
+          "lineVersion": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
       },
       "LineSettlementInput": {
         "required": [
@@ -98284,6 +98654,20 @@
               "number"
             ],
             "format": "double"
+          },
+          "cashSessionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "netAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -104121,7 +104505,8 @@
       "SettlementSource": {
         "enum": [
           "Manual",
-          "Bank"
+          "Bank",
+          "Pos"
         ],
         "default": "Manual"
       },

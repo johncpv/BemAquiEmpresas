@@ -59,4 +59,8 @@ export interface ReceivableDetail {
   grossAmount?: number | null;
   /** @nullable */
   expectedFee?: number | null;
+  /** @nullable */
+  cashSessionId?: string | null;
+  /** @nullable */
+  netAmount?: number | null;
 }
