@@ -38,6 +38,9 @@ public sealed class BankTransfer : Entity, IAuditable, IConcurrencyVersioned
     /// </summary>
     public Guid? PosCashMovementId { get; init; }
 
+    /// <summary>Sessão de caixa do PDV da transferência (CX-03: seção "No financeiro" da sessão). Nulo nas transferências da tela.</summary>
+    public Guid? PosCashSessionId { get; init; }
+
     public uint Version { get; set; }
 }
 

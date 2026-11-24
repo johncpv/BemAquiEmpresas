@@ -259,7 +259,16 @@ public interface ISaleLookup
     /// vendas sem sessão de caixa.
     /// </summary>
     Task<IReadOnlyList<SalePaymentFact>> CapturedPaymentsAsync(DateOnly businessDate, SaleChannel channel, Guid? cashSessionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Pagamentos capturados das vendas concluídas de uma sessão de caixa, com o dia de negócio de cada venda (CX-03: a taxa e o D+N são os
+    /// vigentes na data da venda, e a sessão pode passar da meia-noite).
+    /// </summary>
+    Task<IReadOnlyList<SessionPaymentFact>> SessionPaymentsAsync(Guid cashSessionId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Pagamento capturado de venda concluída de uma sessão de caixa (CX-03), com o dia de negócio da venda.</summary>
+public sealed record SessionPaymentFact(DateOnly BusinessDate, SalePaymentFact Payment);
 
 /// <summary>Receita de vendas concluídas de um dia, por loja e canal (CA 12): bruto (preço × quantidade), descontos, taxa de serviço e líquido.</summary>
 public sealed record SalesRevenueLine(DateOnly Date, Guid? StoreId, SaleChannel Channel, int Sales, decimal Gross, decimal Discounts, decimal ServiceFees, decimal Net);

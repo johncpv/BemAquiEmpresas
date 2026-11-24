@@ -156,6 +156,8 @@ import type {
   CancellationRequestInput,
   CancellationRequestView,
   CapacityReference,
+  CardReceivableCandidate,
+  CardSettlementResult,
   CarrierOption,
   CashFlowDay,
   CashFlowResult,
@@ -164,6 +166,7 @@ import type {
   CashPixCheckRequest,
   CashSessionDecisionRequest,
   CashSessionDetail,
+  CashSessionFinanceView,
   CashSessionList,
   CategoryDetail,
   CategoryInput,
@@ -510,6 +513,7 @@ import type {
   LeaveEndInput,
   LeaveInput,
   LineBankEntryInput,
+  LineCardSettlementInput,
   LineSettlementInput,
   LinkableUser,
   LinkedUserView,
@@ -525,6 +529,7 @@ import type {
   ListBomItemOptionsParams,
   ListBomsParams,
   ListCalendarExceptionsParams,
+  ListCardReceivablesToSettleParams,
   ListCashSessionsParams,
   ListContractsParams,
   ListDashboardProjectResultsParams,
@@ -88767,6 +88772,296 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getUndoBankStatementBatchMutationOptions(options), queryClient);
     }
+
+export const getListCardReceivablesToSettleUrl = (id: string,
+    params?: ListCardReceivablesToSettleParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/finance/bank-accounts/${id}/reconciliation/card-receivables?${stringifiedParams}` : `/api/v1/finance/bank-accounts/${id}/reconciliation/card-receivables`
+}
+
+export const listCardReceivablesToSettle = async (id: string,
+    params?: ListCardReceivablesToSettleParams, options?: Parameters<typeof apiFetch>[1]): Promise<CardReceivableCandidate[]> => {
+
+  return apiFetch<CardReceivableCandidate[]>(getListCardReceivablesToSettleUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCardReceivablesToSettleQueryKey = (id: string,
+    params?: ListCardReceivablesToSettleParams,) => {
+    return [
+    `/api/v1/finance/bank-accounts/${id}/reconciliation/card-receivables`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListCardReceivablesToSettleQueryOptions = <TData = Awaited<ReturnType<typeof listCardReceivablesToSettle>>, TError = unknown>(id: string,
+    params?: ListCardReceivablesToSettleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCardReceivablesToSettle>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCardReceivablesToSettleQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCardReceivablesToSettle>>> = ({ signal }) => listCardReceivablesToSettle(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCardReceivablesToSettle>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCardReceivablesToSettleQueryResult = NonNullable<Awaited<ReturnType<typeof listCardReceivablesToSettle>>>
+export type ListCardReceivablesToSettleQueryError = unknown
+
+
+export function useListCardReceivablesToSettle<TData = Awaited<ReturnType<typeof listCardReceivablesToSettle>>, TError = unknown>(
+ id: string,
+    params: undefined |  ListCardReceivablesToSettleParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCardReceivablesToSettle>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCardReceivablesToSettle>>,
+          TError,
+          Awaited<ReturnType<typeof listCardReceivablesToSettle>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCardReceivablesToSettle<TData = Awaited<ReturnType<typeof listCardReceivablesToSettle>>, TError = unknown>(
+ id: string,
+    params?: ListCardReceivablesToSettleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCardReceivablesToSettle>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCardReceivablesToSettle>>,
+          TError,
+          Awaited<ReturnType<typeof listCardReceivablesToSettle>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCardReceivablesToSettle<TData = Awaited<ReturnType<typeof listCardReceivablesToSettle>>, TError = unknown>(
+ id: string,
+    params?: ListCardReceivablesToSettleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCardReceivablesToSettle>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListCardReceivablesToSettle<TData = Awaited<ReturnType<typeof listCardReceivablesToSettle>>, TError = unknown>(
+ id: string,
+    params?: ListCardReceivablesToSettleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCardReceivablesToSettle>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCardReceivablesToSettleQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSettleCardsFromLineUrl = (id: string,
+    lineId: string,) => {
+
+
+
+
+  return `/api/v1/finance/bank-accounts/${id}/reconciliation/lines/${lineId}/settle-cards`
+}
+
+export const settleCardsFromLine = async (id: string,
+    lineId: string,
+    lineCardSettlementInput: LineCardSettlementInput, options?: Parameters<typeof apiFetch>[1]): Promise<CardSettlementResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CardSettlementResult>(getSettleCardsFromLineUrl(id,lineId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(lineCardSettlementInput)
+  }
+);}
+
+
+
+
+
+export const getSettleCardsFromLineMutationKey = () => ['settleCardsFromLine'] as const;
+
+export const getSettleCardsFromLineMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof settleCardsFromLine>>, TError,SettleCardsFromLineMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof settleCardsFromLine>>, TError,SettleCardsFromLineMutationVariables, TContext> => {
+
+const mutationKey = getSettleCardsFromLineMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof settleCardsFromLine>>, SettleCardsFromLineMutationVariables> = (props) => {
+          const {id,lineId,data} = props ?? {};
+
+          return  settleCardsFromLine(id,lineId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SettleCardsFromLineMutationResult = NonNullable<Awaited<ReturnType<typeof settleCardsFromLine>>>
+    export type SettleCardsFromLineMutationBody = LineCardSettlementInput
+    export type SettleCardsFromLineMutationError = unknown
+    export type SettleCardsFromLineMutationVariables = {id: string;lineId: string;data: LineCardSettlementInput}
+
+    export const useSettleCardsFromLine = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof settleCardsFromLine>>, TError,SettleCardsFromLineMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof settleCardsFromLine>>,
+        TError,
+        SettleCardsFromLineMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSettleCardsFromLineMutationOptions(options), queryClient);
+    }
+
+export const getGetCashSessionFinanceUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/v1/finance/cash-sessions/${sessionId}`
+}
+
+export const getCashSessionFinance = async (sessionId: string, options?: Parameters<typeof apiFetch>[1]): Promise<CashSessionFinanceView> => {
+
+  return apiFetch<CashSessionFinanceView>(getGetCashSessionFinanceUrl(sessionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCashSessionFinanceQueryKey = (sessionId: string,) => {
+    return [
+    `/api/v1/finance/cash-sessions/${sessionId}`
+    ] as const;
+    }
+
+
+export const getGetCashSessionFinanceQueryOptions = <TData = Awaited<ReturnType<typeof getCashSessionFinance>>, TError = unknown>(sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashSessionFinance>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCashSessionFinanceQueryKey(sessionId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCashSessionFinance>>> = ({ signal }) => getCashSessionFinance(sessionId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: sessionId !== null && sessionId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCashSessionFinance>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCashSessionFinanceQueryResult = NonNullable<Awaited<ReturnType<typeof getCashSessionFinance>>>
+export type GetCashSessionFinanceQueryError = unknown
+
+
+export function useGetCashSessionFinance<TData = Awaited<ReturnType<typeof getCashSessionFinance>>, TError = unknown>(
+ sessionId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashSessionFinance>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCashSessionFinance>>,
+          TError,
+          Awaited<ReturnType<typeof getCashSessionFinance>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCashSessionFinance<TData = Awaited<ReturnType<typeof getCashSessionFinance>>, TError = unknown>(
+ sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashSessionFinance>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCashSessionFinance>>,
+          TError,
+          Awaited<ReturnType<typeof getCashSessionFinance>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCashSessionFinance<TData = Awaited<ReturnType<typeof getCashSessionFinance>>, TError = unknown>(
+ sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashSessionFinance>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetCashSessionFinance<TData = Awaited<ReturnType<typeof getCashSessionFinance>>, TError = unknown>(
+ sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCashSessionFinance>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCashSessionFinanceQueryOptions(sessionId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetReconciliationUrl = (id: string,
     params?: GetReconciliationParams,) => {

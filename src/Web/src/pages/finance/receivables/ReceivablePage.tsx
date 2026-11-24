@@ -72,6 +72,8 @@ export function ReceivablePage() {
     ['Valor', <Money key="v" value={r.amount} />], ['Recebido', <Money key="p" value={r.paidAmount} />], ['Saldo', <Money key="b" value={r.balance} />],
     ['Vencimento', r.dueDate ? formatDate(r.dueDate) : '—'], ['Emissão', formatDate(r.issueDate)], ['Conta', r.accountName],
   ]
+  // CX-03: título contra a adquirente mostra bruto, taxa prevista e líquido; o da sessão de caixa leva à sessão (e dali às vendas).
+  if (r.grossAmount != null) facts.push(['Bruto', <Money key="g" value={r.grossAmount} />], ['Taxa prevista', <Money key="f" value={r.expectedFee ?? 0} />])
 
   return (
     <>
@@ -83,6 +85,7 @@ export function ReceivablePage() {
             {r.origin === 'Opening' ? <Tag>Implantação</Tag> : r.origin === 'Contract' ? <Tag>Contrato</Tag> : null}
             <span className="text-sm text-muted-foreground">{r.description}</span>
             {canFiscal && r.projectId ? <Link to={'/app/fiscal/saida' as never} search={{ aba: 'emitidas', projeto: r.projectId } as never} className="ml-2 text-sm font-semibold text-primary">Notas fiscais do projeto</Link> : null}
+            {r.cashSessionId ? <Link to={'/app/loja/caixas' as never} search={{ sessionId: r.cashSessionId } as never} className="ml-2 text-sm font-semibold text-primary">Ver a sessão de caixa e as vendas</Link> : null}
             <Link to="/app/financeiro/receber" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
           </>
         }

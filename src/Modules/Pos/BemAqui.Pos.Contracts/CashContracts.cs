@@ -37,8 +37,11 @@ public sealed record CashMovementRecorded(
 /// </summary>
 public sealed record PosSaleDiscarded(Guid SaleId, string Number, Guid StoreId, Guid RegisterId, Guid? CashSessionId, Guid? OperatorId, DateTimeOffset DiscardedAt) : IIntegrationEvent;
 
-/// <summary>Quebra de uma forma de pagamento no fechamento: esperado, contado e a diferença (sobra positiva, falta negativa). Só ids e valores.</summary>
-public sealed record CashSessionBreak(Guid? PaymentMethodId, decimal Expected, decimal Counted, decimal Difference);
+/// <summary>
+/// Quebra de uma forma de pagamento no fechamento: esperado, contado (já sem o Pix não localizado), a diferença (sobra positiva, falta negativa) e,
+/// no Pix, quanto foi marcado "Não localizado" (CX-03 CA 4: não entra como recebido). Só ids e valores.
+/// </summary>
+public sealed record CashSessionBreak(Guid? PaymentMethodId, decimal Expected, decimal Counted, decimal Difference, decimal PixNotFound = 0m);
 
 /// <summary>
 /// Sessão de caixa fechada (outbox, CX-02): publicada quando a sessão chega a <c>Closed</c> (não em <c>Counted</c>), direto ou pela aprovação do

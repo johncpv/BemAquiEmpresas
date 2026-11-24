@@ -67,7 +67,12 @@ export function receivablePrefill(search: Record<string, unknown>): ReceivablePr
 }
 
 /** Filtro "Origem" (VND-01): só os recebíveis de venda (origem Venda ou Cartão). Só aparece para os perfis de comércio. */
-export const ORIGIN_OPTIONS = [{ value: 'vendas', label: 'Vendas' }]
+export const ORIGIN_OPTIONS = [{ value: 'vendas', label: 'Vendas' }, { value: 'cartoes', label: 'Cartões' }]
+
+/** CX-03: o filtro da lista que vai para a API (só os perfis que vendem têm "Origem"). */
+export const originFilter = (sells: boolean, origem: string | undefined) => (sells && (origem === 'vendas' || origem === 'cartoes') ? origem : undefined)
+
+export const CARDS_DICA = 'Recebível de cartão: o que a maquininha (adquirente) vai depositar, um por bandeira, forma e data de crédito, já sem a taxa prevista. Fica fora da lista padrão de clientes e se baixa pelo depósito na Conciliação.'
 
 const CHANNELS: Record<string, string> = { Pos: 'Balcão', Online: 'Loja virtual', Delivery: 'Delivery', Table: 'Mesas', ServiceOrder: 'OS' }
 

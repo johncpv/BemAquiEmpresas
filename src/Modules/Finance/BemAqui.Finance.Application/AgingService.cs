@@ -40,7 +40,7 @@ public sealed partial class AgingService(
         }
 
         var today = BusinessTime.Today(clock);
-        var groups = await db.Receivables.AsNoTracking().Where(r => Open.Contains(r.Status) && r.DueDate != null && r.DueDate < today)
+        var groups = await db.Receivables.AsNoTracking().Where(r => Open.Contains(r.Status) && r.Origin != DocumentOrigin.CardSettlement && r.DueDate != null && r.DueDate < today)
             .GroupBy(r => new { r.PartyId, Due = r.DueDate!.Value })
             .Select(g => new { g.Key.PartyId, g.Key.Due, Balance = g.Sum(r => r.Amount - r.PaidAmount), Count = g.Count() })
             .ToListAsync(cancellationToken);

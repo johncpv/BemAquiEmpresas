@@ -5,15 +5,31 @@ namespace BemAqui.Finance.Contracts;
 /// <summary>
 /// Chave do recebível de venda (VND-01 CA 11 e 13): dia de negócio, canal, sessão de caixa (nula no canal sem caixa), forma de pagamento,
 /// provedor (adquirente ou gateway; nulo em Pix, dinheiro e vale sem adquirente) e vencimento. No fiado, o título é por venda
-/// (<c>SaleId</c>) e contra o cliente (<c>PartyId</c>).
+/// (<c>SaleId</c>) e contra o cliente (<c>PartyId</c>). No fechamento do caixa (CX-03), <c>Brand</c> separa a bandeira do cartão e <c>Break</c> marca
+/// o Pix "Não localizado" (a quebra da forma); os dois só entram no texto quando preenchidos, para a chave do canal sem caixa não mudar.
 /// </summary>
-public sealed record SaleReceivableKey(DateOnly BusinessDate, string Channel, Guid? CashSessionId, Guid PaymentMethodId, Guid? ProviderPartyId, DateOnly DueDate, Guid? SaleId = null)
+public sealed record SaleReceivableKey(
+    DateOnly BusinessDate, string Channel, Guid? CashSessionId, Guid PaymentMethodId, Guid? ProviderPartyId, DateOnly DueDate, Guid? SaleId = null, string? Brand = null, bool Break = false)
 {
     /// <summary>Texto único da chave, gravado em <c>finance.receivables.sale_group_key</c> (idempotência do reprocessamento).</summary>
     public string Text =>
         string.Join('|', BusinessDate.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), Channel, CashSessionId?.ToString("N") ?? "-",
             PaymentMethodId.ToString("N"), ProviderPartyId?.ToString("N") ?? "-", DueDate.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
-            SaleId?.ToString("N") ?? "-");
+            SaleId?.ToString("N") ?? "-")
+        + (Brand is null ? string.Empty : "|" + Brand) + (Break ? "|quebra" : string.Empty);
+}
+
+/// <summary>
+/// O Financeiro do fechamento de caixa para o <c>Pos</c> (CX-03 CA 7): a sessão tem recebimento já conciliado (baixa feita fora do fechamento num
+/// título dela)? Então a reabertura é recusada até alguém estornar a baixa.
+/// </summary>
+public interface ICashSessionFinance
+{
+    public const string ReconciledCode = "cash_session_reconciled";
+
+    public const string ReconciledMessage = "Este caixa já tem recebimento conciliado. Estorne a baixa antes.";
+
+    Task<bool> HasReconciledReceiptAsync(Guid cashSessionId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

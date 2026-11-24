@@ -16,6 +16,7 @@ internal sealed class BankTransferConfiguration : IEntityTypeConfiguration<BankT
         b.HasIndex(e => e.FromAccountId);
         b.HasIndex(e => e.ToAccountId);
         b.HasIndex(e => e.PosCashMovementId).IsUnique().HasFilter("pos_cash_movement_id IS NOT NULL");
+        b.HasIndex(e => e.PosCashSessionId).HasFilter("pos_cash_session_id IS NOT NULL");
     }
 }
 

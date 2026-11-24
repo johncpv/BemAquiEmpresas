@@ -32,6 +32,7 @@ internal sealed class ReceivableConfiguration : IEntityTypeConfiguration<Receiva
         b.Property(e => e.NetAmount).HasPrecision(18, 2);
         b.Property(e => e.SaleGroupKey).HasMaxLength(200);
         b.HasIndex(e => e.SaleGroupKey).IsUnique().HasFilter("sale_group_key IS NOT NULL").HasDatabaseName(SaleReceivableWriter.GroupKeyIndex);
+        b.HasIndex(e => e.CashSessionId).HasFilter("cash_session_id IS NOT NULL");
         b.HasIndex(e => new { e.IssueDate, e.SaleChannel }).HasFilter("sale_channel IS NOT NULL").HasDatabaseName("ix_receivables_sale_day_channel");
         b.HasIndex(e => e.Number).IsUnique().HasDatabaseName(ReceivableService.NumberIndex);
         b.HasIndex(e => new { e.Status, e.DueDate }).HasFilter("status NOT IN ('Paid','Cancelled')").HasDatabaseName("ix_receivables_open_due");

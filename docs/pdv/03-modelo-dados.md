@@ -165,8 +165,8 @@ pos.cash_sessions ◄──cash_session_id────────────�
         │ CashSessionClosed                                                                 │ SaleCompleted
         ▼                                                                                   ▼
 finance.receivables (adquirente ou cliente)                                   fiscal.outgoing_invoices (NFC-e)
-finance.bank_transfers (sangria, suprimento, depósito)                                      │
-finance.bank_entries ("Quebra de caixa")                                                    ▼
+finance.bank_transfers (sangria, suprimento, depósito, quebra; pos_cash_session_id)               │
+conta Caixa "Quebra de caixa" (Pix não localizado e quebra)                                 ▼
         ▲                                                                              EmissorFiscal
         └── conciliação bancária existente (BNK-03b) casa o depósito da adquirente
 ```

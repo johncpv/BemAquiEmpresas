@@ -18,6 +18,8 @@ import { Dica } from '@/help/Dica'
 import { formatDateTime, formatMoney } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
 import { BREAK_DICA, BLIND_DICA, differenceText, EMPTY, reportUrl, STATUS_TONE, statusOptions } from './cash-sessions'
+import { useCan } from '@/pages/use-can'
+import { CashSessionFinance } from './CashSessionFinance'
 import { registerLabel } from './stores'
 import { todayInBrazil } from './pos-pending'
 
@@ -148,6 +150,7 @@ function SessionPanel({ id, onClose }: { id: string; onClose: () => void }) {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const s = query.data
+  const canSeeFinance = useCan('finance.view')
 
   const refresh = async (next: CashSessionDetail) => {
     client.setQueryData(getGetCashSessionQueryKey(id), next)
@@ -293,6 +296,8 @@ function SessionPanel({ id, onClose }: { id: string; onClose: () => void }) {
                 </ul>
               </section>
             ) : null}
+            {/* CX-03: o que o fechamento lançou no Financeiro, só para quem vê o Financeiro. */}
+            {canSeeFinance && (s.status === 'Closed' || s.reopenCount > 0) ? <CashSessionFinance sessionId={id} /> : null}
             {s.approvalReason ? <p className="text-sm">Aprovado por {s.approvedByName}{s.approvedAt ? ` em ${formatDateTime(s.approvedAt)}` : ''}: {s.approvalReason}</p> : null}
             {s.reopenCount > 0 && s.reopenReason ? <p className="text-sm">Reaberto por {s.reopenedByName}{s.reopenedAt ? ` em ${formatDateTime(s.reopenedAt)}` : ''}: {s.reopenReason}</p> : null}
             {decision ? (

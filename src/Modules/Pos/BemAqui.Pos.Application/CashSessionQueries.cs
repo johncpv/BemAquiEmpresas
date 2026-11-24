@@ -60,7 +60,7 @@ public sealed record CashSessionFile(byte[] Content, string FileName);
 /// saem para quem tem <c>sales.approve</c> (CA 3), conferido aqui pelo usuário do request, em todas as rotas.
 /// </summary>
 public sealed class CashSessionQueries(
-    IPosDb db, CashClosingService closing, ICashSessionSales sales, IEventPublisher events, INotificationService notifications, IUserDirectory users,
+    IPosDb db, CashClosingService closing, ICashSessionSales sales, BemAqui.Finance.Contracts.ICashSessionFinance finance, IEventPublisher events, INotificationService notifications, IUserDirectory users,
     ICurrentUser currentUser, IPermissionService permissions, IAuditWriter audit, TimeProvider clock)
 {
     private static readonly Error ConcurrencyError = Error.Conflict(BemAqui.BuildingBlocks.Web.ConcurrencyExceptionHandler.Code, "O caixa mudou desde que você abriu. Recarregue.");
@@ -260,6 +260,12 @@ public sealed class CashSessionQueries(
         if (await db.CashSessions.AnyAsync(s => s.RegisterId == session.RegisterId && s.Id != session.Id && s.OpenedAt >= session.OpenedAt, cancellationToken))
         {
             return Error.Conflict("cash_session_not_last", "Só a última sessão do caixa pode ser reaberta.");
+        }
+
+        // CX-03 CA 7: título da sessão já baixado fora do fechamento (o depósito da adquirente conciliado) impede a reabertura.
+        if (await finance.HasReconciledReceiptAsync(session.Id, cancellationToken))
+        {
+            return Error.Validation(BemAqui.Finance.Contracts.ICashSessionFinance.ReconciledCode, BemAqui.Finance.Contracts.ICashSessionFinance.ReconciledMessage);
         }
 
         var register = await db.Registers.AsNoTracking().FirstAsync(r => r.Id == session.RegisterId, cancellationToken);

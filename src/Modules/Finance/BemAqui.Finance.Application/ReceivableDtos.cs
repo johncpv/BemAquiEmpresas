@@ -74,7 +74,9 @@ public sealed record ReceivableDetail(
     BillingSlipStatus? BillingSlipStatus = null,
     string? SaleChannel = null,
     decimal? GrossAmount = null,
-    decimal? ExpectedFee = null);
+    decimal? ExpectedFee = null,
+    Guid? CashSessionId = null,
+    decimal? NetAmount = null);
 
 /// <summary>Totais do filtro inteiro (rodapé da lista).</summary>
 public sealed record ReceivableTotals(decimal Open, decimal Overdue);

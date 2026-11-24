@@ -16,6 +16,22 @@ internal static partial class FinanceEndpoints
 {
     private static void MapReconciliation(RouteGroupBuilder finance)
     {
+        // CX-03 CA 8: um depósito da adquirente baixa vários recebíveis de cartão (só nos perfis que vendem, como o filtro "Origem: Vendas").
+        var cards = finance.MapGroup("/bank-accounts/{id:guid}/reconciliation")
+            .RequireProfileFeature("finance", BemAqui.BuildingBlocks.Modules.BusinessProfileCatalog.SaleReceivablesFeature);
+        cards.MapGet("/card-receivables", async (Guid id, DateOnly? until, ReconciliationService service, CancellationToken ct) =>
+                (await service.CardCandidatesAsync(id, until, ct)).ToHttpResult())
+            .RequirePermission("finance.view").WithName("ListCardReceivablesToSettle").Produces<IReadOnlyList<CardReceivableCandidate>>();
+        cards.MapPost("/lines/{lineId:guid}/settle-cards", async (Guid id, Guid lineId, LineCardSettlementInput input, ReconciliationService service, CancellationToken ct) =>
+                (await service.SettleCardsAsync(id, lineId, input, ct)).ToHttpResult())
+            .RequirePermission("finance.edit").WithName("SettleCardsFromLine").Produces<CardSettlementResult>();
+
+        // CX-03: o que o fechamento de uma sessão de caixa lançou no Financeiro (seção "No financeiro" da sessão).
+        finance.MapGroup("/cash-sessions").RequireProfileFeature("finance", BemAqui.BuildingBlocks.Modules.BusinessProfileCatalog.SaleReceivablesFeature)
+            .MapGet("/{sessionId:guid}", async (Guid sessionId, BemAqui.Finance.Application.CashSessionFinanceService service, CancellationToken ct) =>
+                Results.Ok(await service.ViewAsync(sessionId, ct)))
+            .RequirePermission("finance.view").WithName("GetCashSessionFinance").Produces<BemAqui.Finance.Application.CashSessionFinanceView>();
+
         var account = finance.MapGroup("/bank-accounts/{id:guid}");
         account.MapGet("/reconciliation", async (Guid id, DateOnly? from, DateOnly? to, ReconciliationService service, CancellationToken ct) =>
                 (await service.ViewAsync(id, from, to, ct)).ToHttpResult())

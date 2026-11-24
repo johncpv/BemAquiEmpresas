@@ -138,6 +138,9 @@ public enum SettlementSource
 {
     Manual,
     Bank,
+
+    /// <summary>Baixa do fechamento de caixa (CX-03): o dinheiro da venda na gaveta e o Pix "Não localizado" na conta Quebra de caixa. Só a reabertura desfaz.</summary>
+    Pos,
 }
 
 /// <summary>

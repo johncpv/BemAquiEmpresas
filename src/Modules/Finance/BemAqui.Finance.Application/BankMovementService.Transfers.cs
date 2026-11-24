@@ -134,6 +134,28 @@ public sealed partial class BankMovementService
         db.FinancialTransactions.AddRange(PosLine(transfer, transfer.FromAccountId, -transfer.Amount), PosLine(transfer, transfer.ToAccountId, transfer.Amount));
     }
 
+    /// <summary>
+    /// Estorno da transferência do caixa do PDV na reabertura da sessão (CX-03 CA 7): as pernas inversas com a data de hoje, sem usuário (quem
+    /// reabriu fica no <c>Pos</c>, auditado). Quem chama já conferiu que a transferência não foi estornada.
+    /// </summary>
+    public static async Task ReversePosCashTransferAsync(IFinanceDb db, BankTransfer transfer, DateOnly today, string reason, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(db);
+        ArgumentNullException.ThrowIfNull(transfer);
+        var legs = await db.FinancialTransactions.Where(t => t.TransferId == transfer.Id && t.ReversesTransactionId == null).ToListAsync(cancellationToken);
+        foreach (var leg in legs)
+        {
+            db.FinancialTransactions.Add(new FinancialTransaction
+            {
+                BankAccountId = leg.BankAccountId, Date = today, Amount = -leg.Amount, Type = TransactionType.Transfer, Description = "Estorno: " + Cut(transfer.Description, 180),
+                TransferId = transfer.Id, ReversesTransactionId = leg.Id, CreatedAt = now,
+            });
+        }
+
+        transfer.ReversedAt = now;
+        transfer.ReversalReason = reason;
+    }
+
     private static FinancialTransaction PosLine(BankTransfer transfer, Guid account, decimal amount) => new()
     {
         BankAccountId = account, Date = transfer.Date, Amount = amount, Type = TransactionType.Transfer, Description = transfer.Description,

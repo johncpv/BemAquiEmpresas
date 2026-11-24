@@ -60,3 +60,28 @@ export function ruleKeyword(description: string): string {
   const words = description.toUpperCase().split(/[^A-Z0-9ÇÃÕÁÉÍÓÚÂÊÔ]+/).filter((w) => w.length >= 3 && !['PIX', 'TED', 'DOC', 'DEB', 'CRED'].includes(w))
   return words[0] ?? description.trim().slice(0, 20)
 }
+
+/** Recebível de cartão em aberto, como a lista do depósito precisa (CX-03 CA 8). */
+export type CardOption = { id: string; partyId: string; balance: number }
+
+export const CARD_DEPOSIT_DICA =
+  'Recebido − previsto. Depósito menor que o previsto: o último recebível (pelo vencimento) fica com a diferença em aberto, para conferir com o extrato da maquininha.'
+
+const cents = (n: number) => Math.round(n * 100) / 100
+
+/**
+ * Totais do depósito da maquininha (CX-03 CA 8): o líquido previsto dos escolhidos, a diferença (recebido − previsto) e se são de uma maquininha só.
+ * `suggested`: os primeiros recebíveis (na ordem da lista, por vencimento) da maquininha do primeiro, até cobrir o depósito.
+ */
+export function cardDeposit(items: CardOption[], chosen: string[], amount: number) {
+  const picked = items.filter((i) => chosen.includes(i.id))
+  const expected = cents(picked.reduce((s, i) => s + i.balance, 0))
+  const suggested: string[] = []
+  let sum = 0
+  for (const i of items) {
+    if (sum >= amount || i.partyId !== items[0]?.partyId) continue
+    suggested.push(i.id)
+    sum = cents(sum + i.balance)
+  }
+  return { count: picked.length, expected, difference: cents(amount - expected), sameParty: new Set(picked.map((i) => i.partyId)).size <= 1, suggested }
+}

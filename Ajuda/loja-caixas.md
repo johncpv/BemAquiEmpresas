@@ -29,3 +29,7 @@ Acompanhar os turnos dos caixas das lojas: quem abriu, quando fechou, a contagem
 **Onde mudo a tolerância de quebra?** Em Loja → Lojas e caixas, na loja, no campo "Tolerância de quebra por forma".
 
 **O caixa ficou "Aguardando envio das vendas" e o aparelho quebrou.** Confira as Pendências do PDV. Se as vendas não vão chegar, quem aprova vendas pode aprovar o fechamento assim mesmo, com o motivo.
+
+**O que o fechamento lança no financeiro?** Na seção **No financeiro** do caixa fechado (para quem vê o Financeiro): o dinheiro das vendas entra na conta do caixa; cada cartão vira um recebível contra a maquininha, por bandeira e data do crédito, com o bruto, a taxa prevista e o líquido (o crédito parcelado tem um por parcela); o Pix fica a conciliar na conta de destino; o Pix "Não localizado" e a falta ou a sobra do dinheiro vão para a conta **Quebra de caixa**. Com o fundo de troco e o recolhimento, a conta do caixa fica só com o fundo que ficou para o próximo turno.
+
+**E se eu reabrir o caixa?** Os lançamentos do fechamento são estornados e voltam no próximo fechamento. Se a maquininha já depositou e alguém conciliou um recebível deste caixa, a reabertura é recusada: "Este caixa já tem recebimento conciliado. Estorne a baixa antes."

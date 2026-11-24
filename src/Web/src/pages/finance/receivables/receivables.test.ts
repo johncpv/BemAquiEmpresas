@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { channelLabel, ORIGIN_OPTIONS, receivablePrefill, situation } from './receivables'
+import { channelLabel, ORIGIN_OPTIONS, originFilter, receivablePrefill, situation } from './receivables'
 
 describe('situação do título a receber (FIN-01 CA 6 e 7)', () => {
   const base = { status: 'Open' as const, isOverdue: false, isDueToday: false }
@@ -39,6 +39,9 @@ describe('recebível de venda em Contas a receber (VND-01)', () => {
   })
 
   it('o filtro "Origem" tem só Vendas', () => {
-    expect(ORIGIN_OPTIONS).toEqual([{ value: 'vendas', label: 'Vendas' }])
+    expect(ORIGIN_OPTIONS).toEqual([{ value: 'vendas', label: 'Vendas' }, { value: 'cartoes', label: 'Cartões' }])
+    expect(originFilter(true, 'cartoes')).toBe('cartoes')
+    expect(originFilter(false, 'cartoes')).toBeUndefined()
+    expect(originFilter(true, 'outra')).toBeUndefined()
   })
 })

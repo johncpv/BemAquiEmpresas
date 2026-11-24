@@ -24,6 +24,17 @@ public sealed class SalesLookupContract(ISalesDb db, SaleService sales) : ISaleL
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<SessionPaymentFact>> SessionPaymentsAsync(Guid cashSessionId, CancellationToken cancellationToken = default)
+    {
+        var rows = await db.Sales.AsNoTracking().Where(s => s.CashSessionId == cashSessionId && s.Status == SaleStatus.Completed)
+            .Join(db.SalePayments.AsNoTracking().Where(p => p.Status == SalePaymentStatus.Captured), s => s.Id, p => p.SaleId,
+                (s, p) => new { s.BusinessDate, SaleId = s.Id, PaymentId = p.Id, p.PaymentMethodId, p.AcquirerPartyId, p.CardBrand, p.Installments, Amount = p.Amount - p.ChangeAmount, s.CustomerId })
+            .OrderBy(x => x.BusinessDate).ThenBy(x => x.PaymentId)
+            .ToListAsync(cancellationToken);
+        return rows.Select(x => new SessionPaymentFact(x.BusinessDate, new SalePaymentFact(x.SaleId, x.PaymentId, x.PaymentMethodId, x.AcquirerPartyId, x.CardBrand, x.Installments, x.Amount, x.CustomerId)))
+            .ToList();
+    }
+
     public async Task<IReadOnlyList<SalesRevenueLine>> RevenueAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
     {
         var rows = await db.Sales.AsNoTracking().Where(s => s.Status == SaleStatus.Completed && s.BusinessDate >= from && s.BusinessDate <= to)

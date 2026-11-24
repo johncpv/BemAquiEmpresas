@@ -20,9 +20,12 @@ import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime } from '@/lib/format'
+import { COMMERCE_PROFILES } from '@/navigation/modules'
+import { useHasProfile } from '@/navigation/navigation-context'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { today } from '../receivables/receivables'
+import { CardDepositDialog } from './CardDepositDialog'
 import { CONFIDENCE, fullDate, KIND_LABEL, nextPeriod } from './reconciliation'
 import {
   LineEntryDialog, LineSettleDialog, LinesForTransactionDialog, LineSummary, ManualDialog, NOT_VERIFIED, RuleDialog, SEGREGATION, TransactionSummary, UndoDialog,
@@ -76,6 +79,7 @@ function BankOnlyRow({ item, view, canEdit, canPay, canApprove, onChanged }: { i
   const line = item.line
   const action = item.action
   const newOrder = `/app/financeiro/pagar/novo`
+  const sells = useHasProfile(COMMERCE_PROFILES)
   return (
     <li className="space-y-2 rounded-md border border-border bg-card p-3">
       <LineSummary line={line} />
@@ -85,6 +89,8 @@ function BankOnlyRow({ item, view, canEdit, canPay, canApprove, onChanged }: { i
         <span className="flex flex-wrap items-center gap-1">
           {action?.kind === 'BankEntry' && canPay ? <LineEntryDialog accountId={view.accountId} item={item} cap={view.ofxBankEntryCap} canApprove={canApprove} onDone={() => onChanged()} /> : null}
           {action?.kind === 'Settle' ? <LineSettleDialog accountId={view.accountId} item={item} onDone={() => onChanged()} /> : null}
+          {/* CX-03 CA 8: um depósito da maquininha baixa vários recebíveis de cartão (perfis que vendem). */}
+          {sells && line.amount > 0 ? <CardDepositDialog accountId={view.accountId} line={line} onDone={() => onChanged()} /> : null}
           {action?.kind === 'PaymentOrder' ? (
             <>
               <ManualDialog accountId={view.accountId} line={line} paymentsOnly onDone={() => onChanged()} trigger={<button type="button" disabled={line.blocked} className={secondary}>Vincular a uma OP paga</button>} />

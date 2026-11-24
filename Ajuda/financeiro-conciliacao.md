@@ -16,6 +16,7 @@ Conferir, lado a lado, o extrato que o banco informou com o que o sistema regist
 - **Sem par no banco** lista as linhas do banco sem transação no sistema:
   - Tarifa, IOF, juros ou rendimento: **Lançar sem OP**. O diálogo vem com o tipo, a conta do plano mais usada e a data e o valor da linha (travados). Lançar é de quem paga em Caixa e pagamentos; numa saída, o sistema pede de novo o código da verificação em duas etapas. O Proprietário é avisado e o lançamento entra em "Movimentos sem OP" no extrato da conta.
   - Entrada de um cliente com título em aberto do mesmo valor: **Baixar título**. A baixa usa a data e a conta da linha; juros, multa e desconto seguem os limites do financeiro.
+  - Depósito da maquininha (lojas que vendem): **Baixar recebíveis de cartão**. Um depósito baixa vários recebíveis de cartão de uma maquininha, cada um pelo líquido previsto; se o depósito vier menor, a diferença fica em aberto no último.
   - Outra saída: o sistema **não** cria pagamento. Use **Vincular a uma OP paga** (a transação do pagamento já existe) ou **Abrir OP para regularizar** (o título segue a aprovação e só depois é pago; a linha espera pendente).
 - **No sistema, não no banco** lista o que o sistema registrou e ainda não apareceu no extrato. Há mais de 5 dias, a transação fica em alerta: abra a origem e confira.
 - **Desfazer conciliação** solta a linha e as transações, com motivo, sem estornar nada. Um lançamento ou uma baixa feitos pela conciliação só saem pelo estorno no extrato da conta ou no título.

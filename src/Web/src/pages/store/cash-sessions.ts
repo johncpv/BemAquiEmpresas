@@ -45,3 +45,12 @@ export function differenceText(value: number): string {
 
 /** PDF do fechamento (CA 9): a via do operador ou a do gerente (essa, só para quem aprova vendas). */
 export const reportUrl = (id: string, copy: 'operator' | 'manager') => getDownloadCashSessionReportUrl(id, { copy })
+
+/** CX-03: o que a seção "No financeiro" da sessão mostra. */
+export const FINANCE_DICA =
+  'Quando o caixa fecha, o financeiro recebe um resumo por forma: o dinheiro entra na conta do caixa, cada cartão vira um recebível contra a maquininha (bruto, taxa prevista e líquido, na data do crédito), o Pix fica a conciliar e a quebra vai para a conta Quebra de caixa. Reabrir o caixa estorna tudo isso.'
+
+const RECEIVABLE_STATUS: Record<string, string> = { Open: 'Em aberto', PartiallyPaid: 'Recebido em parte', Paid: 'Recebido', Cancelled: 'Estornado', Planned: 'Previsto' }
+
+/** Situação do título lançado pelo fechamento, na língua do caixa (cancelado pela reabertura = "Estornado"). */
+export const receivableStatusLabel = (status: string) => RECEIVABLE_STATUS[status] ?? status
