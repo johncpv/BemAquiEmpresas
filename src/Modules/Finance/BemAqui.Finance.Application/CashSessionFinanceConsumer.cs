@@ -39,6 +39,15 @@ public sealed partial class CashSessionFinanceConsumer(
         ArgumentNullException.ThrowIfNull(integrationEvent);
         var e = integrationEvent;
         await LockAsync("finance.cash-session:" + e.SessionId.ToString("N"), cancellationToken);
+        // Fechamento reentregue depois do estorno da mesma geração (ou de uma mais nova): não recria títulos nem baixa com a sessão aberta.
+        var reopenKey = ReopenMarkKey(e.SessionId);
+        var reversedUpTo = await db.FinanceParameters.AsNoTracking().Where(p => p.Key == reopenKey).Select(p => (decimal?)p.Value).FirstOrDefaultAsync(cancellationToken);
+        if (reversedUpTo is { } reversed && reversed > e.ReopenCount)
+        {
+            LogStaleClose(logger, e.SessionId, e.ReopenCount);
+            return;
+        }
+
         var facts = await sales.SessionPaymentsAsync(e.SessionId, cancellationToken);
         var methodIds = facts.Select(f => f.Payment.PaymentMethodId).Concat(e.Breaks.Where(b => b.PaymentMethodId != null).Select(b => b.PaymentMethodId!.Value)).Distinct().ToList();
         // Inclusive forma desativada ou excluída depois da venda: a venda já aconteceu com ela.
@@ -80,8 +89,9 @@ public sealed partial class CashSessionFinanceConsumer(
         var drawer = await db.BankAccounts.AsNoTracking().FirstOrDefaultAsync(a => a.Id == e.CashAccountId, cancellationToken);
         if (drawer is null || !drawer.IsActive)
         {
+            // Sem a conta, o dinheiro ficaria como recebível aberto: falha para o outbox tentar de novo (e o log aponta a conta).
             LogDrawerMissing(logger, e.SessionId, e.RegisterId, e.CashAccountId);
-            return;
+            throw new InvalidOperationException("Conta do caixa " + e.CashAccountId + " não existe ou está inativa no Financeiro: fechamento " + e.SessionId + " sem baixa do dinheiro.");
         }
 
         var cashMethods = known.Values.Where(m => m.Type == PaymentMethodType.Cash).Select(m => m.Id).ToHashSet();
@@ -128,7 +138,10 @@ public sealed partial class CashSessionFinanceConsumer(
         var titles = await db.Receivables.Where(r => r.CashSessionId == e.SessionId && r.Status != ReceivableStatus.Cancelled).ToListAsync(cancellationToken);
         var ids = titles.Select(r => r.Id).ToList();
         var settlements = await db.ReceivableSettlements.Where(s => ids.Contains(s.ReceivableId) && s.ReversedAt == null).ToListAsync(cancellationToken);
-        if (settlements.Any(s => s.Source != SettlementSource.Pos))
+        var settlementIds = settlements.Select(s => s.Id).ToList();
+        var transactionIds = settlements.Where(s => s.TransactionId != null).Select(s => s.TransactionId!.Value).ToList();
+        if (settlements.Any(s => s.Source != SettlementSource.Pos)
+            || await db.FinancialTransactions.AnyAsync(t => t.Reconciled && (transactionIds.Contains(t.Id) || (t.SettlementId != null && settlementIds.Contains(t.SettlementId.Value))), cancellationToken))
         {
             // O Pos recusa a reabertura nesse caso (CA 7); se chegou aqui, nada muda e o log aponta a sessão.
             LogReconciled(logger, e.SessionId);
@@ -148,6 +161,19 @@ public sealed partial class CashSessionFinanceConsumer(
             await BankMovementService.ReversePosCashTransferAsync(db, transfer, today, ReceivableService.PosReopenReason, now, cancellationToken);
         }
 
+        // Maior reabertura já estornada: um fechamento reentregue de geração anterior é ignorado.
+        var reopenKey = ReopenMarkKey(e.SessionId);
+        var mark = await db.FinanceParameters.FirstOrDefaultAsync(p => p.Key == reopenKey, cancellationToken);
+        if (mark is null)
+        {
+            db.FinanceParameters.Add(new FinanceParameter { Key = reopenKey, Value = e.ReopenCount, UpdatedAt = now });
+        }
+        else if (mark.Value < e.ReopenCount)
+        {
+            mark.Value = e.ReopenCount;
+            mark.UpdatedAt = now;
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         foreach (var day in titles.Select(r => r.IssueDate).Distinct())
         {
@@ -161,6 +187,9 @@ public sealed partial class CashSessionFinanceConsumer(
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes("cx03-break:" + sessionId.ToString("N") + ":" + reopenCount.ToString(CultureInfo.InvariantCulture)));
         return new Guid(hash.AsSpan(0, 16));
     }
+
+    /// <summary>Chave (nos parâmetros do Financeiro) da maior reabertura já estornada da sessão.</summary>
+    public static string ReopenMarkKey(Guid sessionId) => "pos-reopen:" + sessionId.ToString("N");
 
     /// <summary>Data do lançamento: a do caixa; em período de conciliação já fechado, hoje, com a observação (nunca retroativo).</summary>
     private async Task<(DateOnly Date, string? Note)> DateAsync(DateOnly date, IReadOnlyList<Guid> accounts, CancellationToken ct)
@@ -195,4 +224,7 @@ public sealed partial class CashSessionFinanceConsumer(
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Reabertura do caixa {SessionId} sem estorno no Financeiro: a sessão tem recebimento conciliado.")]
     private static partial void LogReconciled(ILogger logger, Guid sessionId);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Fechamento {SessionId} (reabertura {ReopenCount}) ignorado: a reabertura dessa geração já foi estornada no Financeiro.")]
+    private static partial void LogStaleClose(ILogger logger, Guid sessionId, int reopenCount);
 }

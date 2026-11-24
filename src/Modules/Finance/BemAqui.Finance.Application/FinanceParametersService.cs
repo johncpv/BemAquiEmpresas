@@ -41,7 +41,8 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
 
     public async Task<FinanceLimits> LimitsAsync(CancellationToken cancellationToken = default)
     {
-        var values = await db.FinanceParameters.AsNoTracking().ToDictionaryAsync(p => p.Key, p => p.Value, cancellationToken);
+        var keys = Defaults.Keys.ToList();
+        var values = await db.FinanceParameters.AsNoTracking().Where(p => keys.Contains(p.Key)).ToDictionaryAsync(p => p.Key, p => p.Value, cancellationToken);
         decimal Get(string key) => values.TryGetValue(key, out var v) ? v : Defaults[key];
         return new FinanceLimits(Get(DiscountPct), Get(DiscountAmount), Get(CancelAmount), (int)Get(BackdateDays), Get(OwnerCanApproveOwn) != 0, Get(PaymentTolerance), Get(TransferNotifyAmount), Get(AdjustedDefaultThreshold), Get(OfxBankEntryCap));
     }

@@ -122,6 +122,11 @@ public partial class SalesTests
         (await BalanceAsync(drawer)).Should().Be(55m, "abertura 100 − recolhimento 45; as vendas e a quebra saíram");
         (await WithDbAsync(db => db.BankTransfers.AsNoTracking().SingleAsync(t => t.Id == quebraTransfer.Id))).ReversedAt.Should().NotBeNull();
 
+        // O fechamento da geração 0 reentregue depois do estorno não recria títulos nem baixa o dinheiro com a sessão aberta.
+        await InTransactionAsync(sp => sp.GetRequiredService<CashSessionFinanceConsumer>().HandleAsync(closed, default));
+        (await WithDbAsync(db => db.Receivables.CountAsync(r => r.CashSessionId == session && r.Status != ReceivableStatus.Cancelled))).Should().Be(0);
+        (await BalanceAsync(drawer)).Should().Be(55m);
+
         // Fechar de novo (reabertura 1) refaz os títulos e a quebra.
         await InTransactionAsync(sp => sp.GetRequiredService<CashSessionFinanceConsumer>().HandleAsync(closed with { ReopenCount = 1 }, default));
         (await WithDbAsync(db => db.Receivables.CountAsync(r => r.CashSessionId == session && r.Status != ReceivableStatus.Cancelled))).Should().Be(titles.Count);
@@ -142,6 +147,7 @@ public partial class SalesTests
             await db.SaveChangesAsync();
             return row;
         });
+        (await owner.GetAsync($"/api/v1/finance/bank-accounts/{Guid.NewGuid()}/reconciliation/card-receivables")).StatusCode.Should().Be(HttpStatusCode.NotFound);
         var refs = await WithDbAsync(db => db.Receivables.AsNoTracking().Where(r => r.Id == visa.Id || r.Id == parcels[0].Id).Select(r => new { id = r.Id, version = r.Version }).ToListAsync());
         var above = await owner.PostAsJsonAsync($"/api/v1/finance/bank-accounts/{bank}/reconciliation/lines/{line.Id}/settle-cards", new { receivables = refs.Where(r => r.id == parcels[0].Id), lineVersion = line.Version });
         above.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity, "o depósito passa do previsto de um título só");

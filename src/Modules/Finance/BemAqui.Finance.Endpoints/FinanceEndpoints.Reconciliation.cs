@@ -19,7 +19,8 @@ internal static partial class FinanceEndpoints
         // CX-03 CA 8: um depósito da adquirente baixa vários recebíveis de cartão (só nos perfis que vendem, como o filtro "Origem: Vendas").
         var cards = finance.MapGroup("/bank-accounts/{id:guid}/reconciliation")
             .RequireProfileFeature("finance", BemAqui.BuildingBlocks.Modules.BusinessProfileCatalog.SaleReceivablesFeature);
-        cards.MapGet("/card-receivables", async (Guid id, DateOnly? until, ReconciliationService service, CancellationToken ct) => Results.Ok(await service.CardCandidatesAsync(until, ct)))
+        cards.MapGet("/card-receivables", async (Guid id, DateOnly? until, ReconciliationService service, CancellationToken ct) =>
+                (await service.CardCandidatesAsync(id, until, ct)).ToHttpResult())
             .RequirePermission("finance.view").WithName("ListCardReceivablesToSettle").Produces<IReadOnlyList<CardReceivableCandidate>>();
         cards.MapPost("/lines/{lineId:guid}/settle-cards", async (Guid id, Guid lineId, LineCardSettlementInput input, ReconciliationService service, CancellationToken ct) =>
                 (await service.SettleCardsAsync(id, lineId, input, ct)).ToHttpResult())

@@ -24,8 +24,13 @@ public sealed partial class ReconciliationService
     public const string CardDepositAboveCode = "card_deposit_above_expected";
 
     /// <summary>Títulos de adquirente (origem Cartão) em aberto, por vencimento, para o depósito da linha (até 200).</summary>
-    public async Task<IReadOnlyList<CardReceivableCandidate>> CardCandidatesAsync(DateOnly? until, CancellationToken cancellationToken = default)
+    public async Task<Result<IReadOnlyList<CardReceivableCandidate>>> CardCandidatesAsync(Guid accountId, DateOnly? until, CancellationToken cancellationToken = default)
     {
+        if (!await db.BankAccounts.AnyAsync(a => a.Id == accountId, cancellationToken))
+        {
+            return NotFound();
+        }
+
         var query = db.Receivables.AsNoTracking().Where(r => r.Origin == DocumentOrigin.CardSettlement && (r.Status == ReceivableStatus.Open || r.Status == ReceivableStatus.PartiallyPaid));
         if (until is { } date)
         {

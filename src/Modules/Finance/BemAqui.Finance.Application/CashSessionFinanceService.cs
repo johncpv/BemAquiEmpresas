@@ -22,10 +22,15 @@ public sealed record CashSessionFinanceView(IReadOnlyList<CashSessionReceivableV
 /// </summary>
 public sealed class CashSessionFinanceService(IFinanceDb db) : ICashSessionFinance
 {
+    /// <summary>
+    /// Recebimento da sessão que a reabertura não pode estornar: baixa feita fora do fechamento (conciliação, manual) ou baixa do próprio fechamento
+    /// (origem <see cref="SettlementSource.Pos"/>) cujo lançamento já foi conciliado num extrato.
+    /// </summary>
     public async Task<bool> HasReconciledReceiptAsync(Guid cashSessionId, CancellationToken cancellationToken = default) =>
         await db.Receivables.AsNoTracking().Where(r => r.CashSessionId == cashSessionId)
-            .Join(db.ReceivableSettlements.AsNoTracking().Where(s => s.ReversedAt == null && s.Source != SettlementSource.Pos), r => r.Id, s => s.ReceivableId, (r, s) => s.Id)
-            .AnyAsync(cancellationToken);
+            .Join(db.ReceivableSettlements.AsNoTracking().Where(s => s.ReversedAt == null), r => r.Id, s => s.ReceivableId, (r, s) => s)
+            .AnyAsync(s => s.Source != SettlementSource.Pos
+                || db.FinancialTransactions.Any(t => t.Reconciled && (t.Id == s.TransactionId || t.SettlementId == s.Id)), cancellationToken);
 
     public async Task<CashSessionFinanceView> ViewAsync(Guid cashSessionId, CancellationToken cancellationToken = default)
     {
