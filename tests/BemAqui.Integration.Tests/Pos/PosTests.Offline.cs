@@ -29,7 +29,9 @@ public partial class PosTests
         Rfc2898DeriveBytes.Pbkdf2(Encoding.UTF8.GetBytes(secret), Convert.FromBase64String(verifier.GetProperty("salt").GetString()!), verifier.GetProperty("iterations").GetInt32(),
             verifier.GetProperty("algorithm").GetString() == "PBKDF2-SHA512" ? HashAlgorithmName.SHA512 : HashAlgorithmName.SHA256, verifier.GetProperty("keyLength").GetInt32());
 
-    private static string Mac(byte[] key, string message) => Convert.ToBase64String(HMACSHA256.HashData(key, Encoding.UTF8.GetBytes(message)));
+    /// <summary>A prova: HMAC-SHA256 com a chave de prova HKDF-SHA256(subkey, info "bq-offline-proof"), como no aparelho.</summary>
+    private static string Mac(byte[] key, string message) =>
+        Convert.ToBase64String(HMACSHA256.HashData(HKDF.DeriveKey(HashAlgorithmName.SHA256, key, 32, [], Encoding.UTF8.GetBytes("bq-offline-proof")), Encoding.UTF8.GetBytes(message)));
 
     /// <summary>Operador e supervisor da loja sem sessão com rede: o PIN inicial vale (sem troca obrigatória) e o supervisor tem o código sem internet.</summary>
     private async Task<(Guid Operator, Guid Supervisor)> OfflinePeopleAsync(HttpClient owner, Till till)
@@ -86,7 +88,7 @@ public partial class PosTests
         object ApprovalEvent(Guid approvalId, long before, string? proof = null, Guid? sale = null, Guid? line = null)
         {
             var at = Iso(now.AddSeconds(2));
-            var message = PosOfflineProof.ApprovalMessage(till.DeviceId, approvalId, "CancelItem", op, supervisor, sale ?? saleId, line ?? firstLine, before, 0, at);
+            var message = PosOfflineProof.ApprovalMessage(till.DeviceId, approvalId, "CancelItem", op, supervisor, sale ?? saleId, line ?? firstLine, before, 0, session, at, "Cliente desistiu");
             return Seal(till, PosEventIngestion.ApprovalKind, new
             {
                 approvalId, action = "CancelItem", operatorId = op, supervisorId = supervisor, reason = "Cliente desistiu", saleId = sale ?? saleId, lineId = line ?? firstLine,
@@ -143,6 +145,50 @@ public partial class PosTests
         var detail = await OkAsync(await owner.GetAsync($"/api/v1/pos/cash-sessions/{session}"));
         detail.GetProperty("offline").GetProperty("sales").EnumerateArray().Select(s => s.GetString()).Should().ContainSingle();
         detail.GetProperty("offline").GetProperty("approvals").GetInt32().Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Venda_que_usa_aprovacao_sem_rede_de_um_real_para_desconto_maior_vai_para_a_quarentena()
+    {
+        var (owner, till) = await TillAsync();
+        using var device = till.Device;
+        var (op, supervisor) = await OfflinePeopleAsync(owner, till);
+        await WithDbAsync(db => db.Stores.Where(s => s.Id == till.Store).ExecuteUpdateAsync(s => s.SetProperty(x => x.DiscountLimitPercent, 0m)));
+        var snapshot = await SnapshotAsync(device);
+        var opVerifier = VerifierOf(snapshot, op, "operator");
+        var supVerifier = VerifierOf(snapshot, supervisor, "supervisor");
+
+        // Revisão de segurança (achado 2): a aprovação sem rede vale R$ 1,00 de desconto na linha; a venda aplica R$ 2,00 citando a mesma aprovação.
+        var now = DateTimeOffset.UtcNow.AddSeconds(1);
+        var session = Guid.CreateVersion7();
+        var (saleId, lineId) = (Guid.CreateVersion7(), Guid.CreateVersion7());
+        var lineCents = 2 * till.PriceCents;
+        var login = OfflineLogin(till, opVerifier, op, InitialPin, now);
+        var open = Seal(till, PosEventIngestion.CashKind, new
+        {
+            type = "CashSessionOpened", sessionId = session, registerId = till.Register, deviceEpoch = till.Epoch, operatorId = op, openingCents = 10000L,
+            openingMovementId = Guid.CreateVersion7(), at = now, offline = true,
+        }, now);
+        var approvalId = Guid.CreateVersion7();
+        var at = Iso(now.AddSeconds(2));
+        var proof = Mac(Derive(supVerifier, OfflineCode),
+            PosOfflineProof.ApprovalMessage(till.DeviceId, approvalId, "Discount", op, supervisor, saleId, lineId, lineCents, lineCents - 100, session, at, "Cliente fiel"));
+        var approval = Seal(till, PosEventIngestion.ApprovalKind, new
+        {
+            approvalId, action = "Discount", operatorId = op, supervisorId = supervisor, reason = "Cliente fiel", saleId, lineId, beforeCents = lineCents,
+            afterCents = lineCents - 100, at, cashSessionId = session, proof, offline = true,
+        }, now.AddSeconds(2));
+        var saleAt = now.AddSeconds(3);
+        var (_, sale) = SaleOf(till, session, saleAt, operatorId: op, fixedSaleId: saleId, fixedLineId: lineId, extra: (s, _) =>
+        [
+            Ev(s, "DiscountApplied", saleAt, new { lineId, discountCents = 200L, reason = "Cliente fiel", operatorId = op, authorizedBy = supervisor, approvalId }),
+        ]);
+        var sold = Seal(till, PosEventIngestion.SaleKind, sale, saleAt);
+        var outcomes = Outcomes(await OkAsync(await PostEventsAsync(device, new { events = new[] { login, open, approval, sold } })));
+        outcomes[IdOf(approval)].Should().Be("Accepted");
+        outcomes[IdOf(sold)].Should().Be("Quarantined");
+        (await DivergencesAsync(IdOf(sold))).Should().Contain(d => d.Summary.Contains("valores diferentes dos aprovados"));
+        (await WithDbAsync(db => db.SupervisorApprovals.AsNoTracking().SingleAsync(a => a.Id == approvalId))).UsedByEventId.Should().BeNull();
     }
 
     [Fact]

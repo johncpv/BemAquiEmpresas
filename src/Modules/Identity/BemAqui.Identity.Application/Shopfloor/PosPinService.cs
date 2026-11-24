@@ -139,6 +139,7 @@ public sealed class PosPinService(
     public const string NotRegisteredMessage = "Este aparelho não é mais um caixa registrado. Registre o aparelho de novo.";
     public const string ApprovalOnlyMessage = "Seu PIN do caixa serve só para aprovar como supervisor. Para vender, entre com um perfil de operador.";
     public const string SupervisorSelfMessage = "Outra pessoa precisa aprovar.";
+    public const string SameAsOfflineCodeMessage = "O PIN do caixa tem de ser diferente do seu código sem internet.";
     public const string SupervisorNotAllowedMessage = "Este supervisor não tem a permissão para aprovar esta ação.";
 
     /// <summary>Operadores com PIN que podem entrar neste caixa: ativos, com <c>pos.create</c>, sem ação reservada e, se de operação, da loja.</summary>
@@ -272,7 +273,8 @@ public sealed class PosPinService(
 
             var birth = user.EmployeeId is { } employeeId ? await employees.BirthDateAsync(employeeId, cancellationToken) : null;
             var problem = PinRules.Problem(input.NewPin, input.NewPinConfirmation, birth)
-                ?? (string.Equals(input.NewPin, pin, StringComparison.Ordinal) ? "O PIN novo precisa ser diferente do que o gerente deu." : null);
+                ?? (string.Equals(input.NewPin, pin, StringComparison.Ordinal) ? "O PIN novo precisa ser diferente do que o gerente deu." : null)
+                ?? (SameAsOfflineCode(user, row.OfflineCodeHash, input.NewPin) ? SameAsOfflineCodeMessage : null);
             if (problem is not null)
             {
                 return Error.Validation(Error.Codes.Validation, problem, new Dictionary<string, string[]> { ["newPin"] = [problem] });
@@ -410,10 +412,15 @@ public sealed class PosPinService(
     internal async Task<Error?> PinProblemAsync(User user, string? pin, string? confirmation, CancellationToken cancellationToken)
     {
         var birth = user.EmployeeId is { } employeeId ? await employees.BirthDateAsync(employeeId, cancellationToken) : null;
-        return PinRules.Problem(pin, confirmation, birth) is { } problem
+        var offlineCode = await db.PosPins.AsNoTracking().Where(p => p.UserId == user.Id).Select(p => p.OfflineCodeHash).FirstOrDefaultAsync(cancellationToken);
+        return (PinRules.Problem(pin, confirmation, birth) ?? (SameAsOfflineCode(user, offlineCode, pin) ? SameAsOfflineCodeMessage : null)) is { } problem
             ? Error.Validation(Error.Codes.Validation, problem, new Dictionary<string, string[]> { ["pin"] = [problem] })
             : null;
     }
+
+    /// <summary>OFF-03: o PIN do caixa não pode conferir com o código sem internet da pessoa (PP-39); o código já confere o contrário.</summary>
+    private bool SameAsOfflineCode(User user, string? offlineCodeHash, string? pin) =>
+        offlineCodeHash is not null && pin is not null && hasher.VerifyHashedPassword(user, offlineCodeHash, pin) != PasswordVerificationResult.Failed;
 
     internal async Task UpsertAsync(User user, string pin, bool mustChange, Guid by, CancellationToken cancellationToken)
     {

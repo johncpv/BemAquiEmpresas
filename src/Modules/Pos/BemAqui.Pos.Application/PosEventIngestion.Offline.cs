@@ -39,6 +39,12 @@ public sealed partial class PosEventIngestion
                     return Hold(projection, SyncDivergenceKind.Validation, "Entrada sem rede sem a pessoa, o id ou o instante.");
                 }
 
+                // Revisão de segurança (achado 7): o id da entrada é único por aparelho; a segunda com o mesmo id vai para a quarentena (sob a trava do caixa).
+                if (await LoginIdUsedAsync(context, eventId, loginId.Value, ct))
+                {
+                    return Hold(projection, SyncDivergenceKind.OfflineAccess, "Entrada sem rede repetida: este aparelho já mandou uma entrada com o mesmo id.");
+                }
+
                 var check = await offlineAccess.CheckLoginAsync(context.Device.DeviceId, context.Store.Id, userId.Value,
                     PosOfflineProof.LoginMessage(context.Device.DeviceId, userId.Value, loginId.Value, at), PosSaleReplay.StringOf(root, "proof"), ct);
                 if (check != PosOfflineCheck.Valid)
@@ -69,6 +75,19 @@ public sealed partial class PosEventIngestion
             default:
                 return Hold(projection, SyncDivergenceKind.Validation, $"Evento de acesso desconhecido: {type}.");
         }
+    }
+
+    private async Task<bool> LoginIdUsedAsync(SyncContext context, Guid eventId, Guid loginId, CancellationToken ct)
+    {
+        var pattern = "%" + loginId.ToString("D") + "%";
+        var candidates = await db.DeviceEvents.AsNoTracking()
+            .Where(e => e.DeviceId == context.Device.DeviceId && e.Kind == AuthKind && e.EventId != eventId && EF.Functions.ILike(e.Payload, pattern))
+            .Select(e => e.Payload).ToListAsync(ct);
+        return candidates.Any(payload =>
+        {
+            using var document = JsonDocument.Parse(payload);
+            return PosSaleReplay.StringOf(document.RootElement, "type") == OfflineLoginType && PosSaleReplay.GuidOf(document.RootElement, "loginId") == loginId;
+        });
     }
 
     private static string OfflineLoginProblem(PosOfflineCheck check, DateTimeOffset at) => check switch
@@ -119,7 +138,8 @@ public sealed partial class PosEventIngestion
         var before = PosSaleReplay.LongOf(root, "beforeCents");
         var after = PosSaleReplay.LongOf(root, "afterCents");
         var atText = PosSaleReplay.StringOf(root, "at");
-        var reason = PosSaleReplay.StringOf(root, "reason")?.Trim();
+        var rawReason = PosSaleReplay.StringOf(root, "reason");
+        var reason = rawReason?.Trim();
         var projection = new Projection { SaleId = saleId, OperatorId = operatorId };
         if (approvalId is null || operatorId is null || supervisorId is null || saleId is null || sessionId is null || before is not >= 0 || after is not >= 0
             || atText is null || PosSaleReplay.DateOf(root, "at") is not { } at || !Enum.TryParse<SupervisorAction>(PosSaleReplay.StringOf(root, "action"), out var action)
@@ -128,9 +148,15 @@ public sealed partial class PosEventIngestion
             return Hold(projection, SyncDivergenceKind.Validation, "Aprovação sem rede sem a ação, as pessoas, a venda, a sessão, os valores ou o instante.");
         }
 
-        if (await db.SupervisorApprovals.AnyAsync(a => a.Id == approvalId, ct))
+        // Revisão de segurança (achado 6): o id já gravado só encerra o evento se for a mesma aprovação (mesmo aparelho, sessão, ação, pessoas, venda,
+        // linha e valores); id repetido com outros dados vai para a quarentena, sem pular a conferência da prova.
+        if (await db.SupervisorApprovals.AsNoTracking().FirstOrDefaultAsync(a => a.Id == approvalId, ct) is { } existing)
         {
-            return projection; // liberada antes (ou o mesmo id): nada a fazer
+            return existing.DeviceId == context.Device.DeviceId && existing.CashSessionId == sessionId && existing.Action == action && existing.OperatorId == operatorId
+                && existing.SupervisorId == supervisorId && existing.SaleId == saleId && existing.LineId == lineId && existing.BeforeAmount == before.Value / 100m
+                && existing.AfterAmount == after.Value / 100m
+                    ? projection // reenvio ou liberada antes: nada a fazer
+                    : Hold(projection, SyncDivergenceKind.OfflineAccess, "Aprovação sem rede com o id de outra aprovação já gravada, com outros dados.");
         }
 
         var problems = new List<string>();
@@ -164,6 +190,11 @@ public sealed partial class PosEventIngestion
         {
             problems.Add("A sessão de caixa da aprovação não é deste caixa (ou a abertura não chegou).");
         }
+        else if (session.Status != CashSessionStatus.Open || session.CountStartedAt is not null || session.OperatorId != operatorId)
+        {
+            // Revisão de segurança (achado 1): só a sessão aberta deste caixa, do mesmo operador da aprovação.
+            problems.Add("A sessão de caixa da aprovação não está aberta ou é de outro operador.");
+        }
 
         if (problems.Count > 0)
         {
@@ -180,7 +211,7 @@ public sealed partial class PosEventIngestion
                 ], problems, ct);
             var check = await offlineAccess.CheckApprovalAsync(context.Device.DeviceId, context.Store.Id, supervisorId.Value,
                 PosOfflineProof.ApprovalMessage(context.Device.DeviceId, approvalId.Value, action.ToString(), operatorId.Value, supervisorId.Value, saleId.Value, lineId, before.Value,
-                    after.Value, atText), PosSaleReplay.StringOf(root, "proof"), ct);
+                    after.Value, sessionId.Value, atText, rawReason!), PosSaleReplay.StringOf(root, "proof"), ct);
             if (check != PosOfflineCheck.Valid)
             {
                 problems.Add(check switch
@@ -196,6 +227,8 @@ public sealed partial class PosEventIngestion
                 return Hold(projection, SyncDivergenceKind.OfflineAccess, "Aprovação sem rede recusada na conferência: " + string.Join(" ", problems));
             }
 
+            // Revisão de segurança (achado 6): a soma é lida e a aprovação gravada sob a trava do caixa (pg_advisory_xact_lock em LockAsync, uma transação
+            // por evento); a sessão é só deste caixa (conferido acima), então duas subidas da mesma sessão não correm em paralelo.
             if (OfflineLimitProblem(context.Store, action, impact, await SessionOfflineApprovalsAsync(sessionId.Value, ct)) is { } limit)
             {
                 return Hold(projection, SyncDivergenceKind.OfflineAccess, "Aprovação sem rede acima do limite da loja: " + limit);

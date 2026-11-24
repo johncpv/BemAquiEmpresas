@@ -21,7 +21,11 @@ public sealed record PosOfflineVerifier(
     int KeyLength,
     string Nonce,
     string Verifier,
-    IReadOnlyList<string> Actions);
+    IReadOnlyList<string> Actions)
+{
+    /// <summary>Sem o sal, o nonce e o verificador: o registro pode ir para log (revisão de segurança da OFF-03, achado 10).</summary>
+    public override string ToString() => $"PosOfflineVerifier {{ UserId = {UserId}, Kind = {Kind} }}";
+}
 
 /// <summary>Resultado da conferência de uma entrada ou aprovação feita sem rede (OFF-03 CA 4 e 7).</summary>
 public enum PosOfflineCheck
@@ -75,8 +79,12 @@ public static class PosOfflineProof
     public static string LoginMessage(Guid deviceId, Guid userId, Guid loginId, string at) =>
         $"bq-pos-offline-login|v1|{deviceId:D}|{userId:D}|{loginId:D}|{at}";
 
+    /// <summary>
+    /// A aprovação sem rede assina também a sessão de caixa e o motivo (v2, revisão de segurança da OFF-03, achado 1). O motivo vai por último, como o
+    /// aparelho mandou (sem aparar): os campos antes dele não têm <c>|</c>, então a mensagem não é ambígua.
+    /// </summary>
     public static string ApprovalMessage(Guid deviceId, Guid approvalId, string action, Guid operatorId, Guid supervisorId, Guid saleId, Guid? lineId, long beforeCents,
-        long afterCents, string at) =>
+        long afterCents, Guid cashSessionId, string at, string reason) =>
         string.Create(CultureInfo.InvariantCulture,
-            $"bq-pos-offline-approval|v1|{deviceId:D}|{approvalId:D}|{action}|{operatorId:D}|{supervisorId:D}|{saleId:D}|{(lineId is { } l ? l.ToString("D") : string.Empty)}|{beforeCents}|{afterCents}|{at}");
+            $"bq-pos-offline-approval|v2|{deviceId:D}|{approvalId:D}|{action}|{operatorId:D}|{supervisorId:D}|{saleId:D}|{(lineId is { } l ? l.ToString("D") : string.Empty)}|{beforeCents}|{afterCents}|{cashSessionId:D}|{at}|{reason}");
 }

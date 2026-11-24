@@ -229,6 +229,9 @@ A análise do EmissorFiscal encontrou em `D:\GIT\EmissorFiscal\docs\Certificado\
 | PP-39 | Já decidido (15/11/2026): operador com o mesmo PIN; supervisor com o código sem internet separado | O código é criado em Meu perfil → Segurança, depois do PIN; nunca vale com rede | Decidido |
 | Abertura sem rede fora da janela | O servidor não recusa a abertura que chegou depois da janela (só o aparelho bloqueia) | Risco aceito até a revisão de segurança: o relógio do aparelho é a única prova do instante; a sequência e o hash da OFF-02 mostram a ordem | Revisão de segurança |
 | PIN trocado com eventos na fila | Quem trocou o PIN com rede depois de entrar sem rede, antes de a fila subir, tem a entrada marcada e as vendas na quarentena | Fica assim: o servidor não guarda o PIN antigo para conferir a prova; o Proprietário libera em Pendências do PDV | PO, se incomodar no piloto |
+| Quem recebe verificador e aprova sem rede | Igual à regra com rede (PDV-01/PDV-04, `PosStoreOperators` e lista de supervisores): usuário de operação só da loja dele; usuário normal ativo vale em qualquer loja da empresa | Mantido (revisão de segurança 24/11/2026, achado 5): espelha a regra com rede | PO, se quiser restringir usuário normal por loja |
+| Bloqueio e contadores locais (risco aceito, achado 8) | O bloqueio por 5 erros e os contadores de aprovações do turno ficam no armazenamento do aparelho: quem controla o aparelho pode apagá-los | Risco aceito: os limites por aprovação, por turno e a prova são reconferidos no servidor na subida; o bloqueio é só freio local | Revisão de segurança |
+| Marca `offline` e instante vindos do aparelho (risco aceito, achado 9) | O `"offline": true` e o `at` dos eventos são declarados pelo aparelho | Risco aceito: servem para relatório e conferência; a sequência e o hash da OFF-02, a tolerância de relógio e a prova assinada limitam o abuso | Revisão de segurança |
 
 ## 4. Perguntas para a contadora
 

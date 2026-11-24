@@ -37,12 +37,16 @@ export interface ApprovalProofInput {
   lineId: string | null
   beforeCents: number
   afterCents: number
+  cashSessionId: string
   at: string
+  reason: string
 }
 
+/** v2: assina também a sessão de caixa e o motivo (como digitado, por último; revisão de segurança da OFF-03, achado 1). */
 export const approvalMessage = (a: ApprovalProofInput) =>
-  ['bq-pos-offline-approval', 'v1', a.deviceId, a.approvalId, a.action, a.operatorId, a.supervisorId, a.saleId, a.lineId ?? '', String(a.beforeCents), String(a.afterCents), a.at]
-    .map((part, i) => (i >= 2 && i <= 8 && i !== 4 ? part.toLowerCase() : part)).join('|')
+  ['bq-pos-offline-approval', 'v2', a.deviceId, a.approvalId, a.action, a.operatorId, a.supervisorId, a.saleId, a.lineId ?? '', String(a.beforeCents), String(a.afterCents),
+    a.cashSessionId, a.at, a.reason]
+    .map((part, i) => ((i >= 2 && i <= 8 && i !== 4) || i === 11 ? part.toLowerCase() : part)).join('|')
 
 export function toBase64(buffer: ArrayBuffer): string {
   let binary = ''
@@ -57,6 +61,8 @@ export function fromBase64(text: string): Uint8Array<ArrayBuffer> {
   return bytes
 }
 
+export const PROOF_KEY_INFO = 'bq-offline-proof'
+
 const HASHES: Record<string, string> = { 'PBKDF2-SHA512': 'SHA-512', 'PBKDF2-SHA256': 'SHA-256' }
 
 /** Refaz a derivação do servidor com o segredo digitado e devolve a chave HMAC (não extraível). */
@@ -65,7 +71,10 @@ export async function deriveKey(secret: string, verifier: Pick<OfflineVerifier, 
   if (!hash) throw new Error('Formato do verificador desconhecido.')
   const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), 'PBKDF2', false, ['deriveBits'])
   const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: fromBase64(verifier.salt), iterations: verifier.iterations, hash }, base, verifier.keyLength * 8)
-  return crypto.subtle.importKey('raw', bits, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
+  // Chave de prova separada da subkey guardada no servidor: HKDF-SHA256(subkey, sal vazio, info "bq-offline-proof"), igual a `PosOfflineAccessService.ProofKey`.
+  const ikm = await crypto.subtle.importKey('raw', bits, 'HKDF', false, ['deriveKey'])
+  return crypto.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info: new TextEncoder().encode(PROOF_KEY_INFO) }, ikm,
+    { name: 'HMAC', hash: 'SHA-256', length: 256 }, false, ['sign'])
 }
 
 export async function mac(key: CryptoKey, message: string): Promise<string> {

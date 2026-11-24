@@ -199,7 +199,13 @@ public sealed class PosOfflineAccessService(
         return new PinHashParts(algorithm, (int)iterations, bytes[13..(13 + (int)saltLength)], bytes[(13 + (int)saltLength)..]);
     }
 
-    internal static string Mac(byte[] key, string message) => Convert.ToBase64String(HMACSHA256.HashData(key, Encoding.UTF8.GetBytes(message)));
+    /// <summary>Rótulo HKDF da chave de prova: a subkey PBKDF2 guardada não é usada direto como chave do HMAC (adendo à ADR 0026).</summary>
+    public const string ProofKeyInfo = "bq-offline-proof";
+
+    /// <summary>Chave de prova = HKDF-SHA256(subkey PBKDF2, sal vazio, info <see cref="ProofKeyInfo"/>, 32 bytes), igual no aparelho (WebCrypto).</summary>
+    internal static byte[] ProofKey(byte[] subkey) => HKDF.DeriveKey(HashAlgorithmName.SHA256, subkey, 32, [], Encoding.UTF8.GetBytes(ProofKeyInfo));
+
+    internal static string Mac(byte[] key, string message) => Convert.ToBase64String(HMACSHA256.HashData(ProofKey(key), Encoding.UTF8.GetBytes(message)));
 
     internal static string Fingerprint(string hash) => Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(hash)));
 
@@ -244,7 +250,7 @@ public sealed class PosOfflineAccessService(
             given = [];
         }
 
-        var expected = HMACSHA256.HashData(parts.Subkey, Encoding.UTF8.GetBytes(message));
+        var expected = HMACSHA256.HashData(ProofKey(parts.Subkey), Encoding.UTF8.GetBytes(message));
         if (given.Length == expected.Length && CryptographicOperations.FixedTimeEquals(given, expected))
         {
             return (PosOfflineCheck.Valid, hash);
@@ -259,6 +265,12 @@ public sealed class PosOfflineAccessService(
 
     private async Task RecordIssuedAsync(Guid deviceId, IReadOnlyList<(Guid UserId, PinVerifierKind Kind, string Fingerprint)> issued, CancellationToken cancellationToken)
     {
+        // Revisão de segurança (achado 6): duas descidas simultâneas do mesmo aparelho não colidem no índice único (aparelho, pessoa, tipo); a trava do
+        // aparelho (pg_advisory_xact_lock) serializa a leitura e a gravação. Sem transação aberta por fora, abre uma aqui.
+        var own = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(cancellationToken) : null;
+        await using var _ = own;
+        var key = "identity.device_pin_verifiers:" + deviceId.ToString("N");
+        await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({key}, 0))) AS l").ToListAsync(cancellationToken);
         var now = clock.GetUtcNow();
         var current = await db.DevicePinVerifiers.Where(v => v.DeviceId == deviceId).ToListAsync(cancellationToken);
         foreach (var row in current.Where(r => !issued.Any(i => i.UserId == r.UserId && i.Kind == r.Kind)))
@@ -281,5 +293,9 @@ public sealed class PosOfflineAccessService(
         }
 
         await db.SaveChangesAsync(cancellationToken);
+        if (own is not null)
+        {
+            await own.CommitAsync(cancellationToken);
+        }
     }
 }

@@ -193,7 +193,7 @@ export async function offlineApprove(store: Store, input: OfflineApprovalInput):
   const approvalId = uuidv7(now.getTime())
   const proof = await mac(checked.value, approvalMessage({
     deviceId: input.deviceId, approvalId, action: input.action, operatorId: input.operatorId, supervisorId: verifier.userId, saleId: input.saleId, lineId: input.lineId,
-    beforeCents: input.beforeCents, afterCents: input.afterCents, at,
+    beforeCents: input.beforeCents, afterCents: input.afterCents, cashSessionId: input.cashSessionId, at, reason: input.reason,
   }))
   await store.enqueue(APPROVAL_OUTBOX_KIND, {
     approvalId, action: input.action, operatorId: input.operatorId, supervisorId: verifier.userId, reason: input.reason, saleId: input.saleId, lineId: input.lineId,

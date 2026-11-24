@@ -95,7 +95,7 @@ describe('entrada e aprovação sem rede no aparelho (OFF-03)', () => {
     expect(event.payload).toMatchObject({ action: 'CancelItem', supervisorId: SUPERVISOR, operatorId: OPERATOR, beforeCents: 2000, afterCents: 0, cashSessionId: 'sessao', offline: true })
     expect(event.payload.proof).toBe(await mac(await deriveKey('295173', supervisor), approvalMessage({
       deviceId: DEVICE, approvalId: event.payload.approvalId as string, action: 'CancelItem', operatorId: OPERATOR, supervisorId: SUPERVISOR, saleId: base.saleId, lineId: base.lineId,
-      beforeCents: 2000, afterCents: 0, at: '2026-11-24T12:00:00.000Z',
+      beforeCents: 2000, afterCents: 0, cashSessionId: 'sessao', at: '2026-11-24T12:00:00.000Z', reason: 'Cliente desistiu',
     })))
 
     expect(await offlineApprove(store, { ...base, beforeCents: 6000 })).toEqual({ ok: false, message: ABOVE_LIMIT_MESSAGE, locked: false })

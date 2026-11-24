@@ -291,6 +291,13 @@ public partial class PosTests
         (await OkAsync(await client.PutAsJsonAsync("/api/v1/pos/my-pin", new { pin = OwnPin, confirmation = OwnPin }))).GetProperty("hasPin").GetBoolean().Should().BeTrue();
         await OkAsync(await PinLoginAsync(device, userId, OwnPin));
 
+        // OFF-03 (revisão de segurança, achado 3): o PIN do caixa não pode ser igual ao código sem internet da pessoa.
+        var code = new Microsoft.AspNetCore.Identity.PasswordHasher<User>().HashPassword(null!, "731946");
+        await WithDbAsync(db => db.PosPins.Where(p => p.UserId == userId).ExecuteUpdateAsync(s => s.SetProperty(p => p.OfflineCodeHash, code)));
+        var same = await client.PutAsJsonAsync("/api/v1/pos/my-pin", new { pin = "731946", confirmation = "731946" });
+        same.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+        (await same.Content.ReadAsStringAsync()).Should().Contain(BemAqui.Identity.Application.Shopfloor.PosPinService.SameAsOfflineCodeMessage);
+
         // O Proprietário tem ação reservada: não cria PIN do caixa (o PIN de supervisor de balcão é da PDV-04).
         (await owner.PutAsJsonAsync("/api/v1/pos/my-pin", new { pin = OwnPin, confirmation = OwnPin })).StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
