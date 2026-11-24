@@ -5,7 +5,7 @@
 | ID | OFF-03 |
 | Título | Caixa e supervisor sem rede: abrir turno, PIN conferido no aparelho com chave de cifra própria, limites para aprovação offline, sangria, suprimento e fechamento offline, janela máxima com piso de horário do servidor e o que fica desabilitado |
 | Tamanho | G |
-| Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
+| Status | Pronta para revisão (24/11/2026, branch `feat/off-03`) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | Pedido do PO de 15/11/2026 (item 5) · [Rascunho A](../adr/rascunho-A-offline.md) itens 9 e 11 e fase F2 · ADR 0026 §6 · PP-10 e PP-11 |
 | Dependências | OFF-02, CX-02, PDV-04; PP-10 e PP-39 decididas |
@@ -94,3 +94,4 @@ Como **dono de um trailer ou de uma loja com internet ruim**, quero **abrir, ope
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
+| 24/11/2026 | 1.0 | Implementada (branch `feat/off-03`), pronta para revisão. **Desenho** no adendo de 24/11/2026 à ADR 0026: verificador `HMAC-SHA256` sobre a chave PBKDF2 do hash guardado, por aparelho e com nonce, na descida do catálogo (`verifiers`), registrado em `identity.device_pin_verifiers` e cifrado no aparelho com uma chave AES-GCM não extraível própria; prova HMAC na entrada (`pos.auth`) e na aprovação (`pos.approval`), conferida na subida com o hash atual. **PP-39:** código sem internet do supervisor separado do PIN, em Meu perfil → Segurança. **PP-22 (limites sem rede), recomendação aceita (PO 24/11/2026):** R$ 50,00 por aprovação, 5 aprovações e R$ 150,00 por turno, conferência do fechamento acima de R$ 100,00 aprovados sem rede, cancelamento sem rede só da venda paga toda em dinheiro, troca de preço só com rede; tudo editável na loja (zero desliga). **Desvios:** `pos.supervisor_approvals` já tinha `online` (PDV-04): a aprovação sem rede grava `online = false` em vez de uma coluna `offline`, mais `cash_session_id` para os limites por turno; `pos.session_sales` ganhou `offline` e `sale_number` para a lista do fechamento (CA 8); a entrada sem rede vale como sessão do caixa por 12 h na conferência da subida. **Fora:** recusa no servidor da abertura feita depois da janela (só o aparelho bloqueia); E2E do turno sem rede (no fechamento do marco); revisão de segurança do desenho antes do deploy; campo de um dia offline no piloto. | Claude (dev) |

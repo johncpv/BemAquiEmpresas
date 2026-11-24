@@ -220,6 +220,16 @@ A análise do EmissorFiscal encontrou em `D:\GIT\EmissorFiscal\docs\Certificado\
 | 5 | O estorno de cartão no cancelamento é confirmado pelo próprio aparelho, e o NSU do estorno é texto livre (a maquininha externa não conversa com o sistema) | Sem TEF integrado não há como o servidor conferir o estorno | Cancelamento sempre com a aprovação de um supervisor diferente do operador, o NSU na trilha `pos.supervisor_approvals` e o aviso ao Proprietário (CA 9); a conciliação do cartão aponta o estorno que não houve |
 | 8 | O relatório "Aprovações de supervisor" tem o escopo do tenant (quem tem `sales.view` vê todas as lojas), sem escopo por loja | A retaguarda inteira já é por tenant, sem recorte por loja; o recorte por loja seria uma regra nova só aqui | Filtro por loja na tela; o acesso continua pelas três camadas (`sales.view`) |
 
+#### Decidido e em aberto na OFF-03 (24/11/2026)
+
+| # | O que | Como ficou na OFF-03 | Quem decide |
+|---|---|---|---|
+| PP-22 (limites sem rede) | **Recomendação aceita (PO 24/11/2026)**, conservadora e editável por loja em Lojas e caixas | **R$ 50,00 por aprovação** sem rede (a diferença entre antes e depois: o desconto, o item ou a venda cancelados); **5 aprovações** e **R$ 150,00 somados por turno**; acima de **R$ 100,00** aprovados sem rede no turno, o fechamento vai para `PendingReview` (CX-02 CA 6); **cancelamento de venda sem rede só da venda paga toda em dinheiro** (pode ser desligado); **troca de preço só com rede** (rascunho A, item 11); zero no teto desliga a aprovação sem rede. Por quê: o código sem internet é quebrável com o aparelho na mão (RP-08); com esses tetos, o estrago máximo de um aparelho perdido num turno fica em R$ 150,00 e tudo é reconferido na subida | Decidido (recomendação aceita) |
+| PP-10 (padrão) | Já decidido (18/11/2026): padrão e teto de 7 dias | "Tempo máximo sem internet" em horas (1 a 168) na loja; a janela conta do último horário do servidor, com piso contra relógio atrasado | Decidido |
+| PP-39 | Já decidido (15/11/2026): operador com o mesmo PIN; supervisor com o código sem internet separado | O código é criado em Meu perfil → Segurança, depois do PIN; nunca vale com rede | Decidido |
+| Abertura sem rede fora da janela | O servidor não recusa a abertura que chegou depois da janela (só o aparelho bloqueia) | Risco aceito até a revisão de segurança: o relógio do aparelho é a única prova do instante; a sequência e o hash da OFF-02 mostram a ordem | Revisão de segurança |
+| PIN trocado com eventos na fila | Quem trocou o PIN com rede depois de entrar sem rede, antes de a fila subir, tem a entrada marcada e as vendas na quarentena | Fica assim: o servidor não guarda o PIN antigo para conferir a prova; o Proprietário libera em Pendências do PDV | PO, se incomodar no piloto |
+
 ## 4. Perguntas para a contadora
 
 **Nada do que é fiscal neste plano foi confirmado.** As respostas valem por UF: a coluna "SP" é a do piloto proposto (PP-06); cada UF nova repete a coluna.
