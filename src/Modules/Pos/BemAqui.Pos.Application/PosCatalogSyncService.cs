@@ -32,7 +32,11 @@ public sealed record PosSyncStore(
     bool CanSell = true,
     ReceiptPrintMode ReceiptPrintMode = ReceiptPrintMode.Ask,
     bool FreeRemoveLast = true,
-    decimal DiscountLimitPercent = 0m);
+    decimal DiscountLimitPercent = 0m,
+    long OfflineApprovalMaxCents = 0,
+    long OfflineApprovalSessionCents = 0,
+    int OfflineApprovalSessionCount = 0,
+    bool OfflineCancelSaleAllowed = false);
 
 /// <summary>A tabela de preço da loja e a versão mais nova que já desceu (o aparelho informa a versão em que vendeu).</summary>
 public sealed record PosSyncPriceList(Guid Id, long Version);
@@ -91,7 +95,8 @@ public sealed record PosCatalogSnapshot(
     IReadOnlyList<PosSyncItem> Items,
     IReadOnlyList<PosSyncPaymentMethod> PaymentMethods,
     IReadOnlyList<PosSyncOperator> Operators,
-    PosSyncPrinters Printers);
+    PosSyncPrinters Printers,
+    IReadOnlyList<PosOfflineVerifier>? Verifiers = null);
 
 /// <summary>
 /// Delta desde o cursor (OFF-01 CA 11): itens e formas novos ou alterados, os ids removidos (produto desativado, excluído ou fora do caixa; forma
@@ -109,7 +114,8 @@ public sealed record PosCatalogChanges(
     IReadOnlyList<PosSyncPaymentMethod> PaymentMethods,
     IReadOnlyList<Guid> RemovedPaymentMethodIds,
     IReadOnlyList<PosSyncOperator> Operators,
-    PosSyncPrinters Printers);
+    PosSyncPrinters Printers,
+    IReadOnlyList<PosOfflineVerifier>? Verifiers = null);
 
 /// <summary>
 /// Descida do catálogo para o aparelho de caixa (OFF-01 CA 10 a 12, rotas <c>/api/v1/pos/sync/*</c> no esquema <c>Device</c>). A loja vem do
@@ -117,7 +123,8 @@ public sealed record PosCatalogChanges(
 /// loja). Não gira o segredo do aparelho (só o aperto de mão gira).
 /// </summary>
 public sealed class PosCatalogSyncService(
-    IPosDb db, PosSyncService sync, PosCatalogProjector projector, IPosStoreOperators operators, PrinterService printers, ICompanyIdentity company, TimeProvider clock)
+    IPosDb db, PosSyncService sync, PosCatalogProjector projector, IPosStoreOperators operators, PrinterService printers, ICompanyIdentity company, IPosOfflineAccess offline,
+    TimeProvider clock)
 {
     /// <summary>Versão do formato da foto e do delta; sobe quando uma coleção entra ou muda de forma.</summary>
     public const int SchemaVersion = 1;
@@ -146,7 +153,8 @@ public sealed class PosCatalogSyncService(
         var methods = rows.Where(r => r.Kind == CatalogItemKind.PaymentMethod).Select(ToPaymentMethod).OrderBy(m => m.Name, StringComparer.CurrentCulture).ToList();
         return new PosCatalogSnapshot(
             SchemaVersion, Collections, cursor, clock.GetUtcNow(), await ToStoreAsync(store, register, cancellationToken), await PriceListAsync(store, cancellationToken),
-            items, methods, await OperatorsAsync(store.Id, cancellationToken), await printers.ForRegisterAsync(register.Id, cancellationToken));
+            items, methods, await OperatorsAsync(store.Id, cancellationToken), await printers.ForRegisterAsync(register.Id, cancellationToken),
+            await offline.VerifiersAsync(device.DeviceId, store.Id, cancellationToken));
     }
 
     public async Task<Result<PosCatalogChanges>> ChangesAsync(DeviceIdentity device, long cursor, int? limit, CancellationToken cancellationToken = default)
@@ -183,7 +191,8 @@ public sealed class PosCatalogSyncService(
             page.Where(r => r.Kind == CatalogItemKind.Product && r.Deleted).Select(r => r.EntityId).ToList(),
             page.Where(r => r.Kind == CatalogItemKind.PaymentMethod && !r.Deleted).Select(ToPaymentMethod).ToList(),
             page.Where(r => r.Kind == CatalogItemKind.PaymentMethod && r.Deleted).Select(r => r.EntityId).ToList(),
-            await OperatorsAsync(store.Id, cancellationToken), await printers.ForRegisterAsync(register.Id, cancellationToken));
+            await OperatorsAsync(store.Id, cancellationToken), await printers.ForRegisterAsync(register.Id, cancellationToken),
+            await offline.VerifiersAsync(device.DeviceId, store.Id, cancellationToken));
     }
 
     private async Task<long> CursorAsync(Guid storeId, CancellationToken cancellationToken) =>
@@ -207,7 +216,9 @@ public sealed class PosCatalogSyncService(
             PosCatalogProjector.ToCents(store.CashBreakTolerance), store.ExchangeDays, PosCatalogProjector.ToCents(store.CashDropAlertAmount),
             store.CashCeilingAmount is { } ceiling ? PosCatalogProjector.ToCents(ceiling) : null,
             string.IsNullOrWhiteSpace(identity.TradeName) ? identity.LegalName : identity.TradeName, identity.Document,
-            store.FiscalMode, store.NonFiscalAcceptedFor(NonFiscalTerms.Version), store.ReceiptPrintMode, store.FreeRemoveLast, store.DiscountLimitPercent);
+            store.FiscalMode, store.NonFiscalAcceptedFor(NonFiscalTerms.Version), store.ReceiptPrintMode, store.FreeRemoveLast, store.DiscountLimitPercent,
+            PosCatalogProjector.ToCents(store.OfflineApprovalMaxAmount), PosCatalogProjector.ToCents(store.OfflineApprovalSessionAmount), store.OfflineApprovalSessionCount,
+            store.OfflineCancelSaleAllowed);
     }
 
     private static PosSyncItem ToItem(CatalogItem row)

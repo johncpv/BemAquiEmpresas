@@ -43,7 +43,9 @@ public sealed record PosOperatorSession(
 public sealed record SetPosPinInput(string Pin, string Confirmation);
 
 /// <summary>"PIN do caixa" da própria pessoa (Meu perfil): se tem, quando criou e usou, e se o perfil pode usar.</summary>
-public sealed record MyPosPin(bool HasPin, DateTimeOffset? CreatedAt, DateTimeOffset? LastUsedAt, bool CanUse);
+/// <remarks>OFF-03 (PP-39): o código de aprovação sem internet (se tem, quando criou e se o perfil aprova como supervisor sem rede).</remarks>
+public sealed record MyPosPin(bool HasPin, DateTimeOffset? CreatedAt, DateTimeOffset? LastUsedAt, bool CanUse, bool HasOfflineCode = false, DateTimeOffset? OfflineCodeSetAt = null,
+    bool CanHaveOfflineCode = false);
 
 /// <summary>
 /// Operadores com PIN que podem entrar nos caixas de uma loja (PDV-01 CA 11; OFF-01 CA 10 pelo <see cref="IPosStoreOperators"/>): ativos, com perfil
@@ -332,7 +334,9 @@ public sealed class PosPinService(
     public async Task<MyPosPin> MineAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var row = await db.PosPins.AsNoTracking().FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
-        return new MyPosPin(row is not null, row?.CreatedAt, row?.LastUsedAt, PinProfile.CanHavePosPin(await permissions.GetAsync(userId, cancellationToken)));
+        var effective = await permissions.GetAsync(userId, cancellationToken);
+        return new MyPosPin(row is not null, row?.CreatedAt, row?.LastUsedAt, PinProfile.CanHavePosPin(effective), row?.OfflineCodeHash is not null, row?.OfflineCodeSetAt,
+            PosOfflineAccessService.CanHaveOfflineCode(effective));
     }
 
     /// <summary>

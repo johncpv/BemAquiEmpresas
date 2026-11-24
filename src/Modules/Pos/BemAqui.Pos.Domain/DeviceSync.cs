@@ -104,6 +104,12 @@ public enum SyncDivergenceKind
 
     /// <summary>A loja não tinha documento fiscal para a venda (modo não fiscal não aceito na versão vigente): pendência do Proprietário.</summary>
     FiscalDocument,
+
+    /// <summary>
+    /// OFF-03 CA 4, 7 e 13: entrada ou aprovação sem rede a revisar (pessoa desativada, PIN ou código trocado, prova que não confere, aprovação acima
+    /// dos limites da loja). O que a pessoa fez naquela entrada fica na quarentena até o Proprietário liberar.
+    /// </summary>
+    OfflineAccess,
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<SyncDivergenceStatus>))]
@@ -247,6 +253,12 @@ public sealed class SessionSale
 
     /// <summary>PDV-04 CA 7: a venda cancelada na sessão tira o dinheiro dela da gaveta (volta a zero).</summary>
     public decimal CashAmount { get; set; }
+
+    /// <summary>OFF-03 CA 8: a venda foi concluída sem rede (o relatório de fechamento lista as vendas feitas sem rede).</summary>
+    public bool Offline { get; init; }
+
+    /// <summary>OFF-03 CA 8: o número da venda no caixa, para a lista das vendas feitas sem rede (nulo nas que subiram antes da OFF-03).</summary>
+    public string? SaleNumber { get; init; }
 
     public DateTimeOffset CreatedAt { get; init; }
 }

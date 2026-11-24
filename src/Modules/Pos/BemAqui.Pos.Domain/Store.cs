@@ -82,6 +82,29 @@ public sealed class Store : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>OFF-02 CA 16: o gerente é avisado quando um caixa fica este número de horas sem enviar vendas (padrão 4 h, de 1 a 72).</summary>
     public int SyncAlertHours { get; set; } = DefaultSyncAlertHours;
 
+    /// <summary>
+    /// OFF-03 CA 13 (PP-22, recomendação conservadora aceita pelo PO em 24/11/2026): teto de cada aprovação de supervisor sem rede, em reais (a
+    /// diferença entre antes e depois: o desconto, o item ou a venda cancelados). Padrão R$ 50,00; zero desliga a aprovação sem rede.
+    /// </summary>
+    public decimal OfflineApprovalMaxAmount { get; set; } = DefaultOfflineApprovalMaxAmount;
+
+    /// <summary>OFF-03 CA 13: soma das aprovações sem rede numa sessão de caixa. Padrão R$ 150,00.</summary>
+    public decimal OfflineApprovalSessionAmount { get; set; } = DefaultOfflineApprovalSessionAmount;
+
+    /// <summary>OFF-03 CA 13: quantas aprovações sem rede numa sessão de caixa. Padrão 5.</summary>
+    public int OfflineApprovalSessionCount { get; set; } = DefaultOfflineApprovalSessionCount;
+
+    /// <summary>OFF-03 CA 13 (limite de alerta): a sessão com aprovações sem rede acima deste total vai para conferência no fechamento. Padrão R$ 100,00.</summary>
+    public decimal OfflineApprovalReviewAmount { get; set; } = DefaultOfflineApprovalReviewAmount;
+
+    /// <summary>OFF-03 CA 13: cancelamento de venda concluída sem rede, só da venda paga toda em dinheiro (padrão: ligado). Desligado, só com rede.</summary>
+    public bool OfflineCancelSaleAllowed { get; set; } = true;
+
+    public const decimal DefaultOfflineApprovalMaxAmount = 50.00m;
+    public const decimal DefaultOfflineApprovalSessionAmount = 150.00m;
+    public const int DefaultOfflineApprovalSessionCount = 5;
+    public const decimal DefaultOfflineApprovalReviewAmount = 100.00m;
+
     public string? SeedKey { get; init; }
 
     public DateTimeOffset CreatedAt { get; init; }

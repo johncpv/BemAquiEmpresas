@@ -155,6 +155,13 @@ public sealed partial class PosEventIngestion
             return projection;
         }
 
+        // OFF-03 CA 13: aprovado sem rede, só o cancelamento da venda paga toda em dinheiro (o estorno de outra forma precisa de rede).
+        if (!context.Trusted && needsRefund && approvals.Any(a => !a.Online))
+        {
+            projection.Quarantine = new Finding(SyncDivergenceKind.OfflineAccess, "Cancelamento aprovado sem rede de uma venda que não foi paga toda em dinheiro.");
+            return projection;
+        }
+
         var cancelled = await sales.CancelAsync(new SaleCancellationRequest(sale.Id, reason!, CapturedRefundedOutside: true, CancelledBy: operatorId), ct);
         if (cancelled.IsFailure)
         {

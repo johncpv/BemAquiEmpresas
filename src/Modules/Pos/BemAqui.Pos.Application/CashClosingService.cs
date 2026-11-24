@@ -22,9 +22,11 @@ public sealed record CashCountLineInput(Guid? MethodId, long CountedCents, IRead
 
 /// <summary>
 /// A contagem confirmada no aparelho (evento <c>CashCounted</c>, CX-02 CA 2, 4 e 12): o fundo que fica, o id do movimento do recolhimento, as
-/// vendas que o aparelho concluiu na sessão (o servidor espera todas subirem) e o contado por forma. Nunca traz esperado nem diferença.
+/// vendas que o aparelho concluiu na sessão (o servidor espera todas subirem) e o contado por forma. Nunca traz esperado nem diferença. OFF-03 CA 8:
+/// <c>Offline</c>, a contagem foi feita sem rede.
 /// </summary>
-public sealed record CashCountInput(Guid SessionId, Guid CountId, Guid OperatorId, DateTimeOffset CountedAt, long KeptCents, Guid DepositMovementId, int SalesCount, IReadOnlyList<CashCountLineInput> Lines);
+public sealed record CashCountInput(Guid SessionId, Guid CountId, Guid OperatorId, DateTimeOffset CountedAt, long KeptCents, Guid DepositMovementId, int SalesCount, IReadOnlyList<CashCountLineInput> Lines,
+    bool Offline = false);
 
 /// <summary>
 /// Fechamento do caixa com conferência cega (CX-02), no servidor.
@@ -148,6 +150,7 @@ public sealed class CashClosingService(
         session.CountId = input.CountId;
         session.CountedBy = input.OperatorId;
         session.CountedAt = input.CountedAt;
+        session.ClosedOffline = input.Offline;
         session.KeptAmount = input.KeptCents / 100m;
         session.DepositAmount = deposit;
         session.DeviceSalesCount = input.SalesCount;
@@ -196,6 +199,14 @@ public sealed class CashClosingService(
         if (await db.CashMovements.AnyAsync(m => m.SessionId == session.Id && m.Kind == CashMovementKind.CashOut && m.AboveExpected, cancellationToken))
         {
             reasons |= CashReviewReasons.CashOutAboveExpected;
+        }
+
+        // OFF-03 CA 13: aprovações sem rede da sessão acima do limite de alerta da loja levam o fechamento à conferência.
+        var offlineApprovals = await db.SupervisorApprovals.AsNoTracking().Where(a => a.CashSessionId == session.Id && !a.Online)
+            .Select(a => new { a.BeforeAmount, a.AfterAmount }).ToListAsync(cancellationToken);
+        if (offlineApprovals.Count > 0 && offlineApprovals.Sum(a => Math.Abs(a.BeforeAmount - a.AfterAmount)) > store.OfflineApprovalReviewAmount)
+        {
+            reasons |= CashReviewReasons.OfflineApprovals;
         }
 
         session.ReviewReasons = reasons;

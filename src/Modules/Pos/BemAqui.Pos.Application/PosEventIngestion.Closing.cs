@@ -65,7 +65,7 @@ public sealed partial class PosEventIngestion
             lines.Add(new CashCountLineInput(PosSaleReplay.GuidOf(line, "methodId"), counted, pieces));
         }
 
-        var input = new CashCountInput(session.Id, countId, operatorId, at, kept, depositMovementId, (int)Math.Clamp(salesCount, -1, int.MaxValue), lines);
+        var input = new CashCountInput(session.Id, countId, operatorId, at, kept, depositMovementId, (int)Math.Clamp(salesCount, -1, int.MaxValue), lines, Offline: OfflineFlag(root));
         var result = await closing.CountAsync(input, ct);
         if (result.IsFailure)
         {

@@ -15,7 +15,7 @@ public enum CashReviewReasons
     /// <summary>Sangria acima do dinheiro calculado (CX-01 CA 4), refeita no servidor.</summary>
     CashOutAboveExpected = 2,
 
-    /// <summary>Aprovações sem rede acima do limite da loja (OFF-03; reservado).</summary>
+    /// <summary>Aprovações sem rede da sessão acima do limite de alerta da loja (OFF-03 CA 13).</summary>
     OfflineApprovals = 4,
 }
 

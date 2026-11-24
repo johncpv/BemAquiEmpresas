@@ -91,6 +91,8 @@ public static class IdentityInfrastructure
         services.TryAddScoped<Application.Shopfloor.PosPinService>();
         services.TryAddScoped<BemAqui.Identity.Contracts.IPosSupervisorPins>(sp => sp.GetRequiredService<Application.Shopfloor.PosPinService>()); // PDV-04: PIN do supervisor no balcão
         services.TryAddScoped<BemAqui.Identity.Contracts.IPosOperatorHistory, Application.Shopfloor.PosOperatorHistory>(); // OFF-02: operador e permissão no instante
+        services.TryAddScoped<Application.Shopfloor.PosOfflineAccessService>();
+        services.TryAddScoped<BemAqui.Identity.Contracts.IPosOfflineAccess>(sp => sp.GetRequiredService<Application.Shopfloor.PosOfflineAccessService>()); // OFF-03: PIN sem rede
         services.TryAddScoped<OperationUserService>();
         services.AddAuditableEntity<PosPin>("identity");
         // Painel da TV (PNL-01a, ADR 0030): telas com token de uso único, sessão de quiosque conferida a cada request e a troca da rota.
