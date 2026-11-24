@@ -50,6 +50,11 @@ internal static class SalesEndpoints
                 return file.IsSuccess ? Results.File(file.Value.Content, SafeCsv.ContentType, file.Value.FileName) : file.Error!.ToProblem();
             })
             .RequirePermission("sales.view").WithName("ExportNonFiscalSalesReport");
+
+        // PDV-04 CA 4: vendas abaixo do custo (o custo é da baixa; só com sales.view_cost, o custo nunca desce para o caixa).
+        sales.MapGet("/reports/below-cost", async (DateOnly from, DateOnly to, Guid? storeId, BelowCostSalesReportService service, CancellationToken ct) =>
+                (await service.QueryAsync(from, to, storeId, ct)).ToHttpResult())
+            .RequirePermission("sales.view_cost").WithName("GetBelowCostSalesReport").Produces<BelowCostSalesReport>();
         return api;
     }
 

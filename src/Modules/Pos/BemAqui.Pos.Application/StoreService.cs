@@ -14,7 +14,8 @@ namespace BemAqui.Pos.Application;
 /// <summary>Loja. CX-01: o aviso de sangria (nulo = mantém o atual) e o teto de dinheiro no caixa (nulo = sem teto), PP-22.</summary>
 public sealed record StoreInput(
     string Code, string Name, Guid StockLocationId, Guid DefaultPriceListId, bool IsActive = true, decimal? CashDropAlertAmount = null, decimal? CashCeilingAmount = null,
-    ReceiptPrintMode? ReceiptPrintMode = null, bool? FreeRemoveLast = null, int? SyncAlertHours = null, decimal? CashBreakTolerance = null);
+    ReceiptPrintMode? ReceiptPrintMode = null, bool? FreeRemoveLast = null, int? SyncAlertHours = null, decimal? CashBreakTolerance = null,
+    decimal? DiscountLimitPercent = null);
 
 public sealed record RegisterInput(int Number, Guid CashAccountId, RegisterUiMode UiMode, bool IsActive = true);
 
@@ -57,7 +58,8 @@ public sealed record StoreView(
     ReceiptPrintMode ReceiptPrintMode = ReceiptPrintMode.Ask,
     bool FreeRemoveLast = true,
     int SyncAlertHours = Store.DefaultSyncAlertHours,
-    decimal CashBreakTolerance = 5.00m);
+    decimal CashBreakTolerance = 5.00m,
+    decimal DiscountLimitPercent = 0m);
 
 /// <summary>Ligar ou desligar o modo "só cupom não fiscal" (IMP-01 CA 10): ligar exige o aceite do texto na versão atual.</summary>
 public sealed record NonFiscalModeInput(bool Enabled, bool Accepted, int? TermsVersion, uint Version);
@@ -126,7 +128,7 @@ public sealed class StoreService(
             s.DefaultPriceListId, listNames.GetValueOrDefault(s.DefaultPriceListId, "Tabela removida"), s.IsActive, s.CashDropAlertAmount, s.CashCeilingAmount, s.Version,
             registers.Where(r => r.StoreId == s.Id).Select(r => ToView(r, accountNames, deviceInfo, now)).ToList(),
             s.FiscalMode, s.NonFiscalTermsVersion, s.NonFiscalAcceptedAt, s.NonFiscalAcceptedBy is { } by ? acceptedBy.GetValueOrDefault(by) : null,
-            s.NonFiscalAccepted && s.NonFiscalTermsVersion < NonFiscalTerms.Version, s.ReceiptPrintMode, s.FreeRemoveLast, s.SyncAlertHours, s.CashBreakTolerance)).ToList();
+            s.NonFiscalAccepted && s.NonFiscalTermsVersion < NonFiscalTerms.Version, s.ReceiptPrintMode, s.FreeRemoveLast, s.SyncAlertHours, s.CashBreakTolerance, s.DiscountLimitPercent)).ToList();
     }
 
     public static NonFiscalTermsView Terms() => new(NonFiscalTerms.Version, NonFiscalTerms.Title, NonFiscalTerms.Text);
@@ -313,6 +315,11 @@ public sealed class StoreService(
             return Invalid("cashBreakTolerance", "Informe a tolerância de quebra em reais, de 0 a 9.999,99, com até 2 casas.");
         }
 
+        if (input.DiscountLimitPercent is { } limit && (limit < 0 || limit > 100 || decimal.Round(limit, 2) != limit))
+        {
+            return Invalid("discountLimitPercent", "Informe o limite de desconto em %, de 0 a 100, com até 2 casas.");
+        }
+
         if (input.SyncAlertHours is < 1 or > 72)
         {
             return Invalid("syncAlertHours", "Informe o aviso de caixa sem enviar vendas entre 1 e 72 horas.");
@@ -384,6 +391,7 @@ public sealed class StoreService(
         store.FreeRemoveLast = input.FreeRemoveLast ?? store.FreeRemoveLast;
         store.SyncAlertHours = input.SyncAlertHours ?? store.SyncAlertHours;
         store.CashBreakTolerance = input.CashBreakTolerance ?? store.CashBreakTolerance;
+        store.DiscountLimitPercent = input.DiscountLimitPercent ?? store.DiscountLimitPercent;
     }
 
     /// <summary>CX-01 (PP-22): aviso de sangria de 0 a R$ 9.999.999,99 e teto (opcional) acima do aviso, em reais com até 2 casas.</summary>

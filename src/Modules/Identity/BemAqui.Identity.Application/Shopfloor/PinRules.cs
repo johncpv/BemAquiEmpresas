@@ -89,11 +89,39 @@ public static class PinProfile
     public const string PosAction = "pos.create";
 
     /// <summary>
-    /// PIN no caixa do PDV (PDV-01 CA 11): <c>pos.create</c> e nenhuma ação reservada, a mesma regra do PIN da fábrica. O PIN de supervisor de balcão
-    /// com <c>*.approve</c> (exceção nomeada da PP-11, ADR 0048 §5) é da PDV-04: até lá, quem tem ação reservada não usa PIN no caixa.
+    /// Entrar no caixa do PDV por PIN (PDV-01 CA 11): <c>pos.create</c> e nenhuma ação reservada, a mesma regra do PIN da fábrica. O supervisor com
+    /// <c>*.approve</c> tem PIN só para aprovar (<see cref="SupervisorActions"/>), nunca para entrar.
     /// </summary>
     public static bool CanUsePosPin(EffectivePermissions permissions) =>
         permissions.Has(PosAction) && SensitiveActions(permissions).Count == 0;
+
+    /// <summary>As ações do caixa que pedem supervisor (PDV-04).</summary>
+    public static readonly IReadOnlyList<string> PosSupervisorPermissions = ["pos.discount", "pos.change_price", "pos.cancel_item", "pos.cancel_sale"];
+
+    /// <summary>Exceção nomeada da PP-11 (ADR 0048 §5): com <c>*.approve</c>, o PIN aprova só o desconto acima do limite e o cancelamento de venda.</summary>
+    public static readonly IReadOnlyList<string> ApproveProfileSupervisorPermissions = ["pos.discount", "pos.cancel_sale"];
+
+    /// <summary>
+    /// O que o PIN do caixa desta pessoa aprova como supervisor (PDV-04 CA 10). Sem ação reservada, as ações de supervisor que ela tem. Com ação reservada,
+    /// só pela exceção da PP-11: todas as reservadas são <c>*.approve</c> (nada de <c>finance.pay</c>, dados sensíveis, usuários, configurações nem
+    /// Proprietário) e, delas, só o desconto acima do limite e o cancelamento de venda.
+    /// </summary>
+    public static IReadOnlyList<string> SupervisorActions(EffectivePermissions permissions)
+    {
+        ArgumentNullException.ThrowIfNull(permissions);
+        var sensitive = SensitiveActions(permissions);
+        if (sensitive.Count == 0)
+        {
+            return PosSupervisorPermissions.Where(permissions.Has).ToList();
+        }
+
+        return sensitive.All(a => a.EndsWith(".approve", StringComparison.Ordinal))
+            ? ApproveProfileSupervisorPermissions.Where(permissions.Has).ToList()
+            : [];
+    }
+
+    /// <summary>PIN do caixa: para entrar (operador) ou só para aprovar (supervisor, PDV-04).</summary>
+    public static bool CanHavePosPin(EffectivePermissions permissions) => CanUsePosPin(permissions) || SupervisorActions(permissions).Count > 0;
 }
 
 /// <summary>Prazos da sessão (ADR 0026 §3): completa com renovação de 7 dias até o prazo absoluto; por PIN, 12 h sem renovação além.</summary>

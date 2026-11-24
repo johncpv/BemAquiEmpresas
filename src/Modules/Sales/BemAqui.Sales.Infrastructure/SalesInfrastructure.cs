@@ -24,6 +24,7 @@ public static class SalesInfrastructure
         services.TryAddScoped<IOrderPayments>(sp => sp.GetRequiredService<SaleService>());
         services.TryAddScoped<ISaleCustomerDocuments, SaleCustomerDocumentService>(); // OFF-02 CA 17: CPF/CNPJ cifrado com índice cego
         services.TryAddScoped<NonFiscalSalesReportService>(); // IMP-01 CA 12: vendas sem documento fiscal
+        services.TryAddScoped<BelowCostSalesReportService>(); // PDV-04 CA 4: vendas abaixo do custo
         services.TryAddScoped<SalesLookupContract>();
         services.TryAddScoped<ISaleLookup>(sp => sp.GetRequiredService<SalesLookupContract>());
         services.TryAddScoped<ISalesRevenue>(sp => sp.GetRequiredService<SalesLookupContract>());

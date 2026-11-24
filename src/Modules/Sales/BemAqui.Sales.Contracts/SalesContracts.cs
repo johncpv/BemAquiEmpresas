@@ -75,7 +75,10 @@ public enum SaleStockStatus
 }
 
 /// <summary>Linha entregue pelo canal: produto vendável do catálogo (numa grade, a própria variação), quantidade (<c>decimal(18,4)</c>), preço e desconto (<c>decimal(18,2)</c>).</summary>
-public sealed record SaleLineInput(Guid Id, Guid ProductId, decimal Quantity, decimal UnitPrice, decimal Discount, string? Note = null, string? Seat = null);
+/// <remarks>PDV-04: <c>ListUnitPrice</c> é o preço da tabela quando o praticado mudou (troca de preço); os motivos do desconto e da troca, do caixa.</remarks>
+public sealed record SaleLineInput(
+    Guid Id, Guid ProductId, decimal Quantity, decimal UnitPrice, decimal Discount, string? Note = null, string? Seat = null, decimal? ListUnitPrice = null, string? DiscountReason = null,
+    string? PriceReason = null);
 
 /// <summary>Parte da venda (split por pessoa). Sem partes, a venda ganha uma parte única com o total.</summary>
 public sealed record SalePartInput(Guid Id, string Label, SalePartKind Kind, decimal Amount);
@@ -148,7 +151,7 @@ public sealed record SaleIngestionResult(Guid SaleId, string Number, SaleStatus 
 /// Cancelamento da venda (rascunho C §7). Venda com pagamento capturado exige o estorno de cada um: no manual, quem cancela confirma que estornou
 /// na maquininha (<c>CapturedRefundedOutside</c>). Nada é apagado.
 /// </summary>
-public sealed record SaleCancellationRequest(Guid SaleId, string Reason, bool CapturedRefundedOutside);
+public sealed record SaleCancellationRequest(Guid SaleId, string Reason, bool CapturedRefundedOutside, Guid? CancelledBy = null);
 
 /// <summary>
 /// Entrada das vendas no núcleo (VND-01, ADR das fronteiras: 02, seção 4.1). Grava venda, linhas, partes e pagamentos <b>na transação de quem
@@ -207,7 +210,7 @@ public interface IOrderPayments
 
 public sealed record SaleLineView(
     Guid Id, int LineNumber, Guid ProductId, Guid? ParentProductId, Guid? ItemId, string Description, string UnitCode, decimal Quantity, decimal UnitPrice, decimal Discount, decimal Total,
-    decimal? UnitCost, string? Note, string? Seat);
+    decimal? UnitCost, string? Note, string? Seat, decimal? ListUnitPrice = null, string? DiscountReason = null, string? PriceReason = null);
 
 public sealed record SalePartView(Guid Id, string Label, SalePartKind Kind, decimal Amount, bool Paid);
 

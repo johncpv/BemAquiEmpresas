@@ -31,6 +31,7 @@ public static class PosInfrastructure
         services.TryAddScoped<PosEventIngestion>(); // OFF-02: subida dos eventos do caixa
         services.TryAddScoped<PosSyncAlerts>(); // OFF-02 CA 16: caixa sem enviar vendas
         services.TryAddScoped<SyncDivergenceService>(); // OFF-02 CA 14 e 15: Pendências do PDV
+        services.TryAddScoped<SupervisorApprovalService>(); // PDV-04: PIN do supervisor no balcão e o relatório
         services.TryAddScoped<IPosRegisters, PosRegistersContract>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IProfileSeedPackage, PosRetailSeedPackage>());
         services.AddAuditableEntity<Store>("sales"); // IMP-01: o aceite do modo não fiscal (ligar, desligar, versão do texto) fica no histórico da loja

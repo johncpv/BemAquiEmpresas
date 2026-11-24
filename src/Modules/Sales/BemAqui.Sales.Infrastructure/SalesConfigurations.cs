@@ -56,6 +56,10 @@ internal sealed class SaleLineConfiguration : IEntityTypeConfiguration<SaleLine>
         b.Property(e => e.UnitCost).HasPrecision(18, 6);
         b.Property(e => e.Note).HasMaxLength(200);
         b.Property(e => e.Seat).HasMaxLength(20);
+        // PDV-04: preço da tabela quando o praticado mudou, e os motivos do desconto e da troca de preço.
+        b.Property(e => e.ListUnitPrice).HasPrecision(18, 2);
+        b.Property(e => e.DiscountReason).HasMaxLength(SaleLine.MaxReasonLength);
+        b.Property(e => e.PriceReason).HasMaxLength(SaleLine.MaxReasonLength);
         b.Ignore(e => e.Gross);
         b.HasOne<Sale>().WithMany().HasForeignKey(e => e.SaleId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(e => new { e.SaleId, e.LineNumber }).IsUnique();

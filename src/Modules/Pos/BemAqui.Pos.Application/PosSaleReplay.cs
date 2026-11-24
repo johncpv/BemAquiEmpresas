@@ -5,7 +5,20 @@ using BemAqui.Pos.Domain;
 namespace BemAqui.Pos.Application;
 
 /// <summary>Linha da venda refeita no servidor (quantidade em <c>decimal(18,4)</c>, preço em centavos do aparelho).</summary>
-public sealed record ReplayLine(Guid LineId, Guid ProductId, string Name, decimal Quantity, long UnitCents, long? PriceVersion, string? Note);
+/// <remarks>
+/// PDV-04: <c>ListUnitCents</c> é o preço da tabela quando houve troca de preço (o praticado fica em <c>UnitCents</c>); <c>DiscountCents</c> é o
+/// desconto da linha (o do total é rateado só na gravação).
+/// </remarks>
+public sealed record ReplayLine(
+    Guid LineId, Guid ProductId, string Name, decimal Quantity, long UnitCents, long? PriceVersion, string? Note, long? ListUnitCents = null, long DiscountCents = 0,
+    string? DiscountReason = null, string? PriceReason = null)
+{
+    /// <summary>O preço da tabela com que a linha entrou (conferido com o catálogo do servidor).</summary>
+    public long TableCents => ListUnitCents ?? UnitCents;
+}
+
+/// <summary>PDV-04: aprovação de supervisor citada por um evento da venda; a subida confere com <c>pos.supervisor_approvals</c> e marca o uso.</summary>
+public sealed record ReplayApproval(Guid ApprovalId, SupervisorAction Action, Guid? OperatorId, Guid? SupervisorId, Guid? LineId, DateTimeOffset At);
 
 /// <summary>Pagamento refeito pela máquina de estados do servidor (o último estado de cada <c>tenderId</c>).</summary>
 public sealed record ReplayTender(
@@ -43,7 +56,16 @@ public sealed class SaleReplayResult
 
     public List<ReplayTender> Tenders { get; } = [];
 
-    public long TotalCents => Lines.Sum(l => PosSaleReplay.LineCents(l));
+    /// <summary>Total a pagar: as linhas líquidas do desconto de cada uma, menos o desconto no total.</summary>
+    public long TotalCents => Lines.Sum(PosSaleReplay.NetCents) - SaleDiscountCents;
+
+    /// <summary>PDV-04: desconto no total da venda (rateado nas linhas na gravação) e o motivo.</summary>
+    public long SaleDiscountCents { get; set; }
+
+    public string? SaleDiscountReason { get; set; }
+
+    /// <summary>PDV-04 CA 10: as aprovações de supervisor que os eventos citam.</summary>
+    public List<ReplayApproval> Approvals { get; } = [];
 
     public long CapturedCents => Tenders.Where(t => t.Status == "Captured").Sum(t => t.AmountCents);
 
@@ -96,10 +118,60 @@ public static class PosSaleReplay
         ["Refunded"] = [],
     };
 
+    public const int MaxReasonLength = 140;
+
     public static long LineCents(ReplayLine line) => (long)Math.Round(line.Quantity * line.UnitCents, 0, MidpointRounding.AwayFromZero);
 
-    /// <summary>Refaz a venda. <paramref name="freeRemoveLast"/> vem da loja no servidor, nunca do aparelho.</summary>
-    public static SaleReplayResult Run(JsonElement payload, bool freeRemoveLast)
+    public static long NetCents(ReplayLine line) => LineCents(line) - line.DiscountCents;
+
+    /// <summary>
+    /// PDV-04 CA 1 e 2: o desconto passa do limite da loja (em %, PP-38)? Em centavos, sem arredondar o percentual: desconto × 100 &gt; limite × base.
+    /// Base zero com desconto passa sempre.
+    /// </summary>
+    public static bool AboveLimit(long discountCents, long baseCents, decimal limitPercent) =>
+        discountCents > 0 && (baseCents <= 0 || discountCents * 100m > limitPercent * baseCents);
+
+    /// <summary>
+    /// Desconto em % convertido em centavos sobre a base, arredondado para o centavo mais próximo (meio centavo para cima): o mesmo cálculo do aparelho.
+    /// </summary>
+    public static long PercentToCents(long baseCents, decimal percent) =>
+        (long)Math.Round(baseCents * percent / 100m, 0, MidpointRounding.AwayFromZero);
+
+    /// <summary>
+    /// Rateio do desconto no total pelas linhas, proporcional ao líquido de cada uma (maiores restos levam o centavo que sobra; empate pela ordem):
+    /// a soma das partes é sempre o desconto. Linha de líquido zero não recebe parte.
+    /// </summary>
+    public static long[] Prorate(IReadOnlyList<long> netCents, long discountCents)
+    {
+        ArgumentNullException.ThrowIfNull(netCents);
+        var shares = new long[netCents.Count];
+        var total = netCents.Where(n => n > 0).Sum();
+        if (discountCents <= 0 || total <= 0)
+        {
+            return shares;
+        }
+
+        var remainders = new (decimal Fraction, int Index)[netCents.Count];
+        for (var i = 0; i < netCents.Count; i++)
+        {
+            var exact = netCents[i] > 0 ? (decimal)discountCents * netCents[i] / total : 0m;
+            shares[i] = (long)Math.Floor(exact);
+            remainders[i] = (exact - shares[i], i);
+        }
+
+        var left = discountCents - shares.Sum();
+        foreach (var (_, index) in remainders.Where(r => netCents[r.Index] > 0).OrderByDescending(r => r.Fraction).ThenBy(r => r.Index).Take((int)left))
+        {
+            shares[index]++;
+        }
+
+        return shares;
+    }
+
+    /// <summary>
+    /// Refaz a venda. <paramref name="freeRemoveLast"/> e <paramref name="discountLimitPercent"/> vêm da loja no servidor, nunca do aparelho.
+    /// </summary>
+    public static SaleReplayResult Run(JsonElement payload, bool freeRemoveLast, decimal discountLimitPercent = 0m)
     {
         var result = new SaleReplayResult
         {
@@ -125,7 +197,7 @@ public static class PosSaleReplay
             return result;
         }
 
-        var state = new State(result, freeRemoveLast);
+        var state = new State(result, freeRemoveLast, discountLimitPercent);
         var started = false;
         foreach (var e in events.EnumerateArray())
         {
@@ -161,7 +233,7 @@ public static class PosSaleReplay
         return result;
     }
 
-    private sealed class State(SaleReplayResult result, bool freeRemoveLast)
+    private sealed class State(SaleReplayResult result, bool freeRemoveLast, decimal discountLimitPercent)
     {
         private (Guid LineId, decimal Quantity)? _lastAdd;
         private bool _inPayment;
@@ -181,6 +253,12 @@ public static class PosSaleReplay
                     break;
                 case "LineRemoved":
                     RemoveLine(data, at);
+                    break;
+                case "DiscountApplied":
+                    Discount(data, at);
+                    break;
+                case "PriceOverridden":
+                    OverridePrice(data, at);
                     break;
                 case "SaleParked":
                 case "SaleResumed":
@@ -249,7 +327,15 @@ public static class PosSaleReplay
 
             result.Lines.Add(new ReplayLine(lineId.Value, productId.Value, StringOf(line, "name") ?? string.Empty, quantity.Value, unit.Value, LongOf(line, "priceTableVersion"), note));
             _lastAdd = (lineId.Value, quantity.Value);
+            ClearSaleDiscount();
             _ = at;
+        }
+
+        /// <summary>PDV-04: mudar os itens tira o desconto no total (o aparelho faz o mesmo e avisa); o operador dá de novo, se quiser.</summary>
+        private void ClearSaleDiscount()
+        {
+            result.SaleDiscountCents = 0;
+            result.SaleDiscountReason = null;
         }
 
         private void ChangeLine(JsonElement data, DateTimeOffset at)
@@ -302,11 +388,11 @@ public static class PosSaleReplay
                 var free = freeRemoveLast && _lastAdd is { } last && last.LineId == line.LineId && reduced <= last.Quantity;
                 if (reason == "remove-last" && !(free && reduced == _lastAdd!.Value.Quantity))
                 {
-                    NeedsAuthorization(authorizedBy, at, "o desfazer do último lançamento não era o último lançamento de fato", operatorId: operatorId);
+                    NeedsAuthorization(authorizedBy, at, "o desfazer do último lançamento não era o último lançamento de fato", operatorId: operatorId, approvalId: GuidOf(data, "approvalId"), lineId: line.LineId);
                 }
                 else if (reason != "remove-last" && !free)
                 {
-                    NeedsAuthorization(authorizedBy, at, "redução de quantidade de uma linha que não é o último lançamento", operatorId: operatorId);
+                    NeedsAuthorization(authorizedBy, at, "redução de quantidade de uma linha que não é o último lançamento", operatorId: operatorId, approvalId: GuidOf(data, "approvalId"), lineId: line.LineId);
                 }
 
                 result.Exceptions.Add(new ReplayIncident(OperatorIncidentKind.QuantityReduced, operatorId, authorizedBy, at));
@@ -317,7 +403,9 @@ public static class PosSaleReplay
                 result.Violations.Add("Desfazer do último lançamento sem mudar a quantidade.");
             }
 
-            result.Lines[index] = line with { Quantity = quantity.Value };
+            // PDV-04: mudar a quantidade tira o desconto da linha e o do total (o aparelho faz o mesmo).
+            result.Lines[index] = line with { Quantity = quantity.Value, DiscountCents = 0, DiscountReason = null };
+            ClearSaleDiscount();
         }
 
         private void RemoveLine(JsonElement data, DateTimeOffset at)
@@ -342,15 +430,16 @@ public static class PosSaleReplay
             var isLast = freeRemoveLast && _lastAdd is { } last && last.LineId == line.LineId && last.Quantity == line.Quantity;
             if (reason == "last-item" && !isLast)
             {
-                NeedsAuthorization(authorizedBy, at, "a remoção do último item não era do último lançamento de fato", operatorId: operatorId);
+                NeedsAuthorization(authorizedBy, at, "a remoção do último item não era do último lançamento de fato", operatorId: operatorId, approvalId: GuidOf(data, "approvalId"), lineId: line.LineId);
             }
             else if (reason != "last-item")
             {
-                NeedsAuthorization(authorizedBy, at, "remoção de item que não é o último lançado", operatorId: operatorId);
+                NeedsAuthorization(authorizedBy, at, "remoção de item que não é o último lançado", operatorId: operatorId, approvalId: GuidOf(data, "approvalId"), lineId: line.LineId);
             }
 
             result.Exceptions.Add(new ReplayIncident(OperatorIncidentKind.ItemRemoved, operatorId, authorizedBy, at));
             result.Lines.RemoveAt(index);
+            ClearSaleDiscount();
             _lastAdd = null;
         }
 
@@ -542,7 +631,18 @@ public static class PosSaleReplay
             return id;
         }
 
-        private void NeedsAuthorization(Guid? authorizedBy, DateTimeOffset at, string what, string permission = "pos.cancel_item", Guid? operatorId = null)
+        /// <summary>
+        /// Ação que pede a permissão (PDV-04). Três caminhos:
+        /// <list type="bullet">
+        /// <item>com <c>approvalId</c>: a aprovação por PIN do supervisor (CA 10), conferida na subida contra <c>pos.supervisor_approvals</c> (ação,
+        /// venda, linha, operador e supervisor; uso único). O supervisor nunca é o operador (CA 11);</item>
+        /// <item>o próprio operador (CA 5: "com a permissão, removo com motivo"): precisa da permissão no instante, senão quarentena;</item>
+        /// <item>outra pessoa sem a aprovação (sem rede, até a OFF-03): a permissão no instante e, sem sessão por PIN dela neste aparelho, a
+        /// pendência "Autorização sem supervisor" (revisão de segurança M2 da OFF-02).</item>
+        /// </list>
+        /// </summary>
+        private void NeedsAuthorization(Guid? authorizedBy, DateTimeOffset at, string what, string permission = "pos.cancel_item", Guid? operatorId = null,
+            Guid? approvalId = null, Guid? lineId = null)
         {
             if (authorizedBy is null)
             {
@@ -550,15 +650,115 @@ public static class PosSaleReplay
                 return;
             }
 
-            // M2 (até a PDV-04): quem autorizou precisa da permissão no instante (senão, quarentena) e de sessão por PIN neste aparelho; sem a sessão,
-            // ou sendo o próprio operador, a venda entra com a pendência "Autorização sem supervisor".
+            if (approvalId is { } approval)
+            {
+                if (authorizedBy == operatorId || operatorId is null || SupervisorActions.FromPermission(permission) is not { } action)
+                {
+                    result.Violations.Add($"{Capitalize(what)}: aprovação de supervisor com o próprio operador ou sem o operador.");
+                    return;
+                }
+
+                result.Approvals.Add(new ReplayApproval(approval, action, operatorId, authorizedBy, lineId, at));
+                return;
+            }
+
             var role = "quem autorizou (" + what + ")";
             result.Checks.Add(new ReplayCheck(authorizedBy, at, role, permission, NeedsPinSession: false));
-            result.Checks.Add(new ReplayCheck(authorizedBy, at, role, null, NeedsPinSession: true, Soft: true));
-            if (authorizedBy == operatorId)
+            if (authorizedBy != operatorId)
             {
-                result.AuthorizationNotes.Add($"{Capitalize(what)}: autorizada pelo próprio operador, sem supervisor.");
+                result.Checks.Add(new ReplayCheck(authorizedBy, at, role, null, NeedsPinSession: true, Soft: true));
             }
+        }
+
+        /// <summary>
+        /// PDV-04 CA 1 e 2: desconto na linha (<c>lineId</c>) ou no total (sem <c>lineId</c>), em centavos (o aparelho converte o % com
+        /// <see cref="PercentToCents"/>). Zero tira o desconto. Até o limite da loja passa com o motivo; acima, pede <c>pos.discount</c> (do operador ou
+        /// do supervisor). Um desconto novo substitui o anterior do mesmo alvo.
+        /// </summary>
+        private void Discount(JsonElement data, DateTimeOffset at)
+        {
+            if (Locked("deu desconto"))
+            {
+                return;
+            }
+
+            var operatorId = Operator(data, at, "quem deu o desconto", permission: null);
+            var lineId = GuidOf(data, "lineId");
+            var cents = LongOf(data, "discountCents");
+            var reason = StringOf(data, "reason")?.Trim();
+            var index = lineId is null ? -1 : result.Lines.FindIndex(l => l.LineId == lineId);
+            if (lineId is not null && index < 0)
+            {
+                result.Violations.Add("Desconto numa linha que não está na venda.");
+                return;
+            }
+
+            var baseCents = index >= 0 ? LineCents(result.Lines[index]) : result.Lines.Sum(NetCents);
+            if (cents is not >= 0 || cents > baseCents)
+            {
+                result.Violations.Add("Desconto negativo ou maior que o valor do item ou da venda.");
+                return;
+            }
+
+            if (cents > 0 && (string.IsNullOrWhiteSpace(reason) || TextProblem(reason, MaxReasonLength, "motivo do desconto") is not null))
+            {
+                result.Violations.Add("Desconto sem motivo, longo demais ou com sequência que parece número de cartão.");
+                return;
+            }
+
+            if (AboveLimit(cents.Value, baseCents, discountLimitPercent))
+            {
+                NeedsAuthorization(GuidOf(data, "authorizedBy"), at, "desconto acima do limite da loja", "pos.discount", operatorId, GuidOf(data, "approvalId"), lineId);
+            }
+
+            var text = cents > 0 ? reason : null;
+            if (index >= 0)
+            {
+                result.Lines[index] = result.Lines[index] with { DiscountCents = cents.Value, DiscountReason = text };
+                ClearSaleDiscount();
+            }
+            else
+            {
+                result.SaleDiscountCents = cents.Value;
+                result.SaleDiscountReason = text;
+            }
+        }
+
+        /// <summary>
+        /// PDV-04 CA 3: troca do preço de uma linha (para mais ou para menos), sempre com <c>pos.change_price</c> (do operador ou do supervisor) e
+        /// motivo. A linha guarda o preço da tabela com que entrou e o praticado; o desconto da linha e o do total saem.
+        /// </summary>
+        private void OverridePrice(JsonElement data, DateTimeOffset at)
+        {
+            if (Locked("trocou o preço"))
+            {
+                return;
+            }
+
+            var operatorId = Operator(data, at, "quem trocou o preço", permission: null);
+            var lineId = GuidOf(data, "lineId");
+            var index = result.Lines.FindIndex(l => l.LineId == lineId);
+            var unit = LongOf(data, "unitCents");
+            var reason = StringOf(data, "reason")?.Trim();
+            if (index < 0 || unit is not >= 0 || unit > MaxCents)
+            {
+                result.Violations.Add("Troca de preço sem a linha ou com preço inválido.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(reason) || TextProblem(reason, MaxReasonLength, "motivo da troca de preço") is not null)
+            {
+                result.Violations.Add("Troca de preço sem motivo, longa demais ou com sequência que parece número de cartão.");
+                return;
+            }
+
+            NeedsAuthorization(GuidOf(data, "authorizedBy"), at, "troca de preço", "pos.change_price", operatorId, GuidOf(data, "approvalId"), lineId);
+            var line = result.Lines[index];
+            result.Lines[index] = line with
+            {
+                ListUnitCents = line.ListUnitCents ?? line.UnitCents, UnitCents = unit.Value, PriceReason = reason, DiscountCents = 0, DiscountReason = null,
+            };
+            ClearSaleDiscount();
         }
 
         private static string Capitalize(string text) => text.Length == 0 ? text : char.ToUpperInvariant(text[0]) + text[1..];

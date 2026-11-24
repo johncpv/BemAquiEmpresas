@@ -244,7 +244,8 @@ public sealed class SessionSale
 
     public Guid SessionId { get; init; }
 
-    public decimal CashAmount { get; init; }
+    /// <summary>PDV-04 CA 7: a venda cancelada na sessão tira o dinheiro dela da gaveta (volta a zero).</summary>
+    public decimal CashAmount { get; set; }
 
     public DateTimeOffset CreatedAt { get; init; }
 }

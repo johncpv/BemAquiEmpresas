@@ -167,10 +167,10 @@ public sealed partial class SaleService
             var now = clock.GetUtcNow();
             foreach (var payment in payments.Where(p => !PaymentStateMachine.IsFinal(p.Status)))
             {
-                payment.MoveTo(payment.Status == SalePaymentStatus.Captured ? SalePaymentStatus.Refunded : SalePaymentStatus.Voided, currentUser.UserId, now);
+                payment.MoveTo(payment.Status == SalePaymentStatus.Captured ? SalePaymentStatus.Refunded : SalePaymentStatus.Voided, request.CancelledBy ?? currentUser.UserId, now);
             }
 
-            sale.Cancel(reason, currentUser.UserId, now);
+            sale.Cancel(reason, request.CancelledBy ?? currentUser.UserId, now);
             events.Publish(new SaleCancelled(sale.Id, sale.Number, sale.Channel, sale.StoreId, sale.CashSessionId, sale.BusinessDate, sale.Total, now));
             await db.SaveChangesAsync(cancellationToken);
         }
@@ -195,7 +195,7 @@ public sealed partial class SaleService
             sale.SourceId, sale.BusinessDate, sale.CompletedAt, sale.Subtotal, sale.DiscountTotal, sale.ServiceFee, sale.Total,
             SaleRules.CapturedNet(payments.Select(p => (p.Status, p.Amount, p.ChangeAmount))),
             lines.Select(l => new SaleLineView(l.Id, l.LineNumber, l.ProductId, l.ParentProductId, l.ItemId, l.Description, l.UnitCode, l.Quantity, l.UnitPrice, l.Discount, l.Total, l.UnitCost,
-                l.Note, l.Seat)).ToList(),
+                l.Note, l.Seat, l.ListUnitPrice, l.DiscountReason, l.PriceReason)).ToList(),
             parts.Select(p => new SalePartView(p.Id, p.Label, p.Kind, p.Amount, p.Paid)).ToList(),
             payments.Select(p => new SalePaymentView(p.Id, p.SalePartId, p.PaymentMethodId, p.Amount, p.ChangeAmount, p.Status, p.Integration, p.Installments, p.Provider,
                 p.AcquirerPartyId, p.CardBrand, p.Nsu, p.AuthorizationCode, p.Txid, p.EndToEndId, p.ConfirmedBy, p.ConfirmedAt)).ToList(),

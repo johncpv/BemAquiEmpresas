@@ -202,7 +202,8 @@ public sealed partial class SaleService(
         {
             var product = byKey[l.ProductId];
             return SaleLine.Create(l.Id == Guid.Empty ? Guid.CreateVersion7() : l.Id, saleId, i + 1, l.ProductId, product.ParentProductId, product.ItemId, Cut(product.Description, 200),
-                Cut(product.UnitCode, 10), SaleRules.Quantity(l.Quantity), SaleRules.Money(l.UnitPrice), SaleRules.Money(l.Discount), Clean(l.Note), Clean(l.Seat));
+                Cut(product.UnitCode, 10), SaleRules.Quantity(l.Quantity), SaleRules.Money(l.UnitPrice), SaleRules.Money(l.Discount), Clean(l.Note), Clean(l.Seat),
+                l.ListUnitPrice is { } list ? SaleRules.Money(list) : null, CutOrNull(Clean(l.DiscountReason), SaleLine.MaxReasonLength), CutOrNull(Clean(l.PriceReason), SaleLine.MaxReasonLength));
         }).ToList();
         sale.ApplyTotals(lines, serviceFee);
         sale.BusinessDate = BusinessDateOf(clock.GetUtcNow());
@@ -314,6 +315,8 @@ public sealed partial class SaleService(
     private static string? Clean(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
 
     private static string Cut(string text, int max) => text.Length <= max ? text : text[..max];
+
+    private static string? CutOrNull(string? text, int max) => text is null ? null : Cut(text, max);
 
     internal static string Money(decimal value) => value.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
 

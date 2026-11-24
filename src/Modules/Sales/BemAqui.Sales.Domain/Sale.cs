@@ -168,14 +168,26 @@ public sealed class SaleLine : Entity
 
     public string? Seat { get; init; }
 
+    /// <summary>PDV-04 CA 3: o preço da tabela quando o praticado (<see cref="UnitPrice"/>) foi trocado no caixa; nulo sem troca.</summary>
+    public decimal? ListUnitPrice { get; init; }
+
+    /// <summary>PDV-04 CA 1: o motivo do desconto (da lista do caixa, ou "Outro" com o texto). O desconto no total chega rateado nas linhas.</summary>
+    public string? DiscountReason { get; init; }
+
+    /// <summary>PDV-04 CA 3: o motivo da troca de preço.</summary>
+    public string? PriceReason { get; init; }
+
+    public const int MaxReasonLength = 140;
+
     public decimal Gross => SaleRules.Money(Quantity * UnitPrice);
 
     public static SaleLine Create(Guid id, Guid saleId, int lineNumber, Guid productId, Guid? parentProductId, Guid? itemId, string description, string unitCode, decimal quantity,
-        decimal unitPrice, decimal discount, string? note, string? seat) =>
+        decimal unitPrice, decimal discount, string? note, string? seat, decimal? listUnitPrice = null, string? discountReason = null, string? priceReason = null) =>
         new()
         {
             Id = id, SaleId = saleId, LineNumber = lineNumber, ProductId = productId, ParentProductId = parentProductId, ItemId = itemId, Description = description, UnitCode = unitCode,
             Quantity = quantity, UnitPrice = unitPrice, Discount = discount, Total = SaleRules.Money((quantity * unitPrice) - discount), Note = note, Seat = seat,
+            ListUnitPrice = listUnitPrice, DiscountReason = discountReason, PriceReason = priceReason,
         };
 }
 
