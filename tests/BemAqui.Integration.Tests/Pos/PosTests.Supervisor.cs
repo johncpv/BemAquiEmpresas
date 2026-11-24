@@ -79,9 +79,10 @@ public partial class PosTests
         var session = Guid.CreateVersion7();
         var (_, approved) = SaleOf(till, session, now, extra: (sale, line) => Removal(till, sale, line, now, supervisor, approvalId), fixedSaleId: saleId, fixedLineId: firstLine);
         var (_, reused) = SaleOf(till, session, now, extra: (sale, line) => Removal(till, sale, line, now, supervisor, approvalId));
+        var open = Seal(till, PosEventIngestion.CashKind, OpenCash(till, session, now.AddMinutes(-1)), now.AddMinutes(-1)); // a abertura é selada primeiro: a cadeia do aparelho segue a ordem
         var e1 = Seal(till, PosEventIngestion.SaleKind, approved, now);
         var e2 = Seal(till, PosEventIngestion.SaleKind, reused, now);
-        var result = await OkAsync(await PostEventsAsync(device, new { events = new[] { Seal(till, PosEventIngestion.CashKind, OpenCash(till, session, now.AddMinutes(-1)), now.AddMinutes(-1)), e1, e2 } }));
+        var result = await OkAsync(await PostEventsAsync(device, new { events = new[] { open, e1, e2 } }));
         var outcomes = Outcomes(result);
         outcomes[IdOf(e1)].Should().Be("Accepted");
         outcomes[IdOf(e2)].Should().Be("Quarantined");
@@ -217,8 +218,8 @@ public partial class PosTests
         (await WithDbAsync(db => db.Sales.AsNoTracking().SingleAsync(s => s.Id == saleId))).Status.Should().Be(SaleStatus.Cancelled);
         (await WithDbAsync(db => db.SessionSales.AsNoTracking().SingleAsync(s => s.SaleId == saleId))).CashAmount.Should().Be(0, "CA 7: o dinheiro sai da gaveta da sessão");
         (await WithDbAsync(db => db.SupervisorApprovals.AsNoTracking().SingleAsync(a => a.Id == approvalId))).UsedAt.Should().NotBeNull();
-        (await WithDbAsync(db => db.OutboxMessages.AsNoTracking().CountAsync(m => m.Type.EndsWith("SaleCancelled") && m.Payload.Contains(saleId.ToString()))))
-            .Should().Be(1, "o estoque e o financeiro reagem ao SaleCancelled");
+        (await WithDbAsync(db => db.OutboxMessages.AsNoTracking().Where(m => m.Type.EndsWith("SaleCancelled")).Select(m => m.Payload).ToListAsync()))
+            .Count(p => p.Contains(saleId.ToString(), StringComparison.Ordinal)).Should().Be(1, "o estoque e o financeiro reagem ao SaleCancelled");
         (await NotificationsAsync("Venda " + number)).Should().NotBeEmpty("CA 9: o Proprietário é avisado");
     }
 
