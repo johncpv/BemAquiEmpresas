@@ -54,6 +54,8 @@ export interface SaleLine {
   /** PDV-04: desconto da linha, em centavos, e o motivo. */
   discountCents?: Cents
   discountReason?: string | null
+  /** PDV-04: o desconto da linha passou do limite e foi autorizado (fica fora da conta do acumulado, como no servidor). */
+  discountApproved?: boolean
   /** PDV-04: motivo da troca de preço. */
   priceReason?: string | null
 }
@@ -146,7 +148,7 @@ export function applySaleEvent(book: SaleBook, event: SaleEvent): SaleBook {
       const { lineId, quantity, note, reason } = event.data
       // PDV-04: mudar a quantidade tira o desconto da linha e o do total.
       const lines = sale.lines.map((l) => (l.lineId === lineId
-        ? { ...l, ...(quantity !== undefined ? { quantity, discountCents: 0, discountReason: null } : {}), ...(note !== undefined ? { note } : {}) }
+        ? { ...l, ...(quantity !== undefined ? { quantity, discountCents: 0, discountReason: null, discountApproved: false } : {}), ...(note !== undefined ? { note } : {}) }
         : l))
       const lastAdd = reason === 'same-item' && quantity !== undefined
         ? { lineId, quantity: subtractQuantities(quantity, sale.lines.find((l) => l.lineId === lineId)?.quantity ?? '0') }
@@ -156,16 +158,17 @@ export function applySaleEvent(book: SaleBook, event: SaleEvent): SaleBook {
     case 'LineRemoved':
       return { ...book, sales: replace(book, { ...sale, ...NO_SALE_DISCOUNT, lines: sale.lines.filter((l) => l.lineId !== event.data.lineId), lastAdd: null }) }
     case 'DiscountApplied': {
-      const { lineId, discountCents, reason } = event.data
+      const { lineId, discountCents, reason, authorizedBy } = event.data
       const text = discountCents > 0 ? reason : null
       if (lineId === null) return { ...book, sales: replace(book, { ...sale, discountCents, discountReason: text }) }
-      const lines = sale.lines.map((l) => (l.lineId === lineId ? { ...l, discountCents, discountReason: text } : l))
+      // A autorização só vai no evento acima do limite (sale-register): é o que marca a linha como aprovada.
+      const lines = sale.lines.map((l) => (l.lineId === lineId ? { ...l, discountCents, discountReason: text, discountApproved: discountCents > 0 && !!authorizedBy } : l))
       return { ...book, sales: replace(book, { ...sale, ...NO_SALE_DISCOUNT, lines }) }
     }
     case 'PriceOverridden': {
       const { lineId, unitCents, reason } = event.data
       const lines = sale.lines.map((l) => (l.lineId === lineId
-        ? { ...l, listUnitCents: l.listUnitCents ?? l.unitCents, unitCents, priceReason: reason, discountCents: 0, discountReason: null }
+        ? { ...l, listUnitCents: l.listUnitCents ?? l.unitCents, unitCents, priceReason: reason, discountCents: 0, discountReason: null, discountApproved: false }
         : l))
       return { ...book, sales: replace(book, { ...sale, ...NO_SALE_DISCOUNT, lines }) }
     }
@@ -217,6 +220,16 @@ export const saleTotal = (sale: Sale | null): Cents => (sale ? saleSubtotal(sale
  */
 export const discountAboveLimit = (discountCents: Cents, baseCents: Cents, limitPercent: number): boolean =>
   discountCents > 0 && (baseCents <= 0 || discountCents * 100 > limitPercent * baseCents)
+
+/**
+ * PDV-04 (revisão de segurança, achado 3): o desconto no total somado aos das linhas passa do limite sobre a base bruta? A linha com desconto já
+ * aprovado entra pelo líquido e o desconto dela fica fora da conta. O mesmo cálculo do servidor (`PosSaleReplay.StackedAboveLimit`).
+ */
+export const discountStacksAboveLimit = (lines: readonly SaleLine[], saleDiscountCents: Cents, limitPercent: number): boolean => {
+  const discount = sumCents(lines.map((l) => (l.discountApproved ? 0 : l.discountCents ?? 0))) + saleDiscountCents
+  const gross = sumCents(lines.map((l) => (l.discountApproved ? lineTotal(l) : lineGross(l))))
+  return discountAboveLimit(discount, gross, limitPercent)
+}
 
 /** Desconto em % sobre a base, em centavos (meio centavo para cima), o mesmo arredondamento do servidor. */
 export const percentToCents = (baseCents: Cents, percent: number): Cents => Math.floor((baseCents * Math.round(percent * 100) + 5000) / 10000)

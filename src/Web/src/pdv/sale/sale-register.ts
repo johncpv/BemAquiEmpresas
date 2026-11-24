@@ -9,7 +9,7 @@ import { checkCustomerDocument, type DocumentCipher } from './customer-document'
 import { addQuantities, packQuantityText, parseQuantity, subtractQuantities, toMilli } from './quantity'
 import { checkStockMessage, type StockGuard } from '@/pdv/stock/stock-guard'
 import {
-  applySaleEvent, currentSale, discountAboveLimit, emptyBook, lineGross, parkedSales, replaySales, type Sale, type SaleAuthorization, saleSubtotal, saleTotal, type SaleBook,
+  applySaleEvent, currentSale, discountAboveLimit, discountStacksAboveLimit, emptyBook, lineGross, parkedSales, replaySales, type Sale, type SaleAuthorization, saleSubtotal, saleTotal, type SaleBook,
   type SaleCustomer, type SaleEvent, type SaleEventData, type SaleEventType, type SaleLine,
 } from './sale-model'
 
@@ -272,8 +272,14 @@ export class SaleRegister {
     const sale = this.current()
     if (!sale) return false
     const line = lineId ? sale.lines.find((l) => l.lineId === lineId) : null
+    return this.discountAbove(sale, line ?? null, discountCents)
+  }
+
+  /** Acima do limite no alvo ou, no total, somado aos descontos dos itens (achado 3 da revisão de segurança; o servidor confere igual). */
+  private discountAbove(sale: Sale, line: SaleLine | null, discountCents: Cents): boolean {
+    const limit = this.options.settings().discountLimitPercent ?? 0
     const base = line ? lineGross(line) : saleSubtotal(sale)
-    return discountAboveLimit(discountCents, base, this.options.settings().discountLimitPercent ?? 0)
+    return discountAboveLimit(discountCents, base, limit) || (!line && discountStacksAboveLimit(sale.lines, discountCents, limit))
   }
 
   /**
@@ -295,7 +301,7 @@ export class SaleRegister {
       const text = reason?.trim().slice(0, 140) || null
       if (discountCents > 0 && !text) return { ok: false, message: 'Escolha o motivo do desconto.' }
       if (text && looksLikeCardNumber(text)) return { ok: false, message: CARD_NUMBER_MESSAGE }
-      const above = discountAboveLimit(discountCents, base, this.options.settings().discountLimitPercent ?? 0)
+      const above = this.discountAbove(sale, line ?? null, discountCents)
       if (above && !auth) return { ok: false, needsAuthorization: true, message: 'Desconto acima do limite da loja. Chame o supervisor.' }
       await this.commit([this.event('DiscountApplied', sale.id, {
         lineId: line?.lineId ?? null, discountCents, reason: discountCents > 0 ? text : null, operatorId: this.options.operatorId, ...(above && auth ? authData(auth) : {}),
