@@ -128,7 +128,7 @@ export function PrinterChooser({ open, printers, current, onChoose, onCancel }: 
 }
 
 /** Reimprimir (CA 4): as últimas vendas deste aparelho; a reimpressão sai com "2ª VIA" e fica registrada com quem e quando. */
-export function ReprintSheet({ open, store, header, operatorId, registerId, decryptDocument, bridge, onClose }: {
+export function ReprintSheet({ open, store, header, operatorId, registerId, decryptDocument, bridge, onClose, onCancelSale }: {
   open: boolean
   store: LocalStore
   header: ReceiptHeader
@@ -137,6 +137,8 @@ export function ReprintSheet({ open, store, header, operatorId, registerId, decr
   decryptDocument?: (id: string) => Promise<string | null>
   bridge?: HardwareBridge
   onClose: () => void
+  /** PDV-04: "Cancelar venda" na venda escolhida (só para quem tem `pos.cancel_sale`). */
+  onCancelSale?: (receipt: StoredReceipt) => void
 }) {
   const [receipts, setReceipts] = useState<StoredReceipt[] | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
@@ -166,7 +168,10 @@ export function ReprintSheet({ open, store, header, operatorId, registerId, decr
                 <b className="tabular-nums">{formatCents(r.totalCents)}</b>
               </button>
               {selected === r.saleId ? (
-                <SalePrint store={store} saleId={r.saleId} header={header} operatorId={operatorId} registerId={registerId} mode="Never" decryptDocument={decryptDocument} bridge={bridge} />
+                <>
+                  <SalePrint store={store} saleId={r.saleId} header={header} operatorId={operatorId} registerId={registerId} mode="Never" decryptDocument={decryptDocument} bridge={bridge} />
+                  {onCancelSale ? <FloorButton tone="danger" className="w-full" onClick={() => onCancelSale(r)}>Cancelar venda</FloorButton> : null}
+                </>
               ) : null}
             </li>
           ))}

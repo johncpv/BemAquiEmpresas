@@ -126,6 +126,8 @@ export interface ReceiptItem {
 export interface ReceiptPayment {
   label: string
   amountCents: Cents
+  /** PDV-04: o tipo da forma (o cancelamento pede o estorno do que não é dinheiro). */
+  methodType?: string
 }
 
 /** Dados da venda concluída para o cupom (CA 2), todos do aparelho. */

@@ -38,7 +38,7 @@ const cashLimits = (s: PosSyncStore) => ({ alertCents: s.cashDropAlertCents > 0 
 /** IMP-01: empresa (cabeçalho do cupom), modo fiscal, se a loja vende (aceite do não fiscal, CA 10) e o cupom pós-venda (CA 5). */
 const storeSettings = (s: PosSyncStore): StoreSettings => ({
   companyName: s.companyName ?? null, companyDocument: s.companyDocument ?? null, fiscalMode: s.fiscalMode ?? 'Nfce', canSell: s.canSell ?? true,
-  receiptPrintMode: s.receiptPrintMode ?? 'Ask', freeRemoveLast: s.freeRemoveLast ?? true,
+  receiptPrintMode: s.receiptPrintMode ?? 'Ask', freeRemoveLast: s.freeRemoveLast ?? true, discountLimitPercent: Number(s.discountLimitPercent ?? 0),
 })
 /** Impressora do caixa como fica no aparelho (CA 7). */
 const printerRecord = (p: PosSyncPrinter): CatalogPrinter => ({

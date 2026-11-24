@@ -1,6 +1,6 @@
 import { UserRound } from 'lucide-react'
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
-import { endPosSession, listPosOperators, loginPosPin, searchPosCustomers, useGetPosSession } from '@/api/generated/bemaqui'
+import { approvePosSupervisorAction, endPosSession, listPosOperators, listPosSupervisors, loginPosPin, searchPosCustomers, useGetPosSession } from '@/api/generated/bemaqui'
 import type { PosHandshake, PosOperator, PosOperators } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { getAccessToken, isPosPinSession, onSessionChange, setAccessToken, setSessionDeadline } from '@/api/session'
@@ -14,6 +14,7 @@ import { PIN_CHANGE_REQUIRED, pinBody } from '@/pdv/operator-pin'
 import { registerLabel } from '@/pages/store/stores'
 import { isPinComplete, PIN_LENGTH } from '@/pages/shopfloor/device'
 import { PdvSale } from './sale/PdvSale'
+import type { SupervisorApi } from './sale/supervisor'
 
 const OPERATORS = '/api/v1/pos/sync/operators'
 const PIN = '/api/v1/pos/sync/pin'
@@ -93,6 +94,12 @@ function OperatorList({ keys, onDeviceGone }: { keys: CryptoKeyPair; onDeviceGon
  * CPF ou CNPJ (11 dígitos ou mais) não sai do aparelho, para o documento nunca ir na URL (revisão de segurança, achado 2).
  */
 const searchCustomers = async (term: string) => (looksLikeDocument(term) ? [] : searchPosCustomers({ term }))
+
+/** PDV-04: "Chamar supervisor" pela sessão por PIN do operador (o PIN do supervisor é conferido no servidor, neste aparelho). */
+const supervisorApi: SupervisorApi = {
+  list: () => listPosSupervisors(),
+  approve: (input) => approvePosSupervisorAction(input),
+}
 
 /** PIN no teclado grande; se o servidor pedir, o PIN novo (duas vezes) na mesma tela. */
 function PinPad({ keys, operator, onBack, onDeviceGone }: { keys: CryptoKeyPair; operator: PosOperator; onBack: () => void; onDeviceGone: () => void }) {
@@ -196,7 +203,11 @@ function OperatorSession({ handshake, onDeviceGone }: { handshake: PosHandshake;
   if (pdv) {
     return (
       <PdvSale store={pdv.store} handshake={handshake} online={online} searchCustomers={searchCustomers} onLeave={() => void leave()}
-        operator={{ id: s.userId, name: s.name, canCancelItem: s.actions.includes('cancel_item'), canCashOut: s.actions.includes('cash_out'), canCashIn: s.actions.includes('cash_in') }} />
+        supervisor={supervisorApi}
+        operator={{
+          id: s.userId, name: s.name, canCancelItem: s.actions.includes('cancel_item'), canCashOut: s.actions.includes('cash_out'), canCashIn: s.actions.includes('cash_in'),
+          canDiscount: s.actions.includes('discount'), canChangePrice: s.actions.includes('change_price'), canCancelSale: s.actions.includes('cancel_sale'),
+        }} />
     )
   }
 
