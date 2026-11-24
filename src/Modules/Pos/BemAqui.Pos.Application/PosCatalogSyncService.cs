@@ -31,7 +31,8 @@ public sealed record PosSyncStore(
     StoreFiscalMode FiscalMode = StoreFiscalMode.Nfce,
     bool CanSell = true,
     ReceiptPrintMode ReceiptPrintMode = ReceiptPrintMode.Ask,
-    bool FreeRemoveLast = true);
+    bool FreeRemoveLast = true,
+    decimal DiscountLimitPercent = 0m);
 
 /// <summary>A tabela de preço da loja e a versão mais nova que já desceu (o aparelho informa a versão em que vendeu).</summary>
 public sealed record PosSyncPriceList(Guid Id, long Version);
@@ -206,7 +207,7 @@ public sealed class PosCatalogSyncService(
             PosCatalogProjector.ToCents(store.CashBreakTolerance), store.ExchangeDays, PosCatalogProjector.ToCents(store.CashDropAlertAmount),
             store.CashCeilingAmount is { } ceiling ? PosCatalogProjector.ToCents(ceiling) : null,
             string.IsNullOrWhiteSpace(identity.TradeName) ? identity.LegalName : identity.TradeName, identity.Document,
-            store.FiscalMode, store.NonFiscalAcceptedFor(NonFiscalTerms.Version), store.ReceiptPrintMode, store.FreeRemoveLast);
+            store.FiscalMode, store.NonFiscalAcceptedFor(NonFiscalTerms.Version), store.ReceiptPrintMode, store.FreeRemoveLast, store.DiscountLimitPercent);
     }
 
     private static PosSyncItem ToItem(CatalogItem row)

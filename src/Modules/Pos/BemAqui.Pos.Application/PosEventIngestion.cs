@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Text.Json;
+using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Messaging;
+using BemAqui.BuildingBlocks.Notifications;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Time;
@@ -61,6 +63,9 @@ public sealed partial class PosEventIngestion(
     IAuditReader audit,
     IEventPublisher events,
     PosSyncAlerts alerts,
+    ISaleLookup saleLookup,
+    INotificationService notifications,
+    IUserDirectory users,
     TimeProvider clock,
     ILogger<PosEventIngestion> logger)
 {
@@ -83,7 +88,10 @@ public sealed partial class PosEventIngestion(
     /// <summary>Tolerância do relógio do aparelho (ponto em aberto da story: os 2 min da ADR 0026).</summary>
     public static readonly TimeSpan ClockTolerance = TimeSpan.FromMinutes(2);
 
-    private static readonly string[] Kinds = [SaleKind, CashKind, PrintKind];
+    /// <summary>PDV-04 CA 6 a 9: cancelamento de venda concluída da sessão atual, com a aprovação do supervisor.</summary>
+    public const string CancelKind = "pos.sale_cancel";
+
+    private static readonly string[] Kinds = [SaleKind, CashKind, PrintKind, CancelKind];
 
     private static readonly JsonSerializerOptions DetailsJson = new(JsonSerializerDefaults.Web);
 
@@ -419,6 +427,7 @@ public sealed partial class PosEventIngestion(
             SaleKind => ProjectSaleAsync(context, eventId, root, occurredAt, cancellationToken),
             CashKind => ProjectCashAsync(context, root, occurredAt, cancellationToken),
             PrintKind => ProjectPrintAsync(context, root, occurredAt, cancellationToken),
+            CancelKind => ProjectCancelAsync(context, eventId, root, occurredAt, cancellationToken),
             _ => Task.FromResult(Projection.Held(new Finding(SyncDivergenceKind.Validation, $"Tipo de evento desconhecido: {kind}."), payload, kind)),
         };
     }

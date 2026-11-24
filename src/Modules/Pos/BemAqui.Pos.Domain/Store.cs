@@ -73,6 +73,12 @@ public sealed class Store : Entity, IAuditable, IConcurrencyVersioned
     /// </summary>
     public bool FreeRemoveLast { get; set; } = true;
 
+    /// <summary>
+    /// PDV-04 (PP-38: por loja): desconto máximo, em % do valor da linha ou da venda, que o operador dá sem <c>pos.discount</c> nem supervisor. O
+    /// padrão não está decidido (PP-22, sugestão de 5%): até a decisão, 0 (todo desconto pede a permissão ou o supervisor). A loja edita.
+    /// </summary>
+    public decimal DiscountLimitPercent { get; set; }
+
     /// <summary>OFF-02 CA 16: o gerente é avisado quando um caixa fica este número de horas sem enviar vendas (padrão 4 h, de 1 a 72).</summary>
     public int SyncAlertHours { get; set; } = DefaultSyncAlertHours;
 

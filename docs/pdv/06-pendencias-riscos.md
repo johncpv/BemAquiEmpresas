@@ -203,6 +203,23 @@ A análise do EmissorFiscal encontrou em `D:\GIT\EmissorFiscal\docs\Certificado\
 - Mesmo fora do git, certificado e senha juntos numa pasta de projeto ficam ao alcance de backup, sincronização de nuvem, busca de arquivos e de qualquer ferramenta que leia o diretório. A regra do `CLAUDE.md` do Emissor pede que não fiquem no repositório.
 - **Recomendação:** tirar os dois da pasta do projeto e guardar o certificado em cofre, com a senha em outro lugar; conferir se a pasta está no `.gitignore`; e, se houver dúvida sobre cópias, considerar revogar e reemitir o A1. A decisão é do PO.
 
+#### Em aberto na PDV-04 (24/11/2026; PP-22 decidida pelo PO no mesmo dia)
+
+| # | O que falta | Como ficou na PDV-04 | Quem decide |
+|---|---|---|---|
+| PP-22 (desconto) | **Decidida pelo PO em 24/11/2026:** o padrão de **0%** fica | Campo `pos.stores.discount_limit_percent` editável na tela da loja, com **0 como padrão** (todo desconto pede `pos.discount` ou o supervisor) | Decidido |
+| PP-22 (alerta) | **Decidida pelo PO em 24/11/2026:** X = **3% das vendas do turno** | **Fora** da PDV-04: entra na **PDV-07** (indicador por caixa no turno). Até lá, o relatório de aprovações mostra os cancelamentos por operador, supervisor e tipo, sem o alerta | Decidido |
+| Aprovação sem rede | A aprovação do supervisor sem conexão | Revisão de segurança, achado 2 (recomendação aceita pelo PO em 24/11/2026): ação que pede supervisor sem `approvalId` (autorizada por outra pessoa) vai para a **quarentena**, nunca só para a divergência; a liberação é do Proprietário. A aprovação sem rede fica para a **OFF-03** | OFF-03 |
+| PP-38 (faixa por papel) | Limite diferente por papel dentro da loja (a PP-38 "aceita", não exige) | Fora: um limite por loja | PO, se o lojista pedir |
+| PP-11 (motivos) | A lista de motivos de desconto, troca de preço e cancelamento | Lista fixa no caixa com "Outro" e texto (CA 1); vira configuração se o lojista pedir | PO |
+
+#### Riscos aceitos na PDV-04 (revisão de segurança de 24/11/2026)
+
+| Achado | Risco | Por que fica | Mitigação |
+|---|---|---|---|
+| 5 | O estorno de cartão no cancelamento é confirmado pelo próprio aparelho, e o NSU do estorno é texto livre (a maquininha externa não conversa com o sistema) | Sem TEF integrado não há como o servidor conferir o estorno | Cancelamento sempre com a aprovação de um supervisor diferente do operador, o NSU na trilha `pos.supervisor_approvals` e o aviso ao Proprietário (CA 9); a conciliação do cartão aponta o estorno que não houve |
+| 8 | O relatório "Aprovações de supervisor" tem o escopo do tenant (quem tem `sales.view` vê todas as lojas), sem escopo por loja | A retaguarda inteira já é por tenant, sem recorte por loja; o recorte por loja seria uma regra nova só aqui | Filtro por loja na tela; o acesso continua pelas três camadas (`sales.view`) |
+
 ## 4. Perguntas para a contadora
 
 **Nada do que é fiscal neste plano foi confirmado.** As respostas valem por UF: a coluna "SP" é a do piloto proposto (PP-06); cada UF nova repete a coluna.

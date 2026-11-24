@@ -21,7 +21,7 @@ import { CashBusyScreen, CashOpenScreen } from '@/pages/pdv/cash/CashScreens'
 import { parseCodeInput } from '@/pdv/sale/code-input'
 import { aesDocumentCipher, formatDocument } from '@/pdv/sale/customer-document'
 import { formatQuantity } from '@/pdv/sale/quantity'
-import { currentSale, lineTotal, parkedSales, type SaleLine, saleTotal } from '@/pdv/sale/sale-model'
+import { currentSale, lineGross, lineTotal, parkedSales, type SaleLine, saleSubtotal, saleTotal } from '@/pdv/sale/sale-model'
 import { type AddResult, type CompletedSale, DEFAULT_SETTINGS, SaleRegister, SaleRuleError, type SaleSettings, SETTINGS_META } from '@/pdv/sale/sale-register'
 import { ScanDetector } from '@/pdv/sale/scanner'
 import { rememberReceipt, storedReceiptOf } from '@/pdv/print/print-jobs'
@@ -29,6 +29,9 @@ import { ReprintSheet, SalePrint } from '@/pages/pdv/print/ReceiptPrinting'
 import { receiptHeader } from '@/pdv/print/use-printing'
 import { PaymentScreen, SaleCompletedView } from './PaymentScreen'
 import { CloseRegisterSheet, type CustomerHit, CustomerSheet, DiscardSheet, NoteSheet, ParkedSheet, ProductTile, QuantitySheet, RemoveSheet } from './sale-sheets'
+import { CancelSaleSheet, DiscountSheet, PriceSheet } from './discount-sheets'
+import { type SupervisorApi, SupervisorDialog, type SupervisorApproval, type SupervisorRequest } from './supervisor'
+import type { StoredReceipt } from '@/pdv/print/print-jobs'
 
 /** "Venda {número} concluída ao reabrir o caixa", com o troco quando houver (PDV-03, revisão de segurança). */
 function recoveredNotice(sales: readonly CompletedSale[]): { tone: 'ok'; text: string } | null {
@@ -44,6 +47,10 @@ export interface SaleOperator {
   canCancelItem: boolean
   /** Tem `pos.cash_out` (sangria, CX-01). */
   canCashOut: boolean
+  /** PDV-04: tem `pos.discount` (desconto acima do limite), `pos.change_price` e `pos.cancel_sale` (ainda assim, o supervisor aprova). */
+  canDiscount?: boolean
+  canChangePrice?: boolean
+  canCancelSale?: boolean
   /** Tem `pos.cash_in` (suprimento, CX-01). */
   canCashIn: boolean
 }
@@ -60,10 +67,13 @@ type Sheet =
   | { kind: 'close' }
   | { kind: 'settings' }
   | { kind: 'reprint' }
+  | { kind: 'discount'; lineId: string | null }
+  | { kind: 'price'; lineId: string }
+  | { kind: 'cancel-sale'; receipt: StoredReceipt }
 
 /** Teclas de função (CA 6), iguais nos dois modos. */
 const FUNCTION_KEYS = [
-  ['F2', 'Buscar'], ['F3', 'Quantidade'], ['F4', 'Observação'], ['F6', 'Remover item'],
+  ['F2', 'Buscar'], ['F3', 'Quantidade'], ['F4', 'Observação'], ['F5', 'Desconto'], ['F6', 'Remover item'], ['F11', 'Trocar preço'],
   ['F7', 'Espera'], ['F8', 'Cliente'], ['F9', 'Descartar'], ['F10', 'Pagar'],
 ] as const
 type FunctionKey = (typeof FUNCTION_KEYS)[number][0]
@@ -93,7 +103,7 @@ const defaultMode = (uiMode: PosHandshake['uiMode']): SaleSettings['mode'] => (u
  * - O leitor em modo teclado é reconhecido em qualquer campo pelo tempo entre as teclas (CA 4).
  * - **Pagar** (F10, PDV-03) leva à tela de pagamento, que só fala com a porta `PaymentTerminal` (padrão: `ManualTerminal`, maquininha externa).
  */
-export function PdvSale({ store, handshake, operator, online, searchCustomers, onLeave, terminal }: {
+export function PdvSale({ store, handshake, operator, online, searchCustomers, onLeave, terminal, supervisor }: {
   store: LocalStore
   handshake: PosHandshake
   operator: SaleOperator
@@ -101,6 +111,8 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
   searchCustomers: ((term: string) => Promise<CustomerHit[]>) | null
   onLeave: () => void
   terminal?: PaymentTerminal
+  /** PDV-04: "Chamar supervisor" (com rede). */
+  supervisor?: SupervisorApi | null
 }) {
   const [cash, setCash] = useState<LocalCashSession | null | undefined>(undefined)
   const [lastOpening, setLastOpening] = useState(0)
@@ -131,7 +143,10 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
         setLastOpening(opening ?? 0)
         cashIdRef.current = loaded?.id ?? null
         const opened = await SaleRegister.open({
-          store, operatorId: operator.id, salePrefix: handshake.salePrefix, settings: () => ({ ...settingsRef.current, freeRemoveLast: settingsRef.current.freeRemoveLast && (store.catalogState()?.storeSettings?.freeRemoveLast ?? true) }),
+          store, operatorId: operator.id, salePrefix: handshake.salePrefix, settings: () => ({
+            ...settingsRef.current, freeRemoveLast: settingsRef.current.freeRemoveLast && (store.catalogState()?.storeSettings?.freeRemoveLast ?? true),
+            discountLimitPercent: store.catalogState()?.storeSettings?.discountLimitPercent ?? 0,
+          }),
           cipher: aesDocumentCipher(loadDocumentKey), cashSessionId: () => cashIdRef.current, stock: localStockGuard(store),
         })
         // Venda concluída ao reabrir (queda entre o último pagamento e o fechamento): conta no turno como as outras.
@@ -203,14 +218,15 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
   }
 
   return (
-    <SaleScreen store={store} register={register} operator={operator} online={online} settings={settings} onSettings={saveSettings} terminal={terminal}
+    <SaleScreen store={store} register={register} operator={operator} online={online} settings={settings} onSettings={saveSettings} terminal={terminal} supervisor={supervisor ?? null}
       registerId={handshake.registerId} storeName={handshake.storeName}
       searchCustomers={searchCustomers} onLeave={onLeave} cash={cash} onCash={setCash} place={place}
       onCloseRegister={async () => { setCash(await startCashCount(store, operator)) }} />
   )
 }
 
-function SaleScreen({ store, register, operator, online, settings, onSettings, searchCustomers, onLeave, onCloseRegister, terminal: givenTerminal, cash, onCash, place, registerId, storeName }: {
+function SaleScreen({ store, register, operator, online, settings, onSettings, searchCustomers, onLeave, onCloseRegister, terminal: givenTerminal, cash, onCash, place, registerId, storeName, supervisor }: {
+  supervisor: SupervisorApi | null
   store: LocalStore
   registerId: string
   storeName: string
@@ -240,6 +256,8 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
   // Venda que fechou ao reabrir (a queda foi entre o último pagamento e o fechamento): avisa o número e o troco a devolver.
   const [notice, setNotice] = useState<{ tone: 'error' | 'ok'; text: string } | null>(() => recoveredNotice(register.recovered))
   const [storageError, setStorageError] = useState(false)
+  // PDV-04: o pedido ao supervisor e o que fazer com a aprovação (só aquela ação).
+  const [calling, setCalling] = useState<{ request: SupervisorRequest; onApproved: (approval: SupervisorApproval) => Promise<void> } | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [suggestion, setSuggestion] = useState(0)
   const [sheet, setSheet] = useState<Sheet>(null)
@@ -332,7 +350,9 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
       case 'F2': codeRef.current?.focus(); codeRef.current?.select(); break
       case 'F3': if (selected) setSheet({ kind: 'quantity', lineId: selected.lineId }); break
       case 'F4': if (selected) setSheet({ kind: 'note', lineId: selected.lineId }); break
+      case 'F5': if (lines.length) setSheet({ kind: 'discount', lineId: selected?.lineId ?? null }); else setNotice({ tone: 'error', text: 'Lance um item antes de dar desconto.' }); break
       case 'F6': if (selected) setSheet({ kind: 'remove', lineId: selected.lineId }); break
+      case 'F11': if (selected) setSheet({ kind: 'price', lineId: selected.lineId }); break
       case 'F7':
         if (lines.length) void guard(() => register.park()).then((ok) => { if (ok) setNotice({ tone: 'ok', text: 'Venda em espera. Pode começar a próxima.' }) })
         else setSheet({ kind: 'parked' })
@@ -350,7 +370,7 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
 
   // Leitor em qualquer campo (CA 4) e teclas de função (CA 6).
   const handlers = useRef({ scan, runKey, sheetOpen: false, blocked: false })
-  useEffect(() => { handlers.current = { scan, runKey, sheetOpen: sheet !== null, blocked: paying || completed !== null || cashView !== null } }, [scan, runKey, sheet, paying, completed, cashView])
+  useEffect(() => { handlers.current = { scan, runKey, sheetOpen: sheet !== null || calling !== null, blocked: paying || completed !== null || cashView !== null } }, [scan, runKey, sheet, calling, paying, completed, cashView])
   useEffect(() => {
     const detector = new ScanDetector()
     let snapshot: { el: HTMLInputElement | HTMLTextAreaElement; value: string } | null = null
@@ -407,7 +427,92 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
     if (code.trim()) void scan(code)
   }
 
-  const sheetLine = sheet && 'lineId' in sheet ? lines.find((l) => l.lineId === sheet.lineId) ?? null : null
+  const sheetLine = sheet && 'lineId' in sheet && sheet.lineId ? lines.find((l) => l.lineId === sheet.lineId) ?? null : null
+
+  // PDV-04: o que passa do que o operador pode vira "Chamar supervisor"; a aprovação libera só aquela ação.
+  const callSupervisor = (request: SupervisorRequest, apply: (approval: SupervisorApproval) => Promise<string | null>, done: string) => {
+    setSheet(null)
+    setCalling({
+      request,
+      onApproved: async (approval) => {
+        const problem = await apply(approval)
+        setCalling(null)
+        setNotice(problem ? { tone: 'error', text: problem } : { tone: 'ok', text: `${done} Aprovado por ${approval.supervisorName}.` })
+        focusCode()
+      },
+    })
+  }
+  const authOf = (approval: SupervisorApproval) => ({ authorizedBy: approval.supervisorId, approvalId: approval.approvalId })
+
+  const saveDiscount = async (lineId: string | null, cents: number, reason: string): Promise<string | null> => {
+    if (!sale) return null
+    const needs = register.discountNeedsAuthorization(lineId, cents)
+    if (!needs || operator.canDiscount) {
+      const result = await guard(() => register.applyDiscount(lineId, cents, reason, needs ? true : null))
+      if (result && !result.ok) return result.message
+      closeSheet()
+      return null
+    }
+
+    const line = lineId ? lines.find((l) => l.lineId === lineId) ?? null : null
+    const before = line ? lineGross(line) : saleSubtotal(sale)
+    callSupervisor({
+      action: 'Discount', title: 'Desconto acima do limite da loja', summary: `${line ? line.name : 'Total da venda'}: de ${formatCents(before)} para ${formatCents(before - cents)}`,
+      saleId: sale.id, lineId, beforeCents: before, afterCents: before - cents, reason,
+    }, async (a) => {
+      const result = await guard(() => register.applyDiscount(lineId, cents, reason, authOf(a)))
+      return result && !result.ok ? result.message : null
+    }, 'Desconto aplicado.')
+    return null
+  }
+
+  const savePrice = async (line: SaleLine, unitCents: number, reason: string): Promise<string | null> => {
+    if (!sale) return null
+    if (operator.canChangePrice) {
+      const result = await guard(() => register.overridePrice(line.lineId, unitCents, reason, true))
+      if (result && !result.ok) return result.message
+      closeSheet()
+      return null
+    }
+
+    callSupervisor({
+      action: 'ChangePrice', title: 'Trocar preço', summary: `${line.name}: preço de ${formatCents(line.unitCents)} para ${formatCents(unitCents)}`,
+      saleId: sale.id, lineId: line.lineId, beforeCents: line.unitCents, afterCents: unitCents, reason,
+    }, async (a) => {
+      const result = await guard(() => register.overridePrice(line.lineId, unitCents, reason, authOf(a)))
+      return result && !result.ok ? result.message : null
+    }, 'Preço trocado.')
+    return null
+  }
+
+  const removeWithSupervisor = (line: SaleLine, motive: string) => {
+    if (!sale) return
+    callSupervisor({
+      action: 'CancelItem', title: 'Remover item', summary: `${line.name}: sai ${formatCents(lineTotal(line))} da venda`,
+      saleId: sale.id, lineId: line.lineId, beforeCents: lineTotal(line), afterCents: 0, reason: motive,
+    }, async (a) => {
+      const result = await guard(() => register.removeLine(line.lineId, authOf(a), motive))
+      if (result?.kind === 'removed') setSelectedId(null)
+      return result?.kind === 'removed' ? null : 'Não foi possível remover o item.'
+    }, 'Item removido.')
+  }
+
+  // CA 6 a 8: só a venda desta sessão; a de antes vai para a devolução (PDV-06).
+  const cancelTarget = sheet?.kind === 'cancel-sale' ? sheet.receipt : null
+  const cancelOtherSession = !!cancelTarget && Date.parse(cancelTarget.completedAt) < Date.parse(cash.openedAt)
+  const cancelSale = (receipt: StoredReceipt, input: { reason: string; refundConfirmed: boolean; refundNsu: string | null }) => {
+    callSupervisor({
+      action: 'CancelSale', title: 'Cancelar venda', summary: `Venda ${receipt.number}: ${formatCents(receipt.totalCents)}`,
+      saleId: receipt.saleId, lineId: null, beforeCents: receipt.totalCents, afterCents: 0, reason: input.reason,
+    }, async (a) => {
+      try {
+        await register.cancelCompleted({ saleId: receipt.saleId, number: receipt.number, cashSessionId: cash.id, supervisorId: a.supervisorId, approvalId: a.approvalId, ...input })
+        return null
+      } catch (e) {
+        return e instanceof Error ? e.message : 'Não foi possível cancelar a venda.'
+      }
+    }, `Venda ${receipt.number} cancelada.`)
+  }
   const discardTarget = sheet?.kind === 'discard' ? (sheet.saleId ? book.sales.find((s) => s.id === sheet.saleId) ?? null : sale) : null
   const pendingSales = parked.length + (lines.length ? 1 : 0)
 
@@ -577,14 +682,22 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
         }} /> : null}
       {sheet?.kind === 'note' ? <NoteSheet open line={sheetLine} onCancel={closeSheet}
         onSave={async (note) => { if (sheet?.kind === 'note') await guard(() => register.setNote(sheet.lineId, note)); closeSheet() }} /> : null}
-      <RemoveSheet open={sheet?.kind === 'remove'} line={sheetLine} free={!!sheetLine && register.isFreeRemoval(sheetLine.lineId)} canCancelItem={operator.canCancelItem}
+      {sheet?.kind === 'remove' ? <RemoveSheet open line={sheetLine} free={!!sheetLine && register.isFreeRemoval(sheetLine.lineId)} canCancelItem={operator.canCancelItem}
         onCancel={closeSheet}
-        onConfirm={async () => {
+        onCallSupervisor={(motive) => { if (sheetLine) removeWithSupervisor(sheetLine, motive) }}
+        onConfirm={async (motive) => {
           if (sheet?.kind !== 'remove') return
-          const result = await guard(() => register.removeLine(sheet.lineId, operator.canCancelItem))
+          const result = await guard(() => register.removeLine(sheet.lineId, operator.canCancelItem, motive))
           if (result?.kind === 'removed') { setSelectedId(null); closeSheet() }
-        }} />
-      <ReprintSheet open={sheet?.kind === 'reprint'} store={store} header={header} operatorId={operator.id} registerId={registerId} decryptDocument={decryptDocument} onClose={closeSheet} />
+        }} /> : null}
+      {sheet?.kind === 'discount' ? <DiscountSheet open sale={sale} line={sheetLine} limitPercent={storeSettings?.discountLimitPercent ?? 0} onCancel={closeSheet} onSave={saveDiscount} /> : null}
+      {sheet?.kind === 'price' ? <PriceSheet open line={sheetLine} onCancel={closeSheet} onSave={(unit, reason) => (sheetLine ? savePrice(sheetLine, unit, reason) : Promise.resolve(null))} /> : null}
+      {cancelTarget ? <CancelSaleSheet open receipt={cancelTarget} otherSession={cancelOtherSession} onCancel={closeSheet}
+        onConfirm={async (input) => { cancelSale(cancelTarget, input); return null }} /> : null}
+      <SupervisorDialog request={calling?.request ?? null} api={supervisor} online={online && !!supervisor}
+        onApproved={(approval) => calling?.onApproved(approval)} onCancel={() => { setCalling(null); focusCode() }} />
+      <ReprintSheet open={sheet?.kind === 'reprint'} store={store} header={header} operatorId={operator.id} registerId={registerId} decryptDocument={decryptDocument} onClose={closeSheet}
+        onCancelSale={operator.canCancelSale ? (receipt) => setSheet({ kind: 'cancel-sale', receipt }) : undefined} />
       <ParkedSheet open={sheet?.kind === 'parked'} sales={parked} onClose={closeSheet}
         onResume={async (id) => { await guard(() => register.resume(id)); setSelectedId(null); closeSheet() }}
         onDiscard={(id) => setSheet({ kind: 'discard', saleId: id })} />

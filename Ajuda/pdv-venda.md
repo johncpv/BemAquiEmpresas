@@ -17,7 +17,7 @@ Lançar os itens da venda tão rápido quanto você bipa ou toca. A tela trabalh
 - **Buscar pelo nome:** digite 3 letras do nome (ex.: "arr" acha "Arroz"). No modo Teclado, escolha com as setas e Enter; no modo Toque, toque no produto.
 - **Produto pesável:** pede a quantidade (até 3 casas, ex.: 1,250). Produto por unidade só aceita número inteiro.
 - **Mesmo produto duas vezes:** soma na mesma linha. Em **Ajustes do caixa** dá para trocar para uma linha por lançamento.
-- **Remover:** o último item lançado sai direto (bipou errado). Outra linha pede a permissão de remover itens no caixa. Toda remoção fica registrada.
+- **Remover:** o último item lançado sai direto (bipou errado). Outra linha pede o motivo e a permissão de remover itens no caixa ou o PIN de um supervisor (veja "Chamar supervisor"). Toda remoção fica registrada.
 - **Observação:** escolha a linha e use **Observação** (F4): ela sai no cupom.
 - **Deixar em espera:** o cliente esqueceu algo? Use **Deixar em espera** (F7) e atenda o próximo. Em **Em espera** aparecem as vendas guardadas, com a hora, os itens e o total; **Retomar** traz a venda de volta.
 - **Descartar a venda:** pede o motivo e fica registrado. A venda descartada ganha o número dela na hora.
@@ -28,11 +28,13 @@ Lançar os itens da venda tão rápido quanto você bipa ou toca. A tela trabalh
 - **F2:** buscar (volta ao campo de código).
 - **F3:** quantidade da linha escolhida.
 - **F4:** observação da linha.
+- **F5:** desconto no item ou no total (em % ou R$, com motivo; acima do limite da loja, chama o supervisor).
 - **F6:** remover item.
 - **F7:** deixar em espera (sem itens na tela: ver as vendas em espera).
 - **F8:** cliente (CPF ou CNPJ).
 - **F9:** descartar a venda.
 - **F10:** pagar (abre a tela de pagamento).
+- **F11:** trocar o preço do item (com motivo; pede a permissão ou o supervisor).
 - **Setas para cima e para baixo:** escolher a linha (ou o produto na lista da busca).
 - **`3*código`:** lançar 3 do código.
 

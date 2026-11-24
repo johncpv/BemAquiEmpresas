@@ -407,6 +407,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Pos.Domain.SessionSale> SessionSales => Set<BemAqui.Pos.Domain.SessionSale>();
 
+    public DbSet<BemAqui.Pos.Domain.SupervisorApproval> SupervisorApprovals => Set<BemAqui.Pos.Domain.SupervisorApproval>();
+
     public DbSet<BemAqui.Sales.Domain.Sale> Sales => Set<BemAqui.Sales.Domain.Sale>();
 
     public DbSet<BemAqui.Sales.Domain.SaleLine> SaleLines => Set<BemAqui.Sales.Domain.SaleLine>();

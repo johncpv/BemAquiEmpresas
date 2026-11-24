@@ -8,7 +8,13 @@ import { parseCodeInput } from './code-input'
 import { checkCustomerDocument, type DocumentCipher } from './customer-document'
 import { addQuantities, packQuantityText, parseQuantity, subtractQuantities, toMilli } from './quantity'
 import { checkStockMessage, type StockGuard } from '@/pdv/stock/stock-guard'
-import { applySaleEvent, currentSale, emptyBook, parkedSales, replaySales, type Sale, saleTotal, type SaleBook, type SaleCustomer, type SaleEvent, type SaleEventData, type SaleEventType, type SaleLine } from './sale-model'
+import {
+  applySaleEvent, currentSale, discountAboveLimit, discountStacksAboveLimit, emptyBook, lineGross, parkedSales, replaySales, type Sale, type SaleAuthorization, saleSubtotal, saleTotal, type SaleBook,
+  type SaleCustomer, type SaleEvent, type SaleEventData, type SaleEventType, type SaleLine,
+} from './sale-model'
+
+/** Quem autorizou, no evento (PDV-04): o id do supervisor ou do próprio operador e, com o PIN do supervisor, a aprovação. */
+const authData = (auth: SaleAuthorization) => ({ authorizedBy: auth.authorizedBy, ...(auth.approvalId ? { approvalId: auth.approvalId } : {}) })
 
 /** Ajustes do caixa que mudam a tela de venda (guardados no aparelho, `pdv.settings`). */
 export interface SaleSettings {
@@ -18,6 +24,23 @@ export interface SaleSettings {
   mergeSameItem: boolean
   /** O último item lançado sai sem supervisor (CA 10). A loja pode desligar. */
   freeRemoveLast: boolean
+  /** PDV-04 (PP-38): desconto máximo da loja, em %, sem `pos.discount` nem supervisor. Vem da loja, nunca do aparelho; ausente = 0. */
+  discountLimitPercent?: number
+}
+
+/** Fila de saída do cancelamento da venda concluída (PDV-04 CA 6 a 9). */
+export const SALE_CANCEL_OUTBOX_KIND = 'pos.sale_cancel'
+
+/** Cancelamento da venda concluída da sessão (PDV-04): a aprovação do supervisor e, com cartão, o estorno confirmado na maquininha. */
+export interface SaleCancellation {
+  saleId: string
+  number: string
+  cashSessionId: string | null
+  reason: string
+  supervisorId: string
+  approvalId: string
+  refundConfirmed: boolean
+  refundNsu: string | null
 }
 
 export const SETTINGS_META = 'pdv.settings'
@@ -62,6 +85,8 @@ export interface CompletedSale {
   operatorId?: string | null
   lines?: SaleLine[]
   customer?: SaleCustomer | null
+  /** PDV-04: desconto no total (o cupom rateia nas linhas). */
+  discountCents?: Cents
 }
 
 /** Pagamento capturado é fato (revisão de segurança): só sai por estorno ou cancelamento, com quem autorizou (método próprio da PDV-04). */
@@ -210,7 +235,8 @@ export class SaleRegister {
    * segurança, achado 3): sem `pos.cancel_item` (`authorized`), só desfaz até o último lançamento da linha; reduzir uma linha antiga, ou abaixo
    * do último lançamento, pede autorização. Toda mudança fica registrada com quem estava no caixa.
    */
-  setQuantity(lineId: string, text: string, authorized = false): Promise<{ ok: true } | { ok: false; message: string; needsAuthorization?: true }> {
+  setQuantity(lineId: string, text: string, authorized: boolean | SaleAuthorization | null = false): Promise<{ ok: true } | { ok: false; message: string; needsAuthorization?: true }> {
+    const auth = this.authOf(authorized)
     return this.run(async () => {
       const sale = this.current()
       const line = sale?.lines.find((l) => l.lineId === lineId)
@@ -225,13 +251,97 @@ export class SaleRegister {
         const refused = await checkStockMessage(this.options.stock, { id: line.itemId, name: line.name, unit: line.unit }, wanted)
         if (refused) return { ok: false, message: refused }
       }
-      if (!authorized && !this.isFreeReduction(sale, line, parsed.value)) {
-        return { ok: false, needsAuthorization: true, message: 'Diminuir um item que não é o último lançado pede autorização. Chame quem tem a permissão de remover itens no caixa.' }
+      if (!auth && !this.isFreeReduction(sale, line, parsed.value)) {
+        return { ok: false, needsAuthorization: true, message: 'Diminuir um item que não é o último lançado pede autorização. Chame o supervisor.' }
       }
 
       const free = this.isFreeReduction(sale, line, parsed.value)
-      await this.commit([this.event('LineChanged', sale.id, { lineId, quantity: parsed.value, reason: 'quantity', operatorId: this.options.operatorId, ...(free ? {} : { authorizedBy: this.options.operatorId }) })])
+      await this.commit([this.event('LineChanged', sale.id, { lineId, quantity: parsed.value, reason: 'quantity', operatorId: this.options.operatorId, ...(free || !auth ? {} : authData(auth)) })])
       return { ok: true }
+    })
+  }
+
+  /** `true` = o próprio operador, com a permissão; a aprovação do supervisor vem como objeto; `false`/null = sem autorização. */
+  private authOf(authorized: boolean | SaleAuthorization | null): SaleAuthorization | null {
+    if (authorized === true) return this.options.operatorId ? { authorizedBy: this.options.operatorId } : null
+    return authorized || null
+  }
+
+  /** PDV-04 CA 1 e 2: o desconto passa do limite da loja e pede `pos.discount` ou o supervisor? */
+  discountNeedsAuthorization(lineId: string | null, discountCents: Cents): boolean {
+    const sale = this.current()
+    if (!sale) return false
+    const line = lineId ? sale.lines.find((l) => l.lineId === lineId) : null
+    return this.discountAbove(sale, line ?? null, discountCents)
+  }
+
+  /** Acima do limite no alvo ou, no total, somado aos descontos dos itens (achado 3 da revisão de segurança; o servidor confere igual). */
+  private discountAbove(sale: Sale, line: SaleLine | null, discountCents: Cents): boolean {
+    const limit = this.options.settings().discountLimitPercent ?? 0
+    const base = line ? lineGross(line) : saleSubtotal(sale)
+    return discountAboveLimit(discountCents, base, limit) || (!line && discountStacksAboveLimit(sale.lines, discountCents, limit))
+  }
+
+  /**
+   * PDV-04 CA 1 e 2: desconto em centavos na linha ou no total (zero tira), com o motivo. Até o limite da loja passa; acima, só com a autorização (o
+   * operador com `pos.discount` ou o supervisor). Um desconto novo substitui o anterior do mesmo alvo.
+   */
+  applyDiscount(lineId: string | null, discountCents: Cents, reason: string | null, authorized: boolean | SaleAuthorization | null = null): Promise<{ ok: true } | { ok: false; message: string; needsAuthorization?: true }> {
+    const auth = this.authOf(authorized)
+    return this.run(async () => {
+      const sale = this.current()
+      if (!sale || sale.lines.length === 0) return { ok: false, message: 'Lance um item antes de dar desconto.' }
+      if (sale.inPayment) return { ok: false, message: LOCKED_MESSAGE }
+      const line = lineId ? sale.lines.find((l) => l.lineId === lineId) : null
+      if (lineId && !line) return { ok: false, message: 'A linha não está mais na venda.' }
+      const base = line ? lineGross(line) : saleSubtotal(sale)
+      if (!Number.isInteger(discountCents) || discountCents < 0 || discountCents > base) {
+        return { ok: false, message: line ? 'O desconto passa do valor do item.' : 'O desconto passa do valor da venda.' }
+      }
+      const text = reason?.trim().slice(0, 140) || null
+      if (discountCents > 0 && !text) return { ok: false, message: 'Escolha o motivo do desconto.' }
+      if (text && looksLikeCardNumber(text)) return { ok: false, message: CARD_NUMBER_MESSAGE }
+      const above = this.discountAbove(sale, line ?? null, discountCents)
+      if (above && !auth) return { ok: false, needsAuthorization: true, message: 'Desconto acima do limite da loja. Chame o supervisor.' }
+      await this.commit([this.event('DiscountApplied', sale.id, {
+        lineId: line?.lineId ?? null, discountCents, reason: discountCents > 0 ? text : null, operatorId: this.options.operatorId, ...(above && auth ? authData(auth) : {}),
+      })])
+      return { ok: true }
+    })
+  }
+
+  /** PDV-04 CA 3: troca do preço da linha, sempre com a autorização (o operador com `pos.change_price` ou o supervisor) e o motivo. */
+  overridePrice(lineId: string, unitCents: Cents, reason: string, authorized: boolean | SaleAuthorization | null): Promise<{ ok: true } | { ok: false; message: string; needsAuthorization?: true }> {
+    const auth = this.authOf(authorized)
+    return this.run(async () => {
+      const sale = this.current()
+      const line = sale?.lines.find((l) => l.lineId === lineId)
+      if (!sale || !line) return { ok: false, message: 'A linha não está mais na venda.' }
+      if (sale.inPayment) return { ok: false, message: LOCKED_MESSAGE }
+      if (!Number.isInteger(unitCents) || unitCents < 0 || unitCents > 999_999_999) return { ok: false, message: 'Informe o preço novo.' }
+      if (unitCents === line.unitCents) return { ok: true }
+      const text = reason.trim().slice(0, 140)
+      if (!text) return { ok: false, message: 'Escolha o motivo da troca de preço.' }
+      if (looksLikeCardNumber(text)) return { ok: false, message: CARD_NUMBER_MESSAGE }
+      if (!auth) return { ok: false, needsAuthorization: true, message: 'Trocar o preço pede autorização. Chame o supervisor.' }
+      await this.commit([this.event('PriceOverridden', sale.id, { lineId, unitCents, reason: text, operatorId: this.options.operatorId, ...authData(auth) })])
+      return { ok: true }
+    })
+  }
+
+  /**
+   * PDV-04 CA 6 a 9: cancela a venda concluída desta sessão. Vai para a fila de saída com a aprovação do supervisor (que já conferiu, com rede, que
+   * a venda é deste caixa e da sessão aberta); no servidor, o dinheiro sai da gaveta, o estoque volta e o Proprietário é avisado.
+   */
+  async cancelCompleted(input: SaleCancellation): Promise<void> {
+    const reason = input.reason.trim().slice(0, 140)
+    if (!reason) throw new SaleRuleError('Escolha o motivo do cancelamento.')
+    if (looksLikeCardNumber(reason)) throw new SaleRuleError(CARD_NUMBER_MESSAGE)
+    const nsu = input.refundNsu?.trim() || null
+    if (nsu && (nsu.length > 12 || looksLikeCardNumber(nsu))) throw new SaleRuleError('Informe o NSU do estorno (até 12 caracteres).')
+    await this.options.store.enqueue(SALE_CANCEL_OUTBOX_KIND, {
+      saleId: input.saleId, number: input.number, cashSessionId: input.cashSessionId, at: this.now(), operatorId: this.options.operatorId,
+      authorizedBy: input.supervisorId, approvalId: input.approvalId, reason, refundConfirmed: input.refundConfirmed, refundNsu: nsu,
     })
   }
 
@@ -262,9 +372,10 @@ export class SaleRegister {
 
   /**
    * CA 10: o último item lançado sai sem supervisor (se a linha somou o mesmo item, sai só o último lançamento); outra linha exige
-   * `pos.cancel_item` (`authorized`). O PIN do supervisor é da PDV-04. Toda remoção fica registrada com quem estava no caixa.
+   * `pos.cancel_item` do operador (`true`) ou a aprovação do supervisor (PDV-04), com o motivo. Toda remoção fica registrada com quem estava no caixa.
    */
-  removeLine(lineId: string, authorized: boolean): Promise<RemoveResult> {
+  removeLine(lineId: string, authorized: boolean | SaleAuthorization | null, motive: string | null = null): Promise<RemoveResult> {
+    const auth = this.authOf(authorized)
     return this.run(async () => {
       const sale = this.current()
       const line = sale?.lines.find((l) => l.lineId === lineId)
@@ -279,8 +390,9 @@ export class SaleRegister {
         return { kind: 'removed' }
       }
 
-      if (!authorized) return { kind: 'needs-authorization' }
-      await this.commit([this.event('LineRemoved', sale.id, { lineId, reason: 'authorized', operatorId, authorizedBy: operatorId })])
+      if (!auth) return { kind: 'needs-authorization' }
+      const text = motive?.trim().slice(0, 140) || null
+      await this.commit([this.event('LineRemoved', sale.id, { lineId, reason: 'authorized', operatorId, ...authData(auth), ...(text && !looksLikeCardNumber(text) ? { motive: text } : {}) })])
       return { kind: 'removed' }
     })
   }
@@ -463,7 +575,7 @@ export class SaleRegister {
     for (const l of this.listeners) l()
     return {
       number: saleNumber(prefix, number), totalCents: total, changeCents: change, tenders: sale.tenders,
-      saleId: sale.id, completedAt: completed.at, operatorId: by.operatorId, lines: sale.lines, customer: sale.customer,
+      saleId: sale.id, completedAt: completed.at, operatorId: by.operatorId, lines: sale.lines, customer: sale.customer, discountCents: sale.discountCents ?? 0,
     }
   }
 

@@ -34,4 +34,5 @@ export interface StoreView {
   freeRemoveLast?: boolean;
   syncAlertHours?: number;
   cashBreakTolerance?: number;
+  discountLimitPercent?: number;
 }

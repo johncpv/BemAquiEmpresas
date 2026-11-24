@@ -66,6 +66,9 @@ public static partial class PinSessionAllowList
         ["EndPosSession"] = "sair do caixa: encerra a sessão por PIN do operador neste aparelho",
         // PDV-02 CA 15: com rede, ligar o cliente cadastrado à venda (pos.create); só nome e documento mascarado, 10 por busca.
         ["SearchPosCustomers"] = "cliente cadastrado na tela de venda: nome e documento mascarado, só clientes ativos",
+        // PDV-04 CA 10 a 12: "Chamar supervisor"; o PIN do supervisor é conferido no aparelho da sessão, libera só a ação e grava a trilha.
+        ["ListPosSupervisors"] = "supervisores da loja do aparelho: primeiro nome, inicial e as ações que aprovam, sem o operador",
+        ["ApprovePosSupervisorAction"] = "PIN do supervisor para uma ação do caixa: supervisor diferente do operador, com a permissão; rate limit por aparelho",
     };
 
     [GeneratedRegex("""\.AllowPosPinSession\(\)""")]

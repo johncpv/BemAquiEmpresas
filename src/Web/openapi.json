@@ -36431,6 +36431,54 @@
         }
       }
     },
+    "/api/v1/sales/reports/below-cost": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "GetBelowCostSalesReport",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "storeId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BelowCostSalesReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pos/stores": {
       "get": {
         "tags": [
@@ -37118,6 +37166,192 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/supervisor-approvals/supervisors": {
+      "get": {
+        "tags": [
+          "PDV: supervisor"
+        ],
+        "operationId": "ListPosSupervisors",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PosSupervisorOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/supervisor-approvals": {
+      "post": {
+        "tags": [
+          "PDV: supervisor"
+        ],
+        "operationId": "ApprovePosSupervisorAction",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupervisorApprovalInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupervisorApprovalGranted"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "PDV: supervisor"
+        ],
+        "operationId": "GetSupervisorApprovals",
+        "parameters": [
+          {
+            "name": "From",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "StoreId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Action",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SupervisorAction"
+            }
+          },
+          {
+            "name": "OperatorId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "SupervisorId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupervisorApprovalReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/supervisor-approvals/export": {
+      "get": {
+        "tags": [
+          "PDV: supervisor"
+        ],
+        "operationId": "ExportSupervisorApprovals",
+        "parameters": [
+          {
+            "name": "From",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "StoreId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Action",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SupervisorAction"
+            }
+          },
+          {
+            "name": "OperatorId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "SupervisorId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -50349,6 +50583,133 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "BelowCostSaleRow": {
+        "required": [
+          "saleId",
+          "saleNumber",
+          "businessDate",
+          "storeId",
+          "storeName",
+          "description",
+          "quantity",
+          "listUnitPrice",
+          "unitPrice",
+          "discount",
+          "netUnitPrice",
+          "unitCost",
+          "loss",
+          "discountReason",
+          "priceReason"
+        ],
+        "type": "object",
+        "properties": {
+          "saleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "saleNumber": {
+            "type": "string"
+          },
+          "businessDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "storeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "storeName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "listUnitPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "netUnitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "loss": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "priceReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "BelowCostSalesReport": {
+        "required": [
+          "from",
+          "to",
+          "count",
+          "loss",
+          "rows",
+          "truncated"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "loss": {
+            "type": "number",
+            "format": "double"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BelowCostSaleRow"
+            }
+          },
+          "truncated": {
+            "type": "boolean"
           }
         }
       },
@@ -89094,6 +89455,29 @@
           }
         }
       },
+      "PosSupervisorOption": {
+        "required": [
+          "userId",
+          "displayName",
+          "actions"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "PosSyncAck": {
         "required": [
           "deviceEpoch",
@@ -89583,6 +89967,11 @@
           "freeRemoveLast": {
             "type": "boolean",
             "default": true
+          },
+          "discountLimitPercent": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -103509,6 +103898,25 @@
               "null",
               "string"
             ]
+          },
+          "listUnitPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "discountReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "priceReason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -108218,6 +108626,13 @@
               "number"
             ],
             "format": "double"
+          },
+          "discountLimitPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -108330,6 +108745,11 @@
             "type": "number",
             "format": "double",
             "default": 5
+          },
+          "discountLimitPercent": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -108346,6 +108766,243 @@
           "workCenterId": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "SupervisorAction": {
+        "enum": [
+          "Discount",
+          "ChangePrice",
+          "CancelItem",
+          "CancelSale"
+        ]
+      },
+      "SupervisorApprovalGranted": {
+        "required": [
+          "approvalId",
+          "action",
+          "supervisorId",
+          "supervisorName",
+          "approvedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "approvalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "action": {
+            "$ref": "#/components/schemas/SupervisorAction"
+          },
+          "supervisorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supervisorName": {
+            "type": "string"
+          },
+          "approvedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SupervisorApprovalGroup": {
+        "required": [
+          "key",
+          "label",
+          "count",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "SupervisorApprovalInput": {
+        "required": [
+          "action",
+          "supervisorId",
+          "pin",
+          "reason",
+          "saleId",
+          "lineId",
+          "beforeAmount",
+          "afterAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/SupervisorAction"
+          },
+          "supervisorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pin": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "saleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lineId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "beforeAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "afterAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SupervisorApprovalReport": {
+        "required": [
+          "rows",
+          "byOperator",
+          "bySupervisor",
+          "byAction",
+          "truncated"
+        ],
+        "type": "object",
+        "properties": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorApprovalRow"
+            }
+          },
+          "byOperator": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorApprovalGroup"
+            }
+          },
+          "bySupervisor": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorApprovalGroup"
+            }
+          },
+          "byAction": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupervisorApprovalGroup"
+            }
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SupervisorApprovalRow": {
+        "required": [
+          "id",
+          "approvedAt",
+          "storeId",
+          "storeName",
+          "registerNumber",
+          "action",
+          "actionLabel",
+          "operatorId",
+          "operatorName",
+          "supervisorId",
+          "supervisorName",
+          "reason",
+          "saleId",
+          "beforeAmount",
+          "afterAmount",
+          "used",
+          "refundReference"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "approvedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "storeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storeName": {
+            "type": "string"
+          },
+          "registerNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "action": {
+            "$ref": "#/components/schemas/SupervisorAction"
+          },
+          "actionLabel": {
+            "type": "string"
+          },
+          "operatorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "operatorName": {
+            "type": "string"
+          },
+          "supervisorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supervisorName": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "saleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "beforeAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "afterAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "used": {
+            "type": "boolean"
+          },
+          "refundReference": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -115312,6 +115969,9 @@
     },
     {
       "name": "PDV: pend\u00EAncias"
+    },
+    {
+      "name": "PDV: supervisor"
     },
     {
       "name": "PDV: venda"

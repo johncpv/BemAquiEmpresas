@@ -16273,6 +16273,13 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("default_price_list_id");
 
+                    b.Property<decimal>("DiscountLimitPercent")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("discount_limit_percent");
+
                     b.Property<int>("ExchangeDays")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -16366,9 +16373,103 @@ namespace BemAqui.Host.Persistence.Migrations
                         {
                             t.HasCheckConstraint("ck_stores_cash_ceiling", "cash_ceiling_amount IS NULL OR cash_ceiling_amount > 0");
 
+                            t.HasCheckConstraint("ck_stores_discount_limit", "discount_limit_percent BETWEEN 0 AND 100");
+
                             t.HasCheckConstraint("ck_stores_offline_window", "offline_window_hours BETWEEN 1 AND 168");
 
                             t.HasCheckConstraint("ck_stores_parameters", "cash_break_tolerance >= 0 AND exchange_days >= 0 AND cash_drop_alert_amount >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("BemAqui.Pos.Domain.SupervisorApproval", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("action");
+
+                    b.Property<decimal>("AfterAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("after_amount");
+
+                    b.Property<DateTimeOffset>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("approved_at");
+
+                    b.Property<decimal>("BeforeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("before_amount");
+
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("device_id");
+
+                    b.Property<Guid?>("LineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("line_id");
+
+                    b.Property<bool>("Online")
+                        .HasColumnType("boolean")
+                        .HasColumnName("online");
+
+                    b.Property<Guid>("OperatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operator_id");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(140)
+                        .HasColumnType("character varying(140)")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("RefundReference")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("refund_reference");
+
+                    b.Property<Guid>("RegisterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("register_id");
+
+                    b.Property<Guid>("SaleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sale_id");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("store_id");
+
+                    b.Property<Guid>("SupervisorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("supervisor_id");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.Property<Guid?>("UsedByEventId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("used_by_event_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_supervisor_approvals");
+
+                    b.HasIndex("SaleId")
+                        .HasDatabaseName("ix_supervisor_approvals_sale_id");
+
+                    b.HasIndex("ApprovedAt", "StoreId")
+                        .HasDatabaseName("ix_supervisor_approvals_approved_at_store_id");
+
+                    b.ToTable("supervisor_approvals", "pos", t =>
+                        {
+                            t.HasCheckConstraint("ck_supervisor_approvals_other_person", "supervisor_id <> operator_id");
                         });
                 });
 
@@ -19775,6 +19876,11 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("discount");
 
+                    b.Property<string>("DiscountReason")
+                        .HasMaxLength(140)
+                        .HasColumnType("character varying(140)")
+                        .HasColumnName("discount_reason");
+
                     b.Property<Guid?>("ItemId")
                         .HasColumnType("uuid")
                         .HasColumnName("item_id");
@@ -19782,6 +19888,11 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<int>("LineNumber")
                         .HasColumnType("integer")
                         .HasColumnName("line_number");
+
+                    b.Property<decimal?>("ListUnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("list_unit_price");
 
                     b.Property<string>("Note")
                         .HasMaxLength(200)
@@ -19791,6 +19902,11 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid?>("ParentProductId")
                         .HasColumnType("uuid")
                         .HasColumnName("parent_product_id");
+
+                    b.Property<string>("PriceReason")
+                        .HasMaxLength(140)
+                        .HasColumnType("character varying(140)")
+                        .HasColumnName("price_reason");
 
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid")

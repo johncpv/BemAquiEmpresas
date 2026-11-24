@@ -23,6 +23,7 @@ Cadastrar as lojas e os caixas de cada uma, e ver qual aparelho vende em cada ca
 - **Vendas sem documento fiscal**, no topo da tela, abre o relatório por período, loja e operador.
 - **Pendências do PDV**, no topo da tela, mostra o que a sincronização dos caixas achou (preço desatualizado, relógio, vendas em quarentena) e as exceções por operador.
 - Na loja, **Último item sem supervisor** (ligado por padrão) deixa o operador tirar o último item que lançou sem chamar ninguém; o servidor confere cada remoção por esta regra. **Aviso de caixa sem enviar vendas** (padrão 4 horas) avisa quem aprova vendas quando um caixa passa desse tempo sem subir as vendas.
+- Na loja, **Limite de desconto sem supervisor (%)** é o desconto máximo que o operador dá sozinho (sempre com motivo). Acima dele, só quem tem a permissão de desconto ou o PIN de um supervisor. O padrão é 0 (todo desconto pede autorização) até a definição do valor sugerido. As aprovações ficam em **Aprovações de supervisor**.
 
 ## Perguntas frequentes
 **O código da loja pode mudar?** Pode, mas as vendas já feitas continuam com o número antigo. Prefira escolher o código certo no começo.

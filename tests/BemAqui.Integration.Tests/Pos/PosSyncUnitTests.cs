@@ -67,10 +67,9 @@ public class PosSyncUnitTests
         Run([Line(a, "2"), Line(b, "1"), Ev("LineRemoved", new { lineId = b, reason = "last-item", operatorId = Operator }), .. Pay(2000)], freeRemoveLast: false)
             .Violations.Should().ContainSingle(v => v.Contains("Sem quem autorizou", StringComparison.Ordinal));
 
-        // Com quem autorizou: a regra passa e a permissão dele no instante entra na conferência.
-        var authorized = Run([Line(a, "2"), Line(b, "1"), Ev("LineRemoved", new { lineId = a, reason = "authorized", operatorId = Operator, authorizedBy = Supervisor }), .. Pay(1000)]);
-        authorized.Violations.Should().BeEmpty();
-        authorized.Checks.Should().Contain(c => c.UserId == Supervisor && c.Permission == "pos.cancel_item" && !c.NeedsPinSession);
+        // PDV-04 (achado 2): outra pessoa que autoriza sem a aprovação do supervisor por PIN vai para a quarentena (antes era só divergência, OFF-02).
+        Run([Line(a, "2"), Line(b, "1"), Ev("LineRemoved", new { lineId = a, reason = "authorized", operatorId = Operator, authorizedBy = Supervisor }), .. Pay(1000)])
+            .Violations.Should().ContainSingle(v => v.Contains("sem a aprovação do supervisor", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -158,20 +157,183 @@ public class PosSyncUnitTests
     }
 
     [Fact]
-    public void Autorizacao_pelo_proprio_operador_vira_pendencia_e_a_sessao_de_quem_autoriza_e_conferida()
+    public void Operador_com_a_permissao_remove_sem_pendencia_e_aprovacao_do_supervisor_vai_para_a_conferencia()
     {
+        // PDV-04 CA 5: o próprio operador, com pos.cancel_item no instante, remove sem a pendência "Autorização sem supervisor" da OFF-02.
         var a = Guid.CreateVersion7();
         var self = Run([Line(a, "2"), Line(Guid.CreateVersion7(), "1"), Ev("LineRemoved", new { lineId = a, reason = "authorized", operatorId = Operator, authorizedBy = Operator }), .. Pay(1000)]);
         self.Violations.Should().BeEmpty();
-        self.AuthorizationNotes.Should().ContainSingle();
-        self.Checks.Should().Contain(c => c.UserId == Operator && c.NeedsPinSession && c.Soft);
+        self.Checks.Should().Contain(c => c.UserId == Operator && c.Permission == "pos.cancel_item" && !c.NeedsPinSession);
+
+        // CA 10: com a aprovação, a subida confere a trilha (ação, linha, operador e supervisor); sem conferência de sessão do supervisor.
+        var approval = Guid.CreateVersion7();
+        var approved = Run([Line(a, "2"), Line(Guid.CreateVersion7(), "1"),
+            Ev("LineRemoved", new { lineId = a, reason = "authorized", operatorId = Operator, authorizedBy = Supervisor, approvalId = approval }), .. Pay(1000)]);
+        approved.Violations.Should().BeEmpty();
+        approved.Approvals.Should().ContainSingle(x => x.ApprovalId == approval && x.Action == SupervisorAction.CancelItem && x.SupervisorId == Supervisor && x.LineId == a
+            && x.BeforeCents == 2000 && x.AfterCents == 0);
+        approved.Checks.Should().NotContain(c => c.UserId == Supervisor);
+
+        // CA 11: aprovação com o próprio operador como supervisor é recusada.
+        Run([Line(a, "2"), Line(Guid.CreateVersion7(), "1"),
+                Ev("LineRemoved", new { lineId = a, reason = "authorized", operatorId = Operator, authorizedBy = Operator, approvalId = approval }), .. Pay(1000)])
+            .Violations.Should().ContainSingle(v => v.Contains("próprio operador", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Desconto_ate_o_limite_passa_e_acima_pede_permissao_com_motivo_e_rateio_no_total()
+    {
+        var a = Guid.CreateVersion7();
+        var b = Guid.CreateVersion7();
+
+        // 5% de R$ 20,00 = R$ 1,00 no item: dentro do limite de 5%, sem autorização; total 20,00 + 10,00 − 1,00.
+        var inside = Run([Line(a, "2"), Line(b, "1"), Ev("DiscountApplied", new { lineId = a, discountCents = 100L, reason = "Cliente fiel", operatorId = Operator }), .. Pay(2900)],
+            limit: 5m);
+        inside.Violations.Should().BeEmpty();
+        inside.Lines.Single(l => l.LineId == a).DiscountCents.Should().Be(100);
+        inside.Checks.Should().NotContain(c => c.Permission == "pos.discount");
+
+        // R$ 1,01 passa de 5%: sem quem autorizou é recusado; com o próprio operador, a permissão pos.discount dele entra na conferência.
+        Run([Line(a, "2"), Ev("DiscountApplied", new { lineId = a, discountCents = 101L, reason = "Cliente fiel", operatorId = Operator }), .. Pay(1899)], limit: 5m)
+            .Violations.Should().ContainSingle(v => v.Contains("Sem quem autorizou", StringComparison.Ordinal));
+        Run([Line(a, "2"), Ev("DiscountApplied", new { lineId = a, discountCents = 101L, reason = "Cliente fiel", operatorId = Operator, authorizedBy = Operator }), .. Pay(1899)], limit: 5m)
+            .Checks.Should().Contain(c => c.UserId == Operator && c.Permission == "pos.discount");
+
+        // Sem motivo, ou maior que o item, não passa.
+        Run([Line(a, "1"), Ev("DiscountApplied", new { lineId = a, discountCents = 10L, reason = "", operatorId = Operator }), .. Pay(990)], limit: 5m)
+            .Violations.Should().ContainSingle(v => v.Contains("sem motivo", StringComparison.Ordinal));
+        Run([Line(a, "1"), Ev("DiscountApplied", new { lineId = a, discountCents = 1001L, reason = "Outro: teste", operatorId = Operator, authorizedBy = Operator }), .. Pay(0)], limit: 100m)
+            .Violations.Should().Contain(v => v.Contains("maior que o valor", StringComparison.Ordinal));
+
+        // No total: R$ 1,00 sobre R$ 30,00; mudar os itens depois tira o desconto no total.
+        var total = Run([Line(a, "2"), Line(b, "1"), Ev("DiscountApplied", new { lineId = (Guid?)null, discountCents = 100L, reason = "Negociação", operatorId = Operator }), .. Pay(2900)],
+            limit: 5m);
+        total.Violations.Should().BeEmpty();
+        total.SaleDiscountCents.Should().Be(100);
+        Run([Line(a, "2"), Ev("DiscountApplied", new { lineId = (Guid?)null, discountCents = 100L, reason = "Negociação", operatorId = Operator }), Line(b, "1"), .. Pay(3000)], limit: 5m)
+            .SaleDiscountCents.Should().Be(0);
+    }
+
+    [Fact]
+    public void Aprovacao_leva_os_valores_aplicados_de_cada_acao()
+    {
+        // Achado 1: o replay devolve, por ação, o antes e o depois que a subida compara com a aprovação, ao centavo.
+        var a = Guid.CreateVersion7();
+        var b = Guid.CreateVersion7();
+        var (discount, total, price) = (Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7());
+        var result = Run([Line(a, "2"), Line(b, "1"),
+            Ev("PriceOverridden", new { lineId = b, unitCents = 800L, reason = "Erro na etiqueta", operatorId = Operator, authorizedBy = Supervisor, approvalId = price }),
+            Ev("DiscountApplied", new { lineId = a, discountCents = 500L, reason = "Cliente fiel", operatorId = Operator, authorizedBy = Supervisor, approvalId = discount }),
+            Ev("DiscountApplied", new { lineId = (Guid?)null, discountCents = 300L, reason = "Negociação", operatorId = Operator, authorizedBy = Supervisor, approvalId = total }),
+            .. Pay(2000)], limit: 5m);
+        result.Violations.Should().BeEmpty();
+        result.Approvals.Should().ContainSingle(x => x.ApprovalId == price && x.Action == SupervisorAction.ChangePrice && x.LineId == b && x.BeforeCents == 1000 && x.AfterCents == 800);
+        result.Approvals.Should().ContainSingle(x => x.ApprovalId == discount && x.Action == SupervisorAction.Discount && x.LineId == a && x.BeforeCents == 2000 && x.AfterCents == 1500);
+        result.Approvals.Should().ContainSingle(x => x.ApprovalId == total && x.Action == SupervisorAction.Discount && x.LineId == null && x.BeforeCents == 2300 && x.AfterCents == 2000);
+    }
+
+    [Fact]
+    public void Desconto_no_total_nao_empilha_com_o_desconto_do_item()
+    {
+        // Achado 3: limite de 10%; R$ 20,00 + R$ 20,00. O item com R$ 2,00 (10%) e o total com R$ 3,80 (10% de 38,00) somam 14,5% da base bruta.
+        var a = Guid.CreateVersion7();
+        var b = Guid.CreateVersion7();
+        object[] Events(object? authorization) =>
+        [
+            Line(a, "2"), Line(b, "2"),
+            Ev("DiscountApplied", new { lineId = a, discountCents = 200L, reason = "Cliente fiel", operatorId = Operator }),
+            Ev("DiscountApplied", authorization ?? new { lineId = (Guid?)null, discountCents = 380L, reason = "Negociação", operatorId = Operator }),
+            .. Pay(3420),
+        ];
+        Run(Events(null), limit: 10m).Violations.Should().ContainSingle(v => v.Contains("Sem quem autorizou: desconto no total que, somado aos dos itens", StringComparison.Ordinal));
+        Run(Events(new { lineId = (Guid?)null, discountCents = 380L, reason = "Negociação", operatorId = Operator, authorizedBy = Operator }), limit: 10m)
+            .Checks.Should().Contain(c => c.UserId == Operator && c.Permission == "pos.discount");
+
+        // Somando até o limite (2,00 + 2,00 = 10% de 40,00), passa sem autorização.
+        Run([Line(a, "2"), Line(b, "2"), Ev("DiscountApplied", new { lineId = a, discountCents = 200L, reason = "Cliente fiel", operatorId = Operator }),
+                Ev("DiscountApplied", new { lineId = (Guid?)null, discountCents = 200L, reason = "Negociação", operatorId = Operator }), .. Pay(3600)], limit: 10m)
+            .Violations.Should().BeEmpty();
+
+        // O desconto do item já aprovado fica fora da conta: o item entra pelo líquido.
+        var lines = new List<ReplayLine>
+        {
+            new(a, Product, "Arroz", 2, 1000, 1, null, DiscountCents: 1000, DiscountApproved: true),
+            new(b, Product, "Arroz", 2, 1000, 1, null),
+        };
+        PosSaleReplay.StackedAboveLimit(lines, 300, 10m).Should().BeFalse();
+        PosSaleReplay.StackedAboveLimit(lines, 301, 10m).Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(SupervisorAction.Discount, 10.0, 8.0, true)]
+    [InlineData(SupervisorAction.Discount, 10.0, 10.5, false)]
+    [InlineData(SupervisorAction.ChangePrice, 10.0, 12.0, true)]
+    [InlineData(SupervisorAction.ChangePrice, 10.0, 10.0, false)]
+    [InlineData(SupervisorAction.CancelItem, 10.0, 0.0, true)]
+    [InlineData(SupervisorAction.CancelItem, 10.0, 11.0, false)]
+    [InlineData(SupervisorAction.CancelSale, 10.0, 0.0, true)]
+    [InlineData(SupervisorAction.CancelSale, 10.0, 1.0, false)]
+    public void Valores_da_aprovacao_combinam_com_a_acao(SupervisorAction action, double before, double after, bool ok) =>
+        (SupervisorApprovalService.DirectionProblem(action, (decimal)before, (decimal)after) is null).Should().Be(ok);
+
+    [Fact]
+    public void Autorizacao_de_outra_pessoa_sem_aprovacao_vai_para_a_quarentena_em_toda_acao()
+    {
+        // Achado 2: desconto acima do limite e troca de preço autorizados por outra pessoa sem approvalId não passam (nem como divergência).
+        var a = Guid.CreateVersion7();
+        Run([Line(a, "2"), Ev("DiscountApplied", new { lineId = a, discountCents = 500L, reason = "Cliente fiel", operatorId = Operator, authorizedBy = Supervisor }), .. Pay(1500)], limit: 5m)
+            .Violations.Should().ContainSingle(v => v.Contains("sem a aprovação do supervisor", StringComparison.Ordinal));
+        Run([Line(a, "2"), Ev("PriceOverridden", new { lineId = a, unitCents = 800L, reason = "Erro na etiqueta", operatorId = Operator, authorizedBy = Supervisor }), .. Pay(1600)])
+            .Violations.Should().ContainSingle(v => v.Contains("sem a aprovação do supervisor", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData(100L, 1000L, 10.0, false)]
+    [InlineData(101L, 1000L, 10.0, true)]
+    [InlineData(1L, 0L, 50.0, true)]
+    [InlineData(0L, 1000L, 0.0, false)]
+    [InlineData(332L, 3333L, 9.99, false)]
+    [InlineData(333L, 3333L, 9.99, true)]
+    public void Limite_do_desconto_em_centavos_sem_arredondar_o_percentual(long discount, long baseCents, double limit, bool above) =>
+        PosSaleReplay.AboveLimit(discount, baseCents, (decimal)limit).Should().Be(above);
+
+    [Theory]
+    [InlineData(1999L, 10.0, 200L)] // 199,9 centavos: arredonda para 2,00
+    [InlineData(1005L, 1.5, 15L)] // 15,075: para baixo
+    [InlineData(50L, 3.0, 2L)] // 1,5 centavo: meio centavo para cima
+    [InlineData(12345L, 0.0, 0L)]
+    public void Desconto_em_percentual_vira_centavos(long baseCents, double percent, long expected) =>
+        PosSaleReplay.PercentToCents(baseCents, (decimal)percent).Should().Be(expected);
+
+    [Fact]
+    public void Rateio_do_desconto_no_total_fecha_o_centavo()
+    {
+        PosSaleReplay.Prorate([1000, 1000, 1000], 100).Should().Equal(34, 33, 33);
+        PosSaleReplay.Prorate([2000, 1000], 1).Should().Equal(1, 0);
+        PosSaleReplay.Prorate([1999, 0, 1], 1000).Sum().Should().Be(1000);
+        PosSaleReplay.Prorate([500], 0).Should().Equal(0);
+    }
+
+    [Fact]
+    public void Troca_de_preco_guarda_o_da_tabela_e_pede_a_permissao_com_motivo()
+    {
+        var a = Guid.CreateVersion7();
+        var changed = Run([Line(a, "2"), Ev("PriceOverridden", new { lineId = a, unitCents = 800L, reason = "Erro na etiqueta", operatorId = Operator, authorizedBy = Operator }),
+            .. Pay(1600)]);
+        changed.Violations.Should().BeEmpty();
+        var line = changed.Lines.Single();
+        (line.UnitCents, line.ListUnitCents, line.TableCents, line.PriceReason).Should().Be((800L, 1000L, 1000L, "Erro na etiqueta"));
+        changed.Checks.Should().Contain(c => c.UserId == Operator && c.Permission == "pos.change_price");
+
+        Run([Line(a, "2"), Ev("PriceOverridden", new { lineId = a, unitCents = 800L, reason = "Erro na etiqueta", operatorId = Operator }), .. Pay(1600)])
+            .Violations.Should().ContainSingle(v => v.Contains("Sem quem autorizou", StringComparison.Ordinal));
     }
 
     private static readonly JsonSerializerOptions Web = new(JsonSerializerDefaults.Web);
 
     private static readonly Guid SaleId = Guid.Parse("019a0000-0000-7000-8000-000000000001");
 
-    private static SaleReplayResult Run(IEnumerable<object> events, bool freeRemoveLast = true)
+    private static SaleReplayResult Run(IEnumerable<object> events, bool freeRemoveLast = true, decimal limit = 0m)
     {
         var list = events.ToList();
         if (list.Count == 0 || !JsonSerializer.Serialize(list[0]).Contains("SaleStarted", StringComparison.Ordinal))
@@ -181,7 +343,7 @@ public class PosSyncUnitTests
 
         var json = JsonSerializer.Serialize(new { saleId = SaleId, number = "LOJA-01.1-000001", status = "completed", events = list }, Web);
         using var document = JsonDocument.Parse(json);
-        return PosSaleReplay.Run(document.RootElement.Clone(), freeRemoveLast);
+        return PosSaleReplay.Run(document.RootElement.Clone(), freeRemoveLast, limit);
     }
 
     private static object Ev(string type, object data) => new { id = Guid.CreateVersion7(), saleId = SaleId, type, at = At, data };

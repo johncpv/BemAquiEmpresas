@@ -6,6 +6,7 @@ import type { CatalogItem } from '@/pdv/local-store/catalog-types'
 import { checkCustomerDocument, DOCUMENT_SEARCH_MESSAGE, formatDocument, looksLikeDocument } from '@/pdv/sale/customer-document'
 import { formatQuantity, parseQuantity } from '@/pdv/sale/quantity'
 import { type Sale, type SaleLine, saleTotal } from '@/pdv/sale/sale-model'
+import { ReasonPicker } from './supervisor'
 
 /**
  * Folhas da tela de venda (PDV-02): quantidade, observação, remoção, espera, descarte, cliente e fechamento do caixa (o pagamento é a `PaymentScreen`, PDV-03). As que têm
@@ -70,30 +71,42 @@ export function NoteSheet({ open, line, onCancel, onSave }: { open: boolean; lin
   )
 }
 
-/** CA 10: remover a linha (o último item sai sem supervisor; outra linha pede quem tem `pos.cancel_item`). */
-export function RemoveSheet({ open, line, free, canCancelItem, onCancel, onConfirm }: {
+/**
+ * CA 10 (PDV-02) e CA 5 (PDV-04): remover a linha. O último item sai sem supervisor; outra linha sai com `pos.cancel_item` e o motivo, ou com o motivo
+ * e o PIN do supervisor ("Chamar supervisor").
+ */
+export function RemoveSheet({ open, line, free, canCancelItem, onCancel, onConfirm, onCallSupervisor }: {
   open: boolean
   line: SaleLine | null
   free: boolean
   canCancelItem: boolean
   onCancel: () => void
-  onConfirm: () => Promise<void>
+  onConfirm: (motive: string | null) => Promise<void>
+  onCallSupervisor?: (motive: string) => void
 }) {
+  const [motive, setMotive] = useState('')
+  const [error, setError] = useState<string | null>(null)
   const blocked = !free && !canCancelItem
+  const go = () => {
+    if (!free && !motive) { setError('Escolha o motivo da remoção.'); return }
+    if (blocked) onCallSupervisor?.(motive)
+    else void onConfirm(free ? null : motive)
+  }
+
   return (
-    <FloorSheet role="alertdialog" open={open} onOpenChange={(o) => { if (!o) onCancel() }} title={blocked ? 'Remover este item pede autorização' : 'Remover o item da venda?'}
-      actions={blocked
-        ? <FloorButton className="w-full" onClick={onCancel}>Entendi</FloorButton>
-        : <Actions><FloorButton tone="secondary" className="flex-1" onClick={onCancel}>Voltar</FloorButton><FloorButton tone="danger" className="flex-1" onClick={() => void onConfirm()}>Remover</FloorButton></Actions>}>
+    <FloorSheet role="alertdialog" open={open} onOpenChange={(o) => { if (!o) { setMotive(''); setError(null); onCancel() } }} title={blocked ? 'Remover este item pede o supervisor' : 'Remover o item da venda?'}
+      actions={<Actions><FloorButton tone="secondary" className="flex-1" onClick={onCancel}>Voltar</FloorButton><FloorButton tone="danger" className="flex-1" onClick={go}>{blocked ? 'Chamar supervisor' : 'Remover'}</FloorButton></Actions>}>
       {line ? (
         <div className="space-y-1 rounded-md border border-border bg-card p-4 tabular-nums">
           <p className="font-semibold">{line.name}</p>
           <p className="text-muted-foreground">{formatQuantity(line.quantity, line.fractional)} {line.unit.toLowerCase()} × {formatCents(line.unitCents)}</p>
         </div>
       ) : null}
+      {free ? null : <ReasonPicker action="CancelItem" value={motive} onChange={(m) => { setMotive(m); setError(null) }} />}
       {blocked ? (
-        <p>Só o último item lançado sai direto. Para tirar outro item, chame quem tem a permissão de remover itens no caixa. O PIN do supervisor na própria tela chega na próxima versão.</p>
-      ) : free ? <p className="text-muted-foreground">É o último item lançado: sai sem supervisor. A remoção fica registrada.</p> : <p className="text-muted-foreground">A remoção fica registrada com o seu nome.</p>}
+        <p>Só o último item lançado sai direto. Para tirar outro item, um supervisor da loja digita o PIN dele aqui.</p>
+      ) : free ? <p className="text-muted-foreground">É o último item lançado: sai sem supervisor. A remoção fica registrada.</p> : <p className="text-muted-foreground">A remoção fica registrada com o seu nome e o motivo.</p>}
+      <Problem message={error} />
     </FloorSheet>
   )
 }

@@ -125,7 +125,7 @@ public sealed class PosPinService(
     IAlertSink alerts,
     ITenantContext tenant,
     PosStoreOperators storeOperators,
-    TimeProvider clock)
+    TimeProvider clock) : IPosSupervisorPins
 {
     public const string InvalidPin = "PIN incorreto. Confira e tente de novo.";
     public const string LockedPin = "PIN bloqueado por 15 minutos. Espere ou peça ao gerente um PIN novo.";
@@ -135,6 +135,9 @@ public sealed class PosPinService(
     public const string ChangeRequired = "Crie o seu PIN: o PIN que o gerente deu vale só para a primeira entrada.";
     public const string NotAllowedMessage = "Seu perfil não usa o caixa. Fale com o gerente.";
     public const string NotRegisteredMessage = "Este aparelho não é mais um caixa registrado. Registre o aparelho de novo.";
+    public const string ApprovalOnlyMessage = "Seu PIN do caixa serve só para aprovar como supervisor. Para vender, entre com um perfil de operador.";
+    public const string SupervisorSelfMessage = "Outra pessoa precisa aprovar.";
+    public const string SupervisorNotAllowedMessage = "Este supervisor não tem a permissão para aprovar esta ação.";
 
     /// <summary>Operadores com PIN que podem entrar neste caixa: ativos, com <c>pos.create</c>, sem ação reservada e, se de operação, da loja.</summary>
     public async Task<Result<PosOperators>> OperatorsAsync(DeviceIdentity identity, CancellationToken cancellationToken = default)
@@ -231,6 +234,15 @@ public sealed class PosPinService(
 
         // Perfil reconferido a cada entrada: ganhou ação reservada, o PIN do caixa é apagado (ADR 0026 §2).
         var effective = await permissions.GetAsync(user.Id, cancellationToken);
+        if (PinProfile.SensitiveActions(effective) is { Count: > 0 } reserved && PinProfile.SupervisorActions(effective).Count > 0)
+        {
+            // PDV-04 (exceção da PP-11): o supervisor com *.approve tem PIN só para aprovar; entrar no caixa, nunca. O PIN continua.
+            row.RegisterSuccess(now);
+            revocations.Audit("Auth", user.Id.ToString(), "PosPinLoginRefused", user.Id, new { device = device.Id, reason = "approval_only", actions = reserved });
+            await db.SaveChangesAsync(cancellationToken);
+            return Error.Forbidden("auth.pin_approval_only", ApprovalOnlyMessage);
+        }
+
         if (PinProfile.SensitiveActions(effective) is { Count: > 0 } sensitive)
         {
             db.PosPins.Remove(row);
@@ -320,7 +332,7 @@ public sealed class PosPinService(
     public async Task<MyPosPin> MineAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var row = await db.PosPins.AsNoTracking().FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
-        return new MyPosPin(row is not null, row?.CreatedAt, row?.LastUsedAt, PinProfile.CanUsePosPin(await permissions.GetAsync(userId, cancellationToken)));
+        return new MyPosPin(row is not null, row?.CreatedAt, row?.LastUsedAt, PinProfile.CanHavePosPin(await permissions.GetAsync(userId, cancellationToken)));
     }
 
     /// <summary>
@@ -335,8 +347,9 @@ public sealed class PosPinService(
             return Error.Forbidden(Error.Codes.Forbidden, "Para criar o PIN do caixa, entre com e-mail e senha.");
         }
 
+        // PDV-04: o supervisor com *.approve pode ter o PIN só para aprovar (exceção da PP-11); as demais ações reservadas continuam sem PIN.
         var effective = await permissions.GetAsync(userId, cancellationToken);
-        if (PinProfile.SensitiveActions(effective) is { Count: > 0 } sensitive)
+        if (PinProfile.SensitiveActions(effective) is { Count: > 0 } sensitive && PinProfile.SupervisorActions(effective).Count == 0)
         {
             revocations.Audit("Auth", userId.ToString(), "PosPinRefused", userId, new { reason = "sensitive_profile", actions = sensitive });
             await db.SaveChangesAsync(cancellationToken);
@@ -344,7 +357,7 @@ public sealed class PosPinService(
         }
 
         var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.Status == UserStatus.Active && !u.IsOperationUser, cancellationToken);
-        if (user is null || !effective.Has(PinProfile.PosAction))
+        if (user is null || !PinProfile.CanHavePosPin(effective))
         {
             return Error.Forbidden(Error.Codes.Forbidden, NotAllowedMessage);
         }
@@ -413,6 +426,171 @@ public sealed class PosPinService(
         }
 
         revocations.Audit("Auth", user.Id.ToString(), row is null ? "PosPinCreated" : "PosPinReplaced", by, new { mustChange });
+    }
+
+
+    /// <summary>PDV-04: supervisores da loja do aparelho com PIN do caixa e alguma ação de supervisor (<see cref="PinProfile.SupervisorActions"/>), sem o operador.</summary>
+    public async Task<IReadOnlyList<PosSupervisorOption>> SupervisorsAsync(string? posCookie, Guid operatorId, CancellationToken cancellationToken = default)
+    {
+        var device = await gate.ResolveAsync(posCookie, cancellationToken);
+        if (device is null)
+        {
+            return [];
+        }
+
+        var store = device.StoreId!.Value;
+        var rows = await (
+            from p in db.PosPins.AsNoTracking()
+            join u in db.Users.AsNoTracking() on p.UserId equals u.Id
+            where u.Status == UserStatus.Active && u.Id != operatorId && (!u.IsOperationUser || u.OperationStoreIds.Contains(store))
+            select new { u.Id, u.Name }).ToListAsync(cancellationToken);
+        var list = new List<PosSupervisorOption>();
+        foreach (var row in rows)
+        {
+            var actions = PinProfile.SupervisorActions(await permissions.GetAsync(row.Id, cancellationToken));
+            if (actions.Count > 0)
+            {
+                list.Add(new PosSupervisorOption(row.Id, PinNames.ShortName(row.Name), actions.Select(a => a[4..]).ToList()));
+            }
+        }
+
+        return list.OrderBy(o => o.DisplayName, StringComparer.CurrentCulture).ToList();
+    }
+
+    /// <summary>
+    /// PDV-04 CA 10 a 12: o supervisor digita o PIN no aparelho do caixa em que o operador está. Mesmo cuidado da entrada por PIN (travas do aparelho e do
+    /// supervisor, tempo uniforme, 5 erros bloqueiam o PIN dele, 20 no aparelho bloqueiam o aparelho), mais: o operador tem sessão por PIN viva neste
+    /// aparelho, o supervisor não é o operador (CA 11) e tem a ação no instante. A sessão do operador continua a mesma.
+    /// </summary>
+    public async Task<Result<PosSupervisorCheck>> VerifyAsync(PosSupervisorPinRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (request.SupervisorId == request.OperatorId)
+        {
+            return Error.Validation("supervisor_self", SupervisorSelfMessage);
+        }
+
+        var resolved = await gate.ResolveAsync(request.PosCookie, cancellationToken);
+        if (resolved is null)
+        {
+            return Error.Conflict("device_not_registered", NotRegisteredMessage);
+        }
+
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await LockAsync("pos.pin.device:" + resolved.Id.ToString("N"), cancellationToken);
+        await LockAsync("pos.pin.user:" + request.SupervisorId.ToString("N"), cancellationToken);
+        var result = await VerifyLockedAsync(resolved.Id, request, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return result;
+    }
+
+    private async Task<Result<PosSupervisorCheck>> VerifyLockedAsync(Guid deviceId, PosSupervisorPinRequest request, CancellationToken cancellationToken)
+    {
+        var now = clock.GetUtcNow();
+        var device = await db.ShopfloorDevices.FirstAsync(d => d.Id == deviceId, cancellationToken);
+        var operatorHere = await db.RefreshTokens.AsNoTracking().AnyAsync(
+            t => t.UserId == request.OperatorId && t.DeviceId == deviceId && t.SessionKind == SessionKind.PosPin && t.RevokedAt == null && t.AbsoluteExpiresAt > now, cancellationToken);
+        if (!operatorHere)
+        {
+            return Error.NotFound(Error.Codes.NotFound, "Ninguém entrou neste caixa.");
+        }
+
+        var probe = User.Invite("ninguem@exemplo.com");
+        var pin = request.Pin ?? string.Empty;
+        var audit = new { device = device.Id, @operator = request.OperatorId, permission = request.Permission };
+        if (device.IsPinLocked(now))
+        {
+            hasher.VerifyHashedPassword(probe, AuthService.DummyHash, pin);
+            revocations.Audit("ShopfloorDevice", device.Id.ToString(), "PosSupervisorPinBlocked", null, new { audit.device, user = request.SupervisorId, reason = "device_locked" });
+            await db.SaveChangesAsync(cancellationToken);
+            return Error.Validation("auth.device_pin_locked", LockedDevice);
+        }
+
+        var row = await db.PosPins.FirstOrDefaultAsync(p => p.UserId == request.SupervisorId, cancellationToken);
+        var user = row is null ? null : await db.Users.FirstOrDefaultAsync(u => u.Id == request.SupervisorId && u.Status == UserStatus.Active, cancellationToken);
+        if (user is not null && user.IsOperationUser && !user.OperationStoreIds.Contains(device.StoreId!.Value))
+        {
+            user = null;
+        }
+
+        if (row is null || user is null)
+        {
+            hasher.VerifyHashedPassword(probe, AuthService.DummyHash, pin);
+            await DeviceFailureAsync(device, request.SupervisorId, "unknown_user", cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
+            return Error.Validation("auth.pin_invalid", InvalidPin);
+        }
+
+        // Revisão de segurança, achado 4: quem não tem a ação pedida entre as de supervisor nem tem o PIN conferido. A resposta é a mesma do PIN errado,
+        // sem contar falha no usuário nem no aparelho: não vira oráculo do PIN de quem não aprova nem trava o PIN do colega.
+        var effective = await permissions.GetAsync(user.Id, cancellationToken);
+        if (!PinProfile.SupervisorActions(effective).Contains(request.Permission, StringComparer.Ordinal))
+        {
+            hasher.VerifyHashedPassword(probe, AuthService.DummyHash, pin);
+            revocations.Audit("Auth", user.Id.ToString(), "PosSupervisorPinRefused", user.Id, new { audit.device, audit.@operator, audit.permission, reason = "not_supervisor" });
+            await db.SaveChangesAsync(cancellationToken);
+            return Error.Validation("auth.pin_invalid", InvalidPin);
+        }
+
+        if (!PinRules.IsWellFormed(pin))
+        {
+            hasher.VerifyHashedPassword(user, row.PinHash, pin);
+            return await SupervisorFailAsync(device, row, user.Id, "bad_format", cancellationToken);
+        }
+
+        if (row.IsLocked(now))
+        {
+            hasher.VerifyHashedPassword(user, row.PinHash, pin);
+            revocations.Audit("Auth", user.Id.ToString(), "PosSupervisorPinBlocked", user.Id, new { audit.device, reason = "pin_locked", row.LockedUntil });
+            await db.SaveChangesAsync(cancellationToken);
+            return Error.Validation("auth.pin_locked", LockedPin);
+        }
+
+        var verified = hasher.VerifyHashedPassword(user, row.PinHash, pin);
+        if (verified == PasswordVerificationResult.Failed)
+        {
+            return await SupervisorFailAsync(device, row, user.Id, "wrong_pin", cancellationToken);
+        }
+
+        // O PIN inicial do usuário de operação vale só para a primeira entrada (ADR 0049): o supervisor troca entrando no caixa antes de aprovar.
+        if (row.MustChange || !await EmployeeOkAsync(user, cancellationToken))
+        {
+            revocations.Audit("Auth", user.Id.ToString(), "PosSupervisorPinRefused", user.Id, new { audit.device, audit.@operator, audit.permission, reason = row.MustChange ? "pin_change_required" : "not_allowed" });
+            await db.SaveChangesAsync(cancellationToken);
+            return Error.Forbidden("supervisor_not_allowed", row.MustChange ? "Troque o PIN inicial entrando no caixa antes de aprovar." : SupervisorNotAllowedMessage);
+        }
+
+        if (verified == PasswordVerificationResult.SuccessRehashNeeded)
+        {
+            row.Rehash(hasher.HashPassword(user, pin));
+        }
+
+        row.RegisterSuccess(now);
+        revocations.Audit("Auth", user.Id.ToString(), "PosSupervisorPinAccepted", user.Id, new { audit.device, audit.@operator, audit.permission });
+        await db.SaveChangesAsync(cancellationToken);
+        return new PosSupervisorCheck(device.Id, device.StoreId!.Value, device.RegisterId!.Value);
+    }
+
+    /// <summary>PIN errado do supervisor: conta como na entrada (5 bloqueiam, o 10º em 24 h apaga) e diz as tentativas restantes (CA 12).</summary>
+    private async Task<Result<PosSupervisorCheck>> SupervisorFailAsync(ShopfloorDevice device, PosPin row, Guid userId, string reason, CancellationToken cancellationToken)
+    {
+        var outcome = row.RegisterFailure(clock.GetUtcNow());
+        if (outcome == PinFailure.Erased)
+        {
+            db.PosPins.Remove(row);
+        }
+
+        var action = outcome switch { PinFailure.Erased => "PosPinErased", PinFailure.Locked => "PosPinLocked", _ => "PosSupervisorPinFailed" };
+        revocations.Audit("Auth", userId.ToString(), action, userId, new { device = device.Id, reason });
+        await DeviceFailureAsync(device, userId, reason, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+        var left = Math.Max(1, UserPin.MaxConsecutiveFailures - row.FailedCount);
+        return outcome switch
+        {
+            PinFailure.Erased => Error.Validation("auth.pin_erased", ErasedPin),
+            PinFailure.Locked => Error.Validation("auth.pin_locked", LockedPin),
+            _ => Error.Validation("auth.pin_invalid", left == 1 ? "PIN incorreto. Resta 1 tentativa antes do bloqueio." : $"PIN incorreto. Restam {left} tentativas antes do bloqueio."),
+        };
     }
 
     private async Task<ShopfloorDevice?> RegisterDeviceAsync(DeviceIdentity identity, bool tracked, CancellationToken cancellationToken)

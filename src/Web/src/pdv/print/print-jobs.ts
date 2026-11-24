@@ -3,6 +3,7 @@ import type { LocalStore } from '@/pdv/local-store/local-store'
 import type { Cents } from '@/pdv/money'
 import { BRAND_LABEL, isCaptured } from '@/pdv/payment/payment-model'
 import type { CompletedSale } from '@/pdv/sale/sale-register'
+import { lineTotal, prorateCents } from '@/pdv/sale/sale-model'
 import { uuidv7 } from '@/pdv/uuid-v7'
 import { BROWSER_DEFAULT_PRINTER, type HardwareBridge, type PrinterTarget, type PrintOutcome } from './hardware-bridge'
 import { buildSaleReceipt, type ReceiptDocument, type ReceiptItem, type ReceiptPayment, receiptDocument } from './receipt-model'
@@ -56,13 +57,16 @@ export async function rememberReceipt(store: Pick<LocalStore, 'updateMeta'>, rec
 /** A venda concluída como fica guardada para o cupom (itens, pagamentos capturados com a forma e a bandeira, cliente sem o documento em claro). */
 export function storedReceiptOf(done: CompletedSale, operatorName: string | null): StoredReceipt | null {
   if (!done.saleId || !done.lines) return null
+  // PDV-04: o desconto no total sai rateado nas linhas do cupom (a soma fecha o TOTAL), como no servidor.
+  const shares = prorateCents(done.lines.map(lineTotal), done.discountCents ?? 0)
   return {
     saleId: done.saleId, number: done.number, completedAt: done.completedAt ?? new Date().toISOString(), operatorId: done.operatorId ?? null, operatorName,
-    items: done.lines.map((l) => ({ name: l.name, quantity: l.quantity, unit: l.unit, fractional: l.fractional, unitCents: l.unitCents, note: l.note })),
+    items: done.lines.map((l, i) => ({ name: l.name, quantity: l.quantity, unit: l.unit, fractional: l.fractional, unitCents: l.unitCents, note: l.note, discountCents: (l.discountCents ?? 0) + shares[i] })),
     totalCents: done.totalCents, changeCents: done.changeCents,
     payments: done.tenders.filter(isCaptured).map((t) => ({
       label: [t.methodName, t.cardBrand ? BRAND_LABEL[t.cardBrand] ?? t.cardBrand : null, t.installments && t.installments > 1 ? `${t.installments}x` : null].filter(Boolean).join(' '),
       amountCents: t.amountCents,
+      methodType: t.methodType,
     })),
     customerName: done.customer?.customerName ?? null, documentId: done.customer?.documentId ?? null, documentKind: done.customer?.documentKind ?? null, copies: 0,
   }

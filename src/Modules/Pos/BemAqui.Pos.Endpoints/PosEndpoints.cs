@@ -1,7 +1,9 @@
 using System.Text.Json.Serialization;
 using BemAqui.BuildingBlocks.Export;
+using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Web;
+using BemAqui.Identity.Contracts;
 using BemAqui.Pos.Application;
 using BemAqui.Pos.Domain;
 using BemAqui.SharedKernel;
@@ -18,7 +20,8 @@ namespace BemAqui.Pos.Endpoints;
 /// </summary>
 public sealed record StoreRequest(
     string Code, string Name, Guid StockLocationId, Guid DefaultPriceListId, bool IsActive = true, decimal? CashDropAlertAmount = null, decimal? CashCeilingAmount = null,
-    ReceiptPrintMode? ReceiptPrintMode = null, bool? FreeRemoveLast = null, int? SyncAlertHours = null, decimal? CashBreakTolerance = null);
+    ReceiptPrintMode? ReceiptPrintMode = null, bool? FreeRemoveLast = null, int? SyncAlertHours = null, decimal? CashBreakTolerance = null,
+    decimal? DiscountLimitPercent = null);
 
 /// <summary>IMP-01 CA 10: ligar (com o aceite do texto na versão informada) ou desligar o modo "só cupom não fiscal". <c>Version</c>: a da loja.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -33,6 +36,12 @@ public sealed record PrinterRequest(
 /// <summary>OFF-02 CA 15: resolver a pendência com o motivo; <c>Version</c> é a da pendência.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record SyncResolveRequest(SyncResolution Resolution, string Reason, uint Version);
+
+/// <summary>Filtro do relatório de aprovações de supervisor (PDV-04 CA 13): período em datas de Brasília, loja, tipo e pessoas.</summary>
+public sealed record SupervisorApprovalQuery(DateOnly From, DateOnly To, Guid? StoreId, SupervisorAction? Action, Guid? OperatorId, Guid? SupervisorId)
+{
+    public SupervisorApprovalFilter ToFilter() => new(From, To, StoreId, Action, OperatorId, SupervisorId);
+}
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record RegisterRequest(int Number, Guid CashAccountId, RegisterUiMode UiMode, bool IsActive = true);
@@ -146,6 +155,33 @@ internal static class PosEndpoints
                 (await service.ExceptionsAsync(from, to, storeId, ct)).ToHttpResult())
             .RequirePermission("sales.view").WithName("GetOperatorExceptions").Produces<OperatorExceptionReport>();
 
+        // PDV-04 CA 10 a 12: "Chamar supervisor" no caixa (sessão por PIN do operador, neste aparelho): a lista dos supervisores da loja e o PIN do
+        // supervisor, que libera só aquela ação. A sessão do operador continua a mesma. Rate limit por tenant e aparelho.
+        var approvals = api.MapGroup("/pos/supervisor-approvals").WithTags("PDV: supervisor").RequireModule("pos");
+        approvals.MapGet("/supervisors", async (HttpContext http, ICurrentUser user, SupervisorApprovalService service, CancellationToken ct) =>
+                IsPosPinSession(http)
+                    ? Results.Ok(await service.SupervisorsAsync(http.Request.Cookies[PosDeviceCookie.Name], user.UserId!.Value, ct))
+                    : Error.Forbidden(Error.Codes.Forbidden, PinOnlyMessage).ToProblem())
+            .RequirePermission("pos.create").AllowPosPinSession().WithName("ListPosSupervisors").Produces<IReadOnlyList<PosSupervisorOption>>();
+        approvals.MapPost(string.Empty, async (SupervisorApprovalInput input, HttpContext http, ICurrentUser user, SupervisorApprovalService service, CancellationToken ct) =>
+                IsPosPinSession(http)
+                    ? (await service.ApproveAsync(user.UserId!.Value, http.Request.Cookies[PosDeviceCookie.Name], input, ct)).ToHttpResult()
+                    : Error.Forbidden(Error.Codes.Forbidden, PinOnlyMessage).ToProblem())
+            .RequirePermission("pos.create").AllowPosPinSession().RequireRateLimiting(SupervisorApprovalService.RateLimitPolicy)
+            .WithName("ApprovePosSupervisorAction").Produces<SupervisorApprovalGranted>();
+
+        // PDV-04 CA 13: Loja → Aprovações de supervisor (retaguarda, sales.view), com a exportação.
+        var report = api.MapGroup("/pos/supervisor-approvals").WithTags("PDV: supervisor").RequireModule("sales");
+        report.MapGet(string.Empty, async ([AsParameters] SupervisorApprovalQuery query, SupervisorApprovalService service, CancellationToken ct) =>
+                (await service.ReportAsync(query.ToFilter(), ct)).ToHttpResult())
+            .RequirePermission("sales.view").WithName("GetSupervisorApprovals").Produces<SupervisorApprovalReport>();
+        report.MapGet("/export", async ([AsParameters] SupervisorApprovalQuery query, SupervisorApprovalService service, CancellationToken ct) =>
+            {
+                var file = await service.ExportAsync(query.ToFilter(), ct);
+                return file.IsFailure ? file.Error!.ToProblem() : Results.File(file.Value.Content, SafeCsv.ContentType, file.Value.FileName);
+            })
+            .RequirePermission("sales.view").WithName("ExportSupervisorApprovals");
+
         // PDV-02 CA 15: o operador (sessão por PIN do caixa) acha o cliente cadastrado para ligar à venda; só nome e documento mascarado,
         // com rate limit por tenant, usuário e aparelho (revisão de segurança, achado 1).
         var customers = api.MapGroup("/pos/customers").WithTags("PDV: venda").RequireModule("pos");
@@ -155,7 +191,12 @@ internal static class PosEndpoints
         return api;
     }
 
-    private static StoreInput ToInput(StoreRequest r) => new(r.Code, r.Name, r.StockLocationId, r.DefaultPriceListId, r.IsActive, r.CashDropAlertAmount, r.CashCeilingAmount, r.ReceiptPrintMode, r.FreeRemoveLast, r.SyncAlertHours, r.CashBreakTolerance);
+    private const string PinOnlyMessage = "Só quem entrou por PIN neste caixa chama o supervisor.";
+
+    /// <summary>Sessão por PIN do caixa (amr com a chave do aparelho): o supervisor só aprova no aparelho em que o operador está.</summary>
+    private static bool IsPosPinSession(HttpContext http) => http.User.FindAll(AuthMethods.Claim).Any(c => c.Value == AuthMethods.DeviceKey);
+
+    private static StoreInput ToInput(StoreRequest r) => new(r.Code, r.Name, r.StockLocationId, r.DefaultPriceListId, r.IsActive, r.CashDropAlertAmount, r.CashCeilingAmount, r.ReceiptPrintMode, r.FreeRemoveLast, r.SyncAlertHours, r.CashBreakTolerance, r.DiscountLimitPercent);
 
     private static PrinterInput ToInput(PrinterRequest r) => new(r.RegisterId, r.Name, r.Connection, r.PaperWidthMm, r.Columns, r.Model, r.IsDefault, r.IsActive, r.TestConfirmed);
 

@@ -41,6 +41,8 @@ public interface IPosDb
 
     DbSet<SessionSale> SessionSales { get; }
 
+    DbSet<SupervisorApproval> SupervisorApprovals { get; }
+
     /// <summary>Limpar o rastreamento depois de voltar ao ponto de salvamento (OFF-02).</summary>
     Microsoft.EntityFrameworkCore.ChangeTracking.ChangeTracker ChangeTracker { get; }
 

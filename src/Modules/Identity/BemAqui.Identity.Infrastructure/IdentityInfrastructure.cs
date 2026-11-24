@@ -89,6 +89,7 @@ public static class IdentityInfrastructure
         services.TryAddScoped<Application.Shopfloor.PosStoreOperators>();
         services.TryAddScoped<BemAqui.Identity.Contracts.IPosStoreOperators>(sp => sp.GetRequiredService<Application.Shopfloor.PosStoreOperators>()); // OFF-01
         services.TryAddScoped<Application.Shopfloor.PosPinService>();
+        services.TryAddScoped<BemAqui.Identity.Contracts.IPosSupervisorPins>(sp => sp.GetRequiredService<Application.Shopfloor.PosPinService>()); // PDV-04: PIN do supervisor no balcão
         services.TryAddScoped<BemAqui.Identity.Contracts.IPosOperatorHistory, Application.Shopfloor.PosOperatorHistory>(); // OFF-02: operador e permissão no instante
         services.TryAddScoped<OperationUserService>();
         services.AddAuditableEntity<PosPin>("identity");

@@ -15,6 +15,7 @@ internal sealed class StoreConfiguration : IEntityTypeConfiguration<Store>
             t.HasCheckConstraint("ck_stores_offline_window", "offline_window_hours BETWEEN 1 AND 168");
             t.HasCheckConstraint("ck_stores_parameters", "cash_break_tolerance >= 0 AND exchange_days >= 0 AND cash_drop_alert_amount >= 0");
             t.HasCheckConstraint("ck_stores_cash_ceiling", "cash_ceiling_amount IS NULL OR cash_ceiling_amount > 0");
+            t.HasCheckConstraint("ck_stores_discount_limit", "discount_limit_percent BETWEEN 0 AND 100");
         });
         // CX-01 (PP-22): teto de dinheiro no caixa, opcional (nulo = sem teto).
         b.Property(e => e.CashCeilingAmount).HasPrecision(18, 2);
@@ -26,6 +27,8 @@ internal sealed class StoreConfiguration : IEntityTypeConfiguration<Store>
         b.Property(e => e.CashBreakTolerance).HasPrecision(18, 2).HasDefaultValue(5.00m);
         b.Property(e => e.ExchangeDays).HasDefaultValue(30);
         b.Property(e => e.FreeRemoveLast).HasDefaultValue(true).HasSentinel(true);
+        // PDV-04 (PP-38): limite de desconto da loja, em %; o padrão é da PP-22 (em aberto), até lá 0.
+        b.Property(e => e.DiscountLimitPercent).HasPrecision(5, 2).HasDefaultValue(0m);
         b.Property(e => e.SyncAlertHours).HasDefaultValue(Store.DefaultSyncAlertHours);
         b.Property(e => e.CashDropAlertAmount).HasPrecision(18, 2).HasDefaultValue(1000.00m);
         b.Property(e => e.Code).HasMaxLength(6);
@@ -246,6 +249,23 @@ internal sealed class OperatorIncidentConfiguration : IEntityTypeConfiguration<O
         b.Property(e => e.SaleNumber).HasMaxLength(40);
         b.HasIndex(e => new { e.OccurredAt, e.StoreId });
         b.HasIndex(e => e.EventId);
+    }
+}
+
+/// <summary><c>pos.supervisor_approvals</c> (PDV-04 CA 10): a trilha das aprovações por PIN de supervisor no balcão; supervisor nunca é o operador.</summary>
+internal sealed class SupervisorApprovalConfiguration : IEntityTypeConfiguration<SupervisorApproval>
+{
+    public void Configure(EntityTypeBuilder<SupervisorApproval> b)
+    {
+        b.ToTable("supervisor_approvals", PosSchema.Name, t => t.HasCheckConstraint("ck_supervisor_approvals_other_person", "supervisor_id <> operator_id"));
+        b.Property(e => e.Id).ValueGeneratedNever();
+        b.Property(e => e.Action).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.Reason).HasMaxLength(SupervisorApproval.MaxReasonLength);
+        b.Property(e => e.RefundReference).HasMaxLength(SupervisorApproval.MaxRefundLength);
+        b.Property(e => e.BeforeAmount).HasPrecision(18, 2);
+        b.Property(e => e.AfterAmount).HasPrecision(18, 2);
+        b.HasIndex(e => new { e.ApprovedAt, e.StoreId });
+        b.HasIndex(e => e.SaleId);
     }
 }
 

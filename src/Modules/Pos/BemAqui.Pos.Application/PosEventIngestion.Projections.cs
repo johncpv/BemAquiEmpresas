@@ -18,7 +18,7 @@ public sealed partial class PosEventIngestion
 {
     private async Task<Projection> ProjectSaleAsync(SyncContext context, Guid eventId, JsonElement root, DateTimeOffset occurredAt, CancellationToken ct)
     {
-        var replay = PosSaleReplay.Run(root, context.Store.FreeRemoveLast);
+        var replay = PosSaleReplay.Run(root, context.Store.FreeRemoveLast, context.Store.DiscountLimitPercent);
         var projection = new Projection { SaleId = replay.SaleId == Guid.Empty ? null : replay.SaleId, SaleNumber = replay.Number, OperatorId = replay.CompletedBy };
         projection.OperatorId ??= replay.Checks.Select(c => c.UserId).LastOrDefault(u => u is not null);
         var violations = new List<string>(replay.Violations);
@@ -37,10 +37,11 @@ public sealed partial class PosEventIngestion
             violations.Add("Os instantes da venda estão fora de ordem ou longe do instante do evento (relógio do aparelho mexido).");
         }
 
-        var soft = new List<string>(replay.AuthorizationNotes);
+        var approvals = new List<SupervisorApproval>();
         if (!context.Trusted)
         {
-            await CheckPeopleAsync(context, replay.Checks, violations, soft, ct);
+            await CheckPeopleAsync(context, replay.Checks, violations, ct);
+            await CheckApprovalsAsync(context, eventId, replay.SaleId, replay.Approvals, violations, approvals, ct);
         }
 
         if (violations.Count > 0 && !context.Trusted)
@@ -165,9 +166,13 @@ public sealed partial class PosEventIngestion
             completedAt = now;
         }
 
+        // PDV-04: o desconto no total entra rateado nas linhas (proporcional ao líquido, os centavos que sobram pelos maiores restos).
+        var shares = PosSaleReplay.Prorate(replay.Lines.Select(PosSaleReplay.NetCents).ToList(), replay.SaleDiscountCents);
         var request = new SaleIngestionRequest(
             replay.SaleId, SaleChannel.Pos, replay.Number, "pos.device_event", eventId, completedAt,
-            replay.Lines.Select(l => new SaleLineInput(l.LineId, l.ProductId, l.Quantity, l.UnitCents / 100m, 0, l.Note)).ToList(),
+            replay.Lines.Select((l, i) => new SaleLineInput(l.LineId, l.ProductId, l.Quantity, l.UnitCents / 100m, (l.DiscountCents + shares[i]) / 100m, l.Note,
+                ListUnitPrice: l.ListUnitCents is { } list ? list / 100m : null, DiscountReason: l.DiscountReason ?? (shares[i] > 0 ? replay.SaleDiscountReason : null),
+                PriceReason: l.PriceReason)).ToList(),
             replay.Tenders.Where(t => t.MethodId is not null).Select(t => new SalePaymentInput(
                 t.TenderId, t.MethodId!.Value, (t.ReceivedCents ?? t.AmountCents) / 100m, ToStatus(t.Status), PaymentIntegration.Manual, t.ChangeCents / 100m, null,
                 t.Installments is > 0 ? t.Installments.Value : 1, null, null, NormalizeBrand(t.CardBrand), t.Nsu, null, null, null, t.ConfirmedBy)).ToList(),
@@ -177,6 +182,11 @@ public sealed partial class PosEventIngestion
         if (ingested.IsFailure)
         {
             throw new ProjectionFailedException(SyncDivergenceKind.Validation, "A venda não entrou no núcleo de vendas: " + ingested.Error!.Message);
+        }
+
+        foreach (var approval in approvals)
+        {
+            approval.Use(eventId, now);
         }
 
         if (ingested.Value.Outcome == SaleIngestionOutcome.AcceptedWithDivergence && replay.PaymentNotes.Count == 0)
@@ -194,11 +204,6 @@ public sealed partial class PosEventIngestion
         if (!ingested.Value.Replayed && context.Documents.TryGetValue(replay.SaleId, out var doc) && replay.DocumentId is not null)
         {
             await documents.AttachAsync(new SaleCustomerDocumentInput(doc.SaleId, doc.Kind, doc.Value), ct);
-        }
-
-        foreach (var note in soft.Distinct())
-        {
-            projection.Divergences.Add(new Finding(SyncDivergenceKind.Authorization, note));
         }
 
         if (!ingested.Value.Replayed && !outsideSession)
@@ -257,7 +262,7 @@ public sealed partial class PosEventIngestion
 
         if (problems.Count == 0 && !context.Trusted)
         {
-            await CheckPeopleAsync(context, [new ReplayCheck(operatorId, at!.Value, "operador do caixa", permission, NeedsPinSession: true)], problems, problems, ct);
+            await CheckPeopleAsync(context, [new ReplayCheck(operatorId, at!.Value, "operador do caixa", permission, NeedsPinSession: true)], problems, ct);
         }
 
         if (problems.Count > 0)
@@ -357,7 +362,7 @@ public sealed partial class PosEventIngestion
 
         if (!context.Trusted)
         {
-            await CheckPeopleAsync(context, [new ReplayCheck(operatorId, printedAt.Value, "quem imprimiu", "pos.create", NeedsPinSession: true)], problems, problems, ct);
+            await CheckPeopleAsync(context, [new ReplayCheck(operatorId, printedAt.Value, "quem imprimiu", "pos.create", NeedsPinSession: true)], problems, ct);
         }
 
         if (problems.Count > 0)
@@ -381,26 +386,26 @@ public sealed partial class PosEventIngestion
         var name = Cut(line.Name, 80);
         if (item is null)
         {
-            return new Finding(SyncDivergenceKind.PriceMismatch, $"{name}: produto fora do catálogo desta loja, vendido a {PosSaleReplay.Money(line.UnitCents)}.",
-                new { productId = line.ProductId, soldCents = line.UnitCents });
+            return new Finding(SyncDivergenceKind.PriceMismatch, $"{name}: produto fora do catálogo desta loja, vendido a {PosSaleReplay.Money(line.TableCents)}.",
+                new { productId = line.ProductId, soldCents = line.TableCents });
         }
 
         var current = item.PriceListVersion;
-        var details = new { productId = line.ProductId, soldCents = line.UnitCents, currentCents = item.PriceCents, soldVersion = line.PriceVersion, currentVersion = current };
+        var details = new { productId = line.ProductId, soldCents = line.TableCents, currentCents = item.PriceCents, soldVersion = line.PriceVersion, currentVersion = current };
         var vigente = item.PriceCents is { } cents ? PosSaleReplay.Money(cents) : "sem preço";
         if (line.PriceVersion is not { } sold || current is null || sold > current)
         {
-            return new Finding(SyncDivergenceKind.PriceMismatch, $"{name}: versão da tabela de preço desconhecida no aparelho; vendido a {PosSaleReplay.Money(line.UnitCents)}, vigente {vigente}.", details);
+            return new Finding(SyncDivergenceKind.PriceMismatch, $"{name}: versão da tabela de preço desconhecida no aparelho; vendido a {PosSaleReplay.Money(line.TableCents)}, vigente {vigente}.", details);
         }
 
-        if (item.PriceCents == line.UnitCents)
+        if (item.PriceCents == line.TableCents)
         {
             return null;
         }
 
         return sold < current
-            ? new Finding(SyncDivergenceKind.PriceOutdated, $"{name}: vendido a {PosSaleReplay.Money(line.UnitCents)}; vigente {vigente}.", details)
-            : new Finding(SyncDivergenceKind.PriceMismatch, $"{name}: vendido a {PosSaleReplay.Money(line.UnitCents)} na versão vigente da tabela, que tem {vigente}.", details);
+            ? new Finding(SyncDivergenceKind.PriceOutdated, $"{name}: vendido a {PosSaleReplay.Money(line.TableCents)}; vigente {vigente}.", details)
+            : new Finding(SyncDivergenceKind.PriceMismatch, $"{name}: vendido a {PosSaleReplay.Money(line.TableCents)} na versão vigente da tabela, que tem {vigente}.", details);
     }
 
     private static Projection Hold(Projection projection, SyncDivergenceKind kind, string summary)
@@ -423,9 +428,9 @@ public sealed partial class PosEventIngestion
 
     /// <summary>
     /// Operador presente numa sessão por PIN deste aparelho no instante e com a permissão no instante (requisitos da PDV-02, PDV-03 e CX-01). Quem
-    /// autorizou (supervisor) é conferido pela permissão; a sessão por PIN do supervisor chega com a PDV-04.
+    /// autoriza é o próprio operador com a permissão no instante, ou o supervisor pela aprovação por PIN (PDV-04, conferida à parte). Toda falha é quarentena.
     /// </summary>
-    private async Task CheckPeopleAsync(SyncContext context, IEnumerable<ReplayCheck> checks, List<string> problems, List<string> soft, CancellationToken ct)
+    private async Task CheckPeopleAsync(SyncContext context, IEnumerable<ReplayCheck> checks, List<string> problems, CancellationToken ct)
     {
         foreach (var check in checks)
         {
@@ -437,7 +442,7 @@ public sealed partial class PosEventIngestion
 
             if (check.NeedsPinSession && !await context.HadSessionAsync(operators, user, check.At, ct))
             {
-                (check.Soft ? soft : problems).Add($"{Capital(check.Role)} não tinha sessão por PIN neste caixa às {Local(check.At)}.");
+                problems.Add($"{Capital(check.Role)} não tinha sessão por PIN neste caixa às {Local(check.At)}.");
                 continue;
             }
 
