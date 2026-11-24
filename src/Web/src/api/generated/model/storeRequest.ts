@@ -23,4 +23,6 @@ export interface StoreRequest {
   syncAlertHours?: number | null;
   /** @nullable */
   cashBreakTolerance?: number | null;
+  /** @nullable */
+  discountLimitPercent?: number | null;
 }

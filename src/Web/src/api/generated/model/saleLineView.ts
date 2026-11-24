@@ -25,4 +25,10 @@ export interface SaleLineView {
   note: string | null;
   /** @nullable */
   seat: string | null;
+  /** @nullable */
+  listUnitPrice?: number | null;
+  /** @nullable */
+  discountReason?: string | null;
+  /** @nullable */
+  priceReason?: string | null;
 }
