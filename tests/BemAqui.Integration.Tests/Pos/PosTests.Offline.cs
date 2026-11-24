@@ -67,10 +67,10 @@ public partial class PosTests
         opVerifier.GetProperty("verifier").GetString().Should().Be(Mac(Derive(opVerifier, InitialPin),
             PosOfflineProof.VerifierMessage("operator", till.DeviceId, op, opVerifier.GetProperty("nonce").GetString()!)));
         supVerifier.GetProperty("actions").EnumerateArray().Select(a => a.GetString()).Should().BeEquivalentTo(["cancel_item", "discount"]);
-        snapshot.GetProperty("verifiers").EnumerateArray().Should().NotContain(v => v.GetProperty("userId").GetGuid() == supervisor && v.GetProperty("kind").GetString() == "operator",
-            "o supervisor sem o PIN trocado não entra como operador; só aprova com o código");
+        snapshot.GetProperty("verifiers").EnumerateArray().Should().NotContain(v => v.GetProperty("userId").GetGuid() == op && v.GetProperty("kind").GetString() == "supervisor",
+            "quem não aprova nada não recebe verificador de supervisor");
         (await WithDbAsync(db => db.DevicePinVerifiers.AsNoTracking().Where(v => v.DeviceId == till.DeviceId && (v.UserId == op || v.UserId == supervisor)).CountAsync()))
-            .Should().Be(2);
+            .Should().Be(3, "o operador (PIN) e o supervisor (PIN, pois também vende, e o código sem internet)");
 
         // CA 2 e 6: entrada sem rede com a prova do PIN, abertura sem rede e a aprovação do supervisor sem rede (CA 7 e 15).
         var now = DateTimeOffset.UtcNow.AddSeconds(1);
