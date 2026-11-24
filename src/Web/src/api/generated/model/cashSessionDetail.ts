@@ -6,6 +6,7 @@
  */
 import type { CashSessionLineView } from './cashSessionLineView';
 import type { CashSessionMovementView } from './cashSessionMovementView';
+import type { CashSessionOfflineView } from './cashSessionOfflineView';
 import type { CashSessionPixView } from './cashSessionPixView';
 import type { CashSessionSalesView } from './cashSessionSalesView';
 import type { CashSessionStatus } from './cashSessionStatus';
@@ -58,4 +59,5 @@ export interface CashSessionDetail {
   canApprove: boolean;
   canReopen: boolean;
   version: number;
+  offline?: null | CashSessionOfflineView;
 }

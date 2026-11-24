@@ -67,6 +67,7 @@ export async function forgetDeviceKey(): Promise<void> {
   try {
     await withStore('readwrite', (s) => s.delete(KEY_ID))
     await withStore('readwrite', (s) => s.delete(DOCUMENT_KEY_ID))
+    await withStore('readwrite', (s) => s.delete(VERIFIER_KEY_ID))
   } catch {
     // sem IndexedDB não há o que apagar
   }
@@ -99,4 +100,18 @@ export async function signRequest(keys: CryptoKeyPair, method: string, pathAndQu
 /** O navegador serve de caixa? WebCrypto e IndexedDB (Windows com Chrome ou Edge, Android com Chrome; PP-09). */
 export function deviceSupported(): boolean {
   return typeof indexedDB !== 'undefined' && typeof crypto !== 'undefined' && !!crypto.subtle
+}
+
+const VERIFIER_KEY_ID = 'verifier-key'
+
+/**
+ * OFF-03 CA 1: chave AES-GCM não extraível que cifra os verificadores do PIN e do código sem internet neste aparelho. É própria (separada da
+ * chave ECDSA, que só assina, e da chave do documento do consumidor), nasce no primeiro uso e some com a chave do aparelho (`forgetDeviceKey`).
+ */
+export async function loadVerifierKey(): Promise<CryptoKey> {
+  const saved = await withStore<CryptoKey | undefined>('readonly', (s) => s.get(VERIFIER_KEY_ID))
+  if (saved) return saved
+  const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt'])
+  await withStore('readwrite', (s) => s.put(key, VERIFIER_KEY_ID))
+  return key
 }

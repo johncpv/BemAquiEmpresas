@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { PosOfflineVerifier } from './posOfflineVerifier';
 import type { PosSyncItem } from './posSyncItem';
 import type { PosSyncOperator } from './posSyncOperator';
 import type { PosSyncPaymentMethod } from './posSyncPaymentMethod';
@@ -24,4 +25,6 @@ export interface PosCatalogChanges {
   removedPaymentMethodIds: string[];
   operators: PosSyncOperator[];
   printers: PosSyncPrinters;
+  /** @nullable */
+  verifiers?: PosOfflineVerifier[] | null;
 }

@@ -19,7 +19,7 @@ import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { StoreFiscalMode } from './StoreFiscalMode'
 import { parsePercent } from '@/pages/pdv/sale/discount-input'
-import { contactText, isValidStoreCode, moneyText, nextRegisterNumber, normalizeStoreCode, parseAmount, registerLabel, UI_MODE_LABEL } from './stores'
+import { contactText, isValidStoreCode, moneyText, nextRegisterNumber, normalizeStoreCode, parseAmount, parseOfflineLimits, registerLabel, UI_MODE_LABEL } from './stores'
 
 const CODE_DICA = 'Entra no número de cada venda (LOJA-01.1-000123): código da loja, caixa, época do aparelho e sequência. Escolha um curto e estável.'
 const EPOCH_DICA = 'Sobe a cada aparelho novo no caixa. As vendas do aparelho anterior que ainda não subiram não se misturam com as do novo.'
@@ -30,6 +30,8 @@ const FREE_REMOVE_DICA = 'Ligado, o operador tira o último item que lançou sem
 const SYNC_ALERT_DICA = 'Quem aprova vendas recebe "Caixa 02 sem enviar vendas há N horas." quando um caixa passa deste tempo com venda esperando para subir, ou aberto e sem contato.'
 const DISCOUNT_LIMIT_DICA = 'Desconto máximo, em % do item ou da venda, que o operador dá sem supervisor (sempre com motivo). Acima dele, só quem tem a permissão de desconto ou o PIN de um supervisor. Padrão 0: todo desconto pede autorização.'
 const BREAK_TOLERANCE_DICA = 'Quebra de caixa é a diferença entre o contado e o esperado no fechamento. Até este valor, por forma de pagamento, o caixa fecha sozinho; acima, vai para a conferência do gerente. Sobra numa forma não compensa falta em outra.'
+const OFFLINE_WINDOW_DICA = 'Quanto tempo o caixa pode ficar sem enviar as vendas. Passou disso, ele não abre turno novo até conectar (o turno aberto pode ser fechado). A conta parte do último horário recebido do servidor; atrasar o relógio do aparelho não estende o prazo. De 1 a 168 horas (7 dias).'
+const OFFLINE_LIMITS_DICA = 'Sem internet, o supervisor aprova desconto e cancelamento com o código sem internet, conferido no aparelho e de novo quando as vendas sobem. Cada aprovação vai até este valor; o turno tem um número e uma soma máximos. Zero desliga a aprovação sem internet.'
 
 const PRINT_DICA = 'O que o caixa faz com o cupom quando a venda termina. "Perguntar" mostra Imprimir e Não imprimir; nos outros, o botão Imprimir cupom continua lá.'
 
@@ -135,6 +137,11 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
     freeRemoveLast: store?.freeRemoveLast ?? true, syncAlertHours: String(store?.syncAlertHours ?? 4),
     cashBreakTolerance: moneyText(store?.cashBreakTolerance ?? 5),
     discountLimit: String(store?.discountLimitPercent ?? 0).replace('.', ','),
+    // OFF-03 (PP-10 e PP-22): tempo máximo sem internet e limites da aprovação sem rede.
+    offlineWindowHours: String(store?.offlineWindowHours ?? 168),
+    offlineMax: moneyText(store?.offlineApprovalMaxAmount ?? 50), offlineSession: moneyText(store?.offlineApprovalSessionAmount ?? 150),
+    offlineCount: String(store?.offlineApprovalSessionCount ?? 5), offlineReview: moneyText(store?.offlineApprovalReviewAmount ?? 100),
+    offlineCancelSale: store?.offlineCancelSaleAllowed ?? true,
   }
   const [draft, setDraft] = useState(initial)
   const [error, setError] = useState<string | null>(null)
@@ -157,10 +164,12 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
     if (cashBreakTolerance === undefined || cashBreakTolerance > 9999.99) { setError('Informe a tolerância de quebra em reais (ex.: 5,00).'); return false }
     const discountLimitPercent = parsePercent(draft.discountLimit)
     if (discountLimitPercent === null) { setError('Informe o limite de desconto em %, de 0 a 100 (ex.: 5).'); return false }
+    const offline = parseOfflineLimits(draft)
+    if (typeof offline === 'string') { setError(offline); return false }
     const input = {
       code: draft.code, name: draft.name.trim(), stockLocationId: locationId, defaultPriceListId: priceListId, isActive: draft.isActive,
       cashDropAlertAmount: alert, cashCeilingAmount: ceiling, receiptPrintMode: draft.receiptPrintMode, freeRemoveLast: draft.freeRemoveLast, syncAlertHours, cashBreakTolerance,
-      discountLimitPercent,
+      discountLimitPercent, ...offline,
     }
     try {
       if (store) await updateStore(store.id, input)
@@ -240,6 +249,29 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
             </Field>
             <Field label="Aviso de caixa sem enviar vendas (horas)" required size="sm" dica={SYNC_ALERT_DICA}>
               {(p) => <input {...p} value={draft.syncAlertHours} inputMode="numeric" maxLength={2} onChange={(e) => setDraft({ ...draft, syncAlertHours: e.target.value.replace(/\D/g, '') })} className={inputClass} />}
+            </Field>
+            <Field label="Tempo máximo sem internet (horas)" required size="sm" dica={OFFLINE_WINDOW_DICA}>
+              {(p) => <input {...p} value={draft.offlineWindowHours} inputMode="numeric" maxLength={3} onChange={(e) => setDraft({ ...draft, offlineWindowHours: e.target.value.replace(/\D/g, '') })} className={inputClass} />}
+            </Field>
+            <Field label="Aprovação sem internet: até (R$ cada)" required size="md" dica={OFFLINE_LIMITS_DICA}>
+              {(p) => <input {...p} value={draft.offlineMax} inputMode="decimal" onChange={(e) => setDraft({ ...draft, offlineMax: e.target.value })} className={inputClass} />}
+            </Field>
+            <Field label="Aprovações sem internet por turno" required size="sm">
+              {(p) => <input {...p} value={draft.offlineCount} inputMode="numeric" maxLength={2} onChange={(e) => setDraft({ ...draft, offlineCount: e.target.value.replace(/\D/g, '') })} className={inputClass} />}
+            </Field>
+            <Field label="Soma sem internet por turno (R$)" required size="md">
+              {(p) => <input {...p} value={draft.offlineSession} inputMode="decimal" onChange={(e) => setDraft({ ...draft, offlineSession: e.target.value })} className={inputClass} />}
+            </Field>
+            <Field label="Fechamento em conferência acima de (R$ aprovados sem internet)" required size="md">
+              {(p) => <input {...p} value={draft.offlineReview} inputMode="decimal" onChange={(e) => setDraft({ ...draft, offlineReview: e.target.value })} className={inputClass} />}
+            </Field>
+            <Field label="Cancelar venda sem internet" size="lg" hint="Só a venda paga toda em dinheiro, com o código sem internet do supervisor.">
+              {(p) => (
+                <label className="flex min-h-10 items-center gap-2">
+                  <input {...p} type="checkbox" checked={draft.offlineCancelSale} onChange={(e) => setDraft({ ...draft, offlineCancelSale: e.target.checked })} />
+                  Permitir
+                </label>
+              )}
             </Field>
           </FormGrid>
         </fieldset>

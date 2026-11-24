@@ -1,6 +1,6 @@
 import { getGetPosCatalogChangesUrl, getGetPosCatalogSnapshotUrl, getPosCatalogChanges, getPosCatalogSnapshot } from '@/api/generated/bemaqui'
 import type { PosCatalogChanges, PosCatalogSnapshot, PosSyncItem, PosSyncPaymentMethod, PosSyncPrinter, PosSyncStore } from '@/api/generated/model'
-import type { CatalogChanges, CatalogSnapshot, CatalogSyncSource } from './catalog-sync'
+import type { CatalogChanges, CatalogSnapshot, CatalogSyncSource, OfflineAccessDownload } from './catalog-sync'
 import { signRequest } from './device-signing'
 import type { CatalogBarcode, CatalogChange, CatalogCollection, CatalogData, CatalogPaymentMethod, CatalogPrice, CatalogPrinter, CatalogRecords, StoreSettings } from './local-store/catalog-types'
 import type { LocalStore } from './local-store/local-store'
@@ -39,6 +39,11 @@ const cashLimits = (s: PosSyncStore) => ({ alertCents: s.cashDropAlertCents > 0 
 const storeSettings = (s: PosSyncStore): StoreSettings => ({
   companyName: s.companyName ?? null, companyDocument: s.companyDocument ?? null, fiscalMode: s.fiscalMode ?? 'Nfce', canSell: s.canSell ?? true,
   receiptPrintMode: s.receiptPrintMode ?? 'Ask', freeRemoveLast: s.freeRemoveLast ?? true, discountLimitPercent: Number(s.discountLimitPercent ?? 0),
+  offlineWindowHours: s.offlineWindowHours > 0 ? s.offlineWindowHours : null,
+  offlineLimits: {
+    maxCents: s.offlineApprovalMaxCents ?? 0, sessionCents: s.offlineApprovalSessionCents ?? 0, sessionCount: s.offlineApprovalSessionCount ?? 0,
+    cancelSaleAllowed: s.offlineCancelSaleAllowed ?? false,
+  },
 })
 /** Impressora do caixa como fica no aparelho (CA 7). */
 const printerRecord = (p: PosSyncPrinter): CatalogPrinter => ({
@@ -80,6 +85,7 @@ export function toSnapshot(body: PosCatalogSnapshot): CatalogSnapshot {
     offlineWindowDays: offlineWindowDays(body.store),
     cashLimits: cashLimits(body.store),
     storeSettings: storeSettings(body.store),
+    access: accessOf(body),
     data,
   }
 }
@@ -124,7 +130,16 @@ export function toChanges(body: PosCatalogChanges, store: Pick<LocalStore, 'list
     offlineWindowDays: offlineWindowDays(body.store),
     cashLimits: cashLimits(body.store),
     storeSettings: storeSettings(body.store),
+    access: accessOf(body),
     hasMore: body.hasMore,
     changes,
+  }
+}
+
+/** OFF-03 CA 1 e 14: verificadores sem rede (nunca o PIN) e o horário do servidor; o `onAccess` cifra e guarda fora do catálogo. */
+function accessOf(body: PosCatalogSnapshot | PosCatalogChanges): OfflineAccessDownload {
+  return {
+    serverAt: body.generatedAt,
+    verifiers: (body.verifiers ?? []).map((v) => ({ ...v, kind: v.kind === 'supervisor' ? 'supervisor' : 'operator', actions: [...v.actions] })),
   }
 }

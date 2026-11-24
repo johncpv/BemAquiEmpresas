@@ -262,6 +262,19 @@ function SessionPanel({ id, onClose }: { id: string; onClose: () => void }) {
               <div><dt className="text-muted-foreground">Recolhimento ao cofre</dt><dd className="tabular-nums">{s.depositAmount == null ? '—' : formatMoney(s.depositAmount)}</dd></div>
               <div><dt className="text-muted-foreground">Fundo que fica</dt><dd className="tabular-nums">{s.keptAmount == null ? '—' : formatMoney(s.keptAmount)}</dd></div>
             </dl>
+            {s.offline ? (
+              <section aria-labelledby="sem-rede" className="space-y-1 rounded-md border border-border p-3 text-sm">
+                <h3 id="sem-rede" className="font-semibold">Sem rede</h3>
+                <p>
+                  {[s.offline.openedOffline ? 'Aberto sem rede' : null, s.offline.closedOffline ? 'contado sem rede' : null,
+                    `${s.offline.approvals} ${s.offline.approvals === 1 ? 'aprovação' : 'aprovações'} de supervisor sem rede (${formatMoney(s.offline.approvalsAmount)})`]
+                    .filter(Boolean).join(' · ')}.
+                </p>
+                {s.offline.sales.length > 0
+                  ? <p className="tabular-nums">Vendas feitas sem rede: {s.offline.sales.join(', ')}</p>
+                  : <p className="text-muted-foreground">Nenhuma venda feita sem rede.</p>}
+              </section>
+            ) : null}
             <section aria-labelledby="movimentos" className="space-y-2">
               <h3 id="movimentos" className="font-semibold">Fundo, sangrias, suprimentos e recolhimento</h3>
               <ul className="divide-y divide-border rounded-md border border-border text-sm">

@@ -37,3 +37,20 @@ export function parseAmount(text: string): number | undefined {
   if (!/^\d{1,7}(\.\d{1,2})?$/.test(normalized)) return undefined
   return Number(normalized)
 }
+
+/** OFF-03 (PP-10 e PP-22): os campos sem internet da loja como a API recebe, ou a mensagem do primeiro que não fecha. */
+export function parseOfflineLimits(draft: { offlineWindowHours: string; offlineMax: string; offlineSession: string; offlineCount: string; offlineReview: string; offlineCancelSale: boolean }):
+  | { offlineWindowHours: number; offlineApprovalMaxAmount: number; offlineApprovalSessionAmount: number; offlineApprovalSessionCount: number; offlineApprovalReviewAmount: number; offlineCancelSaleAllowed: boolean }
+  | string {
+  const hours = Number(draft.offlineWindowHours)
+  if (!Number.isInteger(hours) || hours < 1 || hours > 168) return 'Informe o tempo máximo sem internet entre 1 e 168 horas (7 dias).'
+  const amounts = [draft.offlineMax, draft.offlineSession, draft.offlineReview].map(parseAmount)
+  if (amounts.some((a) => a === undefined || a > 9999.99)) return 'Informe os limites sem internet em reais, de 0 a 9.999,99 (ex.: 50,00).'
+  const count = Number(draft.offlineCount)
+  if (!Number.isInteger(count) || count < 0 || count > 50) return 'Informe de 0 a 50 aprovações sem internet por turno.'
+  const [max, session, review] = amounts as number[]
+  return {
+    offlineWindowHours: hours, offlineApprovalMaxAmount: max, offlineApprovalSessionAmount: session, offlineApprovalSessionCount: count, offlineApprovalReviewAmount: review,
+    offlineCancelSaleAllowed: draft.offlineCancelSale,
+  }
+}

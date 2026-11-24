@@ -35,4 +35,10 @@ export interface StoreView {
   syncAlertHours?: number;
   cashBreakTolerance?: number;
   discountLimitPercent?: number;
+  offlineWindowHours?: number;
+  offlineApprovalMaxAmount?: number;
+  offlineApprovalSessionAmount?: number;
+  offlineApprovalSessionCount?: number;
+  offlineApprovalReviewAmount?: number;
+  offlineCancelSaleAllowed?: boolean;
 }

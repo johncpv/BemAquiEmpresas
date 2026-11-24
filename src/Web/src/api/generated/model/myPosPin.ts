@@ -12,4 +12,8 @@ export interface MyPosPin {
   /** @nullable */
   lastUsedAt: string | null;
   canUse: boolean;
+  hasOfflineCode?: boolean;
+  /** @nullable */
+  offlineCodeSetAt?: string | null;
+  canHaveOfflineCode?: boolean;
 }

@@ -3079,6 +3079,47 @@
         }
       }
     },
+    "/api/v1/pos/my-pin/offline-code": {
+      "put": {
+        "tags": [
+          "PDV: sess\u00E3o do operador"
+        ],
+        "operationId": "SetMyPosOfflineCode",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetOfflineCodeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyPosPin"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "PDV: sess\u00E3o do operador"
+        ],
+        "operationId": "DeleteMyPosOfflineCode",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/identity/operation-users/stores": {
       "get": {
         "tags": [
@@ -54506,6 +54547,16 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "offline": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CashSessionOfflineView"
+              }
+            ]
           }
         }
       },
@@ -54661,6 +54712,38 @@
               "null",
               "boolean"
             ]
+          }
+        }
+      },
+      "CashSessionOfflineView": {
+        "required": [
+          "openedOffline",
+          "closedOffline",
+          "sales",
+          "approvals",
+          "approvalsAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "openedOffline": {
+            "type": "boolean"
+          },
+          "closedOffline": {
+            "type": "boolean"
+          },
+          "sales": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "approvals": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "approvalsAmount": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -75306,6 +75389,21 @@
           },
           "canUse": {
             "type": "boolean"
+          },
+          "hasOfflineCode": {
+            "type": "boolean",
+            "default": false
+          },
+          "offlineCodeSetAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "canHaveOfflineCode": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -88740,6 +88838,15 @@
           },
           "printers": {
             "$ref": "#/components/schemas/PosSyncPrinters"
+          },
+          "verifiers": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PosOfflineVerifier"
+            }
           }
         }
       },
@@ -88802,6 +88909,15 @@
           },
           "printers": {
             "$ref": "#/components/schemas/PosSyncPrinters"
+          },
+          "verifiers": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PosOfflineVerifier"
+            }
           }
         }
       },
@@ -89223,6 +89339,59 @@
           "chargesPct": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "PosOfflineVerifier": {
+        "required": [
+          "userId",
+          "displayName",
+          "kind",
+          "algorithm",
+          "iterations",
+          "salt",
+          "keyLength",
+          "nonce",
+          "verifier",
+          "actions"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "algorithm": {
+            "type": "string"
+          },
+          "iterations": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "salt": {
+            "type": "string"
+          },
+          "keyLength": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nonce": {
+            "type": "string"
+          },
+          "verifier": {
+            "type": "string"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -89972,6 +90141,25 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "offlineApprovalMaxCents": {
+            "type": "integer",
+            "format": "int64",
+            "default": 0
+          },
+          "offlineApprovalSessionCents": {
+            "type": "integer",
+            "format": "int64",
+            "default": 0
+          },
+          "offlineApprovalSessionCount": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "offlineCancelSaleAllowed": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -104834,6 +105022,22 @@
           }
         }
       },
+      "SetOfflineCodeInput": {
+        "required": [
+          "code",
+          "confirmation"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "confirmation": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "SetPosPinInput": {
         "required": [
           "pin",
@@ -108633,6 +108837,47 @@
               "number"
             ],
             "format": "double"
+          },
+          "offlineWindowHours": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "offlineApprovalMaxAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "offlineApprovalSessionAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "offlineApprovalSessionCount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "offlineApprovalReviewAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "offlineCancelSaleAllowed": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         },
         "additionalProperties": false
@@ -108750,6 +108995,35 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "offlineWindowHours": {
+            "type": "integer",
+            "format": "int32",
+            "default": 168
+          },
+          "offlineApprovalMaxAmount": {
+            "type": "number",
+            "format": "double",
+            "default": 50
+          },
+          "offlineApprovalSessionAmount": {
+            "type": "number",
+            "format": "double",
+            "default": 150
+          },
+          "offlineApprovalSessionCount": {
+            "type": "integer",
+            "format": "int32",
+            "default": 5
+          },
+          "offlineApprovalReviewAmount": {
+            "type": "number",
+            "format": "double",
+            "default": 100
+          },
+          "offlineCancelSaleAllowed": {
+            "type": "boolean",
+            "default": true
           }
         }
       },
@@ -109888,7 +110162,8 @@
           "Authorization",
           "Payment",
           "CashSession",
-          "FiscalDocument"
+          "FiscalDocument",
+          "OfflineAccess"
         ]
       },
       "SyncDivergenceList": {

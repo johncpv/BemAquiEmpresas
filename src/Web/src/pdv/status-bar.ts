@@ -1,3 +1,5 @@
+import { CLOCK_BEHIND_MESSAGE, expiredMessage, warnMessage, type WindowState } from './offline/offline-window'
+
 /**
  * Texto da faixa de estado fixa no topo do /pdv (OFF-01 CA 2 e 13). Função pura, para a faixa e os testes falarem a mesma coisa:
  * - sem rede e com fila: "Sem conexão: N vendas a enviar" e a idade da mais antiga;
@@ -20,6 +22,8 @@ export interface StatusInput {
   now: Date
   /** OFF-02: a última subida falhou por um motivo que pede ação (relógio, registro); null quando subiu ou só faltou rede. */
   uploadIssue?: string | null
+  /** OFF-03 CA 9, 10 e 14: a janela sem sincronizar contada do último horário do servidor (com o piso de relógio). */
+  syncWindow?: WindowState | null
 }
 
 export interface StatusView {
@@ -54,17 +58,34 @@ export function ageText(iso: string, now: Date): string {
 const sales = (n: number) => (n === 1 ? '1 venda a enviar' : `${n} vendas a enviar`)
 
 export function statusView(input: StatusInput): StatusView {
-  const { online, pendingCount, oldestPendingAt, lastSyncAt, offlineWindowDays, now, uploadIssue } = input
+  const { online, pendingCount, oldestPendingAt, lastSyncAt, offlineWindowDays, now, uploadIssue, syncWindow } = input
   const details: string[] = []
   if (pendingCount > 0 && oldestPendingAt) details.push(`a mais antiga ${ageText(oldestPendingAt, now)}`)
   if (lastSyncAt && (!online || pendingCount > 0)) details.push(`última sincronização ${whenText(lastSyncAt, now)}`)
   if (!lastSyncAt) details.push('ainda não sincronizou')
-  if (lastSyncAt && offlineWindowDays && !online) {
+  if (lastSyncAt && offlineWindowDays && !online && (!syncWindow || syncWindow.kind === 'unknown' || syncWindow.kind === 'ok')) {
     const until = new Date(new Date(lastSyncAt).getTime() + offlineWindowDays * 86_400_000)
     details.push(`vende sem conexão até ${until.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${time(until.toISOString())}`)
   }
 
   if (uploadIssue && online) details.push(uploadIssue)
+  const windowTone = windowDetail(syncWindow, now, details)
+  const view = baseView(online, pendingCount, uploadIssue, lastSyncAt, now, details)
+  return windowTone && rank[windowTone] > rank[view.tone] ? { ...view, tone: windowTone } : view
+}
+
+const rank: Record<StatusTone, number> = { ok: 0, warn: 1, crit: 2 }
+
+/** OFF-03: o prazo (80%), a janela vencida ou o relógio atrás do piso entram nos detalhes e sobem o tom da faixa. */
+function windowDetail(state: WindowState | null | undefined, now: Date, details: string[]): StatusTone | null {
+  if (!state) return null
+  if (state.kind === 'warn') { details.unshift(warnMessage(state.deadline, now)); return 'warn' }
+  if (state.kind === 'expired') { details.unshift(expiredMessage(state.days)); return 'crit' }
+  if (state.kind === 'clock-behind') { details.unshift(CLOCK_BEHIND_MESSAGE); return 'crit' }
+  return null
+}
+
+function baseView(online: boolean, pendingCount: number, uploadIssue: string | null | undefined, lastSyncAt: string | null, now: Date, details: string[]): StatusView {
   if (!online) return { tone: pendingCount > 0 ? 'crit' : 'warn', title: pendingCount > 0 ? `Sem conexão: ${sales(pendingCount)}` : 'Sem conexão', details }
   if (uploadIssue) return { tone: 'crit', title: pendingCount > 0 ? sales(pendingCount) : 'Conectado', details }
   if (pendingCount > 0) return { tone: 'warn', title: sales(pendingCount), details }

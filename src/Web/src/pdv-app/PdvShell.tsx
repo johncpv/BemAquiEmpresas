@@ -9,6 +9,8 @@ import { ensurePersistence, PERSIST_DENIED_MESSAGE } from '@/pdv/storage-persist
 import { PdvHelp } from './PdvHelp'
 import { PdvStatusBar } from './PdvStatusBar'
 import { useOnline } from '@/pdv/use-online'
+import { CLOCK_META, type OfflineClock, windowState, type WindowState } from '@/pdv/offline/offline-window'
+import { windowHoursOf } from '@/pdv/offline/offline-access'
 
 const POLL_MS = 15_000
 /** OFF-02: a fila de saída sobe ao abrir, quando a rede volta e a cada 20 s (local-first: a venda nunca espera a rede). */
@@ -27,12 +29,20 @@ export function PdvShell({ store, children }: { store: LocalStore; children: Rea
   const [updatePending, setUpdatePending] = useState(false)
   const [persistDenied, setPersistDenied] = useState(false)
   const [uploadIssue, setUploadIssue] = useState<string | null>(null)
+  const [syncWindow, setSyncWindow] = useState<WindowState | null>(null)
 
   const refreshStatus = useCallback(() => { setNow(new Date()); setTick((t) => t + 1) }, [])
 
   useEffect(() => {
     let alive = true
     void store.pendingSummary().then((p) => { if (alive) setPending(p) }).catch(() => { /* a faixa fica com o último valor */ })
+    return () => { alive = false }
+  }, [store, tick, online])
+
+  // OFF-03 CA 9, 10 e 14: a janela sem sincronizar, contada do último horário do servidor guardado no aparelho.
+  useEffect(() => {
+    let alive = true
+    void store.getMeta<OfflineClock>(CLOCK_META).then((clock) => { if (alive) setSyncWindow(windowState(clock, windowHoursOf(store), new Date())) }).catch(() => undefined)
     return () => { alive = false }
   }, [store, tick, online])
 
@@ -74,7 +84,7 @@ export function PdvShell({ store, children }: { store: LocalStore; children: Rea
   }, [store])
 
   const catalog = store.catalogState()
-  const view = statusView({ online, pendingCount: pending.count, oldestPendingAt: pending.oldestAt, lastSyncAt: catalog?.syncedAt ?? null, offlineWindowDays: catalog?.offlineWindowDays ?? null, now, uploadIssue })
+  const view = statusView({ online, pendingCount: pending.count, oldestPendingAt: pending.oldestAt, lastSyncAt: catalog?.syncedAt ?? null, offlineWindowDays: catalog?.offlineWindowDays ?? null, now, uploadIssue, syncWindow })
 
   const value = useMemo<PdvContextValue>(() => ({ store, createCatalogSource, openHelp: () => setHelpOpen(true), refreshStatus }), [store, refreshStatus])
 

@@ -36,11 +36,13 @@ export function MoneyPad({ cents, onChange, label }: { cents: Cents; onChange: (
 }
 
 /** Abrir caixa (CA 1): o fundo de troco (padrão: o da última abertura) e "Abrir caixa"; fundo zero pede confirmação. */
-export function CashOpenScreen({ operatorName, defaultCents, onOpen, onLeave }: {
+export function CashOpenScreen({ operatorName, defaultCents, onOpen, onLeave, blocked = null }: {
   operatorName: string
   defaultCents: Cents
   onOpen: (openingCents: Cents) => Promise<void>
   onLeave: () => void
+  /** OFF-03 CA 9 e 14: por que o turno não abre agora (janela sem internet vencida, relógio atrasado); null: abre. */
+  blocked?: string | null
 }) {
   const [cents, setCents] = useState(defaultCents)
   const [confirmZero, setConfirmZero] = useState(false)
@@ -58,11 +60,12 @@ export function CashOpenScreen({ operatorName, defaultCents, onOpen, onLeave }: 
         <p className="text-[18px] font-semibold">Abra o caixa para começar a vender.</p>
         <p className="text-[18px] text-muted-foreground">{operatorName}, conte o dinheiro da gaveta e informe o fundo de troco. As vendas deste aparelho ficam no seu nome até você fechar o caixa.</p>
       </div>
+      {blocked ? <p role="alert" className="rounded-md border border-crit-soft bg-crit-soft p-4 text-[18px] font-semibold text-crit-ink">{blocked}</p> : null}
       <MoneyPad label="Fundo de troco" cents={cents} onChange={setCents} />
       {error ? <p role="alert" className="rounded-md border border-crit-soft bg-crit-soft p-4 text-[18px] font-semibold text-crit-ink">{error}</p> : null}
       <div className="flex gap-[16px]">
         <FloorButton tone="secondary" className="flex-1" onClick={onLeave} disabled={busy}><LogOut aria-hidden="true" className="size-5" />Sair</FloorButton>
-        <FloorButton className="flex-1" disabled={busy} onClick={() => { if (cents === 0) setConfirmZero(true); else void open() }}>{busy ? 'Abrindo…' : 'Abrir caixa'}</FloorButton>
+        <FloorButton className="flex-1" disabled={busy || !!blocked} onClick={() => { if (cents === 0) setConfirmZero(true); else void open() }}>{busy ? 'Abrindo…' : 'Abrir caixa'}</FloorButton>
       </div>
       <FloorConfirm open={confirmZero} onOpenChange={setConfirmZero} title="Abrir sem fundo de troco?" verb="Abrir caixa"
         impact={<p>A gaveta começa com R$ 0,00. Você só vai conseguir dar troco depois de um suprimento.</p>} onConfirm={open} />

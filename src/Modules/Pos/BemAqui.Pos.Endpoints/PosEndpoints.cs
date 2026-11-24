@@ -21,7 +21,8 @@ namespace BemAqui.Pos.Endpoints;
 public sealed record StoreRequest(
     string Code, string Name, Guid StockLocationId, Guid DefaultPriceListId, bool IsActive = true, decimal? CashDropAlertAmount = null, decimal? CashCeilingAmount = null,
     ReceiptPrintMode? ReceiptPrintMode = null, bool? FreeRemoveLast = null, int? SyncAlertHours = null, decimal? CashBreakTolerance = null,
-    decimal? DiscountLimitPercent = null);
+    decimal? DiscountLimitPercent = null, int? OfflineWindowHours = null, decimal? OfflineApprovalMaxAmount = null, decimal? OfflineApprovalSessionAmount = null,
+    int? OfflineApprovalSessionCount = null, decimal? OfflineApprovalReviewAmount = null, bool? OfflineCancelSaleAllowed = null);
 
 /// <summary>IMP-01 CA 10: ligar (com o aceite do texto na versão informada) ou desligar o modo "só cupom não fiscal". <c>Version</c>: a da loja.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -196,7 +197,8 @@ internal static class PosEndpoints
     /// <summary>Sessão por PIN do caixa (amr com a chave do aparelho): o supervisor só aprova no aparelho em que o operador está.</summary>
     private static bool IsPosPinSession(HttpContext http) => http.User.FindAll(AuthMethods.Claim).Any(c => c.Value == AuthMethods.DeviceKey);
 
-    private static StoreInput ToInput(StoreRequest r) => new(r.Code, r.Name, r.StockLocationId, r.DefaultPriceListId, r.IsActive, r.CashDropAlertAmount, r.CashCeilingAmount, r.ReceiptPrintMode, r.FreeRemoveLast, r.SyncAlertHours, r.CashBreakTolerance, r.DiscountLimitPercent);
+    private static StoreInput ToInput(StoreRequest r) => new(r.Code, r.Name, r.StockLocationId, r.DefaultPriceListId, r.IsActive, r.CashDropAlertAmount, r.CashCeilingAmount, r.ReceiptPrintMode, r.FreeRemoveLast, r.SyncAlertHours, r.CashBreakTolerance, r.DiscountLimitPercent,
+        r.OfflineWindowHours, r.OfflineApprovalMaxAmount, r.OfflineApprovalSessionAmount, r.OfflineApprovalSessionCount, r.OfflineApprovalReviewAmount, r.OfflineCancelSaleAllowed);
 
     private static PrinterInput ToInput(PrinterRequest r) => new(r.RegisterId, r.Name, r.Connection, r.PaperWidthMm, r.Columns, r.Model, r.IsDefault, r.IsActive, r.TestConfirmed);
 

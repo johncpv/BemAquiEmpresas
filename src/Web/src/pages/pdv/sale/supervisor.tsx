@@ -5,6 +5,7 @@ import { FloorButton, FloorSheet, NumericKeypad } from '@/components/shopfloor/k
 import { isPinComplete, PIN_LENGTH } from '@/pages/shopfloor/device'
 import { centsToDecimal, type Cents } from '@/pdv/money'
 import { cn } from '@/lib/utils'
+import { OfflineAccessError, PRICE_NEEDS_NETWORK } from '@/pdv/offline/offline-access'
 import { REASONS } from './discount-input'
 
 /** Ação do caixa que pede supervisor (PDV-04); o código da ação no catálogo é `pos.{código}`. */
@@ -35,10 +36,14 @@ export interface SupervisorApproval {
   supervisorName: string
 }
 
-/** O que o caixa precisa do servidor para chamar o supervisor (com rede; sem rede é da OFF-03). */
+/**
+ * O que o caixa precisa para chamar o supervisor: com rede, o servidor confere o PIN (PDV-04); sem rede (`offline`, OFF-03), o aparelho confere o
+ * código sem internet do supervisor contra o verificador cifrado e os limites da loja, e a aprovação sobe na fila.
+ */
 export interface SupervisorApi {
   list: () => Promise<readonly SupervisorOption[]>
   approve: (input: SupervisorApprovalRequest) => Promise<SupervisorApproval>
+  offline?: boolean
 }
 
 /** O pedido ao supervisor: a ação, o resumo (item, de quanto para quanto), a venda, a linha, os valores e o motivo já escolhido. */
@@ -102,7 +107,7 @@ export function SupervisorDialog({ request, api, online, onApproved, onCancel }:
   const open = request !== null
 
   useEffect(() => {
-    if (!open || !api || !online) return
+    if (!open || !api || (!online && !api.offline)) return
     let alive = true
     api.list().then((list) => { if (alive) setSupervisors(list) })
       .catch((e: unknown) => { if (alive) setLoadError(e instanceof ApiError ? e.message : 'Não foi possível buscar os supervisores.') })
@@ -111,6 +116,7 @@ export function SupervisorDialog({ request, api, online, onApproved, onCancel }:
 
   if (!request) return null
   const code = ACTION_CODE[request.action]
+  const offline = !!api?.offline
   const able = (supervisors ?? []).filter((s) => s.actions.includes(code))
 
   const approve = async () => {
@@ -125,7 +131,7 @@ export function SupervisorDialog({ request, api, online, onApproved, onCancel }:
       await onApproved(approval)
     } catch (e) {
       setPin('')
-      setError(e instanceof ApiError ? e.message : 'Não foi possível conferir o PIN. Tente de novo.')
+      setError(e instanceof ApiError || e instanceof OfflineAccessError ? e.message : 'Não foi possível conferir o PIN. Tente de novo.')
     } finally {
       setBusy(false)
     }
@@ -145,7 +151,9 @@ export function SupervisorDialog({ request, api, online, onApproved, onCancel }:
         <p className="font-semibold">{request.summary}</p>
         <p className="text-muted-foreground">Motivo: {request.reason}</p>
       </div>
-      {!online ? (
+      {offline && request.action === 'ChangePrice' ? (
+        <p role="alert" className="rounded-md border border-warn-soft bg-warn-soft p-4 text-[18px] font-semibold text-warn-ink">{PRICE_NEEDS_NETWORK}</p>
+      ) : !online && !offline ? (
         <p role="alert" className="rounded-md border border-warn-soft bg-warn-soft p-4 text-[18px] font-semibold text-warn-ink">
           Sem conexão: a aprovação do supervisor precisa de rede. Tente de novo quando a conexão voltar.
         </p>
@@ -157,7 +165,9 @@ export function SupervisorDialog({ request, api, online, onApproved, onCancel }:
       ) : supervisors === null ? <p aria-busy="true">Buscando os supervisores da loja…</p> : !chosen ? (
         able.length === 0 ? (
           <p className="text-[18px] text-muted-foreground">
-            Nenhum supervisor desta loja tem PIN do caixa e a permissão para esta ação. Peça ao gerente para criar o PIN em Meu perfil → Segurança.
+            {offline
+              ? 'Nenhum supervisor com o código sem internet e a permissão para esta ação chegou a este caixa. Conecte à internet para aprovar.'
+              : 'Nenhum supervisor desta loja tem PIN do caixa e a permissão para esta ação. Peça ao gerente para criar o PIN em Meu perfil → Segurança.'}
           </p>
         ) : (
           <div role="group" aria-label="Supervisores" className="grid grid-cols-2 gap-[8px]">
@@ -170,8 +180,8 @@ export function SupervisorDialog({ request, api, online, onApproved, onCancel }:
         )
       ) : (
         <div className="space-y-3">
-          <p className="text-[18px]"><b>{chosen.displayName}</b>, digite o seu PIN de {PIN_LENGTH} números.</p>
-          <NumericKeypad label="PIN do supervisor" mask max={PIN_LENGTH} value={pin} onChange={(v) => { setPin(v); setError(null) }} />
+          <p className="text-[18px]"><b>{chosen.displayName}</b>, digite o seu {offline ? 'código sem internet' : 'PIN'} de {PIN_LENGTH} números.</p>
+          <NumericKeypad label={offline ? 'Código sem internet do supervisor' : 'PIN do supervisor'} mask max={PIN_LENGTH} value={pin} onChange={(v) => { setPin(v); setError(null) }} />
         </div>
       )}
       {error ? <p role="alert" className={cn('rounded-md border border-crit-soft bg-crit-soft p-4 text-[18px] font-semibold text-crit-ink')}>{error}</p> : null}
