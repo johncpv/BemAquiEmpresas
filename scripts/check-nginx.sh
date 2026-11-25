@@ -4,6 +4,7 @@
 # Cenários: (1) produção atual (desde 02/11/2026 a stack da homologação serve o app.): comum + bemaqui-empresas-homolog.conf;
 # (2) ambiente novo da fase 2: comum + deploy/prod/nginx/bemaqui-empresas.conf, sozinho (ele também serve o app.; o
 # adm-dolibarr.conf não entra: o Dolibarr foi desligado em 02/11/2026); (3) bootstrap da homologação sozinho com o comum.
+# (4) e (5): ambiente SaaS da ADR 0051 (templates com os placeholders trocados), junto da stack da Konebras.
 # Uso: sh scripts/check-nginx.sh
 set -eu
 ROOT=$(cd "$(dirname "$0")/.." && pwd -W 2>/dev/null || pwd)
@@ -12,7 +13,7 @@ MSYS_NO_PATHCONV=1 docker run --rm \
   nginx:1.31-alpine sh -c '
     set -e
     apk add --no-cache openssl >/dev/null
-    for h in homolog.konebras.com.br plataforma-homolog.bemaquiapp.com.br app.konebras.com.br plataforma.bemaquiapp.com.br adm.konebras.com.br; do
+    for h in homolog.konebras.com.br plataforma-homolog.bemaquiapp.com.br app.konebras.com.br plataforma.bemaquiapp.com.br adm.konebras.com.br plataforma.saas.test app.saas.test erp.cliente.test; do
       mkdir -p /etc/letsencrypt/live/$h
       openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj "/CN=$h" \
         -keyout /etc/letsencrypt/live/$h/privkey.pem -out /etc/letsencrypt/live/$h/fullchain.pem 2>/dev/null
@@ -24,6 +25,7 @@ MSYS_NO_PATHCONV=1 docker run --rm \
       cp /deploy/nginx/bemaqui-empresas-homolog.allow.example $C/bemaqui-empresas-homolog.allow
       cp /deploy/prod/nginx/bemaqui-empresas.allow.example $C/bemaqui-empresas.allow
       cp /deploy/prod/nginx/adm-dolibarr.allow.example $C/adm-dolibarr.allow
+      cp /deploy/saas/nginx/bemaqui-saas.allow.example $C/bemaqui-saas.allow
       printf "teste:\$2y\$05\$abcdefghijklmnopqrstuu5Y0Qx0Qx0Qx0Qx0Qx0Qx0Qx0Qx0Qx0\n" > $C/adm-dolibarr.htpasswd
     }
     echo "== 1. produção atual (stack da homologação em app., homolog. com 301)"
@@ -37,4 +39,14 @@ MSYS_NO_PATHCONV=1 docker run --rm \
     echo "== 3. bootstrap da homologação"
     reset
     cp /deploy/nginx/bemaqui-empresas-homolog.bootstrap.conf $C/bemaqui-empresas-homolog.conf
+    nginx -t
+    echo "== 4. ambiente SaaS (ADR 0051), junto com a stack da Konebras, com os placeholders trocados"
+    reset
+    cp /deploy/nginx/bemaqui-empresas-homolog.conf $C/
+    sed -e "s/__PLATFORM_HOST__/plataforma.saas.test/g" -e "s/__APP_HOST__/app.saas.test/g" /deploy/saas/nginx/bemaqui-saas.conf > $C/bemaqui-saas.conf
+    sed "s/__TENANT_HOST__/erp.cliente.test/g" /deploy/saas/nginx/bemaqui-saas-tenant.conf.template > $C/bemaqui-saas-cliente.conf
+    nginx -t
+    echo "== 5. bootstrap do SaaS"
+    reset
+    sed -e "s/__PLATFORM_HOST__/plataforma.saas.test/g" -e "s/__APP_HOST__/app.saas.test/g" /deploy/saas/nginx/bemaqui-saas.bootstrap.conf > $C/bemaqui-saas.conf
     nginx -t'

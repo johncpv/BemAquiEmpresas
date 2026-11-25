@@ -1,0 +1,63 @@
+# Vhost de UM cliente do SaaS (ADR 0051 §6). TEMPLATE: __TENANT_HOST__ é o host do cliente (o mesmo que vai em catalog.tenant_domains).
+# Uso, por cliente novo (depois do registro A DNS-only para 2.25.82.127 e do certificado emitido pelo certbot):
+#   sed 's/__TENANT_HOST__/erp.cliente.com.br/g' bemaqui-saas-tenant.conf.template > /opt/infra/nginx/conf.d/bemaqui-saas-<chave do tenant>.conf
+#   docker exec stack-nginx nginx -t && docker exec stack-nginx nginx -s reload
+# Mesmas regras do vhost do __APP_HOST__ em bemaqui-saas.conf (público, /webhooks/ só no host da plataforma). Precisa do
+# 00-bemaqui-empresas-common.conf. O bloco da porta 80 serve o desafio ACME e redireciona o resto.
+server {
+    listen 80;
+    server_name __TENANT_HOST__;
+    access_log /var/log/nginx/access.log bqe_masked;
+    location /.well-known/acme-challenge/ { root /var/www/certbot; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name __TENANT_HOST__;
+    access_log /var/log/nginx/access.log bqe_masked;
+    client_max_body_size 32M;
+    ssl_certificate     /etc/letsencrypt/live/__TENANT_HOST__/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/__TENANT_HOST__/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    server_tokens off;
+    resolver 127.0.0.11 valid=30s;
+    set $bqe_api http://bqe-saas-api:8080;
+    set $bqe_web http://bqe-saas-web:8080;
+
+    location ~ ^/(api|health)(/|$) {
+        proxy_pass $bqe_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 120s;
+    }
+
+    # SignalR: WebSocket e conexão longa.
+    location /hubs/ {
+        proxy_pass $bqe_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $bqe_connection_upgrade;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+    }
+
+    # O tenantKey só vale no host da plataforma (ADR 0031): aqui a rota não existe.
+    location /webhooks/ {
+        return 404;
+    }
+
+    location / {
+        proxy_pass $bqe_web;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

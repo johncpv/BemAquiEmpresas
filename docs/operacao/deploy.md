@@ -2,6 +2,8 @@
 
 ## Produção = stack bemaqui-empresas-homolog desde 02/11/2026
 
+Ambiente SaaS multi-tenant (ADR 0051): veja a seção "Ambiente SaaS" no fim deste arquivo.
+
 Na virada de 02/11/2026 a homologação **virou a produção** (decisão do PO; ADR 0034, adendo de 02/11/2026 à noite; ADR 0020; registro em [go-live.md](go-live.md) §12). A stack `/opt/projetos/bemaqui-empresas-homolog/` (containers `bqe-homolog-*`) serve o tenant `konebras` em **`https://app.konebras.com.br`**; `homolog.konebras.com.br` só redireciona (301) para ele; `plataforma-homolog.bemaquiapp.com.br` continua com o super admin, o Hangfire e os `/webhooks/`. O Dolibarr foi desligado. O ambiente `deploy/prod/` (seção "Produção" abaixo) é da **fase 2** e não está em uso.
 
 Regras de cada deploy, a partir de agora:
@@ -222,3 +224,115 @@ Depois, o workflow roda `scripts/smoke.sh` de fora. Voltar o **banco** é manual
 
 ## Monitor externo
 UptimeRobot em `https://app.konebras.com.br/health/ready` (5 min, alerta em 2 falhas), como em `monitoramento.md`, ligado na virada.
+
+---
+
+# Ambiente SaaS (ADR 0051)
+
+Ambiente multi-tenant novo do BemAqui, **separado** da stack da Konebras: `/opt/projetos/bemaqui-saas/`, projeto compose `bqe-saas`, containers `bqe-saas-*` (`postgres`, `clamav`, `migrator`, `api`, `fiscal-pdf-reader`, `web`, `backup`), volumes `bqe-saas-*`, catálogo vazio, key ring e certificado do Data Protection novos. Arquivos em `deploy/saas/`; deploy por `scripts/deploy-saas.sh`. O primeiro tenant é o `bemaqui` (gestão do ecossistema); clientes novos entram pelo painel de plataforma, cada um com banco isolado. A Konebras segue na stack dela.
+
+Regras, além das da seção do topo (que valem aqui também):
+- **Não mexa** em containers, volumes ou vhosts de outros projetos nem nos `bqe-homolog-*`. Nenhuma porta é publicada no host: o `stack-nginx` alcança `bqe-saas-api:8080` e `bqe-saas-web:8080` pela `stack_stack`.
+- **Nada vem da Konebras:** senha, chave de assinatura, `dp-cert.pfx`, SMTP e `.docker/config.json` são novos.
+- **Backup externo (B2) desligado** no início. Vale só o dump antes do deploy. **Ligue antes do primeiro cliente com dado real** (seção "Ligar o backup" abaixo).
+- **Domínios ainda não definidos:** os templates de nginx usam `__PLATFORM_HOST__` (painel de plataforma, Hangfire, `/webhooks/`) e `__APP_HOST__` (ERP do tenant `bemaqui`). Defina-os com o PO antes do passo 1 e troque por `sed` na instalação.
+
+## O que o PO providencia antes (SaaS)
+1. Os dois domínios: `PLATFORM_HOST` e `APP_HOST`.
+2. **DNS** no Cloudflare, tipo A, **DNS-only** (nuvem cinza), para `2.25.82.127`: um registro para cada host (plataforma e ERP). **Cada cliente novo também precisa de um registro A DNS-only para 2.25.82.127 e de um certificado** (passo "Cliente novo" abaixo). Alternativa futura, **não implementada**: curinga `*.<domínio>` com certbot DNS-01 via Cloudflare (um certificado e um vhost para todos os subdomínios; exige token da API do Cloudflare com escopo de zona).
+3. Certificado do key ring novo: gere o `dp-cert.pfx` e a senha conforme `segredos-e-chaves.md` (cópia offline no cofre do PO; **não** reutilize o da Konebras).
+4. **IPs liberados** para o painel da plataforma do SaaS (lista própria).
+5. Chave SSH do root da VPS (a mesma do deploy da Konebras serve; ela nunca vai para o repositório).
+6. E-mail do super admin e o SMTP (host, usuário e senha) para os convites.
+
+## Preparação da VPS (uma vez)
+Na VPS, como root, a partir de um checkout do commit `origin/main` (ou dos arquivos copiados por `scp`):
+```bash
+D=/opt/projetos/bemaqui-saas
+install -d -m 0755 $D $D/postgres && install -d -m 0700 $D/secrets $D/predeploy-dumps
+cp deploy/saas/docker-compose.yml deploy/saas/deploy.sh deploy/saas/backup-cron.sh $D/
+cp deploy/postgres/init-roles.sh $D/postgres/ && chmod 0755 $D/*.sh $D/postgres/init-roles.sh
+cp deploy/saas/.env.example $D/.env && chown root:root $D/.env && chmod 0600 $D/.env
+# Edite $D/.env: REGISTRY (ex.: ghcr.io/johncpv/saas), PLATFORM_HOST, ALERT_RECIPIENT, SMTP_HOST, SMTP_USERNAME.
+# Deixe TENANT_HOST vazio até o tenant bemaqui existir; ALLOW_KEY_RING_CREATION=true SÓ na primeira subida.
+```
+
+### Secrets (`$D/secrets`, chmod 0400)
+Mesma tabela da produção, com os nomes `bqe-saas-*` nas connection strings, **sem** os secrets de backup (`backup-*`, `dumps-s3-*`, `keyring-s3-*`), que só entram quando o backup for ligado. O dono de cada arquivo é o uid do container que lê: `postgres` = `70`; `api` e `migrator` = `1654`.
+
+| Arquivo | Conteúdo | Dono |
+|---|---|---|
+| `pg-superuser-password`, `pg-catalog-password`, `pg-provisioner-password` | senhas novas (`openssl rand -hex 24 \| tr -d '\n'`) | 70 |
+| `catalog-connection` | `Host=bqe-saas-postgres;Database=catalog;Username=bemaqui_catalog;Password=<pg-catalog-password>` | 1654 |
+| `provisioner-connection` | `Host=bqe-saas-postgres;Database=postgres;Username=bemaqui_provisioner;Password=<pg-provisioner-password>` | 1654 |
+| `auth-signing-key` | `openssl rand -base64 48` | 1654 |
+| `smtp-password` | senha do SMTP | 1654 |
+| `dp-cert.pfx` / `dp-cert-password` | certificado do key ring novo e a senha | 1654 |
+
+```bash
+cd $D/secrets && chown 70:70 pg-*-password && chown 1654:1654 catalog-connection provisioner-connection auth-signing-key smtp-password dp-cert.pfx dp-cert-password && chmod 0400 *
+```
+O compose lê os secrets pelo caminho `./secrets`; sem os arquivos de backup, `docker compose config` e o deploy funcionam (o serviço `backup` fica no profile `backup`).
+
+### nginx e certificados
+Os formatos de log (`00-bemaqui-empresas-common.conf`) já estão instalados pela stack da Konebras; **não** instale de novo se o arquivo for o mesmo (o mesmo `log_format` em dois arquivos derruba o `nginx -t`).
+```bash
+P=<host da plataforma>; A=<host do ERP>
+# 1. Bootstrap (só ACME):
+sed -e "s/__PLATFORM_HOST__/$P/g" -e "s/__APP_HOST__/$A/g" deploy/saas/nginx/bemaqui-saas.bootstrap.conf > /opt/infra/nginx/conf.d/bemaqui-saas.conf
+docker exec stack-nginx nginx -t && docker exec stack-nginx nginx -s reload      # nginx -t SEMPRE antes do reload; falhou, apague a cópia e não recarregue
+# 2. Certificados (certbot existente, volume stack_certbot-etc, webroot /var/www/certbot), um por host:
+#    use o mesmo comando que a seção "nginx e certificados" da Konebras usa, com -d $P e depois -d $A.
+# 3. Allowlist do painel e vhost definitivo:
+cp deploy/saas/nginx/bemaqui-saas.allow.example /opt/infra/nginx/conf.d/bemaqui-saas.allow   # edite com os IPs liberados
+sed -e "s/__PLATFORM_HOST__/$P/g" -e "s/__APP_HOST__/$A/g" deploy/saas/nginx/bemaqui-saas.conf > /opt/infra/nginx/conf.d/bemaqui-saas.conf
+docker exec stack-nginx nginx -t && docker exec stack-nginx nginx -s reload
+```
+Os hosts do SaaS são novos: nenhum vhost existente é alterado. Se o `nginx -t` falhar, restaure o arquivo anterior e não recarregue.
+
+### Primeira subida e super admin
+```bash
+cd $D
+# Imagens da primeira vez: da estação, num worktree no commit da origin/main, monte e envie (passos 1 e 2 do scripts/deploy-saas.sh):
+#   for i in api web backup; do docker build -q -f deploy/$i.Dockerfile -t <REGISTRY>/bemaqui-empresas-$i:<SHA> .; done
+#   docker save <REGISTRY>/bemaqui-empresas-{api,web,backup}:<SHA> | gzip -1 | ssh -i <chave> root@2.25.82.127 'gunzip | docker load'
+# e ponha IMAGE_TAG=<SHA> no .env da VPS. Depois desta vez, todo deploy é pelo scripts/deploy-saas.sh.
+docker compose up -d postgres clamav                 # cria os roles e o banco catalog (init-roles.sh)
+sed -i 's/^ALLOW_KEY_RING_CREATION=.*/ALLOW_KEY_RING_CREATION=true/' .env
+docker compose run --rm --pull never migrator        # cria o key ring ("Key ring do Data Protection pronto") e migra o catálogo
+sed -i 's/^ALLOW_KEY_RING_CREATION=.*/ALLOW_KEY_RING_CREATION=false/' .env
+docker compose up -d --pull never --no-deps --wait --wait-timeout 180 fiscal-pdf-reader bqe-saas-api bqe-saas-web
+docker compose run --rm --pull never migrator platform-admin create --email <e-mail do super admin>   # o link aparece uma vez
+```
+Abra o link (`https://<host da plataforma>/plataforma/definir-senha?...`, de um IP da allowlist), defina a senha e ative o 2FA.
+
+### Provisionar o tenant `bemaqui`
+1. Em `https://<host da plataforma>/plataforma/tenants`, **Provisionar tenant**: chave `bemaqui`, razão social e CNPJ do BemAqui, endereço = o host do ERP (o `A` acima), e-mail do proprietário, perfil de negócio e segmento conforme o PO e o plano (a tela avisa os módulos fora do plano). (Sem o painel disponível, o equivalente é `docker compose run --rm --pull never migrator tenant provision --key bemaqui --legal-name "<razão social>" --document <CNPJ> --host <APP_HOST> --owner-email <e-mail> --plan <plano>`; veja `provisionamento.md`.)
+2. O proprietário abre o convite (ou `tenant invite-owner --key bemaqui` sem e-mail) e define a senha.
+3. Ponha `TENANT_HOST=<APP_HOST>` no `.env` (a fumaça do deploy passa a valer) e confira: `sh scripts/smoke.sh <APP_HOST>`.
+
+### Cliente novo (por tenant)
+1. DNS: registro **A, DNS-only**, do host do cliente para `2.25.82.127`.
+2. Certificado: bootstrap ACME do host (use um `server` temporário como o do bootstrap, com `__TENANT_HOST__`), certbot webroot, depois o vhost definitivo:
+   `sed 's/__TENANT_HOST__/<host>/g' deploy/saas/nginx/bemaqui-saas-tenant.conf.template > /opt/infra/nginx/conf.d/bemaqui-saas-<chave>.conf` e `nginx -t` antes do reload.
+3. Provisione pelo painel (host = o do cliente, que fica em `catalog.tenant_domains`; domínio próprio do cliente é aceito). Cada cliente tem banco `tenant_<chave>` isolado e já entra no dump e no migrator do próximo deploy.
+4. **Antes do primeiro cliente com dado real: ligue o backup** (abaixo).
+
+### Ligar o backup (antes do primeiro cliente com dado real)
+1. Dois buckets B2 próprios do SaaS (dumps e key ring), com ciclo de vida de 30 dias e chaves **sem** `deleteFiles`; chave `age` nova (a privada só no cofre).
+2. Crie em `secrets/` (dono `10001`, 0400) `backup-pg-password` (igual ao `pg-superuser-password`), `backup-age-recipients`, `dumps-s3-*` e `keyring-s3-*` (lista no `.env.example`).
+3. Cron do root (horários em `backup-cron.sh`, fora dos da Konebras), rode uma vez à mão, liste o bucket e **tente apagar** um objeto (o provedor precisa recusar). Ensaie a restauração (`restauracao.md`).
+
+## Cada deploy do SaaS e a ordem SaaS → Konebras
+Mesma versão (SHA) nos dois; **primeiro o SaaS, depois a Konebras**:
+```bash
+# 1. SaaS (dump, migrator em todos os tenants, up --wait, fumaça):
+BQE_SSH_KEY=~/.ssh/<chave da VPS> BQE_SAAS_APP_HOST=<APP_HOST> sh scripts/deploy-saas.sh
+# 2. Só com a fumaça do SaaS verde, a Konebras (inalterado, seção do topo):
+BQE_SSH_KEY=~/.ssh/<chave da VPS> sh scripts/deploy-homolog.sh
+```
+Só da `origin/main`, depois do merge de PR com o CI verde. O `scripts/deploy-saas.sh` faz: worktree de deploy; build das imagens `api`, `web` e `backup` com o SHA; envio por `docker save | ssh docker load`; na VPS, dump (`pg_dump -Fc`, 0600, conferido com `pg_restore -l`) do `catalog` e de **todo** `tenant_*`; compose do commit conferido com o `.env` e os secrets; `migrator` (TenantMigrator em todos os tenants); `up --wait` de `fiscal-pdf-reader`, API e web; fumaça de fora. Falhou o migrator ou a subida, volta a tag e o compose; voltar o **banco** é manual, pelo dump, com o PO. Falhou o SaaS, **não** faça o deploy da Konebras. Migration só expand/contract.
+
+Voltar uma versão à mão: `cd /opt/projetos/bemaqui-saas && sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=<sha anterior>/' .env && docker compose up -d --pull never --no-deps --wait bqe-saas-api bqe-saas-web`.
+
+Mover um cliente entre modelos (SaaS ↔ dedicado): `pg_dump -Fc tenant_<chave>`, restaurar no destino, registrar tenant e host no catálogo de destino e **recifrar os segredos do tenant** para o key ring de destino (ADR 0034 §2); depois trocar o DNS. Faça com o PO e com um ensaio numa cópia.
