@@ -16,10 +16,10 @@ const stackNetwork = Object.entries(compose.networks ?? {}).find(([, n]) => n.na
 // api e web têm nome próprio do ambiente (bqe-<ambiente>-api|web): o nome do serviço vira apelido na stack_stack,
 // onde "api", "web", "postgres" e "redis" já são de outros projetos (ADR 0015).
 const isEdge = (name) => /^bqe-[a-z0-9]+-(api|web)$/.test(name)
-// Produção (GOL-01a CA 3, ADR 0034): projeto "bqe-prod". Lá TODO serviço segue o endurecimento (inclusive postgres e clamav), não há
+// Produção (GOL-01a CA 3, ADR 0034): projeto "bqe-prod"; o ambiente SaaS (ADR 0051), projeto "bqe-saas", segue as mesmas regras. Lá TODO serviço segue o endurecimento (inclusive postgres e clamav), não há
 // importer nem o secret da API do Dolibarr (ADR 0017 adendo 2), e o postgres fica só em rede interna.
 const project = String(compose.name ?? '')
-const isProd = project === 'bqe-prod'
+const isProd = project === 'bqe-prod' || project === 'bqe-saas'
 // O importer só existe na homologação (carga do Dolibarr, exigida lá); na produção ele é proibido.
 const required = ['migrator', 'backup', ...Object.keys(services).filter(isEdge)]
 const hardened = isProd
