@@ -31,6 +31,7 @@ public static class SalesInfrastructure
         services.TryAddScoped<ICashSessionSales, CashSessionSalesContract>(); // CX-02: resumo das vendas da sessão para o fechamento do caixa
         services.TryAddScoped<SaleReturnService>(); // PDV-06: devolução, troca e vale-troca no caixa
         services.TryAddScoped<SaleReturnReportService>(); // PDV-06 CA 12: Loja → Devoluções
+        services.TryAddSingleton<SaleLookupThrottle>(); // PDV-06, revisão de segurança (achado 8): teto de buscas por CPF por caixa
         services.TryAddScoped<StoreCreditService>();
         services.TryAddScoped<IStoreCreditRedemptions>(sp => sp.GetRequiredService<StoreCreditService>());
         services.AddAuditableEntity<SaleReturn>(SaleService.Module); // pedido, aprovação e conclusão da devolução

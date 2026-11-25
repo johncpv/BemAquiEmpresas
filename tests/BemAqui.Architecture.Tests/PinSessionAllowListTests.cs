@@ -75,6 +75,7 @@ public static partial class PinSessionAllowList
         ["ApproveSaleReturn"] = "concluir a devolução no mesmo caixa: supervisor em dinheiro ou fora do prazo, estoque, dinheiro ou vale na transação",
         ["LookupStoreCredit"] = "consultar o vale-troca pelo código no corpo: saldo, validade e os 4 últimos caracteres",
         ["RedeemStoreCredit"] = "abater o vale num pagamento do caixa, idempotente pelo id do pagamento, sob trava do vale",
+        ["ReissueStoreCreditCode"] = "reemitir o código do vale perdido com o PIN do supervisor: código novo, o antigo deixa de valer",
     };
 
     [GeneratedRegex("""\.AllowPosPinSession\(\)""")]

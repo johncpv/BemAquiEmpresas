@@ -39,7 +39,7 @@ public sealed class SaleReturn : Entity, IAuditable, IConcurrencyVersioned
     public Guid OperatorId { get; init; }
 
     /// <summary>Fora do prazo de troca da loja (CA 3): pede supervisor. <see cref="Deadline"/> é o último dia do prazo.</summary>
-    public bool Late { get; init; }
+    public bool Late { get; private set; }
 
     public DateOnly Deadline { get; init; }
 
@@ -103,6 +103,9 @@ public sealed class SaleReturn : Entity, IAuditable, IConcurrencyVersioned
         BusinessDate = businessDate;
     }
 
+    /// <summary>Revisão de segurança (achado 10): o prazo venceu entre o pedido e a conclusão; a conclusão passa a pedir o supervisor.</summary>
+    public void MarkLate() => Late = true;
+
     /// <summary>Troca (CA 9): a primeira venda que usa o vale desta devolução fica ligada a ela.</summary>
     public void LinkExchange(Guid saleId) => ExchangeSaleId ??= saleId;
 }
@@ -165,9 +168,9 @@ public sealed class StoreCredit : Entity, IAuditable, IConcurrencyVersioned
 {
     /// <summary>Fora da auditoria: o hash do valor ao portador não vai para o histórico.</summary>
     [NotAudited]
-    public string CodeHash { get; init; } = string.Empty;
+    public string CodeHash { get; private set; } = string.Empty;
 
-    public string CodeLast4 { get; init; } = string.Empty;
+    public string CodeLast4 { get; private set; } = string.Empty;
 
     public Guid? CustomerId { get; init; }
 
@@ -197,6 +200,13 @@ public sealed class StoreCredit : Entity, IAuditable, IConcurrencyVersioned
 
     /// <summary>Venda com o vale cancelada ou descartada: o valor volta ao vale.</summary>
     public void Credit(decimal amount) => Balance = SaleRules.Money(Balance + amount);
+
+    /// <summary>Revisão de segurança (achado 5): reemissão do código perdido, com o supervisor. O hash e os 4 últimos mudam: o código antigo deixa de valer.</summary>
+    public void Reissue(string codeHash, string last4)
+    {
+        CodeHash = codeHash;
+        CodeLast4 = last4;
+    }
 }
 
 /// <summary>Movimento do vale-troca (<c>sales.store_credit_movements</c>): o uso numa venda (por pagamento, idempotente) e o desfazer do uso.</summary>

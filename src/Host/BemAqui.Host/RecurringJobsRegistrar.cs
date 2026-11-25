@@ -36,6 +36,9 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
             BemAqui.Finance.Application.CollectionRemindersRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.Finance.Application.OverdueReceivablesRecurringJob>(BemAqui.Finance.Application.OverdueReceivablesRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Finance.Application.OverdueReceivablesRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // Abatimentos de vale-troca sem venda concluída em 24 h voltam ao vale (PDV-06, revisão de segurança, achado 4): de hora em hora, um job por tenant.
+        recurring.AddOrUpdate<BemAqui.Sales.Application.ReleaseStoreCreditOrphansRecurringJob>(BemAqui.Sales.Application.ReleaseStoreCreditOrphansRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Sales.Application.ReleaseStoreCreditOrphansRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.Commercial.Application.ExpireQuotesRecurringJob>(BemAqui.Commercial.Application.ExpireQuotesRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Commercial.Application.ExpireQuotesRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         // Recomposição do custo dos apontamentos fechados antes da PRD-04 (D3, CA 12): dispara já na subida (depois do deploy) e

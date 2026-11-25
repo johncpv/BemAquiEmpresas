@@ -405,9 +405,12 @@ public sealed partial class PosEventIngestion(
         return expected - 1;
     }
 
+    /// <summary>Chave da trava do caixa (<c>pg_advisory_xact_lock</c>): a subida (vendas, sangria, suprimento) e a devolução em dinheiro (PDV-06) passam por ela.</summary>
+    public static string RegisterLockKey(Guid registerId) => "pos.sync.register:" + registerId.ToString("N");
+
     private async Task LockAsync(Guid registerId, CancellationToken cancellationToken)
     {
-        var key = "pos.sync.register:" + registerId.ToString("N");
+        var key = RegisterLockKey(registerId);
         await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({key}, 0))) AS l").ToListAsync(cancellationToken);
     }
 

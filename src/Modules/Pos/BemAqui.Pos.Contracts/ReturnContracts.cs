@@ -39,4 +39,16 @@ public interface IPosReturnSupport
     /// O id do movimento é o da devolução (reenviar não duplica). Não grava.
     /// </summary>
     Task RecordCashRefundAsync(Guid sessionId, Guid returnId, string returnNumber, decimal amount, Guid operatorId, DateTimeOffset at, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Revisão de segurança (achado 1): toma a trava do caixa (a mesma da subida dos eventos, que grava vendas, sangrias e suprimentos) na transação de
+    /// quem chama e devolve o dinheiro na gaveta da sessão recalculado depois da trava; null se a sessão não está mais aberta (ou já em "Fechar caixa").
+    /// </summary>
+    Task<decimal?> LockDrawerAsync(Guid registerId, Guid sessionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Revisão de segurança (achado 5): usa a aprovação de supervisor da reemissão do código do vale-troca (ação <c>CreditReissue</c>): do mesmo caixa e
+    /// operador, ligada à devolução que emitiu o vale e com o saldo do vale, ainda não usada e dentro do prazo. Marca o uso. Não grava.
+    /// </summary>
+    Task<Result<Guid>> UseReissueApprovalAsync(Guid approvalId, Guid operatorId, Guid registerId, Guid returnId, decimal amount, CancellationToken cancellationToken = default);
 }

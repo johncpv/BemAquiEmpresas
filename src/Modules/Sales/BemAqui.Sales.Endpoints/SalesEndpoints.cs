@@ -102,6 +102,12 @@ internal static class SalesEndpoints
         pos.MapPost("/returns/{id:guid}/approve", async (Guid id, ReturnApproveInput input, HttpContext http, ICurrentUser user, SaleReturnService service, CancellationToken ct) =>
                 IsPosPinSession(http) ? (await service.ApproveAsync(Cookie(http), user.UserId!.Value, id, input, ct)).ToHttpResult() : PinOnly())
             .RequirePermission("pos.return").AllowPosPinSession().WithName("ApproveSaleReturn").Produces<SaleReturnView>();
+        // Revisão de segurança (achado 5): o código do vale perdido é reemitido com o PIN do supervisor; o antigo deixa de valer.
+        pos.MapPost("/returns/{id:guid}/store-credit/reissue", async (Guid id, StoreCreditReissueInput input, HttpContext http, ICurrentUser user, SaleReturnService service,
+                CancellationToken ct) =>
+                IsPosPinSession(http) ? (await service.ReissueCodeAsync(Cookie(http), user.UserId!.Value, id, input, ct)).ToHttpResult() : PinOnly())
+            .RequirePermission("pos.return").AllowPosPinSession().RequireRateLimiting(StoreCreditService.RateLimitPolicy)
+            .WithName("ReissueStoreCreditCode").Produces<StoreCreditIssued>();
         pos.MapPost("/store-credits/lookup", async (StoreCreditLookupInput input, HttpContext http, StoreCreditService service, CancellationToken ct) =>
                 IsPosPinSession(http) ? (await service.LookupAsync(Cookie(http), input, ct)).ToHttpResult() : PinOnly())
             .RequirePermission("pos.create").AllowPosPinSession().RequireRateLimiting(StoreCreditService.RateLimitPolicy)

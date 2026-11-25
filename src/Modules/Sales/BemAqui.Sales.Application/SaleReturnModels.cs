@@ -32,13 +32,13 @@ public sealed record SaleLookupResult(IReadOnlyList<ReturnCandidate> Sales, bool
 public sealed record SaleReturnLineInput(Guid SaleLineId, decimal Quantity, ReturnDestination Destination, string Reason);
 
 /// <summary>
-/// Pedido de devolução (CA 2 a 5 e 9): os itens, a forma do reembolso (vale-troca é o padrão), o pagamento do cartão e o NSU no estorno, a troca e o
-/// cliente do vale (opcional).
+/// Pedido de devolução (CA 2 a 5 e 9): os itens, a forma do reembolso (vale-troca é o padrão), o pagamento do cartão e o NSU no estorno e a troca. O
+/// cliente do vale é sempre o da venda original (revisão de segurança, achado 9).
 /// </summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ReturnRequestInput(
     Guid SaleId, IReadOnlyList<SaleReturnLineInput> Lines, RefundKind RefundKind = RefundKind.StoreCredit, Guid? CardPaymentId = null, string? CardNsu = null, bool Exchange = false,
-    Guid? CustomerId = null, string? Note = null);
+    string? Note = null);
 
 /// <summary>Aprovar e concluir: com a aprovação do supervisor quando a devolução pede (dinheiro ou fora do prazo).</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -49,7 +49,14 @@ public sealed record SaleReturnLineView(Guid Id, Guid SaleLineId, string Descrip
 /// <summary>
 /// Vale emitido (CA 7). <c>Code</c> só vem na resposta da conclusão (para imprimir): o servidor guarda só o hash e os 4 últimos caracteres.
 /// </summary>
-public sealed record StoreCreditIssued(Guid Id, string? Code, string CodeLast4, decimal Amount, decimal Balance, DateOnly ExpiresOn);
+public sealed record StoreCreditIssued(Guid Id, string? Code, string CodeLast4, decimal Amount, decimal Balance, DateOnly ExpiresOn)
+{
+    public override string ToString() => $"StoreCreditIssued {{ Id = {Id}, Code = {(Code is null ? "null" : "***")}, CodeLast4 = {CodeLast4}, Balance = {Balance}, ExpiresOn = {ExpiresOn} }}";
+}
+
+/// <summary>Revisão de segurança (achado 5): reemitir o código do vale-troca perdido, com a aprovação do supervisor (ação <c>CreditReissue</c>).</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record StoreCreditReissueInput(Guid SupervisorApprovalId);
 
 public sealed record SaleReturnView(
     Guid Id, string Number, Guid SaleId, string SaleNumber, SaleReturnStatus Status, RefundKind RefundKind, decimal Total, bool Late, DateOnly Deadline, string? LateMessage,

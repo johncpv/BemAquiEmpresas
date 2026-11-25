@@ -36,11 +36,26 @@ public sealed class PosReturnSupport(IPosDb db, IPosRegisterDevice devices, IEve
             session?.Id, cash);
     }
 
-    public async Task<Result<Guid>> UseApprovalAsync(Guid approvalId, Guid operatorId, Guid registerId, Guid returnId, decimal amount, CancellationToken cancellationToken = default)
+    public Task<Result<Guid>> UseApprovalAsync(Guid approvalId, Guid operatorId, Guid registerId, Guid returnId, decimal amount, CancellationToken cancellationToken = default) =>
+        UseAsync(SupervisorAction.Return, approvalId, operatorId, registerId, returnId, amount, cancellationToken);
+
+    public Task<Result<Guid>> UseReissueApprovalAsync(Guid approvalId, Guid operatorId, Guid registerId, Guid returnId, decimal amount, CancellationToken cancellationToken = default) =>
+        UseAsync(SupervisorAction.CreditReissue, approvalId, operatorId, registerId, returnId, amount, cancellationToken);
+
+    public async Task<decimal?> LockDrawerAsync(Guid registerId, Guid sessionId, CancellationToken cancellationToken = default)
+    {
+        var key = PosEventIngestion.RegisterLockKey(registerId);
+        await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({key}, 0))) AS l").ToListAsync(cancellationToken);
+        var session = await db.CashSessions.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == sessionId && s.RegisterId == registerId && s.Status == CashSessionStatus.Open && s.CountStartedAt == null, cancellationToken);
+        return session is null ? null : await CashInDrawerAsync(session, cancellationToken);
+    }
+
+    private async Task<Result<Guid>> UseAsync(SupervisorAction action, Guid approvalId, Guid operatorId, Guid registerId, Guid returnId, decimal amount, CancellationToken cancellationToken)
     {
         var approval = await db.SupervisorApprovals.FirstOrDefaultAsync(a => a.Id == approvalId, cancellationToken);
         var now = clock.GetUtcNow();
-        if (approval is null || approval.Action != SupervisorAction.Return || approval.SaleId != returnId || approval.OperatorId != operatorId || approval.RegisterId != registerId
+        if (approval is null || approval.Action != action || approval.SaleId != returnId || approval.OperatorId != operatorId || approval.RegisterId != registerId
             || approval.BeforeAmount != amount || approval.UsedAt is not null)
         {
             return Error.Validation("return_approval_invalid", "A aprovação do supervisor não confere com esta devolução. Chame o supervisor de novo.");

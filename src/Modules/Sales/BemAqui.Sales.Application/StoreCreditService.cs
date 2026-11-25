@@ -1,10 +1,15 @@
+using BemAqui.BuildingBlocks.Jobs;
 using BemAqui.BuildingBlocks.Messaging;
+using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.BuildingBlocks.Time;
 using BemAqui.Pos.Contracts;
 using BemAqui.Sales.Contracts;
 using BemAqui.Sales.Domain;
 using BemAqui.SharedKernel;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace BemAqui.Sales.Application;
 
@@ -56,15 +61,35 @@ public sealed class StoreCreditService(ISalesDb db, IPosReturnSupport pos, TimeP
         }
 
         await using var transaction = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(cancellationToken) : null;
-        await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({"sales.store-credit:" + found.Id.ToString("N")}, 0))) AS l")
-            .ToListAsync(cancellationToken);
+        var lockKey = LockKey(found.Id);
+        await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({lockKey}, 0))) AS l").ToListAsync(cancellationToken);
         var credit = await db.StoreCredits.FirstAsync(c => c.Id == found.Id, cancellationToken);
+        if (credit.CodeHash != found.CodeHash)
+        {
+            return Error.NotFound(Error.Codes.NotFound, NotFoundMessage); // o código foi reemitido enquanto esperava a trava: o antigo não vale mais
+        }
+
         // Reenvio do mesmo pagamento: devolve o mesmo abatimento (nunca abate duas vezes).
         if (await db.StoreCreditMovements.AsNoTracking().FirstOrDefaultAsync(m => m.TenderId == input.TenderId, cancellationToken) is { } existing)
         {
             return existing.StoreCreditId == credit.Id && existing.SaleId == input.SaleId && existing.Amount == input.Amount && existing.ReversedAt is null
                 ? new StoreCreditRedeemed(credit.Id, existing.TenderId, existing.Amount, credit.Balance, credit.ExpiresOn)
                 : SaleReturnService.Field("tenderId", "Este pagamento já usou outro vale ou outro valor.");
+        }
+
+        // Revisão de segurança (achado 4): a venda do caixa só existe no aparelho até ser concluída, então o abatimento fica preso ao caixa e à sessão
+        // aberta: sem caixa aberto não abate; venda que já está no servidor tem de ser deste caixa e estar aberta; a mesma venda não abate em dois caixas.
+        // O abatimento sem venda concluída volta ao vale depois de 24 h (ReleaseOrphansAsync, job por tenant).
+        if (context.CashSessionId is null)
+        {
+            return Error.Validation("cash_session_closed", "Abra o caixa para usar o vale-troca.");
+        }
+
+        var serverSale = await db.Sales.AsNoTracking().Where(s => s.Id == input.SaleId).Select(s => new { s.RegisterId, s.Status }).FirstOrDefaultAsync(cancellationToken);
+        if ((serverSale is not null && (serverSale.RegisterId != context.RegisterId || serverSale.Status is not (SaleStatus.Open or SaleStatus.PartiallyPaid)))
+            || await db.StoreCreditMovements.AnyAsync(m => m.SaleId == input.SaleId && m.RegisterId != context.RegisterId, cancellationToken))
+        {
+            return SaleReturnService.Field("saleId", "O vale só abate em venda aberta deste caixa.");
         }
 
         if (ReturnRules.RedeemProblem(credit.Balance, credit.ExpiresOn, BusinessTime.Today(clock), input.Amount) is { } problem)
@@ -86,6 +111,42 @@ public sealed class StoreCreditService(ISalesDb db, IPosReturnSupport pos, TimeP
 
         return new StoreCreditRedeemed(credit.Id, input.TenderId, input.Amount, credit.Balance, credit.ExpiresOn);
     }
+
+    /// <summary>Trava do vale (<c>pg_advisory_xact_lock</c>): o uso e a reemissão do código passam por ela.</summary>
+    public static string LockKey(Guid storeCreditId) => "sales.store-credit:" + storeCreditId.ToString("N");
+
+    /// <summary>
+    /// Revisão de segurança (achado 4): abatimento órfão. O uso ainda não desfeito, feito há mais de <see cref="OrphanAfter"/>, cuja venda não chegou
+    /// concluída ao servidor (não existe, ou foi cancelada), volta ao vale. A venda que subir depois com esse pagamento vai para a quarentena (o
+    /// abatimento já está desfeito). Por tenant (job), idempotente.
+    /// </summary>
+    public async Task<int> ReleaseOrphansAsync(CancellationToken cancellationToken = default)
+    {
+        var limit = clock.GetUtcNow() - OrphanAfter;
+        var orphans = await db.StoreCreditMovements.AsNoTracking()
+            .Where(m => m.ReversedAt == null && m.CreatedAt < limit && !db.Sales.Any(s => s.Id == m.SaleId && ReturnRules.Done.Contains(s.Status)))
+            .OrderBy(m => m.CreatedAt).Take(500).Select(m => new { m.Id, m.StoreCreditId }).ToListAsync(cancellationToken);
+        foreach (var group in orphans.GroupBy(m => m.StoreCreditId))
+        {
+            await using var transaction = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(cancellationToken) : null;
+            var lockKey = LockKey(group.Key);
+            await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({lockKey}, 0))) AS l").ToListAsync(cancellationToken);
+            var ids = group.Select(m => m.Id).ToList();
+            // Relido sob a trava: o que já foi desfeito ou cuja venda chegou concluída nesse meio tempo fica como está.
+            var fresh = await db.StoreCreditMovements
+                .Where(m => ids.Contains(m.Id) && m.ReversedAt == null && !db.Sales.Any(s => s.Id == m.SaleId && ReturnRules.Done.Contains(s.Status))).ToListAsync(cancellationToken);
+            await ReverseAsync(fresh, "Abatimento sem venda concluída em 24 h", cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
+            if (transaction is not null)
+            {
+                await transaction.CommitAsync(cancellationToken);
+            }
+        }
+
+        return orphans.Count;
+    }
+
+    public static readonly TimeSpan OrphanAfter = TimeSpan.FromHours(24);
 
     public async Task<StoreCreditRedemptionRef?> FindAsync(Guid tenderId, CancellationToken cancellationToken = default) =>
         await db.StoreCreditMovements.AsNoTracking().Where(m => m.TenderId == tenderId)
@@ -157,4 +218,26 @@ public sealed class StoreCreditService(ISalesDb db, IPosReturnSupport pos, TimeP
         var query = tracked ? db.StoreCredits : db.StoreCredits.AsNoTracking();
         return await query.FirstOrDefaultAsync(c => c.CodeHash == hash, ct);
     }
+}
+
+public sealed record ReleaseStoreCreditOrphansArgs;
+
+/// <summary>Revisão de segurança da PDV-06 (achado 4): abatimentos de vale sem venda concluída em 24 h voltam ao vale, por tenant.</summary>
+public sealed class ReleaseStoreCreditOrphansJob(ITenantDirectory directory, ITenantScopeFactory scopes, ILogger<ReleaseStoreCreditOrphansJob> logger)
+    : TenantJob<ReleaseStoreCreditOrphansArgs>(directory, scopes, logger)
+{
+    protected override Task RunAsync(IServiceProvider services, TenantInfo tenant, ReleaseStoreCreditOrphansArgs args, CancellationToken cancellationToken) =>
+        services.GetRequiredService<StoreCreditService>().ReleaseOrphansAsync(cancellationToken);
+}
+
+/// <summary>Recorrente global de hora em hora que enfileira a devolução dos abatimentos órfãos por tenant ativo.</summary>
+public sealed class ReleaseStoreCreditOrphansRecurringJob(ITenantDirectory directory, IBackgroundJobClient jobs)
+    : GlobalRecurringJob<ReleaseStoreCreditOrphansJob, ReleaseStoreCreditOrphansArgs>(directory, jobs)
+{
+    public const string Id = "sales-store-credit-orphans";
+    public const string Cron = "17 * * * *";
+
+    protected override string Queue => JobQueues.Maintenance;
+
+    protected override ReleaseStoreCreditOrphansArgs ArgsFor(TenantInfo tenant) => new();
 }

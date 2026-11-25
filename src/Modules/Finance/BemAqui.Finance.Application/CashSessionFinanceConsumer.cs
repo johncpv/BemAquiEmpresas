@@ -215,7 +215,10 @@ public sealed partial class CashSessionFinanceConsumer(
                 var written = await receivables.PostAsync(summary, cancellationToken);
                 if (written.IsFailure)
                 {
-                    throw new InvalidOperationException("Recebível do cartão recusado no estorno: " + written.Error!.Message);
+                    // Revisão de segurança (achado 7): título da adquirente já liquidado (ou que recusa a regravação) não trava o evento em laço. A diferença
+                    // vira pendência auditada para a conciliação (parâmetro do Financeiro, auditado, com o valor do estorno) e o aviso no log; o evento conclui.
+                    await RecordReversalPendingAsync(e, written.Error!.Code, cancellationToken);
+                    return;
                 }
             }
 
@@ -230,11 +233,39 @@ public sealed partial class CashSessionFinanceConsumer(
                     title.DueDate ?? title.IssueDate, null, parts.Length > 7 ? parts[7] : null);
                 if (key.Text == title.SaleGroupKey)
                 {
-                    await receivables.PostAsync(new SaleReceivableSummary(key, DocumentOrigin.CardSettlement, title.PartyId, title.Description, 0m, 0m, 0m), cancellationToken);
+                    var zeroed = await receivables.PostAsync(new SaleReceivableSummary(key, DocumentOrigin.CardSettlement, title.PartyId, title.Description, 0m, 0m, 0m), cancellationToken);
+                    if (zeroed.IsFailure)
+                    {
+                        await RecordReversalPendingAsync(e, zeroed.Error!.Code, cancellationToken);
+                        return;
+                    }
                 }
             }
         }
     }
+
+    /// <summary>Chave (nos parâmetros do Financeiro) da pendência de conciliação do estorno no cartão que o título da adquirente recusou.</summary>
+    public static string ReversalPendingKey(Guid returnId) => "pos-return-pending:" + returnId.ToString("N");
+
+    /// <summary>
+    /// Estorno no cartão sem o título da adquirente regravado (já liquidado ou recusado): grava a pendência uma vez por devolução (parâmetro do Financeiro,
+    /// <c>IAuditable</c>: quem e quando ficam na auditoria), com o valor e o código do motivo, e avisa no log. A conciliação acerta a diferença com a adquirente.
+    /// </summary>
+    private async Task RecordReversalPendingAsync(SaleReturned e, string reason, CancellationToken cancellationToken)
+    {
+        var key = ReversalPendingKey(e.ReturnId);
+        if (!await db.FinanceParameters.AnyAsync(p => p.Key == key, cancellationToken))
+        {
+            var text = "Conciliar: " + reason;
+            db.FinanceParameters.Add(new FinanceParameter { Key = key, Value = e.Amount, Text = text.Length <= 64 ? text : text[..64], UpdatedAt = clock.GetUtcNow() });
+            await db.SaveChangesAsync(cancellationToken);
+        }
+
+        LogReversalPending(logger, e.ReturnId, e.Number, e.Amount, reason);
+    }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Estorno no cartão da devolução {ReturnId} ({Number}, {Amount}) sem regravar o título da adquirente ({Reason}): pendência de conciliação registrada.")]
+    private static partial void LogReversalPending(ILogger logger, Guid returnId, string number, decimal amount, string reason);
 
     /// <summary>Os pagamentos da sessão (do <c>Sales</c>, já líquidos dos estornos no cartão) com a forma, o provedor e a taxa vigente na data da venda.</summary>
     private async Task<(List<CashSessionPayment> Payments, Dictionary<Guid, (Guid Id, string Name, PaymentMethodType Type, Guid? AcquirerPartyId)> Known)> PaymentsAsync(

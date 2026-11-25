@@ -49,8 +49,23 @@ public sealed class SalesLookupContract(ISalesDb db, SaleService sales) : ISaleL
             .Select(g => new { g.Key.BusinessDate, g.Key.StoreId, g.Key.Channel, Count = g.Count(), Gross = g.Sum(s => s.Subtotal), Discounts = g.Sum(s => s.DiscountTotal),
                 Fees = g.Sum(s => s.ServiceFee), Net = g.Sum(s => s.Total) })
             .ToListAsync(cancellationToken);
-        return rows.OrderBy(r => r.BusinessDate).ThenBy(r => r.Channel)
-            .Select(r => new SalesRevenueLine(r.BusinessDate, r.StoreId, r.Channel, r.Count, r.Gross, r.Discounts, r.Fees, r.Net)).ToList();
+        // PDV-06 (revisão de segurança, achado 6): a devolução concluída reduz a receita no dia da devolução, pelo valor dos itens devolvidos, qualquer que
+        // seja o reembolso. O vale-troca é só passivo (transferência entre contas, fora do DRE) e a venda nova paga com ele é receita normal: sem duplicar.
+        var returns = await db.SaleReturns.AsNoTracking().Where(r => r.Status == SaleReturnStatus.Completed && r.BusinessDate >= from && r.BusinessDate <= to)
+            .Join(db.Sales.AsNoTracking(), r => r.SaleId, s => s.Id, (r, s) => new { r.BusinessDate, s.StoreId, s.Channel, r.Total })
+            .GroupBy(x => new { x.BusinessDate, x.StoreId, x.Channel })
+            .Select(g => new { g.Key.BusinessDate, g.Key.StoreId, g.Key.Channel, Amount = g.Sum(x => x.Total) })
+            .ToListAsync(cancellationToken);
+        var lines = rows.ToDictionary(r => (r.BusinessDate, r.StoreId, r.Channel),
+            r => new SalesRevenueLine(r.BusinessDate, r.StoreId, r.Channel, r.Count, r.Gross, r.Discounts, r.Fees, r.Net));
+        foreach (var r in returns)
+        {
+            var date = r.BusinessDate!.Value;
+            var line = lines.GetValueOrDefault((date, r.StoreId, r.Channel)) ?? new SalesRevenueLine(date, r.StoreId, r.Channel, 0, 0m, 0m, 0m, 0m);
+            lines[(date, r.StoreId, r.Channel)] = line with { Returns = line.Returns + r.Amount, Net = line.Net - r.Amount };
+        }
+
+        return lines.Values.OrderBy(r => r.Date).ThenBy(r => r.Channel).ToList();
     }
 }
 

@@ -8,6 +8,7 @@ using BemAqui.Sales.Contracts;
 using BemAqui.Sales.Domain;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.Integration.Tests.Pos;
 
@@ -114,6 +115,15 @@ public partial class PosTests
         await DrainOutboxAsync();
         (await WithDbAsync(db => db.SaleReturns.AsNoTracking().SingleAsync(r => r.Id == firstId))).ExchangeSaleId.Should().Be(newSale);
         (await WithDbAsync(db => db.StoreCreditMovements.AsNoTracking().SingleAsync(m => m.TenderId == tender))).ReversedAt.Should().BeNull();
+
+        // Revisão de segurança (achado 3): a venda paga em parte com o vale devolve em dinheiro só até o que recebeu em dinheiro.
+        var newLine = await WithDbAsync(db => db.SaleLines.AsNoTracking().Where(l => l.SaleId == newSale).Select(l => l.Id).SingleAsync());
+        var overCash = await JsonAsync(await op.PostAsJsonAsync(ReturnsPath, ReturnBody(newSale, newLine, 2, "Restock", "Cash")));
+        overCash.GetProperty("detail").GetString().Should().StartWith("Em dinheiro, devolva até");
+
+        // Achado 4: o vale não abate em venda já concluída no servidor.
+        (await JsonAsync(await op.PostAsJsonAsync(CreditsPath + "/redeem", new { code, saleId = newSale, tenderId = Guid.CreateVersion7(), amount = 0.5m })))
+            .GetProperty("detail").GetString().Should().Be("O vale só abate em venda aberta deste caixa.");
     }
 
     [Fact]
@@ -161,6 +171,62 @@ public partial class PosTests
         var again = await OkAsync(await op.PostAsJsonAsync(ReturnsPath, ReturnBody(saleId, lineId, 1, "Restock", "Cash")));
         Code(await JsonAsync(await op.PostAsJsonAsync($"{ReturnsPath}/{again.GetProperty("id").GetGuid()}/approve", new { supervisorApprovalId = approval })))
             .Should().Be("return_approval_invalid");
+    }
+
+    [Fact]
+    public async Task Revisao_de_seguranca_loja_da_venda_receita_sem_a_devolucao_e_reemissao_do_codigo_do_vale()
+    {
+        var (owner, till, op, _, saleId, number, lineId) = await SoldAsync();
+        using var device = till.Device;
+        var unit = till.PriceCents / 100m;
+        var saleDate = await WithDbAsync(db => db.Sales.AsNoTracking().Where(s => s.Id == saleId).Select(s => s.BusinessDate).SingleAsync());
+        async Task<(decimal Net, decimal Returns)> RevenueAsync()
+        {
+            await using var scope = await ScopeAsync();
+            var lines = (await scope.ServiceProvider.GetRequiredService<ISalesRevenue>().RevenueAsync(saleDate.AddDays(-1), saleDate.AddDays(1))).Where(r => r.StoreId == till.Store).ToList();
+            return (lines.Sum(r => r.Net), lines.Sum(r => r.Returns));
+        }
+
+        // Achado 2: em outra loja a venda não aparece nem é devolvida.
+        var (_, other) = await TillAsync(true, "pos.return");
+        using (other.Device)
+        {
+            var otherOp = Operator(await PinTokenAsync(other.Device, other.OperatorId, OwnPin), other.Device);
+            (await OkAsync(await otherOp.PostAsJsonAsync(LookupPath, new { number }))).GetProperty("sales").GetArrayLength().Should().Be(0);
+            (await otherOp.PostAsJsonAsync(ReturnsPath, ReturnBody(saleId, lineId, 1, "Restock"))).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        // Achado 9: o cliente do vale vem da venda; o corpo não aceita outro.
+        var forged = new { saleId, lines = new[] { new { saleLineId = lineId, quantity = 1m, destination = "Restock", reason = "Tamanho errado" } }, customerId = Guid.CreateVersion7() };
+        (await op.PostAsJsonAsync(ReturnsPath, forged)).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        // Achado 6: a devolução parcial (1 de 2, em vale) sai da receita do dia da devolução.
+        var before = await RevenueAsync();
+        var requested = await OkAsync(await op.PostAsJsonAsync(ReturnsPath, ReturnBody(saleId, lineId, 1, "Restock")));
+        var returnId = requested.GetProperty("id").GetGuid();
+        var done = await OkAsync(await op.PostAsJsonAsync($"{ReturnsPath}/{returnId}/approve", new { }));
+        var oldCode = done.GetProperty("storeCredit").GetProperty("code").GetString()!;
+        var after = await RevenueAsync();
+        (after.Net, after.Returns).Should().Be((before.Net - unit, before.Returns + unit));
+
+        // Achado 5: o código perdido é reemitido com o PIN do supervisor (preso à devolução e ao saldo); o antigo deixa de valer.
+        var supervisor = await CreateOperationUserAsync(owner, await CashierGroupAsync("pos.return"), till.Store, "Rui Supervisor");
+        await OkAsync(await PinLoginAsync(device, supervisor, InitialPin, OwnPin));
+        op = Operator(await PinTokenAsync(device, till.OperatorId, OwnPin), device);
+        Code(await JsonAsync(await op.PostAsJsonAsync($"{ReturnsPath}/{returnId}/store-credit/reissue", new { supervisorApprovalId = Guid.CreateVersion7() })))
+            .Should().Be("return_approval_invalid");
+        var approval = (await OkAsync(await op.PostAsJsonAsync(ApprovalsPath, new
+        {
+            action = "CreditReissue", supervisorId = supervisor, pin = OwnPin, reason = "Cliente perdeu o vale", saleId = returnId, lineId = (Guid?)null, beforeAmount = unit, afterAmount = 0m,
+        }))).GetProperty("approvalId").GetGuid();
+        var reissued = await OkAsync(await op.PostAsJsonAsync($"{ReturnsPath}/{returnId}/store-credit/reissue", new { supervisorApprovalId = approval }));
+        var newCode = reissued.GetProperty("code").GetString()!;
+        newCode.Should().NotBe(oldCode);
+        reissued.GetProperty("balance").GetDecimal().Should().Be(unit);
+        (await op.PostAsJsonAsync(CreditsPath + "/lookup", new { code = oldCode })).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await OkAsync(await op.PostAsJsonAsync(CreditsPath + "/lookup", new { code = newCode }))).GetProperty("usable").GetBoolean().Should().BeTrue();
+        Code(await JsonAsync(await op.PostAsJsonAsync($"{ReturnsPath}/{returnId}/store-credit/reissue", new { supervisorApprovalId = approval })))
+            .Should().Be("return_approval_invalid", "a aprovação serve uma vez só");
     }
 
     /// <summary>A forma "Vale-troca" (StoreCredit) da loja, descida para o catálogo do caixa.</summary>

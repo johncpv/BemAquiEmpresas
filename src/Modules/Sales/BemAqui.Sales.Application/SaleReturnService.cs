@@ -29,6 +29,7 @@ public sealed partial class SaleReturnService(
     IPaymentMethods paymentMethods,
     INumberSequence numbers,
     IEventPublisher events,
+    SaleLookupThrottle throttle,
     TimeProvider clock)
 {
     public const string RateLimitPolicy = "pos-returns-lookup";
@@ -52,23 +53,37 @@ public sealed partial class SaleReturnService(
             return Field("number", "Informe o número do cupom ou o CPF do cliente.");
         }
 
+        // Revisão de segurança (achado 2): a devolução é só na loja da venda (recomendação aceita, PO 25/11; rede de lojas fica para depois).
         List<Guid> ids;
         if (!string.IsNullOrEmpty(number))
         {
-            ids = await db.Sales.AsNoTracking().Where(s => s.Channel == SaleChannel.Pos && s.Number == number).Select(s => s.Id).ToListAsync(cancellationToken);
+            ids = await db.Sales.AsNoTracking().Where(s => s.Channel == SaleChannel.Pos && s.StoreId == context.StoreId && s.Number == number).Select(s => s.Id)
+                .ToListAsync(cancellationToken);
         }
         else
         {
-            ids = (await documents.FindSalesAsync(document!, cancellationToken)).Take(200).ToList();
-            // PP-26: a leitura pelo CPF fica auditada (quem, quando, de qual IP), sem o documento; uma linha por venda achada.
-            foreach (var id in ids.Take(MaxCandidates))
+            // Achado 8: além do limite por usuário e aparelho (rate limit da rota), um teto de buscas por CPF por caixa.
+            if (!throttle.TryAcquire(context.RegisterId))
             {
-                await audit.RecordReadAsync(nameof(SaleCustomerDocument), id.ToString(), "Localizar devolução", cancellationToken);
+                return Error.TooManyRequests("too_many_document_lookups", "Muitas buscas por CPF neste caixa. Espere alguns minutos ou busque pelo número do cupom.");
             }
+
+            ids = (await documents.FindSalesAsync(document!, cancellationToken)).Take(200).ToList();
         }
 
-        var sales = await db.Sales.AsNoTracking().Where(s => ids.Contains(s.Id) && s.Channel == SaleChannel.Pos && ReturnRules.Done.Contains(s.Status))
+        var sales = await db.Sales.AsNoTracking().Where(s => ids.Contains(s.Id) && s.Channel == SaleChannel.Pos && s.StoreId == context.StoreId && ReturnRules.Done.Contains(s.Status))
             .OrderByDescending(s => s.CompletedAt).Take(MaxCandidates).ToListAsync(cancellationToken);
+        if (!string.IsNullOrEmpty(document))
+        {
+            // PP-26 e achado 8: a consulta pelo CPF fica auditada mesmo sem resultado (quem, de qual IP, a loja, o caixa e quantas vendas), sem o documento;
+            // e uma linha por venda achada.
+            await audit.RecordReadAsync(nameof(SaleCustomerDocument), context.StoreId.ToString(),
+                $"Localizar devolução por CPF: caixa {context.RegisterNumber}, {sales.Count} venda(s)", cancellationToken);
+            foreach (var found in sales)
+            {
+                await audit.RecordReadAsync(nameof(SaleCustomerDocument), found.Id.ToString(), "Localizar devolução", cancellationToken);
+            }
+        }
         var today = BusinessTime.Today(clock);
         var candidates = new List<ReturnCandidate>();
         foreach (var sale in sales)
@@ -88,7 +103,7 @@ public sealed partial class SaleReturnService(
             return Error.Forbidden(Error.Codes.Forbidden, NotRegisterMessage);
         }
 
-        var sale = await db.Sales.AsNoTracking().FirstOrDefaultAsync(s => s.Id == input.SaleId && s.Channel == SaleChannel.Pos, cancellationToken);
+        var sale = await db.Sales.AsNoTracking().FirstOrDefaultAsync(s => s.Id == input.SaleId && s.Channel == SaleChannel.Pos && s.StoreId == context.StoreId, cancellationToken);
         if (sale is null || !ReturnRules.Done.Contains(sale.Status))
         {
             return Error.NotFound(Error.Codes.NotFound, NotFoundMessage);
@@ -129,9 +144,17 @@ public sealed partial class SaleReturnService(
             nsu = card.Value;
         }
 
-        if (input.RefundKind == RefundKind.Cash && context.CashSessionId is null)
+        if (input.RefundKind == RefundKind.Cash)
         {
-            return Error.Validation("cash_session_closed", "Abra o caixa para devolver em dinheiro, ou escolha o vale-troca.");
+            if (context.CashSessionId is null)
+            {
+                return Error.Validation("cash_session_closed", "Abra o caixa para devolver em dinheiro, ou escolha o vale-troca.");
+            }
+
+            if (await CashLimitAsync(sale.Id, total, cancellationToken) is { } limit)
+            {
+                return limit;
+            }
         }
 
         var today = BusinessTime.Today(clock);
@@ -139,7 +162,7 @@ public sealed partial class SaleReturnService(
         var id = Guid.CreateVersion7();
         var request = SaleReturn.Request(id, await numbers.NextAsync(SaleReturn.DocType, cancellationToken), sale.Id, input.RefundKind, total, context.StoreId, context.RegisterId,
             context.DeviceId, context.CashSessionId, operatorId, ReturnRules.IsLate(today, deadline), deadline, input.RefundKind == RefundKind.CardReversal ? input.CardPaymentId : null,
-            nsu, input.Exchange, input.CustomerId ?? sale.CustomerId, note, clock.GetUtcNow());
+            nsu, input.Exchange, sale.CustomerId, note, clock.GetUtcNow());
         db.SaleReturns.Add(request);
         db.SaleReturnLines.AddRange(lines.Select(l => SaleReturnLine.Create(id, l.Line, l.Quantity, l.Amount, l.Destination, l.Reason)));
         await db.SaveChangesAsync(cancellationToken);
@@ -159,15 +182,24 @@ public sealed partial class SaleReturnService(
         }
 
         // IDOR: a devolução só é vista e concluída no caixa em que foi pedida.
-        var key = await db.SaleReturns.AsNoTracking().Where(r => r.Id == returnId && r.RegisterId == context.RegisterId).Select(r => (Guid?)r.SaleId).FirstOrDefaultAsync(cancellationToken);
-        if (key is not { } saleId)
+        var key = await db.SaleReturns.AsNoTracking().Where(r => r.Id == returnId && r.RegisterId == context.RegisterId)
+            .Select(r => new { r.SaleId, r.RefundKind, r.CashSessionId, r.Status }).FirstOrDefaultAsync(cancellationToken);
+        if (key is null)
         {
             return Error.NotFound(Error.Codes.NotFound, "Devolução não encontrada neste caixa.");
         }
 
         await using var transaction = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(cancellationToken) : null;
+        // Revisão de segurança (achado 1): em dinheiro, primeiro a trava do caixa (a mesma da subida: vendas, sangrias e suprimentos) e a gaveta
+        // recalculada sob ela; depois a da venda. Sempre nessa ordem, sem ciclo com a subida (que não toma a trava da venda).
+        decimal? drawer = null;
+        if (key.RefundKind == RefundKind.Cash && key.Status == SaleReturnStatus.Requested && key.CashSessionId is { } cashSession && context.CashSessionId == cashSession)
+        {
+            drawer = await pos.LockDrawerAsync(context.RegisterId, cashSession, cancellationToken);
+        }
+
         // Uma conclusão por venda de cada vez: duas devoluções da mesma venda não passam juntas do que pode voltar.
-        await LockAsync("sales.return:" + saleId.ToString("N"), cancellationToken);
+        await LockAsync("sales.return:" + key.SaleId.ToString("N"), cancellationToken);
         var request = await db.SaleReturns.FirstAsync(r => r.Id == returnId, cancellationToken);
 
         if (request.Status == SaleReturnStatus.Completed)
@@ -198,6 +230,18 @@ public sealed partial class SaleReturnService(
             }
         }
 
+        // Achado 10: o prazo pode vencer entre o pedido e a conclusão (pedido às 23h59 do último dia); fora do prazo agora, pede o supervisor.
+        if (!request.Late && ReturnRules.IsLate(BusinessTime.Today(clock), request.Deadline))
+        {
+            request.MarkLate();
+        }
+
+        // Achado 3: em dinheiro, só até o que a venda recebeu em dinheiro menos o já devolvido em dinheiro (conferido de novo sob a trava da venda).
+        if (request.RefundKind == RefundKind.Cash && await CashLimitAsync(sale.Id, request.Total, cancellationToken) is { } limit)
+        {
+            return limit;
+        }
+
         // CA 3 e 5: fora do prazo ou em dinheiro, só com a aprovação do supervisor (PIN no caixa, PDV-04), presa a esta devolução e ao valor dela.
         Guid approvedBy = operatorId;
         if (request.NeedsSupervisor)
@@ -218,12 +262,12 @@ public sealed partial class SaleReturnService(
 
         if (request.RefundKind == RefundKind.Cash)
         {
-            if (context.CashSessionId is not { } session || session != request.CashSessionId)
+            if (context.CashSessionId is not { } session || session != request.CashSessionId || drawer is not { } cash)
             {
                 return Error.Validation("cash_session_changed", "A sessão de caixa mudou desde o pedido. Peça a devolução de novo.");
             }
 
-            if (request.Total > context.CashInDrawer)
+            if (request.Total > cash)
             {
                 return Error.Validation("cash_not_enough", "O valor passa do dinheiro em caixa. Escolha o vale-troca ou faça um suprimento.");
             }
@@ -402,6 +446,85 @@ public sealed partial class SaleReturnService(
         }
 
         return amount > card.Reversible ? Field("cardPaymentId", "O valor passa do que ainda pode ser estornado neste cartão.") : clean;
+    }
+
+    /// <summary>
+    /// Revisão de segurança (achado 3): o reembolso em dinheiro vai só até o que a venda recebeu em dinheiro (líquido do troco) menos o já devolvido em
+    /// dinheiro. Venda paga no cartão volta no estorno do cartão ou em vale; paga com vale (ou Pix), só em vale. Null quando cabe.
+    /// </summary>
+    private async Task<Error?> CashLimitAsync(Guid saleId, decimal amount, CancellationToken ct)
+    {
+        var cashMethods = (await paymentMethods.ActiveAsync(BusinessTime.Today(clock), ct)).Where(m => m.Type == PaymentMethodType.Cash).Select(m => m.Id).ToList();
+        var paid = await db.SalePayments.AsNoTracking()
+            .Where(p => p.SaleId == saleId && p.Status == SalePaymentStatus.Captured && cashMethods.Contains(p.PaymentMethodId))
+            .SumAsync(p => (decimal?)(p.Amount - p.ChangeAmount), ct) ?? 0m;
+        var refunded = await db.SaleReturns.AsNoTracking().Where(r => r.SaleId == saleId && r.Status == SaleReturnStatus.Completed && r.RefundKind == RefundKind.Cash)
+            .SumAsync(r => (decimal?)r.Total, ct) ?? 0m;
+        var available = Math.Max(0m, paid - refunded);
+        if (amount <= available)
+        {
+            return null;
+        }
+
+        return available <= 0
+            ? Field("refundKind", "Esta venda não tem dinheiro a devolver: devolva no estorno do cartão ou em vale-troca.")
+            : Field("refundKind",
+                $"Em dinheiro, devolva até {available.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))} (o que a venda recebeu em dinheiro menos o já devolvido). Escolha o estorno do cartão ou o vale-troca.");
+    }
+
+    /// <summary>
+    /// Revisão de segurança (achado 5): reemite o código do vale-troca perdido. Só na loja que emitiu o vale, com saldo e dentro da validade, e com a
+    /// aprovação do supervisor (ação <c>CreditReissue</c>, PIN no caixa, presa à devolução e ao saldo do vale). Gera código novo: o hash e os 4 últimos
+    /// mudam e o código antigo deixa de valer. Auditado (o vale é <c>IAuditable</c>; a aprovação fica na trilha do supervisor).
+    /// </summary>
+    public async Task<Result<StoreCreditIssued>> ReissueCodeAsync(string? posCookie, Guid operatorId, Guid returnId, StoreCreditReissueInput input,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        if (await pos.ContextAsync(posCookie, cancellationToken) is not { } context)
+        {
+            return Error.Forbidden(Error.Codes.Forbidden, NotRegisterMessage);
+        }
+
+        var creditId = await db.SaleReturns.AsNoTracking()
+            .Where(r => r.Id == returnId && r.StoreId == context.StoreId && r.Status == SaleReturnStatus.Completed && r.StoreCreditId != null)
+            .Select(r => r.StoreCreditId).FirstOrDefaultAsync(cancellationToken);
+        if (creditId is not { } id)
+        {
+            return Error.NotFound(Error.Codes.NotFound, "Devolução com vale-troca não encontrada nesta loja.");
+        }
+
+        await using var transaction = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(cancellationToken) : null;
+        // A mesma trava do uso do vale: o abatimento em andamento com o código antigo não passa junto com a troca do código.
+        await LockAsync(StoreCreditService.LockKey(id), cancellationToken);
+        var credit = await db.StoreCredits.FirstAsync(c => c.Id == id, cancellationToken);
+        var today = BusinessTime.Today(clock);
+        if (credit.Balance <= 0)
+        {
+            return Error.Validation("store_credit_empty", "Vale sem saldo: não há código a reemitir.");
+        }
+
+        if (credit.ExpiresOn < today)
+        {
+            return Error.Validation("store_credit_expired", $"Vale vencido em {credit.ExpiresOn.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)}: não há código a reemitir.");
+        }
+
+        var used = await pos.UseReissueApprovalAsync(input.SupervisorApprovalId, operatorId, context.RegisterId, returnId, credit.Balance, cancellationToken);
+        if (used.IsFailure)
+        {
+            return used.Error!;
+        }
+
+        var code = ReturnRules.NewCode();
+        var normalized = ReturnRules.Normalize(code)!;
+        credit.Reissue(ReturnRules.Hash(normalized), normalized[^4..]);
+        await db.SaveChangesAsync(cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
+
+        return new StoreCreditIssued(credit.Id, code, credit.CodeLast4, credit.Amount, credit.Balance, credit.ExpiresOn);
     }
 
     /// <summary>Pagamentos de cartão capturados da venda e o que cada um ainda pode estornar (valor − estornos de devoluções concluídas).</summary>

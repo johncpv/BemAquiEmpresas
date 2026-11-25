@@ -14,6 +14,9 @@ public enum SupervisorAction
 
     /// <summary>PDV-06: devolução em dinheiro ou fora do prazo da loja (<c>pos.return</c> do supervisor); <c>SaleId</c> é o id da devolução.</summary>
     Return,
+
+    /// <summary>PDV-06, revisão de segurança (achado 5): reemissão do código do vale-troca perdido (<c>pos.return</c> do supervisor); <c>SaleId</c> é o id da devolução que emitiu o vale.</summary>
+    CreditReissue,
 }
 
 public static class SupervisorActions
@@ -25,7 +28,7 @@ public static class SupervisorActions
         SupervisorAction.ChangePrice => "pos.change_price",
         SupervisorAction.CancelItem => "pos.cancel_item",
         SupervisorAction.CancelSale => "pos.cancel_sale",
-        SupervisorAction.Return => "pos.return",
+        SupervisorAction.Return or SupervisorAction.CreditReissue => "pos.return",
         _ => throw new ArgumentOutOfRangeException(nameof(action)),
     };
 
@@ -36,6 +39,7 @@ public static class SupervisorActions
         SupervisorAction.CancelItem => "Cancelamento de item",
         SupervisorAction.CancelSale => "Cancelamento de venda",
         SupervisorAction.Return => "Devolução (dinheiro ou fora do prazo)",
+        SupervisorAction.CreditReissue => "Reemissão do código do vale-troca",
         _ => action.ToString(),
     };
 
