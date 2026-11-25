@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Identity;
+using BemAqui.BuildingBlocks.Paging;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Sales.Application;
@@ -17,6 +18,15 @@ namespace BemAqui.Sales.Endpoints;
 public sealed record SaleReturnQuery(DateOnly From, DateOnly To, Guid? StoreId)
 {
     public SaleReturnFilter ToFilter() => new(From, To, StoreId);
+}
+
+/// <summary>Filtro e página da lista de vendas (PDV-07 CA 2): período em datas de negócio, loja, caixa, operador, forma de pagamento e estado.</summary>
+public sealed record SaleListQuery(
+    DateOnly From, DateOnly To, Guid? StoreId, Guid? RegisterId, Guid? OperatorId, Guid? PaymentMethodId, SaleListState? State, int? Page, int? PageSize, string? Sort)
+{
+    public SaleListFilter ToFilter() => new(From, To, StoreId, RegisterId, OperatorId, PaymentMethodId, State);
+
+    public PageRequest ToPage() => new(Page ?? 1, PageSize ?? PageRequest.DefaultPageSize, Sort);
 }
 
 /// <summary>Motivo do cancelamento e a confirmação de que os pagamentos capturados foram estornados fora (maquininha, provedor).</summary>
@@ -37,6 +47,21 @@ internal static class SalesEndpoints
                 context.HttpContext.Response.Headers.CacheControl = "no-store";
                 return await next(context);
             });
+        // PDV-07: Loja → Vendas. Lista e totais do filtro, exportação (ADR 0045) e detalhe com a trilha; custo e margem só com sales.view_cost.
+        sales.MapGet("/sales", async ([AsParameters] SaleListQuery query, SaleBackofficeService service, CancellationToken ct) =>
+                (await service.ListAsync(query.ToFilter(), query.ToPage(), ct)).ToHttpResult())
+            .RequirePermission("sales.view").WithName("ListSales").Produces<SaleListPage>();
+        sales.MapGet("/sales/export", (string? format, [AsParameters] SaleListQuery query, HttpContext http, SaleBackofficeService service, ListExportService export,
+                CancellationToken ct) => export.ExportAsync(http, format, (max, c) => service.ExportAsync(query.ToFilter(), query.Sort, max, c), ct))
+            .RequirePermission("sales.view").WithName("ExportSales");
+        sales.MapGet("/sales/{id:guid}", async (Guid id, SaleBackofficeService service, CancellationToken ct) =>
+                await service.DetailAsync(id, ct) is { } detail ? Results.Ok(detail) : Error.NotFound(Error.Codes.NotFound, "Venda não encontrada.").ToProblem())
+            .RequirePermission("sales.view").WithName("GetSaleDetail").Produces<SaleDetail>();
+        // CA 6: o CPF/CNPJ inteiro só aqui, com a leitura auditada (a lista e o arquivo trazem a máscara).
+        sales.MapGet("/sales/{id:guid}/customer-document", async (Guid id, SaleBackofficeService service, CancellationToken ct) =>
+                await service.RevealDocumentAsync(id, ct) is { } document ? Results.Ok(document) : Error.NotFound(Error.Codes.NotFound, "Esta venda não tem CPF ou CNPJ do consumidor.").ToProblem())
+            .RequirePermission("sales.view_customer_document").RequireRateLimiting(SaleBackofficeService.RevealRateLimitPolicy).WithName("GetSaleCustomerDocument").Produces<SaleCustomerDocumentView>();
+
         sales.MapGet("/{id:guid}", async (Guid id, SaleService service, IPermissionChecker permissions, CancellationToken ct) =>
                 await service.ViewAsync(id, ct) is { } sale ? Results.Ok(await MaskAsync(sale, permissions, ct)) : Error.NotFound(Error.Codes.NotFound, "Venda não encontrada.").ToProblem())
             .RequirePermission("sales.view").WithName("GetSale").Produces<SaleView>();

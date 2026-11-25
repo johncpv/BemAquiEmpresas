@@ -181,7 +181,7 @@ A story [PDV-05](stories/PDV-05-baixa-estoque-sem-bloquear.md) está escrita par
 | PP-39 | PIN offline: o mesmo PIN do online ou um separado | (a) o mesmo PIN, com limites de valor e de quantidade para aprovações offline; (b) um código de aprovação offline separado para supervisor; (c) operador com o mesmo PIN e supervisor com código separado | (c). O PIN de 6 dígitos guardado no aparelho é quebrável com acesso físico; se for o mesmo do online, quebrar o de um supervisor rende uma credencial de aprovação que vale com rede. Com código separado, o estrago fica nos limites offline. Nas três opções valem os limites e a revisão na sincronização | OFF-03 | **Decidida em 15/11/2026: (c)** |
 | PP-40 | Sentido de "CPD" | (a) central de distribuição que abastece as lojas; (b) retaguarda do varejo | — | Fase 12 | 15/11/2026 (John): **(b). CPD é o Centro de Processamento de Dados no sentido do varejo: a retaguarda**, onde se faz o controle geral (lançar as notas de entrada, precificar, cadastrar, entre outras). Não é centro de distribuição. O depósito central e a transferência entre lojas continuam como capacidade de multiloja (CPD-06) |
 | PP-41 | Exceção à regra "construção depois do go-live" | (a) nenhuma; (b) só o EmissorFiscal; (c) também os spikes deste repositório | — | SPK-02, NFCE-00 | 15/11/2026 (John): **(b). O trabalho no EmissorFiscal pode começar antes do go-live da Konebras**, em outra frente. Para este repositório a regra continua: construção depois do go-live, SPK-01 e SPK-03 incluídos, salvo nova exceção. **16/11/2026 (John): nova exceção — a construção começa já, na `main`, com os módulos novos desligados por tenant; o go-live tem prioridade** |
-| PP-42 | Acesso por loja | (a) quem tem o módulo vê todas as lojas, como hoje; (b) restringir usuário a lojas | Decidir com o piloto. O modelo de permissões é `modulo.acao`, sem escopo por loja; (b) pede ADR. Sem ela, um gerente vê as vendas e os caixas das outras lojas, o que enfraquece o item 27 do piso (multiloja) | PDV-07, CPD-05 | |
+| PP-42 | Acesso por loja | (a) quem tem o módulo vê todas as lojas, como hoje; (b) restringir usuário a lojas | Decidir com o piloto. O modelo de permissões é `modulo.acao`, sem escopo por loja; (b) pede ADR. Sem ela, um gerente vê as vendas e os caixas das outras lojas, o que enfraquece o item 27 do piso (multiloja) | PDV-07, CPD-05 | **Recomendação aceita (PO 25/11/2026):** opção (a) no MVP, como diz a PDV-07 CA 7; (b) volta com ADR se o piloto pedir |
 
 #### PP-07: o que foi aceito ao ficar na VPS atual
 
@@ -202,6 +202,15 @@ A análise do EmissorFiscal encontrou em `D:\GIT\EmissorFiscal\docs\Certificado\
 - **Não estão versionados** (`git ls-files` vazio) e **não foram abertos** nesta análise.
 - Mesmo fora do git, certificado e senha juntos numa pasta de projeto ficam ao alcance de backup, sincronização de nuvem, busca de arquivos e de qualquer ferramenta que leia o diretório. A regra do `CLAUDE.md` do Emissor pede que não fiquem no repositório.
 - **Recomendação:** tirar os dois da pasta do projeto e guardar o certificado em cofre, com a senha em outro lugar; conferir se a pasta está no `.gitignore`; e, se houver dúvida sobre cópias, considerar revogar e reemitir o A1. A decisão é do PO.
+
+#### Decidido na PDV-07 (25/11/2026)
+
+| # | O que | Como ficou na PDV-07 | Quem decide |
+|---|---|---|---|
+| PP-22 (alerta) | Cancelamentos acima de X% das vendas do turno | **Decidida pelo PO em 24/11/2026 (3%)**. Campo `pos.stores.cancel_alert_percent` (padrão 3, zero desliga), editável em Loja → Lojas. O caixa aberto ganha o chip "Cancelamentos acima de 3%" no card "Caixas abertos" quando o **valor** das vendas canceladas na sessão passa do percentual de (feitas + canceladas). Item cancelado antes de concluir a venda não entra (segue no relatório de aprovações) | Decidido |
+| PP-42 | Acesso por loja | Recomendação aceita (PO 25/11/2026): quem tem `sales.view` vê as vendas de todas as lojas | Decidido no MVP |
+| CA 6 (CPF no detalhe) | Mostrar o documento inteiro no detalhe | Recomendação aceita (PO 25/11/2026): o detalhe abre mascarado e o inteiro vem de uma rota à parte (`GET /sales/sales/{id}/customer-document`), exigindo a **ação específica `sales.view_customer_document`** (LGPD, ADR 0003; sem seed patch: nasce só com o Proprietário) e limitada a cerca de 20 leituras por minuto por usuário (429), com `SensitiveRead` a cada leitura (referência: número da venda). Recomendação aceita (PO 25/11/2026). O CNPJ também sai mascarado na lista e no arquivo | Decidido |
+| CA 10 (fila do aparelho) | Saber se há vendas na fila do caixa | O servidor não guarda a fila do aparelho. Recomendação aceita (PO 25/11/2026): o aviso aparece quando algum caixa aberto está há mais de 10 minutos sem contato (último evento, sincronização ou sinal do aparelho; com rede ele conversa a cada 1 a 5 minutos) | Decidido |
 
 #### Em aberto na PDV-04 (24/11/2026; PP-22 decidida pelo PO no mesmo dia)
 

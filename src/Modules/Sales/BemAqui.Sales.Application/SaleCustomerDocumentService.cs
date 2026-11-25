@@ -69,6 +69,49 @@ public sealed class SaleCustomerDocumentService(ISalesDb db, ISecretProtector se
         return await db.SaleCustomerDocuments.AsNoTracking().Where(d => d.BlindIndex == index).Select(d => d.SaleId).ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// PDV-07 CA 6: o documento das vendas, mascarado, para a lista e a exportação (CPF <c>***.456.789-**</c>, CNPJ <c>**.***.678/0001-**</c>).
+    /// Decifra só para mascarar; o documento inteiro nunca sai daqui.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<Guid, string>> MaskedAsync(IReadOnlyCollection<Guid> saleIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(saleIds);
+        if (saleIds.Count == 0)
+        {
+            return new Dictionary<Guid, string>();
+        }
+
+        var ids = saleIds.Distinct().ToList();
+        var rows = await db.SaleCustomerDocuments.AsNoTracking().Where(d => ids.Contains(d.SaleId)).Select(d => new { d.Id, d.SaleId, d.DocumentCipher }).ToListAsync(cancellationToken);
+        var scope = Scope();
+        return rows.ToDictionary(r => r.SaleId, r => Mask(secrets.Unprotect(scope, SecretKind.CustomerDocument, r.Id, r.DocumentCipher).Reveal()));
+    }
+
+    /// <summary>PDV-07 CA 6: o documento inteiro da venda (a leitura é auditada por quem chama); null se a venda não tem documento.</summary>
+    public async Task<string?> RevealAsync(Guid saleId, CancellationToken cancellationToken = default)
+    {
+        var row = await db.SaleCustomerDocuments.AsNoTracking().Where(d => d.SaleId == saleId).Select(d => new { d.Id, d.DocumentCipher }).FirstOrDefaultAsync(cancellationToken);
+        return row is null ? null : Format(secrets.Unprotect(Scope(), SecretKind.CustomerDocument, row.Id, row.DocumentCipher).Reveal());
+    }
+
+    /// <summary>Máscara da lista: CPF com os 6 dígitos do meio; CNPJ com a parte do meio e a filial.</summary>
+    public static string Mask(string? document)
+    {
+        var doc = BrazilianDocuments.Normalize(document);
+        return doc.Length == 14 ? $"**.***.{doc[5..8]}/{doc[8..12]}-**" : BrazilianDocuments.MaskCpf(doc);
+    }
+
+    private static string Format(string document)
+    {
+        var doc = BrazilianDocuments.Normalize(document);
+        return doc.Length switch
+        {
+            11 => $"{doc[..3]}.{doc[3..6]}.{doc[6..9]}-{doc[9..]}",
+            14 => $"{doc[..2]}.{doc[2..5]}.{doc[5..8]}/{doc[8..12]}-{doc[12..]}",
+            _ => doc,
+        };
+    }
+
     private SecretScope Scope() => SecretScope.ForTenant(tenant.Tenant?.Id ?? throw new InvalidOperationException("Documento do consumidor fora de um tenant."));
 
     /// <summary>A chave do índice cego do tenant: criada no primeiro uso (duas criações ao mesmo tempo: fica a primeira gravada).</summary>

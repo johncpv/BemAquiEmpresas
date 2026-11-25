@@ -5,7 +5,7 @@
 | ID | PDV-07 |
 | Título | Retaguarda de vendas: lista com filtros e exportação, detalhe da venda com a trilha completa e os cards "Vendas de hoje", "Caixas abertos" e "Ticket médio" no Início |
 | Tamanho | M |
-| Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
+| Status | Pronta para revisão (25/11/2026, branch `feat/pdv-07`) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | Objetivo central do produto (visibilidade financeira) · [PRD do PDV](../01-PRD.md) seção 4.1 (Dashboard) · ADR 0028 (composição por contratos) · ADR 0045 (exportação) |
 | Dependências | CX-03, PDV-05, OFF-02 |
@@ -69,15 +69,16 @@ Como **dono**, quero **ver as vendas do dia, os caixas abertos e o ticket médio
 - **PP-42:** usuário que só deve ver a própria loja. O modelo de permissões de hoje (`modulo.acao`) não tem escopo por loja; se o piloto pedir, exige ADR.
 
 ## Definition of Done
-- [ ] Critérios de aceite atendidos.
-- [ ] Testes de unidade e de integração (Testcontainers) passando; Vitest no front.
-- [ ] Migration criada; permissões só do `ModuleCatalog`.
-- [ ] Telas com estados de carregando, vazio e erro; ajuda escrita ou atualizada em `Ajuda/` no mesmo commit.
-- [ ] Padrões e próximo passo propositivos avaliados; auditoria ligada.
-- [ ] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR.
+- [x] Critérios de aceite atendidos.
+- [x] Testes de unidade e de integração (Testcontainers) passando; Vitest no front.
+- [x] Migration criada; permissões só do `ModuleCatalog`.
+- [x] Telas com estados de carregando, vazio e erro; ajuda escrita ou atualizada em `Ajuda/` no mesmo commit.
+- [x] Padrões e próximo passo propositivos avaliados; auditoria ligada.
+- [x] OpenAPI e cliente Orval regenerados; story marcada no backlog; decisões em ADR.
 
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 15/11/2026 | 0.1 | Story escrita como parte do plano do PDV (proposta). Aguarda a aprovação do plano e as decisões citadas em "Pontos em aberto" para sair de `Draft`. | Claude (planejamento) |
 | 15/11/2026 | 0.2 | Revista depois da revisão independente e das decisões do PO do mesmo dia ([o que mudou](../README.md#7-revisão-independente-de-15112026-achados-e-o-que-foi-aplicado)). | Claude (planejamento) |
+| 25/11/2026 | 1.0 | Implementada. **Backend:** `SaleBackofficeService` (Sales) com `GET /api/v1/sales/sales` (filtros por período, loja, caixa, operador, forma e estado; página com os totais do filtro), `/sales/sales/export` (ADR 0045, xlsx/pdf, teto do formato, custo e margem fora do arquivo sem `sales.view_cost`, consumidor sempre mascarado), `/sales/sales/{id}` (itens com preço da tabela e praticado, pagamentos e a trilha: eventos do aparelho, supervisor, sincronização, estoque, financeiro, impressões, pendências e cancelamento) e `/sales/sales/{id}/customer-document` (documento inteiro com `SensitiveRead`); contrato `IPosBackoffice` (Pos) com a trilha do caixa e as sessões abertas; card `GET /api/v1/dashboard/cards/store-sales` (`sales` + `sales.view`) pelo `ISalesRevenue`, `IPosBackoffice` e `ICashSessionSales`. **Migration** `PdvRetaguardaVendasPdv07` (só acréscimo): `pos.stores.cancel_alert_percent` (padrão 3) e o índice `ix_sales_day_store`. Sem permissão nova (`sales.view` e `sales.view_cost` já no `ModuleCatalog`). **Front:** Loja → Vendas (`/app/loja/vendas`, filtros na URL, totais no rodapé, exportação), Venda (`/app/loja/vendas/$id`, abas Itens, Pagamentos e Trilha, "Mostrar" o CPF), cards "Sua loja hoje" no Início (só Comércio), campo do alerta em Loja → Lojas e `?status=Open` em Loja → Caixas. **Ajuda:** `loja-vendas`, `loja-venda`, `loja-venda-trilha` (novas), `inicio` e `loja-lojas-caixas`. **Decisões:** PP-22 (alerta de 3%, decidida pelo PO em 24/11) implementada; PP-42 opção (a), CPF inteiro em rota auditada e aviso de fila por 10 min sem contato: recomendação aceita (PO 25/11), registradas no 06. **Fora:** CA 12 (E2E do marco e rodada completa do CI) fica para o fechamento do marco, como manda o CLAUDE.md (E2E por feature). | Claude (dev) |

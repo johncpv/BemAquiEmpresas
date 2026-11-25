@@ -197,37 +197,37 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - CA: app `/pdv` com build e service worker próprios, sem afetar `/fab` nem `/tv`; `LocalStore` com armazenamento persistente; foto e delta do catálogo da loja; a tela abre sem rede; atualização só na troca de turno; faixa "Sem conexão: N vendas a enviar".
 - Backend (18/11/2026, branch `feat/off-01-catalogo-loja`): `pos.catalog_items` com consumidor idempotente, carga inicial por loja, `GET /api/v1/pos/sync/snapshot` e `/changes?cursor=`, parâmetros da loja (PP-10, PP-22). Pendências: saldo por item (PP-02) na PDV-05; edição do aviso de sangria e do teto feita na CX-01 (tolerância e prazo de troca ainda sem tela).
 
-**PDV-02 [ ] Tela de venda: toque e teclado/leitor (G)** — ordem 3 — [story](stories/PDV-02-tela-de-venda.md)
+**PDV-02 [x] Tela de venda: toque e teclado/leitor (G)** — ordem 3 — [story](stories/PDV-02-tela-de-venda.md)
 - Depende de: OFF-01; PP-26 (decidida).
 - Paridade: 22.
 - CA: item por leitor, busca ou grade por categoria em menos de 100 ms; quantidade, remover e observação; venda em espera; cliente opcional e CPF; os dois modos por caixa; atalhos na ajuda; funciona igual sem rede.
 - Pronta para revisão (18/11/2026, branch `feat/pdv-02-tela-venda`): tudo no `LocalStore`, com diário de eventos e recuperação; busca de cliente em `GET /api/v1/pos/customers`. Pendências: categoria e foto na grade do modo Toque (o catálogo do caixa não traz; CA 7 parcial); abrir o caixa é marcador no aparelho até a CX-01; remoção com PIN do supervisor na PDV-04.
 
-**PDV-03 [ ] Pagamento com várias formas e troco, com maquininha externa (M)** — ordem 4 — [story](stories/PDV-03-pagamento-varias-formas.md)
+**PDV-03 [x] Pagamento com várias formas e troco, com maquininha externa (M)** — ordem 4 — [story](stories/PDV-03-pagamento-varias-formas.md)
 - Depende de: PDV-02, PAG-01, VND-01.
 - Paridade: 10 (formas diferentes na mesma venda).
 - CA: 1 a n pagamentos por venda; troco só no dinheiro; cartão pede bandeira e, opcionalmente, NSU; nunca número de cartão; `integration = Manual`; Pix conferido pelo operador marcado para conferência no fechamento; porta `PaymentTerminal` com `ManualTerminal`; venda `Completed` só com soma = total.
 - Pronta para revisão (18/11/2026, branch `feat/pdv-03-pagamento`): tela de pagamento no app do caixa sobre o `LocalStore`, eventos `PaymentStarted`, `TenderCaptured`, `TenderChanged`, `PaymentCancelled` e `SaleCompleted`; a venda concluída sobe inteira na fila de saída; bandeiras e teto de parcelas da forma no catálogo do caixa. Pendências: impressão do cupom (IMP-01); projeção em `sales.sale_payments` e validação na subida (OFF-02); lista do Pix a conferir (CX-02); estorno com supervisor (PDV-04).
 
-**CX-01 [ ] Abertura de caixa, sangria e suprimento (M)** — ordem 5 — [story](stories/CX-01-abertura-sangria-suprimento.md)
+**CX-01 [x] Abertura de caixa, sangria e suprimento (M)** — ordem 5 — [story](stories/CX-01-abertura-sangria-suprimento.md)
 - Depende de: PDV-01, PDV-02; PP-22.
 - Paridade: 5.
 - CA: uma sessão aberta por caixa; fundo de troco como transferência do Cofre; sangria e suprimento com motivo e comprovante, sem revelar o esperado; alerta e teto de dinheiro em caixa; sem sessão aberta não se vende.
 - Pronta para revisão (19/11/2026, branch `feat/cx-01-abertura-sangria`), local-first: turno, sangria e suprimento no aparelho com o evento na fila (`pos.cash`); `pos.cash_sessions` e `pos.cash_movements` gravados pelo `CashSessionIngestion` (a OFF-02 chama), uma sessão aberta por caixa; `CashMovementRecorded` vira transferência Cofre ↔ Caixa do PDV no Financeiro, única por movimento; aviso de sangria e teto (novo, opcional) editáveis em Lojas e caixas. Pendências: fechar com contagem (CX-02); gaveta e impressão direta (IMP-01, IMP-02); "Chamar supervisor" (PDV-04); validação na subida (OFF-02).
 
-**IMP-01 [ ] Cupom não fiscal em bobina de 58 e 80 mm e cadastro de impressora (M)** — ordem 6 — [story](stories/IMP-01-cupom-nao-fiscal-impressora.md)
+**IMP-01 [x] Cupom não fiscal em bobina de 58 e 80 mm e cadastro de impressora (M)** — ordem 6 — [story](stories/IMP-01-cupom-nao-fiscal-impressora.md)
 - Depende de: PDV-03.
 - Paridade: 2 (cupom não fiscal).
 - CA: modo "só cupom não fiscal" ligado pelo Proprietário, com aceite registrado em auditoria; porta `HardwareBridge`; assistente "Instalar impressora" com página de teste; recibo com "Não é documento fiscal"; reimpressão marca "2ª VIA"; relatório de vendas sem documento fiscal; falha na impressora não trava a venda.
 - Pronta para revisão (19/11/2026, branch `feat/imp-01-cupom-nao-fiscal`): recibo montado no aparelho (modelo estruturado em 32/42/48 colunas) e impresso pela porta `HardwareBridge` (`BrowserPrintBridge`); 2ª via com evento `ReceiptReprinted` na fila e `pos.print_records` no servidor (a subida é da OFF-02); `pos.printers` por caixa, descendo na sincronização; assistente `/pdv/config/impressora`; `pos.stores.fiscal_mode` com aceite versionado só do Proprietário (sem o aceite, o caixa não vende); cupom pós-venda por loja (perguntar, sempre, nunca); relatório `/app/loja/vendas-sem-documento-fiscal` com CSV. CPF mascarado no papel (PP-26). Pendências: e-mail e WhatsApp do cupom (OFF-02, ADR 0041); testes no kit e lista de modelos testados (PP-19); USB/rede/Bluetooth direto, corte e gaveta (IMP-02/03, PP-08); CNPJ do estabelecimento (NFCE-07).
 
-**OFF-02 [ ] Sincronização idempotente e Pendências do PDV (G)** — ordem 7 — [story](stories/OFF-02-sincronizacao-pendencias.md)
+**OFF-02 [x] Sincronização idempotente e Pendências do PDV (G)** — ordem 7 — [story](stories/OFF-02-sincronizacao-pendencias.md)
 - Depende de: OFF-01, PDV-03, VND-01, SPK-03.
 - Paridade: 1.
 - CA: lote de eventos com `event_id`, época, `seq` e cadeia de hash; reenvio não duplica (teste com 50 reenvios em paralelo); venda entra no `Sales` pelo contrato `ISaleIngestion`; venda concluída nunca é recusada; aparelho revogado ainda consegue subir; CPF fora do evento imutável; tela "Pendências do PDV".
 - Pronta para revisão (19/11/2026, branch `feat/off-02-sincronizacao`, [ADR 0050](../adr/0050-subida-de-eventos-do-pdv.md)): `POST /api/v1/pos/sync/events` (único endpoint aberto ao aparelho revogado), `pos.device_events` imutável por trigger, cada evento numa transação curta em série por caixa, replay da venda no servidor com os requisitos de segurança da PDV-02, PDV-03, CX-01 e IMP-01, quarentena e divergência em `pos.sync_divergences`, exceções por operador (`pos.operator_incidents`), permissão no instante (`identity.permission_snapshots`), CPF cifrado com índice cego em `sales.sale_customer_documents`, aviso "Caixa 02 sem enviar vendas há N horas.", tela `/app/loja/pendencias` com exportação, e no aparelho o selo da fila (seq e hash) e a subida a cada 20 s. Pendências: sessão por PIN do supervisor que autoriza (PDV-04); entrada por PIN sem rede (OFF-03); particionamento de `device_events`.
 
-**CX-02 [ ] Fechamento com conferência cega, quebra e recolhimento (G)** — ordem 8 — [story](stories/CX-02-fechamento-conferencia-cega.md)
+**CX-02 [x] Fechamento com conferência cega, quebra e recolhimento (G)** — ordem 8 — [story](stories/CX-02-fechamento-conferencia-cega.md)
 - Depende de: CX-01, PDV-03, IMP-01; PP-22.
 - Paridade: 5.
 - CA: o operador não vê o esperado; contado por forma; tolerância **por forma**; acima vai para `PendingReview`; recolhimento do dinheiro ao Cofre no fechamento; Pix conferido pelo operador conferido contra o extrato; relatório em PDF e em bobina; reabrir só a última, por pessoa diferente do operador, com aviso ao Proprietário.
@@ -239,12 +239,12 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - CA: `CashSessionClosed` gera resumos por forma, adquirente, bandeira e vencimento; título contra a adquirente com bruto, taxa prevista e D+N; recolhimento como transferência Caixa → Cofre; `ISalesRevenue` alimenta DRE e fluxo; um depósito baixa vários títulos; idempotente por sessão; teste de integração com Testcontainers.
 - Pronta para revisão (24/11/2026, branch `feat/cx-03`): consumidor do Financeiro para `CashSessionClosed`/`CashSessionReopened` (títulos da sessão por adquirente, bandeira, forma e vencimento, um por parcela; dinheiro baixado na conta do caixa; Pix "Não localizado" e quebra do dinheiro na conta Quebra de caixa; estorno na reabertura, que o `Pos` recusa com recebimento conciliado); um depósito baixa vários recebíveis de cartão na Conciliação; filtro "Origem: Cartões", "Líquido previsto" e a seção "No financeiro" da sessão. Pendências: taxa de cartão e quebra no DRE (conta a confirmar com a contadora); D+N em dia útil.
 
-**PDV-05 [ ] Baixa de estoque da venda sem bloquear (M)** — ordem 10 — [story](stories/PDV-05-baixa-estoque-sem-bloquear.md)
+**PDV-05 [x] Baixa de estoque da venda sem bloquear (M)** — ordem 10 — [story](stories/PDV-05-baixa-estoque-sem-bloquear.md)
 - Depende de: OFF-02, VND-01, SPK-03; PP-02 (decidida).
 - CA: opção "vender sem saldo" nas Configurações da empresa, padrão desligada (PP-02, 18/11/2026): desligada, o caixa não deixa vender item sem saldo (sem rede, pelo último saldo recebido); ligada, a falta não impede a venda; venda concluída nunca é recusada na sincronização; a baixa acontece fora do caminho do caixa; a falta fica visível na retaguarda com a ação de ajuste; estorno pelo documento de origem; custo gravado na linha para a margem.
 - Pronta para revisão (23/11/2026, branch `feat/pdv-05-baixa-estoque`, adendo à ADR 0023): opção em Configurações → Parâmetros → Loja (`pos.sell_without_stock`); baixa por venda no consumidor do `SaleCompleted`, com a falta em `inventory.stock_shortfalls`; tela `/app/estoque/divergencias` (só comércio) com Aplicar baixa, Ajustar estoque e Transferir do depósito; o cancelamento fecha a falta antes do estorno; saldo da loja no caixa (`/api/v1/pos/sync/stock`) com a recusa do item sem saldo. Pendências: devolução (PDV-06); chip na venda (PDV-07); teste de carga da baixa.
 
-**PDV-04 [ ] Desconto, troca de preço, cancelamento e PIN de supervisor (M)** — ordem 11 — [story](stories/PDV-04-desconto-cancelamento-supervisor.md)
+**PDV-04 [x] Desconto, troca de preço, cancelamento e PIN de supervisor (M)** — ordem 11 — [story](stories/PDV-04-desconto-cancelamento-supervisor.md)
 - Depende de: PDV-03, CX-01; PP-11, PP-22, PP-38.
 - Paridade: 6.
 - CA: limite de desconto (por grupo ou por loja, PP-38); acima, "Chamar supervisor"; supervisor diferente do operador; motivo obrigatório; `supervisor_approvals` gravado; aviso ao Proprietário no cancelamento de venda paga; relatório por operador.
@@ -255,7 +255,7 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - Depende de: IMP-01, SPK-01; PP-08.
 - CA: gerador ESC/POS único em TypeScript; `WebDeviceBridge` por WebUSB, WebSerial ou Bluetooth onde o navegador permite (corte, gaveta, QR); queda automática para a impressão do navegador; `pos.open_drawer` registrada; lista de impressoras homologadas na ajuda.
 
-**OFF-03 [ ] Caixa e supervisor sem rede (G)** — ordem 13 — [story](stories/OFF-03-caixa-supervisor-sem-rede.md)
+**OFF-03 [x] Caixa e supervisor sem rede (G)** — ordem 13 — [story](stories/OFF-03-caixa-supervisor-sem-rede.md)
 - Depende de: OFF-02, CX-02, PDV-04; PP-10, PP-39.
 - Paridade: 1, 6.
 - CA: abrir turno, sangria, suprimento e fechamento funcionam sem rede e sincronizam; PIN conferido no aparelho com chave de cifra não extraível; limites de valor e de quantidade para aprovação offline; janela máxima medida a partir do último horário do servidor; o que não funciona sem rede aparece desabilitado com explicação. Re-estimada de M para G pela revisão.
@@ -266,11 +266,12 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - CA: localizar a venda por número ou CPF (busca sem CPF na URL); devolução parcial; entrada no estoque ou perda; reembolso em dinheiro ou vale; troca ligada à venda nova; prazo configurável; `pos.return`. Só com rede.
 - Pronta para revisão (25/11/2026, branch `feat/pdv-06`): `sales.sale_returns` (DEV-AAAA-NNNN, Requested → Completed na aprovação, mesma transação do estoque e do reembolso), `sale_return_lines`, `store_credits` (hash SHA-256 do código, 4 últimos, saldo com CHECK) e `store_credit_movements` (uso por pagamento, idempotente); rotas do caixa em `/api/v1/pos/*` (sessão por PIN só alcança o PDV): `sales/lookup` (número ou CPF no corpo, índice cego, leitura auditada), `returns`, `returns/{id}/approve`, `store-credits/lookup` e `redeem` (código no corpo); retaguarda `GET /api/v1/sales/returns` e `/export`. Supervisor pela ação `Return` (`pos.return`) da PDV-04; dinheiro sai como movimento `Refund` da sessão; vale e devoluções em contas criadas sob demanda no Financeiro (`Vales-troca`, `Devoluções de vendas`); vale usado baixa o título na conta Vales-troca no fechamento; estorno de cartão regrava o título da adquirente. Venda com vale sem abatimento no servidor vai para a quarentena.
 
-**PDV-07 [ ] Retaguarda de vendas e cards do Início (M)** — ordem 15 — [story](stories/PDV-07-retaguarda-vendas-cards.md)
+**PDV-07 [x] Retaguarda de vendas e cards do Início (M)** — ordem 15 — [story](stories/PDV-07-retaguarda-vendas-cards.md)
 - Depende de: CX-03, PDV-05, OFF-02.
 - Paridade: 8 (parte).
 - CA: lista de vendas com filtros e exportação; detalhe com trilha (aprovações, sincronização, estoque); cards "Vendas de hoje", "Caixas abertos" e "Ticket médio"; E2E do fluxo principal no fechamento do marco.
 - Inclui (vindo da PDV-04 CA 13, PP-22 decidida pelo PO em 24/11/2026): o indicador por caixa "cancelamentos acima de 3% das vendas do turno".
+- Pronta para revisão (25/11/2026, branch `feat/pdv-07`): Loja → Vendas (`GET /api/v1/sales/sales`, `/export`, `/{id}` com a trilha e `/{id}/customer-document` auditado), contrato `IPosBackoffice`, card `/dashboard/cards/store-sales`, `pos.stores.cancel_alert_percent` (padrão 3%) e o índice `ix_sales_day_store`. O E2E do marco (CA 12) fica para o fechamento da feature.
 
 ---
 

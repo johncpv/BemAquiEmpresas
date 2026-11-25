@@ -16310,6 +16310,13 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<decimal>("CancelAlertPercent")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasDefaultValue(3m)
+                        .HasColumnName("cancel_alert_percent");
+
                     b.Property<decimal>("CashBreakTolerance")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
@@ -19913,6 +19920,9 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasIndex("BusinessDate", "Channel")
                         .HasDatabaseName("ix_sales_completed_day_channel")
                         .HasFilter("status = 'Completed'");
+
+                    b.HasIndex("BusinessDate", "StoreId")
+                        .HasDatabaseName("ix_sales_day_store");
 
                     b.HasIndex("Channel", "Number")
                         .IsUnique()

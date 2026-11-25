@@ -58,6 +58,9 @@ internal static class DashboardEndpoints
         cards.MapGet("/decisions", async (DashboardService service, CancellationToken ct) => Results.Ok(await service.DecisionsAsync(ct)))
             .RequireAnyPermissionOf("finance.approve", "projects.approve", "production.approve_quality", "purchasing.approve", "hr.approve")
             .WithName("GetDashboardDecisions").Produces<DecisionsCard>();
+        // PDV-07 CA 8 a 11: cards da loja no Início (só com o módulo sales liberado, ou seja, no perfil Comércio, e sales.view).
+        cards.MapGet("/store-sales", async (StoreSalesService service, CancellationToken ct) => Results.Ok(await service.GetAsync(ct)))
+            .RequireModule("sales").RequirePermission("sales.view").WithName("GetDashboardStoreSales").Produces<StoreSalesCard>();
         cards.MapOwnerCards();
         dashboard.MapProjectResults();
         return api;

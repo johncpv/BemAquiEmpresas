@@ -29,10 +29,11 @@ import { todayInBrazil } from './pos-pending'
  * esperado para essa permissão. Carregando, vazio e erro.
  */
 export function CashSessionsPage() {
-  const search = useSearch({ strict: false }) as { sessionId?: string }
+  const search = useSearch({ strict: false }) as { sessionId?: string; status?: string }
   const [storeId, setStoreId] = useState('')
   const [registerId, setRegisterId] = useState('')
-  const [status, setStatus] = useState<CashSessionStatus | ''>('')
+  // PDV-07 CA 9: o card "Caixas abertos" do Início abre a lista já filtrada (?status=Open).
+  const [status, setStatus] = useState<CashSessionStatus | ''>((search.status as CashSessionStatus | undefined) ?? '')
   const [open, setOpen] = useState<string | null>(search.sessionId ?? null)
   const [downloading, setDownloading] = useState(false)
   const stores = useListStores()

@@ -9,6 +9,21 @@ import { pwaOptions } from './pwa.config.ts'
 export default defineConfig({
   // PWA só do /fab (PRD-03b): manifesto "BemAqui Fábrica" e service worker que guarda só o shell, nunca /api/*.
   plugins: [react(), tailwindcss(), VitePWA(pwaOptions)],
+  // Bundle principal no limite do precache do PWA (4 MiB): bibliotecas pesadas em chunks próprios.
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return undefined
+          if (['recharts', '/d3-', 'victory-vendor'].some((k) => id.includes(k))) return 'vendor-charts'
+          if (id.includes('@dnd-kit')) return 'vendor-dnd'
+          if (['react-dom', '/react/', 'scheduler'].some((k) => id.includes(k))) return 'vendor-react'
+          if (id.includes('@tanstack')) return 'vendor-tanstack'
+          return undefined
+        },
+      },
+    },
+  },
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   server: {
     port: 5173,

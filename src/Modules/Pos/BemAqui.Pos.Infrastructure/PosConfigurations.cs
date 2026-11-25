@@ -33,6 +33,7 @@ internal sealed class StoreConfiguration : IEntityTypeConfiguration<Store>
         // PDV-04 (PP-38): limite de desconto da loja, em %; o padrão é da PP-22 (em aberto), até lá 0.
         b.Property(e => e.DiscountLimitPercent).HasPrecision(5, 2).HasDefaultValue(0m);
         b.Property(e => e.SyncAlertHours).HasDefaultValue(Store.DefaultSyncAlertHours);
+        b.Property(e => e.CancelAlertPercent).HasPrecision(5, 2).HasDefaultValue(Store.DefaultCancelAlertPercent);
         // OFF-03 CA 13 (PP-22, recomendação conservadora aceita pelo PO em 24/11/2026): limites da aprovação sem rede; zero vale (desliga), por isso o sentinela.
         b.Property(e => e.OfflineApprovalMaxAmount).HasPrecision(18, 2).HasDefaultValue(Store.DefaultOfflineApprovalMaxAmount).HasSentinel(Store.DefaultOfflineApprovalMaxAmount);
         b.Property(e => e.OfflineApprovalSessionAmount).HasPrecision(18, 2).HasDefaultValue(Store.DefaultOfflineApprovalSessionAmount)

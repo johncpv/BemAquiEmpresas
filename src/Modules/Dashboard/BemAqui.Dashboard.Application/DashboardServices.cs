@@ -27,6 +27,8 @@ public static class DashboardServices
         services.TryAddScoped<SupervisorShortages>();
         // PERF-04: checklist "Primeiros passos" do Comércio (empresa, regime e formas de pagamento pelos contratos dos donos).
         services.TryAddScoped<FirstStepsService>();
+        // PDV-07: cards da loja no Início (vendas de hoje, caixas abertos, ticket médio) pelos contratos do Sales e do Pos.
+        services.TryAddScoped<StoreSalesService>();
         return services;
     }
 }

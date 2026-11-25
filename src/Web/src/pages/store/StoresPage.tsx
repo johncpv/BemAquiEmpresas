@@ -20,6 +20,7 @@ import { PageHeading } from '@/shell/PageHeading'
 import { StoreFiscalMode } from './StoreFiscalMode'
 import { parsePercent } from '@/pages/pdv/sale/discount-input'
 import { contactText, isValidStoreCode, moneyText, nextRegisterNumber, normalizeStoreCode, parseAmount, parseOfflineLimits, registerLabel, UI_MODE_LABEL } from './stores'
+import { DICAS } from './sales'
 
 const CODE_DICA = 'Entra no número de cada venda (LOJA-01.1-000123): código da loja, caixa, época do aparelho e sequência. Escolha um curto e estável.'
 const EPOCH_DICA = 'Sobe a cada aparelho novo no caixa. As vendas do aparelho anterior que ainda não subiram não se misturam com as do novo.'
@@ -49,6 +50,7 @@ export function StoresPage() {
   const newStore = <Can perm="sales.create"><button type="button" onClick={() => setEditing({ kind: 'store', store: null })} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Nova loja</button></Can>
   const actions = (
     <div className="flex flex-wrap gap-2">
+      <Link to="/app/loja/vendas" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Vendas</Link>
       <Link to="/app/loja/caixas" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Caixas</Link>
       <Link to="/app/loja/pendencias" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Pendências do PDV</Link>
       <Link to="/app/loja/vendas-sem-documento-fiscal" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Vendas sem documento fiscal</Link>
@@ -138,6 +140,8 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
     freeRemoveLast: store?.freeRemoveLast ?? true, syncAlertHours: String(store?.syncAlertHours ?? 4),
     cashBreakTolerance: moneyText(store?.cashBreakTolerance ?? 5),
     discountLimit: String(store?.discountLimitPercent ?? 0).replace('.', ','),
+    // PDV-07 (PP-22): alerta de cancelamentos do turno, padrão 3%.
+    cancelAlert: String(store?.cancelAlertPercent ?? 3).replace('.', ','),
     // OFF-03 (PP-10 e PP-22): tempo máximo sem internet e limites da aprovação sem rede.
     offlineWindowHours: String(store?.offlineWindowHours ?? 168),
     offlineMax: moneyText(store?.offlineApprovalMaxAmount ?? 50), offlineSession: moneyText(store?.offlineApprovalSessionAmount ?? 150),
@@ -165,12 +169,14 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
     if (cashBreakTolerance === undefined || cashBreakTolerance > 9999.99) { setError('Informe a tolerância de quebra em reais (ex.: 5,00).'); return false }
     const discountLimitPercent = parsePercent(draft.discountLimit)
     if (discountLimitPercent === null) { setError('Informe o limite de desconto em %, de 0 a 100 (ex.: 5).'); return false }
+    const cancelAlertPercent = parsePercent(draft.cancelAlert)
+    if (cancelAlertPercent === null) { setError('Informe o alerta de cancelamentos em %, de 0 a 100 (ex.: 3).'); return false }
     const offline = parseOfflineLimits(draft)
     if (typeof offline === 'string') { setError(offline); return false }
     const input = {
       code: draft.code, name: draft.name.trim(), stockLocationId: locationId, defaultPriceListId: priceListId, isActive: draft.isActive,
       cashDropAlertAmount: alert, cashCeilingAmount: ceiling, receiptPrintMode: draft.receiptPrintMode, freeRemoveLast: draft.freeRemoveLast, syncAlertHours, cashBreakTolerance,
-      discountLimitPercent, ...offline,
+      discountLimitPercent, cancelAlertPercent, ...offline,
     }
     try {
       if (store) await updateStore(store.id, input)
@@ -244,6 +250,9 @@ function StorePanel({ store, onClose, onSaved }: { store: StoreView | null; onCl
             </Field>
             <Field label="Limite de desconto sem supervisor (%)" required size="sm" dica={DISCOUNT_LIMIT_DICA}>
               {(p) => <input {...p} value={draft.discountLimit} inputMode="decimal" maxLength={6} onChange={(e) => setDraft({ ...draft, discountLimit: e.target.value })} className={inputClass} />}
+            </Field>
+            <Field label="Alerta de cancelamentos no turno (%)" required size="sm" dica={DICAS.cancelamentos} hint="Zero desliga.">
+              {(p) => <input {...p} value={draft.cancelAlert} inputMode="decimal" maxLength={6} onChange={(e) => setDraft({ ...draft, cancelAlert: e.target.value })} className={inputClass} />}
             </Field>
             <Field label="Tolerância de quebra por forma (R$)" required size="md" dica={BREAK_TOLERANCE_DICA}>
               {(p) => <input {...p} value={draft.cashBreakTolerance} inputMode="decimal" onChange={(e) => setDraft({ ...draft, cashBreakTolerance: e.target.value })} className={inputClass} />}
