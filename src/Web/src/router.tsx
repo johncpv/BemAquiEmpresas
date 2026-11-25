@@ -1,5 +1,6 @@
 import { createRootRoute, createRoute, createRouter, Outlet, redirect } from '@tanstack/react-router'
-import { lazy } from 'react'
+import { lazy, Suspense } from 'react'
+import { SalePage, SalesPage } from '@/pages/store/lazy'
 import { InvitePage } from '@/auth/InvitePage'
 import { LoginPage } from '@/auth/LoginPage'
 import { ForgotPasswordPage, ResetPasswordPage } from '@/auth/PasswordPages'
@@ -123,8 +124,6 @@ import { PdvAppRedirect } from '@/pages/pdv/PdvAppRedirect'
 import { NonFiscalSalesPage } from '@/pages/store/NonFiscalSalesPage'
 import { SupervisorApprovalsPage } from '@/pages/store/SupervisorApprovalsPage'
 import { SaleReturnsPage } from '@/pages/store/SaleReturnsPage'
-import { SalePage } from '@/pages/store/SalePage'
-import { SalesPage } from '@/pages/store/SalesPage'
 import { PosPendingPage } from '@/pages/store/PosPendingPage'
 import { CashSessionsPage } from '@/pages/store/CashSessionsPage'
 import { StoresPage } from '@/pages/store/StoresPage'
@@ -423,8 +422,8 @@ const posPendingRoute = createRoute({ getParentRoute: () => appRoute, path: 'loj
 // CX-02: Loja → Caixas (sales.view; o esperado e as ações com sales.approve). ?sessionId= vem do aviso de fechamento em conferência e da reabertura.
 const cashSessionsRoute = createRoute({ getParentRoute: () => appRoute, path: 'loja/caixas', component: gated('sales', CashSessionsPage), validateSearch: (s: Record<string, unknown>): { sessionId?: string; status?: string } => ({ sessionId: text(s.sessionId), status: text(s.status) }) })
 // PDV-07: Loja → Vendas (lista com os filtros na URL) e o detalhe da venda com as abas Itens, Pagamentos e Trilha (sales.view).
-const salesListRoute = createRoute({ getParentRoute: () => appRoute, path: 'loja/vendas', component: gated('sales', SalesPage) })
-const saleDetailRoute = createRoute({ getParentRoute: () => appRoute, path: 'loja/vendas/$id', component: gated('sales', SalePage) })
+const salesListRoute = createRoute({ getParentRoute: () => appRoute, path: 'loja/vendas', component: gated('sales', () => <Suspense fallback={null}><SalesPage /></Suspense>) })
+const saleDetailRoute = createRoute({ getParentRoute: () => appRoute, path: 'loja/vendas/$id', component: gated('sales', () => <Suspense fallback={null}><SalePage /></Suspense>) })
 // Patrimônio (PAT-01a): bens (lista, novo com ?de= para duplicar, ficha com abas) e locais.
 const assetsRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio', beforeLoad: () => { throw redirect({ to: '/app/patrimonio/bens' }) } })
 const assetsRoute = createRoute({ getParentRoute: () => appRoute, path: 'patrimonio/bens', component: gated('assets', AssetsPage) })

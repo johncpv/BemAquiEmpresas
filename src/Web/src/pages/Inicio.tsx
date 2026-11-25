@@ -1,12 +1,14 @@
 import { Link } from '@tanstack/react-router'
 import { KeyRound, ShieldCheck, UserPlus } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { lazy, Suspense, useCallback, useState } from 'react'
 import { useNavigation } from '@/navigation/navigation-context'
 import { PageHeading } from '@/shell/PageHeading'
 import { MinhaPauta } from './inicio/MinhaPauta'
 import { PrimeirosPassos } from './inicio/PrimeirosPassos'
-import { VendasDaLoja } from './inicio/VendasDaLoja'
 import { canIn } from './use-can'
+
+// PDV-07: os cards da loja carregam sob demanda (o bundle principal está no limite do precache do PWA).
+const VendasDaLoja = lazy(() => import('./inicio/VendasDaLoja').then((m) => ({ default: m.VendasDaLoja })))
 
 const NEXT_STEPS = [
   { perm: 'identity.create', module: 'acessos', tab: 'usuarios', icon: UserPlus, title: 'Convidar a equipe', text: 'Cada pessoa entra com o próprio acesso e só vê o que o grupo dela permite.' },
@@ -30,7 +32,7 @@ export function Inicio() {
         <p className="mt-1 text-muted-foreground">Boas-vindas ao BemAqui Empresas da {tenantName}. Veja o que depende de você hoje:</p>
       </PageHeading>
 
-      <VendasDaLoja />
+      <Suspense fallback={null}><VendasDaLoja /></Suspense>
 
       <PrimeirosPassos />
 
