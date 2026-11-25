@@ -19,7 +19,7 @@
 #   BQE_SAAS_APP_HOST   host do ERP do tenant bemaqui, para a fumaça de fora (vazio: pula a fumaça de fora, com aviso)
 #   BQE_SAAS_PLATFORM_HOST  host da plataforma (opcional; SMOKE_PLATFORM_HOST do smoke.sh, só de um IP fora da allowlist)
 #   BQE_WORKTREE        worktree só de deploy, criada se não existir (padrão: ../bq-deploy ao lado do repositório)
-#   BQE_REGISTRY        prefixo das imagens; TEM de ser o mesmo REGISTRY do .env da VPS do SaaS (padrão ghcr.io/johncpv/saas)
+#   BQE_REGISTRY        prefixo das imagens; TEM de ser o mesmo REGISTRY do .env da VPS do SaaS (padrão ghcr.io/johncpv, o mesmo da Konebras: a mesma imagem por SHA serve as duas stacks)
 #   BQE_LOG_DIR         onde ficam os logs do build (padrão: diretório temporário)
 #   BQE_YES=1           não pergunta antes de publicar
 # Voltar o BANCO é manual, pelo dump do passo 3 (restauracao.md), só com o PO.
@@ -28,7 +28,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 KEY="${BQE_SSH_KEY:?defina BQE_SSH_KEY com o caminho da chave SSH da VPS}"
 TARGET="${BQE_SSH_TARGET:-root@2.25.82.127}"
 W="${BQE_WORKTREE:-$ROOT/../bq-deploy}"
-REG="${BQE_REGISTRY:-ghcr.io/johncpv/saas}"
+REG="${BQE_REGISTRY:-ghcr.io/johncpv}"
 R="$REG/bemaqui-empresas"
 L="${BQE_LOG_DIR:-$(mktemp -d)}"
 APP_HOST="${BQE_SAAS_APP_HOST:-}"
