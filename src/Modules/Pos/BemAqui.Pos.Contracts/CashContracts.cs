@@ -29,6 +29,9 @@ public sealed record CashMovementRecorded(
 
     /// <summary>CX-02 CA 10: o recolhimento volta ao caixa na reabertura (Cofre → Caixa do PDV).</summary>
     public const string DepositReturn = "DepositReturn";
+
+    /// <summary>PDV-06: devolução em dinheiro (sai da gaveta para o cliente; no Financeiro, Caixa do PDV → Devoluções de vendas).</summary>
+    public const string Refund = "Refund";
 }
 
 /// <summary>

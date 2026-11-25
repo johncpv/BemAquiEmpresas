@@ -16,7 +16,7 @@ public sealed class SalesLookupContract(ISalesDb db, SaleService sales) : ISaleL
 
     public async Task<IReadOnlyList<SalePaymentFact>> CapturedPaymentsAsync(DateOnly businessDate, SaleChannel channel, Guid? cashSessionId, CancellationToken cancellationToken = default)
     {
-        var salesOfDay = db.Sales.AsNoTracking().Where(s => s.BusinessDate == businessDate && s.Channel == channel && s.Status == SaleStatus.Completed);
+        var salesOfDay = db.Sales.AsNoTracking().Where(s => s.BusinessDate == businessDate && s.Channel == channel && ReturnRules.Done.Contains(s.Status));
         salesOfDay = cashSessionId is { } session ? salesOfDay.Where(s => s.CashSessionId == session) : salesOfDay.Where(s => s.CashSessionId == null);
         return await salesOfDay
             .Join(db.SalePayments.AsNoTracking().Where(p => p.Status == SalePaymentStatus.Captured), s => s.Id, p => p.SaleId,
@@ -26,18 +26,25 @@ public sealed class SalesLookupContract(ISalesDb db, SaleService sales) : ISaleL
 
     public async Task<IReadOnlyList<SessionPaymentFact>> SessionPaymentsAsync(Guid cashSessionId, CancellationToken cancellationToken = default)
     {
-        var rows = await db.Sales.AsNoTracking().Where(s => s.CashSessionId == cashSessionId && s.Status == SaleStatus.Completed)
+        var rows = await db.Sales.AsNoTracking().Where(s => s.CashSessionId == cashSessionId && ReturnRules.Done.Contains(s.Status))
             .Join(db.SalePayments.AsNoTracking().Where(p => p.Status == SalePaymentStatus.Captured), s => s.Id, p => p.SaleId,
                 (s, p) => new { s.BusinessDate, SaleId = s.Id, PaymentId = p.Id, p.PaymentMethodId, p.AcquirerPartyId, p.CardBrand, p.Installments, Amount = p.Amount - p.ChangeAmount, s.CustomerId })
             .OrderBy(x => x.BusinessDate).ThenBy(x => x.PaymentId)
             .ToListAsync(cancellationToken);
-        return rows.Select(x => new SessionPaymentFact(x.BusinessDate, new SalePaymentFact(x.SaleId, x.PaymentId, x.PaymentMethodId, x.AcquirerPartyId, x.CardBrand, x.Installments, x.Amount, x.CustomerId)))
+        // PDV-06 CA 6: o estorno no cartão das devoluções concluídas reduz o pagamento do cartão (o título da adquirente sai menor).
+        var paymentIds = rows.Select(r => r.PaymentId).ToList();
+        var reversed = await db.SaleReturns.AsNoTracking()
+            .Where(r => r.Status == SaleReturnStatus.Completed && r.CardPaymentId != null && paymentIds.Contains(r.CardPaymentId.Value))
+            .GroupBy(r => r.CardPaymentId!.Value).Select(g => new { PaymentId = g.Key, Amount = g.Sum(r => r.Total) })
+            .ToDictionaryAsync(g => g.PaymentId, g => g.Amount, cancellationToken);
+        return rows.Select(x => new SessionPaymentFact(x.BusinessDate, new SalePaymentFact(x.SaleId, x.PaymentId, x.PaymentMethodId, x.AcquirerPartyId, x.CardBrand, x.Installments,
+                Math.Max(0m, x.Amount - reversed.GetValueOrDefault(x.PaymentId)), x.CustomerId)))
             .ToList();
     }
 
     public async Task<IReadOnlyList<SalesRevenueLine>> RevenueAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
     {
-        var rows = await db.Sales.AsNoTracking().Where(s => s.Status == SaleStatus.Completed && s.BusinessDate >= from && s.BusinessDate <= to)
+        var rows = await db.Sales.AsNoTracking().Where(s => ReturnRules.Done.Contains(s.Status) && s.BusinessDate >= from && s.BusinessDate <= to)
             .GroupBy(s => new { s.BusinessDate, s.StoreId, s.Channel })
             .Select(g => new { g.Key.BusinessDate, g.Key.StoreId, g.Key.Channel, Count = g.Count(), Gross = g.Sum(s => s.Subtotal), Discounts = g.Sum(s => s.DiscountTotal),
                 Fees = g.Sum(s => s.ServiceFee), Net = g.Sum(s => s.Total) })

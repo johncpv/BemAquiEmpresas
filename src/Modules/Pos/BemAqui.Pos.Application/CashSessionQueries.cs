@@ -109,6 +109,7 @@ public sealed class CashSessionQueries(
         CashMovementKind.CashIn => "Suprimento",
         CashMovementKind.Deposit => "Recolhimento ao Cofre",
         CashMovementKind.DepositReturn => "Recolhimento devolvido (reabertura)",
+        CashMovementKind.Refund => "Devolução em dinheiro",
         _ => kind.ToString(),
     };
 

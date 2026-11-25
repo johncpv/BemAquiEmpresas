@@ -143,6 +143,7 @@ public sealed class ReversePolicy(IInventoryDb db, IPermissionChecker permission
         StockSources.CatalogImport => "Importação de produtos",
         StockSources.Sale => "Venda",
         StockSources.StockShortfall => "Divergência de estoque",
+        StockSources.SaleReturn => "Devolução de venda",
         _ => sourceType,
     };
 

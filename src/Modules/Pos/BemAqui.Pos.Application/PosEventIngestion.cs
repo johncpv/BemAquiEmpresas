@@ -67,6 +67,7 @@ public sealed partial class PosEventIngestion(
     INotificationService notifications,
     IUserDirectory users,
     IPosOfflineAccess offlineAccess,
+    IStoreCreditRedemptions storeCredits,
     TimeProvider clock,
     ILogger<PosEventIngestion> logger)
 {

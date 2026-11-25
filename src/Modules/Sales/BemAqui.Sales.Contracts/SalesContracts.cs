@@ -17,7 +17,10 @@ public enum SaleChannel
     ServiceOrder,
 }
 
-/// <summary>Situação da venda: aberta (sem pagamento), parcialmente paga, concluída ou cancelada. Venda nunca é apagada.</summary>
+/// <summary>
+/// Situação da venda: aberta (sem pagamento), parcialmente paga, concluída ou cancelada. Venda nunca é apagada. PDV-06: a concluída passa a
+/// parcialmente devolvida ou devolvida com a devolução concluída; continua sendo venda feita (receita, recebível e baixa ficam).
+/// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<SaleStatus>))]
 public enum SaleStatus
 {
@@ -25,6 +28,8 @@ public enum SaleStatus
     PartiallyPaid,
     Completed,
     Cancelled,
+    PartiallyReturned,
+    Returned,
 }
 
 /// <summary>

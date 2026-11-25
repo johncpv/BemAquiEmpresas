@@ -22,6 +22,15 @@ public interface ISalesDb
 
     DbSet<BlindIndexKey> BlindIndexKeys { get; }
 
+    /// <summary>PDV-06: devoluções, as linhas, os vales-troca e os usos do vale.</summary>
+    DbSet<SaleReturn> SaleReturns { get; }
+
+    DbSet<SaleReturnLine> SaleReturnLines { get; }
+
+    DbSet<StoreCredit> StoreCredits { get; }
+
+    DbSet<StoreCreditMovement> StoreCreditMovements { get; }
+
     /// <summary>Para conferir se a ingestão roda na transação de quem chama (CA 3).</summary>
     DatabaseFacade Database { get; }
 

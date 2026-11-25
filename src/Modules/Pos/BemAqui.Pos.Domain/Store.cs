@@ -42,6 +42,14 @@ public sealed class Store : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>Prazo para troca, em dias (PP-22): padrão 30. Usado pela PDV-06.</summary>
     public int ExchangeDays { get; set; } = 30;
 
+    /// <summary>
+    /// Validade do vale-troca, em dias (PDV-06 CA 7): padrão <see cref="DefaultStoreCreditValidityDays"/>. A PP-22 não fixou o valor: padrão
+    /// conservador a confirmar com o PO, por loja.
+    /// </summary>
+    public int StoreCreditValidityDays { get; set; } = DefaultStoreCreditValidityDays;
+
+    public const int DefaultStoreCreditValidityDays = 90;
+
     /// <summary>Aviso de sangria a partir deste valor em dinheiro no caixa (PP-22), <c>numeric(18,2)</c>: padrão R$ 1.000,00. Usado pela CX-01 (CA 7).</summary>
     public decimal CashDropAlertAmount { get; set; } = 1000.00m;
 

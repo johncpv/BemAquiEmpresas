@@ -11,6 +11,9 @@ public enum SupervisorAction
     ChangePrice,
     CancelItem,
     CancelSale,
+
+    /// <summary>PDV-06: devolução em dinheiro ou fora do prazo da loja (<c>pos.return</c> do supervisor); <c>SaleId</c> é o id da devolução.</summary>
+    Return,
 }
 
 public static class SupervisorActions
@@ -22,6 +25,7 @@ public static class SupervisorActions
         SupervisorAction.ChangePrice => "pos.change_price",
         SupervisorAction.CancelItem => "pos.cancel_item",
         SupervisorAction.CancelSale => "pos.cancel_sale",
+        SupervisorAction.Return => "pos.return",
         _ => throw new ArgumentOutOfRangeException(nameof(action)),
     };
 
@@ -31,6 +35,7 @@ public static class SupervisorActions
         SupervisorAction.ChangePrice => "Troca de preço",
         SupervisorAction.CancelItem => "Cancelamento de item",
         SupervisorAction.CancelSale => "Cancelamento de venda",
+        SupervisorAction.Return => "Devolução (dinheiro ou fora do prazo)",
         _ => action.ToString(),
     };
 
@@ -40,6 +45,7 @@ public static class SupervisorActions
         "pos.change_price" => SupervisorAction.ChangePrice,
         "pos.cancel_item" => SupervisorAction.CancelItem,
         "pos.cancel_sale" => SupervisorAction.CancelSale,
+        "pos.return" => SupervisorAction.Return,
         _ => null,
     };
 }
@@ -128,5 +134,12 @@ public sealed class SupervisorApproval : Entity, IAuditable
         UsedAt ??= at;
         UsedByEventId ??= eventId;
         RefundReference ??= string.IsNullOrWhiteSpace(refund) ? null : refund.Trim();
+    }
+
+    /// <summary>PDV-06: a devolução aprovada foi concluída com esta aprovação (o id da devolução fica no lugar do evento).</summary>
+    public void UseForReturn(Guid returnId, DateTimeOffset at)
+    {
+        UsedAt ??= at;
+        UsedByEventId ??= returnId;
     }
 }

@@ -96,7 +96,7 @@ public static class PinProfile
         permissions.Has(PosAction) && SensitiveActions(permissions).Count == 0;
 
     /// <summary>As ações do caixa que pedem supervisor (PDV-04).</summary>
-    public static readonly IReadOnlyList<string> PosSupervisorPermissions = ["pos.discount", "pos.change_price", "pos.cancel_item", "pos.cancel_sale"];
+    public static readonly IReadOnlyList<string> PosSupervisorPermissions = ["pos.discount", "pos.change_price", "pos.cancel_item", "pos.cancel_sale", "pos.return"];
 
     /// <summary>Exceção nomeada da PP-11 (ADR 0048 §5): com <c>*.approve</c>, o PIN aprova só o desconto acima do limite e o cancelamento de venda.</summary>
     public static readonly IReadOnlyList<string> ApproveProfileSupervisorPermissions = ["pos.discount", "pos.cancel_sale"];

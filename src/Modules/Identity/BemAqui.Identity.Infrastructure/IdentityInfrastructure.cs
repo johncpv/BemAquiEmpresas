@@ -90,6 +90,7 @@ public static class IdentityInfrastructure
         services.TryAddScoped<BemAqui.Identity.Contracts.IPosStoreOperators>(sp => sp.GetRequiredService<Application.Shopfloor.PosStoreOperators>()); // OFF-01
         services.TryAddScoped<Application.Shopfloor.PosPinService>();
         services.TryAddScoped<BemAqui.Identity.Contracts.IPosSupervisorPins>(sp => sp.GetRequiredService<Application.Shopfloor.PosPinService>()); // PDV-04: PIN do supervisor no balcão
+        services.TryAddScoped<BemAqui.Identity.Contracts.IPosRegisterDevice, Application.Shopfloor.PosRegisterDeviceResolver>(); // PDV-06: o caixa da devolução
         services.TryAddScoped<BemAqui.Identity.Contracts.IPosOperatorHistory, Application.Shopfloor.PosOperatorHistory>(); // OFF-02: operador e permissão no instante
         services.TryAddScoped<Application.Shopfloor.PosOfflineAccessService>();
         services.TryAddScoped<BemAqui.Identity.Contracts.IPosOfflineAccess>(sp => sp.GetRequiredService<Application.Shopfloor.PosOfflineAccessService>()); // OFF-03: PIN sem rede

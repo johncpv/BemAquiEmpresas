@@ -33,6 +33,7 @@ public static class NumberFormats
         ["AJ"] = new("AJ", true, 4),
         ["INV"] = new("INV", true, 4),
         ["LGPD"] = new("LGPD", true, 4),
+        ["DEV"] = new("DEV", true, 4),
     };
 
     /// <summary>Nome de cada tipo na tela (CA 9) e na confirmação ("O próximo orçamento sairá como...").</summary>
@@ -42,5 +43,6 @@ public static class NumberFormats
         ["SC"] = "Solicitação de compra", ["COT"] = "Cotação", ["PC"] = "Pedido de compra", ["REC"] = "Recebimento",
         ["CR"] = "Conta a receber", ["CP"] = "Conta a pagar", ["OP"] = "Ordem de pagamento", ["MAN"] = "Manutenção", ["PAT"] = "Patrimônio",
         ["MOV"] = "Movimento de estoque", ["REQ"] = "Requisição de material", ["ROM"] = "Romaneio de expedição", ["AJ"] = "Ajuste de estoque", ["INV"] = "Inventário", ["LGPD"] = "Pedido do titular (LGPD)",
+        ["DEV"] = "Devolução de venda",
     };
 }

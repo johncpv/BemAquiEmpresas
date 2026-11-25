@@ -29,6 +29,12 @@ public static class SalesInfrastructure
         services.TryAddScoped<ISaleLookup>(sp => sp.GetRequiredService<SalesLookupContract>());
         services.TryAddScoped<ISalesRevenue>(sp => sp.GetRequiredService<SalesLookupContract>());
         services.TryAddScoped<ICashSessionSales, CashSessionSalesContract>(); // CX-02: resumo das vendas da sessão para o fechamento do caixa
+        services.TryAddScoped<SaleReturnService>(); // PDV-06: devolução, troca e vale-troca no caixa
+        services.TryAddScoped<SaleReturnReportService>(); // PDV-06 CA 12: Loja → Devoluções
+        services.TryAddScoped<StoreCreditService>();
+        services.TryAddScoped<IStoreCreditRedemptions>(sp => sp.GetRequiredService<StoreCreditService>());
+        services.AddAuditableEntity<SaleReturn>(SaleService.Module); // pedido, aprovação e conclusão da devolução
+        services.AddAuditableEntity<StoreCredit>(SaleService.Module); // emissão e cada uso do vale (saldo antes e depois)
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPaymentProvider, ManualPaymentProvider>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IPaymentMethodUsageProvider, SalePaymentMethodUsage>());
         services.AddAuditableEntity<Sale>(SaleService.Module);

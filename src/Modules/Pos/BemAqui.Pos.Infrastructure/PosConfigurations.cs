@@ -16,6 +16,7 @@ internal sealed class StoreConfiguration : IEntityTypeConfiguration<Store>
             t.HasCheckConstraint("ck_stores_parameters", "cash_break_tolerance >= 0 AND exchange_days >= 0 AND cash_drop_alert_amount >= 0");
             t.HasCheckConstraint("ck_stores_cash_ceiling", "cash_ceiling_amount IS NULL OR cash_ceiling_amount > 0");
             t.HasCheckConstraint("ck_stores_discount_limit", "discount_limit_percent BETWEEN 0 AND 100");
+            t.HasCheckConstraint("ck_stores_store_credit_validity", "store_credit_validity_days BETWEEN 1 AND 3650");
         });
         // CX-01 (PP-22): teto de dinheiro no caixa, opcional (nulo = sem teto).
         b.Property(e => e.CashCeilingAmount).HasPrecision(18, 2);
@@ -26,6 +27,8 @@ internal sealed class StoreConfiguration : IEntityTypeConfiguration<Store>
         b.Property(e => e.OfflineWindowHours).HasDefaultValue(Store.DefaultOfflineWindowHours);
         b.Property(e => e.CashBreakTolerance).HasPrecision(18, 2).HasDefaultValue(5.00m);
         b.Property(e => e.ExchangeDays).HasDefaultValue(30);
+        // PDV-06: validade do vale-troca (padrão conservador, a confirmar com o PO).
+        b.Property(e => e.StoreCreditValidityDays).HasDefaultValue(Store.DefaultStoreCreditValidityDays).HasSentinel(Store.DefaultStoreCreditValidityDays);
         b.Property(e => e.FreeRemoveLast).HasDefaultValue(true).HasSentinel(true);
         // PDV-04 (PP-38): limite de desconto da loja, em %; o padrão é da PP-22 (em aberto), até lá 0.
         b.Property(e => e.DiscountLimitPercent).HasPrecision(5, 2).HasDefaultValue(0m);

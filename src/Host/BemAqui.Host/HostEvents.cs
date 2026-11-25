@@ -112,8 +112,13 @@ public static class HostEvents
             // reabertura estorna. Idempotente pela chave do título e pelo id da transferência da quebra.
             .AddHandler<BemAqui.Pos.Contracts.CashSessionClosed, BemAqui.Finance.Application.CashSessionFinanceConsumer>()
             .AddHandler<BemAqui.Pos.Contracts.CashSessionReopened, BemAqui.Finance.Application.CashSessionFinanceConsumer>()
-            // OFF-02: venda descartada no caixa (só registro; ninguém consome por enquanto).
-            .AddEvent<BemAqui.Pos.Contracts.PosSaleDiscarded>()
+            // OFF-02: venda descartada no caixa. PDV-06: o vale abatido para ela volta ao vale.
+            .AddHandler<BemAqui.Pos.Contracts.PosSaleDiscarded, BemAqui.Sales.Application.StoreCreditService>()
+            // PDV-06: a venda concluída devolve ao vale o abatimento sem pagamento capturado e liga a troca; a cancelada devolve tudo ao vale.
+            .AddHandler<BemAqui.Sales.Contracts.SaleCompleted, BemAqui.Sales.Application.StoreCreditService>()
+            .AddHandler<BemAqui.Sales.Contracts.SaleCancelled, BemAqui.Sales.Application.StoreCreditService>()
+            // PDV-06: devolução concluída; o Financeiro lança o vale-troca como passivo e reduz o título da adquirente no estorno de cartão.
+            .AddHandler<BemAqui.Sales.Contracts.SaleReturned, BemAqui.Finance.Application.CashSessionFinanceConsumer>()
             // RH-02c (ADR 0036 §4): o fechamento cria os títulos na própria transação; os eventos da folha são só aviso e projeção, e a folha
             // fica paga (ou volta a fechada no estorno) pela fonte, no consumidor da OP.
             .AddEvent<BemAqui.HR.Contracts.PayrollClosed>()

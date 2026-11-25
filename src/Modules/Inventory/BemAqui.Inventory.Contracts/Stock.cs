@@ -41,6 +41,12 @@ public static class StockSources
     /// <c>SourceNumber</c>, o número da venda que faltou.
     /// </summary>
     public const string StockShortfall = "StockShortfall";
+
+    /// <summary>
+    /// Devolução de venda (PDV-06): a entrada de devolução (tipo <c>Return</c>) e, no item avariado, a baixa de perda (tipo <c>Adjustment</c>, perna 2);
+    /// <c>SourceId</c> é a devolução e o <c>SourceNumber</c>, o número dela.
+    /// </summary>
+    public const string SaleReturn = "SaleReturn";
 }
 
 /// <summary>
