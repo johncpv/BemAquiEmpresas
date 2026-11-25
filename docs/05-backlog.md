@@ -723,9 +723,12 @@ Decisão do PO de 15/11/2026: edição direta do custo orçado no projeto, prote
 
 Decisão do PO de 25/11/2026 ([ADR 0051](adr/0051-ambiente-saas-multitenant.md)): modelo híbrido de instalação; o padrão é um ambiente SaaS multi-tenant novo, com stack e PostgreSQL próprios na VPS compartilhada, e a Konebras segue na stack dela.
 
-**SAAS-01 [~] Ambiente SaaS multi-tenant: compose, deploy, vhosts em template e runbook (M)** — Pós-go-live, ordem 1 — SAAS-01a [x] (repositório: `deploy/saas/`, `scripts/deploy-saas.sh`, CI e runbook "Ambiente SaaS" em `docs/operacao/deploy.md`) · SAAS-01b [ ] (VPS, aguarda o PO: domínios, DNS, secrets e tenant `bemaqui`)
+**SAAS-01 [x] Ambiente SaaS multi-tenant: compose, deploy, vhosts em template e runbook (M)** — Pós-go-live, ordem 1 — SAAS-01a [x] (repositório: `deploy/saas/`, `scripts/deploy-saas.sh`, CI e runbook "Ambiente SaaS" em `docs/operacao/deploy.md`) · SAAS-01b [x] (VPS em 25/11/2026: plataforma.bemaquiapp.com.br e erp.bemaquiapp.com.br com certificado, tenant `bemaqui` provisionado pelo painel com o perfil Prestação de serviços; SMTP ainda provisório, convite do proprietário por `tenant invite-owner`)
 - Requisitos: ADR 0051, ADR 0004, ADR 0015, ADR 0020, ADR 0034.
 - CA: stack `bqe-saas` em `/opt/projetos/bemaqui-saas` com o endurecimento da produção e sem nada compartilhado com `bqe-homolog-*`; catálogo, key ring e certificado novos; vhosts com `__PLATFORM_HOST__`, `__APP_HOST__` e `__TENANT_HOST__` validados no CI; deploy com dump de `catalog` e de todo `tenant_*`, migrator e fumaça; backup externo desligado até o primeiro cliente com dado real; ordem de deploy SaaS → Konebras com o mesmo SHA; tenant `bemaqui` provisionado pelo painel (SAAS-01b).
+- Observações do PO no primeiro provisionamento (25/11/2026), a rever:
+  - O campo "Endereço" do diálogo de provisionar (e as colunas "Endereço"/"Endereços" da lista e do detalhe do tenant) confunde com endereço físico. O que se espera é o domínio, sem `https://` (ex.: `erp.bemaquiapp.com.br`): trocar o rótulo para "Domínio de acesso" e a dica para dizer isso.
+  - No detalhe do tenant, a "Versão do banco" mostra o nome inteiro da migration e invade a coluna "Criado em": encurtar (como na lista) ou quebrar a linha.
 
 ---
 
