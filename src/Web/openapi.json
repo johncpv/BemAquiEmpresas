@@ -36710,6 +36710,47 @@
         }
       }
     },
+    "/api/v1/pos/returns/{id}/store-credit/reissue": {
+      "post": {
+        "tags": [
+          "PDV: devolu\u00E7\u00E3o"
+        ],
+        "operationId": "ReissueStoreCreditCode",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreCreditReissueInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreCreditIssued"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pos/store-credits/lookup": {
       "post": {
         "tags": [
@@ -102558,13 +102599,6 @@
             "type": "boolean",
             "default": false
           },
-          "customerId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
           "note": {
             "type": [
               "null",
@@ -109658,6 +109692,19 @@
         },
         "additionalProperties": false
       },
+      "StoreCreditReissueInput": {
+        "required": [
+          "supervisorApprovalId"
+        ],
+        "type": "object",
+        "properties": {
+          "supervisorApprovalId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
       "StoreCreditView": {
         "required": [
           "id",
@@ -110032,7 +110079,8 @@
           "ChangePrice",
           "CancelItem",
           "CancelSale",
-          "Return"
+          "Return",
+          "CreditReissue"
         ]
       },
       "SupervisorApprovalGranted": {

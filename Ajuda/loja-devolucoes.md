@@ -20,6 +20,8 @@ Acompanhar as devoluções e trocas feitas nos caixas: quanto voltou, **por oper
 
 **A devolução apaga a venda?** Não. A venda original fica, marcada como parcialmente devolvida ou devolvida, e a devolução é um documento novo ligado a ela.
 
-**O estorno no cartão aparece no Financeiro?** Sim: o título da adquirente daquele caixa fica menor pelo valor estornado.
+**O estorno no cartão aparece no Financeiro?** Sim: o título da adquirente daquele caixa fica menor pelo valor estornado. Se o título já estava recebido, o estorno fica como pendência para a conciliação com a adquirente.
+
+**A devolução reduz a receita?** Sim: no DRE, a receita das vendas do dia da devolução já vem sem o valor dos itens devolvidos, qualquer que seja o reembolso.
 
 **Onde mudo o prazo de troca?** O prazo (30 dias) e a validade do vale (90 dias) são parâmetros da loja; peça ao suporte para mudar enquanto a tela de edição não chega.

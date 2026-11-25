@@ -17,7 +17,5 @@ export interface ReturnRequestInput {
   cardNsu?: string | null;
   exchange?: boolean;
   /** @nullable */
-  customerId?: string | null;
-  /** @nullable */
   note?: string | null;
 }

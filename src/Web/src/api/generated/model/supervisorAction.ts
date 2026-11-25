@@ -14,4 +14,5 @@ export const SupervisorAction = {
   CancelItem: 'CancelItem',
   CancelSale: 'CancelSale',
   Return: 'Return',
+  CreditReissue: 'CreditReissue',
 } as const;

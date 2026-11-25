@@ -233,6 +233,19 @@ A análise do EmissorFiscal encontrou em `D:\GIT\EmissorFiscal\docs\Certificado\
 | Bloqueio e contadores locais (risco aceito, achado 8) | O bloqueio por 5 erros e os contadores de aprovações do turno ficam no armazenamento do aparelho: quem controla o aparelho pode apagá-los | Risco aceito: os limites por aprovação, por turno e a prova são reconferidos no servidor na subida; o bloqueio é só freio local | Revisão de segurança |
 | Marca `offline` e instante vindos do aparelho (risco aceito, achado 9) | O `"offline": true` e o `at` dos eventos são declarados pelo aparelho | Risco aceito: servem para relatório e conferência; a sequência e o hash da OFF-02, a tolerância de relógio e a prova assinada limitam o abuso | Revisão de segurança |
 
+#### Decidido e em aberto na PDV-06, revisão de segurança (25/11/2026)
+
+| # | O que | Como ficou | Quem decide |
+|---|---|---|---|
+| Devolução em outra loja | **Recomendação aceita (PO 25/11)**: a devolução só acontece na loja da venda (a busca e o pedido não acham venda de outra loja) | Devolução em qualquer loja da rede fica para depois, com o estoque e o caixa da loja que recebe | PO, quando houver rede de lojas |
+| Vale-troca em qualquer loja | Mantido: o vale é aceito em qualquer loja do tenant (o passivo é do tenant, a conta Vales-troca é única) | A reemissão do código perdido é só na loja que emitiu o vale | PO, se pedir vale por loja |
+| Troca ligada à venda nova | A venda nova só fica ligada à devolução quando usa o vale emitido por aquela devolução (o vínculo sai do vale, nunca do corpo) | Documentado, sem mudança | — |
+| Abatimento órfão do vale | A venda do caixa só existe no aparelho até concluir: o abatimento fica preso ao caixa e à sessão aberta; sem venda concluída em 24 h, um job horário devolve o valor ao vale e a venda que subir depois vai para a quarentena | Venda que ficar mais de 24 h sem subir com o vale usado cai na quarentena para conferência | — |
+| Reembolso em dinheiro | Só até o que a venda recebeu em dinheiro (líquido do troco) menos o já devolvido em dinheiro; cartão volta no estorno ou em vale; vale e Pix só em vale | A forma "Dinheiro" desativada depois da venda não conta (regra conservadora: sobra o vale) | — |
+| Estorno no cartão com título liquidado | O título da adquirente já liquidado (ou que recusa a regravação) não trava o evento: vira pendência `pos-return-pending:<devolução>` nos parâmetros do Financeiro (auditada, com o valor) e aviso no log | Falta a tela de pendências de conciliação do caixa | PO, com a conciliação |
+| Teto de busca por CPF | Além do limite por usuário e aparelho, 20 buscas por CPF a cada 10 min por caixa (em memória, como o rate limit) | Com mais de uma instância da API, o teto vale por instância | — |
+| Reemissão do código do vale | Rota pronta (`POST /pos/returns/{id}/store-credit/reissue`, PIN do supervisor, ação `CreditReissue`) | Falta o botão no caixa (achar a devolução da venda e chamar o supervisor) | Próxima story do PDV |
+
 ## 4. Perguntas para a contadora
 
 **Nada do que é fiscal neste plano foi confirmado.** As respostas valem por UF: a coluna "SP" é a do piloto proposto (PP-06); cada UF nova repete a coluna.

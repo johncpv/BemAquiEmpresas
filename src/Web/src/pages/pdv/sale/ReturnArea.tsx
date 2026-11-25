@@ -119,19 +119,29 @@ export function ReturnArea({ store, online, place, operatorName, supervisor, onB
         cardPaymentId: refund === 'CardReversal' ? cardPaymentId : null, cardNsu: refund === 'CardReversal' ? nsu.trim() : null,
         lines: chosen.map((l) => ({ saleLineId: l.saleLineId, quantity: choices[l.saleLineId].quantity, destination: choices[l.saleLineId].destination, reason: choices[l.saleLineId].reason.trim() })),
       })
-      if (requested.needsSupervisor) {
+      // O prazo pode vencer entre o pedido e a conclusão: o servidor pede o supervisor (supervisor_required) e o caixa chama.
+      let needsSupervisor = requested.needsSupervisor
+      if (!needsSupervisor) {
+        try {
+          await finish(requested.id, null)
+          return
+        } catch (err) {
+          if (!(err instanceof ApiError) || err.code !== 'supervisor_required') throw err
+          needsSupervisor = true
+        }
+      }
+      if (needsSupervisor) {
         const cents = toCents(String(requested.total))
         setAsking({
           returnId: requested.id,
           request: {
-            action: 'Return', title: requested.lateMessage ?? 'Devolução em dinheiro', saleId: requested.id, lineId: null, beforeCents: cents, afterCents: 0,
+            action: 'Return', title: requested.lateMessage ?? (refund === 'Cash' ? 'Devolução em dinheiro' : 'Devolução fora do prazo'), saleId: requested.id, lineId: null,
+            beforeCents: cents, afterCents: 0,
             summary: `Devolução ${requested.number} da venda ${sale.number}: ${formatCents(cents)} em ${REFUND_LABEL[refund].toLowerCase()}.`,
             reason: chosen.map((l) => choices[l.saleLineId].reason.trim()).join('; ').slice(0, 140),
           },
         })
-        return
       }
-      await finish(requested.id, null)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível concluir a devolução. Confira a conexão e tente de novo.')
     } finally {

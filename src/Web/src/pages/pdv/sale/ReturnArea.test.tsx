@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { LocalStore } from '@/pdv/local-store/local-store'
+import { ApiError } from '@/api/http'
 import { lookupBody, RETURN_NOT_FOUND } from '@/pdv/sale/return-model'
 import { ReturnArea } from './ReturnArea'
 
@@ -72,5 +73,19 @@ describe('devolução no caixa (PDV-06)', () => {
     expect(screen.getByText(/Disponível com internet\./)).toBeTruthy()
     expect(screen.queryByLabelText('Número do cupom ou CPF do cliente')).toBeNull()
     expect(api.lookupSaleForReturn).not.toHaveBeenCalled()
+  })
+
+  it('prazo vencido entre o pedido e a conclusão: o servidor pede o supervisor e o caixa chama (revisão de segurança, achado 10)', async () => {
+    api.lookupSaleForReturn.mockResolvedValue({ sales: [candidate], cashSessionOpen: true })
+    api.requestSaleReturn.mockResolvedValue({ ...done, status: 'Requested', storeCredit: null, completedAt: null })
+    api.approveSaleReturn.mockRejectedValue(new ApiError(422, { detail: 'Prazo de devolução encerrado em 20/12/2026. Chame o supervisor.', code: 'supervisor_required' }))
+    renderArea()
+    fireEvent.change(screen.getByLabelText('Número do cupom ou CPF do cliente'), { target: { value: candidate.number } })
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Mais Camiseta' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tamanho errado' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Concluir devolução' }))
+    expect(await screen.findByText('Devolução fora do prazo')).toBeTruthy()
+    expect(screen.queryByText(/Chame o supervisor\./)).toBeNull()
   })
 })

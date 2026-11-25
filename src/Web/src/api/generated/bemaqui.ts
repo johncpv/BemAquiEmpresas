@@ -1148,9 +1148,11 @@ import type {
   StockItemContext,
   StockOpeningStatus,
   StockProjectOption,
+  StoreCreditIssued,
   StoreCreditLookupInput,
   StoreCreditRedeemInput,
   StoreCreditRedeemed,
+  StoreCreditReissueInput,
   StoreCreditView,
   StoreFormOptions,
   StoreRequest,
@@ -92874,6 +92876,89 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getApproveSaleReturnMutationOptions(options), queryClient);
+    }
+
+export const getReissueStoreCreditCodeUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/pos/returns/${id}/store-credit/reissue`
+}
+
+export const reissueStoreCreditCode = async (id: string,
+    storeCreditReissueInput: StoreCreditReissueInput, options?: Parameters<typeof apiFetch>[1]): Promise<StoreCreditIssued> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StoreCreditIssued>(getReissueStoreCreditCodeUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(storeCreditReissueInput)
+  }
+);}
+
+
+
+
+
+export const getReissueStoreCreditCodeMutationKey = () => ['reissueStoreCreditCode'] as const;
+
+export const getReissueStoreCreditCodeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reissueStoreCreditCode>>, TError,ReissueStoreCreditCodeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reissueStoreCreditCode>>, TError,ReissueStoreCreditCodeMutationVariables, TContext> => {
+
+const mutationKey = getReissueStoreCreditCodeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reissueStoreCreditCode>>, ReissueStoreCreditCodeMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reissueStoreCreditCode(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReissueStoreCreditCodeMutationResult = NonNullable<Awaited<ReturnType<typeof reissueStoreCreditCode>>>
+    export type ReissueStoreCreditCodeMutationBody = StoreCreditReissueInput
+    export type ReissueStoreCreditCodeMutationError = unknown
+    export type ReissueStoreCreditCodeMutationVariables = {id: string;data: StoreCreditReissueInput}
+
+    export const useReissueStoreCreditCode = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reissueStoreCreditCode>>, TError,ReissueStoreCreditCodeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reissueStoreCreditCode>>,
+        TError,
+        ReissueStoreCreditCodeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReissueStoreCreditCodeMutationOptions(options), queryClient);
     }
 
 export const getLookupStoreCreditUrl = () => {
