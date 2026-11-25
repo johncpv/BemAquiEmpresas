@@ -37,4 +37,6 @@ export interface StoreRequest {
   offlineApprovalReviewAmount?: number | null;
   /** @nullable */
   offlineCancelSaleAllowed?: boolean | null;
+  /** @nullable */
+  cancelAlertPercent?: number | null;
 }

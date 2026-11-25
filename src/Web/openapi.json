@@ -36295,6 +36295,272 @@
         }
       }
     },
+    "/api/v1/sales/sales": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "ListSales",
+        "parameters": [
+          {
+            "name": "From",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "StoreId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "RegisterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "OperatorId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "PaymentMethodId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "State",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SaleListState"
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleListPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/sales/export": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "ExportSales",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "From",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "StoreId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "RegisterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "OperatorId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "PaymentMethodId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "State",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SaleListState"
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/sales/sales/{id}": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "GetSaleDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/sales/{id}/customer-document": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "GetSaleCustomerDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleCustomerDocumentView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/sales/{id}": {
       "get": {
         "tags": [
@@ -44574,6 +44840,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DecisionsCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/cards/store-sales": {
+      "get": {
+        "tags": [
+          "Painel do propriet\u00E1rio"
+        ],
+        "operationId": "GetDashboardStoreSales",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreSalesCard"
                 }
               }
             }
@@ -78175,6 +78461,71 @@
           }
         }
       },
+      "OpenRegisterItem": {
+        "required": [
+          "sessionId",
+          "storeId",
+          "storeName",
+          "registerId",
+          "registerNumber",
+          "openedAt",
+          "openMinutes",
+          "sales",
+          "cancelled",
+          "cancelledPercent",
+          "cancelAlertPercent",
+          "cancelAlert"
+        ],
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storeName": {
+            "type": "string"
+          },
+          "registerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "registerNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "openMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sales": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelledPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "cancelAlertPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "cancelAlert": {
+            "type": "boolean"
+          }
+        }
+      },
       "OperationStoreOption": {
         "required": [
           "id",
@@ -104512,6 +104863,367 @@
           "ServiceOrder"
         ]
       },
+      "SaleCustomerDocumentView": {
+        "required": [
+          "document"
+        ],
+        "type": "object",
+        "properties": {
+          "document": {
+            "type": "string"
+          }
+        }
+      },
+      "SaleDetail": {
+        "required": [
+          "id",
+          "number",
+          "channel",
+          "status",
+          "stockStatus",
+          "hasDivergence",
+          "offline",
+          "paymentDifference",
+          "storeId",
+          "storeName",
+          "registerId",
+          "registerLabel",
+          "cashSessionId",
+          "operatorId",
+          "operatorName",
+          "businessDate",
+          "at",
+          "completedAtDevice",
+          "receivedAt",
+          "subtotal",
+          "discountTotal",
+          "serviceFee",
+          "total",
+          "customerDocument",
+          "cancelledAt",
+          "cancelReason",
+          "cancelledByName",
+          "lines",
+          "payments",
+          "trail"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/SaleChannel"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SaleStatus"
+          },
+          "stockStatus": {
+            "$ref": "#/components/schemas/SaleStockStatus"
+          },
+          "hasDivergence": {
+            "type": "boolean"
+          },
+          "offline": {
+            "type": "boolean"
+          },
+          "paymentDifference": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "storeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "storeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "registerId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "registerLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cashSessionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "operatorId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "operatorName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "businessDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAtDevice": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "receivedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "subtotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "serviceFee": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "customerDocument": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelledAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelledByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleDetailLine"
+            }
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleDetailPayment"
+            }
+          },
+          "trail": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleTrailEntry"
+            }
+          },
+          "cost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "margin": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SaleDetailLine": {
+        "required": [
+          "id",
+          "lineNumber",
+          "description",
+          "unitCode",
+          "quantity",
+          "listUnitPrice",
+          "unitPrice",
+          "discount",
+          "total",
+          "discountReason",
+          "priceReason"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lineNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "listUnitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "priceReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unitCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SaleDetailPayment": {
+        "required": [
+          "id",
+          "methodName",
+          "amount",
+          "changeAmount",
+          "status",
+          "integration",
+          "installments",
+          "cardBrand",
+          "nsu",
+          "authorizationCode",
+          "confirmedAt",
+          "confirmedByName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "methodName": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "changeAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SalePaymentStatus"
+          },
+          "integration": {
+            "$ref": "#/components/schemas/PaymentIntegration"
+          },
+          "installments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cardBrand": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nsu": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "authorizationCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "confirmedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SaleLineView": {
         "required": [
           "id",
@@ -104616,6 +105328,215 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "SaleListItem": {
+        "required": [
+          "id",
+          "number",
+          "at",
+          "businessDate",
+          "channel",
+          "storeId",
+          "storeName",
+          "registerId",
+          "registerLabel",
+          "operatorId",
+          "operatorName",
+          "total",
+          "paymentMethods",
+          "status",
+          "stockStatus",
+          "hasDivergence",
+          "offline",
+          "customerDocument"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "businessDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/SaleChannel"
+          },
+          "storeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "storeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "registerId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "registerLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "operatorId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "operatorName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentMethods": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "$ref": "#/components/schemas/SaleStatus"
+          },
+          "stockStatus": {
+            "$ref": "#/components/schemas/SaleStockStatus"
+          },
+          "hasDivergence": {
+            "type": "boolean"
+          },
+          "offline": {
+            "type": "boolean"
+          },
+          "customerDocument": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "margin": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SaleListPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total",
+          "totals"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleListItem"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/SaleListTotals"
+          }
+        }
+      },
+      "SaleListState": {
+        "enum": [
+          "Completed",
+          "Cancelled",
+          "Returned",
+          "StockShortfall",
+          "Divergence",
+          "Offline",
+          null
+        ]
+      },
+      "SaleListTotals": {
+        "required": [
+          "count",
+          "total",
+          "cancelledCount",
+          "cancelledTotal"
+        ],
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "cancelledCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelledTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "cost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "margin": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -105148,6 +106069,37 @@
           "NotRequired",
           "Reversed"
         ]
+      },
+      "SaleTrailEntry": {
+        "required": [
+          "at",
+          "kind",
+          "title",
+          "detail",
+          "tone"
+        ],
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "tone": {
+            "type": "string"
+          }
+        }
       },
       "SaleView": {
         "required": [
@@ -109908,9 +110860,93 @@
               "null",
               "boolean"
             ]
+          },
+          "cancelAlertPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         },
         "additionalProperties": false
+      },
+      "StoreSalesCard": {
+        "required": [
+          "today",
+          "todayCount",
+          "todayAmount",
+          "lastWeekCount",
+          "lastWeekAmount",
+          "changePct",
+          "ticketToday",
+          "ticketWeek",
+          "weekCount",
+          "openRegisters",
+          "maybeUnsent",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "todayCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "todayAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "lastWeekCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastWeekAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "changePct": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "ticketToday": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "ticketWeek": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "weekCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openRegisters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenRegisterItem"
+            }
+          },
+          "maybeUnsent": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       },
       "StoreView": {
         "required": [
@@ -110054,6 +111090,11 @@
           "offlineCancelSaleAllowed": {
             "type": "boolean",
             "default": true
+          },
+          "cancelAlertPercent": {
+            "type": "number",
+            "format": "double",
+            "default": 3
           }
         }
       },

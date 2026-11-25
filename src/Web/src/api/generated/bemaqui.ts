@@ -310,6 +310,7 @@ import type {
   ExportReconciliationParams,
   ExportRfqsParams,
   ExportSaleReturnsParams,
+  ExportSalesParams,
   ExportStockAdjustmentsParams,
   ExportStockBalancesParams,
   ExportStockMovementsParams,
@@ -606,6 +607,7 @@ import type {
   ListRfqsParams,
   ListRoutingProductOptionsParams,
   ListRoutingTemplatesParams,
+  ListSalesParams,
   ListShipmentCarriersParams,
   ListShipmentGeneralStockParams,
   ListShipmentsParams,
@@ -1077,6 +1079,9 @@ import type {
   RoutingWorkCenterOption,
   SalaryChangeInput,
   SaleCancelInput,
+  SaleCustomerDocumentView,
+  SaleDetail,
+  SaleListPage,
   SaleLookupInput,
   SaleLookupResult,
   SaleReturnReport,
@@ -1156,6 +1161,7 @@ import type {
   StoreCreditView,
   StoreFormOptions,
   StoreRequest,
+  StoreSalesCard,
   StoreView,
   SuggestAccountParams,
   SuggestAssetPlacementParams,
@@ -91943,6 +91949,400 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getPreviewCollectionReminderMutationOptions(options), queryClient);
     }
 
+export const getListSalesUrl = (params: ListSalesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/sales/sales?${stringifiedParams}` : `/api/v1/sales/sales`
+}
+
+export const listSales = async (params: ListSalesParams, options?: Parameters<typeof apiFetch>[1]): Promise<SaleListPage> => {
+
+  return apiFetch<SaleListPage>(getListSalesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListSalesQueryKey = (params?: ListSalesParams,) => {
+    return [
+    `/api/v1/sales/sales`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListSalesQueryOptions = <TData = Awaited<ReturnType<typeof listSales>>, TError = unknown>(params: ListSalesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSales>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSalesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSales>>> = ({ signal }) => listSales(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSales>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListSalesQueryResult = NonNullable<Awaited<ReturnType<typeof listSales>>>
+export type ListSalesQueryError = unknown
+
+
+export function useListSales<TData = Awaited<ReturnType<typeof listSales>>, TError = unknown>(
+ params: ListSalesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSales>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSales>>,
+          TError,
+          Awaited<ReturnType<typeof listSales>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSales<TData = Awaited<ReturnType<typeof listSales>>, TError = unknown>(
+ params: ListSalesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSales>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSales>>,
+          TError,
+          Awaited<ReturnType<typeof listSales>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSales<TData = Awaited<ReturnType<typeof listSales>>, TError = unknown>(
+ params: ListSalesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSales>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListSales<TData = Awaited<ReturnType<typeof listSales>>, TError = unknown>(
+ params: ListSalesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSales>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListSalesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getExportSalesUrl = (params: ExportSalesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/sales/sales/export?${stringifiedParams}` : `/api/v1/sales/sales/export`
+}
+
+export const exportSales = async (params: ExportSalesParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getExportSalesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportSalesQueryKey = (params?: ExportSalesParams,) => {
+    return [
+    `/api/v1/sales/sales/export`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getExportSalesQueryOptions = <TData = Awaited<ReturnType<typeof exportSales>>, TError = unknown>(params: ExportSalesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSales>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportSalesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportSales>>> = ({ signal }) => exportSales(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportSales>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportSalesQueryResult = NonNullable<Awaited<ReturnType<typeof exportSales>>>
+export type ExportSalesQueryError = unknown
+
+
+export function useExportSales<TData = Awaited<ReturnType<typeof exportSales>>, TError = unknown>(
+ params: ExportSalesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSales>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportSales>>,
+          TError,
+          Awaited<ReturnType<typeof exportSales>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportSales<TData = Awaited<ReturnType<typeof exportSales>>, TError = unknown>(
+ params: ExportSalesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSales>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportSales>>,
+          TError,
+          Awaited<ReturnType<typeof exportSales>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportSales<TData = Awaited<ReturnType<typeof exportSales>>, TError = unknown>(
+ params: ExportSalesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSales>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useExportSales<TData = Awaited<ReturnType<typeof exportSales>>, TError = unknown>(
+ params: ExportSalesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSales>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExportSalesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetSaleDetailUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/sales/sales/${id}`
+}
+
+export const getSaleDetail = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<SaleDetail> => {
+
+  return apiFetch<SaleDetail>(getGetSaleDetailUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSaleDetailQueryKey = (id: string,) => {
+    return [
+    `/api/v1/sales/sales/${id}`
+    ] as const;
+    }
+
+
+export const getGetSaleDetailQueryOptions = <TData = Awaited<ReturnType<typeof getSaleDetail>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleDetail>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSaleDetailQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSaleDetail>>> = ({ signal }) => getSaleDetail(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSaleDetail>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSaleDetailQueryResult = NonNullable<Awaited<ReturnType<typeof getSaleDetail>>>
+export type GetSaleDetailQueryError = unknown
+
+
+export function useGetSaleDetail<TData = Awaited<ReturnType<typeof getSaleDetail>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleDetail>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSaleDetail>>,
+          TError,
+          Awaited<ReturnType<typeof getSaleDetail>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSaleDetail<TData = Awaited<ReturnType<typeof getSaleDetail>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleDetail>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSaleDetail>>,
+          TError,
+          Awaited<ReturnType<typeof getSaleDetail>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSaleDetail<TData = Awaited<ReturnType<typeof getSaleDetail>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleDetail>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSaleDetail<TData = Awaited<ReturnType<typeof getSaleDetail>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleDetail>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSaleDetailQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetSaleCustomerDocumentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/sales/sales/${id}/customer-document`
+}
+
+export const getSaleCustomerDocument = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<SaleCustomerDocumentView> => {
+
+  return apiFetch<SaleCustomerDocumentView>(getGetSaleCustomerDocumentUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSaleCustomerDocumentQueryKey = (id: string,) => {
+    return [
+    `/api/v1/sales/sales/${id}/customer-document`
+    ] as const;
+    }
+
+
+export const getGetSaleCustomerDocumentQueryOptions = <TData = Awaited<ReturnType<typeof getSaleCustomerDocument>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleCustomerDocument>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSaleCustomerDocumentQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSaleCustomerDocument>>> = ({ signal }) => getSaleCustomerDocument(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSaleCustomerDocument>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSaleCustomerDocumentQueryResult = NonNullable<Awaited<ReturnType<typeof getSaleCustomerDocument>>>
+export type GetSaleCustomerDocumentQueryError = unknown
+
+
+export function useGetSaleCustomerDocument<TData = Awaited<ReturnType<typeof getSaleCustomerDocument>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleCustomerDocument>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSaleCustomerDocument>>,
+          TError,
+          Awaited<ReturnType<typeof getSaleCustomerDocument>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSaleCustomerDocument<TData = Awaited<ReturnType<typeof getSaleCustomerDocument>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleCustomerDocument>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSaleCustomerDocument>>,
+          TError,
+          Awaited<ReturnType<typeof getSaleCustomerDocument>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSaleCustomerDocument<TData = Awaited<ReturnType<typeof getSaleCustomerDocument>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleCustomerDocument>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSaleCustomerDocument<TData = Awaited<ReturnType<typeof getSaleCustomerDocument>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleCustomerDocument>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSaleCustomerDocumentQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetSaleUrl = (id: string,) => {
 
 
@@ -112654,6 +113054,101 @@ export function useGetDashboardDecisions<TData = Awaited<ReturnType<typeof getDa
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetDashboardDecisionsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetDashboardStoreSalesUrl = () => {
+
+
+
+
+  return `/api/v1/dashboard/cards/store-sales`
+}
+
+export const getDashboardStoreSales = async ( options?: Parameters<typeof apiFetch>[1]): Promise<StoreSalesCard> => {
+
+  return apiFetch<StoreSalesCard>(getGetDashboardStoreSalesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDashboardStoreSalesQueryKey = () => {
+    return [
+    `/api/v1/dashboard/cards/store-sales`
+    ] as const;
+    }
+
+
+export const getGetDashboardStoreSalesQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardStoreSales>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardStoreSales>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardStoreSalesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardStoreSales>>> = ({ signal }) => getDashboardStoreSales({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardStoreSales>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDashboardStoreSalesQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardStoreSales>>>
+export type GetDashboardStoreSalesQueryError = unknown
+
+
+export function useGetDashboardStoreSales<TData = Awaited<ReturnType<typeof getDashboardStoreSales>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardStoreSales>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardStoreSales>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardStoreSales>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardStoreSales<TData = Awaited<ReturnType<typeof getDashboardStoreSales>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardStoreSales>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDashboardStoreSales>>,
+          TError,
+          Awaited<ReturnType<typeof getDashboardStoreSales>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDashboardStoreSales<TData = Awaited<ReturnType<typeof getDashboardStoreSales>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardStoreSales>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetDashboardStoreSales<TData = Awaited<ReturnType<typeof getDashboardStoreSales>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDashboardStoreSales>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDashboardStoreSalesQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

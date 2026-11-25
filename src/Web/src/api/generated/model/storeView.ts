@@ -41,4 +41,5 @@ export interface StoreView {
   offlineApprovalSessionCount?: number;
   offlineApprovalReviewAmount?: number;
   offlineCancelSaleAllowed?: boolean;
+  cancelAlertPercent?: number;
 }

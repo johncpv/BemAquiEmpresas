@@ -5,6 +5,7 @@ import { useNavigation } from '@/navigation/navigation-context'
 import { PageHeading } from '@/shell/PageHeading'
 import { MinhaPauta } from './inicio/MinhaPauta'
 import { PrimeirosPassos } from './inicio/PrimeirosPassos'
+import { VendasDaLoja } from './inicio/VendasDaLoja'
 import { canIn } from './use-can'
 
 const NEXT_STEPS = [
@@ -14,7 +15,7 @@ const NEXT_STEPS = [
 ] as const
 
 /**
- * Início, a página inicial de todos (ADR 0028 §4, DSH-04 CA 7): no Comércio, os Primeiros passos (PERF-04); depois a Minha pauta, depois os próximos passos e os atalhos para os
+ * Início, a página inicial de todos (ADR 0028 §4, DSH-04 CA 7): no Comércio, os cards da loja (PDV-07) e os Primeiros passos (PERF-04); depois a Minha pauta, depois os próximos passos e os atalhos para os
  * módulos com acesso (ADR 0010 item 9). A contagem da pauta vai para o título da aba ("(4) Início").
  */
 export function Inicio() {
@@ -28,6 +29,8 @@ export function Inicio() {
       <PageHeading title="Início" count={count}>
         <p className="mt-1 text-muted-foreground">Boas-vindas ao BemAqui Empresas da {tenantName}. Veja o que depende de você hoje:</p>
       </PageHeading>
+
+      <VendasDaLoja />
 
       <PrimeirosPassos />
 

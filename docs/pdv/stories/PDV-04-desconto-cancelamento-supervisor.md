@@ -5,7 +5,7 @@
 | ID | PDV-04 |
 | Título | Desconto por item e no total com limite por grupo, troca de preço, cancelamento de item e de venda paga, e aprovação por PIN de supervisor com motivo e trilha |
 | Tamanho | M |
-| Status | Draft (plano proposto em 15/11/2026; aguarda a aprovação do PO) |
+| Status | Em produção (main `4e202ab5`, 24/11/2026) |
 | Fase | 11 — PDV balcão com cupom não fiscal e offline (marco MVP) |
 | Requisitos | [PRD do PDV](../01-PRD.md) seções 6.4 e 6.5 · [Fluxos](../04-fluxos-estados.md#6-cancelamento-devolução-estorno-e-troca) · ADR 0008 e ADR 0026 (exceção a registrar) · PP-11 |
 | Dependências | PDV-03, CX-01; PP-11 e PP-38 decididas; PP-22 (valores padrão) |
