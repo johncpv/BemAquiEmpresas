@@ -3,6 +3,7 @@ import type { PosHandshake } from '@/api/generated/model'
 import { ApiError, OFFLINE_CODE } from '@/api/http'
 import { loadDeviceKey, loadDocumentKey, signRequest } from '@/pdv/device-signing'
 import type { LocalStore } from '@/pdv/local-store/local-store'
+import { recordServerTime } from '@/pdv/offline/offline-access'
 import { aesDocumentCipher } from '@/pdv/sale/customer-document'
 import { type UploadBody, uploadOutbox, type UploadResponse, type UploadSummary } from './event-upload'
 
@@ -25,7 +26,12 @@ export async function uploadDeviceEvents(store: LocalStore): Promise<UploadSumma
   return uploadOutbox({
     store,
     device: { deviceId: saved.register.deviceId, registerId: saved.register.registerId, deviceEpoch: saved.register.epoch },
-    send: async (body: UploadBody) => (await postPosSyncEvents(body, { headers: await signRequest(keys, 'POST', url, JSON.stringify(body)) })) as UploadResponse,
+    send: async (body: UploadBody) => {
+      const response = await postPosSyncEvents(body, { headers: await signRequest(keys, 'POST', url, JSON.stringify(body)) })
+      // OFF-03 CA 14: o horário do servidor vira o piso da janela sem sincronizar.
+      if (response.serverTime) await recordServerTime(store, response.serverTime).catch(() => undefined)
+      return response as UploadResponse
+    },
     document: async (documentId) => {
       const record = await store.getCustomerDocument(documentId)
       return record ? { kind: record.kind, value: await cipher.decrypt(record) } : null

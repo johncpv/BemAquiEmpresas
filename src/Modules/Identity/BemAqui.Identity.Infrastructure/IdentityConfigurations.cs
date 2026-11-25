@@ -103,8 +103,24 @@ internal sealed class PosPinConfiguration : IEntityTypeConfiguration<PosPin>
     {
         b.ToTable("pos_pins", IdentitySchema.Name);
         b.Property(e => e.PinHash).HasMaxLength(512);
+        b.Property(e => e.OfflineCodeHash).HasMaxLength(512);
         b.HasIndex(e => e.UserId).IsUnique();
         b.HasOne<User>().WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+/// <summary>Verificador sem rede entregue a um aparelho de caixa (OFF-03): um por aparelho, pessoa e tipo; só a impressão digital do hash.</summary>
+internal sealed class DevicePinVerifierConfiguration : IEntityTypeConfiguration<DevicePinVerifier>
+{
+    public void Configure(EntityTypeBuilder<DevicePinVerifier> b)
+    {
+        b.ToTable("device_pin_verifiers", IdentitySchema.Name);
+        b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(20);
+        b.Property(e => e.Fingerprint).HasMaxLength(64);
+        b.HasIndex(e => new { e.DeviceId, e.UserId, e.Kind }).IsUnique();
+        b.HasIndex(e => e.UserId);
+        b.HasOne<ShopfloorDevice>().WithMany().HasForeignKey(e => e.DeviceId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne<User>().WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 

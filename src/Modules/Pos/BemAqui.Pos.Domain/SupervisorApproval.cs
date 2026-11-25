@@ -83,8 +83,14 @@ public sealed class SupervisorApproval : Entity, IAuditable
 
     public decimal AfterAmount { get; init; }
 
-    /// <summary>Aprovada com rede (PDV-04); a aprovação sem rede é da OFF-03.</summary>
+    /// <summary>
+    /// Aprovada com rede (PDV-04). <c>false</c> (OFF-03 CA 7): aprovada sem rede no aparelho com o código do supervisor (PP-39) e conferida na subida
+    /// (prova, pessoas, permissão no instante e limites da loja); o id é o do aparelho.
+    /// </summary>
     public bool Online { get; init; } = true;
+
+    /// <summary>OFF-03 CA 13: a sessão de caixa da aprovação sem rede (os limites por sessão somam por ela).</summary>
+    public Guid? CashSessionId { get; init; }
 
     public DateTimeOffset ApprovedAt { get; init; }
 
@@ -103,6 +109,18 @@ public sealed class SupervisorApproval : Entity, IAuditable
             Id = Guid.CreateVersion7(), StoreId = storeId, RegisterId = registerId, DeviceId = deviceId, Action = action, OperatorId = operatorId, SupervisorId = supervisorId,
             Reason = reason, SaleId = saleId, LineId = lineId, BeforeAmount = before, AfterAmount = after, ApprovedAt = at,
         };
+
+    /// <summary>OFF-03 CA 7: a aprovação feita sem rede, com o id gerado no aparelho, depois de conferida na subida.</summary>
+    public static SupervisorApproval Offline(Guid id, Guid storeId, Guid registerId, Guid deviceId, Guid cashSessionId, SupervisorAction action, Guid operatorId,
+        Guid supervisorId, string reason, Guid saleId, Guid? lineId, decimal before, decimal after, DateTimeOffset at) =>
+        new()
+        {
+            Id = id, StoreId = storeId, RegisterId = registerId, DeviceId = deviceId, CashSessionId = cashSessionId, Action = action, OperatorId = operatorId,
+            SupervisorId = supervisorId, Reason = reason, SaleId = saleId, LineId = lineId, BeforeAmount = before, AfterAmount = after, ApprovedAt = at, Online = false,
+        };
+
+    /// <summary>O valor que a aprovação mexe (o desconto, o item ou a venda cancelados): conta nos limites sem rede (OFF-03 CA 13).</summary>
+    public decimal Impact => Math.Abs(BeforeAmount - AfterAmount);
 
     /// <summary>Marca o uso pelo evento da subida. O mesmo evento de novo (reenvio) não muda nada.</summary>
     public void Use(Guid eventId, DateTimeOffset at, string? refund = null)

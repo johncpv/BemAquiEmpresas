@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { CatalogSchemaError, syncCatalog } from './catalog-sync'
 import { type CatalogScreen, catalogScreen } from './catalog-screen'
+import { loadVerifierKey } from './device-signing'
+import { saveVerifiers } from './offline/offline-access'
 import { usePdv } from './pdv-context'
 import { createStockSource } from './stock/stock-source'
 import { syncStock } from './stock/stock-sync'
@@ -27,7 +29,11 @@ export function useCatalogSync(keys: CryptoKeyPair | null, online: boolean): { s
     setSyncing(true)
     setError(null)
     try {
-      await syncCatalog(pdv.store, pdv.createCatalogSource(keys, pdv.store), { onProgress: (p) => setProgress(p.fraction) })
+      await syncCatalog(pdv.store, pdv.createCatalogSource(keys, pdv.store), {
+        onProgress: (p) => setProgress(p.fraction),
+        // OFF-03 CA 1: os verificadores sem rede vão cifrados com a chave própria do aparelho; o horário do servidor vira o piso da janela.
+        onAccess: async (access) => saveVerifiers(pdv.store, access.verifiers, access.serverAt, await loadVerifierKey()),
+      })
       // O saldo é orientação: falhar aqui não impede a venda (o caixa segue com o último saldo recebido).
       await syncStock(pdv.store, createStockSource(keys)).catch(() => undefined)
     } catch (e) {

@@ -119,7 +119,7 @@ export function checkMovement(amountCents: Cents | null, reason: string): CashCh
 }
 
 /** Abre a sessão (CA 1): grava o turno e o evento `CashSessionOpened` (com o fundo de troco) juntos, e guarda o fundo como padrão da próxima. */
-export async function openCashSession(store: LocalStore, input: { operator: CashOperator; openingCents: Cents; registerId: string | null; deviceEpoch: number | null }, now = new Date()): Promise<LocalCashSession> {
+export async function openCashSession(store: LocalStore, input: { operator: CashOperator; openingCents: Cents; registerId: string | null; deviceEpoch: number | null; offline?: boolean }, now = new Date()): Promise<LocalCashSession> {
   if (!Number.isSafeInteger(input.openingCents) || input.openingCents < 0 || input.openingCents > MAX_AMOUNT_CENTS) throw new Error('Fundo de troco inválido.')
   const at = now.toISOString()
   const id = uuidv7(now.getTime())
@@ -137,7 +137,7 @@ export async function openCashSession(store: LocalStore, input: { operator: Cash
     kind: CASH_OUTBOX_KIND, at,
     payload: {
       type: 'CashSessionOpened', sessionId: id, registerId: input.registerId, deviceEpoch: input.deviceEpoch, operatorId: input.operator.id,
-      openingCents: input.openingCents, openingMovementId: opening.id, at,
+      openingCents: input.openingCents, openingMovementId: opening.id, at, ...(input.offline ? { offline: true } : {}),
     },
   })
   await store.setMeta(LAST_OPENING_META, input.openingCents)
@@ -217,7 +217,7 @@ export interface CashCountResult {
  * "Fechar caixa" (CX-02 CA 1): o turno passa a "em contagem" e o evento `CashCountStarted` vai para a fila. **Conferência cega (CA 3):** o
  * dinheiro calculado das vendas (`cashSalesCents`) é apagado do aparelho neste momento; a tela de contagem não tem de onde tirar o esperado.
  */
-export async function startCashCount(store: LocalStore, operator: CashOperator, now = new Date()): Promise<LocalCashSession> {
+export async function startCashCount(store: LocalStore, operator: CashOperator, now = new Date(), offline = false): Promise<LocalCashSession> {
   const at = now.toISOString()
   let result: LocalCashSession | null = null
   await store.updateMeta(CASH_SESSION_META, (current) => {
@@ -227,7 +227,7 @@ export async function startCashCount(store: LocalStore, operator: CashOperator, 
     return result
   }, (next, previous) => ((previous as LocalCashSession | undefined)?.counting
     ? null
-    : { kind: CASH_OUTBOX_KIND, at, payload: { type: 'CashCountStarted', sessionId: (next as LocalCashSession).id, operatorId: operator.id, at } }))
+    : { kind: CASH_OUTBOX_KIND, at, payload: { type: 'CashCountStarted', sessionId: (next as LocalCashSession).id, operatorId: operator.id, at, ...(offline ? { offline: true } : {}) } }))
   return result!
 }
 
@@ -243,7 +243,7 @@ export const depositCents = (countedCash: Cents, keptCents: Cents): Cents => Mat
  * aparelho concluiu) e encerra o turno neste aparelho, na mesma transação. Uma contagem só: depois dela, recontar é do supervisor. O fundo que
  * fica vira o padrão da próxima abertura.
  */
-export async function confirmCashCount(store: LocalStore, input: { operator: CashOperator; lines: CashCountLine[]; keptCents: Cents; cashMethodIds: ReadonlySet<string> }, now = new Date()): Promise<CashCountResult> {
+export async function confirmCashCount(store: LocalStore, input: { operator: CashOperator; lines: CashCountLine[]; keptCents: Cents; cashMethodIds: ReadonlySet<string>; offline?: boolean }, now = new Date()): Promise<CashCountResult> {
   const lines = input.lines.map((l) => ({ methodId: l.methodId, countedCents: l.countedCents, denominations: l.denominations?.length ? l.denominations : null }))
   if (lines.some((l) => !Number.isSafeInteger(l.countedCents) || l.countedCents < 0 || l.countedCents > MAX_AMOUNT_CENTS)) throw new CashSessionError('Valor contado inválido.')
   const cash = countedCashCents(lines, input.cashMethodIds)
@@ -264,7 +264,7 @@ export async function confirmCashCount(store: LocalStore, input: { operator: Cas
     kind: CASH_OUTBOX_KIND, at,
     payload: {
       type: 'CashCounted', sessionId: result!.sessionId, countId: uuidv7(now.getTime()), operatorId: input.operator.id, at, keptCents: input.keptCents,
-      depositMovementId: uuidv7(now.getTime()), salesCount: result!.salesCount, lines,
+      depositMovementId: uuidv7(now.getTime()), salesCount: result!.salesCount, lines, ...(input.offline ? { offline: true } : {}),
     },
   }))
   await store.setMeta(LAST_OPENING_META, input.keptCents)

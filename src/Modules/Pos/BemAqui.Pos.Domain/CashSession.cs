@@ -94,12 +94,19 @@ public sealed class CashSession : Entity, IAuditable, IConcurrencyVersioned
 
     public uint Version { get; set; }
 
+    /// <summary>OFF-03 CA 6: a sessão foi aberta sem rede (entrada do operador conferida no aparelho).</summary>
+    public bool OpenedOffline { get; init; }
+
+    /// <summary>OFF-03 CA 8: a contagem do fechamento foi feita sem rede (o servidor calcula o esperado e a quebra quando tudo sobe).</summary>
+    public bool ClosedOffline { get; set; }
+
     /// <summary>Sessão com o id gerado no aparelho (local-first): reenviar a abertura acha a mesma sessão.</summary>
-    public static CashSession FromDevice(Guid id, Guid storeId, Guid registerId, int deviceEpoch, Guid operatorId, decimal openingAmount, DateTimeOffset openedAt, DateTimeOffset now) =>
+    public static CashSession FromDevice(Guid id, Guid storeId, Guid registerId, int deviceEpoch, Guid operatorId, decimal openingAmount, DateTimeOffset openedAt, DateTimeOffset now,
+        bool offline = false) =>
         new()
         {
             Id = id, StoreId = storeId, RegisterId = registerId, DeviceEpoch = deviceEpoch, OperatorId = operatorId, OpeningAmount = openingAmount,
-            OpenedAt = openedAt, CreatedAt = now,
+            OpenedAt = openedAt, CreatedAt = now, OpenedOffline = offline,
         };
 }
 

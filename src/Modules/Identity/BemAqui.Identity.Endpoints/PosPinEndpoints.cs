@@ -75,6 +75,17 @@ internal static class PosPinEndpoints
                 (await service.DeleteMineAsync(user.UserId!.Value, ct)).ToHttpResult())
             .RequirePermission("pos.create").WithName("DeleteMyPosPin");
 
+        // OFF-03 (PP-39): o código de aprovação sem internet do supervisor, separado do PIN; login completo.
+        mine.MapPut("/offline-code", async (SetOfflineCodeInput input, HttpContext http, ICurrentUser user, PosOfflineAccessService service, PosPinService pins, CancellationToken ct) =>
+            {
+                var set = await service.SetMineAsync(user.UserId!.Value, ShopfloorDeviceEndpoints.IsFullSession(http.User), input, ct);
+                return set.IsFailure ? set.Error!.ToProblem() : Results.Ok(await pins.MineAsync(user.UserId!.Value, ct));
+            })
+            .RequirePermission("pos.create").WithName("SetMyPosOfflineCode").Produces<MyPosPin>();
+        mine.MapDelete("/offline-code", async (ICurrentUser user, PosOfflineAccessService service, CancellationToken ct) =>
+                (await service.DeleteMineAsync(user.UserId!.Value, ct)).ToHttpResult())
+            .RequirePermission("pos.create").WithName("DeleteMyPosOfflineCode");
+
         // Usuário de operação (ADR 0049): na tela de Usuários, só no Comércio.
         var operation = api.MapGroup("/identity/operation-users").WithTags("Usuários e acessos").RequireModule("identity")
             .RequireProfileFeature("identity", BusinessProfileCatalog.OperationUsersFeature);

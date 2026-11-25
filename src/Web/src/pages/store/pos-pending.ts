@@ -5,7 +5,7 @@ export type SyncResolution = NonNullable<NullableResolution>
 
 /** Tipos de divergência da sincronização do caixa (OFF-02), na ordem dos chips. */
 export const DIVERGENCE_KINDS: SyncDivergenceKind[] = [
-  'Validation', 'FiscalDocument', 'BrokenSequence', 'ReplacedDevice', 'Authorization', 'CashSession', 'Payment', 'PriceMismatch', 'PriceOutdated', 'DeviceClock', 'SchemaVersion',
+  'Validation', 'FiscalDocument', 'OfflineAccess', 'BrokenSequence', 'ReplacedDevice', 'Authorization', 'CashSession', 'Payment', 'PriceMismatch', 'PriceOutdated', 'DeviceClock', 'SchemaVersion',
 ]
 
 export const KIND_LABEL: Record<SyncDivergenceKind, string> = {
@@ -20,12 +20,14 @@ export const KIND_LABEL: Record<SyncDivergenceKind, string> = {
   Payment: 'Pagamento',
   CashSession: 'Sessão de caixa',
   FiscalDocument: 'Documento fiscal',
+  OfflineAccess: 'Acesso sem rede',
 }
 
 /** O que segura venda (quarentena por regra) é crítico; o que entrou com diferença é alerta; o resto, informativo. */
 export const KIND_TONE: Record<SyncDivergenceKind, StatusTone> = {
   Validation: 'crit',
   FiscalDocument: 'crit',
+  OfflineAccess: 'crit',
   BrokenSequence: 'crit',
   ReplacedDevice: 'crit',
   CashSession: 'warn',

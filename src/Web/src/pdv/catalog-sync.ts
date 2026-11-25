@@ -1,5 +1,6 @@
 import { CATALOG_SCHEMA_VERSION, type CatalogChange, type CatalogData, type CatalogVersion } from '@/pdv/local-store/catalog-types'
 import type { LocalStore } from '@/pdv/local-store/local-store'
+import type { OfflineVerifier } from '@/pdv/offline/offline-crypto'
 
 /**
  * Descida do catálogo da loja para o aparelho (OFF-01 CA 10 e 11), contra a porta `CatalogSyncSource`: a primeira vez baixa a **foto**
@@ -13,9 +14,18 @@ export interface CatalogSnapshot extends CatalogVersion {
   storeId: string
   storeName?: string | null
   data: CatalogData
+  /** OFF-03: os verificadores sem rede e o horário do servidor; vão cifrados para o `LocalStore` pelo `onAccess`, nunca para o catálogo. */
+  access?: OfflineAccessDownload | null
+}
+
+/** OFF-03 CA 1 e 14: o que desce para a entrada sem rede (verificadores, nunca o PIN) e o horário do servidor (piso da janela). */
+export interface OfflineAccessDownload {
+  verifiers: OfflineVerifier[]
+  serverAt: string
 }
 
 export interface CatalogChanges extends CatalogVersion {
+  access?: OfflineAccessDownload | null
   changes: CatalogChange[]
   /** Há mais mudanças depois deste cursor (o servidor pagina o delta): o cliente pede de novo na hora. */
   hasMore: boolean
@@ -63,11 +73,15 @@ export function clampOfflineWindowDays(days: number | null | undefined): number 
  * Sincroniza uma vez: sem catálogo local (ou com versão de esquema diferente), baixa a foto; com catálogo, puxa o delta até acabar.
  * O servidor pedindo `resetRequired` cai na foto inteira.
  */
-export async function syncCatalog(store: LocalStore, source: CatalogSyncSource, options: {
+export interface SyncOptions {
   now?: () => Date
   signal?: AbortSignal
   onProgress?: (progress: SyncProgress) => void
-} = {}): Promise<CatalogSyncResult> {
+  /** OFF-03: recebe os verificadores e o horário do servidor depois que o catálogo foi gravado (cifra e guarda à parte). */
+  onAccess?: (access: OfflineAccessDownload) => Promise<void>
+}
+
+export async function syncCatalog(store: LocalStore, source: CatalogSyncSource, options: SyncOptions = {}): Promise<CatalogSyncResult> {
   const now = options.now ?? (() => new Date())
   const state = store.catalogState()
 
@@ -80,6 +94,7 @@ export async function syncCatalog(store: LocalStore, source: CatalogSyncSource, 
       assertSchema(delta)
       await store.applyCatalogChanges({ ...delta, offlineWindowDays: delta.offlineWindowDays === undefined ? undefined : clampOfflineWindowDays(delta.offlineWindowDays) }, delta.changes, now().toISOString())
       total += delta.changes.length
+      if (delta.access) await options.onAccess?.(delta.access)
       cursor = delta.cursor
       if (!delta.hasMore) break
     }
@@ -90,7 +105,7 @@ export async function syncCatalog(store: LocalStore, source: CatalogSyncSource, 
   return downloadSnapshot(store, source, now, options)
 }
 
-async function downloadSnapshot(store: LocalStore, source: CatalogSyncSource, now: () => Date, options: { signal?: AbortSignal; onProgress?: (progress: SyncProgress) => void }): Promise<CatalogSyncResult> {
+async function downloadSnapshot(store: LocalStore, source: CatalogSyncSource, now: () => Date, options: SyncOptions): Promise<CatalogSyncResult> {
   options.onProgress?.({ phase: 'download', fraction: 0 })
   const snapshot = await source.snapshot({
     signal: options.signal,
@@ -99,6 +114,7 @@ async function downloadSnapshot(store: LocalStore, source: CatalogSyncSource, no
   assertSchema(snapshot)
   options.onProgress?.({ phase: 'save', fraction: DOWNLOAD_SHARE })
   await store.replaceCatalog({ ...snapshot, offlineWindowDays: clampOfflineWindowDays(snapshot.offlineWindowDays) }, snapshot.data, now().toISOString())
+  if (snapshot.access) await options.onAccess?.(snapshot.access)
   options.onProgress?.({ phase: 'save', fraction: 1 })
   return { kind: 'snapshot', items: snapshot.data.items.length, cursor: snapshot.cursor }
 }

@@ -20,4 +20,5 @@ export const SyncDivergenceKind = {
   Payment: 'Payment',
   CashSession: 'CashSession',
   FiscalDocument: 'FiscalDocument',
+  OfflineAccess: 'OfflineAccess',
 } as const;

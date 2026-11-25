@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { deleteMyPosPin, getGetMyPosPinQueryKey, setMyPosPin, useGetMyPosPin } from '@/api/generated/bemaqui'
+import { deleteMyPosOfflineCode, deleteMyPosPin, getGetMyPosPinQueryKey, setMyPosOfflineCode, setMyPosPin, useGetMyPosPin } from '@/api/generated/bemaqui'
 import { ApiError } from '@/api/http'
 import { Field, FormError } from '@/components/form/form'
 import { inputClass } from '@/components/form/form-utils'
@@ -69,8 +69,66 @@ export function MyPosPinSection() {
               ) : null}
             </div>
           </form>
+          {mine.data.hasPin && mine.data.canHaveOfflineCode ? <OfflineCodeForm hasCode={!!mine.data.hasOfflineCode} setAt={mine.data.offlineCodeSetAt} /> : null}
         </>
       )}
     </section>
+  )
+}
+
+/**
+ * OFF-03 (PP-39): o código de aprovação sem internet do supervisor, separado do PIN. Sem rede, o caixa confere o código no aparelho e a aprovação
+ * fica dentro dos limites da loja; com rede, o código não vale (o supervisor usa o PIN). Só para quem aprova desconto ou cancelamento no caixa.
+ */
+function OfflineCodeForm({ hasCode, setAt }: { hasCode: boolean; setAt: string | null | undefined }) {
+  const client = useQueryClient()
+  const [code, setCode] = useState('')
+  const [confirmation, setConfirmation] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const save = async () => {
+    const problem = pinProblem(code, confirmation)
+    if (problem) { setError(problem.replace('PIN', 'código')); return }
+    setBusy(true)
+    setError(null)
+    try {
+      await setMyPosOfflineCode({ code, confirmation })
+      await client.invalidateQueries({ queryKey: getGetMyPosPinQueryKey() })
+      setCode('')
+      setConfirmation('')
+      notifySuccess('Código sem internet salvo')
+    } catch (e) {
+      setError(e instanceof ApiError ? Object.values(e.fields).flat()[0] ?? e.message : 'Não foi possível salvar o código.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); void save() }} noValidate aria-labelledby="codigo-sem-internet" className="space-y-3 border-t border-border pt-3">
+      <h3 id="codigo-sem-internet" className="font-semibold">
+        Código sem internet
+        <Dica nome="Código sem internet" texto="Código de 6 números, diferente do PIN, que o supervisor digita para aprovar desconto ou cancelamento quando o caixa está sem internet. Só vale sem rede e dentro dos limites da loja; com rede, use o PIN." />
+      </h3>
+      <p className="text-sm text-muted-foreground tabular-nums">
+        {hasCode ? `Criado em ${formatDate(setAt!)}. Ele chega aos caixas na próxima sincronização.` : 'Você ainda não tem código sem internet: sem rede, você não aprova no caixa.'}
+      </p>
+      <FormError message={error ?? undefined} />
+      <Field label={hasCode ? 'Código novo' : 'Código'} hint="6 números, diferente do PIN do caixa.">
+        {(p) => <input {...p} inputMode="numeric" autoComplete="off" type="password" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} className={inputClass} />}
+      </Field>
+      <Field label="Repita o código">
+        {(p) => <input {...p} inputMode="numeric" autoComplete="off" type="password" maxLength={6} value={confirmation} onChange={(e) => setConfirmation(e.target.value.replace(/\D/g, ''))} className={inputClass} />}
+      </Field>
+      <div className="flex flex-wrap gap-2">
+        <button type="submit" disabled={busy} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">{hasCode ? 'Trocar o código sem internet' : 'Criar código sem internet'}</button>
+        {hasCode ? (
+          <ConfirmDialog verb="Apagar o código sem internet" done="Código apagado" destructive title="Apagar o seu código sem internet?"
+            description="Na próxima sincronização, os caixas deixam de aceitar a sua aprovação sem rede."
+            onConfirm={async () => { await deleteMyPosOfflineCode(); await client.invalidateQueries({ queryKey: getGetMyPosPinQueryKey() }) }}
+            trigger={<button type="button" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Apagar</button>} />
+        ) : null}
+      </div>
+    </form>
   )
 }

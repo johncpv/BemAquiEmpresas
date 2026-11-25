@@ -33,6 +33,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<PosPin> PosPins => Set<PosPin>();
 
+    public DbSet<DevicePinVerifier> DevicePinVerifiers => Set<DevicePinVerifier>();
+
     public DbSet<PermissionSnapshot> PermissionSnapshots => Set<PermissionSnapshot>();
 
     public DbSet<KioskScreen> KioskScreens => Set<KioskScreen>();

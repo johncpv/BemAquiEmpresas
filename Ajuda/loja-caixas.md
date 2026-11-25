@@ -22,6 +22,7 @@ Acompanhar os turnos dos caixas das lojas: quem abriu, quando fechou, a contagem
 - **Conferência cega:** o operador conta sem ver o esperado. O esperado e a diferença só aparecem para quem tem a permissão de aprovar vendas.
 - **Tolerância de quebra:** por loja (padrão R$ 5,00), aplicada **em cada forma**: sobra no dinheiro não compensa falta no cartão. Acima dela, ou com sangria acima do dinheiro calculado, o fechamento fica **Em conferência**.
 - **Aguardando envio das vendas:** o caixa foi contado, mas ainda falta chegar venda do aparelho. A quebra é calculada quando todas chegam.
+- **Sem rede:** o quadro mostra se o turno foi aberto ou contado sem internet, as aprovações de supervisor sem rede (quantas e o valor) e o número de cada venda feita sem rede. Passar do limite de aprovações sem rede da loja leva o fechamento à conferência.
 - Nada entra num caixa depois do "Fechar caixa": venda atrasada vai para as Pendências do PDV.
 - Quem não aprova vendas vê o caixa contado como **Enviado**, esteja ele fechado ou em conferência.
 

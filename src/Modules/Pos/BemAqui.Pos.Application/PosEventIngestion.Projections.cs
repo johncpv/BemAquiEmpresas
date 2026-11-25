@@ -210,7 +210,11 @@ public sealed partial class PosEventIngestion
         {
             var cashKept = replay.Tenders.Where(t => t.Status == "Captured" && t.MethodId is { } m && methods.TryGetValue(m, out var method) && method.Type == PaymentMethodType.Cash)
                 .Sum(t => t.AmountCents);
-            db.SessionSales.Add(new SessionSale { SaleId = replay.SaleId, SessionId = sessionId, CashAmount = cashKept / 100m, CreatedAt = now });
+            // OFF-03 CA 8: a venda concluída sem rede vai marcada (o aparelho diz; a lista do fechamento usa a marca e o número).
+            db.SessionSales.Add(new SessionSale
+            {
+                SaleId = replay.SaleId, SessionId = sessionId, CashAmount = cashKept / 100m, CreatedAt = now, Offline = OfflineFlag(root), SaleNumber = Cut(replay.Number, 40),
+            });
             await closing.OnSaleArrivedAsync(sessionId, ct); // CX-02: a sessão contada esperava esta venda para fechar
         }
 
@@ -285,7 +289,7 @@ public sealed partial class PosEventIngestion
             }
 
             var opened = await cash.OpenAsync(new CashSessionOpenInput(sessionId!.Value, context.Register.Id, context.Register.DeviceEpoch, operatorId!.Value, opening.Value / 100m,
-                at!.Value, openingMovement), ct);
+                at!.Value, openingMovement, Offline: OfflineFlag(root)), ct);
             return opened.IsSuccess ? projection : throw CashFailure(opened.Error!);
         }
 
@@ -440,7 +444,7 @@ public sealed partial class PosEventIngestion
                 continue;
             }
 
-            if (check.NeedsPinSession && !await context.HadSessionAsync(operators, user, check.At, ct))
+            if (check.NeedsPinSession && !await context.HadSessionAsync(operators, user, check.At, ct, (u, a, c) => HadOfflineSessionAsync(context, u, a, c)))
             {
                 problems.Add($"{Capital(check.Role)} não tinha sessão por PIN neste caixa às {Local(check.At)}.");
                 continue;

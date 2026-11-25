@@ -123,6 +123,10 @@ export interface StoreSettings {
   freeRemoveLast?: boolean
   /** PDV-04 (PP-38): desconto máximo, em %, sem `pos.discount` nem supervisor. Ausente = 0 (todo desconto pede autorização). */
   discountLimitPercent?: number
+  /** OFF-03 (PP-10): tempo máximo sem internet da loja, em horas (padrão e teto de 168). Ausente: usa os dias da foto. */
+  offlineWindowHours?: number | null
+  /** OFF-03 CA 13 (PP-22): limites da aprovação do supervisor sem rede, em centavos. Ausente: nada é aprovado sem rede. */
+  offlineLimits?: { maxCents: number; sessionCents: number; sessionCount: number; cancelSaleAllowed: boolean } | null
 }
 
 /** Limites da loja para o dinheiro na gaveta (CX-01 CA 7 e 8), em centavos; null = sem limite. */

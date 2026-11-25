@@ -44,6 +44,20 @@ public sealed class CashSessionPdfDocument : PdfDocumentFrame
             ("Recolhimento ao Cofre", s.DepositAmount is { } deposit ? PdfTheme.Money(deposit) : null),
             ("Fundo que fica", s.KeptAmount is { } kept ? PdfTheme.Money(kept) : null),
             ("Reaberturas", s.ReopenCount.ToString(PdfTheme.PtBr))));
+        // OFF-03 CA 8: o que foi feito sem rede (abertura, contagem, as vendas pelo número e as aprovações de supervisor).
+        if (s.Offline is { } offline)
+        {
+            col.Item().Element(c => Section(c, "Sem rede"));
+            col.Item().Element(c => Fields(c, 3,
+                ("Abertura sem rede", offline.OpenedOffline ? "Sim" : "Não"),
+                ("Contagem sem rede", offline.ClosedOffline ? "Sim" : "Não"),
+                ("Aprovações sem rede", offline.Approvals == 0 ? "0" : $"{offline.Approvals.ToString(PdfTheme.PtBr)} ({PdfTheme.Money(offline.ApprovalsAmount)})")));
+            if (offline.Sales.Count > 0)
+            {
+                col.Item().Text("Vendas feitas sem rede: " + string.Join(", ", offline.Sales)).FontSize(9);
+            }
+        }
+
         if (_manager)
         {
             col.Item().Element(c => Fields(c, 3,

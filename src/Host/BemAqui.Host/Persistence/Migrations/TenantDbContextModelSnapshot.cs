@@ -11467,6 +11467,50 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("company_profile", "settings");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.DevicePinVerifier", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("device_id");
+
+                    b.Property<string>("Fingerprint")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("fingerprint");
+
+                    b.Property<DateTimeOffset>("IssuedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("issued_at");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_device_pin_verifiers");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_device_pin_verifiers_user_id");
+
+                    b.HasIndex("DeviceId", "UserId", "Kind")
+                        .IsUnique()
+                        .HasDatabaseName("ix_device_pin_verifiers_device_id_user_id_kind");
+
+                    b.ToTable("device_pin_verifiers", "identity");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.Group", b =>
                 {
                     b.Property<Guid>("Id")
@@ -11841,6 +11885,15 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<bool>("MustChange")
                         .HasColumnType("boolean")
                         .HasColumnName("must_change");
+
+                    b.Property<string>("OfflineCodeHash")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("offline_code_hash");
+
+                    b.Property<DateTimeOffset?>("OfflineCodeSetAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("offline_code_set_at");
 
                     b.Property<string>("PinHash")
                         .IsRequired()
@@ -15647,6 +15700,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("closed_by");
 
+                    b.Property<bool>("ClosedOffline")
+                        .HasColumnType("boolean")
+                        .HasColumnName("closed_offline");
+
                     b.Property<Guid?>("CountId")
                         .HasColumnType("uuid")
                         .HasColumnName("count_id");
@@ -15692,6 +15749,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<DateTimeOffset>("OpenedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("opened_at");
+
+                    b.Property<bool>("OpenedOffline")
+                        .HasColumnType("boolean")
+                        .HasColumnName("opened_offline");
 
                     b.Property<decimal>("OpeningAmount")
                         .HasPrecision(18, 2)
@@ -16220,6 +16281,15 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<bool>("Offline")
+                        .HasColumnType("boolean")
+                        .HasColumnName("offline");
+
+                    b.Property<string>("SaleNumber")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("sale_number");
+
                     b.Property<Guid>("SessionId")
                         .HasColumnType("uuid")
                         .HasColumnName("session_id");
@@ -16322,6 +16392,39 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("non_fiscal_terms_version");
 
+                    b.Property<decimal>("OfflineApprovalMaxAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasDefaultValue(50.00m)
+                        .HasColumnName("offline_approval_max_amount");
+
+                    b.Property<decimal>("OfflineApprovalReviewAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasDefaultValue(100.00m)
+                        .HasColumnName("offline_approval_review_amount");
+
+                    b.Property<decimal>("OfflineApprovalSessionAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasDefaultValue(150.00m)
+                        .HasColumnName("offline_approval_session_amount");
+
+                    b.Property<int>("OfflineApprovalSessionCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(5)
+                        .HasColumnName("offline_approval_session_count");
+
+                    b.Property<bool>("OfflineCancelSaleAllowed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("offline_cancel_sale_allowed");
+
                     b.Property<int>("OfflineWindowHours")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -16407,6 +16510,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("before_amount");
 
+                    b.Property<Guid?>("CashSessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cash_session_id");
+
                     b.Property<Guid>("DeviceId")
                         .HasColumnType("uuid")
                         .HasColumnName("device_id");
@@ -16460,6 +16567,10 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_supervisor_approvals");
+
+                    b.HasIndex("CashSessionId")
+                        .HasDatabaseName("ix_supervisor_approvals_cash_session_id")
+                        .HasFilter("cash_session_id IS NOT NULL");
 
                     b.HasIndex("SaleId")
                         .HasDatabaseName("ix_supervisor_approvals_sale_id");
@@ -21049,6 +21160,23 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_vacation_schedules_vacation_periods_period_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.DevicePinVerifier", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.ShopfloorDevice", null)
+                        .WithMany()
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_device_pin_verifiers_shopfloor_devices_device_id");
+
+                    b.HasOne("BemAqui.Identity.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_device_pin_verifiers_users_user_id");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.GroupGrant", b =>

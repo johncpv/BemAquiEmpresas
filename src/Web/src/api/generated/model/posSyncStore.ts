@@ -28,4 +28,8 @@ export interface PosSyncStore {
   receiptPrintMode?: ReceiptPrintMode;
   freeRemoveLast?: boolean;
   discountLimitPercent?: number;
+  offlineApprovalMaxCents?: number;
+  offlineApprovalSessionCents?: number;
+  offlineApprovalSessionCount?: number;
+  offlineCancelSaleAllowed?: boolean;
 }

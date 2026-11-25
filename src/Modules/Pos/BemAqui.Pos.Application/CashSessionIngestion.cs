@@ -11,7 +11,9 @@ using Microsoft.EntityFrameworkCore;
 namespace BemAqui.Pos.Application;
 
 /// <summary>Abertura do caixa vinda do aparelho (evento <c>CashSessionOpened</c>): o id da sessão e o do movimento do fundo de troco são do aparelho.</summary>
-public sealed record CashSessionOpenInput(Guid SessionId, Guid RegisterId, int DeviceEpoch, Guid OperatorId, decimal OpeningAmount, DateTimeOffset OpenedAt, Guid OpeningMovementId);
+/// <remarks>OFF-03 CA 6: <c>Offline</c>, a abertura foi feita sem rede.</remarks>
+public sealed record CashSessionOpenInput(Guid SessionId, Guid RegisterId, int DeviceEpoch, Guid OperatorId, decimal OpeningAmount, DateTimeOffset OpenedAt, Guid OpeningMovementId,
+    bool Offline = false);
 
 /// <summary>Sangria (<c>CashOutRecorded</c>) ou suprimento (<c>CashInRecorded</c>) vindos do aparelho.</summary>
 public sealed record CashMovementInput(Guid MovementId, Guid SessionId, CashMovementKind Kind, decimal Amount, string? Reason, Guid OperatorId, DateTimeOffset OccurredAt, bool AboveExpected);
@@ -79,7 +81,7 @@ public sealed class CashSessionIngestion(IPosDb db, IEventPublisher events, IUse
         }
 
         var now = clock.GetUtcNow();
-        var session = CashSession.FromDevice(input.SessionId, register.StoreId, register.Id, input.DeviceEpoch, input.OperatorId, input.OpeningAmount, input.OpenedAt, now);
+        var session = CashSession.FromDevice(input.SessionId, register.StoreId, register.Id, input.DeviceEpoch, input.OperatorId, input.OpeningAmount, input.OpenedAt, now, input.Offline);
         db.CashSessions.Add(session);
         var opening = CashMovement.FromDevice(input.OpeningMovementId, session.Id, CashMovementKind.Opening, input.OpeningAmount, null, input.OperatorId, input.OpenedAt, false, now);
         db.CashMovements.Add(opening);

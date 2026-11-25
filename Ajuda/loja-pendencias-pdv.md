@@ -35,6 +35,7 @@ Há dois jeitos de uma pendência nascer:
 - **Pagamento:** a venda entrou, mas a soma dos pagamentos difere do total, ou um pagamento ficou sem confirmação. Confira com a maquininha ou o banco.
 - **Sessão de caixa:** sangria, suprimento ou fechamento de uma sessão que não existe, é de outro caixa ou já estava fechada, ou uma segunda abertura no mesmo caixa. Também aparece quando a sangria passou do dinheiro calculado da sessão, ou quando a venda é de um horário fora da sessão (antes da abertura ou depois do fechamento): ela entra, mas o dinheiro dela não soma na sessão.
 - **Documento fiscal:** a loja não estava com o modo "só cupom não fiscal" aceito na versão vigente do texto na hora da venda. Só o Proprietário resolve: aceite o modo (veja a ajuda "Documento fiscal") e libere.
+- **Acesso sem rede:** uma entrada ou uma aprovação de supervisor feita sem internet não conferiu no servidor (pessoa desativada ou fora da loja, PIN ou código trocado depois da última sincronização do aparelho, prova que não confere, aprovação acima dos limites da loja ou cancelamento sem rede de venda que não foi paga toda em dinheiro). O que a pessoa fez naquela entrada fica na quarentena: confira com o operador e o supervisor antes de liberar.
 
 ## Perguntas frequentes
 **Recebi "Caixa 02 sem enviar vendas há N horas.". O que faço?** O caixa tem vendas esperando para subir, ou está aberto e sem contato. Confira se o aparelho está ligado e com internet. O tempo do aviso é da loja, em Lojas e caixas.

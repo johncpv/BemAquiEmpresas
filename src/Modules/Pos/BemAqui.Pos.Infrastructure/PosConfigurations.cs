@@ -30,6 +30,14 @@ internal sealed class StoreConfiguration : IEntityTypeConfiguration<Store>
         // PDV-04 (PP-38): limite de desconto da loja, em %; o padrão é da PP-22 (em aberto), até lá 0.
         b.Property(e => e.DiscountLimitPercent).HasPrecision(5, 2).HasDefaultValue(0m);
         b.Property(e => e.SyncAlertHours).HasDefaultValue(Store.DefaultSyncAlertHours);
+        // OFF-03 CA 13 (PP-22, recomendação conservadora aceita pelo PO em 24/11/2026): limites da aprovação sem rede; zero vale (desliga), por isso o sentinela.
+        b.Property(e => e.OfflineApprovalMaxAmount).HasPrecision(18, 2).HasDefaultValue(Store.DefaultOfflineApprovalMaxAmount).HasSentinel(Store.DefaultOfflineApprovalMaxAmount);
+        b.Property(e => e.OfflineApprovalSessionAmount).HasPrecision(18, 2).HasDefaultValue(Store.DefaultOfflineApprovalSessionAmount)
+            .HasSentinel(Store.DefaultOfflineApprovalSessionAmount);
+        b.Property(e => e.OfflineApprovalSessionCount).HasDefaultValue(Store.DefaultOfflineApprovalSessionCount).HasSentinel(Store.DefaultOfflineApprovalSessionCount);
+        b.Property(e => e.OfflineApprovalReviewAmount).HasPrecision(18, 2).HasDefaultValue(Store.DefaultOfflineApprovalReviewAmount)
+            .HasSentinel(Store.DefaultOfflineApprovalReviewAmount);
+        b.Property(e => e.OfflineCancelSaleAllowed).HasDefaultValue(true).HasSentinel(true);
         b.Property(e => e.CashDropAlertAmount).HasPrecision(18, 2).HasDefaultValue(1000.00m);
         b.Property(e => e.Code).HasMaxLength(6);
         b.Property(e => e.Name).HasMaxLength(Store.MaxNameLength);
@@ -266,6 +274,8 @@ internal sealed class SupervisorApprovalConfiguration : IEntityTypeConfiguration
         b.Property(e => e.AfterAmount).HasPrecision(18, 2);
         b.HasIndex(e => new { e.ApprovedAt, e.StoreId });
         b.HasIndex(e => e.SaleId);
+        b.HasIndex(e => e.CashSessionId).HasFilter("cash_session_id IS NOT NULL");
+        b.Ignore(e => e.Impact);
     }
 }
 
@@ -278,6 +288,7 @@ internal sealed class SessionSaleConfiguration : IEntityTypeConfiguration<Sessio
         b.HasKey(e => e.SaleId);
         b.Property(e => e.SaleId).ValueGeneratedNever();
         b.Property(e => e.CashAmount).HasPrecision(18, 2);
+        b.Property(e => e.SaleNumber).HasMaxLength(40);
         b.HasIndex(e => e.SessionId);
     }
 }

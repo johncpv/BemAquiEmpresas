@@ -66,6 +66,7 @@ public sealed partial class PosEventIngestion(
     ISaleLookup saleLookup,
     INotificationService notifications,
     IUserDirectory users,
+    IPosOfflineAccess offlineAccess,
     TimeProvider clock,
     ILogger<PosEventIngestion> logger)
 {
@@ -91,7 +92,7 @@ public sealed partial class PosEventIngestion(
     /// <summary>PDV-04 CA 6 a 9: cancelamento de venda concluída da sessão atual, com a aprovação do supervisor.</summary>
     public const string CancelKind = "pos.sale_cancel";
 
-    private static readonly string[] Kinds = [SaleKind, CashKind, PrintKind, CancelKind];
+    private static readonly string[] Kinds = [SaleKind, CashKind, PrintKind, CancelKind, AuthKind, ApprovalKind];
 
     private static readonly JsonSerializerOptions DetailsJson = new(JsonSerializerDefaults.Web);
 
@@ -316,7 +317,7 @@ public sealed partial class PosEventIngestion(
             }
 
             // M3: a exceção por operador só leva o operador conferido (com sessão por PIN neste aparelho no instante).
-            var verified = projection.OperatorId is { } op && await context.HadSessionAsync(operators, op, occurredAt, cancellationToken) ? op : (Guid?)null;
+            var verified = projection.OperatorId is { } op && await context.HadSessionAsync(operators, op, occurredAt, cancellationToken, (u, a, c) => HadOfflineSessionAsync(context, u, a, c)) ? op : (Guid?)null;
             db.OperatorIncidents.Add(new OperatorIncident
             {
                 StoreId = context.Store.Id, RegisterId = context.Register.Id, OperatorId = verified, Kind = OperatorIncidentKind.EventRejected, EventId = input.EventId,
@@ -428,6 +429,8 @@ public sealed partial class PosEventIngestion(
             CashKind => ProjectCashAsync(context, root, occurredAt, cancellationToken),
             PrintKind => ProjectPrintAsync(context, root, occurredAt, cancellationToken),
             CancelKind => ProjectCancelAsync(context, eventId, root, occurredAt, cancellationToken),
+            AuthKind => ProjectAuthAsync(context, eventId, root, occurredAt, cancellationToken),
+            ApprovalKind => ProjectOfflineApprovalAsync(context, root, occurredAt, cancellationToken),
             _ => Task.FromResult(Projection.Held(new Finding(SyncDivergenceKind.Validation, $"Tipo de evento desconhecido: {kind}."), payload, kind)),
         };
     }
@@ -531,12 +534,17 @@ public sealed partial class PosEventIngestion(
         /// <summary>Liberação da quarentena: quem liberou decidiu; a conferência de operador, permissão e autorização não roda de novo.</summary>
         public bool Trusted { get; } = trusted;
 
-        public async Task<bool> HadSessionAsync(IPosOperatorHistory history, Guid userId, DateTimeOffset at, CancellationToken ct)
+        /// <summary>
+        /// Sessão por PIN deste usuário neste aparelho no instante: a do servidor (com rede) ou, OFF-03 CA 2, a entrada sem rede conferida
+        /// (<paramref name="offline"/>: um evento <c>pos.auth</c> aceito deste aparelho, até 12 h antes).
+        /// </summary>
+        public async Task<bool> HadSessionAsync(IPosOperatorHistory history, Guid userId, DateTimeOffset at, CancellationToken ct,
+            Func<Guid, DateTimeOffset, CancellationToken, Task<bool>>? offline = null)
         {
             var key = (userId, Device.DeviceId, at.ToUnixTimeSeconds() / 60);
             if (!_sessions.TryGetValue(key, out var ok))
             {
-                ok = await history.HadPinSessionAsync(userId, Device.DeviceId, at, ct);
+                ok = await history.HadPinSessionAsync(userId, Device.DeviceId, at, ct) || (offline is not null && await offline(userId, at, ct));
                 _sessions[key] = ok;
             }
 

@@ -103,7 +103,7 @@ const defaultMode = (uiMode: PosHandshake['uiMode']): SaleSettings['mode'] => (u
  * - O leitor em modo teclado é reconhecido em qualquer campo pelo tempo entre as teclas (CA 4).
  * - **Pagar** (F10, PDV-03) leva à tela de pagamento, que só fala com a porta `PaymentTerminal` (padrão: `ManualTerminal`, maquininha externa).
  */
-export function PdvSale({ store, handshake, operator, online, searchCustomers, onLeave, terminal, supervisor }: {
+export function PdvSale({ store, handshake, operator, online, searchCustomers, onLeave, terminal, supervisor, offlineMode = false, openBlocked = null }: {
   store: LocalStore
   handshake: PosHandshake
   operator: SaleOperator
@@ -113,6 +113,10 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
   terminal?: PaymentTerminal
   /** PDV-04: "Chamar supervisor" (com rede). */
   supervisor?: SupervisorApi | null
+  /** OFF-03: o operador entrou sem rede; abertura, contagem e vendas vão marcadas como feitas sem rede. */
+  offlineMode?: boolean
+  /** OFF-03 CA 9 e 14: por que um turno novo não abre agora (janela vencida ou relógio atrás do piso); null: abre. */
+  openBlocked?: string | null
 }) {
   const [cash, setCash] = useState<LocalCashSession | null | undefined>(undefined)
   const [lastOpening, setLastOpening] = useState(0)
@@ -123,6 +127,8 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
   useEffect(() => { if (cash !== undefined) markCashSessionOpen(!!cash) }, [cash])
   const [settings, setSettings] = useState<SaleSettings>({ mode: defaultMode(handshake.uiMode), ...DEFAULT_SETTINGS })
   const settingsRef = useRef(settings)
+  const offlineRef = useRef(offlineMode)
+  useEffect(() => { offlineRef.current = offlineMode }, [offlineMode])
   useEffect(() => { settingsRef.current = settings }, [settings])
   const [register, setRegister] = useState<SaleRegister | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
@@ -148,6 +154,7 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
             discountLimitPercent: store.catalogState()?.storeSettings?.discountLimitPercent ?? 0,
           }),
           cipher: aesDocumentCipher(loadDocumentKey), cashSessionId: () => cashIdRef.current, stock: localStockGuard(store),
+          offline: () => offlineRef.current || (typeof navigator !== 'undefined' && !navigator.onLine),
         })
         // Venda concluída ao reabrir (queda entre o último pagamento e o fechamento): conta no turno como as outras.
         let session = loaded
@@ -189,9 +196,9 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
   // CX-01 CA 1: sem turno aberto, o operador abre com o fundo de troco (padrão: o da última abertura); sem turno não se vende (PDV-02 CA 17).
   if (!cash) {
     return (
-      <CashOpenScreen operatorName={operator.name} defaultCents={lastOpening} onLeave={onLeave}
+      <CashOpenScreen operatorName={operator.name} defaultCents={lastOpening} onLeave={onLeave} blocked={openBlocked}
         onOpen={async (openingCents) => {
-          const opened = await openCashSession(store, { operator, openingCents, registerId: handshake.registerId, deviceEpoch: handshake.epoch })
+          const opened = await openCashSession(store, { operator, openingCents, registerId: handshake.registerId, deviceEpoch: handshake.epoch, offline: offlineMode || !navigator.onLine })
           setLastOpening(openingCents)
           setCash(opened)
         }} />
@@ -208,7 +215,7 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
       <CashCountScreen methods={methods} operatorName={operator.name} defaultKeptCents={cash.openingCents}
         onConfirm={async (lines, keptCents) => {
           const cashMethodIds = new Set(methods.filter((m) => m.kind === 'Cash').map((m) => m.id))
-          const result = await confirmCashCount(store, { operator, lines, keptCents, cashMethodIds })
+          const result = await confirmCashCount(store, { operator, lines, keptCents, cashMethodIds, offline: offlineMode || !navigator.onLine })
           setLastOpening(keptCents)
           setClosed(result)
           setCash(null)
@@ -221,7 +228,7 @@ export function PdvSale({ store, handshake, operator, online, searchCustomers, o
     <SaleScreen store={store} register={register} operator={operator} online={online} settings={settings} onSettings={saveSettings} terminal={terminal} supervisor={supervisor ?? null}
       registerId={handshake.registerId} storeName={handshake.storeName}
       searchCustomers={searchCustomers} onLeave={onLeave} cash={cash} onCash={setCash} place={place}
-      onCloseRegister={async () => { setCash(await startCashCount(store, operator)) }} />
+      onCloseRegister={async () => { setCash(await startCashCount(store, operator, undefined, offlineMode || !navigator.onLine)) }} />
   )
 }
 
@@ -694,7 +701,7 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
       {sheet?.kind === 'price' ? <PriceSheet open line={sheetLine} onCancel={closeSheet} onSave={(unit, reason) => (sheetLine ? savePrice(sheetLine, unit, reason) : Promise.resolve(null))} /> : null}
       {cancelTarget ? <CancelSaleSheet open receipt={cancelTarget} otherSession={cancelOtherSession} onCancel={closeSheet}
         onConfirm={async (input) => { cancelSale(cancelTarget, input); return null }} /> : null}
-      <SupervisorDialog request={calling?.request ?? null} api={supervisor} online={online && !!supervisor}
+      <SupervisorDialog request={calling?.request ?? null} api={supervisor} online={(online || !!supervisor?.offline) && !!supervisor}
         onApproved={(approval) => calling?.onApproved(approval)} onCancel={() => { setCalling(null); focusCode() }} />
       <ReprintSheet open={sheet?.kind === 'reprint'} store={store} header={header} operatorId={operator.id} registerId={registerId} decryptDocument={decryptDocument} onClose={closeSheet}
         onCancelSale={operator.canCancelSale ? (receipt) => setSheet({ kind: 'cancel-sale', receipt }) : undefined} />

@@ -1097,6 +1097,7 @@ import type {
   SellWithoutStockInput,
   SerialTrace,
   SetGroupMembersRequest,
+  SetOfflineCodeInput,
   SetPosPinInput,
   SetUserGroupsRequest,
   SettlementInput,
@@ -10659,6 +10660,156 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDeleteMyPosPinMutationOptions(options), queryClient);
+    }
+
+export const getSetMyPosOfflineCodeUrl = () => {
+
+
+
+
+  return `/api/v1/pos/my-pin/offline-code`
+}
+
+export const setMyPosOfflineCode = async (setOfflineCodeInput: SetOfflineCodeInput, options?: Parameters<typeof apiFetch>[1]): Promise<MyPosPin> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<MyPosPin>(getSetMyPosOfflineCodeUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(setOfflineCodeInput)
+  }
+);}
+
+
+
+
+
+export const getSetMyPosOfflineCodeMutationKey = () => ['setMyPosOfflineCode'] as const;
+
+export const getSetMyPosOfflineCodeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setMyPosOfflineCode>>, TError,SetMyPosOfflineCodeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setMyPosOfflineCode>>, TError,SetMyPosOfflineCodeMutationVariables, TContext> => {
+
+const mutationKey = getSetMyPosOfflineCodeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setMyPosOfflineCode>>, SetMyPosOfflineCodeMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  setMyPosOfflineCode(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetMyPosOfflineCodeMutationResult = NonNullable<Awaited<ReturnType<typeof setMyPosOfflineCode>>>
+    export type SetMyPosOfflineCodeMutationBody = SetOfflineCodeInput
+    export type SetMyPosOfflineCodeMutationError = unknown
+    export type SetMyPosOfflineCodeMutationVariables = {data: SetOfflineCodeInput}
+
+    export const useSetMyPosOfflineCode = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setMyPosOfflineCode>>, TError,SetMyPosOfflineCodeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setMyPosOfflineCode>>,
+        TError,
+        SetMyPosOfflineCodeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetMyPosOfflineCodeMutationOptions(options), queryClient);
+    }
+
+export const getDeleteMyPosOfflineCodeUrl = () => {
+
+
+
+
+  return `/api/v1/pos/my-pin/offline-code`
+}
+
+export const deleteMyPosOfflineCode = async ( options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteMyPosOfflineCodeUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteMyPosOfflineCodeMutationKey = () => ['deleteMyPosOfflineCode'] as const;
+
+export const getDeleteMyPosOfflineCodeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyPosOfflineCode>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteMyPosOfflineCode>>, TError,void, TContext> => {
+
+const mutationKey = getDeleteMyPosOfflineCodeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMyPosOfflineCode>>, void> = () => {
+
+
+          return  deleteMyPosOfflineCode(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteMyPosOfflineCodeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMyPosOfflineCode>>>
+
+    export type DeleteMyPosOfflineCodeMutationError = unknown
+
+
+    export const useDeleteMyPosOfflineCode = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyPosOfflineCode>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteMyPosOfflineCode>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getDeleteMyPosOfflineCodeMutationOptions(options), queryClient);
     }
 
 export const getListOperationUserStoresUrl = () => {

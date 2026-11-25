@@ -25,4 +25,16 @@ export interface StoreRequest {
   cashBreakTolerance?: number | null;
   /** @nullable */
   discountLimitPercent?: number | null;
+  /** @nullable */
+  offlineWindowHours?: number | null;
+  /** @nullable */
+  offlineApprovalMaxAmount?: number | null;
+  /** @nullable */
+  offlineApprovalSessionAmount?: number | null;
+  /** @nullable */
+  offlineApprovalSessionCount?: number | null;
+  /** @nullable */
+  offlineApprovalReviewAmount?: number | null;
+  /** @nullable */
+  offlineCancelSaleAllowed?: boolean | null;
 }

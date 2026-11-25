@@ -46,7 +46,13 @@ public sealed record CashSessionDetail(
     decimal OpeningAmount, decimal? KeptAmount, decimal? DepositAmount, decimal Tolerance, IReadOnlyList<string> ReviewReasons,
     IReadOnlyList<CashSessionLineView> Lines, CashSessionSalesView Sales, IReadOnlyList<CashSessionMovementView> Movements, IReadOnlyList<CashSessionPixView> Pix,
     string? ApprovedByName, DateTimeOffset? ApprovedAt, string? ApprovalReason, int ReopenCount, string? ReopenedByName, DateTimeOffset? ReopenedAt, string? ReopenReason,
-    bool ExpectedVisible, bool CanApprove, bool CanReopen, uint Version);
+    bool ExpectedVisible, bool CanApprove, bool CanReopen, uint Version, CashSessionOfflineView? Offline = null);
+
+/// <summary>
+/// OFF-03 CA 6, 8 e 13: o que aconteceu sem rede na sessão. Abertura e contagem sem rede, os números das vendas concluídas sem rede (até 200) e as
+/// aprovações de supervisor sem rede (quantas e o valor que mexeram).
+/// </summary>
+public sealed record CashSessionOfflineView(bool OpenedOffline, bool ClosedOffline, IReadOnlyList<string> Sales, int Approvals, decimal ApprovalsAmount);
 
 public sealed record CashSessionDecisionInput(string Reason, uint Version);
 
@@ -462,7 +468,20 @@ public sealed class CashSessionQueries(
             visible,
             visible && !own && session.Status is CashSessionStatus.PendingReview or CashSessionStatus.Counted,
             visible && !own && session.Status == CashSessionStatus.Closed && last,
-            session.Version);
+            session.Version,
+            await OfflineAsync(session, cancellationToken));
+    }
+
+    /// <summary>OFF-03 CA 8 e 13: as vendas e as aprovações sem rede da sessão; null quando nada foi feito sem rede.</summary>
+    private async Task<CashSessionOfflineView?> OfflineAsync(CashSession session, CancellationToken cancellationToken)
+    {
+        var sales = await db.SessionSales.AsNoTracking().Where(s => s.SessionId == session.Id && s.Offline)
+            .OrderBy(s => s.CreatedAt).Select(s => s.SaleNumber ?? s.SaleId.ToString()).Take(200).ToListAsync(cancellationToken);
+        var approvals = await db.SupervisorApprovals.AsNoTracking().Where(a => a.CashSessionId == session.Id && !a.Online)
+            .Select(a => new { a.BeforeAmount, a.AfterAmount }).ToListAsync(cancellationToken);
+        return session.OpenedOffline || session.ClosedOffline || sales.Count > 0 || approvals.Count > 0
+            ? new CashSessionOfflineView(session.OpenedOffline, session.ClosedOffline, sales, approvals.Count, approvals.Sum(a => Math.Abs(a.BeforeAmount - a.AfterAmount)))
+            : null;
     }
 
     /// <summary>Grava; a sessão (ou a conferência) que mudou desde a leitura vira 409 (B2).</summary>

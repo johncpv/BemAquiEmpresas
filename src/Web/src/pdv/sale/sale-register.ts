@@ -105,6 +105,8 @@ export interface SaleRegisterOptions {
   cashSessionId?: () => string | null
   /** PDV-05 (PP-02): confere o saldo da loja antes de lançar ou aumentar um item (ausente: não confere). */
   stock?: StockGuard
+  /** OFF-03 CA 8: a venda concluída agora foi feita sem rede (entrada sem rede ou aparelho sem conexão): vai marcada para o fechamento. */
+  offline?: () => boolean
 }
 
 /** Regra da venda que a tela mostra ao operador (não é erro de gravação). */
@@ -567,7 +569,7 @@ export class SaleRegister {
       at: completed.at,
       payload: {
         saleId: sale.id, number: saleNumber(prefix, seq), status: 'completed', totalCents: total, changeCents: change,
-        cashSessionId: this.options.cashSessionId?.() ?? null,
+        cashSessionId: this.options.cashSessionId?.() ?? null, ...(this.options.offline?.() ? { offline: true } : {}),
         events: [...events, ...extra, completed],
       },
     }))

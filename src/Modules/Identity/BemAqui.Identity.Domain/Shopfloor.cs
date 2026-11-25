@@ -345,6 +345,27 @@ public sealed class PosPin : Entity, IAuditable
 
     public DateTimeOffset? LastUsedAt { get; private set; }
 
+    /// <summary>
+    /// OFF-03 (PP-39): código de aprovação sem rede do supervisor, separado do PIN (só o hash PBKDF2). Nunca vale com rede: quebrar o verificador
+    /// guardado num aparelho rende, no máximo, aprovações sem rede dentro dos limites da loja.
+    /// </summary>
+    [ProtectedSecret]
+    public string? OfflineCodeHash { get; private set; }
+
+    public DateTimeOffset? OfflineCodeSetAt { get; private set; }
+
+    public void SetOfflineCode(string hash, DateTimeOffset now)
+    {
+        OfflineCodeHash = hash;
+        OfflineCodeSetAt = now;
+    }
+
+    public void ClearOfflineCode()
+    {
+        OfflineCodeHash = null;
+        OfflineCodeSetAt = null;
+    }
+
     public static PosPin Create(Guid userId, string pinHash, bool mustChange, Guid createdBy, DateTimeOffset now) => new()
     {
         UserId = userId,
@@ -404,4 +425,31 @@ public sealed class PosPin : Entity, IAuditable
         LockedUntil = null;
         LastUsedAt = now;
     }
+}
+
+/// <summary>Segredo que o verificador sem rede protege (OFF-03): o PIN do operador ou o código de aprovação sem rede do supervisor (PP-39).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<PinVerifierKind>))]
+public enum PinVerifierKind
+{
+    OperatorPin,
+    SupervisorCode,
+}
+
+/// <summary>
+/// Verificador sem rede entregue a um aparelho de caixa (<c>identity.device_pin_verifiers</c>, OFF-03 CA 1 e 4): de quem, de que segredo, quando
+/// desceu e a impressão digital do hash usado (SHA-256 do hash, nunca o hash). A cada sincronização a lista do aparelho é refeita: quem saiu da loja,
+/// foi desativado ou trocou o segredo perde a linha (o aparelho apaga o verificador antigo ao receber a lista nova).
+/// </summary>
+public sealed class DevicePinVerifier : Entity
+{
+    public Guid DeviceId { get; init; }
+
+    public Guid UserId { get; init; }
+
+    public PinVerifierKind Kind { get; init; }
+
+    /// <summary>SHA-256 (base64) do hash PBKDF2 do segredo no momento da descida: muda quando o segredo muda.</summary>
+    public string Fingerprint { get; set; } = string.Empty;
+
+    public DateTimeOffset IssuedAt { get; set; }
 }

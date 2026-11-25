@@ -18,6 +18,9 @@ import { SUPPORTED_BROWSERS, UNSUPPORTED_TITLE } from '@/pdv/platform'
 import { useCatalogSync } from '@/pdv/use-catalog-sync'
 import { useOnline } from '@/pdv/use-online'
 import { registerLabel } from '@/pages/store/stores'
+import { loadOfflineSession } from '@/pdv/offline/offline-access'
+import { NEEDS_NETWORK } from '@/pdv/offline/offline-features'
+import { PdvOfflineEntry } from './PdvOfflineEntry'
 import { PdvOperatorEntry } from './PdvOperatorEntry'
 
 const HANDSHAKE = '/api/v1/pos/sync/handshake'
@@ -81,7 +84,15 @@ export function PdvPage() {
   const [registering, setRegistering] = useState(false)
   // Operador no caixa (sessão por PIN): a tela de venda ocupa a largura toda.
   const token = useSyncExternalStore(onSessionChange, getAccessToken, () => null)
-  const selling = state.kind === 'registered' && !state.offline && !!token && isPosPinSession(token)
+  // OFF-03: entrada sem rede em curso (guardada no aparelho): a tela de venda continua nela até o operador sair, mesmo com a rede de volta (CA 12).
+  const [offlineActive, setOfflineActive] = useState(false)
+  useEffect(() => {
+    let alive = true
+    if (store) void loadOfflineSession(store).then((s) => { if (alive) setOfflineActive(!!s) }).catch(() => undefined)
+    return () => { alive = false }
+  }, [store])
+  const offlineEntry = state.kind === 'registered' && (state.offline || offlineActive)
+  const selling = state.kind === 'registered' && ((!state.offline && !!token && isPosPinSession(token)) || offlineActive)
 
   const startRegister = useCallback(async () => {
     if (await ensureSession()) {
@@ -151,14 +162,18 @@ export function PdvPage() {
         <ErrorState title="Não foi possível conferir o aparelho." message={state.message} onRetry={() => void refresh()} />
       ) : state.kind === 'registered' ? (
         <CatalogGate keys={state.keys} online={online}>
-          {state.offline ? (
-            <Card title="Sem conexão." icon={<CloudOff aria-hidden="true" className="size-6" />}
-              text="O caixa abriu com os dados guardados neste aparelho. A entrada do operador ainda precisa de internet: assim que a rede voltar, a lista de quem pode entrar aparece sozinha."
-              action={<button type="button" onClick={() => void refresh()} className="min-h-14 rounded-md bg-primary px-5 text-base font-semibold text-primary-foreground">Tentar de novo</button>} />
+          {offlineEntry ? (
+            pdv ? <PdvOfflineEntry handshake={state.register} onSessionChange={setOfflineActive} /> : (
+              <Card title="Sem conexão." icon={<CloudOff aria-hidden="true" className="size-6" />}
+                text="O caixa abriu com os dados guardados neste aparelho. Sem rede, a entrada por PIN funciona no app do caixa."
+                action={<button type="button" onClick={() => void refresh()} className="min-h-14 rounded-md bg-primary px-5 text-base font-semibold text-primary-foreground">Tentar de novo</button>} />
+            )
           ) : <PdvOperatorEntry keys={state.keys} handshake={state.register} onDeviceGone={refresh} />}
           {selling ? null : <p className="text-sm text-muted-foreground">As vendas deste aparelho vão sair numeradas a partir de {state.register.salePrefix}000001.</p>}
-          {selling ? null : (
+          {selling ? null : online && !state.offline ? (
             <p className="text-sm"><a href="/pdv/config/impressora/" className="font-semibold text-primary underline">Impressora do caixa</a>: instale e teste a impressora do cupom.</p>
+          ) : (
+            <p className="flex items-center gap-1 text-sm text-muted-foreground"><CloudOff aria-hidden="true" className="size-4" />Impressora do caixa (instalação de impressora nova): {NEEDS_NETWORK}</p>
           )}
         </CatalogGate>
       ) : (
