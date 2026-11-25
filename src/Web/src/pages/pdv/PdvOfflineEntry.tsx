@@ -179,7 +179,7 @@ function OfflineSale({ store, handshake, session, verifiers, onLeave }: {
 
   const operator = useMemo<SaleOperator>(() => ({
     id: session.userId, name: session.name, canCancelItem: session.actions.includes('cancel_item'), canCashOut: session.actions.includes('cash_out'),
-    canCashIn: session.actions.includes('cash_in'), canDiscount: session.actions.includes('discount'), canChangePrice: false, canCancelSale: session.actions.includes('cancel_sale'),
+    canCashIn: session.actions.includes('cash_in'), canDiscount: session.actions.includes('discount'), canChangePrice: false, canCancelSale: session.actions.includes('cancel_sale'), canReturn: session.actions.includes('return'),
   }), [session])
 
   const supervisor = useMemo<SupervisorApi>(() => ({
@@ -187,10 +187,12 @@ function OfflineSale({ store, handshake, session, verifiers, onLeave }: {
     list: async () => verifiers.filter((v) => v.kind === 'supervisor' && v.userId !== session.userId)
       .map((v) => ({ userId: v.userId, displayName: v.displayName, actions: v.actions })),
     approve: async (input) => {
+      // PDV-06: a devolução só existe com rede; sem rede o supervisor não aprova devolução.
+      if (input.action === 'Return') throw new OfflineAccessError(NEEDS_NETWORK)
       const cash = await loadCashSession(store)
       const result = await offlineApprove(store, {
         verifier: verifiers.find((v) => v.kind === 'supervisor' && v.userId === input.supervisorId) ?? null, code: input.pin, deviceId: handshake.deviceId,
-        operatorId: session.userId, cashSessionId: cash?.id ?? null, limits: store.catalogState()?.storeSettings?.offlineLimits ?? null, action: input.action as SupervisorAction,
+        operatorId: session.userId, cashSessionId: cash?.id ?? null, limits: store.catalogState()?.storeSettings?.offlineLimits ?? null, action: input.action as Exclude<SupervisorAction, 'Return'>,
         reason: input.reason, saleId: input.saleId, lineId: input.lineId, beforeCents: Math.round(input.beforeAmount * 100), afterCents: Math.round(input.afterAmount * 100),
       })
       if (!result.ok) throw new OfflineAccessError(result.message)

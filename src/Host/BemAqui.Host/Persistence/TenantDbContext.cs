@@ -425,6 +425,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Sales.Domain.SaleStockPosting> SaleStockPostings => Set<BemAqui.Sales.Domain.SaleStockPosting>();
 
+    public DbSet<BemAqui.Sales.Domain.SaleReturn> SaleReturns => Set<BemAqui.Sales.Domain.SaleReturn>();
+
+    public DbSet<BemAqui.Sales.Domain.SaleReturnLine> SaleReturnLines => Set<BemAqui.Sales.Domain.SaleReturnLine>();
+
+    public DbSet<BemAqui.Sales.Domain.StoreCredit> StoreCredits => Set<BemAqui.Sales.Domain.StoreCredit>();
+
+    public DbSet<BemAqui.Sales.Domain.StoreCreditMovement> StoreCreditMovements => Set<BemAqui.Sales.Domain.StoreCreditMovement>();
+
     public DbSet<BemAqui.Assets.Domain.Asset> Assets => Set<BemAqui.Assets.Domain.Asset>();
 
     public DbSet<BemAqui.Assets.Domain.AssetSite> AssetSites => Set<BemAqui.Assets.Domain.AssetSite>();

@@ -123,6 +123,9 @@ public enum CashMovementKind
 
     /// <summary>CX-02 CA 10: a reabertura devolve o recolhimento à gaveta (Cofre → Caixa do PDV), para a nova contagem fechar.</summary>
     DepositReturn,
+
+    /// <summary>PDV-06: devolução em dinheiro ao cliente (com supervisor): sai da gaveta e entra no esperado do fechamento.</summary>
+    Refund,
 }
 
 /// <summary>
@@ -171,7 +174,7 @@ public sealed class CashMovement : Entity, IAuditable
     public static decimal DrawerEffect(CashMovementKind kind, decimal amount) => kind switch
     {
         CashMovementKind.CashIn or CashMovementKind.DepositReturn => amount,
-        CashMovementKind.CashOut or CashMovementKind.Deposit => -amount,
+        CashMovementKind.CashOut or CashMovementKind.Deposit or CashMovementKind.Refund => -amount,
         _ => 0m,
     };
 }

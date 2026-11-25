@@ -18,6 +18,15 @@ public sealed record PosSupervisorPinRequest(string? PosCookie, Guid OperatorId,
 public sealed record PosSupervisorCheck(Guid DeviceId, Guid StoreId, Guid RegisterId);
 
 /// <summary>
+/// O aparelho de caixa do cookie <c>__Host-bq_pos</c> (PDV-06: a devolução acontece no caixa do aparelho, nunca no caixa que vem no corpo): o aparelho
+/// ativo, a loja e o caixa; null sem cookie, desconhecido, revogado ou vencido.
+/// </summary>
+public interface IPosRegisterDevice
+{
+    Task<PosSupervisorCheck?> ResolveAsync(string? posCookie, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
 /// PIN de supervisor no balcão (PDV-04, exceção nomeada da PP-11: ADR 0048 §5, adendos das ADRs 0008 e 0026). O Identity é dono do PIN, do aparelho
 /// e das permissões; o <c>Pos</c> grava a trilha (<c>pos.supervisor_approvals</c>). Mesmo cuidado da entrada por PIN: tempo uniforme, 5 erros
 /// bloqueiam o PIN, 20 erros no aparelho bloqueiam o aparelho, tudo auditado e o PIN nunca em log.

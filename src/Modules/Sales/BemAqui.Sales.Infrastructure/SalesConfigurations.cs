@@ -22,7 +22,7 @@ internal sealed class SaleConfiguration : IEntityTypeConfiguration<Sale>
         b.Property(e => e.Id).ValueGeneratedNever();
         b.Property(e => e.Number).HasMaxLength(40);
         b.Property(e => e.Channel).HasConversion<string>().HasMaxLength(16);
-        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(20); // PDV-06: PartiallyReturned (17)
         b.Property(e => e.StockStatus).HasConversion<string>().HasMaxLength(16);
         b.Property(e => e.FiscalStatus).HasMaxLength(32);
         b.Property(e => e.SourceType).HasMaxLength(40);
@@ -143,6 +143,86 @@ internal sealed class SaleCustomerDocumentConfiguration : IEntityTypeConfigurati
         b.HasIndex(e => e.SaleId).IsUnique();
         // Sem chave estrangeira: o documento chega no mesmo lote da venda e fica guardado mesmo com a venda em quarentena (OFF-02).
         b.HasIndex(e => e.BlindIndex);
+    }
+}
+
+/// <summary>
+/// <c>sales.sale_returns</c> (PDV-06): número único (<c>DEV-2026-0001</c>), total positivo em <c>numeric(18,2)</c>, NSU só no estorno de cartão e a
+/// venda original por chave estrangeira (a venda nunca é apagada).
+/// </summary>
+internal sealed class SaleReturnConfiguration : IEntityTypeConfiguration<SaleReturn>
+{
+    public void Configure(EntityTypeBuilder<SaleReturn> b)
+    {
+        b.ToTable("sale_returns", SalesSchema.Name, t =>
+        {
+            t.HasCheckConstraint("ck_sale_returns_total", "total > 0");
+            t.HasCheckConstraint("ck_sale_returns_card", "refund_kind <> 'CardReversal' OR (card_payment_id IS NOT NULL AND card_nsu IS NOT NULL)");
+        });
+        b.Property(e => e.Id).ValueGeneratedNever();
+        b.Property(e => e.Number).HasMaxLength(30);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.RefundKind).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.Total).HasPrecision(18, 2);
+        b.Property(e => e.CardNsu).HasMaxLength(SaleReturn.MaxNsuLength);
+        b.Property(e => e.Note).HasMaxLength(SaleReturn.MaxNoteLength);
+        b.Ignore(e => e.NeedsSupervisor);
+        b.HasOne<Sale>().WithMany().HasForeignKey(e => e.SaleId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => e.Number).IsUnique();
+        b.HasIndex(e => e.SaleId);
+        b.HasIndex(e => e.CardPaymentId).HasFilter("card_payment_id IS NOT NULL");
+        b.HasIndex(e => new { e.BusinessDate, e.StoreId }).HasFilter("status = 'Completed'");
+    }
+}
+
+/// <summary><c>sales.sale_return_lines</c>: quantidade <c>numeric(18,4)</c> maior que zero, valor <c>numeric(18,2)</c>, destino e motivo.</summary>
+internal sealed class SaleReturnLineConfiguration : IEntityTypeConfiguration<SaleReturnLine>
+{
+    public void Configure(EntityTypeBuilder<SaleReturnLine> b)
+    {
+        b.ToTable("sale_return_lines", SalesSchema.Name, t => t.HasCheckConstraint("ck_sale_return_lines_quantity", "quantity > 0 AND amount >= 0"));
+        b.Property(e => e.Id).ValueGeneratedNever();
+        b.Property(e => e.Description).HasMaxLength(200);
+        b.Property(e => e.Quantity).HasPrecision(18, 4);
+        b.Property(e => e.Amount).HasPrecision(18, 2);
+        b.Property(e => e.Destination).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.Reason).HasMaxLength(SaleReturnLine.MaxReasonLength);
+        b.Property(e => e.StockNote).HasMaxLength(200);
+        b.HasOne<SaleReturn>().WithMany().HasForeignKey(e => e.ReturnId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<SaleLine>().WithMany().HasForeignKey(e => e.SaleLineId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => e.ReturnId);
+        b.HasIndex(e => e.SaleLineId);
+    }
+}
+
+/// <summary><c>sales.store_credits</c> (PDV-06 CA 7): o hash do código é único; saldo entre zero e o valor emitido (CHECK).</summary>
+internal sealed class StoreCreditConfiguration : IEntityTypeConfiguration<StoreCredit>
+{
+    public void Configure(EntityTypeBuilder<StoreCredit> b)
+    {
+        b.ToTable("store_credits", SalesSchema.Name, t => t.HasCheckConstraint("ck_store_credits_balance", "amount > 0 AND balance >= 0 AND balance <= amount"));
+        b.Property(e => e.Id).ValueGeneratedNever();
+        b.Property(e => e.CodeHash).HasMaxLength(64);
+        b.Property(e => e.CodeLast4).HasMaxLength(4);
+        b.Property(e => e.Amount).HasPrecision(18, 2);
+        b.Property(e => e.Balance).HasPrecision(18, 2);
+        b.HasIndex(e => e.CodeHash).IsUnique();
+        b.HasIndex(e => e.OriginReturnId).IsUnique();
+    }
+}
+
+/// <summary><c>sales.store_credit_movements</c>: um uso por pagamento do caixa (índice único no pagamento).</summary>
+internal sealed class StoreCreditMovementConfiguration : IEntityTypeConfiguration<StoreCreditMovement>
+{
+    public void Configure(EntityTypeBuilder<StoreCreditMovement> b)
+    {
+        b.ToTable("store_credit_movements", SalesSchema.Name, t => t.HasCheckConstraint("ck_store_credit_movements_amount", "amount > 0"));
+        b.Property(e => e.Id).ValueGeneratedNever();
+        b.Property(e => e.Amount).HasPrecision(18, 2);
+        b.Property(e => e.ReversalReason).HasMaxLength(200);
+        b.HasOne<StoreCredit>().WithMany().HasForeignKey(e => e.StoreCreditId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => e.TenderId).IsUnique();
+        b.HasIndex(e => e.SaleId);
     }
 }
 

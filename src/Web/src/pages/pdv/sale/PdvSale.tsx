@@ -1,4 +1,4 @@
-import { Keyboard, LogOut, Pointer, Printer, Settings2 } from 'lucide-react'
+import { CloudOff, Keyboard, LogOut, Pointer, Printer, Settings2 } from 'lucide-react'
 import { localStockGuard } from '@/pdv/stock/stock-guard'
 import { type KeyboardEvent as ReactKeyboardEvent, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { PosHandshake } from '@/api/generated/model'
@@ -27,7 +27,9 @@ import { ScanDetector } from '@/pdv/sale/scanner'
 import { rememberReceipt, storedReceiptOf } from '@/pdv/print/print-jobs'
 import { ReprintSheet, SalePrint } from '@/pages/pdv/print/ReceiptPrinting'
 import { receiptHeader } from '@/pdv/print/use-printing'
+import { NEEDS_NETWORK } from '@/pdv/offline/offline-features'
 import { PaymentScreen, SaleCompletedView } from './PaymentScreen'
+import { ReturnArea } from './ReturnArea'
 import { CloseRegisterSheet, type CustomerHit, CustomerSheet, DiscardSheet, NoteSheet, ParkedSheet, ProductTile, QuantitySheet, RemoveSheet } from './sale-sheets'
 import { CancelSaleSheet, DiscountSheet, PriceSheet } from './discount-sheets'
 import { type SupervisorApi, SupervisorDialog, type SupervisorApproval, type SupervisorRequest } from './supervisor'
@@ -53,6 +55,8 @@ export interface SaleOperator {
   canCancelSale?: boolean
   /** Tem `pos.cash_in` (suprimento, CX-01). */
   canCashIn: boolean
+  /** PDV-06: tem `pos.return` (devolução e troca, só com rede). */
+  canReturn?: boolean
 }
 
 type Sheet =
@@ -255,6 +259,9 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
   // CX-01: painel do caixa (CA 10), aviso de sangria (CA 7) e teto do dinheiro (CA 8). Os limites vêm da loja, no catálogo do caixa.
   const [cashView, setCashView] = useState<null | { startWith: 'CashOut' | 'CashIn' | null }>(null)
   const [cashNotice, setCashNotice] = useState<string | null>(null)
+  // PDV-06: a devolução (só com rede) e o código do vale da troca, que vem pronto na tela de pagamento da venda nova.
+  const [returning, setReturning] = useState(false)
+  const [exchangeCode, setExchangeCode] = useState<string | null>(null)
   const book = useSyncExternalStore(register.subscribe, register.getSnapshot)
   const sale = currentSale(book)
   const parked = parkedSales(book)
@@ -548,6 +555,14 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
     )
   }
 
+  if (returning) {
+    return (
+      <ReturnArea store={store} online={online} place={place} operatorName={operator.name} supervisor={supervisor}
+        onBack={() => { setReturning(false); focusCode() }}
+        onExchange={(creditCode) => { setExchangeCode(creditCode); setReturning(false); setNotice({ tone: 'ok', text: 'Lance os itens da venda nova: o vale-troca já vem na tela de pagamento.' }); focusCode() }} />
+    )
+  }
+
   if (cashView) {
     return (
       <CashArea store={store} session={cash} operator={operator} place={place} startWith={cashView.startWith} onSession={(s) => { onCash(s); setCashNotice(null) }}
@@ -573,7 +588,8 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
               mode={storeSettings?.receiptPrintMode ?? 'Ask'} decryptDocument={decryptDocument} />
           ) : null} /> : null}
         {!completed && sale ? (
-          <PaymentScreen sale={sale} register={register} terminal={terminal} store={store} online={online} operatorId={operator.id} onCompleted={(done) => void completeSale(done)} cashBlocked={cashBlocked(cash, limits)} />
+          <PaymentScreen sale={sale} register={register} terminal={terminal} store={store} online={online} operatorId={operator.id}
+            onCompleted={(done) => { setExchangeCode(null); void completeSale(done) }} cashBlocked={cashBlocked(cash, limits)} initialCreditCode={exchangeCode} />
         ) : null}
       </div>
     )
@@ -601,6 +617,13 @@ function SaleScreen({ store, register, operator, online, settings, onSettings, s
         <FloorDica nome="Venda em espera" texto="O cliente esqueceu algo? Deixe a venda em espera (F7), atenda o próximo e retome depois. Ela fica guardada neste caixa, mesmo sem internet." />
         <FloorButton tone="secondary" onClick={() => setSheet({ kind: 'settings' })} aria-label="Ajustes do caixa"><Settings2 aria-hidden="true" className="size-6" /></FloorButton>
         <FloorButton tone="secondary" onClick={() => setSheet({ kind: 'reprint' })} aria-label="Reimprimir cupom"><Printer aria-hidden="true" className="size-6" /><span className="max-sm:sr-only">Reimprimir</span></FloorButton>
+        {operator.canReturn ? (
+          <FloorButton tone="secondary" disabled={!online} onClick={() => setReturning(true)} aria-label={online ? 'Devolução' : `Devolução: ${NEEDS_NETWORK}`}>
+            {online ? 'Devolução' : (
+              <span className="flex flex-col items-start"><span className="flex items-center gap-1"><CloudOff aria-hidden="true" className="size-5" />Devolução</span><span className="text-[14px] font-normal">{NEEDS_NETWORK}</span></span>
+            )}
+          </FloorButton>
+        ) : null}
         <FloorButton tone="secondary" onClick={() => setCashView({ startWith: null })}>Caixa</FloorButton>
         <FloorButton tone="secondary" onClick={() => setSheet({ kind: 'close' })}>Fechar caixa</FloorButton>
         <FloorButton tone="secondary" onClick={onLeave} aria-label="Sair do caixa"><LogOut aria-hidden="true" className="size-6" /><span className="max-sm:sr-only">Sair</span></FloorButton>

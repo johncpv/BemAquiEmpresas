@@ -3,6 +3,7 @@ using BemAqui.BuildingBlocks.Export;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.Pos.Contracts;
 using BemAqui.Sales.Contracts;
+using BemAqui.Sales.Domain;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,7 +43,7 @@ public sealed class NonFiscalSalesReportService(ISalesDb db, IPosRegisters regis
         }
 
         var query = db.Sales.AsNoTracking().Where(s =>
-            s.Channel == SaleChannel.Pos && s.Status == SaleStatus.Completed && s.FiscalStatus == null && s.InvoiceId == null
+            s.Channel == SaleChannel.Pos && ReturnRules.Done.Contains(s.Status) && s.FiscalStatus == null && s.InvoiceId == null
             && s.BusinessDate >= from && s.BusinessDate <= to);
         if (storeId is { } store)
         {

@@ -7,6 +7,7 @@ using BemAqui.Finance.Contracts;
 using BemAqui.Finance.Domain;
 using BemAqui.Pos.Contracts;
 using BemAqui.Sales.Contracts;
+using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -28,7 +29,7 @@ namespace BemAqui.Finance.Application;
 /// </summary>
 public sealed partial class CashSessionFinanceConsumer(
     IFinanceDb db, ISaleLookup sales, IPaymentMethods methods, ISaleReceivables receivables, TimeProvider clock, ILogger<CashSessionFinanceConsumer> logger)
-    : IIntegrationEventConsumer<CashSessionClosed>, IIntegrationEventConsumer<CashSessionReopened>
+    : IIntegrationEventConsumer<CashSessionClosed>, IIntegrationEventConsumer<CashSessionReopened>, IIntegrationEventConsumer<SaleReturned>
 {
     public const string BreakSeedKey = "quebra-de-caixa";
     public const string BreakAccountName = "Quebra de caixa";
@@ -48,24 +49,7 @@ public sealed partial class CashSessionFinanceConsumer(
             return;
         }
 
-        var facts = await sales.SessionPaymentsAsync(e.SessionId, cancellationToken);
-        var methodIds = facts.Select(f => f.Payment.PaymentMethodId).Concat(e.Breaks.Where(b => b.PaymentMethodId != null).Select(b => b.PaymentMethodId!.Value)).Distinct().ToList();
-        // Inclusive forma desativada ou excluída depois da venda: a venda já aconteceu com ela.
-        var known = await db.PaymentMethods.IgnoreQueryFilters().AsNoTracking().Where(m => methodIds.Contains(m.Id))
-            .Select(m => new { m.Id, m.Name, m.Type, m.AcquirerPartyId }).ToDictionaryAsync(m => m.Id, cancellationToken);
-        var payments = new List<CashSessionPayment>();
-        foreach (var (date, fact) in facts)
-        {
-            if (!known.TryGetValue(fact.PaymentMethodId, out var method))
-            {
-                throw new InvalidOperationException("Forma de pagamento " + fact.PaymentMethodId + " da venda não existe no Financeiro.");
-            }
-
-            CardBrand? brand = Enum.TryParse<CardBrand>(fact.CardBrand, ignoreCase: true, out var parsed) ? parsed : null;
-            var terms = await methods.FeeAsync(method.Id, brand ?? CardBrand.Any, Math.Max(1, fact.Installments), date, cancellationToken);
-            payments.Add(new CashSessionPayment(date, fact.SaleId, method.Id, method.Type, method.Name, fact.AcquirerPartyId ?? method.AcquirerPartyId, brand, fact.Installments,
-                fact.Amount, terms?.FeePercent ?? 0m, terms?.SettlementDays ?? 0, fact.CustomerId));
-        }
+        var (payments, known) = await PaymentsAsync(e.SessionId, e.Breaks.Where(b => b.PaymentMethodId != null).Select(b => b.PaymentMethodId!.Value), cancellationToken);
 
         var pixNotFound = e.Breaks.Where(b => b.PaymentMethodId is { } id && b.PixNotFound > 0 && known.TryGetValue(id, out var m) && m.Type == PaymentMethodType.Pix)
             .GroupBy(b => b.PaymentMethodId!.Value).ToDictionary(g => g.Key, g => g.Sum(b => b.PixNotFound));
@@ -95,9 +79,14 @@ public sealed partial class CashSessionFinanceConsumer(
         }
 
         var cashMethods = known.Values.Where(m => m.Type == PaymentMethodType.Cash).Select(m => m.Id).ToHashSet();
-        var toSettle = summaries.Where(s => s.Net > 0 && (s.Key.Break || cashMethods.Contains(s.Key.PaymentMethodId))).ToList();
+        // PDV-06 CA 10: o vale-troca usado como forma de pagamento baixa o passivo (conta Vales-troca), não fica a receber nem vira receita em dobro.
+        var creditMethods = known.Values.Where(m => m.Type == PaymentMethodType.StoreCredit).Select(m => m.Id).ToHashSet();
+        var toSettle = summaries.Where(s => s.Net > 0 && (s.Key.Break || cashMethods.Contains(s.Key.PaymentMethodId) || creditMethods.Contains(s.Key.PaymentMethodId))).ToList();
         var cashDifference = e.Breaks.Where(b => b.PaymentMethodId is null || cashMethods.Contains(b.PaymentMethodId.Value)).Sum(b => b.Difference);
         Guid? quebra = toSettle.Any(s => s.Key.Break) || cashDifference != 0 ? await BreakAccountAsync(cancellationToken) : null;
+        Guid? vouchers = toSettle.Any(s => !s.Key.Break && creditMethods.Contains(s.Key.PaymentMethodId))
+            ? await PosSpecialAccounts.EnsureAsync(db, PosSpecialAccounts.StoreCreditSeedKey, PosSpecialAccounts.StoreCreditName, clock, cancellationToken)
+            : null;
         var now = clock.GetUtcNow();
         foreach (var summary in toSettle)
         {
@@ -108,7 +97,7 @@ public sealed partial class CashSessionFinanceConsumer(
                 continue;
             }
 
-            var account = summary.Key.Break ? quebra!.Value : drawer.Id;
+            var account = summary.Key.Break ? quebra!.Value : creditMethods.Contains(summary.Key.PaymentMethodId) ? vouchers!.Value : drawer.Id;
             var (date, note) = await DateAsync(summary.Key.BusinessDate, [account], cancellationToken);
             var active = await db.ReceivableSettlements.Where(s => s.ReceivableId == receivable.Id && s.ReversedAt == null).ToListAsync(cancellationToken);
             ReceivableService.AddPosSettlement(db, receivable, active, account, date, note, now);
@@ -179,6 +168,130 @@ public sealed partial class CashSessionFinanceConsumer(
         {
             await receivables.ZeroMissingAsync(day, CashSessionReceivables.Channel, e.SessionId, [], cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// Devolução concluída (PDV-06 CA 6 e 10):
+    /// <list type="bullet">
+    /// <item>vale-troca: o passivo nasce como transferência da conta Vales-troca (saldo negativo = vales em aberto) para Devoluções de vendas, uma por
+    /// devolução; o uso do vale numa venda baixa o título dela na conta Vales-troca, no fechamento do caixa;</item>
+    /// <item>estorno no cartão: se a sessão da venda original já fechou, os títulos da adquirente daquela forma são regravados pelos pagamentos líquidos dos
+    /// estornos ("grava o valor": reentregar não reduz de novo); sessão ainda aberta já fecha com o valor líquido;</item>
+    /// <item>dinheiro: sai pelo movimento de caixa <c>Refund</c> (<see cref="PosCashMovementConsumer"/>).</item>
+    /// </list>
+    /// </summary>
+    public async Task HandleAsync(SaleReturned integrationEvent, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(integrationEvent);
+        var e = integrationEvent;
+        if (e.RefundKind == RefundKind.StoreCredit && e.Amount > 0 && !await db.BankTransfers.AnyAsync(t => t.PosCashMovementId == e.ReturnId, cancellationToken))
+        {
+            var vouchers = await PosSpecialAccounts.EnsureAsync(db, PosSpecialAccounts.StoreCreditSeedKey, PosSpecialAccounts.StoreCreditName, clock, cancellationToken);
+            var returns = await PosSpecialAccounts.EnsureAsync(db, PosSpecialAccounts.ReturnsSeedKey, PosSpecialAccounts.ReturnsName, clock, cancellationToken);
+            var (date, note) = await DateAsync(e.BusinessDate, [vouchers, returns], cancellationToken);
+            BankMovementService.AddPosCashTransfer(db, new BankTransfer
+            {
+                FromAccountId = vouchers, ToAccountId = returns, Amount = e.Amount, Date = date, Description = $"Vale-troca da devolução {e.Number}", PosCashMovementId = e.ReturnId,
+                PosCashSessionId = e.CashSessionId, BackdateReason = note, CreatedAt = clock.GetUtcNow(),
+            });
+            await db.SaveChangesAsync(cancellationToken);
+        }
+
+        if (e.RefundKind == RefundKind.CardReversal && e.OriginalCashSessionId is { } session && e.CardPaymentMethodId is { } method)
+        {
+            await LockAsync("finance.cash-session:" + session.ToString("N"), cancellationToken);
+            if (!await db.Receivables.AnyAsync(r => r.CashSessionId == session && r.Status != ReceivableStatus.Cancelled, cancellationToken))
+            {
+                return; // sessão ainda não fechou: o fechamento já usa o pagamento líquido do estorno
+            }
+
+            var (payments, _) = await PaymentsAsync(session, [], cancellationToken);
+            var closingDate = payments.Count == 0 ? e.BusinessDate : payments.Max(p => p.BusinessDate);
+            var card = CashSessionReceivables.Build(session, payments, new Dictionary<Guid, decimal>(), closingDate)
+                .Where(s => s.Origin == DocumentOrigin.CardSettlement && s.Key.PaymentMethodId == method).ToList();
+            var keep = card.Select(s => s.Key.Text).ToHashSet();
+            foreach (var summary in card)
+            {
+                var written = await receivables.PostAsync(summary, cancellationToken);
+                if (written.IsFailure)
+                {
+                    // Revisão de segurança (achado 7): título da adquirente já liquidado (ou que recusa a regravação) não trava o evento em laço. A diferença
+                    // vira pendência auditada para a conciliação (parâmetro do Financeiro, auditado, com o valor do estorno) e o aviso no log; o evento conclui.
+                    await RecordReversalPendingAsync(e, written.Error!.Code, cancellationToken);
+                    return;
+                }
+            }
+
+            // Grupo da forma que zerou (tudo estornado): o título fica com valor zero (cancelado, se sem baixa).
+            var gone = await db.Receivables.Where(r => r.CashSessionId == session && r.Status != ReceivableStatus.Cancelled && r.Origin == DocumentOrigin.CardSettlement
+                    && r.SaleGroupKey != null && r.SaleGroupKey.Contains(method.ToString("N")))
+                .Select(r => new { r.SaleGroupKey, r.IssueDate, r.DueDate, r.PartyId, r.Description }).ToListAsync(cancellationToken);
+            foreach (var title in gone.Where(t => !keep.Contains(t.SaleGroupKey!)))
+            {
+                var parts = title.SaleGroupKey!.Split('|');
+                var key = new SaleReceivableKey(title.IssueDate, CashSessionReceivables.Channel, session, method, Guid.TryParse(parts[4], out var party) ? party : null,
+                    title.DueDate ?? title.IssueDate, null, parts.Length > 7 ? parts[7] : null);
+                if (key.Text == title.SaleGroupKey)
+                {
+                    var zeroed = await receivables.PostAsync(new SaleReceivableSummary(key, DocumentOrigin.CardSettlement, title.PartyId, title.Description, 0m, 0m, 0m), cancellationToken);
+                    if (zeroed.IsFailure)
+                    {
+                        await RecordReversalPendingAsync(e, zeroed.Error!.Code, cancellationToken);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>Chave (nos parâmetros do Financeiro) da pendência de conciliação do estorno no cartão que o título da adquirente recusou.</summary>
+    public static string ReversalPendingKey(Guid returnId) => "pos-return-pending:" + returnId.ToString("N");
+
+    /// <summary>
+    /// Estorno no cartão sem o título da adquirente regravado (já liquidado ou recusado): grava a pendência uma vez por devolução (parâmetro do Financeiro,
+    /// <c>IAuditable</c>: quem e quando ficam na auditoria), com o valor e o código do motivo, e avisa no log. A conciliação acerta a diferença com a adquirente.
+    /// </summary>
+    private async Task RecordReversalPendingAsync(SaleReturned e, string reason, CancellationToken cancellationToken)
+    {
+        var key = ReversalPendingKey(e.ReturnId);
+        if (!await db.FinanceParameters.AnyAsync(p => p.Key == key, cancellationToken))
+        {
+            var text = "Conciliar: " + reason;
+            db.FinanceParameters.Add(new FinanceParameter { Key = key, Value = e.Amount, Text = text.Length <= 64 ? text : text[..64], UpdatedAt = clock.GetUtcNow() });
+            await db.SaveChangesAsync(cancellationToken);
+        }
+
+        LogReversalPending(logger, e.ReturnId, e.Number, e.Amount, reason);
+    }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Estorno no cartão da devolução {ReturnId} ({Number}, {Amount}) sem regravar o título da adquirente ({Reason}): pendência de conciliação registrada.")]
+    private static partial void LogReversalPending(ILogger logger, Guid returnId, string number, decimal amount, string reason);
+
+    /// <summary>Os pagamentos da sessão (do <c>Sales</c>, já líquidos dos estornos no cartão) com a forma, o provedor e a taxa vigente na data da venda.</summary>
+    private async Task<(List<CashSessionPayment> Payments, Dictionary<Guid, (Guid Id, string Name, PaymentMethodType Type, Guid? AcquirerPartyId)> Known)> PaymentsAsync(
+        Guid sessionId, IEnumerable<Guid> extraMethodIds, CancellationToken cancellationToken)
+    {
+        var facts = await sales.SessionPaymentsAsync(sessionId, cancellationToken);
+        var methodIds = facts.Select(f => f.Payment.PaymentMethodId).Concat(extraMethodIds).Distinct().ToList();
+        // Inclusive forma desativada ou excluída depois da venda: a venda já aconteceu com ela.
+        var known = (await db.PaymentMethods.IgnoreQueryFilters().AsNoTracking().Where(m => methodIds.Contains(m.Id))
+            .Select(m => new { m.Id, m.Name, m.Type, m.AcquirerPartyId }).ToListAsync(cancellationToken))
+            .ToDictionary(m => m.Id, m => (m.Id, m.Name, m.Type, m.AcquirerPartyId));
+        var payments = new List<CashSessionPayment>();
+        foreach (var (date, fact) in facts)
+        {
+            if (!known.TryGetValue(fact.PaymentMethodId, out var method))
+            {
+                throw new InvalidOperationException("Forma de pagamento " + fact.PaymentMethodId + " da venda não existe no Financeiro.");
+            }
+
+            CardBrand? brand = Enum.TryParse<CardBrand>(fact.CardBrand, ignoreCase: true, out var parsed) ? parsed : null;
+            var terms = await methods.FeeAsync(method.Id, brand ?? CardBrand.Any, Math.Max(1, fact.Installments), date, cancellationToken);
+            payments.Add(new CashSessionPayment(date, fact.SaleId, method.Id, method.Type, method.Name, fact.AcquirerPartyId ?? method.AcquirerPartyId, brand, fact.Installments,
+                fact.Amount, terms?.FeePercent ?? 0m, terms?.SettlementDays ?? 0, fact.CustomerId));
+        }
+
+        return (payments, known);
     }
 
     /// <summary>Id da transferência da quebra do dinheiro: único por sessão e reabertura (o índice único de <c>pos_cash_movement_id</c> segura a repetição).</summary>

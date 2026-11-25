@@ -117,6 +117,14 @@ public sealed partial class PosEventIngestion
                 paymentProblems.Add($"O tipo do pagamento ({tender.MethodType}) não é o da forma {method.Name} ({method.Type}).");
             }
 
+            // PDV-06 CA 8: o vale-troca só paga com o abatimento feito no servidor (com rede) para este pagamento, desta venda e deste valor.
+            if (method.Type == PaymentMethodType.StoreCredit && tender.Status == "Captured"
+                && (await storeCredits.FindAsync(tender.TenderId, ct) is not { Reversed: false } redemption
+                    || redemption.SaleId != replay.SaleId || redemption.Amount * 100m != tender.AmountCents))
+            {
+                paymentProblems.Add($"Vale-troca de {PosSaleReplay.Money(tender.AmountCents)} sem o abatimento no servidor.");
+            }
+
             if (tender.ChangeCents > 0 && !method.AllowsChange)
             {
                 paymentProblems.Add($"Troco na forma {method.Name}, que não dá troco.");

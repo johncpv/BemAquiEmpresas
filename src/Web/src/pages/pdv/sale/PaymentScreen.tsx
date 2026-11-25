@@ -1,10 +1,14 @@
 import { Banknote, CloudOff, CreditCard, QrCode, Wallet } from 'lucide-react'
 import { type ReactNode, useMemo, useRef, useState } from 'react'
+import { lookupStoreCredit, redeemStoreCredit } from '@/api/generated/bemaqui'
+import type { StoreCreditView } from '@/api/generated/model'
+import { ApiError } from '@/api/http'
 import { FloorButton, FloorDica, FloorState } from '@/components/shopfloor/kit'
 import { cn } from '@/lib/utils'
 import type { CatalogPaymentMethod } from '@/pdv/local-store/catalog-types'
 import type { LocalStore } from '@/pdv/local-store/local-store'
-import { type Cents, centsToDecimal, formatCents } from '@/pdv/money'
+import { type Cents, centsToDecimal, formatCents, toCents } from '@/pdv/money'
+import { STORE_CREDIT_HINT } from '@/pdv/sale/return-model'
 import {
   allowsChange, BRAND_LABEL, brandsOf, checkNsu, checkTenderNote, isCaptured, limitToRemaining, maxInstallmentsOf, methodAvailability, methodGroup,
   paidCents, parseMoney, quickCashOptions, remainingCents, salePaymentState, splitCash, type Tender,
@@ -44,7 +48,7 @@ function tenderLabel(t: Tender): string {
  * Tela de pagamento do caixa (PDV-03): total, "Falta", as formas da loja em botões grandes e os pagamentos já feitos. Fala só com a porta
  * `PaymentTerminal` (CA 11) e grava pelo `SaleRegister`, no aparelho: nunca espera a rede (CA 12).
  */
-export function PaymentScreen({ sale, register, terminal, store, online, operatorId, onCompleted, cashBlocked = null }: {
+export function PaymentScreen({ sale, register, terminal, store, online, operatorId, onCompleted, cashBlocked = null, initialCreditCode = null }: {
   sale: Sale
   register: SaleRegister
   terminal: PaymentTerminal
@@ -54,6 +58,8 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
   onCompleted: (done: CompletedSale) => void
   /** CX-01 CA 8: dinheiro na gaveta acima do teto da loja; a forma Dinheiro fica bloqueada com esta mensagem (as outras continuam). */
   cashBlocked?: string | null
+  /** PDV-06 CA 9: o código do vale da troca, que já vem no campo do vale-troca. */
+  initialCreditCode?: string | null
 }) {
   const total = saleTotal(sale)
   const paid = paidCents(sale.tenders)
@@ -64,7 +70,13 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
     .filter((m) => m.availability !== 'hidden'), [store, online, cashBlocked])
   const usable = methods.filter((m) => m.availability === 'enabled')
 
-  const [methodId, setMethodId] = useState<string | null>(() => (usable.length === 1 ? usable[0].method.id : null))
+  // PDV-06 CA 9: na troca, a forma Vale-troca já vem escolhida com o código do vale.
+  const creditMethod = initialCreditCode ? usable.find((m) => methodGroup(m.method) === 'store-credit')?.method ?? null : null
+  const [methodId, setMethodId] = useState<string | null>(() => creditMethod?.id ?? (usable.length === 1 ? usable[0].method.id : null))
+  // PDV-06 CA 8: o código do vale, a consulta (saldo e validade) e a conferência em andamento.
+  const [creditCode, setCreditCode] = useState(initialCreditCode ?? '')
+  const [credit, setCredit] = useState<StoreCreditView | null>(null)
+  const [checkingCredit, setCheckingCredit] = useState(false)
   const method = usable.find((m) => m.method.id === methodId)?.method ?? null
   const group = method ? methodGroup(method) : null
   const [value, setValue] = useState(() => moneyText(remaining))
@@ -95,7 +107,26 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
     setNote('')
     setMessage(null)
     setHighChangeAck(null)
+    setCredit(null)
     requestAnimationFrame(() => { valueRef.current?.focus(); valueRef.current?.select() })
+  }
+
+  /** CA 8: consulta o vale no servidor (o código vai no corpo); o valor vem com o menor entre o saldo e o que falta. */
+  const checkCredit = async () => {
+    if (!creditCode.trim() || checkingCredit) return
+    setCheckingCredit(true)
+    setMessage(null)
+    try {
+      const found = await lookupStoreCredit({ code: creditCode.trim() })
+      setCredit(found)
+      if (found.usable) setValue(moneyText(Math.min(toCents(String(found.balance)), remaining)))
+      else setMessage({ tone: 'error', text: found.problem ?? 'Este vale não pode ser usado.' })
+    } catch (e) {
+      setCredit(null)
+      setMessage({ tone: 'error', text: e instanceof ApiError ? e.message : 'Não foi possível consultar o vale. Confira a conexão e tente de novo.' })
+    } finally {
+      setCheckingCredit(false)
+    }
   }
 
   const cents = parseMoney(value)
@@ -151,12 +182,28 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
     const checkedNote = checkTenderNote(note)
     if (!checkedNote.ok) { setMessage({ tone: 'error', text: checkedNote.message }); return }
 
+    if (group === 'store-credit' && (!credit?.usable || amount > toCents(String(credit.balance)))) {
+      setMessage({ tone: 'error', text: credit?.usable ? 'O valor passa do saldo do vale.' : 'Consulte o vale antes de usar.' })
+      return
+    }
+
     sending.current = true
     setBusy(true)
     setMessage(null)
+    const tenderId = uuidv7()
     try {
+      // CA 8: o abatimento é feito no servidor antes de o pagamento entrar na venda (o mesmo id do pagamento: reenviar não abate de novo).
+      if (group === 'store-credit') {
+        try {
+          await redeemStoreCredit({ code: creditCode.trim(), saleId: sale.id, tenderId, amount: Number(centsToDecimal(amount)) })
+        } catch (e) {
+          setMessage({ tone: 'error', text: e instanceof ApiError ? e.message : 'Não foi possível usar o vale. Confira a conexão e tente de novo.' })
+          return
+        }
+      }
+
       const tender = await terminal.charge({
-        tenderId: uuidv7(), method, amountCents: amount, receivedCents: received, cardBrand: brand, installments, nsu: checkedNsu.value,
+        tenderId, method, amountCents: amount, receivedCents: received, cardBrand: brand, installments, nsu: checkedNsu.value,
         note: checkedNote.value, operatorId, at: nowIso(),
       }, setTerminalTender)
       setTerminalTender(tender.status === 'Captured' ? null : tender)
@@ -268,6 +315,25 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
               </>
             ) : null}
 
+            {group === 'store-credit' ? (
+              <div className="space-y-2">
+                <div className="flex items-end gap-2">
+                  <label className="block flex-1 space-y-2">
+                    <span className="font-semibold">Código do vale</span>
+                    <input autoComplete="off" maxLength={24} value={creditCode} placeholder="VT-XXXX-XXXX-XXXX" className={field}
+                      onChange={(e) => { setCreditCode(e.target.value); setCredit(null); setMessage(null) }} />
+                  </label>
+                  <FloorDica nome="Vale-troca" texto={STORE_CREDIT_HINT} />
+                </div>
+                <FloorButton tone="secondary" onClick={() => void checkCredit()} disabled={checkingCredit || !creditCode.trim()}>{checkingCredit ? 'Consultando…' : 'Consultar vale'}</FloorButton>
+                {credit?.usable ? (
+                  <p role="status" className="rounded-md bg-info-soft p-4 font-semibold text-info-ink tabular-nums">
+                    Saldo {formatCents(toCents(String(credit.balance)))} · válido até {credit.expiresOn.split('-').reverse().join('/')}. O que sobrar continua no vale.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+
             {group === 'pix' ? <p className="rounded-md bg-info-soft p-4 font-semibold text-info-ink">{PIX_REMINDER}</p> : null}
 
             {group !== 'cash' ? (
@@ -277,8 +343,8 @@ export function PaymentScreen({ sale, register, terminal, store, online, operato
               </label>
             ) : null}
 
-            <FloorButton type="submit" className="w-full" disabled={busy}>
-              {group === 'pix' ? 'Recebi o Pix' : group === 'card' ? 'Cartão aprovado' : 'Confirmar recebimento'}
+            <FloorButton type="submit" className="w-full" disabled={busy || (group === 'store-credit' && !credit?.usable)}>
+              {group === 'pix' ? 'Recebi o Pix' : group === 'card' ? 'Cartão aprovado' : group === 'store-credit' ? 'Usar o vale' : 'Confirmar recebimento'}
             </FloorButton>
           </form>
         ) : !open ? <p className="text-[18px] text-muted-foreground">Escolha a forma de pagamento. Dá para pagar parte em cada forma.</p> : null}

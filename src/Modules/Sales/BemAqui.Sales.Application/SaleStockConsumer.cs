@@ -30,7 +30,7 @@ public sealed class SaleStockConsumer(
     {
         ArgumentNullException.ThrowIfNull(integrationEvent);
         var sale = await db.Sales.FirstOrDefaultAsync(s => s.Id == integrationEvent.SaleId, cancellationToken);
-        if (sale is null || sale.StockStatus != SaleStockStatus.Pending || sale.Status != SaleStatus.Completed)
+        if (sale is null || sale.StockStatus != SaleStockStatus.Pending || !ReturnRules.Done.Contains(sale.Status))
         {
             return;
         }

@@ -36520,6 +36520,297 @@
         }
       }
     },
+    "/api/v1/sales/returns": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "GetSaleReturnsReport",
+        "parameters": [
+          {
+            "name": "From",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "StoreId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleReturnReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/returns/export": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "ExportSaleReturns",
+        "parameters": [
+          {
+            "name": "From",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "StoreId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/pos/sales/lookup": {
+      "post": {
+        "tags": [
+          "PDV: devolu\u00E7\u00E3o"
+        ],
+        "operationId": "LookupSaleForReturn",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaleLookupInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleLookupResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/returns": {
+      "post": {
+        "tags": [
+          "PDV: devolu\u00E7\u00E3o"
+        ],
+        "operationId": "RequestSaleReturn",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReturnRequestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleReturnView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/returns/{id}/approve": {
+      "post": {
+        "tags": [
+          "PDV: devolu\u00E7\u00E3o"
+        ],
+        "operationId": "ApproveSaleReturn",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReturnApproveInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleReturnView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/returns/{id}/store-credit/reissue": {
+      "post": {
+        "tags": [
+          "PDV: devolu\u00E7\u00E3o"
+        ],
+        "operationId": "ReissueStoreCreditCode",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreCreditReissueInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreCreditIssued"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/store-credits/lookup": {
+      "post": {
+        "tags": [
+          "PDV: devolu\u00E7\u00E3o"
+        ],
+        "operationId": "LookupStoreCredit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreCreditLookupInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreCreditView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/store-credits/redeem": {
+      "post": {
+        "tags": [
+          "PDV: devolu\u00E7\u00E3o"
+        ],
+        "operationId": "RedeemStoreCredit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreCreditRedeemInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreCreditRedeemed"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pos/stores": {
       "get": {
         "tags": [
@@ -54284,7 +54575,8 @@
           "CashOut",
           "CashIn",
           "Deposit",
-          "DepositReturn"
+          "DepositReturn",
+          "Refund"
         ]
       },
       "CashPixCheckRequest": {
@@ -100430,6 +100722,13 @@
           }
         }
       },
+      "RefundKind": {
+        "enum": [
+          "StoreCredit",
+          "Cash",
+          "CardReversal"
+        ]
+      },
       "RefusedPair": {
         "required": [
           "lineId",
@@ -102056,6 +102355,172 @@
           }
         }
       },
+      "ReturnApproveInput": {
+        "type": "object",
+        "properties": {
+          "supervisorApprovalId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReturnCandidate": {
+        "required": [
+          "saleId",
+          "number",
+          "completedAt",
+          "businessDate",
+          "total",
+          "status",
+          "deadline",
+          "late",
+          "lateMessage",
+          "lines",
+          "cardPayments"
+        ],
+        "type": "object",
+        "properties": {
+          "saleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "businessDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SaleStatus"
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date"
+          },
+          "late": {
+            "type": "boolean"
+          },
+          "lateMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReturnCandidateLine"
+            }
+          },
+          "cardPayments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReturnCandidatePayment"
+            }
+          }
+        }
+      },
+      "ReturnCandidateLine": {
+        "required": [
+          "saleLineId",
+          "description",
+          "unitCode",
+          "sold",
+          "returned",
+          "returnable",
+          "lineTotal",
+          "unitAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "saleLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "sold": {
+            "type": "number",
+            "format": "double"
+          },
+          "returned": {
+            "type": "number",
+            "format": "double"
+          },
+          "returnable": {
+            "type": "number",
+            "format": "double"
+          },
+          "lineTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ReturnCandidatePayment": {
+        "required": [
+          "paymentId",
+          "paymentMethodId",
+          "cardBrand",
+          "amount",
+          "reversible"
+        ],
+        "type": "object",
+        "properties": {
+          "paymentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "paymentMethodId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cardBrand": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "reversible": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ReturnDestination": {
+        "enum": [
+          "Restock",
+          "Damaged"
+        ]
+      },
       "ReturnInput": {
         "required": [
           "locationId",
@@ -102093,6 +102558,52 @@
           "quantity": {
             "type": "number",
             "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReturnRequestInput": {
+        "required": [
+          "saleId",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "saleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleReturnLineInput"
+            }
+          },
+          "refundKind": {
+            "$ref": "#/components/schemas/RefundKind"
+          },
+          "cardPaymentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "cardNsu": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "exchange": {
+            "type": "boolean",
+            "default": false
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         },
         "additionalProperties": false
@@ -104108,6 +104619,46 @@
           }
         }
       },
+      "SaleLookupInput": {
+        "required": [
+          "number",
+          "document"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "SaleLookupResult": {
+        "required": [
+          "sales",
+          "cashSessionOpen"
+        ],
+        "type": "object",
+        "properties": {
+          "sales": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReturnCandidate"
+            }
+          },
+          "cashSessionOpen": {
+            "type": "boolean"
+          }
+        }
+      },
       "SalePartKind": {
         "enum": [
           "Equal",
@@ -104266,12 +104817,327 @@
           }
         }
       },
+      "SaleReturnLineInput": {
+        "required": [
+          "saleLineId",
+          "quantity",
+          "destination",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "saleLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/ReturnDestination"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SaleReturnLineView": {
+        "required": [
+          "id",
+          "saleLineId",
+          "description",
+          "quantity",
+          "amount",
+          "destination",
+          "reason",
+          "stockNote"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "saleLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/ReturnDestination"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "stockNote": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SaleReturnReport": {
+        "required": [
+          "rows",
+          "byOperator",
+          "byReason",
+          "byRefundKind",
+          "total",
+          "truncated"
+        ],
+        "type": "object",
+        "properties": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleReturnReportRow"
+            }
+          },
+          "byOperator": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleReturnReportGroup"
+            }
+          },
+          "byReason": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleReturnReportGroup"
+            }
+          },
+          "byRefundKind": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleReturnReportGroup"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SaleReturnReportGroup": {
+        "required": [
+          "key",
+          "label",
+          "count",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "SaleReturnReportRow": {
+        "required": [
+          "id",
+          "number",
+          "completedAt",
+          "storeId",
+          "storeName",
+          "operatorId",
+          "operatorName",
+          "saleNumber",
+          "refundKind",
+          "refundLabel",
+          "reasons",
+          "total",
+          "isExchange"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "storeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storeName": {
+            "type": "string"
+          },
+          "operatorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "operatorName": {
+            "type": "string"
+          },
+          "saleNumber": {
+            "type": "string"
+          },
+          "refundKind": {
+            "$ref": "#/components/schemas/RefundKind"
+          },
+          "refundLabel": {
+            "type": "string"
+          },
+          "reasons": {
+            "type": "string"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "isExchange": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SaleReturnStatus": {
+        "enum": [
+          "Requested",
+          "Approved",
+          "Completed",
+          "Rejected"
+        ]
+      },
+      "SaleReturnView": {
+        "required": [
+          "id",
+          "number",
+          "saleId",
+          "saleNumber",
+          "status",
+          "refundKind",
+          "total",
+          "late",
+          "deadline",
+          "lateMessage",
+          "needsSupervisor",
+          "isExchange",
+          "cardNsu",
+          "lines",
+          "storeCredit",
+          "requestedAt",
+          "completedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "saleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "saleNumber": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SaleReturnStatus"
+          },
+          "refundKind": {
+            "$ref": "#/components/schemas/RefundKind"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "late": {
+            "type": "boolean"
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date"
+          },
+          "lateMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "needsSupervisor": {
+            "type": "boolean"
+          },
+          "isExchange": {
+            "type": "boolean"
+          },
+          "cardNsu": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleReturnLineView"
+            }
+          },
+          "storeCredit": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StoreCreditIssued"
+              }
+            ]
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
       "SaleStatus": {
         "enum": [
           "Open",
           "PartiallyPaid",
           "Completed",
-          "Cancelled"
+          "Cancelled",
+          "PartiallyReturned",
+          "Returned"
         ]
       },
       "SaleStockStatus": {
@@ -108717,6 +109583,170 @@
           "Other"
         ]
       },
+      "StoreCreditIssued": {
+        "required": [
+          "id",
+          "code",
+          "codeLast4",
+          "amount",
+          "balance",
+          "expiresOn"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "codeLast4": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "expiresOn": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "StoreCreditLookupInput": {
+        "required": [
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StoreCreditRedeemed": {
+        "required": [
+          "storeCreditId",
+          "tenderId",
+          "amount",
+          "balance",
+          "expiresOn"
+        ],
+        "type": "object",
+        "properties": {
+          "storeCreditId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "expiresOn": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "StoreCreditRedeemInput": {
+        "required": [
+          "code",
+          "saleId",
+          "tenderId",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "saleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StoreCreditReissueInput": {
+        "required": [
+          "supervisorApprovalId"
+        ],
+        "type": "object",
+        "properties": {
+          "supervisorApprovalId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StoreCreditView": {
+        "required": [
+          "id",
+          "codeLast4",
+          "amount",
+          "balance",
+          "expiresOn",
+          "usable",
+          "problem"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "codeLast4": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "expiresOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "usable": {
+            "type": "boolean"
+          },
+          "problem": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "StoreFiscalMode": {
         "enum": [
           "Nfce",
@@ -109048,7 +110078,9 @@
           "Discount",
           "ChangePrice",
           "CancelItem",
-          "CancelSale"
+          "CancelSale",
+          "Return",
+          "CreditReissue"
         ]
       },
       "SupervisorApprovalGranted": {
@@ -116235,6 +117267,9 @@
     },
     {
       "name": "Vendas"
+    },
+    {
+      "name": "PDV: devolu\u00E7\u00E3o"
     },
     {
       "name": "Lojas e caixas"

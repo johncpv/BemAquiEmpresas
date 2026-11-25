@@ -41,7 +41,10 @@ public sealed partial class PosCashMovementConsumer(IFinanceDb db, TimeProvider 
             return;
         }
 
-        var safe = await SafeAsync(cancellationToken);
+        // PDV-06: a devolução em dinheiro sai da gaveta para o cliente (Caixa do PDV → Devoluções de vendas), não para o Cofre.
+        var safe = integrationEvent.Kind == CashMovementRecorded.Refund
+            ? await PosSpecialAccounts.EnsureAsync(db, PosSpecialAccounts.ReturnsSeedKey, PosSpecialAccounts.ReturnsName, clock, cancellationToken)
+            : await SafeAsync(cancellationToken);
         if (safe == drawer.Id)
         {
             LogDrawerIsSafe(logger, integrationEvent.MovementId, integrationEvent.RegisterId);
@@ -49,7 +52,7 @@ public sealed partial class PosCashMovementConsumer(IFinanceDb db, TimeProvider 
         }
 
         // CX-02: o recolhimento do fechamento sai do caixa como a sangria; a devolução na reabertura entra como o suprimento.
-        var toDrawer = integrationEvent.Kind is not (CashMovementRecorded.CashOut or CashMovementRecorded.Deposit);
+        var toDrawer = integrationEvent.Kind is not (CashMovementRecorded.CashOut or CashMovementRecorded.Deposit or CashMovementRecorded.Refund);
         var (from, to) = toDrawer ? (safe, drawer.Id) : (drawer.Id, safe);
         // Período de conciliação fechado em qualquer das contas: entra hoje, com a data do caixa na observação (nunca retroativo).
         var date = integrationEvent.BusinessDate;
@@ -84,6 +87,7 @@ public sealed partial class PosCashMovementConsumer(IFinanceDb db, TimeProvider 
             CashMovementRecorded.CashIn => $"Suprimento do caixa {register}",
             CashMovementRecorded.Deposit => $"Recolhimento do caixa {register}",
             CashMovementRecorded.DepositReturn => $"Recolhimento devolvido ao caixa {register}",
+            CashMovementRecorded.Refund => $"Devolução em dinheiro no caixa {register}",
             _ => $"Fundo de troco do caixa {register}",
         };
         return text;

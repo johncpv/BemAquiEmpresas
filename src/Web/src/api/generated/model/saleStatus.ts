@@ -13,4 +13,6 @@ export const SaleStatus = {
   PartiallyPaid: 'PartiallyPaid',
   Completed: 'Completed',
   Cancelled: 'Cancelled',
+  PartiallyReturned: 'PartiallyReturned',
+  Returned: 'Returned',
 } as const;

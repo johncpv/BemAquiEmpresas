@@ -26,4 +26,6 @@ export const REASONS: Record<SupervisorAction, readonly string[]> = {
   ChangePrice: ['Erro na etiqueta', 'Preço combinado', 'Avaria no produto'],
   CancelItem: ['Cliente desistiu', 'Item lançado errado', 'Avaria no produto'],
   CancelSale: ['Cliente desistiu', 'Erro no lançamento', 'Pagamento errado'],
+  // PDV-06: motivo do item devolvido (e do supervisor na devolução em dinheiro ou fora do prazo).
+  Return: ['Tamanho errado', 'Defeito', 'Não gostou', 'Presente'],
 }

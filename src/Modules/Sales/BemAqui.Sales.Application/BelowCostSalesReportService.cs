@@ -33,7 +33,7 @@ public sealed class BelowCostSalesReportService(ISalesDb db, IPosRegisters regis
         var query =
             from l in db.SaleLines.AsNoTracking()
             join s in db.Sales.AsNoTracking() on l.SaleId equals s.Id
-            where s.Status == SaleStatus.Completed && s.BusinessDate >= first && s.BusinessDate <= last && l.UnitCost != null && l.Quantity > 0
+            where ReturnRules.Done.Contains(s.Status) && s.BusinessDate >= first && s.BusinessDate <= last && l.UnitCost != null && l.Quantity > 0
                 && l.Total < l.UnitCost * l.Quantity
             select new { Sale = s, Line = l };
         if (storeId is { } store)

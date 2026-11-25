@@ -100,7 +100,7 @@ public sealed class Sale : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>Situação pelo que foi capturado: nada = aberta; parte = parcialmente paga; tudo = concluída (uma vez só).</summary>
     public bool ApplyPayments(decimal capturedNet, DateTimeOffset at, DateOnly businessDate)
     {
-        if (Status is SaleStatus.Completed or SaleStatus.Cancelled)
+        if (Status is SaleStatus.Completed or SaleStatus.Cancelled or SaleStatus.PartiallyReturned or SaleStatus.Returned)
         {
             return false;
         }
@@ -123,6 +123,17 @@ public sealed class Sale : Entity, IAuditable, IConcurrencyVersioned
         Status = SaleStatus.Completed;
         CompletedAt = at;
         BusinessDate = businessDate;
+    }
+
+    /// <summary>PDV-06 CA 6: devolução concluída; a venda fica parcialmente devolvida ou devolvida (continua feita: nada é apagado nem estornado aqui).</summary>
+    public void MarkReturned(SaleStatus status)
+    {
+        if (status is not (SaleStatus.PartiallyReturned or SaleStatus.Returned) || !ReturnRules.Done.Contains(Status))
+        {
+            throw new InvalidOperationException("Só a venda feita passa a devolvida.");
+        }
+
+        Status = status;
     }
 
     public void Cancel(string reason, Guid? by, DateTimeOffset at)

@@ -53,6 +53,7 @@ export function StoresPage() {
       <Link to="/app/loja/pendencias" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Pendências do PDV</Link>
       <Link to="/app/loja/vendas-sem-documento-fiscal" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Vendas sem documento fiscal</Link>
       <Link to="/app/loja/aprovacoes" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Aprovações de supervisor</Link>
+      <Link to="/app/loja/devolucoes" className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Devoluções</Link>
       {newStore}
     </div>
   )

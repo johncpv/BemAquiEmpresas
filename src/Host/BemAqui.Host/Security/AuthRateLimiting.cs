@@ -107,6 +107,13 @@ public static class AuthRateLimiting
             o.AddPolicy(BemAqui.Pos.Application.PosCustomerSearchService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
                 "pos-customer|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? "-") + "|" + PosDeviceKey(http),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, options.PosCustomerSearchPerMinute), Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+            // PDV-06: localizar a venda (número ou CPF) e consultar ou usar o vale-troca (valor ao portador): por tenant, usuário e aparelho, como a busca de cliente.
+            o.AddPolicy(BemAqui.Sales.Application.SaleReturnService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "pos-returns|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? "-") + "|" + PosDeviceKey(http),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, options.PosCustomerSearchPerMinute), Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+            o.AddPolicy(BemAqui.Sales.Application.StoreCreditService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "pos-credits|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? "-") + "|" + PosDeviceKey(http),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, options.PosCustomerSearchPerMinute), Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
             // PIN do supervisor no caixa (PDV-04 CA 10 e 12): por tenant e aparelho, como a entrada por PIN; o bloqueio do PIN e do aparelho corta a força bruta,
             // isto limita o custo do PBKDF2.
             o.AddPolicy(BemAqui.Pos.Application.SupervisorApprovalService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(

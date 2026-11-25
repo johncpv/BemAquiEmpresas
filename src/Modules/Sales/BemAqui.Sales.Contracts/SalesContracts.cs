@@ -17,7 +17,10 @@ public enum SaleChannel
     ServiceOrder,
 }
 
-/// <summary>Situação da venda: aberta (sem pagamento), parcialmente paga, concluída ou cancelada. Venda nunca é apagada.</summary>
+/// <summary>
+/// Situação da venda: aberta (sem pagamento), parcialmente paga, concluída ou cancelada. Venda nunca é apagada. PDV-06: a concluída passa a
+/// parcialmente devolvida ou devolvida com a devolução concluída; continua sendo venda feita (receita, recebível e baixa ficam).
+/// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<SaleStatus>))]
 public enum SaleStatus
 {
@@ -25,6 +28,8 @@ public enum SaleStatus
     PartiallyPaid,
     Completed,
     Cancelled,
+    PartiallyReturned,
+    Returned,
 }
 
 /// <summary>
@@ -273,8 +278,13 @@ public interface ISaleLookup
 /// <summary>Pagamento capturado de venda concluída de uma sessão de caixa (CX-03), com o dia de negócio da venda.</summary>
 public sealed record SessionPaymentFact(DateOnly BusinessDate, SalePaymentFact Payment);
 
-/// <summary>Receita de vendas concluídas de um dia, por loja e canal (CA 12): bruto (preço × quantidade), descontos, taxa de serviço e líquido.</summary>
-public sealed record SalesRevenueLine(DateOnly Date, Guid? StoreId, SaleChannel Channel, int Sales, decimal Gross, decimal Discounts, decimal ServiceFees, decimal Net);
+/// <summary>
+/// Receita de vendas concluídas de um dia, por loja e canal (CA 12): bruto (preço × quantidade), descontos, taxa de serviço, devoluções e líquido.
+/// PDV-06 (revisão de segurança, achado 6): <c>Returns</c> são as devoluções concluídas no dia (data de negócio da devolução, valor dos itens devolvidos,
+/// qualquer forma de reembolso); o líquido já vem sem elas (bruto − descontos + taxa − devoluções).
+/// </summary>
+public sealed record SalesRevenueLine(DateOnly Date, Guid? StoreId, SaleChannel Channel, int Sales, decimal Gross, decimal Discounts, decimal ServiceFees, decimal Net,
+    decimal Returns = 0m);
 
 /// <summary>Receita das vendas para o DRE por competência (CA 12): pela data de negócio da venda, sem as canceladas.</summary>
 public interface ISalesRevenue

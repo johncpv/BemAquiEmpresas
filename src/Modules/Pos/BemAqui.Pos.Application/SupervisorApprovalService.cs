@@ -121,6 +121,8 @@ public sealed class SupervisorApprovalService(IPosDb db, IPosSupervisorPins pins
         SupervisorAction.ChangePrice when after == before => "Na troca de preço, o preço novo tem de ser diferente do atual.",
         SupervisorAction.CancelItem when after > before => "No cancelamento de item, o valor depois não pode passar do valor antes.",
         SupervisorAction.CancelSale when after != 0 => "No cancelamento de venda, o valor depois tem de ser zero.",
+        SupervisorAction.Return when after != 0 || before <= 0 => "Na devolução, o valor antes é o da devolução e o valor depois é zero.",
+        SupervisorAction.CreditReissue when after != 0 || before <= 0 => "Na reemissão do vale, o valor antes é o saldo do vale e o valor depois é zero.",
         _ => null,
     };
 

@@ -156,6 +156,12 @@ public sealed partial class SaleService
             return Error.NotFound(Error.Codes.NotFound, "Venda não encontrada.");
         }
 
+        // PDV-06: venda com devolução não é cancelada (o reembolso já saiu); o que falta volta por outra devolução.
+        if (sale.Status is SaleStatus.PartiallyReturned or SaleStatus.Returned)
+        {
+            return Error.Validation("sale_has_returns", "Esta venda já tem devolução. Devolva o restante pela Devolução.");
+        }
+
         if (sale.Status != SaleStatus.Cancelled)
         {
             var payments = await db.SalePayments.Where(p => p.SaleId == sale.Id).ToListAsync(cancellationToken);

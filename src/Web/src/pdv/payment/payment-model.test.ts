@@ -141,7 +141,8 @@ describe('cartão sem dado de cartão (CA 4, segurança)', () => {
 })
 
 describe('vale-troca e fiado (CA 9)', () => {
-  it('sem rede, desabilitados; com rede, ocultos até as stories deles', () => {
+  it('sem rede, desabilitados; com rede, o vale-troca habilita (PDV-06) e o fiado fica oculto até a PDV-08', () => {
+    expect(methodAvailability(method('StoreCredit'), true)).toBe('enabled')
     expect(methodAvailability(method('StoreCredit'), false)).toBe('needs-network')
     expect(methodAvailability(method('OnAccount'), false)).toBe('needs-network')
     expect(methodAvailability(method('OnAccount'), true)).toBe('hidden')

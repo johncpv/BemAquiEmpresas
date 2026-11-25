@@ -9,9 +9,9 @@ import { OfflineAccessError, PRICE_NEEDS_NETWORK } from '@/pdv/offline/offline-a
 import { REASONS } from './discount-input'
 
 /** Ação do caixa que pede supervisor (PDV-04); o código da ação no catálogo é `pos.{código}`. */
-export type SupervisorAction = 'Discount' | 'ChangePrice' | 'CancelItem' | 'CancelSale'
+export type SupervisorAction = 'Discount' | 'ChangePrice' | 'CancelItem' | 'CancelSale' | 'Return'
 
-const ACTION_CODE: Record<SupervisorAction, string> = { Discount: 'discount', ChangePrice: 'change_price', CancelItem: 'cancel_item', CancelSale: 'cancel_sale' }
+const ACTION_CODE: Record<SupervisorAction, string> = { Discount: 'discount', ChangePrice: 'change_price', CancelItem: 'cancel_item', CancelSale: 'cancel_sale', Return: 'return' }
 
 export interface SupervisorOption {
   userId: string

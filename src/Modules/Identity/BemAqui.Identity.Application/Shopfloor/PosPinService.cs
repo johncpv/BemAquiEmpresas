@@ -75,6 +75,15 @@ public sealed class PosStoreOperators(IIdentityDb db, IPermissionService permiss
     }
 }
 
+/// <summary>PDV-06: o caixa do aparelho do cookie (<see cref="BemAqui.Identity.Contracts.IPosRegisterDevice"/>), pelo mesmo portão da sessão por PIN.</summary>
+public sealed class PosRegisterDeviceResolver(PosDeviceCookieGate gate) : BemAqui.Identity.Contracts.IPosRegisterDevice
+{
+    public async Task<BemAqui.Identity.Contracts.PosSupervisorCheck?> ResolveAsync(string? posCookie, CancellationToken cancellationToken = default) =>
+        await gate.ResolveAsync(posCookie, cancellationToken) is { StoreId: { } store, RegisterId: { } register } device
+            ? new BemAqui.Identity.Contracts.PosSupervisorCheck(device.Id, store, register)
+            : null;
+}
+
 /// <summary>
 /// Aparelho de caixa pelo cookie <c>__Host-bq_pos</c>, sem a assinatura (ADR 0048 §2): serve à sessão por PIN do caixa, conferida a cada request, e à
 /// renovação dela. Só o caixa ativo; o segredo anterior, como no <c>/fab</c> (<see cref="ShopfloorDeviceGate"/>), só dentro da tolerância da rotação

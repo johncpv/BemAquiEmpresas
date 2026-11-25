@@ -14,4 +14,5 @@ export const CashMovementKind = {
   CashIn: 'CashIn',
   Deposit: 'Deposit',
   DepositReturn: 'DepositReturn',
+  Refund: 'Refund',
 } as const;

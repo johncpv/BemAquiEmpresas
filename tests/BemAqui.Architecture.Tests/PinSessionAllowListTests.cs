@@ -69,6 +69,13 @@ public static partial class PinSessionAllowList
         // PDV-04 CA 10 a 12: "Chamar supervisor"; o PIN do supervisor é conferido no aparelho da sessão, libera só a ação e grava a trilha.
         ["ListPosSupervisors"] = "supervisores da loja do aparelho: primeiro nome, inicial e as ações que aprovam, sem o operador",
         ["ApprovePosSupervisorAction"] = "PIN do supervisor para uma ação do caixa: supervisor diferente do operador, com a permissão; rate limit por aparelho",
+        // PDV-06: devolução e vale-troca, só com rede e no caixa do cookie; CPF e código do vale no corpo; busca e vale com rate limit por aparelho.
+        ["LookupSaleForReturn"] = "localizar a venda pelo número ou CPF (corpo, índice cego, leitura auditada), só vendas do balcão, até 20",
+        ["RequestSaleReturn"] = "pedir a devolução no caixa do aparelho: itens até o que pode voltar, destino, motivo e reembolso",
+        ["ApproveSaleReturn"] = "concluir a devolução no mesmo caixa: supervisor em dinheiro ou fora do prazo, estoque, dinheiro ou vale na transação",
+        ["LookupStoreCredit"] = "consultar o vale-troca pelo código no corpo: saldo, validade e os 4 últimos caracteres",
+        ["RedeemStoreCredit"] = "abater o vale num pagamento do caixa, idempotente pelo id do pagamento, sob trava do vale",
+        ["ReissueStoreCreditCode"] = "reemitir o código do vale perdido com o PIN do supervisor: código novo, o antigo deixa de valer",
     };
 
     [GeneratedRegex("""\.AllowPosPinSession\(\)""")]
