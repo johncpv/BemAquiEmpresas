@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { json, mockApi } from './mock-api'
-import { COFFEE, mockPdv, offlineVerifier, OPERATOR, OPERATOR_PIN, openRegister, registerDevice, saleListItem, salePage, scan, storeModules, tapDigits } from './pdv-api'
+import { COFFEE, mockPdv, offlineVerifier, OPERATOR, OPERATOR_PIN, openRegister, registerDevice, saleListItem, salePage, scan, storeModules, tapDigits, waitForController } from './pdv-api'
 
 /**
  * Marco MVP do PDV, fluxo 3 (OFF-02 e OFF-03), contra o build (projeto "pwa"): com rede, o caixa baixa o catálogo com os verificadores sem rede;
@@ -14,7 +14,8 @@ test('turno sem rede: entra pelo PIN, abre e vende; com a rede de volta, a fila 
   // Descida com rede: o aparelho guarda o caixa, o catálogo e os verificadores; o service worker do /pdv/ assume a página.
   await registerDevice(page)
   await expect(page.getByRole('heading', { name: 'Toque no seu nome e digite o seu PIN' })).toBeVisible()
-  await page.waitForFunction(() => !!navigator.serviceWorker.controller)
+  await waitForController(page)
+  await expect(page.getByRole('heading', { name: 'Toque no seu nome e digite o seu PIN' })).toBeVisible()
 
   // Sem rede: a página vem do service worker e a entrada é pelo PIN conferido no aparelho.
   await page.unroute('**/api/v1/**')

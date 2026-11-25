@@ -185,3 +185,10 @@ export const salePage = (items: ReturnType<typeof saleListItem>[]) => ({
   items, page: 1, pageSize: 20, total: items.length,
   totals: { count: items.length, total: items.reduce((sum, s) => sum + s.total, 0), cancelledCount: 0, cancelledTotal: 0 },
 })
+
+/** Garante o service worker do /pdv/ controlando a página (pronto + recarga se a página abriu antes de ele assumir), para o teste poder ficar sem rede. */
+export async function waitForController(page: Page) {
+  await page.evaluate(async () => { await navigator.serviceWorker.ready })
+  if (!(await page.evaluate(() => !!navigator.serviceWorker.controller))) await page.reload()
+  await page.waitForFunction(() => !!navigator.serviceWorker.controller)
+}
