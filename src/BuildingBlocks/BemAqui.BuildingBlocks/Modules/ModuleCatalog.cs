@@ -94,7 +94,11 @@ public static partial class ModuleCatalog
         // VND-01 (Fase 10 do PDV): núcleo de vendas de todos os canais. Fica na área "Loja" (PERF-03). Fora do perfil Fábrica
         // (oculto para a Konebras). Aprovar = cancelar venda com pagamento capturado (estorno, rascunho C §7).
         new("sales", "Vendas", ModuleAreas.Store, 10, 46, "Vendas do balcão, da loja virtual e das OS, com pagamentos, baixa de estoque e recebíveis.", CrudApprove,
-            [new("view_cost", "Ver custo e margem", "Ver o custo da baixa de estoque e a margem de cada venda.")], "cancelar venda com pagamento capturado"),
+            [
+                new("view_cost", "Ver custo e margem", "Ver o custo da baixa de estoque e a margem de cada venda."),
+                // PDV-07 (revisão de segurança, LGPD, ADR 0003): CPF/CNPJ inteiro do consumidor. Nenhum seed patch a concede: nasce só com o Proprietário.
+                new("view_customer_document", "Ver CPF/CNPJ do consumidor", "Ver o CPF ou CNPJ inteiro do consumidor no detalhe da venda; cada leitura fica na auditoria. Sem esta ação, o documento aparece mascarado."),
+            ], "cancelar venda com pagamento capturado"),
         // PDV-01 (Fase 11, PRD do PDV §6.3): tela dedicada do caixa, na área "Loja"; só no perfil Comércio (oculto para a Konebras). Criar = vender.
         // As ações restritas abrem "Chamar supervisor" no balcão (PIN do supervisor, PP-11); manage_devices registra e bloqueia os aparelhos.
         new("pos", "Caixa (PDV)", ModuleAreas.Store, 11, 47, "Tela de venda do balcão nos aparelhos registrados da loja. Criar = vender.", [StandardActions.View, StandardActions.Create],

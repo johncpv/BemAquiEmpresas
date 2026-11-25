@@ -22,6 +22,7 @@ const qty = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 4 
 function CustomerDocument({ sale }: { sale: SaleDetail }) {
   const [full, setFull] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const canReveal = useCan('sales.view_customer_document')
   if (!sale.customerDocument) return <span className="text-muted-foreground">Consumidor não identificado</span>
   const reveal = async () => {
     setBusy(true)
@@ -37,7 +38,7 @@ function CustomerDocument({ sale }: { sale: SaleDetail }) {
   return (
     <span className="inline-flex flex-wrap items-center gap-2">
       <span className="tabular-nums">{full ?? sale.customerDocument}</span>
-      {full ? null : (
+      {full || !canReveal ? null : (
         <button type="button" disabled={busy} onClick={() => void reveal()} className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-2 text-sm font-semibold disabled:opacity-60">
           <Eye aria-hidden="true" className="size-4" />{busy ? 'Abrindo…' : 'Mostrar'}
         </button>

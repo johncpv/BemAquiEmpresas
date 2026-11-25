@@ -11,7 +11,7 @@ Ver uma venda inteira: quem vendeu, em qual loja e caixa, os itens com o preço 
 
 ## Como usar
 - No alto ficam a data e a hora, o total (e a margem, para quem pode ver custo), os chips do estado e o consumidor.
-- **Consumidor:** o CPF ou CNPJ aparece mascarado. Toque em **Mostrar** para ver o documento inteiro; essa leitura fica registrada no histórico (quem viu e quando).
+- **Consumidor:** o CPF ou CNPJ aparece mascarado. O botão **Mostrar** só aparece para quem tem a ação **Ver CPF/CNPJ do consumidor** (em Vendas, no grupo). Ele mostra o documento inteiro; cada leitura fica registrada no histórico (quem viu, qual venda e quando) e há um limite de cerca de 20 por minuto.
 - **Itens:** cada item com a quantidade, o preço da tabela, o preço praticado, o desconto e o total. Quando o operador trocou o preço ou deu desconto, o motivo aparece embaixo do item, e o preço praticado diferente fica destacado.
 - **Pagamentos:** a forma, o valor, o troco e, no cartão, só a bandeira, o NSU e a autorização (o sistema nunca guarda o número do cartão).
 - **Trilha:** tudo o que aconteceu com a venda, em ordem (veja a ajuda da aba).

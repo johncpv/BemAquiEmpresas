@@ -134,6 +134,27 @@ public partial class SalesTests
     }
 
     [Fact]
+    public async Task Pdv07_revelar_o_CPF_exige_a_acao_view_customer_document()
+    {
+        var (_, owner) = await OwnerAsync();
+        var methods = await MethodsAsync(owner);
+        var location = await LocationAsync();
+        var product = await ProductAsync(location, 5, 4m);
+        var sale = await IngestAsync(Online(Today.AddDays(-Random.Shared.Next(200, 290)), location, [Line(product, 1, 10m)], [Paid(methods.Pix, 10m)]));
+        sale.IsSuccess.Should().BeTrue();
+        await using (var scope = await ScopeAsync())
+        {
+            (await scope.ServiceProvider.GetRequiredService<ISaleCustomerDocuments>().AttachAsync(new SaleCustomerDocumentInput(sale.Value.SaleId, "cpf", ValidCpf))).IsSuccess.Should().BeTrue();
+        }
+
+        var url = $"/api/v1/sales/sales/{sale.Value.SaleId}/customer-document";
+        var viewer = await SalesActorAsync("sales.view");
+        (await viewer.GetAsync(url)).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        var allowed = await SalesActorAsync("sales.view", "sales.view_customer_document");
+        (await OkJsonAsync(allowed, url)).GetProperty("document").GetString().Should().Be("529.982.247-25");
+    }
+
+    [Fact]
     public async Task Pdv07_cards_da_loja_aparecem_com_o_perfil_Comercio_e_somem_sem_ele()
     {
         var (_, owner) = await OwnerAsync();

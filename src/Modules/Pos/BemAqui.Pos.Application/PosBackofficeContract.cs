@@ -14,7 +14,7 @@ public sealed class PosBackofficeContract(IPosDb db, IRegisterDevices devices) :
 {
     private static readonly string[] TrailKinds = [PosEventIngestion.SaleKind, PosEventIngestion.CancelKind, PosEventIngestion.PrintKind];
 
-    public async Task<PosSaleTrail> SaleTrailAsync(Guid saleId, Guid? registerId, CancellationToken cancellationToken = default)
+    public async Task<PosSaleTrail> SaleTrailAsync(Guid saleId, Guid? registerId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default)
     {
         var approvals = await db.SupervisorApprovals.AsNoTracking().Where(a => a.SaleId == saleId).OrderBy(a => a.ApprovedAt)
             .Select(a => new PosTrailApproval(a.Id, a.Action.ToString(), a.OperatorId, a.SupervisorId, a.Reason, a.BeforeAmount, a.AfterAmount, a.Online, a.ApprovedAt))
@@ -32,7 +32,7 @@ public sealed class PosBackofficeContract(IPosDb db, IRegisterDevices devices) :
 
         var needle = "%" + saleId.ToString() + "%";
         var events = await db.DeviceEvents.AsNoTracking()
-            .Where(e => e.RegisterId == register && TrailKinds.Contains(e.Kind) && EF.Functions.Like(e.Payload, needle))
+            .Where(e => e.RegisterId == register && e.OccurredAt >= from && e.OccurredAt <= to && TrailKinds.Contains(e.Kind) && EF.Functions.Like(e.Payload, needle))
             .OrderBy(e => e.DeviceEpoch).ThenBy(e => e.Seq)
             .Select(e => new { e.EventId, e.Kind, e.OccurredAt, e.ReceivedAt, e.Outcome, e.ChainOk, e.Payload })
             .Take(50).ToListAsync(cancellationToken);

@@ -60,7 +60,7 @@ internal static class SalesEndpoints
         // CA 6: o CPF/CNPJ inteiro só aqui, com a leitura auditada (a lista e o arquivo trazem a máscara).
         sales.MapGet("/sales/{id:guid}/customer-document", async (Guid id, SaleBackofficeService service, CancellationToken ct) =>
                 await service.RevealDocumentAsync(id, ct) is { } document ? Results.Ok(document) : Error.NotFound(Error.Codes.NotFound, "Esta venda não tem CPF ou CNPJ do consumidor.").ToProblem())
-            .RequirePermission("sales.view").WithName("GetSaleCustomerDocument").Produces<SaleCustomerDocumentView>();
+            .RequirePermission("sales.view_customer_document").RequireRateLimiting(SaleBackofficeService.RevealRateLimitPolicy).WithName("GetSaleCustomerDocument").Produces<SaleCustomerDocumentView>();
 
         sales.MapGet("/{id:guid}", async (Guid id, SaleService service, IPermissionChecker permissions, CancellationToken ct) =>
                 await service.ViewAsync(id, ct) is { } sale ? Results.Ok(await MaskAsync(sale, permissions, ct)) : Error.NotFound(Error.Codes.NotFound, "Venda não encontrada.").ToProblem())

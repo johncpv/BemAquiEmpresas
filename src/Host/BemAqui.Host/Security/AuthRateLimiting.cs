@@ -111,6 +111,10 @@ public static class AuthRateLimiting
             o.AddPolicy(BemAqui.Sales.Application.SaleReturnService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
                 "pos-returns|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? "-") + "|" + PosDeviceKey(http),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, options.PosCustomerSearchPerMinute), Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+            // PDV-07 (revisão de segurança): revelar o CPF/CNPJ inteiro na retaguarda, por tenant e usuário (~20 por minuto), contra a coleta em massa.
+            o.AddPolicy(BemAqui.Sales.Application.SaleBackofficeService.RevealRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "sales-reveal|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? "-"),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, options.PosCustomerSearchPerMinute), Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
             o.AddPolicy(BemAqui.Sales.Application.StoreCreditService.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
                 "pos-credits|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? "-") + "|" + PosDeviceKey(http),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, options.PosCustomerSearchPerMinute), Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));

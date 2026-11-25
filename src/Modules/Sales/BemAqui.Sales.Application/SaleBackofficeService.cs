@@ -31,6 +31,7 @@ public sealed class SaleBackofficeService(
     TimeProvider clock)
 {
     public const int MaxDays = 366;
+    public const string RevealRateLimitPolicy = "sales-reveal-document";
 
     private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
 
@@ -149,7 +150,8 @@ public sealed class SaleBackofficeService(
         var payments = await db.SalePayments.AsNoTracking().Where(p => p.SaleId == id).OrderBy(p => p.CreatedAt).ToListAsync(cancellationToken);
         var postings = await db.SaleStockPostings.AsNoTracking().Where(p => p.SaleId == id).OrderBy(p => p.CreatedAt).ToListAsync(cancellationToken);
         var masked = await documents.MaskedAsync([id], cancellationToken);
-        var trail = await pos.SaleTrailAsync(id, sale.RegisterId, cancellationToken);
+        var moments = new[] { sale.CompletedAtDevice, sale.CompletedAt, sale.CancelledAt, sale.ReceivedAt }.Where(m => m is not null).Select(m => m!.Value).ToList();
+        var trail = await pos.SaleTrailAsync(id, sale.RegisterId, moments.Min().AddDays(-1), moments.Max().AddDays(1), cancellationToken);
         var methodNames = await MethodNamesAsync(cancellationToken);
         var names = await NamesAsync(
             new[] { sale.SellerUserId ?? sale.CreatedBy, sale.CancelledBy }.Concat(payments.Select(p => p.ConfirmedBy))
@@ -171,7 +173,7 @@ public sealed class SaleBackofficeService(
             Name(names, sale.CancelledBy), detailLines, detailPayments, Trail(sale, lines, postings, trail, names), saleCost, saleCost is { } sc ? sale.Total - sc : null);
     }
 
-    /// <summary>CA 6: o documento inteiro, só para quem tem <c>sales.view</c> (a rota exige), com a leitura gravada na auditoria (quem, quando, IP).</summary>
+    /// <summary>CA 6: o documento inteiro, só para quem tem <c>sales.view_customer_document</c> (a rota exige, com limite por usuário), com a leitura gravada na auditoria (quem, quando, IP).</summary>
     public async Task<SaleCustomerDocumentView?> RevealDocumentAsync(Guid saleId, CancellationToken cancellationToken = default)
     {
         if (await documents.RevealAsync(saleId, cancellationToken) is not { } document)
@@ -179,7 +181,8 @@ public sealed class SaleBackofficeService(
             return null;
         }
 
-        await audit.RecordReadAsync(nameof(SaleCustomerDocument), saleId.ToString(), "Detalhe da venda", cancellationToken);
+        var number = await db.Sales.AsNoTracking().Where(s => s.Id == saleId).Select(s => s.Number).FirstOrDefaultAsync(cancellationToken);
+        await audit.RecordReadAsync(nameof(SaleCustomerDocument), saleId.ToString(), $"Venda {number}: documento do consumidor", cancellationToken);
         return new SaleCustomerDocumentView(document);
     }
 

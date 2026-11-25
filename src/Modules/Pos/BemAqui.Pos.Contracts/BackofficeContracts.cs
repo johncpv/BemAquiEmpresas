@@ -37,8 +37,8 @@ public sealed record PosOpenSession(Guid SessionId, Guid StoreId, string StoreNa
 /// </summary>
 public interface IPosBackoffice
 {
-    /// <summary>A trilha da venda no caixa; <paramref name="registerId"/> é o caixa da venda (sem caixa, a trilha volta vazia).</summary>
-    Task<PosSaleTrail> SaleTrailAsync(Guid saleId, Guid? registerId, CancellationToken cancellationToken = default);
+    /// <summary>A trilha da venda no caixa; <paramref name="registerId"/> é o caixa da venda (sem caixa, a trilha volta vazia); <paramref name="from"/> e <paramref name="to"/> limitam os eventos por data antes de procurar a venda no conteúdo.</summary>
+    Task<PosSaleTrail> SaleTrailAsync(Guid saleId, Guid? registerId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default);
 
     /// <summary>As sessões de caixa abertas agora, de todas as lojas ativas, da mais antiga para a mais nova.</summary>
     Task<IReadOnlyList<PosOpenSession>> OpenSessionsAsync(CancellationToken cancellationToken = default);
