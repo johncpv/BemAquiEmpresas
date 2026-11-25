@@ -253,7 +253,7 @@ install -d -m 0755 $D $D/postgres && install -d -m 0700 $D/secrets $D/predeploy-
 cp deploy/saas/docker-compose.yml deploy/saas/deploy.sh deploy/saas/backup-cron.sh $D/
 cp deploy/postgres/init-roles.sh $D/postgres/ && chmod 0755 $D/*.sh $D/postgres/init-roles.sh
 cp deploy/saas/.env.example $D/.env && chown root:root $D/.env && chmod 0600 $D/.env
-# Edite $D/.env: REGISTRY (ex.: ghcr.io/johncpv/saas), PLATFORM_HOST, ALERT_RECIPIENT, SMTP_HOST, SMTP_USERNAME.
+# Edite $D/.env: REGISTRY (ghcr.io/johncpv, o mesmo da Konebras), PLATFORM_HOST, ALERT_RECIPIENT, SMTP_HOST, SMTP_USERNAME.
 # Deixe TENANT_HOST vazio até o tenant bemaqui existir; ALLOW_KEY_RING_CREATION=true SÓ na primeira subida.
 ```
 
