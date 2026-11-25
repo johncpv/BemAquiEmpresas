@@ -95,13 +95,15 @@ export const brandsOf = (method: CatalogPaymentMethod): string[] => (method.card
 export const maxInstallmentsOf = (method: CatalogPaymentMethod): number => Math.max(1, method.maxInstallments ?? 1)
 
 /**
- * CA 9: vale-troca e fiado dependem de dado do servidor. Sem rede, aparecem desabilitados ("Disponível com internet."); com rede, ficam ocultos
- * enquanto a PDV-06 e a PDV-08 não chegam.
+ * CA 9: vale-troca e fiado dependem de dado do servidor. Sem rede, aparecem desabilitados ("Disponível com internet."). Com rede, o vale-troca
+ * habilita (PDV-06: o código é conferido e abatido no servidor) e o fiado fica oculto
+ * enquanto a PDV-08 não chega.
  */
 export type MethodAvailability = 'enabled' | 'needs-network' | 'hidden'
 export function methodAvailability(method: CatalogPaymentMethod, online: boolean): MethodAvailability {
   const group = methodGroup(method)
   if (group !== 'store-credit' && group !== 'on-account') return 'enabled'
+  if (group === 'store-credit' && online) return 'enabled'
   return online ? 'hidden' : 'needs-network'
 }
 

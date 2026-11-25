@@ -13,4 +13,5 @@ export const SupervisorAction = {
   ChangePrice: 'ChangePrice',
   CancelItem: 'CancelItem',
   CancelSale: 'CancelSale',
+  Return: 'Return',
 } as const;

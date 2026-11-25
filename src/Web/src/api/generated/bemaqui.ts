@@ -309,6 +309,7 @@ import type {
   ExportReceivablesParams,
   ExportReconciliationParams,
   ExportRfqsParams,
+  ExportSaleReturnsParams,
   ExportStockAdjustmentsParams,
   ExportStockBalancesParams,
   ExportStockMovementsParams,
@@ -406,6 +407,7 @@ import type {
   GetRfqDefaultsParams,
   GetRfqHistoryParams,
   GetRoutingTemplateHistoryParams,
+  GetSaleReturnsReportParams,
   GetShipmentFormParams,
   GetShipmentHistoryParams,
   GetStockAdjustmentHistoryParams,
@@ -1046,7 +1048,9 @@ import type {
   ResetPasswordRequest,
   ResubmitInput,
   RetentionRuleRow,
+  ReturnApproveInput,
   ReturnInput,
+  ReturnRequestInput,
   RevenueCard,
   RevenueTargetsInput,
   RevenueTargetsYear,
@@ -1073,6 +1077,10 @@ import type {
   RoutingWorkCenterOption,
   SalaryChangeInput,
   SaleCancelInput,
+  SaleLookupInput,
+  SaleLookupResult,
+  SaleReturnReport,
+  SaleReturnView,
   SaleView,
   SaveFiscalIntegrationRequest,
   SaveFiscalSettingsRequest,
@@ -1140,6 +1148,10 @@ import type {
   StockItemContext,
   StockOpeningStatus,
   StockProjectOption,
+  StoreCreditLookupInput,
+  StoreCreditRedeemInput,
+  StoreCreditRedeemed,
+  StoreCreditView,
   StoreFormOptions,
   StoreRequest,
   StoreView,
@@ -92412,6 +92424,621 @@ export function useGetBelowCostSalesReport<TData = Awaited<ReturnType<typeof get
 
 
 
+
+export const getGetSaleReturnsReportUrl = (params: GetSaleReturnsReportParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/sales/returns?${stringifiedParams}` : `/api/v1/sales/returns`
+}
+
+export const getSaleReturnsReport = async (params: GetSaleReturnsReportParams, options?: Parameters<typeof apiFetch>[1]): Promise<SaleReturnReport> => {
+
+  return apiFetch<SaleReturnReport>(getGetSaleReturnsReportUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSaleReturnsReportQueryKey = (params?: GetSaleReturnsReportParams,) => {
+    return [
+    `/api/v1/sales/returns`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetSaleReturnsReportQueryOptions = <TData = Awaited<ReturnType<typeof getSaleReturnsReport>>, TError = unknown>(params: GetSaleReturnsReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleReturnsReport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSaleReturnsReportQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSaleReturnsReport>>> = ({ signal }) => getSaleReturnsReport(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSaleReturnsReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSaleReturnsReportQueryResult = NonNullable<Awaited<ReturnType<typeof getSaleReturnsReport>>>
+export type GetSaleReturnsReportQueryError = unknown
+
+
+export function useGetSaleReturnsReport<TData = Awaited<ReturnType<typeof getSaleReturnsReport>>, TError = unknown>(
+ params: GetSaleReturnsReportParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleReturnsReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSaleReturnsReport>>,
+          TError,
+          Awaited<ReturnType<typeof getSaleReturnsReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSaleReturnsReport<TData = Awaited<ReturnType<typeof getSaleReturnsReport>>, TError = unknown>(
+ params: GetSaleReturnsReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleReturnsReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSaleReturnsReport>>,
+          TError,
+          Awaited<ReturnType<typeof getSaleReturnsReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSaleReturnsReport<TData = Awaited<ReturnType<typeof getSaleReturnsReport>>, TError = unknown>(
+ params: GetSaleReturnsReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleReturnsReport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSaleReturnsReport<TData = Awaited<ReturnType<typeof getSaleReturnsReport>>, TError = unknown>(
+ params: GetSaleReturnsReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSaleReturnsReport>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSaleReturnsReportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getExportSaleReturnsUrl = (params: ExportSaleReturnsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/sales/returns/export?${stringifiedParams}` : `/api/v1/sales/returns/export`
+}
+
+export const exportSaleReturns = async (params: ExportSaleReturnsParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getExportSaleReturnsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportSaleReturnsQueryKey = (params?: ExportSaleReturnsParams,) => {
+    return [
+    `/api/v1/sales/returns/export`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getExportSaleReturnsQueryOptions = <TData = Awaited<ReturnType<typeof exportSaleReturns>>, TError = unknown>(params: ExportSaleReturnsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSaleReturns>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportSaleReturnsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportSaleReturns>>> = ({ signal }) => exportSaleReturns(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportSaleReturns>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportSaleReturnsQueryResult = NonNullable<Awaited<ReturnType<typeof exportSaleReturns>>>
+export type ExportSaleReturnsQueryError = unknown
+
+
+export function useExportSaleReturns<TData = Awaited<ReturnType<typeof exportSaleReturns>>, TError = unknown>(
+ params: ExportSaleReturnsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSaleReturns>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportSaleReturns>>,
+          TError,
+          Awaited<ReturnType<typeof exportSaleReturns>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportSaleReturns<TData = Awaited<ReturnType<typeof exportSaleReturns>>, TError = unknown>(
+ params: ExportSaleReturnsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSaleReturns>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportSaleReturns>>,
+          TError,
+          Awaited<ReturnType<typeof exportSaleReturns>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportSaleReturns<TData = Awaited<ReturnType<typeof exportSaleReturns>>, TError = unknown>(
+ params: ExportSaleReturnsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSaleReturns>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useExportSaleReturns<TData = Awaited<ReturnType<typeof exportSaleReturns>>, TError = unknown>(
+ params: ExportSaleReturnsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportSaleReturns>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExportSaleReturnsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLookupSaleForReturnUrl = () => {
+
+
+
+
+  return `/api/v1/pos/sales/lookup`
+}
+
+export const lookupSaleForReturn = async (saleLookupInput: SaleLookupInput, options?: Parameters<typeof apiFetch>[1]): Promise<SaleLookupResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<SaleLookupResult>(getLookupSaleForReturnUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(saleLookupInput)
+  }
+);}
+
+
+
+
+
+export const getLookupSaleForReturnMutationKey = () => ['lookupSaleForReturn'] as const;
+
+export const getLookupSaleForReturnMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof lookupSaleForReturn>>, TError,LookupSaleForReturnMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof lookupSaleForReturn>>, TError,LookupSaleForReturnMutationVariables, TContext> => {
+
+const mutationKey = getLookupSaleForReturnMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof lookupSaleForReturn>>, LookupSaleForReturnMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  lookupSaleForReturn(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LookupSaleForReturnMutationResult = NonNullable<Awaited<ReturnType<typeof lookupSaleForReturn>>>
+    export type LookupSaleForReturnMutationBody = SaleLookupInput
+    export type LookupSaleForReturnMutationError = unknown
+    export type LookupSaleForReturnMutationVariables = {data: SaleLookupInput}
+
+    export const useLookupSaleForReturn = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof lookupSaleForReturn>>, TError,LookupSaleForReturnMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof lookupSaleForReturn>>,
+        TError,
+        LookupSaleForReturnMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLookupSaleForReturnMutationOptions(options), queryClient);
+    }
+
+export const getRequestSaleReturnUrl = () => {
+
+
+
+
+  return `/api/v1/pos/returns`
+}
+
+export const requestSaleReturn = async (returnRequestInput: ReturnRequestInput, options?: Parameters<typeof apiFetch>[1]): Promise<SaleReturnView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<SaleReturnView>(getRequestSaleReturnUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(returnRequestInput)
+  }
+);}
+
+
+
+
+
+export const getRequestSaleReturnMutationKey = () => ['requestSaleReturn'] as const;
+
+export const getRequestSaleReturnMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestSaleReturn>>, TError,RequestSaleReturnMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestSaleReturn>>, TError,RequestSaleReturnMutationVariables, TContext> => {
+
+const mutationKey = getRequestSaleReturnMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestSaleReturn>>, RequestSaleReturnMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  requestSaleReturn(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestSaleReturnMutationResult = NonNullable<Awaited<ReturnType<typeof requestSaleReturn>>>
+    export type RequestSaleReturnMutationBody = ReturnRequestInput
+    export type RequestSaleReturnMutationError = unknown
+    export type RequestSaleReturnMutationVariables = {data: ReturnRequestInput}
+
+    export const useRequestSaleReturn = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestSaleReturn>>, TError,RequestSaleReturnMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof requestSaleReturn>>,
+        TError,
+        RequestSaleReturnMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRequestSaleReturnMutationOptions(options), queryClient);
+    }
+
+export const getApproveSaleReturnUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/pos/returns/${id}/approve`
+}
+
+export const approveSaleReturn = async (id: string,
+    returnApproveInput: ReturnApproveInput, options?: Parameters<typeof apiFetch>[1]): Promise<SaleReturnView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<SaleReturnView>(getApproveSaleReturnUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(returnApproveInput)
+  }
+);}
+
+
+
+
+
+export const getApproveSaleReturnMutationKey = () => ['approveSaleReturn'] as const;
+
+export const getApproveSaleReturnMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveSaleReturn>>, TError,ApproveSaleReturnMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof approveSaleReturn>>, TError,ApproveSaleReturnMutationVariables, TContext> => {
+
+const mutationKey = getApproveSaleReturnMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveSaleReturn>>, ApproveSaleReturnMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  approveSaleReturn(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApproveSaleReturnMutationResult = NonNullable<Awaited<ReturnType<typeof approveSaleReturn>>>
+    export type ApproveSaleReturnMutationBody = ReturnApproveInput
+    export type ApproveSaleReturnMutationError = unknown
+    export type ApproveSaleReturnMutationVariables = {id: string;data: ReturnApproveInput}
+
+    export const useApproveSaleReturn = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveSaleReturn>>, TError,ApproveSaleReturnMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof approveSaleReturn>>,
+        TError,
+        ApproveSaleReturnMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApproveSaleReturnMutationOptions(options), queryClient);
+    }
+
+export const getLookupStoreCreditUrl = () => {
+
+
+
+
+  return `/api/v1/pos/store-credits/lookup`
+}
+
+export const lookupStoreCredit = async (storeCreditLookupInput: StoreCreditLookupInput, options?: Parameters<typeof apiFetch>[1]): Promise<StoreCreditView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StoreCreditView>(getLookupStoreCreditUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(storeCreditLookupInput)
+  }
+);}
+
+
+
+
+
+export const getLookupStoreCreditMutationKey = () => ['lookupStoreCredit'] as const;
+
+export const getLookupStoreCreditMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof lookupStoreCredit>>, TError,LookupStoreCreditMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof lookupStoreCredit>>, TError,LookupStoreCreditMutationVariables, TContext> => {
+
+const mutationKey = getLookupStoreCreditMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof lookupStoreCredit>>, LookupStoreCreditMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  lookupStoreCredit(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LookupStoreCreditMutationResult = NonNullable<Awaited<ReturnType<typeof lookupStoreCredit>>>
+    export type LookupStoreCreditMutationBody = StoreCreditLookupInput
+    export type LookupStoreCreditMutationError = unknown
+    export type LookupStoreCreditMutationVariables = {data: StoreCreditLookupInput}
+
+    export const useLookupStoreCredit = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof lookupStoreCredit>>, TError,LookupStoreCreditMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof lookupStoreCredit>>,
+        TError,
+        LookupStoreCreditMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLookupStoreCreditMutationOptions(options), queryClient);
+    }
+
+export const getRedeemStoreCreditUrl = () => {
+
+
+
+
+  return `/api/v1/pos/store-credits/redeem`
+}
+
+export const redeemStoreCredit = async (storeCreditRedeemInput: StoreCreditRedeemInput, options?: Parameters<typeof apiFetch>[1]): Promise<StoreCreditRedeemed> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StoreCreditRedeemed>(getRedeemStoreCreditUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(storeCreditRedeemInput)
+  }
+);}
+
+
+
+
+
+export const getRedeemStoreCreditMutationKey = () => ['redeemStoreCredit'] as const;
+
+export const getRedeemStoreCreditMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof redeemStoreCredit>>, TError,RedeemStoreCreditMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof redeemStoreCredit>>, TError,RedeemStoreCreditMutationVariables, TContext> => {
+
+const mutationKey = getRedeemStoreCreditMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof redeemStoreCredit>>, RedeemStoreCreditMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  redeemStoreCredit(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RedeemStoreCreditMutationResult = NonNullable<Awaited<ReturnType<typeof redeemStoreCredit>>>
+    export type RedeemStoreCreditMutationBody = StoreCreditRedeemInput
+    export type RedeemStoreCreditMutationError = unknown
+    export type RedeemStoreCreditMutationVariables = {data: StoreCreditRedeemInput}
+
+    export const useRedeemStoreCredit = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof redeemStoreCredit>>, TError,RedeemStoreCreditMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof redeemStoreCredit>>,
+        TError,
+        RedeemStoreCreditMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRedeemStoreCreditMutationOptions(options), queryClient);
+    }
 
 export const getListStoresUrl = () => {
 

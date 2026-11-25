@@ -206,7 +206,7 @@ function OperatorSession({ handshake, onDeviceGone }: { handshake: PosHandshake;
         supervisor={supervisorApi}
         operator={{
           id: s.userId, name: s.name, canCancelItem: s.actions.includes('cancel_item'), canCashOut: s.actions.includes('cash_out'), canCashIn: s.actions.includes('cash_in'),
-          canDiscount: s.actions.includes('discount'), canChangePrice: s.actions.includes('change_price'), canCancelSale: s.actions.includes('cancel_sale'),
+          canDiscount: s.actions.includes('discount'), canChangePrice: s.actions.includes('change_price'), canCancelSale: s.actions.includes('cancel_sale'), canReturn: s.actions.includes('return'),
         }} />
     )
   }
