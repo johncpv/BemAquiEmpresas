@@ -116,7 +116,7 @@ O que pode correr em paralelo:
 
 **Ordem de execução:** PERF-01 → PERF-02 → PERF-03 → CAT-01 → CAT-02 → PAG-01 → VND-01 → PERF-04. Em paralelo: SPK-01, SPK-02, SPK-03 e INFRA-02. Condicionada: INFRA-01.
 
-**SPK-01 [ ] Spike: periféricos em hardware real (M)** — em paralelo — [story](stories/SPK-01-perifericos-hardware-real.md)
+**SPK-01 [ ] Spike: periféricos em hardware real (M)** — em paralelo; **pendente até haver loja parceira (PO, 25/11/2026)** — [story](stories/SPK-01-perifericos-hardware-real.md)
 - Depende de: kit de hardware (PP-19).
 - Paridade: prepara 2, 21, 23.
 - CA: três impressoras (USB, rede, Bluetooth), gaveta, leitor e balança testados a partir do PWA em Windows e Android; WebUSB e WebSerial comparados com um agente mínimo em loopback; resposta escrita sobre a ponte entrar ou não no MVP.
@@ -168,7 +168,7 @@ O que pode correr em paralelo:
 - CA: seed do Comércio (locais, contas Caixa e Cofre, formas de pagamento, tabela de preço, categorias, grupos, regras do Simples "A confirmar"); idempotente por `seed_key`; checklist no Início com 5 passos e progresso; cada passo leva à tela certa.
 - Parcial (17/11/2026, branch `feat/perf-04-seeds-primeiros-passos`): mecanismo de pacotes por perfil, pacotes do Financeiro, Estoque, Acessos e Terceiros, unidades de alimentação, gancho no provisionamento e na aba Perfis e o cartão "Primeiros passos". Falta, com a CAT-01 e a CAT-02: o pacote do Catálogo (tabela "Balcão" e categoria "Geral", e as categorias de alimentação) e o link do passo "Importar produtos"; com a IMP-01, o passo "Impressora"; com a PDV-02, o passo da venda de teste.
 
-**INFRA-02 [ ] Backup mais frequente na VPS atual (P)** — em paralelo, antes do piloto — [story](stories/INFRA-02-backup-frequente-vps-atual.md)
+**INFRA-02 [ ] Backup mais frequente na VPS atual (P)** — em paralelo, antes do piloto; **pendente até haver loja parceira (PO, 25/11/2026)** — [story](stories/INFRA-02-backup-frequente-vps-atual.md)
 - Depende de: —
 - CA: backup dos bancos de tenant em intervalo menor que o diário, cifrado e fora da VPS; uma semana de medição; restauração ensaiada; alerta de falha; perda máxima de dados medida e registrada na PP-07.
 
@@ -185,6 +185,8 @@ O que pode correr em paralelo:
 O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parceiro, não a versão pública ([benchmark, 7.6](00-benchmark-mercado.md#76-resultado)).
 
 **Ordem de execução:** PDV-01 → OFF-01 → PDV-02 → PDV-03 → CX-01 → IMP-01 → OFF-02 → CX-02 → CX-03 → PDV-05 → PDV-04 → IMP-02 → OFF-03 → PDV-06 → PDV-07. No fechamento do marco: um E2E por fluxo principal e a rodada completa do CI.
+
+**Fechamento do marco (25/11/2026): E2E escritos** (branch `feat/pdv-e2e-marco`), um por fluxo principal, em `src/Web/e2e/` com a API simulada (`pdv-api.ts` sobre o `mock-api.ts`): turno do caixa com abertura, venda pelo leitor e pelo teclado, duas formas com troco, sangria e fechamento com contagem cega (`pdv-caixa.spec.ts`; CX-01, PDV-02, PDV-03, CX-02); desconto acima do limite com o PIN do supervisor (`pdv-supervisor.spec.ts`; PDV-04); turno sem rede com entrada por PIN, venda, subida da fila e a venda na retaguarda (`pdv-offline-pwa.spec.ts`, contra o build; OFF-02, OFF-03); devolução parcial em vale-troca e o vale na venda nova (`pdv-devolucao.spec.ts`; PDV-06); Loja → Vendas com filtro, detalhe e CPF mascarado (`pdv-vendas.spec.ts`; PDV-07). Falta a rodada completa do CI (`workflow_dispatch` do `ci.yml`) verde antes do deploy do marco. **IMP-02, SPK-01 e INFRA-02 ficam pendentes até haver loja parceira** (decisão do PO em 25/11/2026): dependem do kit de hardware e do piloto, e não seguram o fechamento do marco.
 
 **PDV-01 [x] Lojas, caixas e aparelho de PDV registrado (G)** (em produção em 18/11/2026: parte 1 em befb72c3, parte 2 em cae72a21) — ordem 1 — [story](stories/PDV-01-lojas-caixas-aparelho.md)
 - Depende de: PERF-01, CAT-01, PAG-01, VND-01, PERF-04; PP-04, PP-11, PP-12.
@@ -251,7 +253,7 @@ O MVP entrega **balcão com cupom não fiscal**: é um piloto com lojista parcei
 - Pronta para revisão (24/11/2026, branch `feat/pdv-04`): `pos.supervisor_approvals` (trilha auditada, CHECK supervisor ≠ operador, uso único conferido na subida); PIN do supervisor no caixa (`POST /api/v1/pos/supervisor-approvals`, lista do PIN, rate limit por aparelho; exceção da PP-11: com `*.approve`, o PIN só aprova desconto e cancelamento de venda e não entra no caixa); limite de desconto por loja (`discount_limit_percent`, PP-38); eventos `DiscountApplied` e `PriceOverridden` e a aprovação em `LineRemoved`/`LineChanged` no replay (o operador com a permissão remove sem a pendência "Autorização sem supervisor" da OFF-02); desconto no total rateado nas linhas; `pos.sale_cancel` (venda da sessão aberta, estorno confirmado e NSU no cartão, dinheiro sai da sessão, `SaleCancelled`, aviso ao Proprietário); Loja → Aprovações de supervisor com exportação e Vendas abaixo do custo (`sales.view_cost`). PP-22 decidida pelo PO em 24/11/2026: limite padrão 0% mantido; o alerta de cancelamentos (3% das vendas do turno) vai para a PDV-07. Pendência: aprovação sem rede (OFF-03).
 - Correções da revisão de segurança (24/11/2026): a aprovação fica presa à linha, aos valores antes e depois (ao centavo) e a 10 minutos depois de aprovada (fora disso, quarentena); ação que pede supervisor autorizada por outra pessoa sem `approvalId` vai para a quarentena, não mais para a divergência "Autorização sem supervisor" (recomendação aceita pelo PO); o desconto no total não empilha com os dos itens (o acumulado da venda respeita o limite); quem não tem a ação de supervisor pedida recebe a resposta do PIN errado sem contar falha no usuário nem no aparelho; os valores da aprovação combinam com a ação. Riscos aceitos (achados 5 e 8) no 06.
 
-**IMP-02 [ ] Impressão direta ESC/POS e gaveta (M)** — ordem 12 — [story](stories/IMP-02-impressao-direta-escpos-gaveta.md)
+**IMP-02 [ ] Impressão direta ESC/POS e gaveta (M)** — ordem 12; **pendente até haver loja parceira (PO, 25/11/2026)** — [story](stories/IMP-02-impressao-direta-escpos-gaveta.md)
 - Depende de: IMP-01, SPK-01; PP-08.
 - CA: gerador ESC/POS único em TypeScript; `WebDeviceBridge` por WebUSB, WebSerial ou Bluetooth onde o navegador permite (corte, gaveta, QR); queda automática para a impressão do navegador; `pos.open_drawer` registrada; lista de impressoras homologadas na ajuda.
 

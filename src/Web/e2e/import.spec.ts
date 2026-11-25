@@ -28,6 +28,8 @@ test.describe('importação do Dolibarr (MIG-01a)', () => {
   })
 
   test('execução com totais e pendências filtradas na URL, com link para o registro (CA 17 e 19)', async ({ page }) => {
+    // Duas telas lazy no servidor de desenvolvimento, filtro na URL e duas varreduras do axe: na primeira rodada do CI (chunks frios) passa de 30 s.
+    test.slow()
     await mockApi(page, {
       'GET /api/v1/settings/import-runs': (r: Route) => json(r, { items: [run], page: 1, pageSize: 20, total: 1 }),
       'GET /api/v1/settings/import-runs/*/pending': (r: Route) => {
