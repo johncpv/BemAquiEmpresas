@@ -33,6 +33,7 @@ public static class PosInfrastructure
         services.TryAddScoped<SyncDivergenceService>(); // OFF-02 CA 14 e 15: Pendências do PDV
         services.TryAddScoped<SupervisorApprovalService>(); // PDV-04: PIN do supervisor no balcão e o relatório
         services.TryAddScoped<IPosRegisters, PosRegistersContract>();
+        services.TryAddScoped<IPosBackoffice, PosBackofficeContract>(); // PDV-07: trilha da venda e caixas abertos para a retaguarda e o Início
         services.TryAddScoped<IPosReturnSupport, PosReturnSupport>(); // PDV-06: o caixa, a aprovação e o dinheiro da devolução
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IProfileSeedPackage, PosRetailSeedPackage>());
         services.AddAuditableEntity<Store>("sales"); // IMP-01: o aceite do modo não fiscal (ligar, desligar, versão do texto) fica no histórico da loja

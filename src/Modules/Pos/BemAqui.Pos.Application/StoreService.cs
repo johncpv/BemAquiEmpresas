@@ -16,7 +16,7 @@ public sealed record StoreInput(
     string Code, string Name, Guid StockLocationId, Guid DefaultPriceListId, bool IsActive = true, decimal? CashDropAlertAmount = null, decimal? CashCeilingAmount = null,
     ReceiptPrintMode? ReceiptPrintMode = null, bool? FreeRemoveLast = null, int? SyncAlertHours = null, decimal? CashBreakTolerance = null,
     decimal? DiscountLimitPercent = null, int? OfflineWindowHours = null, decimal? OfflineApprovalMaxAmount = null, decimal? OfflineApprovalSessionAmount = null,
-    int? OfflineApprovalSessionCount = null, decimal? OfflineApprovalReviewAmount = null, bool? OfflineCancelSaleAllowed = null);
+    int? OfflineApprovalSessionCount = null, decimal? OfflineApprovalReviewAmount = null, bool? OfflineCancelSaleAllowed = null, decimal? CancelAlertPercent = null);
 
 public sealed record RegisterInput(int Number, Guid CashAccountId, RegisterUiMode UiMode, bool IsActive = true);
 
@@ -66,7 +66,8 @@ public sealed record StoreView(
     decimal OfflineApprovalSessionAmount = Store.DefaultOfflineApprovalSessionAmount,
     int OfflineApprovalSessionCount = Store.DefaultOfflineApprovalSessionCount,
     decimal OfflineApprovalReviewAmount = Store.DefaultOfflineApprovalReviewAmount,
-    bool OfflineCancelSaleAllowed = true);
+    bool OfflineCancelSaleAllowed = true,
+    decimal CancelAlertPercent = Store.DefaultCancelAlertPercent);
 
 /// <summary>Ligar ou desligar o modo "só cupom não fiscal" (IMP-01 CA 10): ligar exige o aceite do texto na versão atual.</summary>
 public sealed record NonFiscalModeInput(bool Enabled, bool Accepted, int? TermsVersion, uint Version);
@@ -136,7 +137,7 @@ public sealed class StoreService(
             registers.Where(r => r.StoreId == s.Id).Select(r => ToView(r, accountNames, deviceInfo, now)).ToList(),
             s.FiscalMode, s.NonFiscalTermsVersion, s.NonFiscalAcceptedAt, s.NonFiscalAcceptedBy is { } by ? acceptedBy.GetValueOrDefault(by) : null,
             s.NonFiscalAccepted && s.NonFiscalTermsVersion < NonFiscalTerms.Version, s.ReceiptPrintMode, s.FreeRemoveLast, s.SyncAlertHours, s.CashBreakTolerance, s.DiscountLimitPercent,
-            s.OfflineWindowHours, s.OfflineApprovalMaxAmount, s.OfflineApprovalSessionAmount, s.OfflineApprovalSessionCount, s.OfflineApprovalReviewAmount, s.OfflineCancelSaleAllowed)).ToList();
+            s.OfflineWindowHours, s.OfflineApprovalMaxAmount, s.OfflineApprovalSessionAmount, s.OfflineApprovalSessionCount, s.OfflineApprovalReviewAmount, s.OfflineCancelSaleAllowed, s.CancelAlertPercent)).ToList();
     }
 
     public static NonFiscalTermsView Terms() => new(NonFiscalTerms.Version, NonFiscalTerms.Title, NonFiscalTerms.Text);
@@ -328,6 +329,11 @@ public sealed class StoreService(
             return Invalid("discountLimitPercent", "Informe o limite de desconto em %, de 0 a 100, com até 2 casas.");
         }
 
+        if (input.CancelAlertPercent is { } cancel && (cancel < 0 || cancel > 100 || decimal.Round(cancel, 2) != cancel))
+        {
+            return Invalid("cancelAlertPercent", "Informe o alerta de cancelamentos em %, de 0 a 100, com até 2 casas.");
+        }
+
         if (OfflineError(input) is { } offline)
         {
             return offline;
@@ -405,6 +411,7 @@ public sealed class StoreService(
         store.SyncAlertHours = input.SyncAlertHours ?? store.SyncAlertHours;
         store.CashBreakTolerance = input.CashBreakTolerance ?? store.CashBreakTolerance;
         store.DiscountLimitPercent = input.DiscountLimitPercent ?? store.DiscountLimitPercent;
+        store.CancelAlertPercent = input.CancelAlertPercent ?? store.CancelAlertPercent;
         store.OfflineWindowHours = input.OfflineWindowHours ?? store.OfflineWindowHours;
         store.OfflineApprovalMaxAmount = input.OfflineApprovalMaxAmount ?? store.OfflineApprovalMaxAmount;
         store.OfflineApprovalSessionAmount = input.OfflineApprovalSessionAmount ?? store.OfflineApprovalSessionAmount;

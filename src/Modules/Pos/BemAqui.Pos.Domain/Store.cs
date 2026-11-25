@@ -23,6 +23,9 @@ public sealed class Store : Entity, IAuditable, IConcurrencyVersioned
     /// <summary>OFF-02 CA 16: padrão do aviso de caixa sem enviar vendas.</summary>
     public const int DefaultSyncAlertHours = 4;
 
+    /// <summary>PDV-07 (PP-22, decidida pelo PO em 24/11/2026): padrão do alerta de cancelamentos do turno, em % das vendas.</summary>
+    public const decimal DefaultCancelAlertPercent = 3m;
+
     public string Code { get; set; } = string.Empty;
 
     public string Name { get; set; } = string.Empty;
@@ -89,6 +92,12 @@ public sealed class Store : Entity, IAuditable, IConcurrencyVersioned
 
     /// <summary>OFF-02 CA 16: o gerente é avisado quando um caixa fica este número de horas sem enviar vendas (padrão 4 h, de 1 a 72).</summary>
     public int SyncAlertHours { get; set; } = DefaultSyncAlertHours;
+
+    /// <summary>
+    /// PDV-07 (PP-22, decidida pelo PO em 24/11/2026): o caixa aberto ganha o alerta "Cancelamentos acima de X%" quando o valor das vendas canceladas
+    /// no turno passa deste percentual das vendas do turno (concluídas + canceladas). Padrão 3%; zero desliga.
+    /// </summary>
+    public decimal CancelAlertPercent { get; set; } = DefaultCancelAlertPercent;
 
     /// <summary>
     /// OFF-03 CA 13 (PP-22, recomendação conservadora aceita pelo PO em 24/11/2026): teto de cada aprovação de supervisor sem rede, em reais (a

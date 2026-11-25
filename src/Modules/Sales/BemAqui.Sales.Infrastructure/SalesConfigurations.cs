@@ -36,6 +36,8 @@ internal sealed class SaleConfiguration : IEntityTypeConfiguration<Sale>
         // Recebível por dia e canal (CA 11) e receita por dia (CA 12).
         b.HasIndex(e => new { e.BusinessDate, e.Channel }).HasFilter("status = 'Completed'").HasDatabaseName("ix_sales_completed_day_channel");
         b.HasIndex(e => e.CashSessionId).HasFilter("cash_session_id IS NOT NULL");
+        // PDV-07: Loja → Vendas filtra por período e loja (todas as situações).
+        b.HasIndex(e => new { e.BusinessDate, e.StoreId }).HasDatabaseName("ix_sales_day_store");
         b.HasIndex(e => new { e.SourceType, e.SourceId });
     }
 }
