@@ -59,3 +59,7 @@ Restaurar o catálogo e um tenant numa máquina limpa, com o certificado offline
 - **Certificado A1 fora do BemAqui:** o propósito `fiscal-certificate` **não é usado**. O A1 fica só no cofre do EmissorFiscal (ADR 0027 §3); o BemAqui guarda só validade, titular, CNPJ e thumbprint, e repassa o `.pfx` ao Emissor sem gravá-lo em disco, log, auditoria ou `IFileStorage`.
 - **Token do webhook do Inter** não é segredo cifrado: só o hash fica guardado (ADR 0031 §6), como os tokens opacos da ADR 0011.
 - Todos seguem as regras de segredo só de escrita desta ADR (nunca voltam numa resposta, `Secret` mascarado, canário no log) e a ADR 0042 (telas de Configurações com "configurado em dd/mm/aaaa").
+
+## Adendo de 26/11/2026: segredo dos avisos de saída (ADR 0053)
+- **Tipo novo** `SecretKind.OutboundWebhookSecret` → `outbound-webhook-secret`: segredo de assinatura HMAC dos avisos de saída (INT-02), por inscrição (o id da inscrição entra na cadeia do propósito), com o anterior guardado durante a sobreposição de 24 h. Propósito separado do `webhook-secret` da entrada; teste golden atualizado.
+- O segredo do cliente do Conecta é **por ambiente** (arquivo de secret, só o SHA-256 no ERP), não por tenant. Detalhes na [ADR 0053](0053-aplicativos-conectados.md).

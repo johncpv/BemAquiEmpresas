@@ -1,0 +1,124 @@
+# INT-01 — Aplicativos conectados: OAuth 2.0 com PKCE, escopos `modulo.acao`, consentimento com 2FA, revogação e auditoria
+
+| Campo | Valor |
+|---|---|
+| ID | INT-01 |
+| Título | O ERP vira servidor de autorização por tenant (tenant pelo host): *authorization code* com PKCE (S256), o Conecta pré-cadastrado como aplicativo primeira parte e cliente confidencial com segredo por ambiente, consentimento em português com 2FA de novo e intenção amarrada ao pedido, escopos do `ModuleCatalog` limitados ao que quem autorizou tem e reavaliados a cada chamada, token opaco que nunca vale como sessão de pessoa, *refresh* rotativo com detecção de reuso, nova autorização a cada 12 meses, revogação dos dois lados e auditoria "Integração Conecta (autorizada por Fulano)" |
+| Tamanho | M |
+| Status | Draft |
+| Requisitos | [ADR 0053](../adr/0053-aplicativos-conectados.md) · ADR 0052 §1 e §6 · ADR 0008 (delegação; adendo D6, 2FA de novo) · ADR 0003 · ADR 0007 · ADR 0009 (adendo 26/11/2026) · ADR 0011 (tokens opacos) · ADR 0046 · R-SEC-5 · R-PRP-5 |
+| Dependências | FND-04/05/06c (JWT, 2FA, cache de permissões), BNK-01a (`RequireRecentTwoFactor`), PERF-01 (liberação e oculto), FND-12 (alertas) |
+| Bloqueia | INT-02, INT-03, ATD-01, API-01 |
+| Ordem de execução | 2 (F1 — Base no ERP, depois da VND-02a) |
+
+## User story
+Como **Proprietário**, quero **ligar o Conecta ao meu ERP com um clique, vendo em português o que ele vai poder fazer**, para **o atendimento vender e cobrar pelo ERP sem eu copiar chave nenhuma e podendo desligar quando quiser**.
+
+## Contexto e referências
+- ADR 0052 §1, §2 (a conexão começa no ERP; o Conecta só confirma a conta) e §6 (módulo novo fora dos perfis); plano §3.1 e §3.2. As decisões técnicas estão na **ADR 0053**, que é a fonte única dos escopos, dos códigos de erro e do limite de uso.
+- Hoje o ERP aceita sessão de pessoa (ADR 0011), PIN de aparelho (ADR 0026), quiosque (ADR 0030) e aparelho do PDV (esquema `Device`, ADR 0048). Esta story cria o quinto principal: **aplicativo**.
+
+## Critérios de aceite
+**Começar a conexão no ERP**
+1. **Dado** o módulo `conecta` liberado e um membro do Proprietário (`settings.edit`), **quando** abre Configurações → Integrações → Conecta e clica "Conectar", **então** o ERP cria uma **intenção de conexão** (`identity.app_connect_intents`: usuário, aplicativo, hash do `intent`, 10 min, uso único) e navega para `Integrations:Conecta:StartUrl` com `erp=<host do tenant>` e `intent=<valor opaco>`; o Conecta pede login ou a escolha da conta e volta para `https://<host do tenant>/oauth/authorize` com `response_type=code`, `client_id=conecta`, `redirect_uri`, `scope`, `state`, `code_challenge`, `code_challenge_method=S256` e o mesmo `intent`.
+2. **Dado** o módulo `conecta` não liberado, **quando** a tela ou a API são chamadas, **então** 403 `module_not_released` e a tela `ModuleNotReleased` ("Liga o ERP ao Conecta: vender, cobrar e avisar o cliente pelo WhatsApp."); fora de todos os perfis e sem exceção, a entrada fica oculta em Integrações, na busca e na ajuda.
+
+**Autorizar (consentimento)**
+3. **[Segurança]** **Dado** um pedido em `/oauth/authorize`, **quando** a tela valida pelo `POST /api/v1/oauth/authorize/inspect`, **então** `client_id` desconhecido, `redirect_uri` **diferente, caractere a caractere,** das cadastradas, `code_challenge_method` diferente de `S256` ou `code_challenge` fora do formato mostram o erro **no ERP, sem redirecionar** (RFC 6749 §4.1.2.1); só depois de validados cliente e URI os demais erros (`invalid_scope`, `access_denied`) voltam ao `redirect_uri` com o `state` intacto.
+4. **[Segurança]** **Dado** um link sem `intent`, com `intent` vencido, usado ou criado por **outra pessoa**, **quando** abre a tela, **então** ela recusa com "Este pedido de conexão não foi iniciado por você neste ERP." e o caminho de volta "Ir para Integrações → Conecta"; sem sessão, o ERP leva ao login e volta à mesma tela.
+5. **[Segurança]** **Dado** o primeiro `inspect` válido, **quando** a intenção é lida, **então** o ERP grava nela o hash de `state + code_challenge + redirect_uri`; o `consent` só passa com o mesmo hash (pedido trocado no meio: recusa como o CA 4). As telas `/oauth/*` respondem com `Referrer-Policy: no-referrer`.
+6. **Dado** o pedido válido, **quando** a tela de consentimento abre, **então** mostra nome e logo do aplicativo, a conta do Conecta (`account_label`, só texto), o tenant e **"O que o Conecta poderá fazer"** em português simples, com o texto do catálogo (a mesma fonte da ajuda), por exemplo: "O Conecta pede permissão para: Ver clientes (nome, telefone, e-mail, documento) · Criar pedidos de venda · Ver cobranças. Você pode desconectar quando quiser."; o que a pessoa **não tem** aparece à parte, "O Conecta não vai receber, porque você não tem esse acesso", e não é concedido.
+7. **[Segurança]** **Dado** o consentimento, **quando** o Proprietário clica "Autorizar" e informa o código do autenticador, **então** o `POST /api/v1/oauth/authorize/consent` exige `settings.edit` e **2FA de novo** (`RequireRecentTwoFactor`, código sem reuso); a intenção é marcada usada **na mesma transação** (segunda tentativa: 409 `connect_intent_used`); o ERP gera o código de autorização (32 bytes, 60 s, uso único, só o hash, ligado a cliente, `redirect_uri`, `code_challenge`, escopos e pessoa) e devolve `redirect_uri?code=…&state=…&iss=<host>` (RFC 9207).
+8. **Dado** a tela de autorizar, **quando** algo sai do caminho feliz, **então** cada estado tem texto e ação: código do autenticador errado ("Código incorreto. Confira no aplicativo autenticador e tente de novo.", foco volta ao campo); 2FA não ativo ("Para conectar, ative a verificação em duas etapas." com "Ativar 2FA", voltando à mesma tela); sessão expirada (login e volta); link inválido (CA 4); "Autorizar" desabilitado enquanto envia; sucesso ("Conectado. Voltando ao Conecta…").
+9. **[Segurança]** **Dado** os escopos, **quando** o código é gerado, **então** a concessão é **pedidos ∩ `AllowedScopes` do Conecta ∩ permissões efetivas de quem autorizou** (`IPermissionService`, que já limita aos módulos liberados); nunca entram ações reservadas do ADR 0008 (`*.approve`, `finance.pay`, `hr.view_sensitive`, `hr.view_health`, `identity.edit`, `settings.edit`) nem ações com 2FA de novo; concessão vazia: `access_denied` ao `redirect_uri`.
+10. **Dado** o "Cancelar" na tela, **quando** a pessoa recusa, **então** volta ao `redirect_uri` com `error=access_denied&state=…`, a intenção é consumida e a recusa fica na auditoria.
+
+**Trocar o código e renovar**
+11. **[Segurança]** **Dado** o Conecta com o código, **quando** chama `POST /api/v1/oauth/token` (`grant_type=authorization_code`, `client_secret_basic` com o segredo **do ambiente**, `code_verifier`, mesmo `redirect_uri`), **então** o ERP confere o segredo em tempo constante, o S256 do `code_verifier`, o `redirect_uri` e a validade; responde `{access_token, token_type: "Bearer", expires_in: 900, refresh_token, scope, connection_id, webhook_secret}` com `Cache-Control: no-store` (`webhook_secret` e a inscrição: INT-02 CA 1); o código vale uma vez, e **reapresentá-lo revoga os tokens emitidos com ele**; erros pela RFC 6749 §5.2 (`invalid_grant`, `invalid_client` com 401), com corpo uniforme.
+12. **Dado** um novo consentimento para o mesmo aplicativo no mesmo tenant, **quando** o código é trocado, **então**, na mesma transação e nesta ordem, nasce a conexão nova, nasce a inscrição nova (INT-02) e a anterior vai a `Revoked` ("Substituída por nova conexão em dd/mm por Fulano"): **no máximo uma conexão ativa por aplicativo e tenant**.
+13. **[Segurança]** **Dado** um *refresh* válido, **quando** o Conecta chama `grant_type=refresh_token`, **então** recebe um par novo na mesma família; reapresentar o substituído **depois de 10 s** revoga a conexão inteira ("Desconectada por segurança: o Conecta usou uma credencial antiga."), sai o alerta `integration_token_reuse` (FND-12) e a notificação aos Proprietários; *refresh* sem uso há 90 dias expira.
+14. **Dado** uma conexão com **12 meses** desde o consentimento, **quando** o prazo chega, **então** ela vai a `Suspended` ("Autorização vencida: autorize de novo para continuar."), com aviso aos Proprietários 30 dias antes e no dia, e a ação "Autorizar de novo".
+
+**Usar o token (camadas de acesso reavaliadas)**
+15. **[Segurança]** **Dado** `Authorization: Bearer bqa_…`, **quando** chama uma rota de `/api/v1/integration/*`, **então** o esquema `App` acha o token pelo hash, confere validade, conexão `Active` e tenant do host igual ao da conexão, e monta o principal **sem `sub` de pessoa**: `app`, `conn`, `grantor`, `tid`. Qualquer falha de token (desconhecido, vencido, revogado, outro tenant) responde **401 `invalid_token`**; o mesmo token fora de `/api/v1/integration/*`, num hub ou como sessão de pessoa responde 401; JWT de pessoa em `/api/v1/integration/*` também.
+16. **[Segurança]** **Dado** uma rota de aplicativo com `RequireModule(m)` e `RequirePermission(m.acao)`, **quando** o aplicativo chama, **então** valem as três camadas: `conecta` **e** `m` liberados (senão 403 `module_not_released`); a ação precisa estar **na concessão e nas permissões efetivas atuais de quem autorizou** (senão 403 **`insufficient_scope`**, com o escopo que falta). Perda de permissão vale **na próxima chamada** (versão de permissões, ADR 0008); a concessão não muda, então a ação volta se a permissão voltar.
+17. **Dado** o autorizador **desativado ou desligado** (USR-01), **quando** o aplicativo chama, **então** a conexão vai a `Suspended` ("Quem autorizou perdeu o acesso"), as chamadas respondem 401 **`app_grantor_inactive`** e os Proprietários recebem "Autorizar de novo"; troca de senha não suspende; **2FA do autorizador zerado** também não suspende, mas notifica os Proprietários ("O 2FA de {pessoa}, que autorizou o Conecta, foi zerado em dd/mm.") com "Ver conexão".
+18. **[Segurança]** **Dado** o principal de aplicativo, **quando** a rota grava algo auditável, **então** a auditoria registra `UserId` = autorizador e `Origin` = "Integração Conecta", e o histórico mostra **"Integração Conecta (autorizada por Fulano)"**; a conexão registra `last_used_at` e o IP (no máximo uma gravação por minuto).
+19. **[Segurança]** **Dado** limites de uso, **quando** são excedidos, **então** 429 `rate_limited` com `Retry-After`: `oauth-token` 30/min por IP e cliente; `oauth-consent` 10/min por usuário; **`app-api`** (política única, compartilhada com a INT-03) por conexão, com leituras e escritas por minuto no parâmetro de plataforma `Integrations:AppRateLimit` (padrão 600 leituras e 120 escritas), ajustável por exceção no painel; 20 falhas de autenticação de cliente em 5 min por tenant geram o alerta `integration_auth_failures`.
+
+**Ver, revogar e estados**
+20. **Dado** Configurações → Integrações → Conecta, **quando** abro, **então** cada situação aparece com **chip, motivo em linguagem simples e uma ação**: "Conectado" ("Conectado em dd/mm por Fulano · conta {conta}" · "Desconectar"); "Suspensa" ("Quem autorizou perdeu o acesso" ou "Autorização vencida" · "Autorizar de novo"); "Desconectada por segurança" ("O Conecta usou uma credencial antiga. Conecte de novo." · "Conectar"); "Desconectada" ("Desconectada por Fulano em dd/mm" ou "pelo Conecta" · "Conectar"). A lista **Aplicativos conectados** (`settings.view`) mostra aplicativo, conta, quem conectou, o que pode fazer, situação e último uso, e leva à página do aplicativo para desconectar.
+21. **Dado** uma conexão ativa, **quando** um membro do Proprietário clica "Desconectar" (`settings.edit`, sem 2FA de novo, porque reduz acesso), **então** o diálogo diz o impacto ("O Conecta para de atender pedidos e cobranças por WhatsApp agora. Pedidos já criados continuam no ERP."), e ao confirmar a conexão e os tokens são revogados na mesma transação, o cache é invalidado, a mudança é auditada e notificada, e a próxima chamada responde 401 `invalid_token`. Desconectar existe **só nessa página**.
+22. **Dado** o Conecta desconectando do lado dele, **quando** chama `POST /api/v1/oauth/revoke` (RFC 7009, autenticação do cliente) com o *refresh*, **então** a conexão é revogada ("Desconectada pelo Conecta"), com auditoria e notificação; token desconhecido responde 200.
+23. **[Segurança]** **Dado** dois tenants, **quando** um token de um é usado no host do outro, **então** 401 `invalid_token`; código, intenção e conexão nunca atravessam tenant.
+24. **[Segurança]** **Dado** qualquer etapa, **quando** algo vai para o log, **então** nem código, nem `code_verifier`, nem segredo, nem token aparecem (canário no log); o corpo do `/oauth/token` não é registrado.
+
+## Regras de negócio e técnicas
+- **Configuração do Conecta** (primeira parte, `Integrations:Conecta`): `ClientId` = `conecta`, `Name`, `StartUrl`, `RedirectUris` (exatas, `https`), `AllowedScopes` = **`catalog.view`, `inventory.view`, `parties.view`, `parties.create`, `parties.edit`, `sales.view`, `sales.create`, `sales.edit`, `finance.view`, `fiscal.view`, `projects.view`** (fonte única, ADR 0053; `parties.edit` com as restrições da INT-03; `quotes.create` fica para a ATD-03; `sales.approve` nunca), `RequiredModule` = `conecta`, `ClientSecretHash` (arquivo de secret **por ambiente**, igual em todos os tenants). A linha em `identity.connected_apps` nasce pelo seeder em todo tenant.
+- **Rotas da própria conexão** (`GET /api/v1/integration/connection` e a leitura da inscrição da INT-02) não pedem escopo de negócio: exigem token válido e o módulo `conecta` liberado (`RequireConnectedAppSelf()`, reconhecido pela varredura).
+- **Escopos** são códigos `modulo.acao` do `ModuleCatalog`; desconhecido é `invalid_scope`; o texto mostrado vem do catálogo, a mesma fonte da ajuda.
+- **Avaliação a cada chamada:** `efetiva = concessão ∩ IPermissionService.GetAsync(grantor)`; o módulo `conecta` também é conferido.
+- **Cache de revogação:** o token é achado por hash com cache de 30 s invalidado na revogação. Hoje há uma instância só, e a invalidação é imediata; com mais instâncias, o atraso máximo é de 30 s (documentado na ADR 0053).
+- **Ciclo da conexão:** `Active` → `Suspended` (autorizador inativo ou 12 meses) → só sai por novo consentimento (conexão nova) ou `Revoked` (Desconectar, revogação pelo aplicativo, reuso de *refresh*, substituição, módulo `conecta` desligado por mais de 30 dias). Revogada é final.
+- **LGPD:** o consentimento diz quais dados pessoais o aplicativo vê; a prova do consentimento (quem, quando, IP, escopos) fica pelo prazo da auditoria; tokens vencidos ou revogados são apagados depois de 30 dias; o inventário de dado pessoal (ADR 0037) ganha `app_connections.last_used_ip`.
+
+## Permissões, eventos e tabelas
+- **Módulo novo `conecta`** (`ModuleCatalog`, área Sistema), fora de todos os perfis, liberado só por exceção manual. Ações: `conecta.view` ("Ver a conexão com o Conecta e os avisos enviados") e `conecta.edit` ("Alterar os avisos enviados ao Conecta e trocar o segredo", não reservada; usada pela INT-02). Conectar, autorizar e desconectar: `settings.edit` (reservada ao Proprietário); lista de aplicativos: `settings.view`.
+- **Eventos (Identity.Contracts):** `AppConnected`, `AppConnectionRevoked`, `AppConnectionSuspended`. A inscrição da INT-02 nasce síncrona na troca do código; os consumidores desses eventos só encerram ou suspendem.
+- **Tabelas (schema `identity`):** `connected_apps`; `app_connect_intents` (`intent_hash`, `user_id`, `app_id`, `request_binding_hash`, `expires_at`, `used_at`); `app_authorization_codes`; `app_connections` (`app_id`, `grantor_user_id`, `granted_scopes text[]`, `account_label`, `status`, `status_reason`, `connected_at`, `reconsent_due_at`, `suspended_at`, `revoked_at`, `revoked_by`, `revoked_reason`, `last_used_at`, `last_used_ip`, `xmin`; único parcial em `app_id` onde `status <> 'Revoked'`), `IAuditable`; `app_tokens` (`token_hash` único, `kind`, `connection_id`, `family_id`, `expires_at`, `replaced_at`, `replaced_by_id`, `revoked_at`).
+- **Jobs:** `AppTokensPurgeJob` (diário); `AppReconsentJob` (diário: aviso de 30 dias e suspensão aos 12 meses).
+
+## Telas e estados
+- **Configurações → Integrações → Conecta** (`/app/configuracoes/integracoes/conecta`): sem conexão, o que o Conecta faz e "Conectar"; com conexão, os estados do CA 20, "O que o Conecta poderá fazer", último uso e o **resumo de saúde dos avisos** (INT-02); a referência da API fica recolhida em **"Para desenvolvedores"**. Carregando (esqueleto) e erro ("Não foi possível carregar a conexão." com "Tentar de novo").
+- **Aplicativos conectados** (`/app/configuracoes/integracoes/aplicativos`): tabela; vazio "Nenhum aplicativo conectado. Conecte o Conecta para vender e cobrar pelo WhatsApp." com o atalho; a 400 px, aplicativo, situação e último uso.
+- **Autorizar** (`/oauth/authorize`, tela dedicada como a do login): estados do CA 8; foco inicial no campo do código; chips com texto, nunca só cor; contraste dos tokens.
+- **Sem jargão na interface:** "O que o Conecta poderá fazer" (não "escopos"), "avisos" (não "webhooks" ou "eventos").
+- **Verbos:** "Conectar" → "Conectado"; "Autorizar" → "Autorizado"; "Desconectar" → "Desconectado"; "Autorizar de novo".
+- **Propositivo:** autorizado, a página mostra o próximo passo ("Ative o WhatsApp do Conecta para os avisos de cobrança", ATD-06); as notificações levam direto à ação.
+- **Ajuda (novas):** `Ajuda/configuracoes-integracoes-conecta.md` (`modulo: conecta`), `Ajuda/configuracoes-integracoes-aplicativos.md`, `Ajuda/oauth-autorizar.md`; `<Dica>` em "O que o Conecta poderá fazer" e em "Suspensa".
+
+## Plano de testes
+- **Unidade:** interseção com reservadas (CA 9); PKCE S256 com vetores da RFC 7636; comparação exata de URI (CA 3); hash de amarração da intenção (CA 5).
+- **Integração (Testcontainers):** fluxo completo (CA 1, 7, 11, 15); intenção de outra pessoa, vencida, reusada e pedido trocado entre `inspect` e `consent` (CA 4, 5, 7); código reusado (CA 11); substituição na ordem certa (CA 12); reuso de *refresh* (CA 13); 12 meses (CA 14); perda e volta de permissão (CA 16); autorizador desativado e 2FA zerado (CA 17); auditoria (CA 18); desconectar dos dois lados (CA 21, 22); dois tenants (CA 23); canário (CA 24); módulo não liberado (CA 2).
+- **Arquitetura:** `EndpointAuthorizationTests` com a classificação nova.
+- **Front (Vitest):** tela de autorizar nos estados do CA 8; página do Conecta nos estados do CA 20; diálogo de desconectar.
+
+## Tarefas
+- [ ] ADR 0053 e adendos às ADRs 0009 e 0007 (feitos no planejamento; conferir na implementação).
+- [ ] `ModuleCatalog`: módulo `conecta` (`view`, `edit`), fora do `BusinessProfileCatalog`.
+- [ ] Identity.Domain e migration `ConnectedAppsInt01` (só acréscimo).
+- [ ] Identity.Application: `ConnectedAppOptions`, `AppConnectService`, `OAuthAuthorizeService` (inspect com amarração, consent com `IStepUpTwoFactor`), `OAuthTokenService` (código, *refresh*, revogação; chama `IOutboundSubscriptions` na mesma transação), `AppAccessEvaluator`; seeder; `AppTokensPurgeJob`, `AppReconsentJob`; suspensão pelo `UserLifecycle`; aviso de 2FA zerado.
+- [ ] BuildingBlocks: `AppClaims`, marca `ConnectedAppEndpoint`, `RequireConnectedApp()`/`RequireConnectedAppSelf()`; `ICurrentUser` devolve o autorizador e a conexão.
+- [ ] Host: `ConnectedAppAuthenticationHandler`, ramo do `PermissionHandler` para o principal `App` (hoje lê só `sub`), códigos `invalid_token`/`insufficient_scope`/`app_grantor_inactive`, políticas `oauth-token`, `oauth-consent`, `app-api`; `Referrer-Policy: no-referrer` em `/oauth/*`; redação do corpo do `/oauth/token`.
+- [ ] `EndpointAuthorizationTests`: `/api/v1/oauth/token` e `/api/v1/oauth/revoke` na lista `Anonymous`; `IsConnectedApp(e)`; esquema `App` só em `/api/v1/integration/*`.
+- [ ] Endpoints: `POST /api/v1/oauth/connect`, `POST /api/v1/oauth/authorize/inspect`, `POST /api/v1/oauth/authorize/consent`, `POST /api/v1/oauth/token`, `POST /api/v1/oauth/revoke`, `GET /api/v1/connected-apps`, `POST /api/v1/connected-apps/{id}/revoke`, `GET /api/v1/integration/connection`; OpenAPI e Orval.
+- [ ] Front e ajudas; `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md` (ciclo da conexão).
+
+## Dev Notes
+- **Tokens opacos:** `src/Modules/Identity/BemAqui.Identity.Domain/Tokens.cs` e `src/Modules/Identity/BemAqui.Identity.Application/AuthService.Refresh.cs` (copiar a lógica de família, não a entidade).
+- **JWT de pessoa:** `src/Host/BemAqui.Host/Security/TenantJwtAuthentication.cs`; `IAccessTokenIssuer` continua só de pessoa.
+- **Esquema próprio:** `src/Host/BemAqui.Host/Security/DeviceAuthentication.cs`; `DeviceClaims` em `src/BuildingBlocks/BemAqui.BuildingBlocks/Security/PosDeviceSession.cs`; molde do teste em `tests/BemAqui.Integration.Tests/Security/EndpointAuthorizationTests.cs`.
+- **Camadas:** `src/Host/BemAqui.Host/Security/PermissionAuthorization.cs` (`PermissionHandler` faz `TryParse` de `sub` nas linhas 82 e 114); `src/BuildingBlocks/BemAqui.BuildingBlocks/Identity/IPermissionService.cs`; `src/Modules/Identity/BemAqui.Identity.Application/PermissionService.cs`.
+- **2FA de novo:** `IStepUpTwoFactor`, `TwoFactorService.StepUp.cs`, `RequireRecentTwoFactor` (`src/BuildingBlocks/BemAqui.BuildingBlocks/Web/RecentTwoFactorEndpoints.cs`).
+- **Cache invalidável:** `src/Modules/Identity/BemAqui.Identity.Infrastructure/CachedSecurityStampValidator.cs`.
+- **Auditoria:** `src/BuildingBlocks/BemAqui.BuildingBlocks/Persistence/Auditing/AuditOrigin.cs`, `AuditSaveChangesInterceptor.cs`.
+- **Rate limit, segredos e cabeçalhos:** `src/Host/BemAqui.Host/Security/AuthRateLimiting.cs`, `SecretFiles.cs`, `SecurityHeadersMiddleware.cs` (`frame-ancestors 'none'`).
+- **Liberação:** `ModuleCatalog.cs`, `BusinessProfileCatalog`, `src/Modules/Platform/BemAqui.Platform.Application/Modules/TenantModuleService.cs`.
+- **Usuário:** `src/Modules/Identity/BemAqui.Identity.Application/UserLifecycle.cs`.
+- **Front:** `src/Web/src/pages/settings/integrations/IntegrationsNav.tsx`, `InterAccountsPage.tsx`.
+- **Testes:** `--filter-class "*ConnectedApp*"`, `"*OAuth*"`, `"*EndpointAuthorization*"`.
+
+## Fora do escopo
+- Aplicativo de terceiros, tela de desenvolvedor e API pública (API-01); MCP (API-02).
+- Rotas de negócio de `/api/v1/integration/*` (INT-03); avisos de saída (INT-02); mudanças no Conecta (ATD-01).
+- Início da conexão pelo Conecta, *device flow*, *client credentials* e tokens por pessoa do Conecta.
+- Suspensão automática quando o 2FA do autorizador é zerado (só notifica).
+
+## Pontos em aberto (para o PO)
+1. Termos de uso e acordo de tratamento de dados entre o tenant e o Conecta (INT-00) antes da primeira conexão em produção.
+
+## Change Log
+| Data | Versão | Descrição | Autor |
+|---|---|---|---|
+| 26/11/2026 | 0.1 | Story detalhada a partir da ADR 0052 e do plano de integrações | River (SM) |
+| 26/11/2026 | 0.2 | Recomendação aceita (PO 24/10), revisões de 26/11/2026: escopos unificados (com `sales.edit`, sem `quotes.create` e sem `conecta.view` na concessão); códigos de erro e limite únicos; segredo por ambiente; amarração da intenção, `no-referrer`, nova autorização em 12 meses, aviso de 2FA zerado; inscrição síncrona na troca do código; `conecta.edit`; estados e textos da interface sem jargão; ADR 0053. | Claude (planejamento) |

@@ -89,3 +89,7 @@
   lote (`StoreScreenedAsync`), na mesma transação. A rota genérica de anexos recusa o dono (o arquivo entra só por "Importar extrato").
 - Parser próprio e restrito: 2.x com `DtdProcessing.Prohibit` e sem resolver; qualquer `<!DOCTYPE`/`<!ENTITY` recusa; limite de lançamentos e de
   tempo (10 s).
+
+## Adendo de 26/11/2026: rotas de cliente OAuth (ADR 0053)
+- Entram na lista de rotas anônimas **`POST /api/v1/oauth/token`** e **`POST /api/v1/oauth/revoke`**: sem sessão de pessoa, mas **autenticadas pelo cliente** (`client_secret_basic`), com rate limit próprio (`oauth-token`) e corpo fora do request logging. Detalhes na [ADR 0053](0053-aplicativos-conectados.md).
+- As rotas de aplicativo (`/api/v1/integration/*`) **não** são anônimas: usam o esquema `App`, reconhecido pelo teste de rotas.

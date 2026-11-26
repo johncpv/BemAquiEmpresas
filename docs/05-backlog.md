@@ -732,5 +732,36 @@ Decisão do PO de 25/11/2026 ([ADR 0051](adr/0051-ambiente-saas-multitenant.md))
 
 ---
 
+## Pós-go-live: integrações (Conecta, marketplaces e API pública)
+
+Decisões do PO de 26/11/2026 ([ADR 0052](adr/0052-integracoes-conecta-e-marketplaces.md), [plano e cronograma](integracoes/00-plano-integracoes.md)). Prioridade: antes das pendências do PDV que aguardam loja parceira. Pré-requisitos dos cadastros nos marketplaces em [integracoes/cadastros/](integracoes/cadastros/00-pre-requisitos.md).
+
+**F1 — Base no ERP**
+- **VND-02a [ ] Pedido de venda (núcleo): rascunho, reserva, cobrança Pix/boleto do Inter, pagamento e conversão em venda (G−)** — ordem 1 ([story](stories/VND-02a-pedido-de-venda-nucleo.md))
+- **VND-02b [ ] Pedido de venda: separação, NF-e com "Emitir nota", envio e entrega (M)** — ordem 1b ([story](stories/VND-02b-pedido-separacao-nota-envio.md))
+- **INT-01 [ ] Aplicativos conectados: OAuth 2.0 com PKCE, escopos `modulo.acao`, consentimento com 2FA, revogação e auditoria (M)** — ordem 2 ([ADR 0053](adr/0053-aplicativos-conectados.md))
+- **INT-02 [ ] Avisos de saída (webhooks): inscrição na conexão, assinatura HMAC, nova tentativa e registro de entregas (M)** — ordem 3
+- **INT-03 [ ] API de integração v1: catálogo, estoque, clientes, pedidos, cobranças e notas (M)** — ordem 4
+
+**F2 — Conecta** (repositório do Conecta e ERP)
+- **ATD-01 [ ] Conectar com um clique (começa no ERP), credencial cifrada e recebimento de eventos (M)**
+- **ATD-02 [ ] Painel do cliente na conversa: pedidos, cobranças, notas e 2ª via (M)**
+- **ATD-03 [ ] Criar pedido e mandar a cobrança pelo atendente; pedido de orçamento para fábrica (M)**
+- **ATD-04 [ ] Ferramentas do agente de IA no lugar do bloco `[PEDIDO]` (M)**
+- **ATD-05 [ ] Avisos automáticos por evento e etapa do funil (P)**
+- **ATD-06 [ ] WhatsApp do ERP pelo Conecta, fechando o WPP-01 e o P-29 (P)**
+
+**F3 — Marketplaces**
+- **MKT-00 [ ] Base de canais: domínio central de integrações, anúncio ↔ SKU, estoque por canal, pedido importado, tarifas e repasse (G)**
+- **MKT-01 [ ] Mercado Livre (G)** · **MKT-02 [ ] Shopee (M)** · **MKT-03 [ ] Amazon (M)** · **MKT-04 [ ] Magalu (M)** · **MKT-05 [ ] TikTok Shop, sob demanda (M)**
+
+**F4 — API pública**
+- **API-01 [ ] API pública e cadastro de aplicativo de terceiros (M)** · **API-02 [ ] Servidor MCP (M)**
+
+**Pré-requisitos dos cadastros**
+- **INT-00 [ ] Site do BemAqui Empresas, política de privacidade e termos de uso (P)**
+
+---
+
 ## Fase 9 — Evolução
 Ponto como registro oficial (REP-P / Portaria 671; P-26, depois do MVP) · Depreciação · Retalhos de corte · Etapas terceirizadas · SSO · Contratos de manutenção recorrente (se validado).
