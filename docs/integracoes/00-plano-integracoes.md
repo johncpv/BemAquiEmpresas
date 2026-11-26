@@ -29,9 +29,9 @@ Observação: **"Conecta" é o app de celular dos atendentes do Atende.** A inte
 
 ### 3.1 Como o usuário vê
 
-1. No ERP, em **Configurações → Integrações → BemAqui Atende**, o Proprietário clica em **Conectar**. Também dá para começar pelo Atende, em Integrações → BemAqui Empresas.
-2. Abre a tela do Atende, já logado ou pedindo login, para escolher a conta do Atende.
-3. Volta ao ERP numa tela de consentimento: *"BemAqui Atende quer: ver produtos, preços e estoque; criar e acompanhar pedidos; ver e enviar cobranças; ver e atualizar clientes."* O Proprietário confirma com o código do autenticador (2FA).
+1. No ERP, em **Configurações → Integrações → Conecta**, o Proprietário clica em **Conectar**. A conexão começa sempre no ERP.
+2. Abre a tela do Conecta, já logado ou pedindo login, para escolher a conta do Conecta.
+3. Volta ao ERP numa tela de consentimento: *"Conecta quer: ver produtos, preços e estoque; criar e acompanhar pedidos; ver e enviar cobranças; ver e atualizar clientes."* O Proprietário confirma com o código do autenticador (2FA).
 4. Pronto. Os dois lados mostram **Conectado em dd/mm por Fulano**, com o botão **Desconectar**.
 
 Não há chave para copiar e colar. A conexão pode ser desfeita dos dois lados e fica registrada na auditoria.
@@ -134,15 +134,17 @@ Outra lacuna em relação ao Nibo: **Open Finance multibanco**. Hoje temos só o
 
 **Ordem sugerida:** F1 → F2 (primeiro valor, porque é tudo nosso) → F3, com as aprovações da Shopee e da Amazon pedidas **no início da F1** → F4. O ambiente SaaS do BemAqui serve de piloto da F2: o BemAqui usa o próprio Atende com o próprio ERP.
 
-## 7. Decisões para o PO
+## 7. Decisões do PO (26/11/2026, [ADR 0052](../adr/0052-integracoes-conecta-e-marketplaces.md))
 
-1. **Onde o "um clique" começa:** pelos dois lados, com o ERP como principal? *Recomendado.*
-2. **Perfis que vendem pelo Atende:** varejo, e-commerce e serviços criam pedido; fábrica (Konebras) só consulta, com status de projeto e 2ª via. Confere?
-3. **Pagamento do pedido do Atende:** Pix e boleto com Pix do Inter primeiro; cartão depois, com gateway (PP-21)?
-4. **WhatsApp do ERP pelo Atende** no lugar de um BSP separado (resolve o P-29)?
-5. **Marketplaces:** direto no Mercado Livre, pedidos de aprovação da Shopee e da Amazon já, e hub só para a cauda depois de propostas? (PP-21)
-6. **Plano comercial:** a integração com o Atende entra em todo plano ou é adicional? E cada marketplace?
-7. **Prioridade:** isto entra antes ou depois das pendências do PDV (IMP-02, SPK-01 e INFRA-02, que aguardam loja parceira)?
+Nome: **Conecta** é o nome comercial do BemAqui Atende. Nas telas e na ajuda do ERP, use sempre "Conecta".
+
+1. **O clique começa no ERP**, em Configurações → Integrações → Conecta. O Conecta é o parceiro da conexão: só confirma a conta. Não há botão de início no Conecta nesta fase.
+2. **Fábrica:** o projeto continua sendo o pedido do que é feito sob encomenda. Pelo Conecta, a fábrica abre **pedido de orçamento**, um rascunho no Comercial com o cliente e o que ele pediu, e consulta o status do projeto e a 2ª via. Peça de prateleira (reposição, componente avulso) usa o **mesmo pedido de venda** do varejo. Ele vem desligado no perfil fábrica e é ligado por empresa no painel de plataforma, quando a fábrica vende de prateleira. Não se cria nada só para a fábrica.
+3. **Pagamento:** Pix e boleto com Pix do Inter primeiro. Cartão depois, com gateway (PP-21).
+4. **WhatsApp:** o ERP **sempre recomenda o Conecta** como WhatsApp oficial. O WPP-01 sai pelo Conecta, sem contratar BSP separado (fecha o P-29). A empresa segue o processo de ativação do número que o Conecta exige (Embedded Signup da Meta).
+5. **Marketplaces:** Mercado Livre direto, depois Shopee e Amazon; os pedidos de aprovação da Shopee e da Amazon saem no início da F1. **Magalu** é o 4º canal. **TikTok Shop** é o 5º, quando houver cliente do segmento (moda, beleza, acessórios). O hub fica só para a cauda, depois de propostas.
+6. **Plano comercial:** nesta fase, a integração com o Conecta e os marketplaces são **módulos ativados por empresa no painel de plataforma**, por exceção manual (ADR 0046). A discussão de planos, e de como habilitar e desabilitar por plano, fica para depois.
+7. **Prioridade:** isto vem **antes** das pendências do PDV (IMP-02, SPK-01, INFRA-02), que continuam à espera de loja parceira com hardware.
 
 ## 8. Riscos
 
