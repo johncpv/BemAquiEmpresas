@@ -146,7 +146,25 @@ Nome: **Conecta** é o nome comercial do BemAqui Atende. Nas telas e na ajuda do
 6. **Plano comercial:** nesta fase, a integração com o Conecta e os marketplaces são **módulos ativados por empresa no painel de plataforma**, por exceção manual (ADR 0046). A discussão de planos, e de como habilitar e desabilitar por plano, fica para depois.
 7. **Prioridade:** isto vem **antes** das pendências do PDV (IMP-02, SPK-01, INFRA-02), que continuam à espera de loja parceira com hardware.
 
-## 8. Riscos
+## 8. Cronograma (proposto em 26/11/2026)
+
+O ritmo é de 1 a 2 histórias médias por dia útil, uma de cada vez, cada uma com revisão, PR, CI, merge e deploy. As aprovações externas podem mudar a ordem dos canais.
+
+| Período | Entrega | Depende de |
+|---|---|---|
+| 27/11 – 30/11 | Histórias da F1 detalhadas e revisadas | — |
+| 27/11 – 04/12 | Cadastros de desenvolvedor enviados ([cadastros/](cadastros/00-pre-requisitos.md)) | Site, privacidade, termos e domínio de integrações |
+| 01/12 – 09/12 | **F1** base no ERP (VND-02, INT-01..03) + E2E e deploy | — |
+| 10/12 – 18/12 | **F2** Conecta (ATD-01..06) | Alinhamento com o mantenedor do Conecta |
+| 21/12 – 23/12 | Piloto: o BemAqui usando o Conecta com o próprio ERP | Número de WhatsApp do BemAqui no Conecta |
+| 24/12 – 01/01 | Recesso, sem deploy | — |
+| 04/01 – 20/01 | **F3a** MKT-00 + Mercado Livre | App aprovado e conta de vendedor de teste |
+| 21/01 – 29/01 | Shopee | Go Live da Shopee |
+| 01/02 – 17/02 | Amazon (Carnaval de 08 a 10/02) | Perfil aprovado. A etapa 2 (dado pessoal) depende das lacunas de segurança |
+| 18/02 – 26/02 | Magalu | Confirmação do Magalu sobre ERPs |
+| 01/03 – 12/03 | **F4** API pública + MCP | — |
+
+## 9. Riscos
 
 - **Aprovação de marketplace fora do nosso controle**, principalmente Shopee e Amazon. Por isso o pedido de aprovação vem primeiro.
 - **Dado pessoal (LGPD):** o Atende recebe só o necessário do cliente. Na Amazon, o dado pessoal só vem com token restrito e por 1 hora.
