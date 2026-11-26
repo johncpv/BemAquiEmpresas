@@ -1,23 +1,46 @@
 import * as Popover from '@radix-ui/react-popover'
-import { useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+
+// Último tipo de interação na página. O foco só abre a dica quando veio do teclado: num diálogo, clicar fora fecha a
+// dica e o diálogo devolve o foco ao "?", o que a reabria e a deixava presa.
+let lastInput: 'keyboard' | 'pointer' = 'keyboard'
+if (typeof document !== 'undefined') {
+  document.addEventListener('keydown', () => { lastInput = 'keyboard' }, true)
+  document.addEventListener('pointerdown', () => { lastInput = 'pointer' }, true)
+}
 
 /**
  * Explicação curta ao lado do que confunde (FND-14 CA 7): abre no mouse, no foco (Tab) e no toque; Esc ou tocar fora
  * fecha. O texto também está sempre ligado ao "?" por aria-describedby, para o leitor de tela.
+ * `nome`: o campo explicado, para o leitor de tela distinguir várias dicas ("Dica: Regime tributário", FND-09d CA 20).
  */
-/** `nome`: o campo explicado, para o leitor de tela distinguir várias dicas ("Dica: Regime tributário", FND-09d CA 20). */
 export function Dica({ texto, nome }: { texto: string; nome?: string }) {
   const [open, setOpen] = useState(false)
   const id = useId()
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  // Clique fora fecha por conta própria: dentro de um diálogo modal o "fora" do Radix não chega à dica.
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Node
+      if (!triggerRef.current?.contains(t) && !contentRef.current?.contains(t)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', onDown, true)
+    return () => document.removeEventListener('pointerdown', onDown, true)
+  }, [open])
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger
+        ref={triggerRef}
         type="button"
         aria-label={nome ? `Dica: ${nome}` : 'Dica'}
         aria-describedby={id}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
-        onFocus={() => setOpen(true)}
+        onFocus={() => {
+          if (lastInput === 'keyboard') setOpen(true)
+        }}
         onBlur={() => setOpen(false)}
         // Toque e clique sempre abrem (o toque também dispara foco e hover; sem isto o Radix alternaria e fecharia).
         onClick={(e) => {
@@ -31,7 +54,7 @@ export function Dica({ texto, nome }: { texto: string; nome?: string }) {
       </Popover.Trigger>
       <span id={id} className="sr-only">{texto}</span>
       <Popover.Portal>
-        <Popover.Content side="top" sideOffset={6} onOpenAutoFocus={(e) => e.preventDefault()} className="z-50 max-w-64 rounded-md border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg">
+        <Popover.Content ref={contentRef} side="top" sideOffset={6} onOpenAutoFocus={(e) => e.preventDefault()} className="z-50 max-w-64 rounded-md border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg">
           {texto}
         </Popover.Content>
       </Popover.Portal>

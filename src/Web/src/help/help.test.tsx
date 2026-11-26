@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -60,5 +60,19 @@ describe('<Dica> (CA 7)', () => {
     expect(described?.textContent).toBe('Quem ainda não tem será levado à configuração.')
     fireEvent.focus(trigger)
     expect(await screen.findAllByText('Quem ainda não tem será levado à configuração.')).toHaveLength(2)
+  })
+
+  it('clicar fora fecha e o foco devolvido ao "?" não reabre', async () => {
+    render(<Dica texto="Liga o login ao funcionário." />)
+    const trigger = screen.getByRole('button', { name: 'Dica' })
+    fireEvent.pointerDown(trigger)
+    fireEvent.click(trigger)
+    expect(await screen.findAllByText('Liga o login ao funcionário.')).toHaveLength(2)
+    await new Promise((r) => setTimeout(r, 0)) // o Radix só escuta o clique fora depois de abrir
+    fireEvent.pointerDown(document.body)
+    await waitFor(() => expect(screen.getAllByText('Liga o login ao funcionário.')).toHaveLength(1))
+    // o diálogo devolve o foco ao "?" depois do clique fora
+    fireEvent.focus(trigger)
+    expect(screen.getAllByText('Liga o login ao funcionário.')).toHaveLength(1)
   })
 })
