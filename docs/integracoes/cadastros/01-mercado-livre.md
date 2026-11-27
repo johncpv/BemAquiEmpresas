@@ -13,10 +13,10 @@ Antes, veja os [pré-requisitos](00-pre-requisitos.md). Confiança: **média**. 
 
 | Campo | Resposta |
 |---|---|
-| Nome | BemAqui Empresas |
+| Nome | BemAqui ERP |
 | Nome curto | bemaqui-empresas (confirmar no portal) |
 | Descrição | ERP do BemAqui para pequenas empresas. Importa os pedidos do Mercado Livre, mantém o estoque igual em todos os canais, emite a NF-e e envia ao Mercado Livre, e lança o repasse e as tarifas no financeiro do vendedor. |
-| Logo | Ícone do BemAqui Empresas (512×512) |
+| Logo | Ícone do BemAqui ERP (512×512) |
 | URI de redirect | `https://integracoes.bemaquiapp.com.br/oauth/mercadolivre/callback` |
 | URL de retorno de notificações | `https://integracoes.bemaquiapp.com.br/webhooks/mercadolivre` |
 | Escopos | Leitura, escrita e **offline_access** (necessário para o *refresh token*) |

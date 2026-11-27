@@ -43,3 +43,9 @@ Preços, planos e cobrança dos clientes do SaaS; contrato e LGPD (papéis de co
 - **Colocar os clientes novos na stack da Konebras:** rejeitada; mistura catálogo, key ring e segredos de uma operação real com os de clientes, e o deploy da Konebras ficaria preso ao dos outros.
 - **Uma stack dedicada por cliente como padrão:** rejeitada como padrão (custo operacional por cliente, deploy N vezes); continua como opção.
 - **Curinga com DNS-01 desde já:** adiada (ver item 4).
+
+## Adendo de 26/11/2026: endereços (decisão dos sócios)
+
+- Cada subdomínio é uma aplicação. A raiz `bemaquiapp.com.br` será o institucional (hoje é o BemAqui Empregos). Até lá, o institucional provisório fica em `solucoes.bemaquiapp.com.br` ([deploy/site-solucoes](../../deploy/site-solucoes/README.md)), com uma página e as políticas de cada produto.
+- ERP: `plataforma.bemaquiapp.com.br` (painel), `erp.bemaquiapp.com.br` (ERP do próprio BemAqui, mantido), **`<empresa>.erp.bemaquiapp.com.br`** para cada cliente do ambiente SaaS (registro curinga `*.erp` criado; o certificado continua por host, emitido no provisionamento) e domínio próprio do cliente como opção.
+- Fiscal: `fiscal.` (gestão) e `notas.` (portal do cliente). Conecta: `conecta.`. Integrações: `integracoes.` (retorno de login e avisos dos marketplaces e do Conecta).

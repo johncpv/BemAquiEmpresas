@@ -15,13 +15,13 @@ O cadastro **não tem formulário web**: é feito por uma ferramenta de linha de
 
 | Opção | Valor |
 |---|---|
-| `--name` | BemAqui Empresas (é o nome que o vendedor vê no consentimento) |
+| `--name` | BemAqui ERP (é o nome que o vendedor vê no consentimento) |
 | `--description` | ERP do BemAqui para pequenas empresas: importa os pedidos do Magalu, sincroniza estoque e preço, emite a NF-e e concilia o repasse no financeiro. |
-| `--terms-of-use` | `https://empresas.bemaquiapp.com.br/termos` |
-| `--privacy-term` | `https://empresas.bemaquiapp.com.br/privacidade` |
+| `--terms-of-use` | `https://solucoes.bemaquiapp.com.br/erp/termos` |
+| `--privacy-term` | `https://solucoes.bemaquiapp.com.br/erp/privacidade` |
 | `--redirect-uris` | `https://integracoes.bemaquiapp.com.br/oauth/magalu/callback` |
 | `--scopes` | Pedidos, produtos/SKU, estoque, preço, entregas e financeiro do vendedor. Os nomes exatos estão na lista de escopos do Magalu Devs e são escolhidos na hora de criar |
-| `--icon` | Ícone do BemAqui Empresas |
+| `--icon` | Ícone do BemAqui ERP |
 | `--reason` | Integração de ERP multi-vendedor para pequenas empresas brasileiras |
 
 ## Detalhes técnicos (para o canal Magalu)

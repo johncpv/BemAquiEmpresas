@@ -23,7 +23,7 @@ A etapa 2 só sai depois das lacunas listadas nos pré-requisitos: backup extern
 | Field | Answer |
 |---|---|
 | Organization name | BEM AQUI SOLUCOES TECNOLOGICA |
-| Organization website | `https://empresas.bemaquiapp.com.br` |
+| Organization website | `https://solucoes.bemaquiapp.com.br/erp` |
 | Country | Brazil |
 | Primary contact | Responsável e e-mail institucional (ver pré-requisitos) |
 | Developer type | Public developer — we build a multi-seller application |
@@ -42,7 +42,7 @@ A etapa 2 só sai depois das lacunas listadas nos pré-requisitos: backup extern
 
 | Field | Answer |
 |---|---|
-| App name | BemAqui Empresas |
+| App name | BemAqui ERP |
 | OAuth Login URI | `https://integracoes.bemaquiapp.com.br/oauth/amazon/login` |
 | OAuth Redirect URI | `https://integracoes.bemaquiapp.com.br/oauth/amazon/callback` |
 
