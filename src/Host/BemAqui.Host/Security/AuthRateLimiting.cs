@@ -207,7 +207,13 @@ public static class AuthRateLimiting
             {
                 var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : TimeSpan.FromMinutes(1);
                 context.HttpContext.Response.Headers.RetryAfter = Math.Max(1, (int)Math.Ceiling(retryAfter.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
-                var simulate = context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName == PlanningQueueService.SimulatePolicy;
+                var policy = context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName;
+                if (policy == BemAqui.BuildingBlocks.Web.ConnectedAppEndpoints.RateLimitPolicy)
+                {
+                    BemAqui.BuildingBlocks.Integration.IntegrationMetrics.RateLimited(context.HttpContext); // INT-03 CA 21: integration_rate_limited{app}
+                }
+
+                var simulate = policy == PlanningQueueService.SimulatePolicy;
                 await Results.Problem(
                     statusCode: StatusCodes.Status429TooManyRequests,
                     title: simulate ? PlanningQueueService.SimulateLimitMessage : Message,

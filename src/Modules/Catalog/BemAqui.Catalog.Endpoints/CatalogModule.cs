@@ -16,5 +16,9 @@ public sealed class CatalogModule : IModule
 
     public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddCatalogInfrastructure();
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapCatalogEndpoints();
+    public void MapEndpoints(IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapCatalogEndpoints();
+        endpoints.MapIntegrationCatalog(); // INT-03: /api/v1/integration/products
+    }
 }

@@ -66,6 +66,13 @@ public sealed class OutgoingInvoicesContract(IFiscalDb db) : IOutgoingInvoices
     public async Task<DateOnly?> CutoverOnAsync(CancellationToken cancellationToken = default) =>
         await db.FiscalSettings.AsNoTracking().Select(s => s.ProjectTaxCutoverOn).FirstOrDefaultAsync(cancellationToken);
 
+    public async Task<OutgoingInvoiceSummary?> FindProductionAsync(Guid invoiceId, CancellationToken cancellationToken = default) =>
+        await db.OutgoingInvoices.AsNoTracking().Where(i => i.Id == invoiceId && i.DiscardedAt == null && i.Environment == FiscalEnvironment.Production)
+            .FirstOrDefaultAsync(cancellationToken) is { } invoice ? Summary(invoice) : null;
+
+    /// <summary>A ligação da nota com o pedido de venda chega com a VND-02b; até lá nenhum pedido tem nota (INT-03 CA 18).</summary>
+    public Task<OutgoingInvoiceSummary?> ForSalesOrderAsync(Guid orderId, CancellationToken cancellationToken = default) => Task.FromResult<OutgoingInvoiceSummary?>(null);
+
     /// <summary>Autorizadas, de produção e com data: as que contam como faturamento.</summary>
     private IQueryable<OutgoingInvoice> Counted() =>
         db.OutgoingInvoices.AsNoTracking().Where(i => i.Status == OutgoingInvoiceStatus.Authorized && i.Environment == FiscalEnvironment.Production && i.IssuedOn != null);

@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="pt-BR">
+<body style="margin:0;padding:24px;background:#e9edf1;font-family:Arial,sans-serif;color:#14202b">
+  <table role="presentation" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:10px">
+    <tr><td style="padding:24px">
+      {% if logo_cid %}<img src="cid:{{ logo_cid }}" alt="{{ tenant_name }}" style="max-height:48px"><br><br>{% endif %}
+      <h1 style="font-size:20px;margin:0 0 16px">O seu cadastro foi alterado</h1>
+      <p>Olá{% if first_name %}, {{ first_name }}{% endif %}.</p>
+      <p>Em <strong>{{ changed_on }}</strong>, {{ field }} do seu cadastro{% if tenant_name %} na {{ tenant_name }}{% endif %} foi trocado. Se você não pediu essa troca, responda a este e-mail ou fale com a empresa.</p>
+      <p style="font-size:13px;color:#5a6774">Por segurança, este e-mail não traz o contato novo.</p>
+    </td></tr>
+  </table>
+</body>
+</html>

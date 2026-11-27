@@ -21,6 +21,12 @@ public interface IProjects
     /// <summary>Projetos abertos para os seletores (título a pagar e a receber), com busca por número ou nome.</summary>
     Task<IReadOnlyList<ProjectSummary>> SearchAsync(string? term, int limit = 20, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Projetos do cliente, do mais novo ao mais antigo, até 50 (INT-03 CA 19: a API monta o próprio DTO mínimo, sem custo, orçado, margem nem valor).
+    /// </summary>
+    Task<IReadOnlyList<ProjectSummary>> ListByPartyAsync(Guid partyId, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<ProjectSummary>>([]);
+
     /// <summary>Itens do projeto (COM-06: a OS de instalação cobre itens; PRD-01: tipo, implantação e roteiro decidem a OS de fabricação).</summary>
     Task<IReadOnlyList<ProjectItemInfo>> ItemsAsync(Guid projectId, CancellationToken cancellationToken = default);
 

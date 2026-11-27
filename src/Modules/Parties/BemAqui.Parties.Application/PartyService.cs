@@ -10,8 +10,13 @@ namespace BemAqui.Parties.Application;
 /// Cadastro de terceiros (CAD-01a): um cadastro só por documento, com papéis, endereços e contatos. O documento é
 /// opcional; quando existe, é válido e único entre os não excluídos (índice único parcial, CA 5).
 /// </summary>
-public sealed partial class PartyService(IPartiesDb db, IEnumerable<IPartyUsageProvider> usages, BemAqui.Finance.Contracts.IPaymentTerms paymentTerms, TimeProvider clock, PartyAddressIbge ibge)
+public sealed partial class PartyService(
+    IPartiesDb db, IEnumerable<IPartyUsageProvider> usages, BemAqui.Finance.Contracts.IPaymentTerms paymentTerms, TimeProvider clock, PartyAddressIbge ibge,
+    BemAqui.BuildingBlocks.Email.IEmailSender email)
 {
+    /// <summary>Aviso ao contato anterior do cliente quando o ERP troca o e-mail ou o telefone (INT-03, Parties).</summary>
+    public const string ContactChangedTemplate = "contact-changed";
+
     public const string DocumentIndex = "ix_parties_document_unique";
     public const string ExistsCode = "party_exists";
     public const string DeletedCode = "party_deleted";
@@ -110,7 +115,9 @@ public sealed partial class PartyService(IPartiesDb db, IEnumerable<IPartyUsageP
             return badTerm;
         }
 
+        var (oldEmail, oldPhone) = (party.Email, party.Phone);
         Apply(party, request.Kind, document, request.LegalName, request.TradeName, request.StateRegistration, request.MunicipalRegistration, request.TaxRegime, request.Email, request.Phone, request.Notes);
+        NotifyContactChange(party, oldEmail, oldPhone);
         party.DefaultPaymentTermId = request.DefaultPaymentTermId;
         var wanted = request.Roles.Distinct().ToHashSet();
         db.PartyRoles.RemoveRange(party.Roles.Where(r => !wanted.Contains(r.Role)));
@@ -160,4 +167,31 @@ public sealed partial class PartyService(IPartiesDb db, IEnumerable<IPartyUsageP
     private static Error NotFound() => Error.NotFound(Error.Codes.NotFound, "Terceiro não encontrado.");
 
     private static string? NullIfEmpty(string value) => value.Length == 0 ? null : value;
+
+    /// <summary>
+    /// Troca do e-mail ou do telefone do cliente feita no ERP (INT-03 Parties): o e-mail anterior (ou, na troca do telefone, o e-mail do cadastro) recebe o
+    /// aviso, na mesma transação da gravação. O modelo leva só o primeiro nome, o campo trocado e a data: nunca o valor novo nem o antigo.
+    /// </summary>
+    private void NotifyContactChange(Party party, string? oldEmail, string? oldPhone)
+    {
+        if (!party.Roles.Any(r => r.Role == PartyRoleKind.Customer))
+        {
+            return;
+        }
+
+        var emailChanged = oldEmail is { Length: > 0 } && oldEmail != party.Email;
+        var phoneChanged = oldPhone is { Length: > 0 } && oldPhone != party.Phone;
+        var to = emailChanged ? oldEmail : party.Email ?? oldEmail;
+        if ((!emailChanged && !phoneChanged) || string.IsNullOrWhiteSpace(to))
+        {
+            return;
+        }
+
+        var field = emailChanged && phoneChanged ? "o e-mail e o telefone" : emailChanged ? "o e-mail" : "o telefone";
+        var changedOn = BemAqui.BuildingBlocks.Time.BusinessTime.Today(clock).ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
+        email.Enqueue(ContactChangedTemplate, to, new Dictionary<string, object?>
+        {
+            ["first_name"] = party.LegalName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault(), ["field"] = field, ["changed_on"] = changedOn,
+        }, nameof(Party), party.Id);
+    }
 }

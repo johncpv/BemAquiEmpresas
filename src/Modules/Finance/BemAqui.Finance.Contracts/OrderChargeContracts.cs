@@ -77,4 +77,26 @@ public interface IOrderCharges
     /// Não salva.
     /// </summary>
     Task<Result> RefundAsync(Guid orderId, string reason, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Títulos em aberto do cliente (INT-03 CA 17): número, vencimento, valor, saldo e "Vencido", com o boleto mais recente emitido (<c>Issued</c>) de
+    /// cada título; do mais antigo vencimento ao mais novo. Sem o retorno do banco (<c>provider_payload</c>).
+    /// </summary>
+    Task<IReadOnlyList<CustomerOpenCharge>> OpenByCustomerAsync(Guid customerId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Um título a receber com o boleto mais recente emitido (INT-03 CA 17): linha digitável, Pix copia-e-cola e se há PDF. Título cancelado,
+    /// planejado ou inexistente: null.
+    /// </summary>
+    Task<CustomerChargeDetail?> ChargeOfCustomerAsync(Guid receivableId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Boleto emitido de um título, como o aplicativo vê (sem o retorno do banco).</summary>
+public sealed record CustomerChargeSlip(Guid Id, DateOnly DueDate, decimal Amount, string? DigitableLine, string? PixCopyPaste, bool HasPdf);
+
+/// <summary>Título em aberto do cliente (INT-03 CA 17).</summary>
+public sealed record CustomerOpenCharge(Guid Id, string Number, DateOnly? DueDate, decimal Amount, decimal Balance, bool Overdue, CustomerChargeSlip? Slip);
+
+/// <summary>Um título com o cliente dele e o boleto mais recente emitido (INT-03 CA 17).</summary>
+public sealed record CustomerChargeDetail(Guid Id, Guid CustomerId, string Number, ReceivableStatus Status, DateOnly? DueDate, decimal Amount, decimal Balance, bool Overdue,
+    CustomerChargeSlip? Slip);

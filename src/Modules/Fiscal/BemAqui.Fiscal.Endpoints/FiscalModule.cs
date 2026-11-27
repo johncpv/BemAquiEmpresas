@@ -15,5 +15,9 @@ public sealed class FiscalModule : IModule
 
     public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddFiscalInfrastructure(configuration);
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapFiscalEndpoints();
+    public void MapEndpoints(IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapFiscalEndpoints();
+        endpoints.MapIntegrationInvoices(); // INT-03: /api/v1/integration/invoices/{id}/danfe
+    }
 }

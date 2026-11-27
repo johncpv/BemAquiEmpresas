@@ -1,4 +1,6 @@
 using BemAqui.Parties.Contracts;
+using BemAqui.Parties.Domain;
+using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Parties.Application;
@@ -6,7 +8,93 @@ namespace BemAqui.Parties.Application;
 /// <summary>Implementação do <see cref="IParties"/> (CA 21): a porta dos outros módulos para os terceiros.</summary>
 public sealed class PartiesContract(IPartiesDb db, PartyAddressIbge ibge) : IParties
 {
+    public const string BackofficeOnlyCode = "field_change_requires_backoffice";
+
     public Task<int> FillIbgeCodesAsync(Guid id, CancellationToken cancellationToken = default) => ibge.FillPartyAsync(id, cancellationToken);
+
+    public async Task<IReadOnlyList<PartySummary>> FindByPhoneAsync(string phone, CancellationToken cancellationToken = default)
+    {
+        var digits = PartyValidation.Digits(phone);
+        if (digits is not { Length: 10 or 11 })
+        {
+            return [];
+        }
+
+        return await db.Parties.AsNoTracking().Where(p => p.IsActive && (p.Phone == digits || p.Contacts.Any(c => c.Phone == digits))).OrderBy(p => p.SearchText).Take(10)
+            .Select(p => new PartySummary(p.Id, p.Kind, p.LegalName, p.TradeName, p.Document, p.Roles.Select(r => r.Role).ToList(), p.IsActive, false, p.DefaultPaymentTermId, p.CreatedAt))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Result> FillEmptyContactAsync(Guid id, PartyContactFill fill, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(fill);
+        var party = await db.Parties.Include(p => p.Addresses).FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+        if (party is null)
+        {
+            return Error.NotFound(Error.Codes.NotFound, "Terceiro não encontrado.");
+        }
+
+        if (party.AnonymizedAt is not null)
+        {
+            return Error.Conflict("party_anonymized", "Cadastro anonimizado: não pode ser alterado.");
+        }
+
+        var address = fill.BillingAddress is { } a
+            ? new AddressInput(AddressKind.Billing, PartyValidation.Digits(a.ZipCode) ?? string.Empty, a.Street ?? string.Empty, a.Number ?? string.Empty, a.Complement,
+                a.District ?? string.Empty, a.City ?? string.Empty, null, a.State ?? string.Empty, true)
+            : null;
+        var invalid = PartyValidation.Party(party.Kind, null, party.LegalName, null, [PartyRoleKind.Customer], null, null, fill.Email, fill.Phone, null)
+            ?? PartyValidation.Address(address, "billingAddress.");
+        if (invalid is not null)
+        {
+            return invalid;
+        }
+
+        var email = PartyValidation.Clean(fill.Email)?.ToLowerInvariant();
+        var phone = PartyValidation.Digits(fill.Phone);
+        var blocked = new Dictionary<string, string[]>();
+        if (email is not null && party.Email is { Length: > 0 } && party.Email != email)
+        {
+            blocked["email"] = ["O e-mail já está preenchido. A troca é feita no ERP."];
+        }
+
+        if (phone is not null && party.Phone is { Length: > 0 } && party.Phone != phone)
+        {
+            blocked["phone"] = ["O telefone já está preenchido. A troca é feita no ERP."];
+        }
+
+        var billing = party.Addresses.Where(x => x.Kind == AddressKind.Billing).OrderByDescending(x => x.IsDefault).FirstOrDefault();
+        if (address is not null && billing is not null && !SameAddress(billing, address))
+        {
+            blocked["billingAddress"] = ["O endereço de cobrança já está preenchido. A troca é feita no ERP."];
+        }
+
+        if (blocked.Count > 0)
+        {
+            return Error.Validation(BackofficeOnlyCode, "Trocar um contato existente é só no ERP, por uma pessoa.", blocked);
+        }
+
+        party.Email ??= email;
+        party.Phone ??= phone;
+        if (address is not null && billing is null)
+        {
+            party.Addresses.Add(new PartyAddress
+            {
+                PartyId = party.Id, Kind = AddressKind.Billing, IsDefault = true, ZipCode = address.ZipCode, Street = address.Street.Trim(), Number = address.Number.Trim(),
+                Complement = PartyValidation.Clean(address.Complement), District = address.District.Trim(), City = address.City.Trim(), State = address.State.Trim().ToUpperInvariant(),
+            });
+        }
+
+        await ibge.FillTrackedAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+
+    private static bool SameAddress(PartyAddress current, AddressInput input) =>
+        current.ZipCode == input.ZipCode && Same(current.Street, input.Street) && Same(current.Number, input.Number) && Same(current.City, input.City)
+        && Same(current.State, input.State) && Same(current.District, input.District);
+
+    private static bool Same(string? a, string? b) => string.Equals(a?.Trim(), b?.Trim(), StringComparison.OrdinalIgnoreCase);
 
     public async Task<PartySummary?> FindAsync(Guid id, CancellationToken cancellationToken = default) =>
         await db.Parties.IgnoreQueryFilters().AsNoTracking().Where(p => p.Id == id)

@@ -39,6 +39,10 @@ public sealed class SalesOrderLookup(ISalesDb db) : ISalesOrderLookup
     public Task<SalesOrderSummary?> FindByExternalAsync(SalesOrderOrigin origin, Guid? sourceAppId, string externalId, CancellationToken cancellationToken = default) =>
         db.SalesOrders.AsNoTracking().Where(o => o.Origin == origin && o.SourceAppId == sourceAppId && o.ExternalId == externalId).Select(Summary).FirstOrDefaultAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<SalesOrderSummary>> ByCustomerAsync(Guid customerId, int limit = 20, CancellationToken cancellationToken = default) =>
+        await db.SalesOrders.AsNoTracking().Where(o => o.CustomerId == customerId).OrderByDescending(o => o.CreatedAt).ThenByDescending(o => o.Id).Take(Math.Clamp(limit, 1, 100))
+            .Select(Summary).ToListAsync(cancellationToken);
+
     private static readonly System.Linq.Expressions.Expression<Func<SalesOrder, SalesOrderSummary>> Summary = o =>
         new SalesOrderSummary(o.Id, o.Number, o.Status, o.Origin, o.SourceAppId, o.ExternalId, o.CustomerId, o.Total, o.SaleId, o.ReceivableId, o.CreatedAt, o.UpdatedAt);
 }

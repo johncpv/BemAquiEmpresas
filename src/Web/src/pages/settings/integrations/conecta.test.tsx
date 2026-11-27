@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import * as api from '@/api/generated/bemaqui'
@@ -12,6 +12,7 @@ import { renderWithRouter } from '@/test-utils'
 import { ThemeProvider } from '@/theme/ThemeProvider'
 import { authorizeErrorText, authorizeRequestFrom, browser, connectionState } from './conecta'
 import { ConectaPage } from './ConectaPage'
+import { INTEGRATION_V1_ROUTES } from './integration-v1-routes'
 
 vi.mock('@/api/generated/bemaqui', async (original) => ({
   ...(await original<typeof import('@/api/generated/bemaqui')>()),
@@ -134,6 +135,16 @@ describe('Configurações → Integrações → Conecta (INT-01 CA 20 e 21)', ()
     expect(screen.getByText('Ver pedidos de venda')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Conectar' }))
     await waitFor(() => expect(assign).toHaveBeenCalledWith('https://conecta.test/conectar?erp=a&intent=x'))
+  })
+
+  it('"Para desenvolvedores" traz as rotas da API v1 com o escopo, geradas do OpenAPI integration-v1 (INT-03)', async () => {
+    query({ data: page(null) })
+    renderPage(() => <ConectaPage />)
+    fireEvent.click(await screen.findByText('Para desenvolvedores'))
+    const routes = screen.getByRole('list', { name: 'Rotas da API de integração v1' })
+    expect(within(routes).getByText('/api/v1/integration/orders')).toBeTruthy()
+    expect(within(routes).getAllByText('sales.create').length).toBeGreaterThan(0)
+    expect(INTEGRATION_V1_ROUTES.every((r) => r.path.startsWith('/api/v1/integration/'))).toBe(true)
   })
 
   it('conectado: chip, motivo e "Desconectar" com o impacto no diálogo', async () => {

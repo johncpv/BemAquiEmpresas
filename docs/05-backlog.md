@@ -741,7 +741,7 @@ Decisões do PO de 26/11/2026 ([ADR 0052](adr/0052-integracoes-conecta-e-marketp
 - **VND-02b [ ] Pedido de venda: separação, NF-e com "Emitir nota", envio e entrega (M)** — ordem 1b ([story](stories/VND-02b-pedido-separacao-nota-envio.md))
 - **INT-01 [x] Aplicativos conectados: OAuth 2.0 com PKCE, escopos `modulo.acao`, consentimento com 2FA, revogação e auditoria (M)** — ordem 2 ([story](stories/INT-01-aplicativos-conectados.md), [ADR 0053](adr/0053-aplicativos-conectados.md))
 - **INT-02 [x] Avisos de saída (webhooks): inscrição na conexão, assinatura HMAC, nova tentativa e registro de entregas (M)** — ordem 3
-- **INT-03 [ ] API de integração v1: catálogo, estoque, clientes, pedidos, cobranças e notas (M)** — ordem 4
+- **INT-03 [x] API de integração v1: catálogo, estoque, clientes, pedidos, cobranças e notas (M)** — ordem 4 ([story](stories/INT-03-api-integracao-v1.md), contrato em [integracoes/openapi-integration-v1.json](integracoes/openapi-integration-v1.json))
 
 **F2 — Conecta** (repositório do Conecta e ERP)
 - **ATD-01 [ ] Conectar com um clique (começa no ERP), credencial cifrada e recebimento de eventos (M)**

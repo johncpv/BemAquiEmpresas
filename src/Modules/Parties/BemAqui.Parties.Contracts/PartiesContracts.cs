@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using BemAqui.SharedKernel;
 
 namespace BemAqui.Parties.Contracts;
 
@@ -98,7 +99,28 @@ public interface IParties
     /// </summary>
     async Task<PartyFiscalInfo?> FiscalInfoAsync(Guid id, CancellationToken cancellationToken = default) =>
         await FindAsync(id, cancellationToken) is { } p ? new PartyFiscalInfo(p.Id, p.Kind, p.LegalName, p.Document, null, null, null) : null;
+
+    /// <summary>
+    /// Terceiros ativos pelo telefone (INT-03 CA 7): os 10 ou 11 dígitos com DDD, no telefone do cadastro ou no de um contato; até 10, nome em
+    /// ordem. Telefone inválido: lista vazia.
+    /// </summary>
+    Task<IReadOnlyList<PartySummary>> FindByPhoneAsync(string phone, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<PartySummary>>([]);
+
+    /// <summary>
+    /// Completa o contato pelo aplicativo conectado (INT-03 CA 11): e-mail, telefone e endereço de cobrança <b>só preenchem campo vazio</b>; valor igual
+    /// ao gravado não muda nada; trocar um valor existente é só no ERP, por pessoa (422 <c>field_change_requires_backoffice</c>). O documento nunca
+    /// muda por aqui. Não existe ou excluído: 404.
+    /// </summary>
+    Task<Result> FillEmptyContactAsync(Guid id, PartyContactFill fill, CancellationToken cancellationToken = default) =>
+        Task.FromResult(Result.Failure(Error.NotFound(Error.Codes.NotFound, "Terceiro não encontrado.")));
 }
+
+/// <summary>O que o aplicativo pode completar no cadastro (INT-03 CA 11): e-mail, telefone e o endereço de cobrança.</summary>
+public sealed record PartyContactFill(string? Email, string? Phone, PartyAddressFill? BillingAddress);
+
+/// <summary>Endereço de cobrança vindo do aplicativo: CEP, rua, número, complemento, bairro, cidade e UF (o código IBGE o ERP completa).</summary>
+public sealed record PartyAddressFill(string ZipCode, string Street, string Number, string? Complement, string District, string City, string State);
 
 /// <summary>Destinatário da nota fiscal (FIS-03a): tipo, razão social, documento normalizado, IE, e-mail e telefone do cadastro.</summary>
 public sealed record PartyFiscalInfo(Guid Id, PartyKind Kind, string LegalName, string? Document, string? StateRegistration, string? Email, string? Phone);

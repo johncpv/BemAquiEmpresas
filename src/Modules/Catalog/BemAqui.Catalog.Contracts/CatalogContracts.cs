@@ -78,7 +78,22 @@ public interface ICatalogLookup
     Task<CatalogLookupHit?> ByPluAsync(string plu, Guid? priceListId = null, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<CatalogLookupHit>> SearchAsync(string term, int limit = 20, Guid? priceListId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Vitrine da API de integração (INT-03 CA 4 e 5): produtos ativos e vendáveis por página (a partir de 1, até 100 por página), filtrados pelo
+    /// trecho do nome, pelo GTIN ou pelo código interno; preço da tabela padrão. Nunca custo nem margem.
+    /// </summary>
+    Task<CatalogListingPage> ListAsync(string? term, int page, int pageSize, CancellationToken cancellationToken = default);
+
+    /// <summary>Um produto ativo e vendável da vitrine (INT-03); inativo, excluído ou pai de grade: null.</summary>
+    Task<CatalogListing?> ListingAsync(Guid productId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Produto da vitrine: o vendável, o código interno do item e o GTIN da unidade (sem embalagem), quando houver.</summary>
+public sealed record CatalogListing(SellableProduct Product, string? Code, string? Gtin);
+
+/// <summary>Página da vitrine e o total do filtro.</summary>
+public sealed record CatalogListingPage(IReadOnlyList<CatalogListing> Items, int Total);
 
 /// <summary>
 /// Quem usa um produto (CAT-01, regra "produto com venda não é apagado, só desativado"): a venda (VND-01) implementa. Em uso, o produto não é

@@ -243,6 +243,52 @@ public sealed class OrderChargeService(
         return Result.Success();
     }
 
+    public async Task<IReadOnlyList<CustomerOpenCharge>> OpenByCustomerAsync(Guid customerId, CancellationToken cancellationToken = default)
+    {
+        var receivables = await db.Receivables.AsNoTracking()
+            .Where(r => r.PartyId == customerId && (r.Status == ReceivableStatus.Open || r.Status == ReceivableStatus.PartiallyPaid))
+            .OrderBy(r => r.DueDate).ThenBy(r => r.Number).Take(100).ToListAsync(cancellationToken);
+        var slips = await IssuedSlipsAsync(receivables.Select(r => r.Id).ToList(), cancellationToken);
+        return receivables.Select(r => new CustomerOpenCharge(r.Id, r.Number, r.DueDate, r.Amount, r.Balance, Overdue(r), slips.GetValueOrDefault(r.Id))).ToList();
+    }
+
+    public async Task<CustomerChargeDetail?> ChargeOfCustomerAsync(Guid receivableId, CancellationToken cancellationToken = default)
+    {
+        var r = await db.Receivables.AsNoTracking().FirstOrDefaultAsync(x => x.Id == receivableId && x.Status != ReceivableStatus.Cancelled && x.Status != ReceivableStatus.Planned,
+            cancellationToken);
+        return r is null
+            ? null
+            : new CustomerChargeDetail(r.Id, r.PartyId, r.Number, r.Status, r.DueDate, r.Amount, r.Balance, Overdue(r), (await IssuedSlipsAsync([r.Id], cancellationToken)).GetValueOrDefault(r.Id));
+    }
+
+    /// <summary>O PDF do boleto mais recente emitido do título (INT-03 CA 17): o boleto dono e o anexo; sem PDF, null.</summary>
+    public async Task<(Guid SlipId, Guid AttachmentId)?> SlipPdfAsync(Guid receivableId, CancellationToken cancellationToken = default)
+    {
+        var slip = await db.BillingSlips.AsNoTracking().Where(s => s.ReceivableId == receivableId && s.Status == BillingSlipStatus.Issued && s.PdfAttachmentId != null)
+            .OrderByDescending(s => s.RequestedAt).Select(s => new { s.Id, s.PdfAttachmentId }).FirstOrDefaultAsync(cancellationToken);
+        return slip is null ? null : (slip.Id, slip.PdfAttachmentId!.Value);
+    }
+
+    /// <summary>"Vencido": título em aberto com vencimento antes de hoje (horário de Brasília).</summary>
+    private bool Overdue(Receivable r) => r.Status is ReceivableStatus.Open or ReceivableStatus.PartiallyPaid && r.DueDate < Today;
+
+    /// <summary>O boleto mais recente emitido (<c>Issued</c>) de cada título; o retorno do banco nunca sai daqui.</summary>
+    private async Task<Dictionary<Guid, CustomerChargeSlip>> IssuedSlipsAsync(List<Guid> receivableIds, CancellationToken ct)
+    {
+        if (receivableIds.Count == 0)
+        {
+            return [];
+        }
+
+        var rows = await db.BillingSlips.AsNoTracking().Where(s => receivableIds.Contains(s.ReceivableId) && s.Status == BillingSlipStatus.Issued)
+            .Select(s => new { s.ReceivableId, s.Id, s.DueDate, s.Amount, s.DigitableLine, s.PixCopyPaste, HasPdf = s.PdfAttachmentId != null, s.RequestedAt }).ToListAsync(ct);
+        return rows.GroupBy(s => s.ReceivableId).ToDictionary(g => g.Key, g =>
+        {
+            var s = g.OrderByDescending(x => x.RequestedAt).First();
+            return new CustomerChargeSlip(s.Id, s.DueDate, s.Amount, s.DigitableLine, s.PixCopyPaste, s.HasPdf);
+        });
+    }
+
     /// <summary>O título não cancelado do pedido (no máximo um, pelo índice).</summary>
     private Task<Receivable?> ActiveAsync(Guid orderId, CancellationToken ct) =>
         db.Receivables.FirstOrDefaultAsync(r => r.Origin == DocumentOrigin.SalesOrder && r.OriginId == orderId && r.Status != ReceivableStatus.Cancelled, ct);
