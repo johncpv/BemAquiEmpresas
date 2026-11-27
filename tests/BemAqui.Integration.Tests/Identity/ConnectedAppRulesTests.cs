@@ -70,7 +70,7 @@ public class ConnectedAppRulesTests
         reserved.Granted.Should().BeEmpty("reservadas e fora do catálogo nunca entram, mesmo permitidas e com a pessoa tendo");
         reserved.Unknown.Should().Equal("sales.approve", "settings.edit", "nada.view");
         reserved.NotHeld.Should().Equal("quotes.create");
-        ConnectedAppScopes.Conecta.Should().NotContain(ConnectedAppScopes.IsNeverGranted).And.OnlyContain(s => ModuleCatalog.IsKnownPermission(s));
+        ConnectedAppScopes.Conecta.Should().NotContain(s => ConnectedAppScopes.IsNeverGranted(s)).And.OnlyContain(s => ModuleCatalog.IsKnownPermission(s));
         ConnectedAppScopes.Text("parties.view").Should().Be("Ver clientes (nome, telefone, e-mail, documento)");
     }
 }

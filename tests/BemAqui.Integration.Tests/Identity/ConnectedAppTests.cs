@@ -15,6 +15,8 @@ using BemAqui.Integration.Tests.Observability;
 using BemAqui.Integration.Tests.Tenancy;
 using BemAqui.Platform.Application.Modules;
 using BemAqui.Platform.Domain;
+using BemAqui.SharedKernel;
+using Microsoft.AspNetCore.Hosting;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -34,7 +36,7 @@ public class ConnectedAppTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
     private const string HostA = "a.localhost";
     private const string HostB = "b.localhost";
     private const string Redirect = "https://conecta.test/oauth/callback";
-    private const string Secret = "segredo-de-teste-do-conecta-123";
+    private const string ClientSecret = "segredo-de-teste-do-conecta-123";
     private const string Verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
     private const string Challenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM";
 
@@ -44,7 +46,7 @@ public class ConnectedAppTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
     {
         b.UseSetting("Integrations:Conecta:StartUrl", "https://conecta.test/conectar");
         b.UseSetting("Integrations:Conecta:RedirectUris:0", Redirect);
-        b.UseSetting("Integrations:Conecta:ClientSecretHash", Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(Secret))));
+        b.UseSetting("Integrations:Conecta:ClientSecretHash", Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(ClientSecret))));
         b.UseSetting("Integrations:AppRateLimit:TokenPerMinute", "100000");
         b.UseSetting("Integrations:AppRateLimit:ConsentPerMinute", "100000");
         b.ConfigureTestServices(s => s.AddSingleton<ILogEventSink>(tenancy.State<MemorySink>()));
@@ -142,7 +144,7 @@ public class ConnectedAppTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
         await owner.Client.PostAsJsonAsync("/api/v1/oauth/authorize/consent", new { request, code = code ?? await owner.Totp() });
 
     /// <summary>Conectar → conferir → autorizar com 2FA; devolve o código de autorização.</summary>
-    private async Task<string> AuthorizeAsync(Owner owner, string scope = "parties.view finance.view sales.view")
+    private static async Task<string> AuthorizeAsync(Owner owner, string scope = "parties.view finance.view sales.view")
     {
         var request = Request(await IntentAsync(owner), scope);
         (await OkAsync(await InspectAsync(owner, request))).GetProperty("outcome").GetString().Should().Be("consent");
@@ -154,7 +156,7 @@ public class ConnectedAppTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
         return query["code"];
     }
 
-    private HttpClient App(string host = HostA, string? secret = Secret)
+    private HttpClient App(string host = HostA, string? secret = ClientSecret)
     {
         var client = Factory.CreateClient();
         client.DefaultRequestHeaders.Host = host;
@@ -194,7 +196,7 @@ public class ConnectedAppTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
         return await scope.ServiceProvider.GetRequiredService<IIdentityDb>().AppConnections.AsNoTracking().SingleAsync(c => c.Id == id);
     }
 
-    private async Task<string> ProblemCodeAsync(HttpResponseMessage response, HttpStatusCode status) => Code(await OkAsync(response, status));
+    private static async Task<string> ProblemCodeAsync(HttpResponseMessage response, HttpStatusCode status) => Code(await OkAsync(response, status));
 
     [Fact]
     public async Task Fluxo_completo_conectar_autorizar_trocar_o_codigo_e_usar_o_token()
@@ -541,11 +543,11 @@ public class ConnectedAppTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
         List<string> lines;
         lock (Logs.Events)
         {
-            lines = Logs.Events.Select(e => e.RenderMessage() + " " + string.Join(' ', e.Properties.Values.Select(v => v.ToString())) + " " + e.Exception).ToList();
+            lines = Logs.Events.Select(e => e.RenderMessage(System.Globalization.CultureInfo.InvariantCulture) + " " + string.Join(' ', e.Properties.Values.Select(v => v.ToString())) + " " + e.Exception).ToList();
         }
 
         lines.Should().NotBeEmpty();
-        foreach (var canary in new[] { code, Verifier, Secret, access, refresh, access[4..], refresh[4..] })
+        foreach (var canary in new[] { code, Verifier, ClientSecret, access, refresh, access[4..], refresh[4..] })
         {
             lines.Should().NotContain(l => l.Contains(canary, StringComparison.Ordinal));
         }
