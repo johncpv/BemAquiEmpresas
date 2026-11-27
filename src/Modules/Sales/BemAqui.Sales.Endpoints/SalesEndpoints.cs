@@ -100,6 +100,7 @@ internal static class SalesEndpoints
             })
             .RequirePermission("sales.view").WithName("ExportSaleReturns");
 
+        sales.MapSalesOrderEndpoints();
         MapPosReturnEndpoints(api);
         return api;
     }

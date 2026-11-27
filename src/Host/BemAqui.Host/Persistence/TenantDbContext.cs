@@ -433,6 +433,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Sales.Domain.StoreCreditMovement> StoreCreditMovements => Set<BemAqui.Sales.Domain.StoreCreditMovement>();
 
+    public DbSet<BemAqui.Sales.Domain.SalesOrder> SalesOrders => Set<BemAqui.Sales.Domain.SalesOrder>();
+
+    public DbSet<BemAqui.Sales.Domain.SalesOrderLine> SalesOrderLines => Set<BemAqui.Sales.Domain.SalesOrderLine>();
+
+    public DbSet<BemAqui.Sales.Domain.SalesOrderTransition> SalesOrderTransitions => Set<BemAqui.Sales.Domain.SalesOrderTransition>();
+
+    public DbSet<BemAqui.Sales.Domain.SalesOrderParameters> SalesOrderParameters => Set<BemAqui.Sales.Domain.SalesOrderParameters>();
+
     public DbSet<BemAqui.Assets.Domain.Asset> Assets => Set<BemAqui.Assets.Domain.Asset>();
 
     public DbSet<BemAqui.Assets.Domain.AssetSite> AssetSites => Set<BemAqui.Assets.Domain.AssetSite>();

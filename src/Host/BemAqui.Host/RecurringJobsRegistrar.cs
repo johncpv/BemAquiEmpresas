@@ -36,6 +36,9 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
             BemAqui.Finance.Application.CollectionRemindersRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.Finance.Application.OverdueReceivablesRecurringJob>(BemAqui.Finance.Application.OverdueReceivablesRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Finance.Application.OverdueReceivablesRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // VND-02a CA 12: pedidos de venda com a reserva vencida são cancelados a cada 15 minutos, um job por tenant.
+        recurring.AddOrUpdate<BemAqui.Sales.Application.SalesOrderExpiryRecurringJob>(BemAqui.Sales.Application.SalesOrderExpiryRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Sales.Application.SalesOrderExpiryRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         // Abatimentos de vale-troca sem venda concluída em 24 h voltam ao vale (PDV-06, revisão de segurança, achado 4): de hora em hora, um job por tenant.
         recurring.AddOrUpdate<BemAqui.Sales.Application.ReleaseStoreCreditOrphansRecurringJob>(BemAqui.Sales.Application.ReleaseStoreCreditOrphansRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Sales.Application.ReleaseStoreCreditOrphansRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });

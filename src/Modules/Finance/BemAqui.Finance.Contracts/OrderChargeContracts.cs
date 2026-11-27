@@ -70,7 +70,7 @@ public interface IOrderCharges
     /// chegar antes, a baixa segue e o Sales trata como pago depois de cancelado, CA 19); sem boleto aberto, o título é cancelado já. Não salva: quem
     /// chama grava na própria transação.
     /// </summary>
-    Task CancelAsync(Guid orderId, string reason, CancellationToken cancellationToken = default);
+    Task CancelAsync(Guid orderId, string reason, bool paidOtherMeans = false, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Registra a devolução do valor pago pelo boleto (CA 19 e 26): a saída na conta do recebimento, com o título encerrado como devolvido. Idempotente.

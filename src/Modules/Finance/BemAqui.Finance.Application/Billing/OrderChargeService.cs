@@ -184,7 +184,7 @@ public sealed class OrderChargeService(
         return new OrderSlipRecheck(true, read.Value.PaidOn ?? Today);
     }
 
-    public async Task CancelAsync(Guid orderId, string reason, CancellationToken cancellationToken = default)
+    public async Task CancelAsync(Guid orderId, string reason, bool paidOtherMeans = false, CancellationToken cancellationToken = default)
     {
         var receivable = await ActiveAsync(orderId, cancellationToken);
         if (receivable is null || !receivable.IsOpen)
@@ -197,7 +197,7 @@ public sealed class OrderChargeService(
         {
             // O título é cancelado quando o banco confirma o cancelamento do boleto (BillingSlipProcessor); o pagamento que chegar antes segue a baixa.
             receivable.CancelReason = text;
-            await reactions.RequestCancelAsync(receivable, BillingSlipCancelReason.CustomerRequest, cancellationToken);
+            await reactions.RequestCancelAsync(receivable, paidOtherMeans ? BillingSlipCancelReason.PaidOtherMeans : BillingSlipCancelReason.CustomerRequest, cancellationToken);
             return;
         }
 

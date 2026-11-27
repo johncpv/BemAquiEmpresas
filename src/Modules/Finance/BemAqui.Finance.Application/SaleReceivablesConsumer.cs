@@ -59,7 +59,7 @@ public sealed class SaleReceivablesConsumer(IFinanceDb db, ISaleLookup sales, IP
     /// Agrupa os pagamentos por forma, provedor (o do pagamento ou a adquirente da forma) e vencimento (dia + D+N da taxa vigente). Taxa por
     /// pagamento, arredondada em 2 casas; líquido = bruto − taxa. Fiado é por venda, contra o cliente.
     /// </summary>
-    private async Task<List<SaleReceivableSummary>> GroupAsync(DateOnly businessDate, string channel, IReadOnlyList<SalePaymentFact> facts, CancellationToken ct)
+    private async Task<List<SaleReceivableSummary>> GroupAsync(DateOnly businessDate, string channel, List<SalePaymentFact> facts, CancellationToken ct)
     {
         if (facts.Count == 0)
         {
