@@ -21,6 +21,13 @@ public partial class DataOwnershipTests
         ["Identity/BemAqui.Identity.Application/PermissionService.cs"] = "versão do cache de permissões (ADR 0008)",
         ["Identity/BemAqui.Identity.Application/Shopfloor/RegisterDeviceService.cs"] = "segredo do caixa do PDV: rotação por UPDATE condicional ao segredo lido (duas sincronizações simultâneas, uma ganha) e a aposentadoria do segredo anterior; não é dado de negócio e a sincronização é a trilha (PDV-01, ADR 0048 §2)",
         ["Identity/BemAqui.Identity.Application/Kiosk/KioskSessionService.cs"] = "último acesso da TV (last_seen_at e o prazo de 30 dias), no máximo 1 vez por minuto; não é dado de negócio (PNL-01a CA 19)",
+        // INT-01 (ADR 0053): credenciais de uso único do OAuth e tokens opacos não são dado de negócio nem auditáveis; a trilha é a conexão (rastreada e
+        // auditada) e as entradas explícitas da auditoria (consentimento, conexão, revogação).
+        ["Identity/BemAqui.Identity.Application/ConnectedApps/OAuthAuthorizeService.cs"] = "intenção de conexão consumida por UPDATE condicional (used_at IS NULL) na transação do código: dois consentimentos simultâneos, um ganha (INT-01 CA 7); o consentimento é auditado pela entrada AppConsentGranted",
+        ["Identity/BemAqui.Identity.Application/ConnectedApps/OAuthTokenService.cs"] = "código de autorização resgatado por UPDATE condicional (used_at IS NULL), uso único sob concorrência (INT-01 CA 11); a conexão nasce rastreada e auditada",
+        ["Identity/BemAqui.Identity.Application/ConnectedApps/AppConnectionLifecycle.cs"] = "tokens opacos da conexão revogados juntos (revoked_at) na transação que revoga a conexão rastreada e auditada (INT-01 CA 13, 21 e 22)",
+        ["Identity/BemAqui.Identity.Application/ConnectedApps/AppTokenAuthenticator.cs"] = "último uso e IP da conexão, no máximo 1 vez por minuto, fora da auditoria como o last_seen_at da TV (INT-01 CA 18)",
+        ["Identity/BemAqui.Identity.Application/ConnectedApps/ConnectedAppJobs.cs"] = "expurgo diário de tokens, códigos e intenções vencidos ou revogados há 30 dias (INT-01, LGPD); o IP da conexão sai pela entidade rastreada",
         ["Parties/BemAqui.Parties.Application/CnpjLookupService.cs"] = "expurgo do cache de consultas de CNPJ",
         ["Migrations/BemAqui.Migrations.Application/StagingService.cs"] = "expurgo da staging da importação (ADR 0017)",
         ["Migrations/BemAqui.Migrations.Application/ImportSession.cs"] = "xmin gravado na staging da importação",

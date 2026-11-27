@@ -12,7 +12,7 @@ public interface ISecurityStampCache
 }
 
 /// <summary>Desativação de usuário (a tela é da FND-06c): derruba as sessões já no próximo request (FND-04 CA 16).</summary>
-public sealed class UserLifecycle(IIdentityDb db, AuthService auth, ISecurityStampCache stamps, ITenantContext tenant, TimeProvider clock)
+public sealed class UserLifecycle(IIdentityDb db, AuthService auth, ISecurityStampCache stamps, ITenantContext tenant, TimeProvider clock, ConnectedApps.AppConnectionLifecycle connections)
 {
     public async Task<Result> DeactivateAsync(Guid userId, Guid? byUserId, CancellationToken cancellationToken = default)
     {
@@ -38,6 +38,8 @@ public sealed class UserLifecycle(IIdentityDb db, AuthService auth, ISecuritySta
         await db.SaveChangesAsync(cancellationToken);
         await auth.RevokeAllAsync(userId, cancellationToken);
         stamps.Invalidate(tenant.Tenant?.Id ?? Guid.Empty, userId);
+        // INT-01 CA 17: as conexões de aplicativo que a pessoa autorizou ficam suspensas e os Proprietários recebem "Autorizar de novo".
+        await connections.SuspendForGrantorAsync(userId, cancellationToken);
         return Result.Success();
     }
 }

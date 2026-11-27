@@ -15,7 +15,8 @@ namespace BemAqui.Identity.Application;
 /// cada request, então revogar vale no próximo request mesmo com várias instâncias. O filtro de módulos liberados é
 /// aplicado a cada chamada e também compõe a versão que vai para o front.
 /// </summary>
-public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant, IMemoryCache cache, IAfterCommit afterCommit, IRealtimeConnections connections) : IPermissionService
+public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant, IMemoryCache cache, IAfterCommit afterCommit, IRealtimeConnections connections,
+    BemAqui.BuildingBlocks.Security.ConnectedAppContext app) : IPermissionService
 {
     private static readonly TimeSpan Ttl = TimeSpan.FromMinutes(10);
 
@@ -43,6 +44,13 @@ public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant
         var released = grants.IsOwner
             ? ModuleCatalog.All.Where(m => resolved.IsReleased(m.Code)).SelectMany(m => m.Actions.Select(a => m.Code + "." + a))
             : grants.Permissions.Where(p => resolved.IsReleased(p[..p.IndexOf('.', StringComparison.Ordinal)]));
+        // INT-01 CA 16 (ADR 0053 §6): com um aplicativo conectado agindo pelo autorizador, a efetiva é a concessão ∩ as permissões atuais dele, e
+        // nunca a de Proprietário; vale também nas checagens feitas dentro dos serviços.
+        if (app.Current is { } grant && grant.GrantorId == userId)
+        {
+            return new EffectivePermissions(released.Where(grant.Scopes.Contains).ToHashSet(StringComparer.Ordinal), false, user.PermVersion + "-" + ReleaseHash(resolved));
+        }
+
         return new EffectivePermissions(released.ToHashSet(StringComparer.Ordinal), grants.IsOwner, user.PermVersion + "-" + ReleaseHash(resolved));
     }
 

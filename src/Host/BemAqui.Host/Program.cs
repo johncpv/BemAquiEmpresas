@@ -129,6 +129,8 @@ try
     builder.Services.AddKioskAuthentication();
 // Caixa do PDV (PDV-01, ADR 0048): esquema Device (cookie __Host-bq_pos + assinatura ECDSA), só em /api/v1/pos/sync/*.
 builder.Services.AddDeviceAuthentication();
+    // Aplicativos conectados (INT-01, ADR 0053): esquema App (token opaco bqa_ pelo hash), só em /api/v1/integration/*.
+    builder.Services.AddConnectedAppAuthentication();
     builder.Services.Configure<KioskRealtimeOptions>(builder.Configuration.GetSection(KioskRealtimeOptions.Section));
     builder.Services.AddSingleton<KioskConnectionRegistry>();
     builder.Services.AddSingleton<SignalRKioskRealtime>();
@@ -156,6 +158,7 @@ builder.Services.AddDeviceAuthentication();
     // Depois da autenticação: as políticas por usuário ("dashboard-refresh" da DSH-01a, CA 13, e a prévia da fila da PLN-02, CA 10)
     // enxergam quem pede; as de /auth e do login seguem por IP e tenant.
     app.UseAuthentication();
+    app.UseMiddleware<ConnectedAppAuthenticationMiddleware>(); // INT-01: o aplicativo antes do rate limit por conexão (app-api)
     app.UseRateLimiter();
     app.UseMiddleware<PinSessionScopeMiddleware>(); // sessão por PIN: aparelho e sessão a cada request, só a lista permitida (ADR 0026)
     app.UseMiddleware<KioskScopeMiddleware>(); // principal de quiosque: só GET do painel; fora dele, 403 kiosk_scope (ADR 0030 §2)

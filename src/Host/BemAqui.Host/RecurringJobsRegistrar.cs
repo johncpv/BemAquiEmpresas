@@ -36,6 +36,9 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
             BemAqui.Finance.Application.CollectionRemindersRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.Finance.Application.OverdueReceivablesRecurringJob>(BemAqui.Finance.Application.OverdueReceivablesRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Finance.Application.OverdueReceivablesRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // INT-01: conexões de aplicativo (aviso de 30 dias, suspensão aos 12 meses, módulo desligado há 30 dias) e limpeza dos tokens, diária, por tenant.
+        recurring.AddOrUpdate<BemAqui.Identity.Application.ConnectedApps.ConnectedAppDailyRecurringJob>(BemAqui.Identity.Application.ConnectedApps.ConnectedAppDailyRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Identity.Application.ConnectedApps.ConnectedAppDailyRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         // VND-02a CA 12: pedidos de venda com a reserva vencida são cancelados a cada 15 minutos, um job por tenant.
         recurring.AddOrUpdate<BemAqui.Sales.Application.SalesOrderExpiryRecurringJob>(BemAqui.Sales.Application.SalesOrderExpiryRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Sales.Application.SalesOrderExpiryRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });

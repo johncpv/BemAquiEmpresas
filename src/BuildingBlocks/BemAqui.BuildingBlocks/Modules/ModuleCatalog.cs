@@ -148,6 +148,9 @@ public static partial class ModuleCatalog
         new("shopfloor", "App do operador", ModuleAreas.Dedicated, 3, 140, "Fila do operador e apontamento das etapas. Criar = apontar.", [StandardActions.View, StandardActions.Create], []),
         new("identity", "Usuários e acessos", ModuleAreas.System, 0, 150, "Usuários, grupos e permissões.", Crud, []),
         new("settings", "Configurações", ModuleAreas.System, 0, 160, "Parâmetros da empresa: segurança, numeração, IA e mais.", [StandardActions.View, StandardActions.Edit], []),
+        // INT-01 (ADR 0052 §6 e 0053 §12): liga o ERP ao Conecta. Fora de todos os perfis, liberado por empresa só por exceção manual. Conectar,
+        // autorizar e desconectar exigem settings.edit (Proprietário); conecta.edit (não reservada) é dos avisos e do segredo (INT-02).
+        new("conecta", "Conecta", ModuleAreas.System, 12, 170, "Liga o ERP ao Conecta: vender, cobrar e avisar o cliente pelo WhatsApp.", [StandardActions.View, StandardActions.Edit], []),
     ];
 
     public static ModuleDefinition? Find(string code) => All.FirstOrDefault(m => string.Equals(m.Code, code, StringComparison.Ordinal));

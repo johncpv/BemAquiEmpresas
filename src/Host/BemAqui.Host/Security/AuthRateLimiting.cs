@@ -35,6 +35,25 @@ public sealed class AuthRateLimitOptions
 }
 
 /// <summary>
+/// Limites dos aplicativos conectados (INT-01 CA 19, ADR 0053 §8). <c>Integrations:AppRateLimit</c> é o parâmetro de plataforma das rotas do
+/// aplicativo (por conexão), compartilhado com a INT-03.
+/// </summary>
+public sealed class AppRateLimitOptions
+{
+    public const string Section = "Integrations:AppRateLimit";
+
+    public int ReadsPerMinute { get; set; } = 600;
+
+    public int WritesPerMinute { get; set; } = 120;
+
+    /// <summary><c>/oauth/token</c> e <c>/oauth/revoke</c>, por IP e cliente.</summary>
+    public int TokenPerMinute { get; set; } = 30;
+
+    /// <summary>Conferir, autorizar e cancelar o consentimento, por usuário.</summary>
+    public int ConsentPerMinute { get; set; } = 10;
+}
+
+/// <summary>
 /// Rate limit de login, refresh, logout, recuperação de senha e convite (<c>/api/v1/auth/*</c>): duas janelas fixas
 /// encadeadas, IP + tenant e tenant. Excedeu: 429 com <c>Retry-After</c>. O limite por usuário é o bloqueio da conta.
 /// </summary>
@@ -168,6 +187,22 @@ public static class AuthRateLimiting
             o.AddPolicy(BemAqui.Fiscal.Domain.IncomingReadingRules.RateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
                 "fiscal-pdf|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? http.Connection.RemoteIpAddress?.ToString() ?? "-"),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, fiscal.PdfReadingsPerHour), Window = TimeSpan.FromHours(1), QueueLimit = 0 }));
+            // Aplicativos conectados (INT-01 CA 19, ADR 0053 §8): /oauth/token e /oauth/revoke por IP e cliente (30/min); conferir e autorizar o
+            // consentimento por usuário (10/min); as rotas do aplicativo por conexão, leituras e escritas separadas (parâmetro Integrations:AppRateLimit).
+            var appLimits = configuration.GetSection(AppRateLimitOptions.Section).Get<AppRateLimitOptions>() ?? new AppRateLimitOptions();
+            o.AddPolicy(BemAqui.BuildingBlocks.Web.ConnectedAppEndpoints.TokenRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "oauth-token|" + TenantKey(http) + "|" + (http.Connection.RemoteIpAddress?.ToString() ?? "-") + "|" + ClientKey(http),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, appLimits.TokenPerMinute), Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+            o.AddPolicy(BemAqui.BuildingBlocks.Web.ConnectedAppEndpoints.ConsentRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+                "oauth-consent|" + TenantKey(http) + "|" + (http.RequestServices.GetService<ICurrentUser>()?.UserId?.ToString() ?? http.Connection.RemoteIpAddress?.ToString() ?? "-"),
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, appLimits.ConsentPerMinute), Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+            o.AddPolicy(BemAqui.BuildingBlocks.Web.ConnectedAppEndpoints.RateLimitPolicy, http =>
+            {
+                var write = !HttpMethods.IsGet(http.Request.Method) && !HttpMethods.IsHead(http.Request.Method);
+                var connection = BemAqui.BuildingBlocks.Security.AppClaims.ConnectionOf(http.User)?.ToString() ?? "ip:" + (http.Connection.RemoteIpAddress?.ToString() ?? "-");
+                return RateLimitPartition.GetFixedWindowLimiter("app-api|" + TenantKey(http) + "|" + connection + "|" + (write ? "w" : "r"),
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = Math.Max(1, write ? appLimits.WritesPerMinute : appLimits.ReadsPerMinute), Window = TimeSpan.FromMinutes(1), QueueLimit = 0 });
+            });
             o.OnRejected = async (context, cancellationToken) =>
             {
                 var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : TimeSpan.FromMinutes(1);
@@ -203,6 +238,27 @@ public static class AuthRateLimiting
 
     private static string TenantKey(HttpContext http) =>
         http.RequestServices.GetService<ITenantContext>()?.Tenant?.Id.ToString() ?? "-";
+
+    /// <summary>Cliente OAuth pelo <c>client_id</c> do <c>Authorization: Basic</c> (nunca o segredo na chave da partição).</summary>
+    private static string ClientKey(HttpContext http)
+    {
+        var header = http.Request.Headers.Authorization.ToString();
+        if (!header.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase) || header.Length > 512)
+        {
+            return "-";
+        }
+
+        try
+        {
+            var raw = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(header[6..].Trim()));
+            var separator = raw.IndexOf(':', StringComparison.Ordinal);
+            return separator > 0 && separator <= 64 ? raw[..separator] : "-";
+        }
+        catch (FormatException)
+        {
+            return "-";
+        }
+    }
 
     /// <summary>Aparelho de caixa pelo hash do cookie (nunca o segredo em si na chave da partição).</summary>
     private static string PosDeviceKey(HttpContext http) =>

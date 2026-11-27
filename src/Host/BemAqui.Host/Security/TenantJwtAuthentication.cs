@@ -44,6 +44,14 @@ public static class TenantJwtAuthentication
                 {
                     OnMessageReceived = context =>
                     {
+                        // INT-01 CA 15: token opaco de aplicativo (bqa_/bqr_) nunca é lido como JWT nem vale como sessão de pessoa (e não vai ao log do parser).
+                        var authorization = context.Request.Headers.Authorization.ToString();
+                        if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) && AppClaims.IsAppToken(authorization[7..].Trim()))
+                        {
+                            context.NoResult();
+                            return Task.CompletedTask;
+                        }
+
                         // WebSocket do SignalR não envia Authorization: o token vem na query, só para /hubs.
                         var token = context.Request.Query["access_token"];
                         if (!string.IsNullOrEmpty(token) && context.HttpContext.Request.Path.StartsWithSegments("/hubs", StringComparison.OrdinalIgnoreCase))

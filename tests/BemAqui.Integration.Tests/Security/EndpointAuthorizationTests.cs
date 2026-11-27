@@ -34,6 +34,10 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
         ["/api/v1/auth/pin"] = "entrar por PIN, só com o cookie do aparelho registrado válido; sem ele, 404 (ADR 0009 adendo de 21/10/2026, ADR 0026)",
         ["/api/v1/auth/pin/users"] = "nomes de quem tem PIN no aparelho, só com o cookie do aparelho válido; sem ele, 404 (ADR 0009 adendo, ADR 0026)",
         ["/api/v1/kiosk/session"] = "Painel da TV: troca o token de uso único (do fragmento /tv#token, no corpo) pelo cookie __Host-bq_kiosk; Origin e X-CSRF, rate limit kiosk-session, 401 uniforme (ADR 0009 adendo de 21/10/2026, ADR 0030)",
+        // INT-01 (ADR 0053, ADR 0009 adendo de 26/11/2026): anônimas de pessoa, autenticadas pelo cliente (client_secret_basic, segredo do ambiente
+        // comparado em tempo constante), módulo conecta, rate limit oauth-token, corpo fora do log, resposta sem cache.
+        ["/api/v1/oauth/token"] = "troca do código e renovação do aplicativo conectado, autenticadas pelo cliente (ADR 0053)",
+        ["/api/v1/oauth/revoke"] = "revogação pelo aplicativo conectado (RFC 7009), autenticada pelo cliente (ADR 0053)",
         ["/api/v1/public/tenant-context"] = "nome e logo para a tela de login (ADR 0009)",
         ["/api/v1/public/tenant-logo"] = "imagem do logo da tela de login (complemento do tenant-context)",
         ["/api/v1/platform/auth/login"] = "login do super admin (sessão própria da plataforma)",
@@ -242,6 +246,36 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
         && !e.RoutePattern.RawText.StartsWith(DeviceEndpoints.PathPrefix, StringComparison.Ordinal)
         && e.Metadata.GetMetadata<RequiresModuleMetadata>()?.ModuleCode == "pos" && HasPermission(e) && !UsesDevice(e);
 
+    /// <summary>
+    /// Aplicativo conectado (INT-01, ADR 0053 §4): só o principal do esquema <c>App</c> (policy <c>connected-app</c>), com a marca
+    /// <c>ConnectedAppEndpoint</c>, em <c>/api/v1/integration/*</c>; rota de negócio com <c>RequirePermission</c> e rota da própria conexão com
+    /// <c>RequireConnectedAppSelf()</c>. Nenhum outro endpoint usa a policy ou o esquema.
+    /// </summary>
+    private static bool UsesApp(RouteEndpoint e) =>
+        e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(a => a.Policy == BemAqui.BuildingBlocks.Security.AppClaims.Policy
+            || (a.AuthenticationSchemes ?? string.Empty).Split(',').Any(s => s.Trim() == BemAqui.BuildingBlocks.Security.AppClaims.Scheme));
+
+    private static bool IsConnectedApp(RouteEndpoint e) =>
+        UsesApp(e)
+        && e.Metadata.GetMetadata<ConnectedAppEndpointAttribute>() is { } mark
+        && (mark.Self || HasPermission(e))
+        && e.RoutePattern.RawText!.StartsWith(ConnectedAppEndpoints.PathPrefix + "/", StringComparison.Ordinal);
+
+    [Fact]
+    public void Esquema_do_aplicativo_so_nas_rotas_de_integracao()
+    {
+        var endpoints = Endpoints();
+        var app = endpoints.Where(UsesApp).ToList();
+
+        app.Should().NotBeEmpty();
+        app.Should().OnlyContain(e => IsConnectedApp(e), "só /api/v1/integration/* com RequireConnectedApp() aceita o esquema App");
+        app.Should().OnlyContain(e => e.Metadata.GetMetadata<PinSessionAllowedAttribute>() == null && e.Metadata.GetMetadata<PosPinSessionAllowedAttribute>() == null && !UsesDevice(e),
+            "o aplicativo não é sessão por PIN nem aparelho");
+        endpoints.Where(e => e.Metadata.GetMetadata<ConnectedAppEndpointAttribute>() != null).Should().OnlyContain(e => UsesApp(e), "a marca sem o esquema não vale");
+        endpoints.Where(e => e.RoutePattern.RawText!.StartsWith(ConnectedAppEndpoints.PathPrefix, StringComparison.Ordinal)).Should()
+            .OnlyContain(e => IsConnectedApp(e), "toda rota de integração é do aplicativo, nunca de pessoa");
+    }
+
     /// <summary>Super admin: sessão própria da plataforma (esquema e policy <c>platform</c>), fora do tenant (FND-13).</summary>
     private static bool IsPlatform(RouteEndpoint e) =>
         e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(a => a.Policy == PlatformSessionAuthenticationHandler.Policy);
@@ -262,7 +296,7 @@ public class EndpointAuthorizationTests(TenancyFixture tenancy) : IClassFixture<
                     problems.Add("anônima fora da lista: " + key + " (" + endpoint.DisplayName + ")");
                 }
             }
-            else if (!HasPermission(endpoint) && !HasHubAccess(endpoint) && !IsKiosk(endpoint) && !IsDevice(endpoint) && !IsPlatform(endpoint) && !IsSelfService(endpoint) && !AuthenticatedOnly.ContainsKey(key))
+            else if (!HasPermission(endpoint) && !HasHubAccess(endpoint) && !IsKiosk(endpoint) && !IsDevice(endpoint) && !IsConnectedApp(endpoint) && !IsPlatform(endpoint) && !IsSelfService(endpoint) && !AuthenticatedOnly.ContainsKey(key))
             {
                 problems.Add("só autenticado, sem RequirePermission: " + key + " (" + endpoint.DisplayName + ")");
             }
