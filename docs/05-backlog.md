@@ -761,6 +761,17 @@ Decisões do PO de 26/11/2026 ([ADR 0052](adr/0052-integracoes-conecta-e-marketp
 **Pré-requisitos dos cadastros**
 - **INT-00 [ ] Site do BemAqui Empresas, política de privacidade e termos de uso (P)**
 
+## Pós-go-live: receita recorrente
+
+Pedido do PO de 27/11/2026, ao lançar o primeiro contrato do Conecta (CTR-2026-0001, BlockWay) no ERP do BemAqui: o contrato só tem itens com marcos e a mensalidade precisou virar títulos parcelados à mão. Entra depois da F1 das integrações.
+- **REC-01 [ ] Contrato de assinatura (receita recorrente) (M)** — story a escrever e revisar (arquitetura, UX, cyber) antes de codar. Escopo inicial:
+  - item recorrente no orçamento e no contrato: plano, valor mensal, dia de vencimento fixo no mês, início, fidelidade e índice de reajuste;
+  - geração automática do título e do boleto ou Pix de cada mês, com antecedência configurável, sem duplicar (idempotente por contrato e competência, também com dois tenants e em paralelo);
+  - PDF do contrato mostrando o plano e a mensalidade junto com os marcos do setup;
+  - cancelamento com aviso prévio e fim da fidelidade; reajuste anual e troca de plano por aditivo (COM-07);
+  - visão de receita recorrente (MRR, clientes ativos, em atraso e cancelamentos) e contas de receita próprias de assinatura no DRE;
+  - benchmark (Nibo, Conta Azul, Omie) antes da story, para não ficar abaixo do piso de mercado.
+
 ---
 
 ## Fase 9 — Evolução
