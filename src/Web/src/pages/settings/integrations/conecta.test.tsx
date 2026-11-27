@@ -22,6 +22,7 @@ vi.mock('@/api/generated/bemaqui', async (original) => ({
   revokeConnectedApp: vi.fn(),
   useGetConectaConnection: vi.fn(),
   useGetTenantPublicContext: () => ({ data: { name: 'Empresa A' } }),
+  useGetOutboundWebhookSummary: () => ({ isPending: true }),
 }))
 
 const module = (code: string, actions: string[]) =>

@@ -209,6 +209,13 @@ Regra dura: **nenhum pagamento é baixado sem OP aprovada**. Exceção: tarifas,
 - Eventos no outbox: `AppConnected`, `AppConnectionRevoked`, `AppConnectionSuspended`. Os consumidores (INT-02) só encerram ou suspendem.
 - Job diário `connected-apps-daily` (por tenant): aviso aos Proprietários 30 dias antes dos 12 meses, suspensão no dia, revogação com o módulo desligado há 30 dias e limpeza de tokens, códigos e intenções com mais de 30 dias.
 
+### Aviso de saída (INT-02, ADR 0053 e ADR 0031 "Saída")
+Inscrição: `Active → Held (conexão suspensa) → Ended (conexão revogada ou substituída; final)`. Entrega: `Pending → Retrying → Delivered | DeadLettered`; `Held` (inscrição suspensa); `Skipped` (conexão encerrada ou substituída, módulo não liberado, escopo perdido, conteúdo expurgado).
+- O módulo dono traduz o evento de contrato (`OrderCreated/Confirmed/Paid/Cancelled`, `BillingSlipIssued/Cancelled/Paid`, `InvoiceAuthorized/Cancelled/Rejected`) para o aviso público do catálogo v1, na transação do consumidor (inbox): grava `outbound_webhook_events` e uma entrega `Pending` por inscrição que assina o tipo; o job `OutboundWebhookDeliveryJob` (só `tenantId` e o id da entrega) é enfileirado depois do commit.
+- Antes de cada envio, reavalia conexão `Active`, módulos `conecta` e do evento liberados e o escopo nas permissões efetivas atuais (`IConnectedAppAccess`); sem isso, `Skipped` com o motivo. Reserva pelo `xmin`; novas tentativas em 1 min, 5 min, 30 min, 2 h, 6 h, 12 h e 24 h (±10%, `Retry-After` até 1 h); depois da 8ª, `DeadLettered`, alerta `outbound_webhooks` e aviso aos Proprietários. "Reenviar" começa nova série com o mesmo id e corpo.
+- `AppConnectionRevoked` → último `app.disconnected` e a inscrição `Ended` (pendentes `Skipped` "Conexão encerrada"); `AppConnectionSuspended` → `Held`. Na troca do código, a inscrição nova nasce na mesma transação e a anterior vai a `Ended` (pendentes `Skipped` "Conexão substituída").
+- Varredor `outbound-webhooks-sweep` (5 min) recoloca entregas paradas; expurgo diário `outbound-webhooks-purge` apaga o `data` dos avisos com mais de 90 dias e todas as entregas finais.
+
 ### Boleto (Inter)
 `Requested → Issued → Paid (webhook com reconsulta por mTLS, ou conferência diária) | PaidPendingReview (pagamento com diferença: conferência humana) | Cancelled | Expired` (BNK-01b, BNK-02, ADR 0032). O webhook nunca baixa pelo corpo; estorno de baixa feita pelo banco e estorno de pagamento da OP exigem `finance.approve` (D6, P-20). Multa, juros e desconto vêm de Configurações → Cobrança; acima do limite da D8, `finance.approve`.
 ```

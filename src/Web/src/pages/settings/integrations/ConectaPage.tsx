@@ -13,6 +13,7 @@ import { ModuleNotReleased } from '@/pages/ModulePage'
 import { PageHeading } from '@/shell/PageHeading'
 import { browser, CONECTA_MODULE, connectionState } from './conecta'
 import { IntegrationsNav } from './IntegrationsNav'
+import { OutboundHealthSection } from './OutboundWebhooks'
 
 const primary = 'min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60'
 const secondary = 'min-h-11 rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold'
@@ -92,6 +93,8 @@ export function ConectaPage() {
               <InlineError id="conecta-erro" message={startError} />
             </Can>
           </section>
+
+          {active ? <Can perm="conecta.view"><OutboundHealthSection /></Can> : null}
 
           {active ? (
             <section aria-labelledby="conecta-proximo" className="rounded-md border border-border bg-card p-4">

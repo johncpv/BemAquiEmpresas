@@ -5,7 +5,7 @@
 | ID | INT-02 |
 | Título | O ERP avisa os aplicativos conectados: inscrição criada na troca do código (mesma transação), corpo mínimo com o endereço para consultar de novo, assinatura HMAC-SHA256 sobre `{timestamp}.{corpo}` com segredo rotativo, entrega pelo Hangfire com espera crescente, `DeadLettered` e "Reenviar", proteção contra SSRF, resumo de saúde na página do Conecta e o registro detalhado em "Avançado" |
 | Tamanho | M |
-| Status | Draft |
+| Status | Done |
 | Requisitos | [ADR 0053](../adr/0053-aplicativos-conectados.md) · ADR 0052 §1 · ADR 0006 (outbox e inbox) · ADR 0007 (adendo 26/11/2026, `OutboundWebhookSecret`) · ADR 0031 (§5 retenção, §6 rotação) · ADR 0019 §12 · ADR 0037 · R-SEC-5 |
 | Dependências | INT-01 (conexões, `conecta.view`/`conecta.edit`), FND-16 (aba "Eventos recebidos"), FND-12 (alertas), VND-02a e VND-02b (eventos do pedido) |
 | Bloqueia | ATD-01, ATD-05, API-01 |
@@ -93,12 +93,12 @@ Como **Proprietário que conectou o Conecta**, quero **que o ERP avise o Conecta
 - **Front (Vitest):** resumo de saúde nos dois estados; aba "Enviados" vazia e com parados.
 
 ## Tarefas
-- [ ] Adendo à ADR 0031 (seção "Saída"); `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md`.
-- [ ] BuildingBlocks/Webhooks: entidades, `IOutboundSubscriptions` e implementação, `IOutboundWebhookPublisher`, `OutboundWebhookSigner`, `OutboundUrlGuard` + `HttpClient` com `ConnectCallback`, job, varredor, expurgo; `SecretKind.OutboundWebhookSecret` e golden.
-- [ ] Identity: chamada a `IOutboundSubscriptions` no `OAuthTokenService`; `webhook_secret` na resposta da troca e da renovação pendente; `IConnectedAppAccess`.
-- [ ] Tradutores em Sales, Finance e Fiscal; `BillingSlipPaid` publicado pela baixa da BNK-02.
-- [ ] Rotas: `GET /api/v1/integration/webhooks/subscription` (aplicativo); `GET /api/v1/outbound-webhooks/deliveries`, `GET .../deliveries/{id}`, `POST .../deliveries/{id}/resend`, `PUT .../subscriptions/{id}`, `POST .../subscriptions/{id}/test`, `POST .../subscriptions/{id}/secret/rotate` (pessoa, `conecta.edit`); OpenAPI e Orval.
-- [ ] Front: resumo na página do Conecta, abas em `IntegrationEventsPage.tsx`, ajudas.
+- [x] Adendo à ADR 0031 (seção "Saída"); `docs/03-modelo-dados.md` e `docs/04-fluxos-estados.md`.
+- [x] BuildingBlocks/Webhooks: entidades, `IOutboundSubscriptions` e implementação, `IOutboundWebhookPublisher`, `OutboundWebhookSigner`, `OutboundUrlGuard` + `HttpClient` com `ConnectCallback`, job, varredor, expurgo; `SecretKind.OutboundWebhookSecret` e golden.
+- [x] Identity: chamada a `IOutboundSubscriptions` no `OAuthTokenService`; `webhook_secret` na resposta da troca e da renovação pendente; `IConnectedAppAccess`.
+- [x] Tradutores em Sales, Finance e Fiscal; `BillingSlipPaid` publicado pela baixa da BNK-02.
+- [x] Rotas: `GET /api/v1/integration/webhooks/subscription` (aplicativo); `GET /api/v1/outbound-webhooks/deliveries`, `GET .../deliveries/{id}`, `POST .../deliveries/{id}/resend`, `PUT .../subscriptions/{id}`, `POST .../subscriptions/{id}/test`, `POST .../subscriptions/{id}/secret/rotate` (pessoa, `conecta.edit`); OpenAPI e Orval.
+- [x] Front: resumo na página do Conecta, abas em `IntegrationEventsPage.tsx`, ajudas.
 
 ## Dev Notes
 - **Outbox e inbox:** `src/BuildingBlocks/BemAqui.BuildingBlocks/Messaging/OutboxMessage.cs`, `IIntegrationEventConsumer.cs`, `OutboxDispatcher.cs`, `OutboxProcessor.cs`, `OutboxOptions.cs` (não reusar o backoff para HTTP), `DeadLetters.cs`.
@@ -120,3 +120,4 @@ Como **Proprietário que conectou o Conecta**, quero **que o ERP avise o Conecta
 |---|---|---|---|
 | 26/11/2026 | 0.1 | Story detalhada a partir da ADR 0052 e do plano de integrações | River (SM) |
 | 26/11/2026 | 0.2 | Recomendação aceita (PO 24/10), revisões de 26/11/2026: inscrição síncrona pela `IOutboundSubscriptions`; `conecta.edit`; troca de segredo pelo ERP com `immediate`; catálogo v1 sem `sale.*` e `receivable.*`; SSRF ampliado (IPv4 mapeado, NAT64, 6to4, faixas reservadas, TLS e SNI); pausa automática para depois; resumo de saúde e "Avançado"; "avisos" na interface. | Claude (planejamento) |
+| 27/11/2026 | 1.0 | Implementada. Tabelas `shared.outbound_webhook_*` (migration `OutboundWebhooksInt02`, aditiva); `IOutboundSubscriptions` real no BuildingBlocks (criação na transação da troca do código, encerramento com `app.disconnected`, suspensão, troca de segredo com sobreposição de 24 h ou `immediate`, limite de 5 por dia); `IConnectedAppAccess` no Identity; tradutores em Sales, Finance e Fiscal; `BillingSlipPaid` publicado na baixa automática e na conferência da BNK-02; job de envio com reserva pelo `xmin`, novas tentativas próprias, limite de 4 por inscrição e 32 por instância; varredor e expurgo; `HttpClient` `outbound-webhooks` com o IP conferido no `ConnectCallback`; telas: resumo de saúde no Conecta e aba "Enviados" nos eventos. Decisões (recomendação mais segura, PO 24/10): (1) sem `Integrations:Conecta:WebhookUrl` no ambiente, a conexão nasce sem inscrição e o `webhook_secret` volta nulo; URL configurada fora da regra lança e desfaz a conexão; (2) a chave do HMAC é o segredo em bytes UTF-8 (base64url de 32 bytes); (3) "Reenviar os parados" no resumo leva ao filtro "Parados" do Avançado, onde cada aviso é reenviado um a um (reenvio em lote fica fora, como a story pede); (4) qualquer IPv4 mapeado (`::ffff:0:0/96`) é recusado, não só os privados; (5) os tipos `sales_order.picked/invoiced/shipped/delivered` já estão no catálogo, e os tradutores entram com os eventos da VND-02b; (6) `invoice.cancelled` leva `id`, `type`, `cancelled_on` e `total` (o contrato do evento não traz o destinatário) e `invoice.rejected` só `id` e `type`. | Claude (dev) |

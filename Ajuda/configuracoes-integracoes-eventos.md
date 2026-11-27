@@ -6,6 +6,8 @@ padrao: true
 modulo: settings
 ---
 
+Esta é a aba **Recebidos**. Os avisos que o BemAqui manda ao Conecta ficam na aba **Enviados** (aparece para quem pode ver o Conecta).
+
 ## Para que serve
 Mostrar os avisos que os sistemas externos mandam ao BemAqui: o retorno da nota fiscal, o pagamento de um boleto no banco e, mais tarde, a situação das mensagens do WhatsApp. Cada aviso é conferido (assinatura ou endereço secreto), guardado uma vez só e processado em segundo plano. A lista mostra o provedor, o tipo, quando chegou, a situação, as tentativas e o erro. O conteúdo do aviso não aparece na lista.
 
