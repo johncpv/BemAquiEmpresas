@@ -59,6 +59,9 @@ internal static class SecretColumns
         // OFF-02 CA 17 (PP-26): CPF/CNPJ do consumidor da venda, por linha, e a chave do índice cego do tenant.
         new(SecretDatabase.Tenant, "sales", "sale_customer_documents", "document_cipher", SecretKind.CustomerDocument, SecretPurpose.TenantItem),
         new(SecretDatabase.Tenant, "sales", "blind_index_keys", "key_cipher", SecretKind.BlindIndexKey, SecretPurpose.Tenant),
+        // INT-02 (ADR 0053): segredo de assinatura dos avisos de saída por inscrição, e o anterior durante as 24 h da troca.
+        new(SecretDatabase.Tenant, "shared", "outbound_webhook_subscriptions", "secret_cipher", SecretKind.OutboundWebhookSecret, SecretPurpose.Tenant),
+        new(SecretDatabase.Tenant, "shared", "outbound_webhook_subscriptions", "previous_secret_cipher", SecretKind.OutboundWebhookSecret, SecretPurpose.Tenant),
     ];
 
     public static IEnumerable<SecretColumn> In(SecretDatabase database) => All.Where(c => c.Database == database);

@@ -33,7 +33,7 @@ public class ReencryptSecretsTests(GoLiveFixture golive)
         (await golive.PromoteAsync("recifra")).Should().Be(0);
         stored.Add(await SeedPlatformAdminAsync());
         stored.Add(new Stored("catalog", "tenants", "connection_secret", tenant.Id, SecretScope.ForTenant(tenant.Id), SecretKind.TenantConnection, null, connection, Catalog: true));
-        stored.Select(s => s.Kind).Distinct().Should().HaveCount(7, "um segredo de cada tipo gravado no banco");
+        stored.Select(s => s.Kind).Distinct().Should().HaveCount(8, "um segredo de cada tipo gravado no banco");
         var keys = await golive.ExportOldKeyRingAsync();
         string[] common = ["reencrypt-secrets", "--tenant", "recifra", "--old-keys", keys, "--old-cert", TestCertificates.Primary, "--old-cert-password-file", TestCertificates.PasswordFile];
         var before = await RawAsync(stored, connection);
@@ -140,6 +140,10 @@ public class ReencryptSecretsTests(GoLiveFixture golive)
         webhook.Rotate(null, Protect(SecretKind.WebhookSecret, "webhook-atual"), null, now);
         db.Set<WebhookCredential>().Add(webhook);
 
+        var outbound = OutboundSubscription.Create(Guid.CreateVersion7(), "conecta", "https://conecta.test/avisos", ["ping"], Protect(SecretKind.OutboundWebhookSecret, "aviso-anterior"), now);
+        outbound.Rotate(Protect(SecretKind.OutboundWebhookSecret, "aviso-atual"), immediate: false, DateOnly.FromDateTime(now.UtcDateTime), now);
+        db.Set<OutboundSubscription>().Add(outbound);
+
         var account = new BankAccount { Name = "Inter recifra", Kind = BankAccountKind.Bank, CreatedAt = now };
         db.Set<BankAccount>().Add(account);
         var bank = BankIntegration.For(account.Id);
@@ -158,6 +162,8 @@ public class ReencryptSecretsTests(GoLiveFixture golive)
             new("fiscal", "integration_settings", "api_key_cipher", fiscal.Id, scope, SecretKind.FiscalApiKey, null, "chave-emissor-recifra"),
             new("shared", "webhook_tokens", "secret_cipher", webhook.Id, scope, SecretKind.WebhookSecret, null, "webhook-atual"),
             new("shared", "webhook_tokens", "previous_secret_cipher", webhook.Id, scope, SecretKind.WebhookSecret, null, "webhook-anterior"),
+            new("shared", "outbound_webhook_subscriptions", "secret_cipher", outbound.Id, scope, SecretKind.OutboundWebhookSecret, null, "aviso-atual"),
+            new("shared", "outbound_webhook_subscriptions", "previous_secret_cipher", outbound.Id, scope, SecretKind.OutboundWebhookSecret, null, "aviso-anterior"),
             new("finance", "bank_integrations", "client_id_cipher", bank.Id, scope, SecretKind.InterCredentials, bank.Id, "client-id"),
             new("finance", "bank_integrations", "client_secret_cipher", bank.Id, scope, SecretKind.InterCredentials, bank.Id, "client-secret"),
             new("finance", "bank_integrations", "certificate_cipher", bank.Id, scope, SecretKind.InterCertificate, bank.Id, "certificado-pem"),
