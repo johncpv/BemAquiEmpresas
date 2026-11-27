@@ -36875,6 +36875,632 @@
         }
       }
     },
+    "/api/v1/sales/orders": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "ListSalesOrders",
+        "parameters": [
+          {
+            "name": "Step",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SalesOrderNextStep"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SalesOrderOrigin"
+            }
+          },
+          {
+            "name": "App",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "CustomerId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "From",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "StaleDays",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "IncludeCancelled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderListPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "CreateSalesOrder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesOrderInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/orders/summary": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "GetSalesOrderSummary",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderSummaryView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/orders/product-options": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "ListSalesOrderProductOptions",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SalesOrderProductOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/orders/customer-options": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "ListSalesOrderCustomerOptions",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SalesOrderCustomerOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/orders/payment-options": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "ListSalesOrderPaymentOptions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SalesOrderPaymentOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/orders/parameters": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "GetSalesOrderParameters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderParametersView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "UpdateSalesOrderParameters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesOrderParametersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/orders/{id}": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "GetSalesOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "UpdateSalesOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesOrderEditInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/orders/{id}/confirm": {
+      "post": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "ConfirmSalesOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesOrderConfirmInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/orders/{id}/charge": {
+      "get": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "GetSalesOrderChargeDraft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderChargeDraft"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "ChargeSalesOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesOrderChargeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/orders/{id}/payments": {
+      "post": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "RegisterSalesOrderPayment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesOrderPaymentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/orders/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "CancelSalesOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesOrderCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/orders/{id}/reopen": {
+      "post": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "ReopenSalesOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesOrderVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/orders/{id}/refund": {
+      "post": {
+        "tags": [
+          "Vendas"
+        ],
+        "operationId": "RefundSalesOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SalesOrderVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pos/sales/lookup": {
       "post": {
         "tags": [
@@ -58914,7 +59540,8 @@
           "PayrollForecast",
           "IncomingInvoice",
           "Sale",
-          "CardSettlement"
+          "CardSettlement",
+          "SalesOrder"
         ]
       },
       "DreAccountOption": {
@@ -78621,6 +79248,71 @@
           }
         }
       },
+      "OrderChargeView": {
+        "required": [
+          "receivableId",
+          "receivableNumber",
+          "status",
+          "amount",
+          "paidAmount",
+          "dueDate",
+          "settledOn",
+          "slip",
+          "refundedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "receivableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receivableNumber": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReceivableStatus"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "settledOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "slip": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/OrderSlipView"
+              }
+            ]
+          },
+          "refundedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
       "OrderCompletionPreview": {
         "required": [
           "orderId",
@@ -79496,6 +80188,100 @@
             "items": {
               "$ref": "#/components/schemas/OrderConsumedLotRow"
             }
+          }
+        }
+      },
+      "OrderSlipStatus": {
+        "enum": [
+          "Requested",
+          "Issued",
+          "Failed",
+          "Paid",
+          "PaidPendingReview",
+          "Cancelled",
+          "Expired"
+        ]
+      },
+      "OrderSlipView": {
+        "required": [
+          "id",
+          "status",
+          "amount",
+          "dueDate",
+          "digitableLine",
+          "pixCopyPaste",
+          "qrCode",
+          "hasPdf",
+          "failureReason",
+          "cancelPending",
+          "requestedAt",
+          "issuedAt",
+          "paidAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderSlipStatus"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "digitableLine": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pixCopyPaste": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "qrCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hasPdf": {
+            "type": "boolean"
+          },
+          "failureReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelPending": {
+            "type": "boolean"
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "issuedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "paidAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -83330,7 +84116,8 @@
           "CreditInstallments",
           "Voucher",
           "StoreCredit",
-          "OnAccount"
+          "OnAccount",
+          "BankSlip"
         ]
       },
       "PaymentNoticeActivation": {
@@ -106050,6 +106837,1007 @@
             "format": "date-time"
           }
         }
+      },
+      "SalesOrderCancelInput": {
+        "required": [
+          "reason",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "refundedOutside": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "SalesOrderChargeDraft": {
+        "required": [
+          "amount",
+          "dueDate",
+          "email",
+          "integrationReady",
+          "paymentMethodConfigured",
+          "customerBillable",
+          "missing",
+          "customerId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "integrationReady": {
+            "type": "boolean"
+          },
+          "paymentMethodConfigured": {
+            "type": "boolean"
+          },
+          "customerBillable": {
+            "type": "boolean"
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "SalesOrderChargeInput": {
+        "required": [
+          "dueDate",
+          "sendEmail",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "sendEmail": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SalesOrderConfirmInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "acceptNewPrices": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "SalesOrderCustomerOption": {
+        "required": [
+          "id",
+          "name",
+          "document"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SalesOrderDetail": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "origin",
+          "sourceAppName",
+          "externalId",
+          "appLabel",
+          "customerId",
+          "customerName",
+          "stockLocationId",
+          "stockLocationName",
+          "saleId",
+          "receivableId",
+          "subtotal",
+          "orderDiscount",
+          "discountTotal",
+          "total",
+          "holdUntil",
+          "note",
+          "cancelReason",
+          "createdAt",
+          "updatedAt",
+          "nextStep",
+          "problems",
+          "lines",
+          "charge",
+          "timeline",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SalesOrderStatus"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/SalesOrderOrigin"
+          },
+          "sourceAppName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "externalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "appLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "stockLocationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stockLocationName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "saleId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "receivableId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "subtotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "orderDiscount": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "holdUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nextStep": {
+            "$ref": "#/components/schemas/SalesOrderNextStep"
+          },
+          "problems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesOrderProblem"
+            }
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesOrderLineView"
+            }
+          },
+          "charge": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/OrderChargeView"
+              }
+            ]
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesOrderTimelineEntry"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "replayed": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "SalesOrderEditInput": {
+        "required": [
+          "customerId",
+          "lines",
+          "orderDiscount",
+          "stockLocationId",
+          "note",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesOrderLineInput"
+            }
+          },
+          "orderDiscount": {
+            "type": "number",
+            "format": "double"
+          },
+          "stockLocationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SalesOrderInput": {
+        "required": [
+          "customerId",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesOrderLineInput"
+            }
+          },
+          "orderDiscount": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "stockLocationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "storeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "externalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "SalesOrderLineInput": {
+        "required": [
+          "productId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "unitPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SalesOrderLineView": {
+        "required": [
+          "id",
+          "lineNumber",
+          "productId",
+          "itemId",
+          "description",
+          "unitCode",
+          "quantity",
+          "unitPrice",
+          "discount",
+          "total",
+          "reserved",
+          "priceListVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lineNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "reserved": {
+            "type": "number",
+            "format": "double"
+          },
+          "priceListVersion": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "SalesOrderListItem": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "origin",
+          "sourceAppName",
+          "customerId",
+          "customerName",
+          "total",
+          "createdAt",
+          "updatedAt",
+          "holdUntil",
+          "nextStep",
+          "problems",
+          "late"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SalesOrderStatus"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/SalesOrderOrigin"
+          },
+          "sourceAppName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "holdUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "nextStep": {
+            "$ref": "#/components/schemas/SalesOrderNextStep"
+          },
+          "problems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesOrderProblem"
+            }
+          },
+          "late": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SalesOrderListPage": {
+        "required": [
+          "items",
+          "total",
+          "counts"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesOrderListItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "counts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesOrderStepCount"
+            }
+          }
+        }
+      },
+      "SalesOrderMethodOption": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "SalesOrderNextStep": {
+        "enum": [
+          "Confirm",
+          "Charge",
+          "AwaitPayment",
+          "Pick",
+          "None"
+        ]
+      },
+      "SalesOrderOrigin": {
+        "enum": [
+          "Backoffice",
+          "Conecta",
+          "Marketplace",
+          "Api",
+          "Storefront"
+        ]
+      },
+      "SalesOrderParametersInput": {
+        "required": [
+          "discountLimitPct",
+          "appDiscountLimitPct",
+          "holdHours",
+          "appHoldHours",
+          "chargeDays",
+          "appChargeDays",
+          "appMaxLineQty",
+          "appMaxOrderQty",
+          "appUnpaidAlertCount",
+          "bankSlipPaymentMethodId"
+        ],
+        "type": "object",
+        "properties": {
+          "discountLimitPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "appDiscountLimitPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "holdHours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "appHoldHours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "chargeDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "appChargeDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "appMaxLineQty": {
+            "type": "number",
+            "format": "double"
+          },
+          "appMaxOrderQty": {
+            "type": "number",
+            "format": "double"
+          },
+          "appUnpaidAlertCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bankSlipPaymentMethodId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SalesOrderParametersView": {
+        "required": [
+          "discountLimitPct",
+          "appDiscountLimitPct",
+          "holdHours",
+          "appHoldHours",
+          "chargeDays",
+          "appChargeDays",
+          "appMaxLineQty",
+          "appMaxOrderQty",
+          "appUnpaidAlertCount",
+          "bankSlipPaymentMethodId",
+          "id",
+          "bankSlipMethods"
+        ],
+        "type": "object",
+        "properties": {
+          "discountLimitPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "appDiscountLimitPct": {
+            "type": "number",
+            "format": "double"
+          },
+          "holdHours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "appHoldHours": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "chargeDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "appChargeDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "appMaxLineQty": {
+            "type": "number",
+            "format": "double"
+          },
+          "appMaxOrderQty": {
+            "type": "number",
+            "format": "double"
+          },
+          "appUnpaidAlertCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bankSlipPaymentMethodId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "bankSlipMethods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesOrderMethodOption"
+            }
+          }
+        }
+      },
+      "SalesOrderPaymentInput": {
+        "required": [
+          "paymentMethodId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "paymentMethodId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "amountReceived": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "cardBrand": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nsu": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "SalesOrderPaymentOption": {
+        "required": [
+          "id",
+          "name",
+          "type",
+          "allowsChange"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "allowsChange": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SalesOrderProblem": {
+        "enum": [
+          "DiscountNeedsApproval",
+          "ReservationShort",
+          "PaymentInReview",
+          "PaidAfterCancel"
+        ]
+      },
+      "SalesOrderProductOption": {
+        "required": [
+          "productId",
+          "description",
+          "unitCode",
+          "price",
+          "available",
+          "gtin"
+        ],
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "unitCode": {
+            "type": "string"
+          },
+          "price": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "available": {
+            "type": "number",
+            "format": "double"
+          },
+          "gtin": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SalesOrderStatus": {
+        "enum": [
+          "Draft",
+          "Open",
+          "AwaitingPayment",
+          "Paid",
+          "Cancelled"
+        ]
+      },
+      "SalesOrderStepCount": {
+        "required": [
+          "step",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "step": {
+            "$ref": "#/components/schemas/SalesOrderNextStep"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SalesOrderSummaryView": {
+        "required": [
+          "toConfirm",
+          "toCharge",
+          "awaitingPayment",
+          "withProblem"
+        ],
+        "type": "object",
+        "properties": {
+          "toConfirm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "toCharge": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "awaitingPayment": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withProblem": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SalesOrderTimelineEntry": {
+        "required": [
+          "at",
+          "fromStatus",
+          "toStatus",
+          "action",
+          "actor",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fromStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SalesOrderStatus"
+              }
+            ]
+          },
+          "toStatus": {
+            "$ref": "#/components/schemas/SalesOrderStatus"
+          },
+          "action": {
+            "type": "string"
+          },
+          "actor": {
+            "type": "string"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SalesOrderVersionInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
       },
       "SaleStatus": {
         "enum": [

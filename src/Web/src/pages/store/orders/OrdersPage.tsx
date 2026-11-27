@@ -75,8 +75,8 @@ export function OrdersPage() {
   const canCreate = useCan('sales.create')
   const step = isNextStep(f.passo) ? (f.passo as SalesOrderNextStep) : undefined
   const query = useListSalesOrders({
-    step, origin: (f.origem as SalesOrderOrigin | undefined) ?? undefined, app: f.app, from: f.de, to: f.ate, staleDays: f.parados ? Number(f.parados) : undefined, q: f.q,
-    includeCancelled: f.passo === 'cancelados' ? true : undefined,
+    Step: step, Origin: (f.origem as SalesOrderOrigin | undefined) ?? undefined, App: f.app, From: f.de, To: f.ate, StaleDays: f.parados ? Number(f.parados) : undefined, Q: f.q,
+    IncludeCancelled: f.passo === 'cancelados' ? true : undefined,
   })
   const newButton = canCreate
     ? <Link to={'/app/loja/pedidos/novo' as never} className="inline-flex min-h-11 items-center gap-1 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground"><Plus aria-hidden="true" className="size-4" />Novo pedido</Link>
