@@ -27,7 +27,7 @@ export function RecordHistory({ entity, id }: { entity: string; id: string }) {
           <li key={entry.id} className="rounded-md border border-border bg-card p-3 text-sm">
             <p>
               <b className="font-semibold">{(entry.action === 'Exported' ? exportLabel(entry.changes) : null) ?? ACTIONS[entry.action] ?? entry.action}</b>
-              <span className="text-muted-foreground"> · {entry.userId ? 'usuário ' + entry.userId.slice(0, 8) : entry.origin ?? 'sistema'} · </span>
+              <span className="text-muted-foreground"> · {entry.origin ?? (entry.userId ? 'usuário ' + entry.userId.slice(0, 8) : 'sistema')} · </span>
               <time className="tabular-nums text-muted-foreground" dateTime={entry.at}>{formatDateTime(entry.at)}</time>
             </p>
             <ul className="mt-1 text-muted-foreground">

@@ -4309,6 +4309,246 @@
         }
       }
     },
+    "/api/v1/oauth/connect": {
+      "post": {
+        "tags": [
+          "Aplicativos conectados"
+        ],
+        "operationId": "StartConectaConnection",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectStart"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/authorize/inspect": {
+      "post": {
+        "tags": [
+          "Aplicativos conectados"
+        ],
+        "operationId": "InspectOAuthAuthorize",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthorizeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorizeInspection"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/authorize/consent": {
+      "post": {
+        "tags": [
+          "Aplicativos conectados"
+        ],
+        "operationId": "ConsentOAuthAuthorize",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthorizeConsentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorizeRedirect"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/authorize/deny": {
+      "post": {
+        "tags": [
+          "Aplicativos conectados"
+        ],
+        "operationId": "DenyOAuthAuthorize",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthorizeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorizeRedirect"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/token": {
+      "post": {
+        "tags": [
+          "Aplicativos conectados"
+        ],
+        "operationId": "OAuthToken",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthTokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/revoke": {
+      "post": {
+        "tags": [
+          "Aplicativos conectados"
+        ],
+        "operationId": "OAuthRevoke",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/connected-apps": {
+      "get": {
+        "tags": [
+          "Aplicativos conectados"
+        ],
+        "operationId": "ListConnectedApps",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConnectedAppListItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connected-apps/conecta": {
+      "get": {
+        "tags": [
+          "Aplicativos conectados"
+        ],
+        "operationId": "GetConectaConnection",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectedAppPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connected-apps/{id}/revoke": {
+      "post": {
+        "tags": [
+          "Aplicativos conectados"
+        ],
+        "operationId": "RevokeConnectedApp",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/integration/connection": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "GetIntegrationConnection",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationConnectionView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/parties": {
       "get": {
         "tags": [
@@ -47992,6 +48232,86 @@
           }
         }
       },
+      "AppConnectionView": {
+        "required": [
+          "id",
+          "status",
+          "reason",
+          "statusText",
+          "reasonText",
+          "accountLabel",
+          "grantorUserId",
+          "grantorName",
+          "connectedAt",
+          "reconsentDueAt",
+          "lastUsedAt",
+          "revokedAt",
+          "scopes"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "statusText": {
+            "type": "string"
+          },
+          "reasonText": {
+            "type": "string"
+          },
+          "accountLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "grantorUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "grantorName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "connectedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reconsentDueAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUsedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "revokedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppScopeView"
+            }
+          }
+        }
+      },
       "ApplyStockShortfallInput": {
         "required": [
           "itemId",
@@ -48547,6 +48867,21 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          }
+        }
+      },
+      "AppScopeView": {
+        "required": [
+          "scope",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
           }
         }
       },
@@ -50340,6 +50675,172 @@
             "type": "string"
           },
           "origin": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AuthorizeConsentInput": {
+        "required": [
+          "request",
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/AuthorizeRequest"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AuthorizeInspection": {
+        "required": [
+          "outcome",
+          "errorCode",
+          "message",
+          "redirectTo",
+          "appName",
+          "accountLabel",
+          "tenantName",
+          "granted",
+          "notHeld"
+        ],
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "redirectTo": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "appName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "tenantName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "granted": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppScopeView"
+            }
+          },
+          "notHeld": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppScopeView"
+            }
+          }
+        }
+      },
+      "AuthorizeRedirect": {
+        "required": [
+          "redirectTo"
+        ],
+        "type": "object",
+        "properties": {
+          "redirectTo": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthorizeRequest": {
+        "required": [
+          "responseType",
+          "clientId",
+          "redirectUri",
+          "scope",
+          "state",
+          "codeChallenge",
+          "codeChallengeMethod",
+          "intent",
+          "accountLabel"
+        ],
+        "type": "object",
+        "properties": {
+          "responseType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "clientId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "redirectUri": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "scope": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "codeChallenge": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "codeChallengeMethod": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "intent": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountLabel": {
             "type": [
               "null",
               "string"
@@ -57875,6 +58376,80 @@
           "ephemeral": {
             "type": "boolean",
             "default": false
+          }
+        }
+      },
+      "ConnectedAppListItem": {
+        "required": [
+          "clientId",
+          "name",
+          "connection"
+        ],
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "connection": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AppConnectionView"
+              }
+            ]
+          }
+        }
+      },
+      "ConnectedAppPage": {
+        "required": [
+          "clientId",
+          "name",
+          "configured",
+          "allowedScopes",
+          "connection"
+        ],
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "allowedScopes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppScopeView"
+            }
+          },
+          "connection": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AppConnectionView"
+              }
+            ]
+          }
+        }
+      },
+      "ConnectStart": {
+        "required": [
+          "redirectUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "redirectUrl": {
+            "type": "string"
           }
         }
       },
@@ -69095,6 +69670,50 @@
           }
         }
       },
+      "IntegrationConnectionView": {
+        "required": [
+          "connection_id",
+          "app",
+          "status",
+          "scopes",
+          "account_label",
+          "connected_at",
+          "reconsent_due_at"
+        ],
+        "type": "object",
+        "properties": {
+          "connection_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "app": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "account_label": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "connected_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reconsent_due_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "InvalidateNumbersRequest": {
         "required": [
           "series",
@@ -78452,6 +79071,64 @@
           "invoiceId": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "OAuthError": {
+        "required": [
+          "error",
+          "error_description"
+        ],
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "error_description": {
+            "type": "string"
+          },
+          "isClientError": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OAuthTokenResponse": {
+        "required": [
+          "access_token",
+          "token_type",
+          "expires_in",
+          "refresh_token",
+          "scope",
+          "connection_id",
+          "webhook_secret"
+        ],
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string"
+          },
+          "expires_in": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "refresh_token": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "connection_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "webhook_secret": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -120060,6 +120737,12 @@
     },
     {
       "name": "Painel da TV"
+    },
+    {
+      "name": "Aplicativos conectados"
+    },
+    {
+      "name": "Integra\u00E7\u00E3o (aplicativos)"
     },
     {
       "name": "Terceiros"

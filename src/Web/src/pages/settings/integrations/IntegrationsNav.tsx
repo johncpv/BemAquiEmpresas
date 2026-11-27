@@ -11,6 +11,7 @@ export function IntegrationsNav() {
   const { all } = useNavigation()
   const finance = all.find((m) => m.code === 'finance')
   const fiscal = all.find((m) => m.code === 'fiscal')
+  const conecta = all.find((m) => m.code === 'conecta')
   return (
     <nav aria-label="Integrações" className="mb-4 flex flex-wrap gap-2 text-sm">
       <Link to="/app/configuracoes/integracoes/eventos" activeProps={{ 'aria-current': 'page' }} className={linkClass}>
@@ -25,6 +26,17 @@ export function IntegrationsNav() {
         <Link to="/app/configuracoes/integracoes/emissor-fiscal" activeProps={{ 'aria-current': 'page' }} className={linkClass}>
           Emissor fiscal
         </Link>
+      ) : null}
+      {/* INT-01 CA 2: com o módulo conecta liberado; fora de todos os perfis e sem exceção, fica oculto. */}
+      {conecta && conecta.released && !conecta.hidden ? (
+        <>
+          <Link to="/app/configuracoes/integracoes/conecta" activeProps={{ 'aria-current': 'page' }} className={linkClass}>
+            Conecta
+          </Link>
+          <Link to="/app/configuracoes/integracoes/aplicativos" activeProps={{ 'aria-current': 'page' }} className={linkClass}>
+            Aplicativos conectados
+          </Link>
+        </>
       ) : null}
     </nav>
   )

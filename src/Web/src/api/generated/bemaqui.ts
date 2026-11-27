@@ -102,6 +102,10 @@ import type {
   AttachPayrollParallelTermBody,
   AttachTimeAdjustmentDocumentBody,
   AttachmentDto,
+  AuthorizeConsentInput,
+  AuthorizeInspection,
+  AuthorizeRedirect,
+  AuthorizeRequest,
   BacklogCard,
   BalancesCard,
   BankAccountDetail,
@@ -201,6 +205,9 @@ import type {
   ConfirmRetentionRuleInput,
   ConfirmTwoFactorRequest,
   ConfirmWithChallengeRequest,
+  ConnectStart,
+  ConnectedAppListItem,
+  ConnectedAppPage,
   ContactInput,
   ContractCancelInput,
   ContractDetail,
@@ -470,6 +477,7 @@ import type {
   InstallationVersionInput,
   InstallerOption,
   InstallmentDue,
+  IntegrationConnectionView,
   InvalidateNumbersRequest,
   InvalidationResultView,
   InventoryCountDetail,
@@ -695,6 +703,8 @@ import type {
   NumberFormatInput,
   NumberFormatRow,
   NumberGapList,
+  OAuthError,
+  OAuthTokenResponse,
   OfxContingencyInput,
   OfxContingencyView,
   OpenInventoryCountInput,
@@ -13937,6 +13947,809 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getConfirmRetentionRuleMutationOptions(options), queryClient);
     }
+
+export const getStartConectaConnectionUrl = () => {
+
+
+
+
+  return `/api/v1/oauth/connect`
+}
+
+export const startConectaConnection = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ConnectStart> => {
+
+  return apiFetch<ConnectStart>(getStartConectaConnectionUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getStartConectaConnectionMutationKey = () => ['startConectaConnection'] as const;
+
+export const getStartConectaConnectionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startConectaConnection>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startConectaConnection>>, TError,void, TContext> => {
+
+const mutationKey = getStartConectaConnectionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startConectaConnection>>, void> = () => {
+
+
+          return  startConectaConnection(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartConectaConnectionMutationResult = NonNullable<Awaited<ReturnType<typeof startConectaConnection>>>
+
+    export type StartConectaConnectionMutationError = unknown
+
+
+    export const useStartConectaConnection = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startConectaConnection>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startConectaConnection>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getStartConectaConnectionMutationOptions(options), queryClient);
+    }
+
+export const getInspectOAuthAuthorizeUrl = () => {
+
+
+
+
+  return `/api/v1/oauth/authorize/inspect`
+}
+
+export const inspectOAuthAuthorize = async (authorizeRequest: AuthorizeRequest, options?: Parameters<typeof apiFetch>[1]): Promise<AuthorizeInspection> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AuthorizeInspection>(getInspectOAuthAuthorizeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(authorizeRequest)
+  }
+);}
+
+
+
+
+
+export const getInspectOAuthAuthorizeMutationKey = () => ['inspectOAuthAuthorize'] as const;
+
+export const getInspectOAuthAuthorizeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inspectOAuthAuthorize>>, TError,InspectOAuthAuthorizeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inspectOAuthAuthorize>>, TError,InspectOAuthAuthorizeMutationVariables, TContext> => {
+
+const mutationKey = getInspectOAuthAuthorizeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inspectOAuthAuthorize>>, InspectOAuthAuthorizeMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  inspectOAuthAuthorize(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InspectOAuthAuthorizeMutationResult = NonNullable<Awaited<ReturnType<typeof inspectOAuthAuthorize>>>
+    export type InspectOAuthAuthorizeMutationBody = AuthorizeRequest
+    export type InspectOAuthAuthorizeMutationError = unknown
+    export type InspectOAuthAuthorizeMutationVariables = {data: AuthorizeRequest}
+
+    export const useInspectOAuthAuthorize = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inspectOAuthAuthorize>>, TError,InspectOAuthAuthorizeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof inspectOAuthAuthorize>>,
+        TError,
+        InspectOAuthAuthorizeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInspectOAuthAuthorizeMutationOptions(options), queryClient);
+    }
+
+export const getConsentOAuthAuthorizeUrl = () => {
+
+
+
+
+  return `/api/v1/oauth/authorize/consent`
+}
+
+export const consentOAuthAuthorize = async (authorizeConsentInput: AuthorizeConsentInput, options?: Parameters<typeof apiFetch>[1]): Promise<AuthorizeRedirect> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AuthorizeRedirect>(getConsentOAuthAuthorizeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(authorizeConsentInput)
+  }
+);}
+
+
+
+
+
+export const getConsentOAuthAuthorizeMutationKey = () => ['consentOAuthAuthorize'] as const;
+
+export const getConsentOAuthAuthorizeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof consentOAuthAuthorize>>, TError,ConsentOAuthAuthorizeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof consentOAuthAuthorize>>, TError,ConsentOAuthAuthorizeMutationVariables, TContext> => {
+
+const mutationKey = getConsentOAuthAuthorizeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof consentOAuthAuthorize>>, ConsentOAuthAuthorizeMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  consentOAuthAuthorize(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConsentOAuthAuthorizeMutationResult = NonNullable<Awaited<ReturnType<typeof consentOAuthAuthorize>>>
+    export type ConsentOAuthAuthorizeMutationBody = AuthorizeConsentInput
+    export type ConsentOAuthAuthorizeMutationError = unknown
+    export type ConsentOAuthAuthorizeMutationVariables = {data: AuthorizeConsentInput}
+
+    export const useConsentOAuthAuthorize = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof consentOAuthAuthorize>>, TError,ConsentOAuthAuthorizeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof consentOAuthAuthorize>>,
+        TError,
+        ConsentOAuthAuthorizeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConsentOAuthAuthorizeMutationOptions(options), queryClient);
+    }
+
+export const getDenyOAuthAuthorizeUrl = () => {
+
+
+
+
+  return `/api/v1/oauth/authorize/deny`
+}
+
+export const denyOAuthAuthorize = async (authorizeRequest: AuthorizeRequest, options?: Parameters<typeof apiFetch>[1]): Promise<AuthorizeRedirect> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AuthorizeRedirect>(getDenyOAuthAuthorizeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(authorizeRequest)
+  }
+);}
+
+
+
+
+
+export const getDenyOAuthAuthorizeMutationKey = () => ['denyOAuthAuthorize'] as const;
+
+export const getDenyOAuthAuthorizeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof denyOAuthAuthorize>>, TError,DenyOAuthAuthorizeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof denyOAuthAuthorize>>, TError,DenyOAuthAuthorizeMutationVariables, TContext> => {
+
+const mutationKey = getDenyOAuthAuthorizeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof denyOAuthAuthorize>>, DenyOAuthAuthorizeMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  denyOAuthAuthorize(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DenyOAuthAuthorizeMutationResult = NonNullable<Awaited<ReturnType<typeof denyOAuthAuthorize>>>
+    export type DenyOAuthAuthorizeMutationBody = AuthorizeRequest
+    export type DenyOAuthAuthorizeMutationError = unknown
+    export type DenyOAuthAuthorizeMutationVariables = {data: AuthorizeRequest}
+
+    export const useDenyOAuthAuthorize = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof denyOAuthAuthorize>>, TError,DenyOAuthAuthorizeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof denyOAuthAuthorize>>,
+        TError,
+        DenyOAuthAuthorizeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDenyOAuthAuthorizeMutationOptions(options), queryClient);
+    }
+
+export const getOAuthTokenUrl = () => {
+
+
+
+
+  return `/api/v1/oauth/token`
+}
+
+export const oAuthToken = async ( options?: Parameters<typeof apiFetch>[1]): Promise<OAuthTokenResponse> => {
+
+  return apiFetch<OAuthTokenResponse>(getOAuthTokenUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getOAuthTokenMutationKey = () => ['oAuthToken'] as const;
+
+export const getOAuthTokenMutationOptions = <TError = OAuthError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof oAuthToken>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof oAuthToken>>, TError,void, TContext> => {
+
+const mutationKey = getOAuthTokenMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof oAuthToken>>, void> = () => {
+
+
+          return  oAuthToken(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OAuthTokenMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthToken>>>
+
+    export type OAuthTokenMutationError = OAuthError
+
+
+    export const useOAuthToken = <TError = OAuthError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof oAuthToken>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof oAuthToken>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getOAuthTokenMutationOptions(options), queryClient);
+    }
+
+export const getOAuthRevokeUrl = () => {
+
+
+
+
+  return `/api/v1/oauth/revoke`
+}
+
+export const oAuthRevoke = async ( options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getOAuthRevokeUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getOAuthRevokeMutationKey = () => ['oAuthRevoke'] as const;
+
+export const getOAuthRevokeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof oAuthRevoke>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof oAuthRevoke>>, TError,void, TContext> => {
+
+const mutationKey = getOAuthRevokeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof oAuthRevoke>>, void> = () => {
+
+
+          return  oAuthRevoke(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OAuthRevokeMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthRevoke>>>
+
+    export type OAuthRevokeMutationError = unknown
+
+
+    export const useOAuthRevoke = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof oAuthRevoke>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof oAuthRevoke>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getOAuthRevokeMutationOptions(options), queryClient);
+    }
+
+export const getListConnectedAppsUrl = () => {
+
+
+
+
+  return `/api/v1/connected-apps`
+}
+
+export const listConnectedApps = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ConnectedAppListItem[]> => {
+
+  return apiFetch<ConnectedAppListItem[]>(getListConnectedAppsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListConnectedAppsQueryKey = () => {
+    return [
+    `/api/v1/connected-apps`
+    ] as const;
+    }
+
+
+export const getListConnectedAppsQueryOptions = <TData = Awaited<ReturnType<typeof listConnectedApps>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConnectedApps>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListConnectedAppsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listConnectedApps>>> = ({ signal }) => listConnectedApps({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listConnectedApps>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListConnectedAppsQueryResult = NonNullable<Awaited<ReturnType<typeof listConnectedApps>>>
+export type ListConnectedAppsQueryError = unknown
+
+
+export function useListConnectedApps<TData = Awaited<ReturnType<typeof listConnectedApps>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConnectedApps>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listConnectedApps>>,
+          TError,
+          Awaited<ReturnType<typeof listConnectedApps>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListConnectedApps<TData = Awaited<ReturnType<typeof listConnectedApps>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConnectedApps>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listConnectedApps>>,
+          TError,
+          Awaited<ReturnType<typeof listConnectedApps>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListConnectedApps<TData = Awaited<ReturnType<typeof listConnectedApps>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConnectedApps>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListConnectedApps<TData = Awaited<ReturnType<typeof listConnectedApps>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listConnectedApps>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListConnectedAppsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetConectaConnectionUrl = () => {
+
+
+
+
+  return `/api/v1/connected-apps/conecta`
+}
+
+export const getConectaConnection = async ( options?: Parameters<typeof apiFetch>[1]): Promise<ConnectedAppPage> => {
+
+  return apiFetch<ConnectedAppPage>(getGetConectaConnectionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetConectaConnectionQueryKey = () => {
+    return [
+    `/api/v1/connected-apps/conecta`
+    ] as const;
+    }
+
+
+export const getGetConectaConnectionQueryOptions = <TData = Awaited<ReturnType<typeof getConectaConnection>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConectaConnection>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetConectaConnectionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getConectaConnection>>> = ({ signal }) => getConectaConnection({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getConectaConnection>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetConectaConnectionQueryResult = NonNullable<Awaited<ReturnType<typeof getConectaConnection>>>
+export type GetConectaConnectionQueryError = unknown
+
+
+export function useGetConectaConnection<TData = Awaited<ReturnType<typeof getConectaConnection>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConectaConnection>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getConectaConnection>>,
+          TError,
+          Awaited<ReturnType<typeof getConectaConnection>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetConectaConnection<TData = Awaited<ReturnType<typeof getConectaConnection>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConectaConnection>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getConectaConnection>>,
+          TError,
+          Awaited<ReturnType<typeof getConectaConnection>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetConectaConnection<TData = Awaited<ReturnType<typeof getConectaConnection>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConectaConnection>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetConectaConnection<TData = Awaited<ReturnType<typeof getConectaConnection>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConectaConnection>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetConectaConnectionQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRevokeConnectedAppUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/connected-apps/${id}/revoke`
+}
+
+export const revokeConnectedApp = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getRevokeConnectedAppUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRevokeConnectedAppMutationKey = () => ['revokeConnectedApp'] as const;
+
+export const getRevokeConnectedAppMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeConnectedApp>>, TError,RevokeConnectedAppMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeConnectedApp>>, TError,RevokeConnectedAppMutationVariables, TContext> => {
+
+const mutationKey = getRevokeConnectedAppMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeConnectedApp>>, RevokeConnectedAppMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  revokeConnectedApp(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeConnectedAppMutationResult = NonNullable<Awaited<ReturnType<typeof revokeConnectedApp>>>
+
+    export type RevokeConnectedAppMutationError = unknown
+    export type RevokeConnectedAppMutationVariables = {id: string}
+
+    export const useRevokeConnectedApp = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeConnectedApp>>, TError,RevokeConnectedAppMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof revokeConnectedApp>>,
+        TError,
+        RevokeConnectedAppMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRevokeConnectedAppMutationOptions(options), queryClient);
+    }
+
+export const getGetIntegrationConnectionUrl = () => {
+
+
+
+
+  return `/api/v1/integration/connection`
+}
+
+export const getIntegrationConnection = async ( options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationConnectionView> => {
+
+  return apiFetch<IntegrationConnectionView>(getGetIntegrationConnectionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetIntegrationConnectionQueryKey = () => {
+    return [
+    `/api/v1/integration/connection`
+    ] as const;
+    }
+
+
+export const getGetIntegrationConnectionQueryOptions = <TData = Awaited<ReturnType<typeof getIntegrationConnection>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrationConnection>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetIntegrationConnectionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getIntegrationConnection>>> = ({ signal }) => getIntegrationConnection({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getIntegrationConnection>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetIntegrationConnectionQueryResult = NonNullable<Awaited<ReturnType<typeof getIntegrationConnection>>>
+export type GetIntegrationConnectionQueryError = unknown
+
+
+export function useGetIntegrationConnection<TData = Awaited<ReturnType<typeof getIntegrationConnection>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrationConnection>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getIntegrationConnection>>,
+          TError,
+          Awaited<ReturnType<typeof getIntegrationConnection>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetIntegrationConnection<TData = Awaited<ReturnType<typeof getIntegrationConnection>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrationConnection>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getIntegrationConnection>>,
+          TError,
+          Awaited<ReturnType<typeof getIntegrationConnection>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetIntegrationConnection<TData = Awaited<ReturnType<typeof getIntegrationConnection>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrationConnection>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetIntegrationConnection<TData = Awaited<ReturnType<typeof getIntegrationConnection>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrationConnection>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetIntegrationConnectionQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListPartiesUrl = (params?: ListPartiesParams,) => {
   const normalizedParams = new URLSearchParams();

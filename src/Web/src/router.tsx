@@ -22,6 +22,9 @@ import { ImportRunPage } from '@/pages/settings/import/ImportRunPage'
 import { IntegrationEventsPage } from '@/pages/settings/integrations/IntegrationEventsPage'
 import { InterAccountPage } from '@/pages/settings/integrations/InterAccountPage'
 import { InterAccountsPage } from '@/pages/settings/integrations/InterAccountsPage'
+import { ConectaPage } from '@/pages/settings/integrations/ConectaPage'
+import { ConnectedAppsPage } from '@/pages/settings/integrations/ConnectedAppsPage'
+import { OAuthAuthorizePage } from '@/auth/OAuthAuthorizePage'
 import { FiscalIntegrationPage } from '@/pages/settings/integrations/FiscalIntegrationPage'
 import { FiscalCertificatePage } from '@/pages/settings/fiscal/FiscalCertificatePage'
 import { FiscalSettingsPage } from '@/pages/settings/fiscal/FiscalSettingsPage'
@@ -228,6 +231,15 @@ const requiredSetupRoute = createRoute({ getParentRoute: () => rootRoute, path: 
 const forgotRoute = createRoute({ getParentRoute: () => rootRoute, path: '/esqueci-senha', component: ForgotPasswordPage, validateSearch: (s: Record<string, unknown>): { email?: string } => ({ email: text(s.email) }) })
 const resetRoute = createRoute({ getParentRoute: () => rootRoute, path: '/redefinir-senha', component: ResetPasswordPage, validateSearch: (s: Record<string, unknown>): { token?: string } => ({ token: text(s.token) }) })
 const inviteRoute = createRoute({ getParentRoute: () => rootRoute, path: '/convite', component: InvitePage, validateSearch: (s: Record<string, unknown>): { token?: string } => ({ token: text(s.token) }) })
+// Autorizar um aplicativo conectado (INT-01): tela dedicada como a do login, só com sessão; sem ela, vai ao login e volta à mesma tela.
+const oauthAuthorizeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/oauth/authorize',
+  component: OAuthAuthorizePage,
+  beforeLoad: async ({ location }) => {
+    if (!(await ensureSession())) throw redirect({ to: '/entrar', search: { volta: location.href } })
+  },
+})
 
 // Backoffice (/app): exige sessão; sem ela, vai ao login guardando a rota (FND-04).
 const appRoute = createRoute({
@@ -267,6 +279,9 @@ const aiSettingsRoute = createRoute({ getParentRoute: () => appRoute, staticData
 const integrationsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes', beforeLoad: () => { throw redirect({ to: '/app/configuracoes/integracoes/eventos' }) } })
 const integrationEventsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes/eventos', component: gated('settings', IntegrationEventsPage) })
 // Banco Inter (BNK-01a): contas 077 e o detalhe da integração; ?acao=trocar abre direto em "Trocar credenciais" (alerta de vencimento).
+// INT-01: Conecta e Aplicativos conectados (módulo conecta, fora do menu).
+const conectaRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes/conecta', component: gated('settings', ConectaPage) })
+const connectedAppsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes/aplicativos', component: gated('settings', ConnectedAppsPage) })
 const interAccountsRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes/inter', component: gated('settings', InterAccountsPage) })
 const interAccountRoute = createRoute({ getParentRoute: () => appRoute, path: 'configuracoes/integracoes/inter/$contaId', component: gated('settings', InterAccountPage), validateSearch: (s: Record<string, unknown>): { acao?: string } => ({ acao: text(s.acao) }) })
 // Configurações → Cobrança (BNK-01b): multa, juros, desconto, envio do boleto e a regra do vencido.
@@ -602,9 +617,10 @@ export const routeTree = rootRoute.addChildren([
   forgotRoute,
   resetRoute,
   inviteRoute,
+  oauthAuthorizeRoute,
   tagRoute,
   appRoute.addChildren([appIndexRoute, catalogRootRoute, productsRoute, newProductRoute, importProductsRoute, productRoute, productCategoriesRoute, storeRootRoute, storesRoute, nonFiscalSalesRoute, supervisorApprovalsRoute, saleReturnsRoute, posPendingRoute, cashSessionsRoute, salesListRoute, saleDetailRoute, ordersListRoute, newOrderRoute, orderDetailRoute, assetsRootRoute, assetsRoute, newAssetRoute, assetRoute, assetSitesRoute, maintenanceRoute, maintenanceOrderRoute, maintenanceCostRoute, dashboardRoute, accountRoute, accountSecurityRoute, accessRoute, usersRoute, groupsRoute, settingsRoute, companyRoute, numberingRoute, parametersRoute, securityRoute, projectResultsRoute, projectResultRoute, myPayslipsRoute, myTimeClockRoute,
-    aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, interAccountsRoute, interAccountRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, billingSettingsRoute,
+    aiSettingsRoute, importRunsRoute, importRunRoute, integrationsRoute, integrationEventsRoute, conectaRoute, connectedAppsRoute, interAccountsRoute, interAccountRoute, partiesRootRoute, partiesRoute, newPartyRoute, partyRoute, billingSettingsRoute,
     inventoryRootRoute, balancesRoute, movementsRoute, movementRoute, stockShortfallsRoute, manualPostingsRoute, manualPostingRoute, shortagesRoute, requisitionsRoute, requisitionRoute, locationsRoute, itemsRoute, newItemRoute, itemRoute, unitsRoute, categoriesRoute, warrantyRoute, engineeringRootRoute, routingsRoute, newRoutingRoute, routingRoute, bomsRoute, productionRootRoute, fabricationOrdersRoute, fabricationOrderRoute, kanbanRoute, openLaborRoute, operatorRoute, workCentersRoute, calendarRoute, installationsRoute, installationRoute, installationTemplateRoute, qualityRoute, qualityStepRoute, nonConformitiesRoute, nonConformityRoute, purchasingRootRoute, purchaseRequestsRoute, newPurchaseRequestRoute, purchaseRequestRoute, purchaseOrdersRoute, newPurchaseOrderRoute, purchaseOrderRoute, editPurchaseOrderRoute, shipmentsRoute, newShipmentRoute, shipmentRoute, traceabilityRoute, adjustmentsRoute, adjustmentRoute, goodsReceiptsRoute, goodsReceiptRoute, newGoodsReceiptRoute, rfqsRoute, newRfqRoute, rfqRoute, inventoryCountsRoute, inventoryCountRoute, capacityRoute, planningRoute, supervisorRoute,
     financeRootRoute, bankAccountsRoute, paymentTermsRoute, newPaymentTermRoute, paymentTermRoute, paymentMethodsRoute, newPaymentMethodRoute, paymentMethodRoute, chartRoute, costCentersRoute, receivablesRoute, newReceivableRoute, discountsReportRoute, receivableRoute, payablesRoute, newPayableRoute, payableRoute, recurringRoute, approvalRulesRoute, openingRoute, cashFlowRoute, dreRoute, agingRoute, paymentOrdersRoute, newPaymentOrderRoute, paymentOrderRoute, statementRoute, reconciliationRoute, quotesRoute, quoteFunnelRoute, quoteRoute, quoteCompareRoute, contractsRoute, contractRoute, amendmentRoute, projectsRoute, projectMarginsRoute, projectRoute, hrRootRoute, employeesRoute, newEmployeeRoute, employeeRoute, positionsRoute, schedulesRoute, unionsRoute, hrTimeRoute, timeEntriesRoute, timeAdjustmentsRoute, timesheetsRoute, timesheetRoute, kioskScreensRoute, kioskPreviewRoute, payrollRunsRoute, payrollRunRoute, payrollItemsRoute, vacationsRoute, payrollTaxTablesRoute, fiscalIntegrationRoute, fiscalSettingsRoute, fiscalCertificateRoute, privacyRequestsRoute, privacyRequestRoute, privacyRetentionRoute, fiscalRootRoute, taxRulesRoute, newTaxRuleRoute, taxRuleRoute, outgoingInvoicesRoute, outgoingInvoiceRoute, nfseRoute, incomingInvoicesRoute, importIncomingRoute, importPdfRoute, incomingReadingRoute, incomingInvoiceRoute, invoiceReceiptRoute, accountantExportRoute, payrollParallelRoute, ...devRoutes, moduleRoute, moduleTabRoute]),
   platformLoginRoute,

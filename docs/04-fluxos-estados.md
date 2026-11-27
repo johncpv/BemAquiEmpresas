@@ -203,6 +203,12 @@ Regra dura: **nenhum pagamento é baixado sem OP aprovada**. Exceção: tarifas,
 - Eventos no outbox, sem dado pessoal: `OrderCreated`, `OrderConfirmed`, `OrderPaid`, `OrderCancelled`. Consumidos: `ReceivableSettled` (vira pago uma vez só; cancelado, "Pago depois de cancelado") e `BillingSlipCancelled` (volta a aberto).
 - A venda do pedido pago por boleto leva o `receivable_id` no pagamento: não gera outro recebível e a receita entra só pela venda.
 
+### Conexão de aplicativo (INT-01, ADR 0053)
+`Active → Suspended (autorizador desativado ou 12 meses do consentimento) → só sai por novo consentimento (conexão nova) ou Revoked`; `Active|Suspended → Revoked` (Desconectar no ERP, revogação pelo aplicativo, reuso de token de renovação ou de código, substituição por novo consentimento, módulo `conecta` desligado há mais de 30 dias). Revogada é final.
+- No máximo uma conexão não revogada por aplicativo e tenant: na troca do código, na mesma transação, a anterior vai a `Revoked` ("Substituída por nova conexão em dd/mm por Fulano"), nasce a nova e a inscrição de avisos (INT-02).
+- Eventos no outbox: `AppConnected`, `AppConnectionRevoked`, `AppConnectionSuspended`. Os consumidores (INT-02) só encerram ou suspendem.
+- Job diário `connected-apps-daily` (por tenant): aviso aos Proprietários 30 dias antes dos 12 meses, suspensão no dia, revogação com o módulo desligado há 30 dias e limpeza de tokens, códigos e intenções com mais de 30 dias.
+
 ### Boleto (Inter)
 `Requested → Issued → Paid (webhook com reconsulta por mTLS, ou conferência diária) | PaidPendingReview (pagamento com diferença: conferência humana) | Cancelled | Expired` (BNK-01b, BNK-02, ADR 0032). O webhook nunca baixa pelo corpo; estorno de baixa feita pelo banco e estorno de pagamento da OP exigem `finance.approve` (D6, P-20). Multa, juros e desconto vêm de Configurações → Cobrança; acima do limite da D8, `finance.approve`.
 ```

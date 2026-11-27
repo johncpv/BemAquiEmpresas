@@ -63,6 +63,8 @@ export interface ModuleUi {
   tabs?: readonly Tab[]
   /** Tela dedicada fora do /app (ex.: o app do operador em /fab, PRD-03a CA 27): o menu e a busca levam direto a ela. */
   href?: string
+  /** Fora do menu, da busca e da ajuda do menu (ex.: Conecta, INT-01: a entrada fica em Configurações → Integrações). */
+  menu?: false
 }
 
 /**
@@ -135,6 +137,8 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   hr: { slug: 'rh', icon: Users, tabs: [{ slug: 'funcionarios', label: 'Funcionários', icon: Users }, { slug: 'cargos', label: 'Cargos', icon: Award }, { slug: 'jornadas', label: 'Jornadas', icon: CalendarClock }, { slug: 'sindicatos', label: 'Sindicatos', icon: Building2 }, { slug: 'ponto', label: 'Ponto', icon: Clock }, { slug: 'ferias', label: 'Férias', icon: TreePalm }, { slug: 'folha', label: 'Folha', icon: FileSpreadsheet }, { slug: 'rubricas', label: 'Rubricas', icon: Tags }, { slug: 'tabelas-folha', label: 'Tabelas da folha', icon: Table }, { slug: 'conferencia-folha', label: 'Conferência da folha', icon: ClipboardCheck }, { slug: 'exportar-contadora', label: 'Exportar para a contadora', icon: FileOutput, action: 'view_sensitive' }] },
   kiosk: { slug: 'painel-tv', icon: MonitorPlay },
   shopfloor: { slug: 'operador', icon: HardHat, href: '/fab' },
+  // INT-01: o Conecta não entra no menu; a página fica em Configurações → Integrações → Conecta.
+  conecta: { slug: 'conecta', icon: Plug, href: '/app/configuracoes/integracoes/conecta', menu: false },
   identity: { slug: 'acessos', icon: ShieldCheck, tabs: [{ slug: 'usuarios', label: 'Usuários', icon: UserCog }, { slug: 'grupos', label: 'Grupos', icon: UsersRound }] },
   settings: { slug: 'configuracoes', icon: Settings, tabs: [{ slug: 'empresa', label: 'Empresa', icon: Building }, { slug: 'numeracao', label: 'Numeração', icon: Hash }, { slug: 'parametros', label: 'Parâmetros', icon: SlidersHorizontal }, { slug: 'seguranca', label: 'Segurança', icon: Lock }, { slug: 'ia', label: 'Inteligência artificial', icon: Sparkles }, { slug: 'importacao', label: 'Importação do Dolibarr', icon: Import }, { slug: 'integracoes', label: 'Integrações', icon: Plug, requiresAny: ['finance.view', 'fiscal.view'] }, { slug: 'cobranca', label: 'Cobrança', icon: Coins, requiresAny: ['finance.view', 'settings.view'] }, { slug: 'fiscal', label: 'Fiscal', icon: Receipt, requiresAny: ['fiscal.view', 'settings.view'] }, { slug: 'privacidade', label: 'Privacidade (LGPD)', icon: EyeOff, ownerOnly: true }] },
 }
@@ -159,6 +163,8 @@ export interface NavModule extends PermissionModule {
   path: string
   icon: LucideIcon
   tabs: readonly Tab[]
+  /** Fora do menu e da busca (ModuleUi.menu = false). */
+  inMenu?: false
   /** Não liberado no tenant: aparece com cadeado e leva à tela ModuleNotReleased (FND-06d CA 1, 2). */
   locked: boolean
   count?: number
@@ -190,14 +196,14 @@ const toNav = (m: PermissionModule, modules: readonly PermissionModule[], isOwne
   )
   const first = (t: Tab) => !!t.firstFor?.some((a) => m.actions.includes(a))
   const tabs = [...allowed.filter(first), ...allowed.filter((t) => !first(t))]
-  return ui ? { ...m, slug: ui.slug, aliases: ui.aliases ?? [], path: ui.href ?? `/app/${ui.slug}`, icon: ui.icon, tabs, locked: !m.released } : null
+  return ui ? { ...m, slug: ui.slug, aliases: ui.aliases ?? [], path: ui.href ?? `/app/${ui.slug}`, icon: ui.icon, tabs, locked: !m.released, ...(ui.menu === false ? { inMenu: false as const } : {}) } : null
 }
 
 /**
  * Visível no menu: liberado com acesso, ou não liberado e no perfil (com cadeado). Liberado sem acesso fica oculto (CA 3); fora do
  * perfil também (PERF-01 CA 7, ADR 0046). A exceção manual que libera um módulo fora do perfil chega como liberado e aparece (CA 10).
  */
-export const isVisible = (m: NavModule) => !m.hidden && (m.locked || m.enabled)
+export const isVisible = (m: NavModule) => m.inMenu !== false && !m.hidden && (m.locked || m.enabled)
 
 /**
  * profiles: perfis ativos do tenant, para os recursos por perfil (adendo da PAG-01). areaLabels: área (ModuleAreas) → rótulo do
