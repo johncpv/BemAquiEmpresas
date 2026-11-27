@@ -732,6 +732,25 @@ Decisão do PO de 25/11/2026 ([ADR 0051](adr/0051-ambiente-saas-multitenant.md))
 
 ---
 
+## Pós-go-live: execução depois do contrato (antes da F2 do Conecta)
+
+Decisões do PO de 27/11/2026 ([proposta e decisões](produto/execucao-pos-contrato.md), adendo de 27/11/2026 à [ADR 0046](adr/0046-perfis-de-negocio-e-modulo-oculto.md)). O projeto ganha o tipo **Fabricação** ou **Serviço**; o de serviço anda por etapas de um modelo sugerido pelo perfil, recebe horas com custo pelo cargo e libera parcelas por etapa, entrega ou aceite do cliente. **Prioridade: EXE-01 a EXE-05 antes do código da F2 do Conecta.** Tudo atrás do recurso por perfil `projects.service_execution` (`services`): **a Konebras não vê nada** (migrations aditivas, regressão na cópia do `konebras`). A EXE-01 destrava a BlockWay (CTR-2026-0001 vira Serviço sem ação manual).
+
+Ordem: EXE-01 → EXE-02 → EXE-03 → EXE-04 → EXE-05 (EXE-06 a EXE-09 no bloco "Pós-go-live: melhorias do produto").
+
+- **EXE-01 [ ] Projeto de serviço: tipo do projeto, tela própria, início, entrega e aceite do cliente separados (M)** — ordem 1 — [story](stories/EXE-01-projeto-de-servico.md)
+  - CA: `execution_kind` com backfill (tenant sem `factory`: projeto só de serviço e sem OS vira Serviço; com `factory`, nada muda); tela sem nada de fábrica, indicador P X E A C; "Iniciar execução", "Registrar entrega" e "Registrar aceite do cliente" separados (a entrega publica também o `ProjectFabricated` para contrato antigo); contrato só conclui com aceite quando há marco de aceite; orçamento de serviço sem "Fabricação concluída" e com "Aceite do cliente".
+- **EXE-02 [ ] Modelos de etapas do projeto de serviço (M)** — ordem 2 — depende de EXE-01 — [story](stories/EXE-02-modelos-de-etapas.md)
+  - CA: Projetos → Modelos de etapas (letra, nome, papel Execução/Entrega/Aceite, horas, cargo, checklist, aprovação); padrão geral e por segmento; modelo sugerido no item de serviço; pacote `projects.services` com implantação de software, consultoria, obra/instalação e manutenção programada.
+- **EXE-03 [ ] Etapas no projeto de serviço: andamento, checklist, responsável e indicador (M)** — ordem 3 — depende de EXE-02 — [story](stories/EXE-03-etapas-no-projeto-de-servico.md)
+  - CA: etapas copiadas na aprovação ou por "Usar um modelo de etapas" (projeto da BlockWay); iniciar, checklist, concluir, aprovar e reabrir; Entrega e Aceite pelas etapas; `ProjectStageCompleted`; aba Etapas, atraso e Minha pauta.
+- **EXE-04 [ ] Horas por etapa e custo pelo cargo no projeto de serviço (M)** — ordem 4 — depende de EXE-03 e USR-01 — [story](stories/EXE-04-horas-por-etapa-custo-cargo.md)
+  - CA: lançamento manual e cronômetro com funcionário do RH; custo-hora do cargo em snapshot na `project_costs`; aba Horas (previsto × lançado, estouro) e Minhas horas; ação nova `projects.log_time` (seed patch `projects-log-time`); recurso `hr.people_registry` libera cargos e funcionários sem ponto nem folha.
+- **EXE-05 [ ] Marcos ligados a etapas e orçamento que sugere a execução (M)** — ordem 5 — depende de EXE-03 (EXE-04 para a mão de obra) — [story](stories/EXE-05-marcos-por-etapa-orcamento.md)
+  - CA: `TriggerEvent.StageCompleted` + `trigger_stage_code` no orçamento, contrato, aditivo e Finance (registro de gatilhos por etapa, fora de ordem e reabertura); "Como será executado"; "Preencher marcos pelo modelo"; "Preencher mão de obra pelas etapas"; rótulos nos PDFs.
+
+---
+
 ## Pós-go-live: integrações (Conecta, marketplaces e API pública)
 
 Decisões do PO de 26/11/2026 ([ADR 0052](adr/0052-integracoes-conecta-e-marketplaces.md), [plano e cronograma](integracoes/00-plano-integracoes.md)). Prioridade: antes das pendências do PDV que aguardam loja parceira. Pré-requisitos dos cadastros nos marketplaces em [integracoes/cadastros/](integracoes/cadastros/00-pre-requisitos.md).
@@ -772,10 +791,11 @@ Decisões do PO (27/11/2026):
 - Logo do terceiro: no cadastro e no cabeçalho dos documentos feitos para ele; nota fiscal e boleto seguem o padrão oficial.
 - Cadastro rápido: painel lateral sobre a tela, componente único.
 
-Ordem sugerida dentro do bloco: REC-01 → COM-10 → UX-02 → UX-01 → CAD-07.
+Ordem sugerida dentro do bloco: REC-01 → EXE-06 → EXE-07 → COM-10 → UX-02 → UX-01 → CAD-07 (EXE-08 e EXE-09 opcionais, por decisão).
 
 - **REC-01 [ ] Contrato de assinatura de serviços (receita recorrente) (G)**
-  - item **recorrente** no orçamento (tipo "Assinatura"): plano, valor mensal, dia de vencimento fixo no mês, início (data ou evento, ex.: entrega do setup), fidelidade em meses, 1º mês cheio ou proporcional, índice de reajuste; convive com itens de marco (setup/implantação) no mesmo orçamento;
+  - item **recorrente** no orçamento (tipo "Assinatura"): plano, valor mensal, dia de vencimento fixo no mês, início (data ou evento do projeto, com os gatilhos da EXE-05: entrega, aceite do cliente ou "ao concluir a etapa X"), fidelidade em meses, 1º mês cheio ou proporcional, índice de reajuste; convive com itens de marco (setup/implantação) no mesmo orçamento;
+  - **contrato só de mensalidade não cria projeto** (decisão do PO de 27/11/2026): a aprovação de orçamento só com itens recorrentes gera contrato + assinatura; a conclusão do contrato passa a olhar a assinatura (encerrada ou cancelada) em vez do projeto;
   - na aprovação, o contrato guarda a assinatura; o PDF do orçamento e do contrato mostra o plano e a mensalidade junto com os marcos;
   - rotina diária por tenant gera o título de cada competência com antecedência configurável, emite o boleto com Pix (BNK) e envia por e-mail; idempotente por contrato + competência (paralelo e dois tenants); entra na régua de cobrança (FIN-09), no fluxo de caixa projetado e no DRE em conta própria de assinatura;
   - reajuste anual: índice buscado no Banco Central (séries públicas) com valor editável, proposta 30 dias antes, confirmação com permissão e aviso ao cliente; troca de plano e reajuste registrados como aditivo (COM-07);
@@ -799,6 +819,17 @@ Ordem sugerida dentro do bloco: REC-01 → COM-10 → UX-02 → UX-01 → CAD-07
   - logo opcional no cadastro do terceiro (Parties), com o mesmo componente;
   - aparece na ficha e nas listas e no cabeçalho dos documentos feitos para ele, ao lado do logo da empresa: orçamento, contrato e aditivo (cliente); pedido de compra e cotação (fornecedor). Nota fiscal e boleto seguem o padrão oficial, sem logo do terceiro;
   - o logo usado num documento aprovado fica congelado com ele (trocar o logo depois não muda o PDF já emitido).
+
+**Execução depois do contrato, continuação** ([proposta](produto/execucao-pos-contrato.md); EXE-01 a EXE-05 na seção própria, antes da F2 do Conecta)
+- **EXE-06 [ ] Termo de aceite e recusa do cliente (M)** — depende de EXE-03
+  - termo de aceite em PDF gerado pelo sistema (etapas, checklist, entregáveis, observações), enviado por e-mail; "Registrar recusa" com motivo volta o projeto à etapa escolhida (padrão da reprovação de qualidade, PRD-05);
+  - aceite por link com código por e-mail (reaproveita a POR-02) **só depois**, quando o Portal estiver no plano do tenant (decisão do PO de 27/11/2026).
+- **EXE-07 [ ] Resultado do contrato (M)** — depende de EXE-04; a parte da assinatura, de REC-01
+  - aba "Resultado" no contrato: receita contratada (marcos + mensalidades emitidas), faturada, recebida, custo (projeto + custos lançados no contrato), margem prevista × atual e MRR do contrato; filtro por tipo (Fabricação/Serviço) no Resultado por projeto do Painel do proprietário.
+- **EXE-08 [ ] Projeto de serviço na fábrica (P)** — opcional; depende de EXE-03 e de um caso real da Konebras (decisão do PO de 27/11/2026: não usa agora)
+  - liberar o recurso `projects.service_execution` para `factory` (ex.: modernização ou conserto sob contrato), com teste de regressão da Konebras.
+- **EXE-09 [ ] Faturar por horas (M)** — opcional, depois; depende de EXE-04
+  - marco "por horas lançadas no período" (tempo e material), com aprovação das horas faturáveis antes de gerar o título.
 
 ---
 

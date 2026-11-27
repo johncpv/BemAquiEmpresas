@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Situação | **Proposta** para decisão do PO (não implementar antes da decisão; vira ADR e stories no backlog depois do aceite) |
+| Situação | **Aprovada pelo PO em 27/11/2026** (decisões no §13); stories EXE-01 a EXE-05 em `docs/stories/` |
 | Data | 27/11/2026 |
 | Pedido | PO, 27/11/2026: "precisamos ter algo que vem depois do orçamento e do contrato para atender a operação do que estamos vendendo, com uma forma de controlar custos e ganhos [...] Na prestação de serviço faz sentido [o projeto]? Se não, o que estaria no lugar?" |
 | Caso real | Tenant do próprio BemAqui: CTR-2026-0001 (setup/implantação do Conecta + mensalidade) para a BlockWay |
@@ -313,3 +313,20 @@ Só as que mudam o desenho, cada uma com a recomendação.
 4. **Faturar por horas (tempo e material) entra?** Odoo e Teamwork têm; Omie, Conta Azul e Bling não. **Recomendo deixar como EXE-09 depois** e começar por preço fixo + marcos por etapa, que cobrem a BlockWay e a maioria das pequenas empresas de serviço; reabrir quando houver um cliente que cobra por hora.
 5. **A Konebras (fábrica) pode usar projeto de serviço?** (ex.: modernização ou conserto sob contrato, sem OS de fabricação). **Recomendo não liberar agora** (nada visível muda para ela, como pedido) e decidir na EXE-08 com o caso real em mãos.
 6. **Aceite do cliente por link já na primeira versão?** **Recomendo não**: v1 com registro interno + termo anexado (EXE-01) e termo em PDF por e-mail (EXE-06); o aceite por link reaproveita a POR-02 quando o Portal entrar no plano, sem abrir rota anônima nova agora (ADR 0009).
+
+---
+
+## 13. Decisões do PO (27/11/2026)
+
+A proposta foi aprovada. Respostas às perguntas do §12:
+
+| # | Pergunta | Decisão |
+|---|---|---|
+| 1 | Quanto entra antes da F2 do Conecta | **EXE-01 a EXE-05 antes do código da F2.** REC-01, EXE-06 e EXE-07 vão para o bloco "Pós-go-live: melhorias do produto" (depois do Conecta). EXE-08 e EXE-09 ficam opcionais, depois |
+| 2 | Contrato só de mensalidade cria projeto | **Não cria.** O detalhe (aprovação sem projeto, conclusão do contrato) fica na REC-01 |
+| 3 | Horas e RH | **Custo pelo cargo, funcionário do RH.** O tenant com projeto de serviço passa a ter liberado o cadastro de cargos e funcionários do RH, sem obrigar ponto nem folha (adendo de 27/11/2026 à ADR 0046, entregue na EXE-04) |
+| 4 | Faturar por horas | **Depois** (EXE-09, opcional) |
+| 5 | Konebras e projeto de serviço | **Não usa agora.** A EXE-08 decide com um caso real; `factory` fica fora do recurso `projects.service_execution` |
+| 6 | Aceite do cliente por link | **Depois.** v1 = registro interno (EXE-01) + termo em PDF (EXE-06); o aceite por link reaproveita a POR-02 quando o Portal entrar no plano |
+
+Consequência para a §10: a ordem fica **EXE-01 → EXE-02 → EXE-03 → EXE-04 → EXE-05** (antes da F2 do Conecta) e, no bloco de melhorias, **REC-01 → EXE-06 → EXE-07**, com EXE-08 e EXE-09 opcionais.
