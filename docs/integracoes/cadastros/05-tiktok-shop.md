@@ -12,9 +12,9 @@ Antes, veja os [pré-requisitos](00-pre-requisitos.md). Confiança: **baixa a m�
 
 | Campo | Resposta |
 |---|---|
-| App name | BemAqui Empresas |
+| App name | BemAqui ERP |
 | Category / service type | ERP / Order management |
-| Description (EN) | BemAqui Empresas is a cloud ERP for Brazilian small businesses. For TikTok Shop sellers it imports orders, keeps stock in sync across channels, issues the Brazilian NF-e and reconciles payouts and fees in the seller's finance module. |
+| Description (EN) | BemAqui ERP is a cloud ERP for Brazilian small businesses. For TikTok Shop sellers it imports orders, keeps stock in sync across channels, issues the Brazilian NF-e and reconciles payouts and fees in the seller's finance module. |
 | Redirect URL | `https://integracoes.bemaquiapp.com.br/oauth/tiktokshop/callback` |
 | Webhook URL | `https://integracoes.bemaquiapp.com.br/webhooks/tiktokshop` |
 | Permissions | Products, inventory, orders, fulfillment/logistics, finance |

@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BemAqui Soluções | Ecossistema de tecnologia para a pequena empresa</title>
+<meta name="description" content="Conecta (atendimento com IA no WhatsApp), ERP (gestão com custo, margem e caixa), Fiscal (NF-e e NFS-e) e Empregos (contratação): quatro produtos que conversam entre si.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0e1420;--ink2:#151d2c;--ink3:#121a29;--line:#263248;--txt:#e8edf5;--soft:#c6cfdd;--mute:#9aa7bb;--amber:#f2b13a;
+--erp:#3b6ff0;--con:#22c38e;--fis:#8b5cf6;--emp:#f07a3b}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ink);color:var(--txt);font-family:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.55;font-variant-numeric:tabular-nums;overflow-x:hidden}
+a{color:inherit}
+.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:0;z-index:10;background:rgba(14,20,32,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-stretch:115%;text-decoration:none;font-size:18px}
+.mark{width:30px;height:30px;border-radius:8px;background:var(--amber);color:#1b2330;display:grid;place-items:center;font-weight:900}
+nav a{color:var(--soft);text-decoration:none;font-size:15px;margin-left:22px}
+nav a:hover{color:#fff}
+.kick{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);font-weight:700}
+h1,h2,h3{font-stretch:115%;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(36px,6vw,68px);line-height:1.04;font-weight:800;font-stretch:120%}
+h2{font-size:clamp(28px,3.6vw,42px);line-height:1.1;font-weight:800;margin-top:10px}
+h3{font-size:20px;font-weight:700}
+p{margin:0}
+.lead{font-size:clamp(17px,1.6vw,21px);color:var(--soft);max-width:760px;margin-top:18px}
+section{padding:84px 0;border-top:1px solid #182133}
+.hero{padding:96px 0 84px;position:relative;overflow:hidden;border-top:0;background:radial-gradient(900px 500px at 88% 10%,#1d2b4a 0,transparent 60%)}
+.glow{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+.pill{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:5px 11px;border-radius:20px;border:1px solid currentColor;text-decoration:none}
+.btn{display:inline-block;background:var(--amber);color:#1b2330;font-weight:700;padding:13px 22px;border-radius:10px;text-decoration:none;margin-top:28px}
+.btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line);margin-left:10px}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));margin-top:40px}
+.card{background:var(--ink2);border:1px solid var(--line);border-radius:16px;padding:22px 24px}
+.card p{color:var(--soft);font-size:15.5px;margin-top:8px}
+@media (min-width:901px){.five{grid-template-columns:repeat(5,minmax(0,1fr))}.three{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.stats .big{font-size:clamp(32px,3.6vw,46px)}
+.stats{gap:26px}
+.callout{margin-top:26px;background:#1d1a12;border:1px solid #5a4418;border-radius:16px;padding:20px 24px;font-size:clamp(17px,1.7vw,21px);color:#f5e2b8}
+.callout b{color:var(--amber)}
+.diagram{margin-top:30px}
+.diagram svg{width:100%;height:auto;display:block}
+.legend{font-size:13px;color:var(--mute);margin-top:8px}
+.prod{position:relative}
+.prod .bar{position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--c)}
+.prod .kick{color:var(--c)}
+.cols{display:grid;grid-template-columns:1.05fr 1fr;gap:48px;align-items:start}
+.stats{display:flex;flex-wrap:wrap;gap:30px;margin-top:30px}
+.big{font-size:clamp(38px,4.5vw,54px);font-weight:800;font-stretch:120%;color:var(--c,var(--amber));line-height:1}
+.sub{font-size:14px;color:var(--mute);margin-top:6px}
+.mini{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.mini .card{padding:18px 20px}
+.mini h3{font-size:18px}
+.mini .wide{grid-column:span 2}
+.go{display:inline-block;margin-top:24px;color:var(--c);font-weight:700;text-decoration:none;border-bottom:2px solid var(--c);padding-bottom:2px}
+.steps{display:grid;gap:14px;grid-template-columns:repeat(6,minmax(0,1fr));margin-top:40px}
+.steps .card{border-top:4px solid var(--c)}
+.steps .tag{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--c)}
+.steps h3{font-size:17px;margin-top:8px}
+.steps p{font-size:14.5px}
+.sum{margin-top:22px;display:flex;gap:18px;align-items:center;background:#121c33;border:1px solid #2a3d66;border-radius:16px;padding:20px 24px}
+.sum p{font-size:clamp(17px,1.7vw,20px);color:#dbe4f2}
+.note{font-size:13px;color:var(--mute);margin-top:12px}
+.status{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:20px;border:1px solid currentColor;display:inline-block}
+.live{color:var(--con)}.soon{color:var(--amber)}
+ul.clean{list-style:none;padding:0;margin:14px 0 0}
+ul.clean li{padding-left:22px;position:relative;margin:7px 0;color:var(--soft);font-size:15.5px}
+ul.clean li:before{content:"";position:absolute;left:0;top:9px;width:10px;height:10px;border-radius:3px;background:var(--c,var(--amber))}
+.who .uses{font-size:13.5px;color:var(--mute);margin-top:12px}
+.cta{background:radial-gradient(800px 420px at 12% 90%,#1d2b4a 0,transparent 60%)}
+.links{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));margin-top:36px}
+.links a{display:block;text-decoration:none;background:var(--ink2);border:1px solid var(--c);border-radius:14px;padding:16px 18px}
+.links .tag{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--c)}
+.links .url{margin-top:6px;color:var(--soft);font-size:15px;word-break:break-word}
+.pol{margin-top:14px;font-size:14px}
+.pol a{color:var(--soft)}
+footer{border-top:1px solid var(--line);padding:30px 0;color:#7c899e;font-size:13.5px}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px}
+.m-only{display:none}
+@media (max-width:900px){
+  .cols{grid-template-columns:1fr;gap:30px}
+  .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  nav a{margin-left:14px;font-size:14px}
+}
+@media (max-width:620px){
+  nav{display:none}
+  section{padding:60px 0}.hero{padding:64px 0 60px}
+  .mini{grid-template-columns:1fr}.mini .wide{grid-column:auto}
+  .steps{grid-template-columns:1fr}
+  .d-only{display:none}.m-only{display:grid}
+  .btn.ghost{margin-left:0;margin-top:12px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="/"><span class="mark" aria-hidden="true">B</span>BemAqui Soluções</a>
+  <nav aria-label="Seções"><a href="#ecossistema">Ecossistema</a><a href="#produtos">Produtos</a><a href="#jornada">Como funciona</a><a href="#contato">Contato</a></nav>
+</div></header>
+
+<main>
+<section class="hero">
+  <div class="glow" style="width:420px;height:420px;background:var(--erp);right:-120px;top:-80px;opacity:.35"></div>
+  <div class="glow" style="width:300px;height:300px;background:var(--con);right:240px;bottom:-160px;opacity:.22"></div>
+  <div class="wrap" style="position:relative">
+    <div class="kick">Ecossistema BemAqui</div>
+    <h1 style="margin-top:16px;max-width:920px">Tecnologia que faz a pequena empresa <span style="color:var(--amber)">vender, faturar e crescer</span>, num lugar só.</h1>
+    <p class="lead">Quatro produtos que conversam entre si: atendimento com IA, gestão empresarial, nota fiscal e contratação.</p>
+    <div class="pills">
+      <a class="pill" style="color:var(--con)" href="#conecta">Conecta</a><a class="pill" style="color:var(--erp)" href="#erp">ERP</a><a class="pill" style="color:var(--fis)" href="#fiscal">Fiscal</a><a class="pill" style="color:var(--emp)" href="#empregos">Empregos</a>
+    </div>
+    <a class="btn" href="#contato">Quero conhecer</a><a class="btn ghost" href="#ecossistema">Ver como funciona</a>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kick">O problema</div>
+    <h2>A pequena empresa usa cinco ferramentas soltas e nenhuma mostra o resultado.</h2>
+    <div class="grid five">
+      <div class="card"><h3>WhatsApp</h3><p>Cliente chama fora do horário e compra do concorrente.</p></div>
+      <div class="card"><h3>Planilha</h3><p>Pedido, estoque e custo anotados à mão, cada um num arquivo.</p></div>
+      <div class="card"><h3>Emissor</h3><p>Nota fiscal digitada de novo, num sistema separado.</p></div>
+      <div class="card"><h3>Banco</h3><p>Boleto e Pix conferidos um a um no extrato.</p></div>
+      <div class="card"><h3>Grupo de vagas</h3><p>Contratação no improviso e gente que não fica.</p></div>
+    </div>
+    <p class="callout"><b>Resultado:</b> o dono trabalha muito e não sabe quanto lucra em cada venda, nem quanto vai ter no caixa no mês que vem.</p>
+  </div>
+</section>
+
+<section id="ecossistema">
+  <div class="wrap">
+    <div class="kick">A solução</div>
+    <h2>Um ecossistema: cada produto resolve uma parte e todos falam a mesma língua.</h2>
+    <div class="diagram d-only" role="img" aria-label="O ERP no centro, ligado ao Conecta (pedido, cobrança e status), ao Fiscal (nota fiscal automática), a bancos e marketplaces (Pix, boleto e pedidos) e ao Empregos (equipe e RH, próximo passo).">
+      <svg viewBox="0 0 1120 470" aria-hidden="true">
+        <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6c7a90"/></marker></defs>
+        <g stroke="#4a5875" stroke-width="2.5" fill="none" marker-end="url(#a)" marker-start="url(#a)">
+          <path d="M346,152 L452,198"/><path d="M774,152 L668,198"/><path d="M346,338 L452,292"/><path d="M774,338 L668,292" stroke-dasharray="7 7"/>
+        </g>
+        <circle cx="560" cy="245" r="112" fill="#13213f" stroke="#3b6ff0" stroke-width="3"/>
+        <text x="560" y="232" text-anchor="middle" fill="#fff" font-size="30" font-weight="800" font-family="Archivo">ERP</text>
+        <text x="560" y="262" text-anchor="middle" fill="#b9c6dc" font-size="15" font-family="Archivo">gestão e números</text>
+        <text x="560" y="284" text-anchor="middle" fill="#b9c6dc" font-size="15" font-family="Archivo">custo · margem · caixa</text>
+        <rect x="60" y="70" width="280" height="110" rx="16" fill="#10251f" stroke="#22c38e" stroke-width="2.5"/>
+        <text x="200" y="115" text-anchor="middle" fill="#fff" font-size="24" font-weight="800" font-family="Archivo">Conecta</text>
+        <text x="200" y="145" text-anchor="middle" fill="#a8d9c6" font-size="15" font-family="Archivo">atende e vende no WhatsApp</text>
+        <rect x="780" y="70" width="280" height="110" rx="16" fill="#1d1533" stroke="#8b5cf6" stroke-width="2.5"/>
+        <text x="920" y="115" text-anchor="middle" fill="#fff" font-size="24" font-weight="800" font-family="Archivo">Fiscal</text>
+        <text x="920" y="145" text-anchor="middle" fill="#cbb8f5" font-size="15" font-family="Archivo">emite NF-e e NFS-e</text>
+        <rect x="60" y="310" width="280" height="110" rx="16" fill="#1a1d26" stroke="#5a6680" stroke-width="2"/>
+        <text x="200" y="355" text-anchor="middle" fill="#fff" font-size="20" font-weight="800" font-family="Archivo">Bancos e marketplaces</text>
+        <text x="200" y="385" text-anchor="middle" fill="#b9c6dc" font-size="15" font-family="Archivo">Inter · Mercado Livre · Shopee…</text>
+        <rect x="780" y="310" width="280" height="110" rx="16" fill="#2a1a10" stroke="#f07a3b" stroke-width="2.5"/>
+        <text x="920" y="355" text-anchor="middle" fill="#fff" font-size="24" font-weight="800" font-family="Archivo">Empregos</text>
+        <text x="920" y="385" text-anchor="middle" fill="#f5c9ad" font-size="15" font-family="Archivo">contrata gente que fica</text>
+        <g font-size="14" font-family="Archivo" fill="#c3cede" text-anchor="middle" stroke="#0e1420" stroke-width="7" paint-order="stroke">
+          <text x="399" y="180">pedido · cobrança · status</text><text x="721" y="180">nota fiscal automática</text>
+          <text x="399" y="320">Pix · boleto · pedidos</text><text x="721" y="320">equipe e RH</text>
+        </g>
+      </svg>
+      <p class="legend">Linha contínua: disponível ou em implantação · Linha tracejada: próximos passos</p>
+    </div>
+    <div class="m-only grid">
+      <div class="card" style="border-color:var(--erp)"><h3>ERP no centro</h3><p>Gestão e números: custo, margem e caixa de cada venda.</p></div>
+      <div class="card" style="border-color:var(--con)"><h3>Conecta ↔ ERP</h3><p>Pedido, cobrança e status direto na conversa do WhatsApp.</p></div>
+      <div class="card" style="border-color:var(--fis)"><h3>Fiscal ↔ ERP</h3><p>Nota fiscal emitida a partir da venda, sem redigitar.</p></div>
+      <div class="card"><h3>Bancos e marketplaces ↔ ERP</h3><p>Pix, boleto e pedidos de outros canais no mesmo fluxo.</p></div>
+      <div class="card" style="border-color:var(--emp)"><h3>Empregos</h3><p>Contrata gente que fica. Ligação com o RH do ERP: próximo passo.</p></div>
+    </div>
+  </div>
+</section>
+
+<div id="produtos"></div>
+<section id="erp" class="prod" style="--c:var(--erp)"><div class="bar"></div>
+  <div class="wrap cols">
+    <div>
+      <div class="kick">BemAqui ERP</div>
+      <h2>A gestão inteira da empresa, com o número real de cada venda.</h2>
+      <p class="lead" style="font-size:19px">Orçamento, produção, estoque, compras, financeiro, fiscal e RH num só sistema. Todo módulo alimenta custo, margem e caixa, para o dono decidir com dado e não com palpite.</p>
+      <div class="stats"><div><div class="big">4</div><div class="sub">perfis de negócio: indústria,<br>loja, serviços, e-commerce</div></div><div><div class="big">1</div><div class="sub">painel do dono: caixa,<br>margem e atrasos</div></div></div>
+      <a class="go" href="/erp/">Conhecer o BemAqui ERP →</a>
+    </div>
+    <div class="mini">
+      <div class="card"><h3>Comercial</h3><p>Orçamento com custo real, contrato e projeto.</p></div>
+      <div class="card"><h3>Fábrica</h3><p>Ordens de serviço, Kanban, apontamento no tablet e qualidade.</p></div>
+      <div class="card"><h3>Loja e PDV</h3><p>Caixa que funciona sem internet, troca e fechamento.</p></div>
+      <div class="card"><h3>Estoque e compras</h3><p>Da falta à cotação, ao pedido e ao recebimento pela nota.</p></div>
+      <div class="card"><h3>Financeiro</h3><p>Pix e boleto do Inter, conciliação, fluxo de caixa e DRE.</p></div>
+      <div class="card"><h3>Pessoas</h3><p>Ponto, folha e holerite, com dado protegido pela LGPD.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="conecta" class="prod" style="--c:var(--con)"><div class="bar"></div>
+  <div class="wrap cols">
+    <div>
+      <div class="kick">BemAqui Conecta</div>
+      <h2>Atendimento com IA que responde, vende e cobra 24 horas.</h2>
+      <p class="lead" style="font-size:19px">Agentes de IA treinados com os produtos, as políticas e o tom da empresa atendem no WhatsApp e em mais 4 canais, num inbox único, com CRM e funil de vendas.</p>
+      <div class="stats"><div><div class="big">24h</div><div class="sub">atendendo,<br>sem fila</div></div><div><div class="big">5</div><div class="sub">canais num<br>inbox só</div></div><div><div class="big">Meta</div><div class="sub">parceiro<br>oficial</div></div></div>
+      <a class="go" href="https://conecta.bemaquiapp.com.br">Conhecer o Conecta →</a>
+    </div>
+    <div class="mini">
+      <div class="card"><h3>SDR</h3><p>Responde na hora e qualifica quem chega.</p></div>
+      <div class="card"><h3>Closer</h3><p>Contorna objeção e conduz até o fechamento.</p></div>
+      <div class="card"><h3>Financeiro</h3><p>2ª via, Pix e cobrança com o tom certo.</p></div>
+      <div class="card"><h3>Suporte</h3><p>Dúvidas, trocas e prazos; passa para humano quando precisa.</p></div>
+      <div class="card wide"><h3>Canais</h3><p>WhatsApp oficial · Instagram · Facebook Messenger · Telegram · chat do site</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="fiscal" class="prod" style="--c:var(--fis)"><div class="bar"></div>
+  <div class="wrap cols">
+    <div>
+      <div class="kick">BemAqui Fiscal</div>
+      <h2>Nota fiscal emitida sozinha, a partir da venda.</h2>
+      <p class="lead" style="font-size:19px">Emissor de NF-e e NFS-e que recebe a venda do sistema da empresa, emite, guarda e avisa. O cliente acompanha as notas e os custos no próprio portal.</p>
+      <div class="stats"><div><div class="big">NF-e</div><div class="sub">modelo 55, com DANFE<br>em PDF</div></div><div><div class="big">NFS-e</div><div class="sub">padrão nacional<br>e municipal</div></div></div>
+      <a class="go" href="https://notas.bemaquiapp.com.br">Acessar o portal de notas →</a>
+    </div>
+    <div class="mini">
+      <div class="card"><h3>Integrado</h3><p>Recebe a venda por API e devolve o resultado por aviso automático.</p></div>
+      <div class="card"><h3>Eventos</h3><p>Cancelamento, carta de correção e contingência.</p></div>
+      <div class="card"><h3>Reforma tributária</h3><p>Pronto para os campos de IBS e CBS.</p></div>
+      <div class="card"><h3>Portal de notas</h3><p>O cliente vê as notas emitidas e os custos do emissor.</p></div>
+      <div class="card wide"><h3>Seguro</h3><p>Certificado digital guardado em cofre criptografado; dados de cada empresa isolados.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="empregos" class="prod" style="--c:var(--emp)"><div class="bar"></div>
+  <div class="wrap cols">
+    <div>
+      <div class="kick">BemAqui Empregos</div>
+      <h2>Contrate gente boa, que mora perto e fica.</h2>
+      <p class="lead" style="font-size:19px">Feito para a pequena empresa que contrata sem RH. A IA escreve a vaga, mostra quem combina e mora perto, e acompanha o contratado no primeiro mês, tudo pelo WhatsApp.</p>
+      <div class="stats"><div><div class="big">1 min</div><div class="sub">para a vaga<br>ficar no ar</div></div><div><div class="big">30 dias</div><div class="sub">de acompanhamento<br>do contratado</div></div><div><div class="big">Grátis</div><div class="sub">plano para<br>sempre</div></div></div>
+      <a class="go" href="https://bemaquiapp.com.br/para-empresas/">Conhecer o Empregos →</a>
+    </div>
+    <div class="mini">
+      <div class="card"><h3>1 · Divulgar</h3><p>A IA escreve a vaga e entrega a arte para o WhatsApp.</p></div>
+      <div class="card"><h3>2 · Selecionar</h3><p>Cada candidato com % de compatibilidade e distância.</p></div>
+      <div class="card"><h3>3 · Entrevistar</h3><p>Confirmação no WhatsApp e avaliação igual para todos.</p></div>
+      <div class="card"><h3>4 · Manter</h3><p>Conversas no dia 1, 7, 15 e 30, com alerta de risco de saída.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="jornada">
+  <div class="wrap">
+    <div class="kick">Como os produtos se conversam</div>
+    <h2>Uma venda, do "oi" no WhatsApp ao lucro no painel.</h2>
+    <div class="steps">
+      <div class="card" style="--c:var(--con)"><div class="tag">Conecta</div><h3>1. O cliente chama</h3><p>A IA responde, consulta preço e estoque no ERP.</p></div>
+      <div class="card" style="--c:var(--erp)"><div class="tag">ERP</div><h3>2. Pedido criado</h3><p>O estoque fica reservado para o cliente.</p></div>
+      <div class="card" style="--c:var(--erp)"><div class="tag">ERP + Inter</div><h3>3. Cobrança</h3><p>Pix ou boleto vai para o cliente na conversa.</p></div>
+      <div class="card" style="--c:var(--erp)"><div class="tag">ERP</div><h3>4. Pagou</h3><p>O banco avisa e o pedido anda sozinho.</p></div>
+      <div class="card" style="--c:var(--fis)"><div class="tag">Fiscal</div><h3>5. Nota emitida</h3><p>NF-e gerada a partir do pedido, sem redigitar.</p></div>
+      <div class="card" style="--c:var(--con)"><div class="tag">Conecta</div><h3>6. Cliente avisado</h3><p>Pagamento, nota e envio chegam no WhatsApp.</p></div>
+    </div>
+    <div class="sum"><div class="big" style="font-size:40px">=</div><p>No fim, o ERP mostra <b style="color:var(--amber)">o custo, a margem e o caixa daquela venda</b>, sem ninguém digitar nada duas vezes.</p></div>
+    <p class="note">Integração Conecta ↔ ERP em implantação, com lançamento previsto para dezembro de 2026. ERP ↔ Fiscal e ERP ↔ Banco Inter já funcionam.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kick">Conectado ao que a empresa já usa</div>
+    <h2>Bancos, governo e marketplaces no mesmo fluxo.</h2>
+    <div class="grid">
+      <div class="card"><span class="status live">Disponível</span><h3 style="margin-top:14px">Banco Inter</h3><ul class="clean" style="--c:var(--con)"><li>Boleto com Pix emitido pelo ERP</li><li>Baixa automática quando o cliente paga</li><li>Extrato e conciliação</li></ul></div>
+      <div class="card"><span class="status live">Disponível</span><h3 style="margin-top:14px">SEFAZ e prefeituras</h3><ul class="clean" style="--c:var(--con)"><li>NF-e pelo BemAqui Fiscal</li><li>NFS-e padrão nacional e municipal</li><li>Nota de fornecedor importada pelo XML</li></ul></div>
+      <div class="card"><span class="status soon">Em breve · 2027</span><h3 style="margin-top:14px">Marketplaces</h3><ul class="clean"><li>Mercado Livre, Shopee, Amazon e Magalu</li><li>Pedidos e estoque únicos em todos os canais</li><li>Repasse e tarifas no financeiro: a margem real de cada canal</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section class="who">
+  <div class="wrap">
+    <div class="kick">Para quem</div>
+    <h2>Feito para a pequena empresa brasileira que quer crescer com controle.</h2>
+    <div class="grid">
+      <div class="card"><h3>Indústria sob encomenda</h3><p>Do orçamento com custo real à produção, à instalação e à margem de cada projeto.</p><p class="uses">ERP · Fiscal · Conecta</p></div>
+      <div class="card"><h3>Loja e varejo</h3><p>Caixa rápido, estoque único, troca e fechamento conferido.</p><p class="uses">ERP · Fiscal · Conecta · Empregos</p></div>
+      <div class="card"><h3>Prestador de serviços</h3><p>Orçamento, ordem de serviço, nota de serviço e cobrança.</p><p class="uses">ERP · Fiscal · Conecta</p></div>
+      <div class="card"><h3>E-commerce</h3><p>Pedidos de vários canais com estoque e nota no mesmo lugar.</p><p class="uses">ERP · Fiscal · Conecta</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kick">Por que BemAqui</div>
+    <h2>Um parceiro só, do atendimento ao resultado.</h2>
+    <div class="grid three">
+      <div class="card"><h3>Dado que não se repete</h3><p>O que entra num produto aparece no outro. Ninguém digita duas vezes.</p></div>
+      <div class="card"><h3>IA que trabalha</h3><p>Atende, qualifica, cobra e seleciona candidatos, sempre sugerindo e deixando a decisão com você.</p></div>
+      <div class="card"><h3>Visão do dono</h3><p>Custo, margem e caixa com dado real, não com estimativa.</p></div>
+      <div class="card"><h3>Segurança e LGPD</h3><p>Banco de dados separado por empresa, credenciais criptografadas, 2FA e auditoria de quem fez o quê.</p></div>
+      <div class="card"><h3>Implantação acompanhada</h3><p>Configuramos com os dados reais da empresa e treinamos cada pessoa no papel dela.</p></div>
+      <div class="card"><h3>Perto de você</h3><p>Equipe brasileira, feita no Vale do Paraíba, com atendimento pelo WhatsApp.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="contato" class="cta">
+  <div class="wrap">
+    <div class="kick">Vamos conversar</div>
+    <h2 style="font-size:clamp(32px,5vw,56px);max-width:900px">Comece por um produto. Cresça com o ecossistema.</h2>
+    <p class="lead">Mostramos o BemAqui funcionando com o seu tipo de negócio, em 30 minutos. Escreva para <a href="mailto:integracoes@bemaquiapp.com.br" style="color:var(--amber)">integracoes@bemaquiapp.com.br</a>.</p>
+    <div class="links">
+      <a href="https://conecta.bemaquiapp.com.br" style="--c:var(--con)"><div class="tag">Conecta</div><div class="url">conecta.bemaquiapp.com.br</div></a>
+      <a href="/erp/" style="--c:var(--erp)"><div class="tag">ERP</div><div class="url">solucoes.bemaquiapp.com.br/erp</div></a>
+      <a href="https://notas.bemaquiapp.com.br" style="--c:var(--fis)"><div class="tag">Fiscal</div><div class="url">notas.bemaquiapp.com.br</div></a>
+      <a href="https://bemaquiapp.com.br" style="--c:var(--emp)"><div class="tag">Empregos</div><div class="url">bemaquiapp.com.br</div></a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap">
+  <div>BEM AQUI SOLUCOES TECNOLOGICA · CNPJ 65.273.540/0001-94</div>
+  <div class="pol">Políticas e termos: <a href="/erp/privacidade">ERP</a> · <a href="https://conecta.bemaquiapp.com.br/privacidade">Conecta</a> · <a href="https://bemaquiapp.com.br/termos/politica-privacidade">Empregos</a></div>
+</div></footer>
+</body>
+</html>

@@ -16,9 +16,9 @@ Antes, veja os [pré-requisitos](00-pre-requisitos.md). Confiança: **baixa**. O
 | Company name | BEM AQUI SOLUCOES TECNOLOGICA |
 | Company registration (CNPJ) | 65.273.540/0001-94 |
 | Developer type | Company / Third-party partner — **ERP System** |
-| Website | `https://empresas.bemaquiapp.com.br` (precisa estar no ar com HTTPS e TLS 1.2 ou superior) |
-| App name | BemAqui Empresas |
-| App description | BemAqui Empresas is a cloud ERP for Brazilian small businesses. For Shopee sellers it imports orders, keeps stock in sync across all sales channels, issues the Brazilian NF-e and uploads it to Shopee, prints shipping labels and reconciles Shopee payouts and fees in the seller's finance module. |
+| Website | `https://solucoes.bemaquiapp.com.br/erp` (precisa estar no ar com HTTPS e TLS 1.2 ou superior) |
+| App name | BemAqui ERP |
+| App description | BemAqui ERP is a cloud ERP for Brazilian small businesses. For Shopee sellers it imports orders, keeps stock in sync across all sales channels, issues the Brazilian NF-e and uploads it to Shopee, prints shipping labels and reconciles Shopee payouts and fees in the seller's finance module. |
 | Redirect URL (domain) | `https://integracoes.bemaquiapp.com.br/oauth/shopee/callback` |
 | Push / webhook URL | `https://integracoes.bemaquiapp.com.br/webhooks/shopee` (confirmar no portal onde se configura) |
 | APIs needed | Shop, Product (item and stock), Order, Logistics, Payment (escrow/income) |
