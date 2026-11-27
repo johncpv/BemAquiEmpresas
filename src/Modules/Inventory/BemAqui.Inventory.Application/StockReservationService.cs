@@ -121,7 +121,7 @@ public sealed class StockReservationService(
     public async Task<IReadOnlyList<StockShortageInfo>> OpenShortagesAsync(CancellationToken cancellationToken = default)
     {
         var rows = await ShortRowsAsync(cancellationToken);
-        return rows.GroupBy(r => (r.ProductionOrderId, r.ItemId))
+        return rows.GroupBy(r => (ProductionOrderId: r.ProductionOrderId!.Value, r.ItemId))
             .Select(g => new StockShortageInfo(g.Key.ProductionOrderId, g.First().ProjectId, g.Key.ItemId, g.Select(r => r.BomLineId).FirstOrDefault(id => id is not null), g.Sum(r => r.Shortage), g.Min(r => r.BomReleasedAt)))
             .OrderBy(s => s.BomReleasedAt is null ? 1 : 0).ThenBy(s => s.BomReleasedAt).ThenBy(s => s.ProductionOrderId).ThenBy(s => s.ItemId).ToList();
     }
@@ -185,7 +185,7 @@ public sealed class StockReservationService(
         var item = (await ItemNamesAsync([row.ItemId], cancellationToken)).GetValueOrDefault(row.ItemId);
         var location = (await LocationNamesAsync([row.LocationId], cancellationToken)).GetValueOrDefault(row.LocationId);
         return new ReservationDetail(
-            row.Id, row.ProductionOrderId, row.ItemId, item?.Code ?? string.Empty, item?.Name ?? "Item removido", item?.Unit ?? string.Empty, row.LocationId, location?.Code ?? string.Empty,
+            row.Id, row.ProductionOrderId!.Value, row.ItemId, item?.Code ?? string.Empty, item?.Name ?? "Item removido", item?.Unit ?? string.Empty, row.LocationId, location?.Code ?? string.Empty,
             location?.Name ?? "Local removido", row.RequestedQuantity, row.Quantity, row.QuantityIssued, row.Shortage, row.Status, row.BomRevision, row.Origin, row.IsBackfill, row.UpdatedAt);
     }
 
@@ -239,7 +239,7 @@ public sealed class StockReservationService(
             itemIds = itemIds.Where(i => items.GetValueOrDefault(i) is { } n && n.Search.Contains(term, StringComparison.Ordinal)).ToList();
         }
 
-        var orderIds = rows.Where(r => itemIds.Contains(r.ItemId)).Select(r => r.ProductionOrderId).Distinct().ToList();
+        var orderIds = rows.Where(r => itemIds.Contains(r.ItemId)).Select(r => r.ProductionOrderId!.Value).Distinct().ToList();
         var orderInfo = (await orders.FindManyAsync(orderIds, cancellationToken)).ToDictionary(o => o.Id);
         var projectInfo = (await projects.FindManyAsync(rows.Select(r => r.ProjectId).Distinct().ToList(), cancellationToken)).ToDictionary(p => p.Id);
         var available = await db.StockPositions.AsNoTracking().Where(p => itemIds.Contains(p.ItemId)).GroupBy(p => p.ItemId)
@@ -249,7 +249,7 @@ public sealed class StockReservationService(
         var result = itemIds.Select(itemId =>
             {
                 var name = items.GetValueOrDefault(itemId);
-                var byOrder = rows.Where(r => r.ItemId == itemId).GroupBy(r => r.ProductionOrderId)
+                var byOrder = rows.Where(r => r.ItemId == itemId).GroupBy(r => r.ProductionOrderId!.Value)
                     .Select(g =>
                     {
                         var projectId = g.First().ProjectId;
@@ -274,7 +274,7 @@ public sealed class StockReservationService(
         requestIds.Count == 1 ? "/app/compras/solicitacoes/" + requestIds[0] : "/app/compras/solicitacoes?item=" + itemId + "&filtro=todas";
 
     private static StockReservationInfo Info(Reservation r) =>
-        new(r.Id, r.ProductionOrderId, r.ItemId, r.LocationId, r.BomLineId, r.BomRevision, r.RequestedQuantity, r.Quantity, r.QuantityIssued, r.Shortage, r.Status, r.IsBackfill);
+        new(r.Id, r.ProductionOrderId!.Value, r.ItemId, r.LocationId, r.BomLineId, r.BomRevision, r.RequestedQuantity, r.Quantity, r.QuantityIssued, r.Shortage, r.Status, r.IsBackfill);
 
     private static Error OrderNotFound() => Error.NotFound("production_order_not_found", "OS de fabricação não encontrada.");
 

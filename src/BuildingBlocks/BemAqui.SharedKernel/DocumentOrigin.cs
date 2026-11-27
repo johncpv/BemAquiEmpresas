@@ -47,4 +47,10 @@ public enum DocumentOrigin
 
     /// <summary>Venda com cartão (VND-01): título contra a adquirente, com bruto, taxa prevista e líquido.</summary>
     CardSettlement,
+
+    /// <summary>
+    /// Pedido de venda cobrado por boleto com Pix (VND-02a): um título por pedido, contra o cliente. Fora da régua de cobrança e da receita por título
+    /// (a receita entra pela venda que o pedido pago vira, ISalesRevenue).
+    /// </summary>
+    SalesOrder,
 }

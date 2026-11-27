@@ -184,6 +184,12 @@ public sealed partial class ReceivableService
             return Error.Conflict("receivable_from_sales", "Este recebível vem das vendas: para tirá-lo, cancele a venda.");
         }
 
+        // VND-02a: o título do pedido de venda é cancelado pelo pedido (o boleto e a reserva vão juntos).
+        if (receivable.Origin == DocumentOrigin.SalesOrder)
+        {
+            return Error.Conflict("receivable_from_sales_order", "Este título é a cobrança de um pedido de venda: cancele pelo pedido.");
+        }
+
         if (receivable.Status == ReceivableStatus.Cancelled)
         {
             return Error.Conflict("receivable_cancelled", "O título já está cancelado.");

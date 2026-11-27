@@ -67,6 +67,11 @@ public sealed class Receivable : Entity, IAuditable, IConcurrencyVersioned
 
     public Guid? CancelledBy { get; set; }
 
+    /// <summary>Devolução do valor pago registrada (VND-02a CA 19 e 26: o título do pedido de venda fica encerrado como devolvido).</summary>
+    public DateTimeOffset? RefundedAt { get; set; }
+
+    public Guid? RefundedBy { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public Guid? CreatedBy { get; init; }

@@ -18,7 +18,19 @@ public sealed class Reservation : Entity, IAuditable, IConcurrencyVersioned
 
     public Guid LocationId { get; init; }
 
-    public Guid ProductionOrderId { get; init; }
+    /// <summary>OS dona da reserva de material (EST-02); nula na reserva de documento (VND-02a: <see cref="SourceType"/> e <see cref="SourceId"/>).</summary>
+    public Guid? ProductionOrderId { get; init; }
+
+    /// <summary>
+    /// Origem da reserva de documento (VND-02a CA 11): o tipo (<c>SalesOrder</c>; o carrinho do ECM-02 depois) e o id. Exatamente uma origem
+    /// por linha (<c>CHECK</c>): a OS ou o par tipo e id. As reservas de documento ficam fora das consultas da OS (filtro do modelo).
+    /// </summary>
+    public string? SourceType { get; init; }
+
+    public Guid? SourceId { get; init; }
+
+    /// <summary>Validade da reserva de documento (prazo de pagamento do pedido); nula = sem prazo (pedido pago, OS).</summary>
+    public DateTimeOffset? ExpiresAt { get; set; }
 
     public Guid ProjectId { get; set; }
 

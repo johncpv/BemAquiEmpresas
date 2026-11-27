@@ -39,6 +39,8 @@ internal sealed class ReceivableConfiguration : IEntityTypeConfiguration<Receiva
         b.HasIndex(e => e.PartyId);
         b.HasIndex(e => e.InstallmentGroupId);
         b.HasIndex(e => new { e.Origin, e.OriginId });
+        // VND-02a: um título ativo por pedido de venda (dois "Gerar cobrança" ao mesmo tempo: um só grava).
+        b.HasIndex(e => e.OriginId).IsUnique().HasFilter("origin = 'SalesOrder' AND status <> 'Cancelled'").HasDatabaseName(BemAqui.Finance.Application.OrderChargeService.ActiveIndex);
         b.Property(e => e.TriggerEvent).HasConversion<string>().HasMaxLength(24);
 
         // Uma parcela por marco do contrato (COM-04b CA 3): a reentrega do ContractSigned para aqui.

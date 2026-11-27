@@ -358,6 +358,14 @@ public sealed partial class BillingSlipProcessor(
         {
             receivable.BillingSlipId = null;
         }
+
+        // VND-02a: título do pedido de venda cancelado com boleto aberto. Cancela quando o banco confirma o cancelamento (ou a expiração); se o
+        // pagamento chegou antes, o título já está pago e segue a baixa.
+        if (receivable.Origin == SharedKernel.DocumentOrigin.SalesOrder && receivable.CancelReason is not null && receivable.Status == Contracts.ReceivableStatus.Open && receivable.PaidAmount == 0)
+        {
+            receivable.Status = Contracts.ReceivableStatus.Cancelled;
+            receivable.CancelledAt = slip.CancelledAt ?? slip.ExpiredAt ?? DateTimeOffset.UtcNow;
+        }
     }
 
     /// <summary>

@@ -111,7 +111,7 @@ public sealed partial class MaterialRequisitionService
     public async Task<IReadOnlyList<PickingRow>> ToPickAsync(CancellationToken cancellationToken = default)
     {
         var reserved = await db.Reservations.AsNoTracking().Where(r => r.Status == ReservationState.Active && r.Quantity > 0)
-            .GroupBy(r => new { r.ProductionOrderId, r.ProjectId })
+            .GroupBy(r => new { ProductionOrderId = r.ProductionOrderId!.Value, r.ProjectId })
             .Select(g => new { g.Key.ProductionOrderId, g.Key.ProjectId, Items = g.Select(r => r.ItemId).Distinct().Count(), Reserved = g.Sum(r => r.Quantity) })
             .ToListAsync(cancellationToken);
         if (reserved.Count == 0)

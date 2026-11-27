@@ -20,7 +20,7 @@ public sealed class SalesLookupContract(ISalesDb db, SaleService sales) : ISaleL
         salesOfDay = cashSessionId is { } session ? salesOfDay.Where(s => s.CashSessionId == session) : salesOfDay.Where(s => s.CashSessionId == null);
         return await salesOfDay
             .Join(db.SalePayments.AsNoTracking().Where(p => p.Status == SalePaymentStatus.Captured), s => s.Id, p => p.SaleId,
-                (s, p) => new SalePaymentFact(s.Id, p.Id, p.PaymentMethodId, p.AcquirerPartyId, p.CardBrand, p.Installments, p.Amount - p.ChangeAmount, s.CustomerId))
+                (s, p) => new SalePaymentFact(s.Id, p.Id, p.PaymentMethodId, p.AcquirerPartyId, p.CardBrand, p.Installments, p.Amount - p.ChangeAmount, s.CustomerId, p.ReceivableId))
             .ToListAsync(cancellationToken);
     }
 
