@@ -37,6 +37,8 @@ internal static class SalesOrderEndpoints
             .RequireAnyPermissionOf("sales.create", "sales.edit").WithName("ListSalesOrderProductOptions").Produces<IReadOnlyList<SalesOrderProductOption>>();
         orders.MapGet("/customer-options", async (string? q, SalesOrderService service, CancellationToken ct) => Results.Ok(await service.CustomerOptionsAsync(q, ct)))
             .RequireAnyPermissionOf("sales.create", "sales.edit").WithName("ListSalesOrderCustomerOptions").Produces<IReadOnlyList<SalesOrderCustomerOption>>();
+        orders.MapGet("/payment-options", async (SalesOrderService service, CancellationToken ct) => Results.Ok(await service.PaymentOptionsAsync(ct)))
+            .RequirePermission("sales.approve").WithName("ListSalesOrderPaymentOptions").Produces<IReadOnlyList<SalesOrderPaymentOption>>();
         orders.MapGet("/parameters", async (SalesOrderParametersService service, CancellationToken ct) => Results.Ok(await service.GetAsync(ct)))
             .RequirePermission("sales.view").WithName("GetSalesOrderParameters").Produces<SalesOrderParametersView>();
         // Salvar exige settings.edit (no serviço), como as outras seções de Configurações → Parâmetros.

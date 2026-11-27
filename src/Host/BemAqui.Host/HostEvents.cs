@@ -123,6 +123,8 @@ public static class HostEvents
             // pagamento devolve o pedido a aberto. Os eventos do pedido vão ao outbox para a INT-02 (avisos) e a VND-02b.
             .AddHandler<BemAqui.Finance.Contracts.ReceivableSettled, BemAqui.Sales.Application.SalesOrderConsumers>()
             .AddHandler<BemAqui.Finance.Contracts.BillingSlipCancelled, BemAqui.Sales.Application.SalesOrderConsumers>()
+            // BNK-01b: o boleto emitido ia ao outbox sem registro (a mensagem ficava com erro); só aviso, para a régua (FIN-09) e o portal.
+            .AddEvent<BemAqui.Finance.Contracts.BillingSlipIssued>()
             .AddEvent<BemAqui.Sales.Contracts.OrderCreated>()
             .AddEvent<BemAqui.Sales.Contracts.OrderConfirmed>()
             .AddEvent<BemAqui.Sales.Contracts.OrderPaid>()

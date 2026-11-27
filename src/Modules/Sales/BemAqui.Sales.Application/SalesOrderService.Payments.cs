@@ -15,6 +15,11 @@ public sealed partial class SalesOrderService
     public const string ExpiryReason = "Prazo de pagamento vencido";
     public const string NoSlipMethodMessage = "Configure a forma de pagamento do boleto em Configurações → Parâmetros.";
 
+    /// <summary>Formas aceitas no "Registrar pagamento" (CA 20).</summary>
+    public async Task<IReadOnlyList<SalesOrderPaymentOption>> PaymentOptionsAsync(CancellationToken cancellationToken = default) =>
+        (await paymentMethods.ActiveAsync(Today, cancellationToken)).Where(m => m.Type is not (PaymentMethodType.BankSlip or PaymentMethodType.OnAccount or PaymentMethodType.StoreCredit))
+            .OrderBy(m => m.Name, StringComparer.CurrentCulture).Select(m => new SalesOrderPaymentOption(m.Id, m.Name, m.Type.ToString(), m.AllowsChange)).ToList();
+
     /// <summary>Diálogo "Gerar cobrança" já preenchido (CA 15 a 17).</summary>
     public async Task<Result<SalesOrderChargeDraft>> ChargeDraftAsync(Guid id, SalesOrderActor actor, CancellationToken cancellationToken = default)
     {

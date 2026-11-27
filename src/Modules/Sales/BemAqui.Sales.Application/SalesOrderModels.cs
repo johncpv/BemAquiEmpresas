@@ -146,3 +146,6 @@ public sealed record SalesOrderParametersInput(
 
 /// <summary>Contagem do card "Pedidos aguardando ação" do Início.</summary>
 public sealed record SalesOrderSummaryView(int ToConfirm, int ToCharge, int AwaitingPayment, int WithProblem);
+
+/// <summary>Forma para "Registrar pagamento" (dinheiro, maquininha, Pix recebido fora): só as ativas que não são boleto, fiado nem vale.</summary>
+public sealed record SalesOrderPaymentOption(Guid Id, string Name, string Type, bool AllowsChange);

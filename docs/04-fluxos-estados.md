@@ -195,6 +195,14 @@ Regra dura: **nenhum pagamento é baixado sem OP aprovada**. Exceção: tarifas,
 - "Quitar o saldo com desconto" (FIN-01) grava uma baixa de total 0, sem transação bancária. Desconto acima de 5% ou de R$ 500,00 e cancelamento de título com saldo acima de R$ 1.000,00 exigem `finance.approve`; baixa com data mais de 7 dias no passado exige motivo (parâmetros do Finance, D8).
 - Título de origem `Contract`: valor só pelo contrato ou pelo aditivo; vencimento editável no título em aberto, com motivo (D14); com o contrato `Cancelled`, o cancelamento do título é liberado com `finance.edit` (ADR 0019 §4).
 
+### Pedido de venda (VND-02a, ADR 0052 §1 e §3)
+`Draft → Open (confirmar: reserva tudo ou nada) → AwaitingPayment (gerar cobrança: título SalesOrder + boleto com Pix) → Paid (baixa do título ou pagamento registrado) → vira a venda da VND-01`; `AwaitingPayment → Open` (boleto cancelado ou vencido sem pagamento); `Draft | Open | AwaitingPayment → Cancelled` (cancelar ou prazo vencido); `Paid → Cancelled` (cancelar e estornar a venda, `sales.approve`); `Cancelled → Paid` ("Reabrir pedido" do pago depois de cancelado). Separação, nota, envio e entrega: VND-02b.
+- Transição fora da máquina: 409 `invalid_order_transition` ("Este pedido está {estado} e não pode {ação}."); toda transição grava a linha do tempo (`sales.order_transitions`) sobre o `xmin` do pedido.
+- Origem, aplicativo e autor vêm do principal autenticado; pedido de aplicativo nasce rascunho e não reserva nem cobra sozinho.
+- Reserva: até `hold_until` (48 h para pessoa, 2 h para aplicativo; com boleto, até o dia útil seguinte ao vencimento); o job `sales-order-expiry` (15 min, por tenant) cancela o vencido. Pago não expira.
+- Eventos no outbox, sem dado pessoal: `OrderCreated`, `OrderConfirmed`, `OrderPaid`, `OrderCancelled`. Consumidos: `ReceivableSettled` (vira pago uma vez só; cancelado, "Pago depois de cancelado") e `BillingSlipCancelled` (volta a aberto).
+- A venda do pedido pago por boleto leva o `receivable_id` no pagamento: não gera outro recebível e a receita entra só pela venda.
+
 ### Boleto (Inter)
 `Requested → Issued → Paid (webhook com reconsulta por mTLS, ou conferência diária) | PaidPendingReview (pagamento com diferença: conferência humana) | Cancelled | Expired` (BNK-01b, BNK-02, ADR 0032). O webhook nunca baixa pelo corpo; estorno de baixa feita pelo banco e estorno de pagamento da OP exigem `finance.approve` (D6, P-20). Multa, juros e desconto vêm de Configurações → Cobrança; acima do limite da D8, `finance.approve`.
 ```

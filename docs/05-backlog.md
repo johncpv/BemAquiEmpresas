@@ -737,7 +737,7 @@ Decisão do PO de 25/11/2026 ([ADR 0051](adr/0051-ambiente-saas-multitenant.md))
 Decisões do PO de 26/11/2026 ([ADR 0052](adr/0052-integracoes-conecta-e-marketplaces.md), [plano e cronograma](integracoes/00-plano-integracoes.md)). Prioridade: antes das pendências do PDV que aguardam loja parceira. Pré-requisitos dos cadastros nos marketplaces em [integracoes/cadastros/](integracoes/cadastros/00-pre-requisitos.md).
 
 **F1 — Base no ERP**
-- **VND-02a [ ] Pedido de venda (núcleo): rascunho, reserva, cobrança Pix/boleto do Inter, pagamento e conversão em venda (G−)** — ordem 1 ([story](stories/VND-02a-pedido-de-venda-nucleo.md))
+- **VND-02a [x] Pedido de venda (núcleo): rascunho, reserva, cobrança Pix/boleto do Inter, pagamento e conversão em venda (G−)** — ordem 1 ([story](stories/VND-02a-pedido-de-venda-nucleo.md))
 - **VND-02b [ ] Pedido de venda: separação, NF-e com "Emitir nota", envio e entrega (M)** — ordem 1b ([story](stories/VND-02b-pedido-separacao-nota-envio.md))
 - **INT-01 [ ] Aplicativos conectados: OAuth 2.0 com PKCE, escopos `modulo.acao`, consentimento com 2FA, revogação e auditoria (M)** — ordem 2 ([ADR 0053](adr/0053-aplicativos-conectados.md))
 - **INT-02 [ ] Avisos de saída (webhooks): inscrição na conexão, assinatura HMAC, nova tentativa e registro de entregas (M)** — ordem 3
