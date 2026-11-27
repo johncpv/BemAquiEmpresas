@@ -235,7 +235,7 @@ public sealed class OrderChargeService(
         var now = clock.GetUtcNow();
         db.FinancialTransactions.Add(new FinancialTransaction
         {
-            BankAccountId = account.Value, Date = Today, Amount = -settlements.Sum(s => s.Total), Type = TransactionType.Payment,
+            BankAccountId = account.Value, Date = Today, Amount = -settlements.Sum(s => s.Total), Type = TransactionType.Receipt,
             Description = Cut("Devolução ao cliente · " + receivable.Number + " · " + reason, 200), ReceivableId = receivable.Id, CreatedAt = now, CreatedBy = currentUser.UserId,
         });
         receivable.RefundedAt = now;
