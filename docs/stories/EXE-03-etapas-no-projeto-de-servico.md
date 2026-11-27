@@ -7,7 +7,7 @@
 | Tamanho | M |
 | Status | Draft |
 | Requisitos | [Proposta](../produto/execucao-pos-contrato.md) §4.2 e §7 · PRD PRJ-4 · PRD-01 (etapas copiadas do roteiro, editáveis antes de começar) · PRD-03a (checklist) · COM-04b (padrão do diálogo que mostra a parcela liberada) · R-SEC-5 |
-| Dependências | EXE-01, EXE-02 |
+| Dependências | EXE-01a, EXE-01b (página do projeto), EXE-02 |
 | Bloqueia | EXE-04, EXE-05 |
 | Ordem de execução | 3 (Execução depois do contrato, antes da F2 do Conecta) |
 
@@ -31,7 +31,7 @@ Como **responsável pelo projeto de serviço**, quero **ver em que etapa o proje
 6. **Dado** `projects.edit`, uma etapa `InProgress` com o checklist completo e papel **Execução** sem "Exige aprovação", **quando** clico "Concluir etapa" e confirmo (data ≤ hoje, padrão hoje), **então** ela vai a `Done`, a próxima fica `Ready`, publica `ProjectStageCompleted` (`{ projectId, contractId, stageCode, occurredOn }`) e o diálogo mostra a parcela liberada quando houver marco ligado à etapa (EXE-05).
 7. **Dado** uma etapa com "Exige aprovação", **quando** quem tem só `projects.edit` conclui, **então** ela fica "Aguardando aprovação" e quem tem `projects.approve` vê "Aprovar etapa"; se só existe um aprovador e é a mesma pessoa, conclui com o selo "Autoaprovada" (`SoleOwnerRule`, como a PRD-03a).
 8. **Dado** a etapa de papel **Entrega**, **quando** é concluída (exige `projects.approve`), **então** faz o mesmo que "Registrar entrega" da EXE-01 (projeto `Delivered`, `ProjectDelivered` + `ProjectFabricated`, opção de aceite junto quando não há etapa de aceite nem marco de aceite) e publica também o `ProjectStageCompleted`.
-9. **Dado** a etapa de papel **Aceite do cliente**, **quando** é concluída (exige `projects.approve`, nome de quem aceitou e anexo opcional), **então** faz o mesmo que "Registrar aceite do cliente" da EXE-01 e publica o `ProjectStageCompleted`.
+9. **Dado** a etapa de papel **Aceite do cliente**, **quando** é concluída (exige `projects.register_acceptance`, nome de quem aceitou e anexo opcional), **então** faz o mesmo que "Registrar aceite do cliente" da EXE-01a e publica o `ProjectStageCompleted`.
 10. **Dado** um projeto com etapas, **quando** abro o cabeçalho, **então** "Registrar entrega" e "Registrar aceite do cliente" soltos **não** aparecem quando o modelo tem a etapa correspondente (o caminho é concluir a etapa); o próximo passo mostra o verbo da etapa atual ("Concluir Treinamento").
 11. **Dado** `projects.approve` e uma etapa `Done`, **quando** clico "Reabrir etapa" com motivo (até 200), **então** ela e as seguintes voltam (a reaberta `InProgress`, as seguintes `Waiting`, checklists mantidos), o histórico guarda o motivo e publica `ProjectStageReopened`; etapa que liberou parcela com baixa: 409 "A parcela desta etapa já foi recebida. Use um aditivo."; sem baixa, o Finance volta o título a `Planned` (como o desfazer aceite da EXE-01). Reabrir Entrega/Aceite desfaz entrega/aceite pelas mesmas regras.
 12. **[Segurança]** **Dado** qualquer ação de etapa, **quando** chamada, **então** confere o recurso `projects.service_execution`, a camada 3 no servidor, o contrato `Active`, a versão do projeto (`xmin`) e que a etapa é do projeto da rota (IDOR: etapa de outro projeto → 404).
@@ -43,11 +43,11 @@ Como **responsável pelo projeto de serviço**, quero **ver em que etapa o proje
 
 ## Regras de negócio e técnicas
 - **Sequencial na v1** (como a OS): só inicia a etapa `Ready`; etapa atual = menor sequência não `Done`.
-- **Etapa de Entrega/Aceite** usa os mesmos serviços da EXE-01 (uma regra só).
+- **Etapa de Entrega/Aceite** usa os mesmos serviços da EXE-01a (uma regra só, com a tabela de transições, as datas e a idempotência dela).
 - **Estado do projeto derivado:** primeira etapa iniciada → `InProgress`; Entrega concluída → `Delivered`; Aceite concluído → `accepted_on`. Sem etapa de Entrega no modelo: o botão da EXE-01 continua.
 
 ## Permissões, eventos e tabelas
-- **Permissões:** `projects.edit` (editar etapas, iniciar, checklist, concluir Execução sem aprovação, responsável e datas), `projects.approve` (aprovar etapa, concluir Entrega e Aceite, reabrir).
+- **Permissões:** `projects.edit` (editar etapas, iniciar, checklist, concluir Execução sem aprovação, responsável e datas), `projects.approve` (aprovar etapa, concluir Entrega, reabrir etapas de execução e de entrega), `projects.register_acceptance` (concluir e reabrir a etapa de Aceite, EXE-01a).
 - **Eventos novos (`Commercial.Contracts`):** `ProjectStageCompleted`, `ProjectStageReopened` (`{ projectId, contractId, stageCode, occurredOn }`, sem nome nem texto livre). O consumo no Finance entra na EXE-05; até lá são só publicados (outbox) e aparecem na linha do tempo.
 - **Tabelas (schema `commercial`, novas):** `project_stages` (project_id, sequence, code, name, role, standard_hours, position_id, status `Waiting/Ready/InProgress/AwaitingApproval/Done`, responsible_user_id, planned_start, planned_end, started_at, completed_at, completed_by, completed_on, requires_approval, approved_by, self_approved, xmin), `project_stage_checklist` (stage_id, sequence, text, result `Done/NotApplicable`, marked_at, marked_by); `projects` + `stage_template_id`. Migration aditiva.
 
@@ -84,3 +84,4 @@ Como **responsável pelo projeto de serviço**, quero **ver em que etapa o proje
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 27/11/2026 | 0.1 | Story escrita a partir da proposta aprovada pelo PO (27/11/2026) | Claude |
+| 27/11/2026 | 0.2 | Ajuste às revisões da EXE-01: depende de EXE-01a e EXE-01b; a etapa de Aceite usa `projects.register_acceptance` e as regras de transição, data e idempotência da EXE-01a | Claude |
