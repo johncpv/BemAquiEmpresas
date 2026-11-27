@@ -31,7 +31,10 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next, IHostEnviron
             headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
             // Painel da TV (PNL-01a CA 5 e 11): nada do quiosque fica em cache nem vai no Referer.
             if (context.Request.Path.StartsWithSegments(BemAqui.BuildingBlocks.Web.KioskEndpoints.PathPrefix, StringComparison.OrdinalIgnoreCase)
-                || context.Request.Path.StartsWithSegments(BemAqui.BuildingBlocks.Web.KioskEndpoints.HubPath, StringComparison.OrdinalIgnoreCase))
+                || context.Request.Path.StartsWithSegments(BemAqui.BuildingBlocks.Web.KioskEndpoints.HubPath, StringComparison.OrdinalIgnoreCase)
+                // INT-01 CA 5: o código, o state e a intenção nunca vão no Referer nem ficam em cache.
+                || context.Request.Path.StartsWithSegments(BemAqui.BuildingBlocks.Web.ConnectedAppEndpoints.OAuthPathPrefix, StringComparison.OrdinalIgnoreCase)
+                || context.Request.Path.StartsWithSegments("/oauth", StringComparison.OrdinalIgnoreCase))
             {
                 headers.CacheControl = "no-store";
                 headers["Referrer-Policy"] = "no-referrer";

@@ -11288,6 +11288,293 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("ai_usage_logs", "identity");
                 });
 
+            modelBuilder.Entity("BemAqui.Identity.Domain.AppAuthorizationCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AccountLabel")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("account_label");
+
+                    b.Property<Guid>("AppId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("app_id");
+
+                    b.Property<string>("CodeChallenge")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("code_challenge");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("code_hash");
+
+                    b.Property<Guid?>("ConnectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("connection_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("RedirectUri")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("redirect_uri");
+
+                    b.PrimitiveCollection<string[]>("Scopes")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("scopes");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_app_authorization_codes");
+
+                    b.HasIndex("AppId")
+                        .HasDatabaseName("ix_app_authorization_codes_app_id");
+
+                    b.HasIndex("CodeHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_app_authorization_codes_code_hash");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_app_authorization_codes_expires_at");
+
+                    b.ToTable("app_authorization_codes", "identity");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.AppConnectIntent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AppId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("app_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("IntentHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("intent_hash");
+
+                    b.Property<string>("RequestBindingHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("request_binding_hash");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_app_connect_intents");
+
+                    b.HasIndex("AppId")
+                        .HasDatabaseName("ix_app_connect_intents_app_id");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_app_connect_intents_expires_at");
+
+                    b.HasIndex("IntentHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_app_connect_intents_intent_hash");
+
+                    b.ToTable("app_connect_intents", "identity");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.AppConnection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AccountLabel")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("account_label");
+
+                    b.Property<Guid>("AppId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("app_id");
+
+                    b.Property<DateTimeOffset>("ConnectedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("connected_at");
+
+                    b.PrimitiveCollection<string[]>("GrantedScopes")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("granted_scopes");
+
+                    b.Property<Guid>("GrantorUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("grantor_user_id");
+
+                    b.Property<DateTimeOffset?>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_used_at");
+
+                    b.Property<string>("LastUsedIp")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("last_used_ip");
+
+                    b.Property<DateTimeOffset?>("ModuleOffSince")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("module_off_since");
+
+                    b.Property<DateTimeOffset>("ReconsentDueAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reconsent_due_at");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<Guid?>("RevokedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("revoked_by");
+
+                    b.Property<string>("RevokedReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("revoked_reason");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("StatusReason")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("status_reason");
+
+                    b.Property<DateTimeOffset?>("SuspendedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("suspended_at");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_app_connections");
+
+                    b.HasIndex("AppId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_app_connections_open")
+                        .HasFilter("status <> 'Revoked'");
+
+                    b.HasIndex("GrantorUserId")
+                        .HasDatabaseName("ix_app_connections_grantor_user_id");
+
+                    b.ToTable("app_connections", "identity");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.AppToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ConnectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("connection_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("kind");
+
+                    b.Property<DateTimeOffset?>("ReplacedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("replaced_at");
+
+                    b.Property<Guid?>("ReplacedById")
+                        .HasColumnType("uuid")
+                        .HasColumnName("replaced_by_id");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token_hash");
+
+                    b.HasKey("Id")
+                        .HasName("pk_app_tokens");
+
+                    b.HasIndex("ConnectionId")
+                        .HasDatabaseName("ix_app_tokens_connection_id");
+
+                    b.HasIndex("FamilyId")
+                        .HasDatabaseName("ix_app_tokens_family_id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_app_tokens_token_hash");
+
+                    b.ToTable("app_tokens", "identity");
+                });
+
             modelBuilder.Entity("BemAqui.Identity.Domain.CatalogModule", b =>
                 {
                     b.Property<Guid>("Id")
@@ -11473,6 +11760,45 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasName("pk_company_profile");
 
                     b.ToTable("company_profile", "settings");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.ConnectedApp", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("client_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("RequiredModule")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("required_module");
+
+                    b.HasKey("Id")
+                        .HasName("pk_connected_apps");
+
+                    b.HasIndex("ClientId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_connected_apps_client_id");
+
+                    b.ToTable("connected_apps", "identity");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.DevicePinVerifier", b =>
@@ -21946,6 +22272,46 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_vacation_schedules_vacation_periods_period_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.AppAuthorizationCode", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.ConnectedApp", null)
+                        .WithMany()
+                        .HasForeignKey("AppId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_app_authorization_codes_connected_apps_app_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.AppConnectIntent", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.ConnectedApp", null)
+                        .WithMany()
+                        .HasForeignKey("AppId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_app_connect_intents_connected_apps_app_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.AppConnection", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.ConnectedApp", null)
+                        .WithMany()
+                        .HasForeignKey("AppId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_app_connections_connected_apps_app_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Identity.Domain.AppToken", b =>
+                {
+                    b.HasOne("BemAqui.Identity.Domain.AppConnection", null)
+                        .WithMany()
+                        .HasForeignKey("ConnectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_app_tokens_app_connections_connection_id");
                 });
 
             modelBuilder.Entity("BemAqui.Identity.Domain.DevicePinVerifier", b =>

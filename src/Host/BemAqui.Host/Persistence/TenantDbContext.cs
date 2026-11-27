@@ -39,6 +39,16 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<KioskScreen> KioskScreens => Set<KioskScreen>();
 
+    public DbSet<ConnectedApp> ConnectedApps => Set<ConnectedApp>();
+
+    public DbSet<AppConnectIntent> AppConnectIntents => Set<AppConnectIntent>();
+
+    public DbSet<AppAuthorizationCode> AppAuthorizationCodes => Set<AppAuthorizationCode>();
+
+    public DbSet<AppConnection> AppConnections => Set<AppConnection>();
+
+    public DbSet<AppToken> AppTokens => Set<AppToken>();
+
     public DbSet<KioskSession> KioskSessions => Set<KioskSession>();
 
     public DbSet<UserInvite> UserInvites => Set<UserInvite>();

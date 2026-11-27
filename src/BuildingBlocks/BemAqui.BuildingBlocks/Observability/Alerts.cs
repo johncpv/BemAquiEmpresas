@@ -16,6 +16,12 @@ public static class AlertKinds
     /// <summary>Integração bancária parada: certificado do Inter vencido (BNK-01a CA 15).</summary>
     public const string BankIntegration = "bank_integration";
 
+    /// <summary>Aplicativo conectado reapresentou um token de renovação já substituído: a conexão foi revogada (INT-01 CA 13).</summary>
+    public const string IntegrationTokenReuse = "integration_token_reuse";
+
+    /// <summary>20 falhas de autenticação de cliente OAuth em 5 min no tenant (INT-01 CA 19).</summary>
+    public const string IntegrationAuthFailures = "integration_auth_failures";
+
     /// <summary>Tipos que podem vir de fora da API, pela CLI <c>alert raise</c> (FND-10).</summary>
     public static readonly string[] External = [BackupFailed];
 }

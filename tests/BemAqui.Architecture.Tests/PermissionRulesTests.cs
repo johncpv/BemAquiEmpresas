@@ -28,13 +28,14 @@ public class PermissionRulesTests
         PermissionRules.Violations([("X.cs", source)]).Should().BeEmpty();
 
     /// <summary>
-    /// Os 16 módulos da ADR 0010 e os do PDV, um por story (CAT-01: <c>catalog</c>; VND-01: <c>sales</c>; os dois fora do perfil Fábrica).
+    /// Os 16 módulos da ADR 0010, os do PDV, um por story (CAT-01: <c>catalog</c>; VND-01: <c>sales</c>; os dois fora do perfil Fábrica), e o
+    /// <c>conecta</c> (INT-01, ADR 0053 §12), fora de todos os perfis.
     /// </summary>
     [Fact]
     public void Catalogo_tem_os_16_modulos_aprovados_na_ADR_0010_e_os_do_PDV() =>
         ModuleCatalog.All.Select(m => m.Code).Should().BeEquivalentTo(
             ["dashboard", "quotes", "projects", "parties", "engineering", "production", "inventory", "purchasing", "assets", "finance", "fiscal", "hr", "kiosk", "shopfloor", "identity", "settings",
-                "catalog", "sales", "pos"]);
+                "catalog", "sales", "pos", "conecta"]);
 
     /// <summary>PERF-01 CA 2: perfil de negócio só cita módulo do <c>ModuleCatalog</c>; a falha diz o perfil e o código.</summary>
     [Fact]

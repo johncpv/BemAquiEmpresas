@@ -79,6 +79,23 @@ public sealed class PermissionHandler : AuthorizationHandler<PermissionRequireme
             return;
         }
 
+        // Aplicativo conectado (INT-01 CA 16, ADR 0053 §6): a efetiva é a concessão ∩ as permissões atuais de quem autorizou (o PermissionService
+        // limita pelo ConnectedAppContext do request); sem a ação, 403 insufficient_scope com o escopo que falta. Perda de permissão vale já.
+        if (BemAqui.BuildingBlocks.Security.AppClaims.GrantorOf(context.User) is { } grantor)
+        {
+            var granted = await http.RequestServices.GetRequiredService<IPermissionService>().GetAsync(grantor, http.RequestAborted);
+            if (requirement.Alternatives.Any(granted.Has))
+            {
+                context.Succeed(requirement);
+            }
+            else
+            {
+                context.Fail(new AuthorizationFailureReason(this, InsufficientScopeReason + ":" + requirement.Alternatives[0]));
+            }
+
+            return;
+        }
+
         if (!Guid.TryParse(context.User.FindFirst("sub")?.Value, out var userId))
         {
             return;
@@ -91,6 +108,8 @@ public sealed class PermissionHandler : AuthorizationHandler<PermissionRequireme
             context.Succeed(requirement);
         }
     }
+
+    public const string InsufficientScopeReason = "insufficient_scope";
 }
 
 /// <summary>Hub: módulo liberado no tenant, depois uma das ações na permissão efetiva (mesma ordem do <see cref="PermissionHandler"/>).</summary>
@@ -135,13 +154,16 @@ public sealed class PermissionResultHandler : IAuthorizationMiddlewareResultHand
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(authorizeResult);
-        if (authorizeResult.Forbidden && policy?.Requirements.Any(r => r is PermissionRequirement or HubAccessRequirement or KioskRequirement) == true)
+        if (authorizeResult.Forbidden && policy?.Requirements.Any(r => r is PermissionRequirement or HubAccessRequirement or KioskRequirement or ConnectedAppRequirement) == true)
         {
-            var notReleased = authorizeResult.AuthorizationFailure?.FailureReasons
-                .Select(r => r.Message).FirstOrDefault(m => m.StartsWith(PermissionHandler.NotReleasedReason + ":", StringComparison.Ordinal));
+            var reasons = authorizeResult.AuthorizationFailure?.FailureReasons.Select(r => r.Message).ToList() ?? [];
+            var notReleased = reasons.FirstOrDefault(m => m.StartsWith(PermissionHandler.NotReleasedReason + ":", StringComparison.Ordinal));
+            var scope = reasons.FirstOrDefault(m => m.StartsWith(PermissionHandler.InsufficientScopeReason + ":", StringComparison.Ordinal));
             await (notReleased is not null
                     ? ModuleEndpoints.NotReleased(notReleased[(PermissionHandler.NotReleasedReason.Length + 1)..])
-                    : Error.Forbidden(Error.Codes.Forbidden, ForbiddenMessage).ToProblem())
+                    : scope is not null
+                        ? ConnectedAppEndpoints.InsufficientScope(scope[(PermissionHandler.InsufficientScopeReason.Length + 1)..])
+                        : Error.Forbidden(Error.Codes.Forbidden, ForbiddenMessage).ToProblem())
                 .ExecuteAsync(context);
             return;
         }

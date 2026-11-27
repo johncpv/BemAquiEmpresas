@@ -33,6 +33,7 @@ public sealed class IdentityModule : IModule
         endpoints.MapPosPinEndpoints(); // PDV-01 CA 11 e 12: PIN no caixa e usuário de operação
         endpoints.MapKioskEndpoints();
         endpoints.MapPrivacyEndpoints();
+        endpoints.MapConnectedAppEndpoints(); // INT-01: aplicativos conectados (OAuth 2.0 com PKCE para o Conecta)
 
         // Sessão atual: identidade, nome e e-mail (permissões em /me/permissions).
         endpoints.MapGet("/me", async (ClaimsPrincipal user, Profile profile, CancellationToken ct) =>

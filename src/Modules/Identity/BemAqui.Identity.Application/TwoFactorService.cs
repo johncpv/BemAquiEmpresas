@@ -25,7 +25,8 @@ public sealed partial class TwoFactorService(
     TwoFactorRequirement requirement,
     AuthService auth,
     ISecurityStampCache stamps,
-    TimeProvider clock)
+    TimeProvider clock,
+    ConnectedApps.AppConnectionLifecycle connections)
 {
     public const string Issuer = "BemAqui Empresas";
     public const string ChallengeExpired = "O tempo para informar o código acabou. Entre de novo.";
@@ -113,6 +114,7 @@ public sealed partial class TwoFactorService(
         user.DisableTotp();
         await db.RecoveryCodes.Where(r => r.UserId == user.Id).ExecuteDeleteAsync(cancellationToken);
         await auth.AuditAsync("TwoFactorDisabled", user.Id, ip, null, cancellationToken);
+        await connections.NotifyTwoFactorResetAsync(user.Id, cancellationToken); // INT-01 CA 17: não suspende, só avisa os Proprietários
         return await NewSessionAsync(user, host, ip, persistent: true, cancellationToken);
     }
 }
