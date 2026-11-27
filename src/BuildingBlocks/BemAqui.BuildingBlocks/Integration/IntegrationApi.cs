@@ -104,7 +104,13 @@ public static class IntegrationData
     /// </summary>
     public static string? NationalPhone(string? phone)
     {
-        var digits = new string((phone ?? string.Empty).Where(char.IsAsciiDigit).ToArray());
+        var text = (phone ?? string.Empty).Trim();
+        var digits = new string(text.Where(char.IsAsciiDigit).ToArray());
+        if (text.StartsWith('+') && !digits.StartsWith("55", StringComparison.Ordinal))
+        {
+            return null; // E.164 de outro país: não é telefone do cadastro.
+        }
+
         if (digits.Length is 12 or 13 && digits.StartsWith("55", StringComparison.Ordinal))
         {
             digits = digits[2..];
