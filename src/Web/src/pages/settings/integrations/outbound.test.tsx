@@ -61,18 +61,18 @@ describe('resumo de saúde dos avisos (INT-02 CA 19)', () => {
   it('avisos chegando: chip ok e o link para o Avançado', async () => {
     mockSummary(summary({}))
     renderPage(() => <OutboundHealthSection />)
-    expect(await screen.findByText('Os avisos estão chegando ao Conecta')).toBeInTheDocument()
-    expect(screen.getByText('Funcionando')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Avançado' })).toBeInTheDocument()
+    expect(await screen.findByText('Os avisos estão chegando ao Conecta')).toBeTruthy()
+    expect(screen.getByText('Funcionando')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Avançado' })).toBeTruthy()
     expect(screen.queryByRole('link', { name: 'Reenviar os parados' })).toBeNull()
   })
 
   it('avisos parados: chip crítico com a data e "Reenviar os parados"', async () => {
     mockSummary(summary({ healthy: false, failingSince: '2026-11-25T15:00:00Z', deadLettered: 2 }))
     renderPage(() => <OutboundHealthSection />)
-    expect(await screen.findByText('O Conecta não está recebendo os avisos desde 25/11')).toBeInTheDocument()
-    expect(screen.getByText('Parado')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Reenviar os parados' })).toBeInTheDocument()
+    expect(await screen.findByText('O Conecta não está recebendo os avisos desde 25/11')).toBeTruthy()
+    expect(screen.getByText('Parado')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Reenviar os parados' })).toBeTruthy()
   })
 })
 
@@ -81,17 +81,17 @@ describe('aba "Enviados" (INT-02)', () => {
     mockSummary(summary({}))
     mockList(list([]))
     renderPage(() => <SentEventsTab />)
-    expect(await screen.findByText('Nenhum aviso enviado ainda.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Enviar teste' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Trocar segredo' })).toBeInTheDocument()
+    expect(await screen.findByText('Nenhum aviso enviado ainda.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Enviar teste' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Trocar segredo' })).toBeTruthy()
   })
 
   it('sem conexão: leva ao Conecta', async () => {
     mockSummary(summary({ connected: false, subscriptionId: null }))
     mockList(list([]))
     renderPage(() => <SentEventsTab />)
-    expect(await screen.findByText('Conecte o Conecta para enviar avisos')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Abrir o Conecta' })).toBeInTheDocument()
+    expect(await screen.findByText('Conecte o Conecta para enviar avisos')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Abrir o Conecta' })).toBeTruthy()
   })
 
   it('com parado: chip crítico com texto, "Reenviar" e o conteúdo apagado desabilita', async () => {

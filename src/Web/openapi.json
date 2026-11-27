@@ -588,6 +588,275 @@
         }
       }
     },
+    "/api/v1/outbound-webhooks/summary": {
+      "get": {
+        "tags": [
+          "Avisos de sa\u00EDda"
+        ],
+        "operationId": "GetOutboundWebhookSummary",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutboundWebhookSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/outbound-webhooks/deliveries": {
+      "get": {
+        "tags": [
+          "Avisos de sa\u00EDda"
+        ],
+        "operationId": "ListOutboundDeliveries",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutboundDeliveryList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/outbound-webhooks/deliveries/{id}": {
+      "get": {
+        "tags": [
+          "Avisos de sa\u00EDda"
+        ],
+        "operationId": "GetOutboundDelivery",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutboundDeliveryDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/outbound-webhooks/deliveries/{id}/resend": {
+      "post": {
+        "tags": [
+          "Avisos de sa\u00EDda"
+        ],
+        "operationId": "ResendOutboundDelivery",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/outbound-webhooks/subscriptions/{id}": {
+      "put": {
+        "tags": [
+          "Avisos de sa\u00EDda"
+        ],
+        "operationId": "UpdateOutboundSubscription",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutboundSubscriptionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/outbound-webhooks/subscriptions/{id}/test": {
+      "post": {
+        "tags": [
+          "Avisos de sa\u00EDda"
+        ],
+        "operationId": "TestOutboundSubscription",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutboundTestResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/outbound-webhooks/subscriptions/{id}/secret/rotate": {
+      "post": {
+        "tags": [
+          "Avisos de sa\u00EDda"
+        ],
+        "operationId": "RotateOutboundSecret",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RotateOutboundSecretRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutboundSecretRotation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integration/webhooks/subscription": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "GetIntegrationWebhookSubscription",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationWebhookSubscriptionView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/platform/auth/login": {
       "post": {
         "tags": [
@@ -69714,6 +69983,38 @@
           }
         }
       },
+      "IntegrationWebhookSubscriptionView": {
+        "required": [
+          "subscription_id",
+          "url",
+          "events",
+          "status",
+          "contract"
+        ],
+        "type": "object",
+        "properties": {
+          "subscription_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "contract": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "InvalidateNumbersRequest": {
         "required": [
           "series",
@@ -80962,6 +81263,325 @@
           }
         }
       },
+      "OutboundAttemptView": {
+        "required": [
+          "number",
+          "at",
+          "statusCode",
+          "durationMs",
+          "error"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "statusCode": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "durationMs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "OutboundDeliveryDetail": {
+        "required": [
+          "delivery",
+          "body",
+          "resource",
+          "attempts"
+        ],
+        "type": "object",
+        "properties": {
+          "delivery": {
+            "$ref": "#/components/schemas/OutboundDeliveryRow"
+          },
+          "body": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "resource": {
+            "type": "string"
+          },
+          "attempts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OutboundAttemptView"
+            }
+          }
+        }
+      },
+      "OutboundDeliveryList": {
+        "required": [
+          "page",
+          "types",
+          "deadLettered"
+        ],
+        "type": "object",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/PagedListOfOutboundDeliveryRow"
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OutboundEventOption"
+            }
+          },
+          "deadLettered": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OutboundDeliveryRow": {
+        "required": [
+          "id",
+          "eventId",
+          "type",
+          "typeLabel",
+          "createdAt",
+          "status",
+          "attempts",
+          "lastStatusCode",
+          "lastError",
+          "nextAttemptAt",
+          "canResend",
+          "contentPurged"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "typeLabel": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "attempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastStatusCode": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "lastError": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nextAttemptAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "canResend": {
+            "type": "boolean"
+          },
+          "contentPurged": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OutboundEventOption": {
+        "required": [
+          "type",
+          "label",
+          "subscribed"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "subscribed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OutboundSecretRotation": {
+        "required": [
+          "rotatedAt",
+          "previousValidUntil"
+        ],
+        "type": "object",
+        "properties": {
+          "rotatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "previousValidUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "OutboundSubscriptionInput": {
+        "required": [
+          "url",
+          "events"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "events": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "OutboundTestResult": {
+        "required": [
+          "deliveryId"
+        ],
+        "type": "object",
+        "properties": {
+          "deliveryId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "OutboundWebhookSummary": {
+        "required": [
+          "connected",
+          "subscriptionId",
+          "url",
+          "status",
+          "healthy",
+          "failingSince",
+          "deadLettered",
+          "lastSuccessAt",
+          "secretRotatedAt",
+          "previousValidUntil",
+          "events",
+          "canEdit"
+        ],
+        "type": "object",
+        "properties": {
+          "connected": {
+            "type": "boolean"
+          },
+          "subscriptionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "healthy": {
+            "type": "boolean"
+          },
+          "failingSince": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "deadLettered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastSuccessAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "secretRotatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "previousValidUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OutboundEventOption"
+            }
+          },
+          "canEdit": {
+            "type": "boolean"
+          }
+        }
+      },
       "OutgoingInvoiceActions": {
         "required": [
           "canEdit",
@@ -82471,6 +83091,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/NotificationDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedListOfOutboundDeliveryRow": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OutboundDeliveryRow"
             }
           },
           "page": {
@@ -105825,6 +106474,17 @@
           }
         }
       },
+      "RotateOutboundSecretRequest": {
+        "required": [
+          "immediate"
+        ],
+        "type": "object",
+        "properties": {
+          "immediate": {
+            "type": "boolean"
+          }
+        }
+      },
       "RotateWebhookRequest": {
         "required": [
           "code"
@@ -120715,6 +121375,12 @@
       "name": "Configura\u00E7\u00F5es"
     },
     {
+      "name": "Avisos de sa\u00EDda"
+    },
+    {
+      "name": "Integra\u00E7\u00E3o (aplicativos)"
+    },
+    {
       "name": "Autentica\u00E7\u00E3o"
     },
     {
@@ -120740,9 +121406,6 @@
     },
     {
       "name": "Aplicativos conectados"
-    },
-    {
-      "name": "Integra\u00E7\u00E3o (aplicativos)"
     },
     {
       "name": "Terceiros"
