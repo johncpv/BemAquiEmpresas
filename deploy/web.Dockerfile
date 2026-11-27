@@ -10,6 +10,7 @@ ENV VITE_GALERIA=$VITE_GALERIA
 COPY src/Web/ ./
 # A ajuda da /fab/entrar vem de Ajuda/fab-entrar.md, embutida no app (PRD-03b): mesmo caminho relativo do repositório (/web/../Ajuda).
 COPY Ajuda/ /Ajuda/
+ENV NODE_OPTIONS=--max-old-space-size=6144
 RUN pnpm build
 
 # nginx-unprivileged: roda como uid 101, escuta na 8080 e grava o pid em /tmp.
