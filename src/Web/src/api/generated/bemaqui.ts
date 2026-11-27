@@ -477,7 +477,25 @@ import type {
   InstallationVersionInput,
   InstallerOption,
   InstallmentDue,
+  IntegrationCharge,
+  IntegrationChargeSummary,
   IntegrationConnectionView,
+  IntegrationCustomer,
+  IntegrationCustomerInput,
+  IntegrationCustomerPatch,
+  IntegrationDownloadChargePdfParams,
+  IntegrationGetChargeParams,
+  IntegrationListProductsParams,
+  IntegrationOrder,
+  IntegrationOrderCancelInput,
+  IntegrationOrderChargeInput,
+  IntegrationOrderConfirmInput,
+  IntegrationOrderInput,
+  IntegrationOrderInvoice,
+  IntegrationProduct,
+  IntegrationProductPage,
+  IntegrationProjectStatus,
+  IntegrationSearchCustomersParams,
   IntegrationWebhookSubscriptionView,
   InvalidateNumbersRequest,
   InvalidationResultView,
@@ -17163,6 +17181,368 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getRemovePartyContactMutationOptions(options), queryClient);
+    }
+
+export const getIntegrationSearchCustomersUrl = (params?: IntegrationSearchCustomersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/integration/customers?${stringifiedParams}` : `/api/v1/integration/customers`
+}
+
+export const integrationSearchCustomers = async (params?: IntegrationSearchCustomersParams, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationCustomer[]> => {
+
+  return apiFetch<IntegrationCustomer[]>(getIntegrationSearchCustomersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getIntegrationSearchCustomersQueryKey = (params?: IntegrationSearchCustomersParams,) => {
+    return [
+    `/api/v1/integration/customers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getIntegrationSearchCustomersQueryOptions = <TData = Awaited<ReturnType<typeof integrationSearchCustomers>>, TError = unknown>(params?: IntegrationSearchCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationSearchCustomers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getIntegrationSearchCustomersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof integrationSearchCustomers>>> = ({ signal }) => integrationSearchCustomers(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof integrationSearchCustomers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type IntegrationSearchCustomersQueryResult = NonNullable<Awaited<ReturnType<typeof integrationSearchCustomers>>>
+export type IntegrationSearchCustomersQueryError = unknown
+
+
+export function useIntegrationSearchCustomers<TData = Awaited<ReturnType<typeof integrationSearchCustomers>>, TError = unknown>(
+ params: undefined |  IntegrationSearchCustomersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationSearchCustomers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationSearchCustomers>>,
+          TError,
+          Awaited<ReturnType<typeof integrationSearchCustomers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationSearchCustomers<TData = Awaited<ReturnType<typeof integrationSearchCustomers>>, TError = unknown>(
+ params?: IntegrationSearchCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationSearchCustomers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationSearchCustomers>>,
+          TError,
+          Awaited<ReturnType<typeof integrationSearchCustomers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationSearchCustomers<TData = Awaited<ReturnType<typeof integrationSearchCustomers>>, TError = unknown>(
+ params?: IntegrationSearchCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationSearchCustomers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useIntegrationSearchCustomers<TData = Awaited<ReturnType<typeof integrationSearchCustomers>>, TError = unknown>(
+ params?: IntegrationSearchCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationSearchCustomers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getIntegrationSearchCustomersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getIntegrationCreateCustomerUrl = () => {
+
+
+
+
+  return `/api/v1/integration/customers`
+}
+
+export const integrationCreateCustomer = async (integrationCustomerInput: IntegrationCustomerInput, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationCustomer> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<IntegrationCustomer>(getIntegrationCreateCustomerUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(integrationCustomerInput)
+  }
+);}
+
+
+
+
+
+export const getIntegrationCreateCustomerMutationKey = () => ['integrationCreateCustomer'] as const;
+
+export const getIntegrationCreateCustomerMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof integrationCreateCustomer>>, TError,IntegrationCreateCustomerMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof integrationCreateCustomer>>, TError,IntegrationCreateCustomerMutationVariables, TContext> => {
+
+const mutationKey = getIntegrationCreateCustomerMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof integrationCreateCustomer>>, IntegrationCreateCustomerMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  integrationCreateCustomer(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type IntegrationCreateCustomerMutationResult = NonNullable<Awaited<ReturnType<typeof integrationCreateCustomer>>>
+    export type IntegrationCreateCustomerMutationBody = IntegrationCustomerInput
+    export type IntegrationCreateCustomerMutationError = unknown
+    export type IntegrationCreateCustomerMutationVariables = {data: IntegrationCustomerInput}
+
+    export const useIntegrationCreateCustomer = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof integrationCreateCustomer>>, TError,IntegrationCreateCustomerMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof integrationCreateCustomer>>,
+        TError,
+        IntegrationCreateCustomerMutationVariables,
+        TContext
+      > => {
+      return useMutation(getIntegrationCreateCustomerMutationOptions(options), queryClient);
+    }
+
+export const getIntegrationGetCustomerUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/integration/customers/${id}`
+}
+
+export const integrationGetCustomer = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationCustomer> => {
+
+  return apiFetch<IntegrationCustomer>(getIntegrationGetCustomerUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getIntegrationGetCustomerQueryKey = (id: string,) => {
+    return [
+    `/api/v1/integration/customers/${id}`
+    ] as const;
+    }
+
+
+export const getIntegrationGetCustomerQueryOptions = <TData = Awaited<ReturnType<typeof integrationGetCustomer>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetCustomer>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getIntegrationGetCustomerQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof integrationGetCustomer>>> = ({ signal }) => integrationGetCustomer(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof integrationGetCustomer>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type IntegrationGetCustomerQueryResult = NonNullable<Awaited<ReturnType<typeof integrationGetCustomer>>>
+export type IntegrationGetCustomerQueryError = unknown
+
+
+export function useIntegrationGetCustomer<TData = Awaited<ReturnType<typeof integrationGetCustomer>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetCustomer>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationGetCustomer>>,
+          TError,
+          Awaited<ReturnType<typeof integrationGetCustomer>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationGetCustomer<TData = Awaited<ReturnType<typeof integrationGetCustomer>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetCustomer>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationGetCustomer>>,
+          TError,
+          Awaited<ReturnType<typeof integrationGetCustomer>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationGetCustomer<TData = Awaited<ReturnType<typeof integrationGetCustomer>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetCustomer>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useIntegrationGetCustomer<TData = Awaited<ReturnType<typeof integrationGetCustomer>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetCustomer>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getIntegrationGetCustomerQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getIntegrationPatchCustomerUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/integration/customers/${id}`
+}
+
+export const integrationPatchCustomer = async (id: string,
+    integrationCustomerPatch: IntegrationCustomerPatch, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationCustomer> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<IntegrationCustomer>(getIntegrationPatchCustomerUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(integrationCustomerPatch)
+  }
+);}
+
+
+
+
+
+export const getIntegrationPatchCustomerMutationKey = () => ['integrationPatchCustomer'] as const;
+
+export const getIntegrationPatchCustomerMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof integrationPatchCustomer>>, TError,IntegrationPatchCustomerMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof integrationPatchCustomer>>, TError,IntegrationPatchCustomerMutationVariables, TContext> => {
+
+const mutationKey = getIntegrationPatchCustomerMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof integrationPatchCustomer>>, IntegrationPatchCustomerMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  integrationPatchCustomer(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type IntegrationPatchCustomerMutationResult = NonNullable<Awaited<ReturnType<typeof integrationPatchCustomer>>>
+    export type IntegrationPatchCustomerMutationBody = IntegrationCustomerPatch
+    export type IntegrationPatchCustomerMutationError = unknown
+    export type IntegrationPatchCustomerMutationVariables = {id: string;data: IntegrationCustomerPatch}
+
+    export const useIntegrationPatchCustomer = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof integrationPatchCustomer>>, TError,IntegrationPatchCustomerMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof integrationPatchCustomer>>,
+        TError,
+        IntegrationPatchCustomerMutationVariables,
+        TContext
+      > => {
+      return useMutation(getIntegrationPatchCustomerMutationOptions(options), queryClient);
     }
 
 export const getListPositionsUrl = (params?: ListPositionsParams,) => {
@@ -42575,6 +42955,101 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getUpdateCommercialParametersMutationOptions(options), queryClient);
     }
+
+export const getIntegrationListCustomerProjectsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/integration/customers/${id}/projects`
+}
+
+export const integrationListCustomerProjects = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationProjectStatus[]> => {
+
+  return apiFetch<IntegrationProjectStatus[]>(getIntegrationListCustomerProjectsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getIntegrationListCustomerProjectsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/integration/customers/${id}/projects`
+    ] as const;
+    }
+
+
+export const getIntegrationListCustomerProjectsQueryOptions = <TData = Awaited<ReturnType<typeof integrationListCustomerProjects>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerProjects>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getIntegrationListCustomerProjectsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof integrationListCustomerProjects>>> = ({ signal }) => integrationListCustomerProjects(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerProjects>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type IntegrationListCustomerProjectsQueryResult = NonNullable<Awaited<ReturnType<typeof integrationListCustomerProjects>>>
+export type IntegrationListCustomerProjectsQueryError = unknown
+
+
+export function useIntegrationListCustomerProjects<TData = Awaited<ReturnType<typeof integrationListCustomerProjects>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerProjects>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationListCustomerProjects>>,
+          TError,
+          Awaited<ReturnType<typeof integrationListCustomerProjects>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationListCustomerProjects<TData = Awaited<ReturnType<typeof integrationListCustomerProjects>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerProjects>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationListCustomerProjects>>,
+          TError,
+          Awaited<ReturnType<typeof integrationListCustomerProjects>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationListCustomerProjects<TData = Awaited<ReturnType<typeof integrationListCustomerProjects>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerProjects>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useIntegrationListCustomerProjects<TData = Awaited<ReturnType<typeof integrationListCustomerProjects>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerProjects>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getIntegrationListCustomerProjectsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListRoutingTemplatesUrl = (params?: ListRoutingTemplatesParams,) => {
   const normalizedParams = new URLSearchParams();
@@ -93479,6 +93954,321 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getPreviewCollectionReminderMutationOptions(options), queryClient);
     }
 
+export const getIntegrationListCustomerChargesUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/integration/customers/${id}/charges`
+}
+
+export const integrationListCustomerCharges = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationChargeSummary[]> => {
+
+  return apiFetch<IntegrationChargeSummary[]>(getIntegrationListCustomerChargesUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getIntegrationListCustomerChargesQueryKey = (id: string,) => {
+    return [
+    `/api/v1/integration/customers/${id}/charges`
+    ] as const;
+    }
+
+
+export const getIntegrationListCustomerChargesQueryOptions = <TData = Awaited<ReturnType<typeof integrationListCustomerCharges>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerCharges>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getIntegrationListCustomerChargesQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof integrationListCustomerCharges>>> = ({ signal }) => integrationListCustomerCharges(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerCharges>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type IntegrationListCustomerChargesQueryResult = NonNullable<Awaited<ReturnType<typeof integrationListCustomerCharges>>>
+export type IntegrationListCustomerChargesQueryError = unknown
+
+
+export function useIntegrationListCustomerCharges<TData = Awaited<ReturnType<typeof integrationListCustomerCharges>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerCharges>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationListCustomerCharges>>,
+          TError,
+          Awaited<ReturnType<typeof integrationListCustomerCharges>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationListCustomerCharges<TData = Awaited<ReturnType<typeof integrationListCustomerCharges>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerCharges>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationListCustomerCharges>>,
+          TError,
+          Awaited<ReturnType<typeof integrationListCustomerCharges>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationListCustomerCharges<TData = Awaited<ReturnType<typeof integrationListCustomerCharges>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerCharges>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useIntegrationListCustomerCharges<TData = Awaited<ReturnType<typeof integrationListCustomerCharges>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerCharges>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getIntegrationListCustomerChargesQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getIntegrationGetChargeUrl = (id: string,
+    params?: IntegrationGetChargeParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/integration/charges/${id}?${stringifiedParams}` : `/api/v1/integration/charges/${id}`
+}
+
+export const integrationGetCharge = async (id: string,
+    params?: IntegrationGetChargeParams, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationCharge> => {
+
+  return apiFetch<IntegrationCharge>(getIntegrationGetChargeUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getIntegrationGetChargeQueryKey = (id: string,
+    params?: IntegrationGetChargeParams,) => {
+    return [
+    `/api/v1/integration/charges/${id}`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getIntegrationGetChargeQueryOptions = <TData = Awaited<ReturnType<typeof integrationGetCharge>>, TError = unknown>(id: string,
+    params?: IntegrationGetChargeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetCharge>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getIntegrationGetChargeQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof integrationGetCharge>>> = ({ signal }) => integrationGetCharge(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof integrationGetCharge>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type IntegrationGetChargeQueryResult = NonNullable<Awaited<ReturnType<typeof integrationGetCharge>>>
+export type IntegrationGetChargeQueryError = unknown
+
+
+export function useIntegrationGetCharge<TData = Awaited<ReturnType<typeof integrationGetCharge>>, TError = unknown>(
+ id: string,
+    params: undefined |  IntegrationGetChargeParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetCharge>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationGetCharge>>,
+          TError,
+          Awaited<ReturnType<typeof integrationGetCharge>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationGetCharge<TData = Awaited<ReturnType<typeof integrationGetCharge>>, TError = unknown>(
+ id: string,
+    params?: IntegrationGetChargeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetCharge>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationGetCharge>>,
+          TError,
+          Awaited<ReturnType<typeof integrationGetCharge>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationGetCharge<TData = Awaited<ReturnType<typeof integrationGetCharge>>, TError = unknown>(
+ id: string,
+    params?: IntegrationGetChargeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetCharge>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useIntegrationGetCharge<TData = Awaited<ReturnType<typeof integrationGetCharge>>, TError = unknown>(
+ id: string,
+    params?: IntegrationGetChargeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetCharge>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getIntegrationGetChargeQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getIntegrationDownloadChargePdfUrl = (id: string,
+    params?: IntegrationDownloadChargePdfParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/integration/charges/${id}/pdf?${stringifiedParams}` : `/api/v1/integration/charges/${id}/pdf`
+}
+
+export const integrationDownloadChargePdf = async (id: string,
+    params?: IntegrationDownloadChargePdfParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getIntegrationDownloadChargePdfUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getIntegrationDownloadChargePdfQueryKey = (id: string,
+    params?: IntegrationDownloadChargePdfParams,) => {
+    return [
+    `/api/v1/integration/charges/${id}/pdf`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getIntegrationDownloadChargePdfQueryOptions = <TData = Awaited<ReturnType<typeof integrationDownloadChargePdf>>, TError = unknown>(id: string,
+    params?: IntegrationDownloadChargePdfParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationDownloadChargePdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getIntegrationDownloadChargePdfQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof integrationDownloadChargePdf>>> = ({ signal }) => integrationDownloadChargePdf(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof integrationDownloadChargePdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type IntegrationDownloadChargePdfQueryResult = NonNullable<Awaited<ReturnType<typeof integrationDownloadChargePdf>>>
+export type IntegrationDownloadChargePdfQueryError = unknown
+
+
+export function useIntegrationDownloadChargePdf<TData = Awaited<ReturnType<typeof integrationDownloadChargePdf>>, TError = unknown>(
+ id: string,
+    params: undefined |  IntegrationDownloadChargePdfParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationDownloadChargePdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationDownloadChargePdf>>,
+          TError,
+          Awaited<ReturnType<typeof integrationDownloadChargePdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationDownloadChargePdf<TData = Awaited<ReturnType<typeof integrationDownloadChargePdf>>, TError = unknown>(
+ id: string,
+    params?: IntegrationDownloadChargePdfParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationDownloadChargePdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationDownloadChargePdf>>,
+          TError,
+          Awaited<ReturnType<typeof integrationDownloadChargePdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationDownloadChargePdf<TData = Awaited<ReturnType<typeof integrationDownloadChargePdf>>, TError = unknown>(
+ id: string,
+    params?: IntegrationDownloadChargePdfParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationDownloadChargePdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useIntegrationDownloadChargePdf<TData = Awaited<ReturnType<typeof integrationDownloadChargePdf>>, TError = unknown>(
+ id: string,
+    params?: IntegrationDownloadChargePdfParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationDownloadChargePdf>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getIntegrationDownloadChargePdfQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListSalesUrl = (params: ListSalesParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -96086,6 +96876,622 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getRefundSalesOrderMutationOptions(options), queryClient);
     }
+
+export const getIntegrationCreateOrderUrl = () => {
+
+
+
+
+  return `/api/v1/integration/orders`
+}
+
+export const integrationCreateOrder = async (integrationOrderInput: IntegrationOrderInput, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationOrder> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<IntegrationOrder>(getIntegrationCreateOrderUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(integrationOrderInput)
+  }
+);}
+
+
+
+
+
+export const getIntegrationCreateOrderMutationKey = () => ['integrationCreateOrder'] as const;
+
+export const getIntegrationCreateOrderMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof integrationCreateOrder>>, TError,IntegrationCreateOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof integrationCreateOrder>>, TError,IntegrationCreateOrderMutationVariables, TContext> => {
+
+const mutationKey = getIntegrationCreateOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof integrationCreateOrder>>, IntegrationCreateOrderMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  integrationCreateOrder(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type IntegrationCreateOrderMutationResult = NonNullable<Awaited<ReturnType<typeof integrationCreateOrder>>>
+    export type IntegrationCreateOrderMutationBody = IntegrationOrderInput
+    export type IntegrationCreateOrderMutationError = unknown
+    export type IntegrationCreateOrderMutationVariables = {data: IntegrationOrderInput}
+
+    export const useIntegrationCreateOrder = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof integrationCreateOrder>>, TError,IntegrationCreateOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof integrationCreateOrder>>,
+        TError,
+        IntegrationCreateOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getIntegrationCreateOrderMutationOptions(options), queryClient);
+    }
+
+export const getIntegrationGetOrderUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/integration/orders/${id}`
+}
+
+export const integrationGetOrder = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationOrder> => {
+
+  return apiFetch<IntegrationOrder>(getIntegrationGetOrderUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getIntegrationGetOrderQueryKey = (id: string,) => {
+    return [
+    `/api/v1/integration/orders/${id}`
+    ] as const;
+    }
+
+
+export const getIntegrationGetOrderQueryOptions = <TData = Awaited<ReturnType<typeof integrationGetOrder>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getIntegrationGetOrderQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof integrationGetOrder>>> = ({ signal }) => integrationGetOrder(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof integrationGetOrder>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type IntegrationGetOrderQueryResult = NonNullable<Awaited<ReturnType<typeof integrationGetOrder>>>
+export type IntegrationGetOrderQueryError = unknown
+
+
+export function useIntegrationGetOrder<TData = Awaited<ReturnType<typeof integrationGetOrder>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetOrder>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationGetOrder>>,
+          TError,
+          Awaited<ReturnType<typeof integrationGetOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationGetOrder<TData = Awaited<ReturnType<typeof integrationGetOrder>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetOrder>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationGetOrder>>,
+          TError,
+          Awaited<ReturnType<typeof integrationGetOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationGetOrder<TData = Awaited<ReturnType<typeof integrationGetOrder>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useIntegrationGetOrder<TData = Awaited<ReturnType<typeof integrationGetOrder>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetOrder>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getIntegrationGetOrderQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getIntegrationConfirmOrderUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/integration/orders/${id}/confirm`
+}
+
+export const integrationConfirmOrder = async (id: string,
+    nullIntegrationOrderConfirmInput?: null | IntegrationOrderConfirmInput, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationOrder> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<IntegrationOrder>(getIntegrationConfirmOrderUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(nullIntegrationOrderConfirmInput)
+  }
+);}
+
+
+
+
+
+export const getIntegrationConfirmOrderMutationKey = () => ['integrationConfirmOrder'] as const;
+
+export const getIntegrationConfirmOrderMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof integrationConfirmOrder>>, TError,IntegrationConfirmOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof integrationConfirmOrder>>, TError,IntegrationConfirmOrderMutationVariables, TContext> => {
+
+const mutationKey = getIntegrationConfirmOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof integrationConfirmOrder>>, IntegrationConfirmOrderMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  integrationConfirmOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type IntegrationConfirmOrderMutationResult = NonNullable<Awaited<ReturnType<typeof integrationConfirmOrder>>>
+    export type IntegrationConfirmOrderMutationBody = null | IntegrationOrderConfirmInput | undefined
+    export type IntegrationConfirmOrderMutationError = unknown
+    export type IntegrationConfirmOrderMutationVariables = {id: string;data?: null | IntegrationOrderConfirmInput}
+
+    export const useIntegrationConfirmOrder = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof integrationConfirmOrder>>, TError,IntegrationConfirmOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof integrationConfirmOrder>>,
+        TError,
+        IntegrationConfirmOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getIntegrationConfirmOrderMutationOptions(options), queryClient);
+    }
+
+export const getIntegrationChargeOrderUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/integration/orders/${id}/charge`
+}
+
+export const integrationChargeOrder = async (id: string,
+    nullIntegrationOrderChargeInput?: null | IntegrationOrderChargeInput, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationOrder> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<IntegrationOrder>(getIntegrationChargeOrderUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(nullIntegrationOrderChargeInput)
+  }
+);}
+
+
+
+
+
+export const getIntegrationChargeOrderMutationKey = () => ['integrationChargeOrder'] as const;
+
+export const getIntegrationChargeOrderMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof integrationChargeOrder>>, TError,IntegrationChargeOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof integrationChargeOrder>>, TError,IntegrationChargeOrderMutationVariables, TContext> => {
+
+const mutationKey = getIntegrationChargeOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof integrationChargeOrder>>, IntegrationChargeOrderMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  integrationChargeOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type IntegrationChargeOrderMutationResult = NonNullable<Awaited<ReturnType<typeof integrationChargeOrder>>>
+    export type IntegrationChargeOrderMutationBody = null | IntegrationOrderChargeInput | undefined
+    export type IntegrationChargeOrderMutationError = unknown
+    export type IntegrationChargeOrderMutationVariables = {id: string;data?: null | IntegrationOrderChargeInput}
+
+    export const useIntegrationChargeOrder = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof integrationChargeOrder>>, TError,IntegrationChargeOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof integrationChargeOrder>>,
+        TError,
+        IntegrationChargeOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getIntegrationChargeOrderMutationOptions(options), queryClient);
+    }
+
+export const getIntegrationCancelOrderUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/integration/orders/${id}/cancel`
+}
+
+export const integrationCancelOrder = async (id: string,
+    integrationOrderCancelInput: IntegrationOrderCancelInput, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationOrder> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<IntegrationOrder>(getIntegrationCancelOrderUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(integrationOrderCancelInput)
+  }
+);}
+
+
+
+
+
+export const getIntegrationCancelOrderMutationKey = () => ['integrationCancelOrder'] as const;
+
+export const getIntegrationCancelOrderMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof integrationCancelOrder>>, TError,IntegrationCancelOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof integrationCancelOrder>>, TError,IntegrationCancelOrderMutationVariables, TContext> => {
+
+const mutationKey = getIntegrationCancelOrderMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof integrationCancelOrder>>, IntegrationCancelOrderMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  integrationCancelOrder(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type IntegrationCancelOrderMutationResult = NonNullable<Awaited<ReturnType<typeof integrationCancelOrder>>>
+    export type IntegrationCancelOrderMutationBody = IntegrationOrderCancelInput
+    export type IntegrationCancelOrderMutationError = unknown
+    export type IntegrationCancelOrderMutationVariables = {id: string;data: IntegrationOrderCancelInput}
+
+    export const useIntegrationCancelOrder = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof integrationCancelOrder>>, TError,IntegrationCancelOrderMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof integrationCancelOrder>>,
+        TError,
+        IntegrationCancelOrderMutationVariables,
+        TContext
+      > => {
+      return useMutation(getIntegrationCancelOrderMutationOptions(options), queryClient);
+    }
+
+export const getIntegrationGetOrderInvoiceUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/integration/orders/${id}/invoice`
+}
+
+export const integrationGetOrderInvoice = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationOrderInvoice> => {
+
+  return apiFetch<IntegrationOrderInvoice>(getIntegrationGetOrderInvoiceUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getIntegrationGetOrderInvoiceQueryKey = (id: string,) => {
+    return [
+    `/api/v1/integration/orders/${id}/invoice`
+    ] as const;
+    }
+
+
+export const getIntegrationGetOrderInvoiceQueryOptions = <TData = Awaited<ReturnType<typeof integrationGetOrderInvoice>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetOrderInvoice>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getIntegrationGetOrderInvoiceQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof integrationGetOrderInvoice>>> = ({ signal }) => integrationGetOrderInvoice(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof integrationGetOrderInvoice>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type IntegrationGetOrderInvoiceQueryResult = NonNullable<Awaited<ReturnType<typeof integrationGetOrderInvoice>>>
+export type IntegrationGetOrderInvoiceQueryError = unknown
+
+
+export function useIntegrationGetOrderInvoice<TData = Awaited<ReturnType<typeof integrationGetOrderInvoice>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetOrderInvoice>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationGetOrderInvoice>>,
+          TError,
+          Awaited<ReturnType<typeof integrationGetOrderInvoice>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationGetOrderInvoice<TData = Awaited<ReturnType<typeof integrationGetOrderInvoice>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetOrderInvoice>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationGetOrderInvoice>>,
+          TError,
+          Awaited<ReturnType<typeof integrationGetOrderInvoice>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationGetOrderInvoice<TData = Awaited<ReturnType<typeof integrationGetOrderInvoice>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetOrderInvoice>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useIntegrationGetOrderInvoice<TData = Awaited<ReturnType<typeof integrationGetOrderInvoice>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetOrderInvoice>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getIntegrationGetOrderInvoiceQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getIntegrationListCustomerOrdersUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/integration/customers/${id}/orders`
+}
+
+export const integrationListCustomerOrders = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationOrder[]> => {
+
+  return apiFetch<IntegrationOrder[]>(getIntegrationListCustomerOrdersUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getIntegrationListCustomerOrdersQueryKey = (id: string,) => {
+    return [
+    `/api/v1/integration/customers/${id}/orders`
+    ] as const;
+    }
+
+
+export const getIntegrationListCustomerOrdersQueryOptions = <TData = Awaited<ReturnType<typeof integrationListCustomerOrders>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerOrders>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getIntegrationListCustomerOrdersQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof integrationListCustomerOrders>>> = ({ signal }) => integrationListCustomerOrders(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerOrders>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type IntegrationListCustomerOrdersQueryResult = NonNullable<Awaited<ReturnType<typeof integrationListCustomerOrders>>>
+export type IntegrationListCustomerOrdersQueryError = unknown
+
+
+export function useIntegrationListCustomerOrders<TData = Awaited<ReturnType<typeof integrationListCustomerOrders>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerOrders>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationListCustomerOrders>>,
+          TError,
+          Awaited<ReturnType<typeof integrationListCustomerOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationListCustomerOrders<TData = Awaited<ReturnType<typeof integrationListCustomerOrders>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerOrders>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationListCustomerOrders>>,
+          TError,
+          Awaited<ReturnType<typeof integrationListCustomerOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationListCustomerOrders<TData = Awaited<ReturnType<typeof integrationListCustomerOrders>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerOrders>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useIntegrationListCustomerOrders<TData = Awaited<ReturnType<typeof integrationListCustomerOrders>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListCustomerOrders>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getIntegrationListCustomerOrdersQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getLookupSaleForReturnUrl = () => {
 
@@ -106458,6 +107864,101 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getReplaceIncomingInvoiceWithXmlMutationOptions(options), queryClient);
     }
 
+export const getIntegrationDownloadInvoiceDanfeUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/integration/invoices/${id}/danfe`
+}
+
+export const integrationDownloadInvoiceDanfe = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getIntegrationDownloadInvoiceDanfeUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getIntegrationDownloadInvoiceDanfeQueryKey = (id: string,) => {
+    return [
+    `/api/v1/integration/invoices/${id}/danfe`
+    ] as const;
+    }
+
+
+export const getIntegrationDownloadInvoiceDanfeQueryOptions = <TData = Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getIntegrationDownloadInvoiceDanfeQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>> = ({ signal }) => integrationDownloadInvoiceDanfe(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type IntegrationDownloadInvoiceDanfeQueryResult = NonNullable<Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>>
+export type IntegrationDownloadInvoiceDanfeQueryError = unknown
+
+
+export function useIntegrationDownloadInvoiceDanfe<TData = Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>,
+          TError,
+          Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationDownloadInvoiceDanfe<TData = Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>,
+          TError,
+          Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationDownloadInvoiceDanfe<TData = Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useIntegrationDownloadInvoiceDanfe<TData = Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationDownloadInvoiceDanfe>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getIntegrationDownloadInvoiceDanfeQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListAssetsUrl = (params?: ListAssetsParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -114880,6 +116381,203 @@ export function useSearchCatalogItems<TData = Awaited<ReturnType<typeof searchCa
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getSearchCatalogItemsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getIntegrationListProductsUrl = (params?: IntegrationListProductsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/integration/products?${stringifiedParams}` : `/api/v1/integration/products`
+}
+
+export const integrationListProducts = async (params?: IntegrationListProductsParams, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationProductPage> => {
+
+  return apiFetch<IntegrationProductPage>(getIntegrationListProductsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getIntegrationListProductsQueryKey = (params?: IntegrationListProductsParams,) => {
+    return [
+    `/api/v1/integration/products`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getIntegrationListProductsQueryOptions = <TData = Awaited<ReturnType<typeof integrationListProducts>>, TError = unknown>(params?: IntegrationListProductsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListProducts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getIntegrationListProductsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof integrationListProducts>>> = ({ signal }) => integrationListProducts(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof integrationListProducts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type IntegrationListProductsQueryResult = NonNullable<Awaited<ReturnType<typeof integrationListProducts>>>
+export type IntegrationListProductsQueryError = unknown
+
+
+export function useIntegrationListProducts<TData = Awaited<ReturnType<typeof integrationListProducts>>, TError = unknown>(
+ params: undefined |  IntegrationListProductsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListProducts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationListProducts>>,
+          TError,
+          Awaited<ReturnType<typeof integrationListProducts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationListProducts<TData = Awaited<ReturnType<typeof integrationListProducts>>, TError = unknown>(
+ params?: IntegrationListProductsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListProducts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationListProducts>>,
+          TError,
+          Awaited<ReturnType<typeof integrationListProducts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationListProducts<TData = Awaited<ReturnType<typeof integrationListProducts>>, TError = unknown>(
+ params?: IntegrationListProductsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListProducts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useIntegrationListProducts<TData = Awaited<ReturnType<typeof integrationListProducts>>, TError = unknown>(
+ params?: IntegrationListProductsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationListProducts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getIntegrationListProductsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getIntegrationGetProductUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/integration/products/${id}`
+}
+
+export const integrationGetProduct = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationProduct> => {
+
+  return apiFetch<IntegrationProduct>(getIntegrationGetProductUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getIntegrationGetProductQueryKey = (id: string,) => {
+    return [
+    `/api/v1/integration/products/${id}`
+    ] as const;
+    }
+
+
+export const getIntegrationGetProductQueryOptions = <TData = Awaited<ReturnType<typeof integrationGetProduct>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetProduct>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getIntegrationGetProductQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof integrationGetProduct>>> = ({ signal }) => integrationGetProduct(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof integrationGetProduct>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type IntegrationGetProductQueryResult = NonNullable<Awaited<ReturnType<typeof integrationGetProduct>>>
+export type IntegrationGetProductQueryError = unknown
+
+
+export function useIntegrationGetProduct<TData = Awaited<ReturnType<typeof integrationGetProduct>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetProduct>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationGetProduct>>,
+          TError,
+          Awaited<ReturnType<typeof integrationGetProduct>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationGetProduct<TData = Awaited<ReturnType<typeof integrationGetProduct>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetProduct>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof integrationGetProduct>>,
+          TError,
+          Awaited<ReturnType<typeof integrationGetProduct>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useIntegrationGetProduct<TData = Awaited<ReturnType<typeof integrationGetProduct>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetProduct>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useIntegrationGetProduct<TData = Awaited<ReturnType<typeof integrationGetProduct>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof integrationGetProduct>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getIntegrationGetProductQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

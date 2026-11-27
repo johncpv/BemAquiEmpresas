@@ -15,5 +15,9 @@ public sealed class PartiesModule : IModule
 
     public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddPartiesInfrastructure();
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapPartyEndpoints();
+    public void MapEndpoints(IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapPartyEndpoints();
+        endpoints.MapIntegrationCustomers(); // INT-03: /api/v1/integration/customers
+    }
 }

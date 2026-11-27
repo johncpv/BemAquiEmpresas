@@ -15,5 +15,9 @@ public sealed class CommercialModule : IModule
 
     public void AddServices(IServiceCollection services, IConfiguration configuration) => services.AddCommercialInfrastructure();
 
-    public void MapEndpoints(IEndpointRouteBuilder endpoints) => endpoints.MapCommercialEndpoints();
+    public void MapEndpoints(IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapCommercialEndpoints();
+        endpoints.MapIntegrationProjects(); // INT-03: /api/v1/integration/customers/{id}/projects
+    }
 }

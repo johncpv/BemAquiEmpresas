@@ -81,4 +81,15 @@ public interface IOutgoingInvoices
 
     /// <summary>Data de corte fiscal (<c>fiscal.project_tax_cutover_on</c>): a data da primeira nota autorizada em produção; nula antes dela.</summary>
     Task<DateOnly?> CutoverOnAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// A nota de produção (não descartada) pelo id, para a API de integração (INT-03 CA 18); homologação, descartada ou inexistente: null.
+    /// </summary>
+    Task<OutgoingInvoiceSummary?> FindProductionAsync(Guid invoiceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// A nota de produção (não descartada) do pedido de venda (INT-03 CA 18). A nota do pedido nasce com a VND-02b (separação, NF-e e envio): até lá
+    /// nenhum pedido tem nota e a resposta é null.
+    /// </summary>
+    Task<OutgoingInvoiceSummary?> ForSalesOrderAsync(Guid orderId, CancellationToken cancellationToken = default);
 }

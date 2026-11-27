@@ -5557,6 +5557,143 @@
         }
       }
     },
+    "/api/v1/integration/customers": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationSearchCustomers",
+        "parameters": [
+          {
+            "name": "phone",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "document",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationCustomer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationCreateCustomer",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationCustomerInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationCustomer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integration/customers/{id}": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationGetCustomer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationCustomer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationPatchCustomer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationCustomerPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationCustomer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/positions": {
       "get": {
         "tags": [
@@ -15702,6 +15839,40 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CommercialParametersView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integration/customers/{id}/projects": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationListCustomerProjects",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationProjectStatus"
+                  }
                 }
               }
             }
@@ -36804,6 +36975,111 @@
         }
       }
     },
+    "/api/v1/integration/customers/{id}/charges": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationListCustomerCharges",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationChargeSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integration/charges/{id}": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationGetCharge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationCharge"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integration/charges/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationDownloadChargePdf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/sales/sales": {
       "get": {
         "tags": [
@@ -38003,6 +38279,277 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SalesOrderDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integration/orders": {
+      "post": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationCreateOrder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationOrderInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationOrder"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationOrder"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integration/orders/{id}": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationGetOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationOrder"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integration/orders/{id}/confirm": {
+      "post": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationConfirmOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/IntegrationOrderConfirmInput"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationOrder"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integration/orders/{id}/charge": {
+      "post": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationChargeOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/IntegrationOrderChargeInput"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationOrder"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integration/orders/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationCancelOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationOrderCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationOrder"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integration/orders/{id}/invoice": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationGetOrderInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationOrderInvoice"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integration/customers/{id}/orders": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationListCustomerOrders",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationOrder"
+                  }
                 }
               }
             }
@@ -42204,6 +42751,30 @@
         }
       }
     },
+    "/api/v1/integration/invoices/{id}/danfe": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationDownloadInvoiceDanfe",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/assets/assets": {
       "get": {
         "tags": [
@@ -45649,6 +46220,82 @@
                   "items": {
                     "$ref": "#/components/schemas/ItemChoice"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integration/products": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationListProducts",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationProductPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integration/products/{id}": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationGetProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationProduct"
                 }
               }
             }
@@ -69939,6 +70586,169 @@
           }
         }
       },
+      "IntegrationAddressInput": {
+        "required": [
+          "zipCode",
+          "street",
+          "number",
+          "complement",
+          "district",
+          "city",
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "zipCode": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "complement": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "district": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        }
+      },
+      "IntegrationCharge": {
+        "required": [
+          "id",
+          "customerId",
+          "number",
+          "status",
+          "dueDate",
+          "amount",
+          "balance",
+          "overdue",
+          "slipId",
+          "digitableLine",
+          "pixCopyPaste",
+          "pdfUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReceivableStatus"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "overdue": {
+            "type": "boolean"
+          },
+          "slipId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "digitableLine": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pixCopyPaste": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pdfUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "IntegrationChargeSummary": {
+        "required": [
+          "id",
+          "number",
+          "dueDate",
+          "amount",
+          "balance",
+          "overdue",
+          "slip"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "overdue": {
+            "type": "boolean"
+          },
+          "slip": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IntegrationSlipSummary"
+              }
+            ]
+          }
+        }
+      },
       "IntegrationConnectionView": {
         "required": [
           "connection_id",
@@ -69980,6 +70790,684 @@
           "reconsent_due_at": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "IntegrationCustomer": {
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "document",
+          "city",
+          "state",
+          "canBill",
+          "canInvoice"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PartyKind"
+              }
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "canBill": {
+            "type": "boolean"
+          },
+          "canInvoice": {
+            "type": "boolean"
+          }
+        }
+      },
+      "IntegrationCustomerInput": {
+        "required": [
+          "kind",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/PartyKind"
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "address": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IntegrationAddressInput"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "IntegrationCustomerPatch": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "address": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IntegrationAddressInput"
+              }
+            ]
+          },
+          "document": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "IntegrationOrder": {
+        "required": [
+          "id",
+          "number",
+          "status",
+          "origin",
+          "externalId",
+          "customerId",
+          "lines",
+          "subtotal",
+          "discountTotal",
+          "total",
+          "discountNeedsApproval",
+          "message",
+          "charge",
+          "invoice",
+          "dates",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SalesOrderStatus"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/SalesOrderOrigin"
+          },
+          "externalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IntegrationOrderLine"
+            }
+          },
+          "subtotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountNeedsApproval": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "charge": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IntegrationOrderCharge"
+              }
+            ]
+          },
+          "invoice": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IntegrationOrderInvoice"
+              }
+            ]
+          },
+          "dates": {
+            "$ref": "#/components/schemas/IntegrationOrderDates"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "IntegrationOrderCancelInput": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "IntegrationOrderCharge": {
+        "required": [
+          "id",
+          "status",
+          "slipStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "slipStatus": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "IntegrationOrderChargeInput": {
+        "type": "object",
+        "properties": {
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "sendEmail": {
+            "type": "boolean",
+            "default": true
+          },
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "IntegrationOrderConfirmInput": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "uint32"
+          },
+          "acceptNewPrices": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "IntegrationOrderDates": {
+        "required": [
+          "createdAt",
+          "confirmedAt",
+          "chargedAt",
+          "paidAt",
+          "cancelledAt"
+        ],
+        "type": "object",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "confirmedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "chargedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "paidAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "cancelledAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "IntegrationOrderInput": {
+        "required": [
+          "customerId",
+          "lines",
+          "externalId"
+        ],
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IntegrationOrderLineInput"
+            }
+          },
+          "externalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "orderDiscount": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "IntegrationOrderInvoice": {
+        "required": [
+          "id",
+          "type",
+          "status",
+          "series",
+          "number",
+          "accessKey",
+          "issuedOn",
+          "danfeUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/InvoiceType"
+          },
+          "status": {
+            "type": "string"
+          },
+          "series": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "number": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "accessKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issuedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "danfeUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "IntegrationOrderLine": {
+        "required": [
+          "productId",
+          "description",
+          "unit",
+          "quantity",
+          "unitPrice",
+          "discount",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "IntegrationOrderLineInput": {
+        "required": [
+          "productId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "unitPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "IntegrationProduct": {
+        "required": [
+          "id",
+          "code",
+          "gtin",
+          "description",
+          "unit",
+          "price",
+          "priceListId",
+          "priceListVersion",
+          "available"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "gtin": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "price": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "priceListId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "priceListVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "available": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "IntegrationProductPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IntegrationProduct"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "IntegrationProjectStatus": {
+        "required": [
+          "number",
+          "name",
+          "stageLetter",
+          "stageName",
+          "situation",
+          "promisedDate"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "stageLetter": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "stageName": {
+            "type": "string"
+          },
+          "situation": {
+            "type": "string"
+          },
+          "promisedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "IntegrationSlipSummary": {
+        "required": [
+          "id",
+          "dueDate",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -71573,8 +73061,7 @@
         "enum": [
           "NFe",
           "NFSe"
-        ],
-        "default": "NFe"
+        ]
       },
       "IpiParameters": {
         "required": [

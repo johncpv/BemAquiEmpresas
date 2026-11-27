@@ -46,32 +46,33 @@ public interface IAuditWriter
     Task RecordImportAsync(string entity, string entityId, string format, int rows, int records, CancellationToken cancellationToken = default);
 }
 
-public sealed class AuditWriter(BemAquiDbContext db, ICurrentUser currentUser, TimeProvider clock) : IAuditWriter
+/// <remarks>Com aplicativo conectado (INT-03 CA 23), a linha leva a origem "Integração {aplicativo} (autorizada por {pessoa})" do <see cref="AuditOrigin"/>.</remarks>
+public sealed class AuditWriter(BemAquiDbContext db, ICurrentUser currentUser, TimeProvider clock, AuditOrigin origin) : IAuditWriter
 {
     public async Task RecordReadAsync(string entity, string entityId, CancellationToken cancellationToken = default)
     {
-        db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.SensitiveRead, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Changes = "{}" });
+        db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.SensitiveRead, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Origin = origin.Label, Changes = "{}" });
         await db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RecordReadAsync(string entity, string entityId, string reference, CancellationToken cancellationToken = default)
     {
         var changes = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object> { ["reference"] = new { old = (string?)null, @new = reference } });
-        db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.SensitiveRead, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Changes = changes });
+        db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.SensitiveRead, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Origin = origin.Label, Changes = changes });
         await db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RecordAttachmentReadAsync(string ownerType, Guid ownerId, Guid attachmentId, CancellationToken cancellationToken = default)
     {
         var changes = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object> { ["attachmentId"] = new { old = (string?)null, @new = attachmentId } });
-        db.AuditEntries.Add(new AuditEntry { Entity = ownerType, EntityId = ownerId.ToString(), Action = AuditActions.SensitiveRead, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Changes = changes });
+        db.AuditEntries.Add(new AuditEntry { Entity = ownerType, EntityId = ownerId.ToString(), Action = AuditActions.SensitiveRead, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Origin = origin.Label, Changes = changes });
         await db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RecordExportAsync(string entity, string entityId, string format, int rows, CancellationToken cancellationToken = default)
     {
         var changes = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object> { ["format"] = new { old = (string?)null, @new = format }, ["rows"] = new { old = (int?)null, @new = rows } });
-        db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.Exported, UserId = currentUser.UserId, At = clock.GetUtcNow(), Changes = changes });
+        db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.Exported, UserId = currentUser.UserId, At = clock.GetUtcNow(), Origin = origin.Label, Changes = changes });
         await db.SaveChangesAsync(cancellationToken);
     }
 
@@ -84,7 +85,7 @@ public sealed class AuditWriter(BemAquiDbContext db, ICurrentUser currentUser, T
             ["rows"] = new { old = (int?)null, @new = rows },
             ["filters"] = new { old = (object?)null, @new = filters },
         });
-        db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.Exported, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Changes = changes });
+        db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.Exported, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Origin = origin.Label, Changes = changes });
         await db.SaveChangesAsync(cancellationToken);
     }
 
@@ -95,7 +96,7 @@ public sealed class AuditWriter(BemAquiDbContext db, ICurrentUser currentUser, T
         var at = clock.GetUtcNow();
         foreach (var id in entityIds)
         {
-            db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = id, Action = AuditActions.Exported, UserId = currentUser.UserId, At = at, Changes = changes });
+            db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = id, Action = AuditActions.Exported, UserId = currentUser.UserId, At = at, Origin = origin.Label, Changes = changes });
         }
 
         await db.SaveChangesAsync(cancellationToken);
@@ -109,7 +110,7 @@ public sealed class AuditWriter(BemAquiDbContext db, ICurrentUser currentUser, T
             ["rows"] = new { old = (int?)null, @new = rows },
             ["records"] = new { old = (int?)null, @new = records },
         });
-        db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.Imported, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Changes = changes });
+        db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = AuditActions.Imported, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Origin = origin.Label, Changes = changes });
         await db.SaveChangesAsync(cancellationToken);
     }
 }

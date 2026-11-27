@@ -43,6 +43,9 @@ public interface ISalesOrderLookup
 
     /// <summary>O pedido de um aplicativo pelo id externo (CA 2: único por origem, aplicativo e id externo).</summary>
     Task<SalesOrderSummary?> FindByExternalAsync(SalesOrderOrigin origin, Guid? sourceAppId, string externalId, CancellationToken cancellationToken = default);
+
+    /// <summary>Pedidos do cliente, do mais novo ao mais antigo, até <paramref name="limit"/> (INT-03 CA 15: <c>GET /customers/{id}/orders</c>).</summary>
+    Task<IReadOnlyList<SalesOrderSummary>> ByCustomerAsync(Guid customerId, int limit = 20, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Pedido gravado (outbox, CA 27). Sem dado pessoal: o consumidor relê pelo <see cref="ISalesOrderLookup"/>.</summary>

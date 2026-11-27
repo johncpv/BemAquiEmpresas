@@ -14,8 +14,27 @@ Ligar o ERP ao Conecta com um clique, para o atendimento pelo WhatsApp vender, c
 - **Desconectar**: o Conecta para de atender pedidos e cobranças por WhatsApp na hora. Os pedidos já criados continuam no ERP. Desconectar existe só nesta página.
 - **Autorizar de novo**: aparece quando a conexão está **Suspensa**. Repita o caminho de **Conectar**; a conexão nova substitui a anterior.
 - Depois de conectado, o próximo passo é ativar o WhatsApp do Conecta para os avisos de cobrança chegarem ao cliente.
-- A referência técnica (para quem integra) fica recolhida em **Para desenvolvedores**.
+- A referência técnica (para quem integra) fica recolhida em **Para desenvolvedores**: a autorização, a conexão, os escopos e a lista das rotas da API v1 com o escopo de cada uma, gerada do contrato da API.
 - **Avisos ao Conecta** (com a permissão de ver o Conecta): mostra "Os avisos estão chegando ao Conecta" ou, quando algum falha, "O Conecta não está recebendo os avisos desde dd/mm", com **Reenviar os parados**. **Avançado** abre o registro detalhado na aba **Enviados** dos eventos.
+
+
+## O que o Conecta poderá fazer
+O mesmo texto da tela de autorizar. Cada item só vale se quem autorizou também puder fazer no ERP:
+- Ver produtos e preços
+- Ver o saldo em estoque
+- Ver clientes (nome, telefone, e-mail, documento)
+- Cadastrar clientes
+- Completar o contato de clientes (o documento nunca muda)
+- Ver pedidos de venda
+- Criar pedidos de venda
+- Alterar pedidos de venda em aberto
+- Ver cobranças
+- Ver notas fiscais
+- Ver projetos e a etapa em que estão
+
+Na prática: o Conecta consulta produtos e o disponível, acha o cliente pelo telefone da conversa (o documento sai mascarado; pela busca do CPF ou CNPJ, só o primeiro nome e as iniciais), cadastra cliente novo, cria o pedido como **rascunho** ("Pedido do Conecta: confirme com o cliente"), confirma, gera a cobrança e mostra o boleto e a nota. Ele nunca troca um e-mail, telefone ou endereço já preenchido, nunca muda o documento e nunca cancela pedido pago: isso é feito no ERP, por uma pessoa. Quando alguém troca o e-mail ou o telefone de um cliente no ERP, o contato anterior recebe um aviso da troca.
+
+As buscas de cliente por CPF, CNPJ ou telefone têm limite por minuto e um teto por dia; cada busca fica no histórico, sem o número buscado. Se o Conecta consultar muitos documentos diferentes em uma hora, os Proprietários recebem um aviso.
 
 ## Situações
 - **Conectado**: o Conecta usa o ERP em nome de quem autorizou, só com o que essa pessoa também pode fazer.

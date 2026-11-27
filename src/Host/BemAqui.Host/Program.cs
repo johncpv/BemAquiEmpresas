@@ -69,6 +69,8 @@ try
 
         return Task.CompletedTask;
     }));
+    // INT-03 CA 24: documento próprio da API de integração (só /api/v1/integration), versionado em docs/integracoes/openapi-integration-v1.json.
+    builder.Services.AddOpenApi(BemAqui.BuildingBlocks.Integration.IntegrationApi.DocumentName, BemAqui.Host.IntegrationOpenApi.Configure);
     builder.Services.AddHttpContextAccessor();
     var health = builder.Configuration.GetSection(HealthOptions.Section).Get<HealthOptions>() ?? new HealthOptions();
     var checks = builder.Services.AddHealthChecks().AddCheck<PostgresHealthCheck>("catalog-db", tags: ["ready"]);
@@ -133,6 +135,10 @@ try
 builder.Services.AddDeviceAuthentication();
     // Aplicativos conectados (INT-01, ADR 0053): esquema App (token opaco bqa_ pelo hash), só em /api/v1/integration/*.
     builder.Services.AddConnectedAppAuthentication();
+    // API de integração v1 (INT-03): limites das buscas de cliente por documento e telefone (contadores em memória) e a auditoria da busca.
+    builder.Services.Configure<BemAqui.BuildingBlocks.Integration.IntegrationLookupOptions>(builder.Configuration.GetSection(BemAqui.BuildingBlocks.Integration.IntegrationLookupOptions.Section));
+    builder.Services.AddSingleton<BemAqui.BuildingBlocks.Integration.IntegrationLookupGuard>();
+    builder.Services.AddScoped<BemAqui.BuildingBlocks.Integration.IntegrationLookupService>();
     builder.Services.Configure<KioskRealtimeOptions>(builder.Configuration.GetSection(KioskRealtimeOptions.Section));
     builder.Services.AddSingleton<KioskConnectionRegistry>();
     builder.Services.AddSingleton<SignalRKioskRealtime>();

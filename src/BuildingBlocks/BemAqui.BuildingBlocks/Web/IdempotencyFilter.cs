@@ -30,7 +30,11 @@ public static class IdempotencyFilter
             var http = context.HttpContext;
             if (!Guid.TryParse(http.Request.Headers[Header].ToString(), out var key) || key == Guid.Empty)
             {
-                return Error.Validation("idempotency_key_required", "Envie o cabeçalho Idempotency-Key.").ToProblem();
+                // Aplicativo conectado (INT-03 CA 12): 400, erro do cliente da API; pessoa segue com o 422 do formulário.
+                return ConnectionOf(http) is not null
+                    ? Results.Problem(detail: "Envie o cabeçalho Idempotency-Key (um UUID por envio).", statusCode: StatusCodes.Status400BadRequest, title: "Requisição inválida",
+                        extensions: new Dictionary<string, object?> { ["code"] = "idempotency_key_required" })
+                    : Error.Validation("idempotency_key_required", "Envie o cabeçalho Idempotency-Key.").ToProblem();
             }
 
             var db = http.RequestServices.GetRequiredService<BemAquiDbContext>();

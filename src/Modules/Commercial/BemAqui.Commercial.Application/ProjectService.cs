@@ -132,6 +132,9 @@ public sealed partial class ProjectService(
         return row is null ? null : new ContractInfo(row.Id, row.Number, Enum.Parse<ContractState>(row.Status.ToString()), row.PartyId, row.ProjectId);
     }
 
+    public async Task<IReadOnlyList<ProjectSummary>> ListByPartyAsync(Guid partyId, CancellationToken cancellationToken = default) =>
+        await Summaries(db.Projects.Where(p => p.PartyId == partyId).OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id).Take(50)).ToListAsync(cancellationToken);
+
     private IQueryable<ProjectSummary> Summaries(IQueryable<Project> projects) =>
         projects.AsNoTracking().Select(p => new ProjectSummary(p.Id, p.Number, p.Name, p.PartyId, p.ContractId, p.Status.ToString(), p.SiteAddressId, p.ManagerUserId, p.PromisedDate,
             db.Contracts.Where(c => c.Id == p.ContractId).Select(c => (DateOnly?)c.SignedAt).FirstOrDefault()));

@@ -92,6 +92,45 @@ public sealed class CatalogReadContract(ICatalogDb db, CatalogDefaults defaults,
         return (await ProjectAsync(products, priceListId, cancellationToken)).Select(p => new CatalogLookupHit(p, CatalogLookupMatch.Name, null, 1m)).ToList();
     }
 
+    public async Task<CatalogListingPage> ListAsync(string? term, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var query = Sellable();
+        var text = term?.Trim() ?? string.Empty;
+        if (text.Length > 0)
+        {
+            var normalized = SearchText.Normalize(text);
+            var gtin = GtinRules.Normalize(text);
+            var byGtin = gtin.Length == 0 ? [] : await db.ProductBarcodes.AsNoTracking().Where(b => b.Gtin == gtin).Select(b => b.ProductId).ToListAsync(cancellationToken);
+            var byCode = (await items.FindByCodesAsync([text], cancellationToken)).Select(i => i.Id).ToList();
+            query = query.Where(p => p.SearchText.Contains(normalized) || byGtin.Contains(p.Id) || byCode.Contains(p.ItemId));
+        }
+
+        var size = Math.Clamp(pageSize, 1, 100);
+        var total = await query.CountAsync(cancellationToken);
+        var products = await query.OrderBy(p => p.SaleName).ThenBy(p => p.Id).Skip((Math.Max(1, page) - 1) * size).Take(size).ToListAsync(cancellationToken);
+        return new CatalogListingPage(await ListingsAsync(products, cancellationToken), total);
+    }
+
+    public async Task<CatalogListing?> ListingAsync(Guid productId, CancellationToken cancellationToken = default)
+    {
+        var products = await Sellable().Where(p => p.Id == productId).ToListAsync(cancellationToken);
+        return (await ListingsAsync(products, cancellationToken)) is [var first, ..] ? first : null;
+    }
+
+    private async Task<IReadOnlyList<CatalogListing>> ListingsAsync(List<Product> products, CancellationToken ct)
+    {
+        if (products.Count == 0)
+        {
+            return [];
+        }
+
+        var ids = products.Select(p => p.Id).ToList();
+        var gtins = (await db.ProductBarcodes.AsNoTracking().Where(b => ids.Contains(b.ProductId)).Select(b => new { b.ProductId, b.Gtin, b.PackQuantity }).ToListAsync(ct))
+            .GroupBy(b => b.ProductId).ToDictionary(g => g.Key, g => g.OrderBy(b => b.PackQuantity == 1m ? 0 : 1).ThenBy(b => b.Gtin, StringComparer.Ordinal).First().Gtin);
+        var codes = (await items.FindAsync(products.Select(p => p.ItemId).Distinct().ToList(), ct)).ToDictionary(i => i.Id, i => i.Code);
+        return (await ProjectAsync(products, null, ct)).Select(p => new CatalogListing(p, codes.GetValueOrDefault(p.ItemId), gtins.GetValueOrDefault(p.ProductId))).ToList();
+    }
+
     private IQueryable<Product> Sellable() => db.Products.AsNoTracking().Where(p => p.IsActive && !p.HasVariants);
 
     private async Task<IReadOnlyList<SellableProduct>> ProjectAsync(List<Product> products, Guid? priceListId, CancellationToken ct)

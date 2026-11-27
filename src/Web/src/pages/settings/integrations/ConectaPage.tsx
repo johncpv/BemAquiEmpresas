@@ -12,6 +12,7 @@ import { Can } from '@/pages/ModuleGate'
 import { ModuleNotReleased } from '@/pages/ModulePage'
 import { PageHeading } from '@/shell/PageHeading'
 import { browser, CONECTA_MODULE, connectionState } from './conecta'
+import { INTEGRATION_V1_ROUTES } from './integration-v1-routes'
 import { IntegrationsNav } from './IntegrationsNav'
 import { OutboundHealthSection } from './OutboundWebhooks'
 
@@ -147,6 +148,20 @@ function TechnicalReference({ connection }: { connection: AppConnectionView | nu
           <dd className="break-all font-mono">{connection.scopes.map((s) => s.scope).join(' ')}</dd>
         </>
       ) : null}
+      <dt className="text-muted-foreground">Erros</dt>
+      <dd>ProblemDetails (RFC 9457) com <span className="font-mono">code</span> estável; 429 com Retry-After</dd>
+      <dt className="col-span-2 mt-2 text-muted-foreground">Rotas da API v1 e o escopo de cada uma</dt>
+      <dd className="col-span-2">
+        <ul className="space-y-1" aria-label="Rotas da API de integração v1">
+          {INTEGRATION_V1_ROUTES.map((r) => (
+            <li key={r.method + ' ' + r.path} className="flex flex-wrap gap-x-2 break-all font-mono text-xs">
+              <span className="font-semibold">{r.method}</span>
+              <span>{r.path}</span>
+              {r.scope ? <span className="text-muted-foreground">{r.scope}</span> : null}
+            </li>
+          ))}
+        </ul>
+      </dd>
     </dl>
   )
 }
