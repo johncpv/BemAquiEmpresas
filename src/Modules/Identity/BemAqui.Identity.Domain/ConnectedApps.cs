@@ -225,6 +225,9 @@ public sealed class AppConnection : Entity, IAuditable, IConcurrencyVersioned
     }
 
     public void MarkModuleOff(bool off, DateTimeOffset now) => ModuleOffSince = off ? ModuleOffSince ?? now : null;
+
+    /// <summary>IP do último uso apagado 30 dias depois da revogação (LGPD, ADR 0037 §2).</summary>
+    public void ForgetLastUsedIp() => LastUsedIp = null;
 }
 
 public enum AppTokenKind

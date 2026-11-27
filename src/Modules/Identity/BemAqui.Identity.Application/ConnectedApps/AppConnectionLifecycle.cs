@@ -48,7 +48,7 @@ public sealed class AppConnectionLifecycle(
         }
 
         await db.AppTokens.Where(t => t.ConnectionId == connection.Id && t.RevokedAt == null).ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedAt, now), cancellationToken);
-        events.Publish(new AppConnectionRevoked(connection.Id, connection.AppId, reason.ToString()));
+        events.Publish(new AppConnectionRevoked(connection.Id, connection.AppId));
         Audit(connection.Id, "AppConnectionRevoked", by, new { reason = reason.ToString(), text });
         if (notifyOwners)
         {
@@ -66,7 +66,7 @@ public sealed class AppConnectionLifecycle(
             return false;
         }
 
-        events.Publish(new AppConnectionSuspended(connection.Id, connection.AppId, reason.ToString()));
+        events.Publish(new AppConnectionSuspended(connection.Id, connection.AppId));
         Audit(connection.Id, "AppConnectionSuspended", null, new { reason = reason.ToString() });
         await NotifyOwnersAsync(ownerText, cancellationToken);
         return true;

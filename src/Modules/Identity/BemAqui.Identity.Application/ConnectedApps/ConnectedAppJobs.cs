@@ -72,12 +72,20 @@ public sealed class ConnectedAppMaintenance(IIdentityDb db, AppConnectionLifecyc
         await db.AppTokens.Where(t => t.ExpiresAt < limit || t.RevokedAt < limit || t.ReplacedAt < limit).ExecuteDeleteAsync(cancellationToken);
         await db.AppAuthorizationCodes.Where(c => c.ExpiresAt < limit).ExecuteDeleteAsync(cancellationToken);
         await db.AppConnectIntents.Where(i => i.ExpiresAt < limit).ExecuteDeleteAsync(cancellationToken);
+        // LGPD (ADR 0037 §2): o IP do último uso de conexão revogada há mais de 30 dias sai pela entidade rastreada (auditoria mascarada).
+        foreach (var revoked in await db.AppConnections.Where(c => c.RevokedAt < limit && c.LastUsedIp != null).ToListAsync(cancellationToken))
+        {
+            revoked.ForgetLastUsedIp();
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
     }
 }
 
 public sealed record ConnectedAppDailyArgs;
 
 /// <summary>Job <c>connected-apps-daily</c> de um tenant: nova autorização (<c>AppReconsentJob</c>) e limpeza (<c>AppTokensPurgeJob</c>).</summary>
+[BemAqui.BuildingBlocks.Privacy.PersonalDataPurge(typeof(AppConnection), 30, "IP do último uso apagado 30 dias depois da revogação; enquanto a conexão vale, é a prova do último acesso do aplicativo")]
 public sealed class ConnectedAppDailyJob(ITenantDirectory directory, ITenantScopeFactory scopes, ILogger<ConnectedAppDailyJob> logger)
     : TenantJob<ConnectedAppDailyArgs>(directory, scopes, logger)
 {

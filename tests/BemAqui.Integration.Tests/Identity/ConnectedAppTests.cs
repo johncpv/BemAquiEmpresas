@@ -500,6 +500,7 @@ public class ConnectedAppTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
     [Fact]
     public async Task Token_de_aplicativo_so_vale_no_proprio_tenant_e_so_nas_rotas_de_integracao()
     {
+        await ReleaseAsync(HostB, true); // o outro tenant também tem o conecta: a recusa é pelo token, não pelo módulo
         var owner = await OwnerAsync();
         var tokens = await ConnectAsync(owner);
         (await ProblemCodeAsync(await Bearer(tokens.Access, HostB).GetAsync("/api/v1/integration/connection"), HttpStatusCode.Unauthorized)).Should().Be("invalid_token");

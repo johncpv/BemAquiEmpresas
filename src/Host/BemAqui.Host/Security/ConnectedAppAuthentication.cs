@@ -104,7 +104,12 @@ public sealed class ConnectedAppAuthenticationMiddleware(RequestDelegate next)
         if (context.Request.Path.StartsWithSegments(ConnectedAppEndpoints.PathPrefix, StringComparison.OrdinalIgnoreCase))
         {
             var result = await context.AuthenticateAsync(AppClaims.Scheme);
-            context.User = result.Succeeded ? result.Principal! : new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity());
+            // Só troca o principal quando o aplicativo autenticou: a sessão por PIN continua visível para o PinSessionScopeMiddleware (403 pin_scope),
+            // e JWT de pessoa cai no 401 da policy, que pede só o esquema App.
+            if (result.Succeeded)
+            {
+                context.User = result.Principal!;
+            }
         }
 
         await next(context);
