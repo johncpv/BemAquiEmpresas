@@ -54,7 +54,8 @@ public static class StockSources
 /// saída negativa); custo unitário só nas entradas (a saída usa o custo médio do momento). A chave de idempotência é
 /// <c>(SourceType, SourceId, Leg, Type)</c>. <c>Number</c> nulo gera um número <c>MOV</c> novo; as pernas do mesmo lançamento
 /// repetem o número da primeira. <c>At</c> é a data de negócio (nulo = agora). <c>SourceNumber</c> é o número legível do
-/// documento de origem (ex.: <c>REQ-2026-0001</c>), para o link e a mensagem "Estorne pelo documento de origem".
+/// documento de origem (ex.: <c>REQ-2026-0001</c>), para o link e a mensagem "Estorne pelo documento de origem". <c>ReservationSourceType</c>/<c>Id</c>
+/// (VND-02a): a saída consome a reserva desse documento no item e local (o reservado desce junto com o físico, no mesmo movimento).
 /// </summary>
 public sealed record StockPosting(
     StockMovementType Type,
@@ -72,7 +73,9 @@ public sealed record StockPosting(
     DateTimeOffset? At = null,
     string? Reason = null,
     Guid? SerialId = null,
-    string? SourceNumber = null);
+    string? SourceNumber = null,
+    string? ReservationSourceType = null,
+    Guid? ReservationSourceId = null);
 
 /// <summary>
 /// Estorno de um movimento pelo documento de origem (ADR 0023 §4): só o dono da origem estorna (<c>SourceType</c> e

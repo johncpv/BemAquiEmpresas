@@ -166,6 +166,8 @@ public static class FinanceInfrastructure
         services.AddWebhookProvider(BemAqui.Finance.Application.InterWebhook.Provider(
             BemAqui.Finance.Application.InterWebhook.ParseMode(configuration?["Inter:WebhookMode"]), configuration?["Inter:WebhookDeliveryIdHeader"]));
         services.TryAddScoped<BankPaymentService>();
+        services.TryAddScoped<OrderChargeService>(); // VND-02a: cobrança do pedido de venda (título SalesOrder + boleto)
+        services.TryAddScoped<IOrderCharges>(sp => sp.GetRequiredService<OrderChargeService>());
         services.TryAddScoped<InterWebhookService>();
         services.TryAddScoped<InterBillingReconciler>();
         services.AddAttachmentOwner(BillingSlipService.AttachmentOwner, new AttachmentOwnerRules("finance", ["application/pdf"], BillingSlipService.MaxPdfBytes,

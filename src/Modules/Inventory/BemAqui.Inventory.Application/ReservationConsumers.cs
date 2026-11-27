@@ -120,7 +120,7 @@ public sealed class ReservationBackfill(IInventoryDb db, StockReservationService
         }
 
         var open = await boms.OpenOrdersWithReleasedBomAsync(cancellationToken);
-        var withActive = await db.Reservations.AsNoTracking().Where(r => r.Status == Contracts.ReservationState.Active).Select(r => r.ProductionOrderId).Distinct().ToListAsync(cancellationToken);
+        var withActive = await db.Reservations.AsNoTracking().Where(r => r.Status == Contracts.ReservationState.Active).Select(r => r.ProductionOrderId!.Value).Distinct().ToListAsync(cancellationToken);
         var done = 0;
         foreach (var orderId in open.Union(withActive).Distinct().Order())
         {

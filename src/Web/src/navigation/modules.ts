@@ -85,7 +85,8 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   // CAT-01: catálogo do PDV, na área Loja (oculto para a fábrica pelo perfil, ADR 0046 e 0047).
   catalog: { slug: 'catalogo', icon: Barcode, tabs: [{ slug: 'produtos', label: 'Produtos', icon: Barcode }, { slug: 'categorias', label: 'Categorias', icon: FolderTree }] },
   // PDV-01: retaguarda da loja (sales.*): lojas, caixas e o aparelho de cada um. A lista de vendas e os cards chegam na PDV-07.
-  sales: { slug: 'loja', icon: Store, tabs: [{ slug: 'lojas', label: 'Lojas e caixas', icon: Store }] },
+  // VND-02a: Loja → Pedidos (pedido de venda até o pagamento).
+  sales: { slug: 'loja', icon: Store, tabs: [{ slug: 'lojas', label: 'Lojas e caixas', icon: Store }, { slug: 'pedidos', label: 'Pedidos', icon: ShoppingCart }] },
   // PDV-01: o caixa é tela dedicada (/pdv), no aparelho registrado da loja; por enquanto, só o registro do aparelho.
   pos: { slug: 'pdv', icon: Calculator, href: '/pdv' },
   engineering: { slug: 'engenharia', icon: DraftingCompass, tabs: [{ slug: 'roteiros', label: 'Roteiros', icon: Route }, { slug: 'boms', label: 'BOMs', icon: Network }] },

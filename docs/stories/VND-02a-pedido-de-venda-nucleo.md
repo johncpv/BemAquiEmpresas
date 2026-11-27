@@ -5,7 +5,7 @@
 | ID | VND-02a |
 | Título | Pedido de venda no módulo `sales`: rascunho, confirmação com reserva de estoque, cobrança por boleto com Pix do Inter (bolepix existente), pagamento pelo webhook ou registrado à mão, conversão na venda da VND-01, cancelamento e eventos para as integrações |
 | Tamanho | G− |
-| Status | Draft (26/11/2026) |
+| Status | Done (27/11/2026) |
 | Requisitos | [ADR 0052](../adr/0052-integracoes-conecta-e-marketplaces.md) §1 e §3 · [ADR 0053](../adr/0053-aplicativos-conectados.md) · [Plano de integrações](../integracoes/00-plano-integracoes.md) §3.3 e §6 (F1) · [VND-01](../PDV/stories/VND-01-nucleo-vendas-sem-caixa.md) · [BNK-01b](BNK-01b-bolepix-emissao-cancelamento.md) · [BNK-02](BNK-02-webhook-pagamento-baixa.md) · ADR 0023 (motor de estoque) · ADR 0046 (exceção manual) |
 | Dependências | VND-01 (Done), CAT-01, BNK-01b e BNK-02 (Done) |
 | Bloqueia | VND-02b, INT-03, MKT-00, ATD-03; absorve o núcleo do ECM-04 e a reserva do ECM-02 (seção "Relação com o ECM") |
@@ -109,15 +109,15 @@ Paid ──> Picked, Invoiced, Shipped, Delivered (VND-02b)
 - **ECM-02** reusa `ISalesReservations` com validade curta do carrinho. **ECM-03** (Pix dinâmico e cartão) entra pelo `IOrderPayments`.
 
 ## Tarefas
-- [ ] Estoque: colunas, `CHECK` e índices de `inventory.reservations` (CA 11), `ISalesReservations`, consumo da reserva no `StockPosting`; teste de concorrência na última unidade e de reentrega.
-- [ ] Sales Domain: `SalesOrder`, `SalesOrderLine`, máquina de estados com teste de unidade de todas as transições.
-- [ ] Sales Application: `SalesOrderService` (criar, confirmar, editar, cobrar, registrar pagamento, cancelar), limites de aplicativo (CA 13), conversão em venda, `ISalesOrderLookup`, consumidor de `ReceivableSettled`, job `sales-order-expiry`.
-- [ ] Finance: `DocumentOrigin.SalesOrder`, `PaymentMethodType.BankSlip`, `IOrderCharges` (com reconsulta e devolução); `SaleReceivablesConsumer` ignorando pagamento com `ReceivableId`; receita por título sem `SalesOrder`.
-- [ ] BuildingBlocks: `IdempotencyFilter.Scope` com `tid + conexão` para principal de aplicativo e 409 na divergência.
-- [ ] Endpoints `/api/v1/sales/orders` (+ `/{id}/confirm`, `/charge`, `/payments`, `/cancel`, `/reopen`), `RequireModule` e `RequirePermission`; OpenAPI e Orval.
-- [ ] Front: lista, novo, detalhe, diálogos (cobrança, completar cadastro, cancelar), card do Início, parâmetros; Vitest dos estados.
-- [ ] Ajudas; `docs/04-fluxos-estados.md` (máquina do pedido) e `docs/PDV/03-modelo-dados.md` (`sales.orders`).
-- [ ] Integração (Testcontainers + fake do Inter): `Draft → Paid` por boleto e à mão; expiração (pessoa e aplicativo); pago depois de cancelado; corrida pagamento × cancelamento (CA 21); cancelamento depois do pagamento com DRE e caixa (CA 26); recebível sem duplicar (CA 23); idempotência (CA 2, 3, 24).
+- [x] Estoque: colunas, `CHECK` e índices de `inventory.reservations` (CA 11), `ISalesReservations`, consumo da reserva no `StockPosting`; teste de concorrência na última unidade e de reentrega.
+- [x] Sales Domain: `SalesOrder`, `SalesOrderLine`, máquina de estados com teste de unidade de todas as transições.
+- [x] Sales Application: `SalesOrderService` (criar, confirmar, editar, cobrar, registrar pagamento, cancelar), limites de aplicativo (CA 13), conversão em venda, `ISalesOrderLookup`, consumidor de `ReceivableSettled`, job `sales-order-expiry`.
+- [x] Finance: `DocumentOrigin.SalesOrder`, `PaymentMethodType.BankSlip`, `IOrderCharges` (com reconsulta e devolução); `SaleReceivablesConsumer` ignorando pagamento com `ReceivableId`; receita por título sem `SalesOrder`.
+- [x] BuildingBlocks: `IdempotencyFilter.Scope` com `tid + conexão` para principal de aplicativo e 409 na divergência.
+- [x] Endpoints `/api/v1/sales/orders` (+ `/{id}/confirm`, `/charge`, `/payments`, `/cancel`, `/reopen`), `RequireModule` e `RequirePermission`; OpenAPI e Orval.
+- [x] Front: lista, novo, detalhe, diálogos (cobrança, completar cadastro, cancelar), card do Início, parâmetros; Vitest dos estados.
+- [x] Ajudas; `docs/04-fluxos-estados.md` (máquina do pedido) e `docs/PDV/03-modelo-dados.md` (`sales.orders`).
+- [x] Integração (Testcontainers + fake do Inter): `Draft → Paid` por boleto e à mão; expiração (pessoa e aplicativo); pago depois de cancelado; corrida pagamento × cancelamento (CA 21); cancelamento depois do pagamento com DRE e caixa (CA 26); recebível sem duplicar (CA 23); idempotência (CA 2, 3, 24).
 
 ## Dev Notes
 - **Venda:** `src/Modules/Sales/BemAqui.Sales.Contracts/SalesContracts.cs`; `src/Modules/Sales/BemAqui.Sales.Application/SaleService.cs`, `SaleService.Orders.cs`, `PaymentProviders.cs` (`ManualPaymentProvider`), `SaleStockConsumer.cs`; rotas em `src/Modules/Sales/BemAqui.Sales.Endpoints/SalesEndpoints.cs`.
@@ -136,3 +136,17 @@ Paid ──> Picked, Invoiced, Shipped, Delivered (VND-02b)
 |---|---|---|---|
 | 26/11/2026 | 0.1 | Story escrita a partir da ADR 0052 e do plano de integrações (como VND-02). | Claude (planejamento) |
 | 26/11/2026 | 0.2 | Recomendação aceita (PO 24/10), revisões de 26/11/2026: VND-02 dividida em 02a e 02b; `BankSlip`; completar cadastro; menu por perfil; limites e origem do aplicativo; idempotência por conexão; reserva genérica com índice parcial e `CHECK`; corrida pagamento × cancelamento; devolução no cancelamento depois do pagamento; telas por próximo passo. | Claude (planejamento) |
+| 27/11/2026 | 1.0 | Implementada (branch `feat/vnd-02a`). Backend: `sales.orders`/`order_lines`/`order_transitions`/`order_parameters`, `SalesOrderService` (criar, editar, confirmar com reserva tudo ou nada, cobrar, registrar pagamento com reconsulta, cancelar, cancelar o pago com estorno e devolução, reabrir e devolver o pago depois de cancelado), consumidores de `ReceivableSettled` e `BillingSlipCancelled`, job `sales-order-expiry` (15 min, `TenantJob`), `ISalesOrderLookup`; Estoque: reserva genérica (`ISalesReservations`, colunas, `CHECK`, índice da OS recriado como parcial, filtro do modelo para a OS não ver as reservas de documento) e consumo pela baixa (`StockPosting.ReservationSource*`); Financeiro: `DocumentOrigin.SalesOrder`, `PaymentMethodType.BankSlip`, `IOrderCharges` (`OrderChargeService`), `SaleReceivablesConsumer` sem o pagamento com `ReceivableId`, receita por título sem `SalesOrder`, devolução no título (`refunded_at`); `IdempotencyFilter.Scope` por conexão (claim `conn`, 409 na divergência). Front: Loja → Pedidos (lista por próximo passo, novo, detalhe com Itens, Cobrança, Linha do tempo e Trilha, diálogos), card do Início e a seção de Parâmetros. Migration `SalesOrdersVnd02a` (aditiva). Correção junto: o `BillingSlipIssued` não estava registrado no outbox (a mensagem ficava com erro). | Claude (dev) |
+
+### Desvios e decisões (registrados na implementação)
+- **Rota:** `/app/loja/pedidos` (aba "Pedidos" do módulo Vendas, na área Loja), em vez de `/app/pedidos`; a colocação em **Comercial** para a fábrica com exceção manual fica para quando a primeira fábrica ligar o módulo (o menu segue a área do módulo).
+- **`IOrderCharges`:** `CreateAsync` e `IssueSlipAsync` foram unidos em `ChargeAsync` (cria ou reaproveita o título ativo e pede o boleto, idempotente pelo pedido); `ReadinessAsync` e `FindAsync` a mais para o diálogo e a aba Cobrança.
+- **"Completar cadastro":** abre o cadastro do cliente (Cadastros → Terceiros) em vez do diálogo lateral só com os campos que faltam; o diálogo volta preenchido ao reabrir.
+- **Aba Cobrança:** linha digitável, Pix copia-e-cola, "Copiar Pix" (`aria-live` "Copiado") e "Compartilhar boleto"; o PDF continua no título do Financeiro (BNK-01b).
+- **Edição de itens na tela:** a API (`PUT /sales/orders/{id}`, CA 8) está pronta e testada pela regra; a tela de edição fica para a VND-02b. Enquanto isso, "Recriar pedido" (`?de=`).
+- **CA 14:** o caixa nunca consome o reservado: a venda do PDV sem disponível cai na falta da PDV-05 (Estoque → Divergências) e a reserva do pedido fica intacta; "Reserva com falta" aparece se o reservado ficar abaixo da quantidade (ex.: inventário).
+- **Dias úteis:** sábado e domingo não contam; feriado não (sem calendário de feriados no Sales nesta versão).
+- **Padrões novos:** `sales.app_max_line_qty` = 50 e `sales.app_max_order_qty` = 200 (a story não fixava); recomendação aceita (PO 24/10).
+- **Preço mudado na confirmação:** 409 `price_changed` com o preço novo; o diálogo confirma de novo com `acceptNewPrices`.
+- **Rota de aplicativo:** as regras do principal de aplicativo (origem, limites, desconto, cliente cobrável, id externo, escopo da idempotência) estão no serviço e testadas com o ator de aplicativo; a rota HTTP é da INT-03.
+- **E2E:** não escrito nesta story (E2E é por marco de feature, CLAUDE.md).

@@ -9,6 +9,7 @@ import { canIn } from './use-can'
 
 // PDV-07: os cards da loja carregam sob demanda (o bundle principal está no limite do precache do PWA).
 const VendasDaLoja = lazy(() => import('./inicio/VendasDaLoja').then((m) => ({ default: m.VendasDaLoja })))
+const PedidosAguardando = lazy(() => import('./inicio/PedidosAguardando').then((m) => ({ default: m.PedidosAguardando })))
 
 const NEXT_STEPS = [
   { perm: 'identity.create', module: 'acessos', tab: 'usuarios', icon: UserPlus, title: 'Convidar a equipe', text: 'Cada pessoa entra com o próprio acesso e só vê o que o grupo dela permite.' },
@@ -33,6 +34,7 @@ export function Inicio() {
       </PageHeading>
 
       <Suspense fallback={null}><VendasDaLoja /></Suspense>
+      <Suspense fallback={null}><PedidosAguardando /></Suspense>
 
       <PrimeirosPassos />
 

@@ -20,7 +20,8 @@ namespace BemAqui.Sales.Application;
 /// </list>
 /// </summary>
 public sealed class SaleStockConsumer(
-    ISalesDb db, IStockMovements movements, IStockBalances balances, IStockShortfalls shortfalls, IItems items, IItemCosts costs, TimeProvider clock)
+    ISalesDb db, IStockMovements movements, IStockBalances balances, IStockShortfalls shortfalls, IItems items, IItemCosts costs, ISalesReservations reservations,
+    TimeProvider clock)
     : IIntegrationEventConsumer<SaleCompleted>, IIntegrationEventConsumer<SaleCancelled>, IIntegrationEventConsumer<StockShortfallApplied>
 {
     /// <summary>Origem dos movimentos de venda no estoque (<c>inventory.stock_movements.source_type</c>).</summary>
@@ -69,6 +70,16 @@ public sealed class SaleStockConsumer(
         }
 
         var available = (await balances.GetAsync(perItem.Select(p => p.ItemId).ToList(), sale.StockLocationId, cancellationToken)).ToDictionary(a => a.ItemId, a => a.Available);
+        // VND-02a CA 22: a venda do pedido de venda consome a própria reserva; o reservado para ela conta como disponível.
+        if (sale.SourceType == SalesOrderRules.SourceType && sale.SourceId is { } orderId)
+        {
+            foreach (var held in (await reservations.ForSourceAsync(SalesOrderRules.SourceType, orderId, cancellationToken))
+                .Where(r => r.Status == ReservationState.Active && r.LocationId == sale.StockLocationId))
+            {
+                available[held.ItemId] = available.GetValueOrDefault(held.ItemId) + held.Quantity;
+            }
+        }
+
         var missing = perItem.Where(p => available.GetValueOrDefault(p.ItemId) < p.Quantity).ToList();
         if (missing.Count > 0)
         {
@@ -269,7 +280,8 @@ public sealed class SaleStockConsumer(
 
     private static StockPosting Issue(Sale sale, Guid itemId, int leg, decimal quantity) =>
         new(StockMovementType.Issue, itemId, sale.StockLocationId!.Value, null, -quantity, null, StockSource, sale.Id, leg, At: sale.CompletedAt, Reason: "Venda " + sale.Number,
-            SourceNumber: sale.Number);
+            SourceNumber: sale.Number, ReservationSourceType: sale.SourceType == SalesOrderRules.SourceType ? SalesOrderRules.SourceType : null,
+            ReservationSourceId: sale.SourceType == SalesOrderRules.SourceType ? sale.SourceId : null);
 
     private static void SetLineCosts(IEnumerable<SaleLine> lines, Dictionary<Guid, decimal> unitCosts)
     {

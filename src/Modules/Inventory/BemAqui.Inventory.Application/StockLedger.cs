@@ -292,6 +292,12 @@ public sealed class StockLedger(
         }
 
         var (position, balance) = await LockPositionAsync(item.Id, posting.LocationId, posting.LotId, ct);
+        // VND-02a CA 22: a saída do documento que reservou consome a própria reserva antes da conferência do disponível (o reservado desce junto).
+        if (posting.Quantity < 0 && posting.ReservationSourceType is { } reservationType && posting.ReservationSourceId is { } reservationSource)
+        {
+            await reservations.ConsumeForSourceAsync(position, reservationType, reservationSource, -posting.Quantity, ct);
+        }
+
         if (posting.Quantity < 0 && (Allowance(position, posting.SourceType) + posting.Quantity < 0 || balance.QuantityOnHand + posting.Quantity < 0))
         {
             return await InsufficientAsync(item, posting.LocationId, position, balance, posting.SourceType, ct);

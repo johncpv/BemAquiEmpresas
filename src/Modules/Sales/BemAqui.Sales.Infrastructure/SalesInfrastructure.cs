@@ -41,6 +41,14 @@ public static class SalesInfrastructure
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPaymentProvider, ManualPaymentProvider>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IPaymentMethodUsageProvider, SalePaymentMethodUsage>());
         services.AddAuditableEntity<Sale>(SaleService.Module);
+        // VND-02a: pedido de venda (núcleo), parâmetros, cobrança por boleto e reações à baixa do título.
+        services.TryAddScoped<SalesOrderParametersService>();
+        services.TryAddScoped<SalesOrderService>();
+        services.TryAddScoped<SalesOrderConsumers>();
+        services.TryAddScoped<ISalesOrderLookup, SalesOrderLookup>();
+        services.AddAuditableEntity<SalesOrder>(SaleService.Module);
+        services.AddAuditableEntity<SalesOrderLine>(SaleService.Module);
+        services.AddAuditableEntity<SalesOrderParameters>(SaleService.Module);
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IProductUsageProvider, SaleProductUsage>());
         return services;
     }

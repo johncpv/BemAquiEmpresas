@@ -70,6 +70,7 @@ public static class InventoryInfrastructure
         // Reservas e faltas (EST-02, ADR 0023 §6): reconciliação a partir da fonte; a BOM liberada vem do IBoms da ENG-02 pela porta
         // IReleasedBomSource (o NoReleasedBomSource fica para os testes que não têm BOM).
         services.TryAddScoped<ReservationAllocator>();
+        services.TryAddScoped<ISalesReservations, SalesReservationsContract>(); // VND-02a: reserva do pedido de venda
         services.TryAddScoped<StockReservationService>();
         services.TryAddScoped<IStockReservations>(sp => sp.GetRequiredService<StockReservationService>());
         services.TryAddScoped<IOrderMaterial>(sp => sp.GetRequiredService<StockReservationService>());

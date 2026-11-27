@@ -10,6 +10,7 @@ export const TYPE_LABELS: Record<PaymentMethodType, string> = {
   Voucher: 'Vale',
   StoreCredit: 'Vale-troca',
   OnAccount: 'Fiado',
+  BankSlip: 'Boleto com Pix',
 }
 
 export const BRAND_LABELS: Record<CardBrand, string> = {
@@ -54,6 +55,7 @@ export function defaultNfeCode(type: PaymentMethodType): string {
     case 'StoreCredit': case 'OnAccount': return '05'
     case 'Voucher': return '10'
     case 'Pix': return '17'
+    case 'BankSlip': return '15'
   }
 }
 

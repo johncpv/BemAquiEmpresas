@@ -22,6 +22,7 @@ import { ProductionParametersSection } from './ProductionParametersSection'
 import { PurchasingParametersSection } from './PurchasingParametersSection'
 import { RevenueTargetsSection } from './RevenueTargetsSection'
 import { SellWithoutStockSection } from './SellWithoutStockSection'
+import { SalesOrderParametersSection } from './SalesOrderParametersSection'
 import { COMMERCE_PROFILES } from '@/navigation/modules'
 import { useHasProfile } from '@/navigation/navigation-context'
 import { useCanSettings } from '../use-can-settings'
@@ -64,6 +65,7 @@ export function ParametersPage() {
           <div id="secao-patrimonio"><AssetsParametersSection canEdit={canEdit} /></div>
           <EmailDispatchSection key={`e${query.data.emailDispatchMaxPerUserDay}`} params={query.data} canEdit={canEdit} />
           {commerce ? <div id="secao-loja"><SellWithoutStockSection key={`s${String(query.data.sellWithoutStock)}`} params={query.data} canEdit={canEdit} /></div> : null}
+          <div id="secao-pedidos"><SalesOrderParametersSection canEdit={canEdit} /></div>
         </div>
       )}
       </FormLayout>

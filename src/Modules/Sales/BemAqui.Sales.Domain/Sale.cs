@@ -234,6 +234,9 @@ public sealed class SalePayment : Entity
 
     public decimal Amount { get; init; }
 
+    /// <summary>Título do Financeiro que já representa este pagamento (o boleto do pedido de venda, VND-02a CA 23): fora da recomposição do recebível.</summary>
+    public Guid? ReceivableId { get; set; }
+
     public decimal ChangeAmount { get; init; }
 
     public SalePaymentStatus Status { get; private set; } = SalePaymentStatus.Created;

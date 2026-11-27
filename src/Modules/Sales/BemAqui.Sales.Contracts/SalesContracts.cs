@@ -92,7 +92,8 @@ public sealed record SalePartInput(Guid Id, string Label, SalePartKind Kind, dec
 /// Pagamento entregue pelo canal. Do cartão só ficam bandeira, NSU, código de autorização e a referência do provedor (CA 8): não existe campo
 /// para número, validade, código de segurança nem trilha, e os campos livres recusam sequência que pareça número de cartão.
 /// <c>Amount</c> é o valor entregue; <c>ChangeAmount</c>, o troco (só em forma que dá troco). <c>ConfirmedBy</c>: quem atestou
-/// (no caixa, o operador da sessão por PIN conferido na subida da OFF-02); nulo = o usuário do request.
+/// (no caixa, o operador da sessão por PIN conferido na subida da OFF-02); nulo = o usuário do request. <c>ReceivableId</c> (VND-02a CA 23): o pagamento
+/// já é um título do Financeiro (o boleto do pedido de venda) e não gera outro recebível na recomposição do dia.
 /// </summary>
 public sealed record SalePaymentInput(
     Guid Id,
@@ -110,7 +111,8 @@ public sealed record SalePaymentInput(
     string? AuthorizationCode = null,
     string? Txid = null,
     string? EndToEndId = null,
-    Guid? ConfirmedBy = null);
+    Guid? ConfirmedBy = null,
+    Guid? ReceivableId = null);
 
 /// <summary>
 /// Venda concluída entregue por um módulo (VND-01 CA 3). <c>SaleId</c> é a chave de idempotência (no PDV, nasce no aparelho). <c>Number</c> é o
@@ -255,7 +257,8 @@ public sealed record SaleView(
 /// Pagamento capturado de venda concluída, líquido do troco (<c>Amount − ChangeAmount</c>), para o Financeiro montar o recebível por dia e canal
 /// (CA 11). <c>AcquirerPartyId</c> é o do pagamento (o provedor que capturou), quando informado.
 /// </summary>
-public sealed record SalePaymentFact(Guid SaleId, Guid PaymentId, Guid PaymentMethodId, Guid? AcquirerPartyId, string? CardBrand, int Installments, decimal Amount, Guid? CustomerId);
+public sealed record SalePaymentFact(
+    Guid SaleId, Guid PaymentId, Guid PaymentMethodId, Guid? AcquirerPartyId, string? CardBrand, int Installments, decimal Amount, Guid? CustomerId, Guid? ReceivableId = null);
 
 /// <summary>Leitura da venda pelos outros módulos (Financeiro, Fiscal, retaguarda), sem tocar nas tabelas <c>sales.*</c>.</summary>
 public interface ISaleLookup

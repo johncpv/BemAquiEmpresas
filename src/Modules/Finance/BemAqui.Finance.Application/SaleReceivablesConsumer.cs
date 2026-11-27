@@ -39,7 +39,8 @@ public sealed class SaleReceivablesConsumer(IFinanceDb db, ISaleLookup sales, IP
         var lockKey = "finance.sale-receivables:" + businessDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + ":" + channelCode;
         await db.Database.SqlQuery<int>($"SELECT 1 AS \"Value\" FROM (SELECT pg_advisory_xact_lock(hashtextextended({lockKey}, 0))) AS l").ToListAsync(cancellationToken);
 
-        var facts = await sales.CapturedPaymentsAsync(businessDate, channel, null, cancellationToken);
+        // VND-02a CA 23: o pagamento que já é um título (o boleto do pedido de venda) não gera outro recebível.
+        var facts = (await sales.CapturedPaymentsAsync(businessDate, channel, null, cancellationToken)).Where(f => f.ReceivableId is null).ToList();
         var summaries = await GroupAsync(businessDate, channelCode, facts, cancellationToken);
         foreach (var summary in summaries)
         {
@@ -58,7 +59,7 @@ public sealed class SaleReceivablesConsumer(IFinanceDb db, ISaleLookup sales, IP
     /// Agrupa os pagamentos por forma, provedor (o do pagamento ou a adquirente da forma) e vencimento (dia + D+N da taxa vigente). Taxa por
     /// pagamento, arredondada em 2 casas; líquido = bruto − taxa. Fiado é por venda, contra o cliente.
     /// </summary>
-    private async Task<List<SaleReceivableSummary>> GroupAsync(DateOnly businessDate, string channel, IReadOnlyList<SalePaymentFact> facts, CancellationToken ct)
+    private async Task<List<SaleReceivableSummary>> GroupAsync(DateOnly businessDate, string channel, List<SalePaymentFact> facts, CancellationToken ct)
     {
         if (facts.Count == 0)
         {

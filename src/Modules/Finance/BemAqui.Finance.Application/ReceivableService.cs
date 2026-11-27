@@ -91,7 +91,7 @@ public sealed partial class ReceivableService(
 
         if (string.Equals(query.Origin, "vendas", StringComparison.Ordinal))
         {
-            receivables = receivables.Where(r => r.Origin == DocumentOrigin.Sale || r.Origin == DocumentOrigin.CardSettlement);
+            receivables = receivables.Where(r => r.Origin == DocumentOrigin.Sale || r.Origin == DocumentOrigin.CardSettlement || r.Origin == DocumentOrigin.SalesOrder);
         }
         else if (string.Equals(query.Origin, "cartoes", StringComparison.Ordinal))
         {

@@ -74,3 +74,45 @@ public interface IOrderMaterial
 /// CMP-01, que recompõe a solicitação a partir de <see cref="IStockReservations.OpenShortagesAsync"/>, não deste valor. Sem custo.
 /// </summary>
 public sealed record StockShortageChanged(Guid ItemId, Guid ProductionOrderId, Guid ProjectId, Guid? BomLineId, decimal ShortQty) : IIntegrationEvent;
+
+/// <summary>Quanto o documento quer reservado de um item (VND-02a): a soma das linhas do item, na unidade de estoque.</summary>
+public sealed record SourceReservationLine(Guid ItemId, decimal Quantity);
+
+/// <summary>
+/// Pedido de reserva de um documento (VND-02a CA 9 a 11; ECM-02 depois): tipo e id do documento, o local, as quantidades-alvo por item e a validade.
+/// Item fora da lista tem alvo zero (a reserva dele é liberada).
+/// </summary>
+public sealed record SourceReservationRequest(string SourceType, Guid SourceId, Guid LocationId, IReadOnlyList<SourceReservationLine> Lines, DateTimeOffset? ExpiresAt, string Origin);
+
+/// <summary>Item sem disponível para subir até o alvo: o que faltaria e o disponível do local (físico − reservado por outros).</summary>
+public sealed record SourceReservationShortage(Guid ItemId, decimal Requested, decimal Available);
+
+/// <summary>Resultado da reserva tudo ou nada: sem falta, tudo reservado; com falta, nada mudou.</summary>
+public sealed record SourceReservationOutcome(IReadOnlyList<SourceReservationShortage> Shortages)
+{
+    public bool Reserved => Shortages.Count == 0;
+}
+
+/// <summary>Reserva de um documento num item e local: reservado, já baixado pela venda, situação e validade.</summary>
+public sealed record SourceReservationInfo(Guid ItemId, Guid LocationId, decimal Quantity, decimal Issued, ReservationState Status, DateTimeOffset? ExpiresAt);
+
+/// <summary>
+/// Reserva genérica de documento (VND-02a, ADR 0023): o pedido de venda segura o estoque sem OS. Tudo na transação de quem chama (exige transação
+/// aberta, como o motor), com a trava por item em ordem crescente de <c>item_id</c>: dois documentos disputando a última unidade ficam em fila e só um
+/// reserva. Idempotente: pedir o mesmo alvo de novo não muda nada. A baixa da venda consome a reserva pelo
+/// <see cref="StockPosting.ReservationSourceType"/>/<see cref="StockPosting.ReservationSourceId"/>.
+/// </summary>
+public interface ISalesReservations
+{
+    /// <summary>Leva as reservas do documento até o alvo de cada item (sobe tudo ou nada; desce liberando).</summary>
+    Task<SourceReservationOutcome> ReserveAsync(SourceReservationRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>Libera tudo o que o documento ainda tem reservado (cancelamento, expiração). Idempotente.</summary>
+    Task ReleaseAsync(string sourceType, Guid sourceId, string origin, CancellationToken cancellationToken = default);
+
+    /// <summary>Troca a validade das reservas ativas do documento (nula = sem prazo, pedido pago).</summary>
+    Task SetExpiryAsync(string sourceType, Guid sourceId, DateTimeOffset? expiresAt, CancellationToken cancellationToken = default);
+
+    /// <summary>As reservas do documento (ativas, consumidas e liberadas), por item e local.</summary>
+    Task<IReadOnlyList<SourceReservationInfo>> ForSourceAsync(string sourceType, Guid sourceId, CancellationToken cancellationToken = default);
+}

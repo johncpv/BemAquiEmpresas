@@ -60,6 +60,7 @@ public sealed class PaymentMethod : Entity, IAuditable, ISoftDeletable
         PaymentMethodType.StoreCredit or PaymentMethodType.OnAccount => "05",
         PaymentMethodType.Voucher => "10",
         PaymentMethodType.Pix => "17",
+        PaymentMethodType.BankSlip => "15",
         _ => "99",
     };
 

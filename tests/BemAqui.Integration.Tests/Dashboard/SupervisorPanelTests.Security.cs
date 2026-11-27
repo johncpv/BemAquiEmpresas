@@ -188,7 +188,7 @@ public partial class SupervisorPanelTests
         {
             await WithDbAsync(async db =>
             {
-                await db.Reservations.Where(r => orderIds.Contains(r.ProductionOrderId)).ExecuteDeleteAsync();
+                await db.Reservations.Where(r => orderIds.Contains(r.ProductionOrderId!.Value)).ExecuteDeleteAsync();
                 await db.NonConformities.Where(n => orderIds.Contains(n.OrderId)).ExecuteDeleteAsync();
                 await db.ScheduleStepForecasts.Where(f => orderIds.Contains(f.ProductionOrderId)).ExecuteDeleteAsync();
                 await db.ProductionOrderSteps.Where(s => orderIds.Contains(s.OrderId)).ExecuteDeleteAsync();

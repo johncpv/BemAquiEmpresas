@@ -17,4 +17,5 @@ export const PaymentMethodType = {
   Voucher: 'Voucher',
   StoreCredit: 'StoreCredit',
   OnAccount: 'OnAccount',
+  BankSlip: 'BankSlip',
 } as const;

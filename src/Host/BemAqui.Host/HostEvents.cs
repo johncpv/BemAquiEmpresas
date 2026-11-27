@@ -119,6 +119,16 @@ public static class HostEvents
             .AddHandler<BemAqui.Sales.Contracts.SaleCancelled, BemAqui.Sales.Application.StoreCreditService>()
             // PDV-06: devolução concluída; o Financeiro lança o vale-troca como passivo e reduz o título da adquirente no estorno de cartão.
             .AddHandler<BemAqui.Sales.Contracts.SaleReturned, BemAqui.Finance.Application.CashSessionFinanceConsumer>()
+            // VND-02a: pedido de venda. A baixa do título SalesOrder vira o pedido pago (venda pela ingestão da VND-01); o boleto cancelado ou vencido sem
+            // pagamento devolve o pedido a aberto. Os eventos do pedido vão ao outbox para a INT-02 (avisos) e a VND-02b.
+            .AddHandler<BemAqui.Finance.Contracts.ReceivableSettled, BemAqui.Sales.Application.SalesOrderConsumers>()
+            .AddHandler<BemAqui.Finance.Contracts.BillingSlipCancelled, BemAqui.Sales.Application.SalesOrderConsumers>()
+            // BNK-01b: o boleto emitido ia ao outbox sem registro (a mensagem ficava com erro); só aviso, para a régua (FIN-09) e o portal.
+            .AddEvent<BemAqui.Finance.Contracts.BillingSlipIssued>()
+            .AddEvent<BemAqui.Sales.Contracts.OrderCreated>()
+            .AddEvent<BemAqui.Sales.Contracts.OrderConfirmed>()
+            .AddEvent<BemAqui.Sales.Contracts.OrderPaid>()
+            .AddEvent<BemAqui.Sales.Contracts.OrderCancelled>()
             // RH-02c (ADR 0036 §4): o fechamento cria os títulos na própria transação; os eventos da folha são só aviso e projeção, e a folha
             // fica paga (ou volta a fechada no estorno) pela fonte, no consumidor da OP.
             .AddEvent<BemAqui.HR.Contracts.PayrollClosed>()

@@ -151,7 +151,7 @@ public sealed class ReservationAllocator(IInventoryDb db, IEventPublisher events
         }
 
         var candidates = await db.Reservations.AsNoTracking().Where(r => r.ItemId == itemId && r.LocationId == locationId && r.Quantity > 0)
-            .Select(r => new { r.ProductionOrderId, r.BomReleasedAt }).ToListAsync(cancellationToken);
+            .Select(r => new { ProductionOrderId = r.ProductionOrderId!.Value, r.BomReleasedAt }).ToListAsync(cancellationToken);
         var now = clock.GetUtcNow();
         var reductions = new List<ReservationReduction>();
         foreach (var orderId in ReservationPlanner.ReductionOrder(candidates.Select(c => (c.ProductionOrderId, c.BomReleasedAt))))
@@ -227,7 +227,7 @@ public sealed class ReservationAllocator(IInventoryDb db, IEventPublisher events
 
         var waiting = await db.Reservations.AsNoTracking()
             .Where(r => r.ItemId == itemId && r.Status == ReservationState.Active && r.RequestedQuantity > r.Quantity + r.QuantityIssued)
-            .Select(r => new { r.ProductionOrderId, r.ProjectId, r.BomReleasedAt }).ToListAsync(ct);
+            .Select(r => new { ProductionOrderId = r.ProductionOrderId!.Value, r.ProjectId, r.BomReleasedAt }).ToListAsync(ct);
         var projects = waiting.GroupBy(r => r.ProductionOrderId).ToDictionary(g => g.Key, g => g.First().ProjectId);
         var order = ReservationPlanner.CompletionOrder(waiting.Where(r => r.ProductionOrderId != excludeOrderId).Select(r => (r.ProductionOrderId, r.BomReleasedAt)), originOrderId);
         var defaultLocation = await DefaultLocationAsync(ct);
@@ -339,6 +339,158 @@ public sealed class ReservationAllocator(IInventoryDb db, IEventPublisher events
 
     private static List<ReservationSlot> Slots(IEnumerable<Reservation> rows) =>
         rows.Select(r => new ReservationSlot(r.LocationId, r.RequestedQuantity, r.Quantity, r.QuantityIssued)).ToList();
+
+    /// <summary>
+    /// Reserva de documento (VND-02a CA 9 a 11): leva as reservas do documento no local até o alvo de cada item, tudo ou nada. Trava os itens em
+    /// ordem crescente de <c>item_id</c> (a mesma ordem do motor) e as posições; primeiro confere todos os itens (com falta em algum, nada muda e
+    /// a falta volta), depois aplica. O reservado da posição muda junto. Não salva: quem chama é dono da transação.
+    /// </summary>
+    public async Task<SourceReservationOutcome> ReserveForSourceAsync(SourceReservationRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var targets = request.Lines.GroupBy(l => l.ItemId).ToDictionary(g => g.Key, g => ReservationPlanner.Round(g.Sum(l => l.Quantity)));
+        var rows = await SourceRowsAsync(request.SourceType, request.SourceId, cancellationToken);
+        var itemIds = targets.Keys.Union(rows.Where(r => r.Status == ReservationState.Active).Select(r => r.ItemId)).Distinct().Order().ToList();
+        var plan = new List<(Guid ItemId, StockPosition? Position, Reservation? Row, decimal Delta)>();
+        var shortages = new List<SourceReservationShortage>();
+        foreach (var itemId in itemIds)
+        {
+            await LockItemAsync(itemId, cancellationToken);
+            var positions = await LockPositionsAsync(itemId, cancellationToken);
+            var position = positions.FirstOrDefault(p => p.LocationId == request.LocationId);
+            var row = rows.FirstOrDefault(r => r.ItemId == itemId && r.LocationId == request.LocationId);
+            var current = row is { Status: ReservationState.Active } ? row.Quantity : 0m;
+            var delta = targets.GetValueOrDefault(itemId) - current;
+            var available = position is null ? 0m : position.QuantityOnHand - position.QuantityReserved;
+            if (delta > 0 && available < delta)
+            {
+                shortages.Add(new SourceReservationShortage(itemId, delta, Math.Max(0m, available)));
+            }
+
+            plan.Add((itemId, position, row, delta));
+        }
+
+        if (shortages.Count > 0)
+        {
+            return new SourceReservationOutcome(shortages);
+        }
+
+        // Reserva em outro local (o pedido mudou de local): sai inteira.
+        var elsewhere = rows.Where(r => r.Status == ReservationState.Active && r.LocationId != request.LocationId).ToList();
+        var now = clock.GetUtcNow();
+        foreach (var (itemId, position, found, delta) in plan)
+        {
+            var row = found;
+            if (delta == 0)
+            {
+                if (row is { Status: ReservationState.Active })
+                {
+                    row.ExpiresAt = request.ExpiresAt;
+                }
+
+                continue;
+            }
+
+            if (row is null)
+            {
+                row = new Reservation
+                {
+                    ItemId = itemId, LocationId = request.LocationId, SourceType = request.SourceType, SourceId = request.SourceId, CreatedAt = now, Origin = CutOrigin(request.Origin),
+                };
+                db.Reservations.Add(row);
+            }
+
+            position!.ApplyReserved(delta);
+            row.Quantity = ReservationPlanner.Round(row.Quantity + delta);
+            row.RequestedQuantity = targets.GetValueOrDefault(itemId);
+            row.Status = row.Quantity > 0 ? ReservationState.Active : ReservationState.Released;
+            row.ExpiresAt = row.Status == ReservationState.Active ? request.ExpiresAt : null;
+            row.Origin = CutOrigin(request.Origin);
+            row.UpdatedAt = now;
+        }
+
+        foreach (var row in elsewhere)
+        {
+            await ReleaseSourceRowAsync(row, request.Origin, now, cancellationToken);
+        }
+
+        return new SourceReservationOutcome([]);
+    }
+
+    /// <summary>Libera tudo o que o documento tem reservado (itens em ordem crescente). Idempotente. Não salva.</summary>
+    public async Task ReleaseForSourceAsync(string sourceType, Guid sourceId, string origin, CancellationToken cancellationToken = default)
+    {
+        var rows = await SourceRowsAsync(sourceType, sourceId, cancellationToken);
+        var now = clock.GetUtcNow();
+        foreach (var row in rows.Where(r => r.Status == ReservationState.Active).OrderBy(r => r.ItemId))
+        {
+            await LockItemAsync(row.ItemId, cancellationToken);
+            await ReleaseSourceRowAsync(row, origin, now, cancellationToken);
+        }
+    }
+
+    /// <summary>Troca a validade das reservas ativas do documento (nula = sem prazo). Não salva.</summary>
+    public async Task SetSourceExpiryAsync(string sourceType, Guid sourceId, DateTimeOffset? expiresAt, CancellationToken cancellationToken = default)
+    {
+        foreach (var row in (await SourceRowsAsync(sourceType, sourceId, cancellationToken)).Where(r => r.Status == ReservationState.Active))
+        {
+            row.ExpiresAt = expiresAt;
+            row.UpdatedAt = clock.GetUtcNow();
+        }
+    }
+
+    /// <summary>
+    /// A saída da venda consome a reserva do documento (VND-02a CA 22): o motor já travou o item e a posição; o reservado do documento desce até a
+    /// quantidade da saída (nunca abaixo de zero) e vira baixado, e o reservado da posição desce junto, antes da conferência do disponível.
+    /// </summary>
+    public async Task ConsumeForSourceAsync(StockPosition position, string sourceType, Guid sourceId, decimal quantity, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(position);
+        var row = (await SourceRowsAsync(sourceType, sourceId, cancellationToken))
+            .FirstOrDefault(r => r.ItemId == position.ItemId && r.LocationId == position.LocationId && r.Status == ReservationState.Active);
+        if (row is null || quantity <= 0)
+        {
+            return;
+        }
+
+        var take = Math.Min(row.Quantity, ReservationPlanner.Round(quantity));
+        position.ApplyReserved(-take);
+        row.Quantity = ReservationPlanner.Round(row.Quantity - take);
+        row.QuantityIssued = ReservationPlanner.Round(row.QuantityIssued + take);
+        row.Status = row.Quantity > 0 ? ReservationState.Active : ReservationState.Consumed;
+        row.ExpiresAt = row.Status == ReservationState.Active ? row.ExpiresAt : null;
+        row.UpdatedAt = clock.GetUtcNow();
+    }
+
+    private async Task ReleaseSourceRowAsync(Reservation row, string origin, DateTimeOffset now, CancellationToken ct)
+    {
+        var positions = await LockPositionsAsync(row.ItemId, ct);
+        if (positions.FirstOrDefault(p => p.LocationId == row.LocationId) is { } position && row.Quantity > 0)
+        {
+            position.ApplyReserved(-row.Quantity);
+        }
+
+        row.Quantity = 0;
+        row.Status = ReservationState.Released;
+        row.ExpiresAt = null;
+        row.Origin = CutOrigin(origin);
+        row.UpdatedAt = now;
+    }
+
+    /// <summary>As reservas do documento (fora do filtro da OS); as já rastreadas sem mudança são relidas.</summary>
+    private async Task<List<Reservation>> SourceRowsAsync(string sourceType, Guid sourceId, CancellationToken ct)
+    {
+        var tracked = db.Reservations.Local.Where(r => r.SourceType == sourceType && r.SourceId == sourceId).ToHashSet();
+        var rows = await db.Reservations.IgnoreQueryFilters().Where(r => r.SourceType == sourceType && r.SourceId == sourceId).ToListAsync(ct);
+        foreach (var row in rows.Where(r => tracked.Contains(r) && db.Entry(r).State == EntityState.Unchanged))
+        {
+            await db.Entry(row).ReloadAsync(ct);
+        }
+
+        return rows.Union(tracked.Where(r => db.Entry(r).State == EntityState.Added)).ToList();
+    }
+
+    private static string CutOrigin(string origin) => origin.Length <= 120 ? origin : origin[..120];
 
     /// <summary>A posição do item em todos os locais, travada; a linha já rastreada sem mudança é relida (ADR 0019 §2).</summary>
     private async Task<List<StockPosition>> LockPositionsAsync(Guid itemId, CancellationToken ct)

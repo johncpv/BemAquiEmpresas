@@ -31,6 +31,15 @@ public interface ISalesDb
 
     DbSet<StoreCreditMovement> StoreCreditMovements { get; }
 
+    /// <summary>VND-02a: pedidos de venda, linhas, linha do tempo e parâmetros.</summary>
+    DbSet<SalesOrder> SalesOrders { get; }
+
+    DbSet<SalesOrderLine> SalesOrderLines { get; }
+
+    DbSet<SalesOrderTransition> SalesOrderTransitions { get; }
+
+    DbSet<SalesOrderParameters> SalesOrderParameters { get; }
+
     /// <summary>Para conferir se a ingestão roda na transação de quem chama (CA 3).</summary>
     DatabaseFacade Database { get; }
 

@@ -18,6 +18,9 @@ public enum PaymentMethodType
     Voucher,
     StoreCredit,
     OnAccount,
+
+    /// <summary>Boleto com Pix do Inter (VND-02a): o pedido de venda cobrado pelo título <c>SalesOrder</c>. Distinto do <see cref="Pix"/> (Pix recebido direto).</summary>
+    BankSlip,
 }
 
 /// <summary>Bandeira do cartão na tabela de taxas (PAG-01 CA 2). <c>Any</c> vale para qualquer bandeira sem taxa própria.</summary>
