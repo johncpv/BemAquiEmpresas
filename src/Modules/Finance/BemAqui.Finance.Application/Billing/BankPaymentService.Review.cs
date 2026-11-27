@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using BemAqui.Finance.Contracts;
 using BemAqui.Finance.Domain;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
@@ -93,6 +94,7 @@ public sealed partial class BankPaymentService
         }
 
         slip.CompleteReview(option.Decision, settlementId, currentUser.UserId, clock.GetUtcNow());
+        events.Publish(new BillingSlipPaid(slip.Id, slip.ReceivableId, slip.PaidAmount ?? 0m, slip.CreditDate ?? Today)); // INT-02: pago depois da conferência
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return new PaymentReviewResult(slip.Id, receivable.Id, option.Decision, ReviewedMessage);

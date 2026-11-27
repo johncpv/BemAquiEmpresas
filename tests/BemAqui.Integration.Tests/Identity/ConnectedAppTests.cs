@@ -219,7 +219,7 @@ public class ConnectedAppTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
         body.GetProperty("scope").GetString().Should().Be("parties.view finance.view");
         body.GetProperty("access_token").GetString().Should().StartWith("bqa_");
         body.GetProperty("refresh_token").GetString().Should().StartWith("bqr_");
-        body.GetProperty("webhook_secret").ValueKind.Should().Be(JsonValueKind.Null, "a inscrição de avisos é da INT-02");
+        body.GetProperty("webhook_secret").ValueKind.Should().Be(JsonValueKind.Null, "sem Integrations:Conecta:WebhookUrl no ambiente, a conexão nasce sem inscrição de avisos (INT-02)");
 
         var app = Bearer(body.GetProperty("access_token").GetString()!);
         var self = await OkAsync(await app.GetAsync("/api/v1/integration/connection"));

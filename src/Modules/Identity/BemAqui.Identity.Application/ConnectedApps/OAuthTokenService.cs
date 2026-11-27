@@ -144,7 +144,7 @@ public sealed class OAuthTokenService(
         grant.Redeem(connection.Id, now);
         var (access, refresh) = Issue(connection.Id, Guid.CreateVersion7(), now);
         await db.SaveChangesAsync(cancellationToken);
-        var secret = await subscriptions.CreateForConnectionAsync(connection.Id, previous?.Id, grant.Scopes, cancellationToken);
+        var secret = await subscriptions.CreateForConnectionAsync(connection.Id, app.ClientId, previous?.Id, grant.Scopes, cancellationToken);
         events.Publish(new AppConnected(connection.Id, app.Id, app.ClientId, grant.UserId, previous?.Id));
         lifecycle.Audit(connection.Id, "AppConnected", grant.UserId, new { app = app.ClientId, scopes = grant.Scopes, replaced = previous?.Id }, ip);
         await db.SaveChangesAsync(cancellationToken);

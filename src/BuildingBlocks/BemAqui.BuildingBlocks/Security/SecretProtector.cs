@@ -75,6 +75,7 @@ public sealed class SecretProtector(IDataProtectionProvider provider) : ISecretP
         SecretKind.FiscalApiKey => "fiscal-api-key",
         SecretKind.CustomerDocument => "customer-document",
         SecretKind.BlindIndexKey => "blind-index-key",
+        SecretKind.OutboundWebhookSecret => "outbound-webhook-secret",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Tipo de segredo sem propósito definido."),
     };
 

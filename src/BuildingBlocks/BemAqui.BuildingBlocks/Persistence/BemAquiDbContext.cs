@@ -42,6 +42,14 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
 
     public DbSet<WebhookCredential> WebhookCredentials => Set<WebhookCredential>();
 
+    public DbSet<OutboundSubscription> OutboundSubscriptions => Set<OutboundSubscription>();
+
+    public DbSet<OutboundEvent> OutboundEvents => Set<OutboundEvent>();
+
+    public DbSet<OutboundDelivery> OutboundDeliveries => Set<OutboundDelivery>();
+
+    public DbSet<OutboundAttempt> OutboundAttempts => Set<OutboundAttempt>();
+
     /// <summary>Todo <see cref="DateTimeOffset"/> vai ao banco em UTC, venha com o offset que vier (<see cref="UtcDateTimeOffsetConverter"/>).</summary>
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
@@ -179,6 +187,50 @@ public abstract class BemAquiDbContext(DbContextOptions options) : DbContext(opt
             b.Property(e => e.SecretCipher).HasMaxLength(1024);
             b.Property(e => e.PreviousSecretCipher).HasMaxLength(1024);
             b.HasIndex(e => new { e.Provider, e.ScopeId }).IsUnique();
+        });
+
+        // INT-02 (ADR 0053): avisos de saída para os aplicativos conectados (espelho da entrada).
+        modelBuilder.Entity<OutboundSubscription>(b =>
+        {
+            b.ToTable("outbound_webhook_subscriptions", SharedSchema);
+            b.HasKey(e => e.Id);
+            b.Property(e => e.ClientId).HasMaxLength(40);
+            b.Property(e => e.Url).HasMaxLength(OutboundSubscription.MaxUrlLength);
+            b.Property(e => e.Events).HasColumnType("text[]");
+            b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+            b.Property(e => e.SecretCipher).HasMaxLength(1024);
+            b.Property(e => e.PreviousSecretCipher).HasMaxLength(1024);
+            b.HasIndex(e => e.ConnectionId).IsUnique();
+            b.HasIndex(e => e.Status);
+        });
+
+        modelBuilder.Entity<OutboundEvent>(b =>
+        {
+            b.ToTable("outbound_webhook_events", SharedSchema);
+            b.HasKey(e => e.Id);
+            b.Property(e => e.Type).HasMaxLength(64);
+            b.Property(e => e.Resource).HasMaxLength(200);
+            b.Property(e => e.Data).HasColumnType("text");
+            b.HasIndex(e => e.OccurredAt);
+        });
+
+        modelBuilder.Entity<OutboundDelivery>(b =>
+        {
+            b.ToTable("outbound_webhook_deliveries", SharedSchema);
+            b.HasKey(e => e.Id);
+            b.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+            b.Property(e => e.LastError).HasMaxLength(OutboundDelivery.ErrorMaxLength);
+            b.HasIndex(e => new { e.EventId, e.SubscriptionId }).IsUnique();
+            b.HasIndex(e => new { e.SubscriptionId, e.Status, e.CreatedAt });
+            b.HasIndex(e => e.Status).HasFilter("status IN ('Pending','Retrying')").HasDatabaseName("ix_outbound_webhook_deliveries_open");
+        });
+
+        modelBuilder.Entity<OutboundAttempt>(b =>
+        {
+            b.ToTable("outbound_webhook_attempts", SharedSchema);
+            b.HasKey(e => e.Id);
+            b.Property(e => e.Error).HasMaxLength(OutboundDelivery.ErrorMaxLength);
+            b.HasIndex(e => new { e.DeliveryId, e.Number });
         });
 
         ConfigureModules(modelBuilder);

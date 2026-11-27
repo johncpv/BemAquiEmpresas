@@ -83,6 +83,11 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
         // Webhooks (FND-16 CA 11 e 14): expurgo do corpo com mais de 90 dias às 03:00 de São Paulo e varredor de eventos parados a cada 5 min.
         recurring.AddOrUpdate<BemAqui.BuildingBlocks.Webhooks.WebhookEventsPurgeRecurringJob>(BemAqui.BuildingBlocks.Webhooks.WebhookEventsPurgeRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.BuildingBlocks.Webhooks.WebhookEventsPurgeRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        // Avisos de saída (INT-02 CA 7 e 14): varredor das entregas paradas a cada 5 min e expurgo do conteúdo com mais de 90 dias às 03:10.
+        recurring.AddOrUpdate<BemAqui.BuildingBlocks.Webhooks.OutboundWebhookSweepRecurringJob>(BemAqui.BuildingBlocks.Webhooks.OutboundWebhookSweepRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.BuildingBlocks.Webhooks.OutboundWebhookSweepRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        recurring.AddOrUpdate<BemAqui.BuildingBlocks.Webhooks.OutboundWebhookPurgeRecurringJob>(BemAqui.BuildingBlocks.Webhooks.OutboundWebhookPurgeRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.BuildingBlocks.Webhooks.OutboundWebhookPurgeRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.AddOrUpdate<BemAqui.BuildingBlocks.Webhooks.WebhookStalledSweepRecurringJob>(BemAqui.BuildingBlocks.Webhooks.WebhookStalledSweepRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.BuildingBlocks.Webhooks.WebhookStalledSweepRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         // Conferência de notas fiscais pendentes (FIS-01 CA 14): a cada 10 min, um job por tenant com o módulo fiscal liberado.

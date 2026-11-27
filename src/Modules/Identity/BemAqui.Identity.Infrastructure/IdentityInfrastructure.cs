@@ -129,14 +129,14 @@ public static class IdentityInfrastructure
 
     /// <summary>
     /// Aplicativos conectados (INT-01, ADR 0053): o Conecta pela configuração do ambiente, o servidor de autorização, o esquema <c>App</c> (achado
-    /// pelo hash com cache de 30 s), a vida da conexão e a rotina diária. A inscrição de avisos (INT-02) troca o <c>NoOutboundSubscriptions</c>.
+    /// pelo hash com cache de 30 s), a vida da conexão e a rotina diária. A inscrição de avisos (INT-02) vem do BuildingBlocks; aqui, a reavaliação da conexão (<c>IConnectedAppAccess</c>).
     /// </summary>
     private static void AddConnectedApps(IServiceCollection services)
     {
         services.AddOptions<Application.ConnectedApps.ConnectedAppOptions>().BindConfiguration(Application.ConnectedApps.ConnectedAppOptions.Section);
         services.TryAddSingleton<Application.ConnectedApps.AppConnectionCache>();
         services.TryAddScoped<BemAqui.BuildingBlocks.Security.ConnectedAppContext>();
-        services.TryAddScoped<BemAqui.BuildingBlocks.Integration.IOutboundSubscriptions, BemAqui.BuildingBlocks.Integration.NoOutboundSubscriptions>();
+        services.TryAddScoped<BemAqui.BuildingBlocks.Integration.IConnectedAppAccess, Application.ConnectedApps.ConnectedAppAccess>();
         services.TryAddScoped<Application.ConnectedApps.AppConnectionLifecycle>();
         services.TryAddScoped<Application.ConnectedApps.OAuthAuthorizeService>();
         services.TryAddScoped<Application.ConnectedApps.OAuthTokenService>();

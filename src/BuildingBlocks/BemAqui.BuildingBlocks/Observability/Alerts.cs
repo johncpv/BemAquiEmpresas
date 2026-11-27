@@ -22,6 +22,9 @@ public static class AlertKinds
     /// <summary>20 falhas de autenticação de cliente OAuth em 5 min no tenant (INT-01 CA 19).</summary>
     public const string IntegrationAuthFailures = "integration_auth_failures";
 
+    /// <summary>Aviso de saída parado (DeadLettered) depois de 8 tentativas: o aplicativo conectado não está recebendo (INT-02 CA 19).</summary>
+    public const string OutboundWebhooks = "outbound_webhooks";
+
     /// <summary>Tipos que podem vir de fora da API, pela CLI <c>alert raise</c> (FND-10).</summary>
     public static readonly string[] External = [BackupFailed];
 }

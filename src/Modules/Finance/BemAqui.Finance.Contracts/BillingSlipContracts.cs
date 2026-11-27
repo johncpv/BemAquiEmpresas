@@ -10,3 +10,9 @@ public sealed record BillingSlipIssued(Guid BillingSlipId, Guid ReceivableId, Gu
 
 /// <summary>Boleto cancelado (confirmado pelo banco) ou expirado (BNK-01b CA 16 a 18), com o motivo em código.</summary>
 public sealed record BillingSlipCancelled(Guid BillingSlipId, Guid ReceivableId, string Reason, bool Expired) : IIntegrationEvent;
+
+/// <summary>
+/// Boleto pago e baixado (INT-02, ADR 0053 adendo à BNK-02): publicado na mesma transação da baixa automática ou da conferência; o efeito interno
+/// síncrono não muda. Só ids, valor e data (para o aviso <c>billing_slip.paid</c>).
+/// </summary>
+public sealed record BillingSlipPaid(Guid BillingSlipId, Guid ReceivableId, decimal PaidAmount, DateOnly CreditDate) : IIntegrationEvent;

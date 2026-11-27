@@ -113,6 +113,8 @@ try
     builder.Services.AddBemAquiAgenda(builder.Configuration); // Minha pauta (DSH-04): o agregador; as fontes vêm dos módulos
     // Webhooks de entrada (FND-16, ADR 0031): rota pública validada, evento e outbox na mesma transação, processamento por fila.
     builder.Services.AddBemAquiWebhooks(builder.Configuration);
+    // Avisos de saída para os aplicativos conectados (INT-02, ADR 0053): inscrição, assinatura HMAC, envio com nova tentativa e SSRF.
+    builder.Services.AddBemAquiOutboundWebhooks(builder.Configuration);
     builder.Services.AddSingleton<ITenantSchemaVersion, TenantSchemaVersion>();
 
     // Endurecimento HTTP (FND-02b): proxy confiável, JWT preso ao tenant e ao host, SignalR. Sem CORS (mesma origem).
@@ -195,6 +197,7 @@ builder.Services.AddDeviceAuthentication();
     api.MapNotificationEndpoints();
     api.MapAgendaEndpoints();
     api.MapWebhookSettingsEndpoints();
+    api.MapOutboundWebhookEndpoints();
     api.MapModuleEndpoints();
     foreach (var module in ModuleRegistry.All)
     {
