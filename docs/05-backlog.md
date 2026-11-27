@@ -761,16 +761,44 @@ Decisões do PO de 26/11/2026 ([ADR 0052](adr/0052-integracoes-conecta-e-marketp
 **Pré-requisitos dos cadastros**
 - **INT-00 [ ] Site do BemAqui Empresas, política de privacidade e termos de uso (P)**
 
-## Pós-go-live: receita recorrente
+## Pós-go-live: melhorias do produto (pedido do PO de 27/11/2026)
 
-Pedido do PO de 27/11/2026, ao lançar o primeiro contrato do Conecta (CTR-2026-0001, BlockWay) no ERP do BemAqui: o contrato só tem itens com marcos e a mensalidade precisou virar títulos parcelados à mão. Entra depois da F1 das integrações.
-- **REC-01 [ ] Contrato de assinatura (receita recorrente) (M)** — story a escrever e revisar (arquitetura, UX, cyber) antes de codar. Escopo inicial:
-  - item recorrente no orçamento e no contrato: plano, valor mensal, dia de vencimento fixo no mês, início, fidelidade e índice de reajuste;
-  - geração automática do título e do boleto ou Pix de cada mês, com antecedência configurável, sem duplicar (idempotente por contrato e competência, também com dois tenants e em paralelo);
-  - PDF do contrato mostrando o plano e a mensalidade junto com os marcos do setup;
-  - cancelamento com aviso prévio e fim da fidelidade; reajuste anual e troca de plano por aditivo (COM-07);
-  - visão de receita recorrente (MRR, clientes ativos, em atraso e cancelamentos) e contas de receita próprias de assinatura no DRE;
-  - benchmark (Nibo, Conta Azul, Omie) antes da story, para não ficar abaixo do piso de mercado.
+Anotadas pelo PO ao usar o ERP no próprio BemAqui (contrato CTR-2026-0001 do Conecta com a BlockWay). Valem para o **produto inteiro**: todos os tenants (Konebras inclusive), todos os perfis e os documentos de todos os módulos. **Ordem: depois da F2 do Conecta** (decisão do PO de 27/11). Cada uma vira story revisada (arquitetura, UX, cyber) antes de codar, com benchmark (Nibo, Conta Azul, Omie, Bling) para não ficar abaixo do piso de mercado.
+
+Decisões do PO (27/11/2026):
+- Assinatura: todo mês o ERP gera o título, emite o boleto com Pix do Inter e envia ao cliente; NFS-e mensal automática fica para uma etapa seguinte (depende da NFS-e da prefeitura no Emissor). 1º mês: escolha por contrato, padrão mês cheio. Reajuste: índice no contrato (IPCA, IGP-M, % fixo ou "sem reajuste"), proposta 30 dias antes do aniversário, confirmada por alguém, com aviso ao cliente.
+- Termos: editor com formatação simples e campos automáticos; congelam na aprovação.
+- Logo: o sistema ajusta sozinho e mostra prévia; nunca recusa por tamanho.
+- Logo do terceiro: no cadastro e no cabeçalho dos documentos feitos para ele; nota fiscal e boleto seguem o padrão oficial.
+- Cadastro rápido: painel lateral sobre a tela, componente único.
+
+Ordem sugerida dentro do bloco: REC-01 → COM-10 → UX-02 → UX-01 → CAD-07.
+
+- **REC-01 [ ] Contrato de assinatura de serviços (receita recorrente) (G)**
+  - item **recorrente** no orçamento (tipo "Assinatura"): plano, valor mensal, dia de vencimento fixo no mês, início (data ou evento, ex.: entrega do setup), fidelidade em meses, 1º mês cheio ou proporcional, índice de reajuste; convive com itens de marco (setup/implantação) no mesmo orçamento;
+  - na aprovação, o contrato guarda a assinatura; o PDF do orçamento e do contrato mostra o plano e a mensalidade junto com os marcos;
+  - rotina diária por tenant gera o título de cada competência com antecedência configurável, emite o boleto com Pix (BNK) e envia por e-mail; idempotente por contrato + competência (paralelo e dois tenants); entra na régua de cobrança (FIN-09), no fluxo de caixa projetado e no DRE em conta própria de assinatura;
+  - reajuste anual: índice buscado no Banco Central (séries públicas) com valor editável, proposta 30 dias antes, confirmação com permissão e aviso ao cliente; troca de plano e reajuste registrados como aditivo (COM-07);
+  - suspensão por inadimplência (opcional por contrato), cancelamento com aviso prévio e multa de fidelidade calculada, encerramento;
+  - painel de receita recorrente: MRR, contratos ativos, novos, cancelados, em atraso, próximas renovações e reajustes;
+  - migração: transformar os títulos parcelados à mão (ex.: CR-2026-00004…) em assinatura sem duplicar cobrança.
+- **COM-10 [ ] Modelos de termos e condições nos documentos (M)**
+  - cadastro de modelos em Configurações por tipo de documento (orçamento, contrato, aditivo, pedido de venda, pedido de compra, cotação, OS de instalação e de manutenção) e por perfil de negócio, com um padrão por tipo;
+  - editor com formatação simples (títulos, negrito, listas, cláusulas numeradas) e campos automáticos clicáveis (`{cliente}`, `{cnpj}`, `{valor}`, `{marcos}`, `{mensalidade}`, `{fidelidade}`, `{validade}`…); campo desconhecido é recusado; texto sanitizado (sem HTML livre);
+  - o documento escolhe o modelo (o padrão vem sugerido), pode ajustar o texto antes de enviar e o texto **congela** na aprovação (versão guardada); mudança depois só por aditivo;
+  - sai no PDF de cada documento e entra na ajuda; seeds sugeridos por perfil (fábrica: fabricação, instalação e garantia; serviço/software: adesão, assinatura, SLA e LGPD), marcados "a revisar pelo jurídico".
+- **UX-02 [ ] Cadastro rápido no próprio formulário (M)**
+  - componente único: ao lado de um campo de escolha, "+ Nova …" abre o cadastro num painel lateral; ao salvar, fecha e o item novo fica selecionado; nada do formulário de baixo se perde;
+  - só aparece para quem tem a permissão de criar daquele módulo (camadas 1 a 3); usa o mesmo formulário e validação da tela de cadastro (sem duplicar regra);
+  - primeira leva: condição de pagamento, forma de pagamento, cliente/fornecedor, item, unidade, categoria, conta do plano de contas, centro de custo, conta bancária, cargo, local de estoque e centro de trabalho; o padrão fica documentado para as próximas telas.
+- **UX-01 [ ] Upload de imagem que se ajusta sozinho (P)**
+  - no navegador: reduz ao tamanho máximo, comprime, corta a margem vazia em volta e aceita PNG, JPG, WebP e SVG (SVG sanitizado no servidor); prévia no tema claro e escuro antes de salvar;
+  - o servidor revalida tipo, tamanho e dimensão (o ajuste do navegador não substitui a checagem);
+  - componente reaproveitado no logo da empresa, no logo do terceiro (CAD-07) e nas outras imagens do sistema (foto de bem, avatar).
+- **CAD-07 [ ] Logo do cliente e do fornecedor nos documentos (P)** — depende da UX-01
+  - logo opcional no cadastro do terceiro (Parties), com o mesmo componente;
+  - aparece na ficha e nas listas e no cabeçalho dos documentos feitos para ele, ao lado do logo da empresa: orçamento, contrato e aditivo (cliente); pedido de compra e cotação (fornecedor). Nota fiscal e boleto seguem o padrão oficial, sem logo do terceiro;
+  - o logo usado num documento aprovado fica congelado com ele (trocar o logo depois não muda o PDF já emitido).
 
 ---
 
