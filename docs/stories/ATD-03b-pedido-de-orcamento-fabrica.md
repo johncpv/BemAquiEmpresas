@@ -3,77 +3,72 @@
 | Campo | Valor |
 |---|---|
 | ID | ATD-03b |
-| Título | Na fábrica, o atendente (e, depois, a IA) abre pelo Conecta um **pedido de orçamento**: um orçamento em rascunho no Comercial do ERP com o cliente e o que ele pediu, número `ORC-…`, origem "Conecta" e aviso ao Comercial; rota nova `POST /api/v1/integration/quote-requests` com o escopo `quotes.create` (adendo à ADR 0053), que exige **autorizar de novo** as conexões existentes |
-| Tamanho | P |
+| Título | Na fábrica, o atendente abre pelo Conecta um **pedido de orçamento**: orçamento em rascunho no Comercial do BemAqui Empresas com o cliente e o texto do que ele pediu, número `ORC-…`, origem "Conecta" e aviso ao Comercial; rota nova `POST /api/v1/integration/quote-requests` com o escopo `quotes.create` (criado na INT-04) |
+| Tamanho | M |
 | Status | Draft (27/11/2026) |
-| Requisitos | [ADR 0052](../adr/0052-integracoes-conecta-e-marketplaces.md) §3 · [ADR 0053](../adr/0053-aplicativos-conectados.md) §5, §6 e §13 · [Plano](../integracoes/00-plano-integracoes.md) §3.3 e §7 item 2 · [INT-01](INT-01-aplicativos-conectados.md) · [INT-03](INT-03-api-integracao-v1.md) · COM-01a (orçamento) |
-| Dependências | ATD-01, ATD-02 (vínculo e telefone conferido); módulo `quotes` liberado no tenant (perfil `factory`) |
-| Bloqueia | — (a ferramenta da IA para orçamento entra na ATD-04, se o PO quiser) |
-| Repositórios | **ERP** (rota, escopo, adendo de ADR, "autorizar de novo" na página do Conecta) e **Conecta** (formulário na conversa) |
-| Ordem | 4 (F2) |
+| Requisitos | [ADR 0052](../adr/0052-integracoes-conecta-e-marketplaces.md) §3 · [ADR 0053](../adr/0053-aplicativos-conectados.md) §5 e §13 · [Plano](../integracoes/00-plano-integracoes.md) §3.3 e §7 item 2 · [INT-03](INT-03-api-integracao-v1.md) · [INT-04](INT-04-ajustes-avisos-e-conexao.md) (CA 7, 8, 14) · COM-01a |
+| Dependências | INT-04 (escopo e reautorização); ATD-01, ATD-02, **ATD-03a** (cadastro do cliente e padrões de cartão na conversa); módulo `quotes` liberado (perfil `factory`) |
+| Bloqueia | — |
+| Repositórios | **ERP** (rota, colunas de origem, limite, aviso ao Comercial) e **Conecta** (formulário na conversa) |
+| Ordem | ERP em paralelo com a ATD-06a; Conecta depois da ATD-03a |
 
 ## User story
-Como **atendente de uma fábrica que usa o Conecta**, quero **registrar no ERP o pedido de orçamento que o cliente fez no WhatsApp**, para **o Comercial receber o pedido com o cliente certo e o texto do que ele quer, sem eu redigitar nada**.
+Como **atendente de uma fábrica que usa o Conecta**, quero **registrar no BemAqui Empresas o pedido de orçamento que o cliente fez no WhatsApp**, para **o Comercial receber o pedido com o cliente certo e o texto do que ele quer, sem redigitar nada**.
 
 ## Contexto
-- ADR 0052 §3: o projeto continua sendo o pedido do sob encomenda; pelo Conecta, a fábrica abre **pedido de orçamento**, um rascunho no Comercial; peça de prateleira usa o pedido de venda (ATD-03a). Nada é criado só para a fábrica.
-- ADR 0053 §5 deixou `quotes.create` fora da v1 "para a ATD-03". O orçamento do ERP (`quotes`, ações CRUD + `approve`) nasce `Draft` a partir de `QuoteCreateInput(PartyId, ContactId, SiteAddressId)` e tem `Notes`; preço, custo e margem são trabalho do Comercial.
-- **Escopo novo exige consentimento novo:** a concessão de uma conexão é fixada no consentimento (INT-01 CA 9). Pôr `quotes.create` nos `AllowedScopes` **não** dá o escopo às conexões existentes: o Proprietário precisa "Autorizar de novo".
+- ADR 0052 §3: o projeto segue sendo o pedido do sob encomenda; pelo Conecta a fábrica abre **pedido de orçamento**, rascunho no Comercial; peça de prateleira usa o pedido de venda (ATD-03a).
+- O escopo `quotes.create` e a reautorização única ficam na INT-04 (CA 7 e 8); esta story faz a rota e o uso.
+- O orçamento do ERP nasce `Draft` por `QuoteCreateInput(PartyId, ContactId, SiteAddressId)` e tem `Notes`; preço, custo e margem são do Comercial.
 
 ## Critérios de aceite
 
 ### ERP
-1. **Dado** o adendo à ADR 0053 (§5), **quando** a story entra, **então** `quotes.create` passa a fazer parte de `ConnectedAppScopes.Conecta` com o texto do catálogo "Abrir pedidos de orçamento (rascunho no Comercial)"; a concessão segue a regra de sempre (pedidos ∩ `AllowedScopes` ∩ permissões efetivas de quem autoriza, que já limitam ao módulo liberado).
-2. **Dado** uma conexão ativa cuja concessão **não** tem um escopo que hoje seria concedido, **quando** o Proprietário abre Configurações → Integrações → Conecta, **então** vê "O Conecta pode ganhar: Abrir pedidos de orçamento" com "Autorizar de novo" (mesmo fluxo da INT-01: começa no ERP, consentimento com 2FA, conexão nova substitui a anterior e a inscrição de avisos é recriada); o Conecta, ao receber `scope` sem `quotes.create`, esconde a função (ATD-01 CA 12).
-3. **[Segurança]** **Dado** `quotes.create` efetivo, **quando** o aplicativo chama `POST /api/v1/integration/quote-requests` com `Idempotency-Key` e `{customerId, externalId, request, contactName?}`, **então** o ERP cria pelo serviço do Comercial um orçamento **`Draft`** para o cliente (terceiro com papel Cliente; outro tenant ou inexistente, 404), com número do serviço de numeração, `Notes` = "Pedido de orçamento pelo Conecta" + o texto do pedido (até 2.000 caracteres, texto puro), sem itens, sem preço e sem custo; origem, aplicativo e autor vêm do token (auditoria "Integração Conecta (autorizada por Fulano)"); responde 201 com `{id, number, status: "Draft", createdAt}`; a mesma chave ou o mesmo `externalId` com outro corpo responde 409 (`idempotency_key_reused`, `external_id_conflict`), como os pedidos (ADR 0053 §13).
-4. **[Segurança]** **Dado** pedidos de orçamento pelo aplicativo, **quando** passam de **3 por cliente em 24 h** ou de `Integrations:QuoteRequestDailyCap` (padrão 50) por tenant no dia, **então** 429 `rate_limited` com `Retry-After`; além disso vale a política `app-api` de escrita.
-5. **Dado** o orçamento criado, **quando** grava, **então** quem tem `quotes.edit` recebe a notificação "Novo pedido de orçamento pelo Conecta: {cliente}" com o link do orçamento, e a lista de orçamentos mostra o chip "Pelo Conecta"; o Comercial segue o fluxo de sempre (itens, custo, envio, aceite).
-6. **Dado** o módulo `quotes` não liberado, sem `quotes.create` efetivo ou sem o módulo `conecta`, **quando** o aplicativo chama, **então** 403 `module_not_released` ou `insufficient_scope` (ADR 0053 §7); o contrato `integration-v1` cresce de forma aditiva e o `openapi-integration-v1.json` é atualizado (teste de contrato).
+1. **[Segurança]** **Dado** `quotes.create` efetivo, **quando** o aplicativo chama `POST /api/v1/integration/quote-requests` com `Idempotency-Key` e `{customerId, externalId, request}`, **então** o ERP cria pelo serviço do Comercial um orçamento **`Draft`** para o cliente (papel Cliente; outro tenant ou inexistente, 404) com `Notes` = "Pedido de orçamento pelo Conecta:" + o texto (até 2.000 caracteres, **texto puro**: controle removido, sem HTML, exibido escapado em toda tela e PDF), sem itens, preço ou custo; origem, aplicativo, autor e atendente vêm do token e do `BemAqui-On-Behalf-Of`; responde 201 `{id, number, status: "Draft", createdAt}`; mesma chave ou `externalId` com outro corpo → 409 (`idempotency_key_reused`, `external_id_conflict`), por aplicativo + empresa (INT-04 CA 6).
+2. **[Segurança]** **Dado** pedidos de orçamento pelo aplicativo, **quando** passam de **3 por cliente em 24 h** ou de `Integrations:QuoteRequestDailyCap` (padrão 50) por empresa no dia, **então** 429 `rate_limited` com `Retry-After`, além da política `app-api`.
+3. **Dado** o orçamento criado, **quando** grava, **então** quem tem `quotes.edit` recebe "Novo pedido de orçamento pelo Conecta: {cliente}" com o link; a lista mostra o chip "Pelo Conecta" com a `<Dica>` "Aberto pelo atendimento no Conecta; complete itens e preço"; o texto continua **editável** pelo Comercial.
+4. **Dado** sem módulo `quotes`, sem `quotes.create` efetivo ou sem `conecta`, **quando** chamado, **então** 403 `module_not_released` ou `insufficient_scope`; o `integration-v1` cresce de forma aditiva (teste de contrato).
 
 ### Conecta
-7. **Dado** a concessão com `quotes.create` e o contato vinculado com telefone conferido (ATD-02), **quando** o atendente clica "Pedido de orçamento" na conversa, **então** o formulário vem com o cliente e um texto sugerido a partir das últimas mensagens do cliente (o atendente edita; nada sai sem ele clicar "Enviar ao Comercial"); o Conecta grava antes a chave e o `externalId` (`atd-orc-<id>`) e chama a rota do CA 3.
-8. **Dado** o retorno 201, **quando** chega, **então** a conversa mostra "Pedido de orçamento ORC-… enviado ao Comercial em dd/mm" e uma nota interna; o atendente pode mandar ao cliente "Recebemos seu pedido de orçamento ORC-…; o Comercial vai te enviar a proposta." (botão, com prévia).
-9. **Dado** o cliente sem cadastro no ERP, **quando** o atendente abre o pedido de orçamento, **então** o fluxo "Cadastrar no ERP" da ATD-03a CA 2 vem antes (só nome, tipo, documento e telefone são obrigatórios aqui; endereço não, porque não há cobrança).
-10. **Dado** um projeto já existente do cliente (ATD-02 CA 11), **quando** o cliente pergunta do andamento, **então** o painel de projetos responde (esta story não cria nada para isso).
+5. **Dado** o contato identificado (ATD-02) **com identidade confirmada** (telefone ou código; cadastro feito na conversa também vale, porque o orçamento é dele), **quando** o atendente clica "Pedido de orçamento", **então** o formulário traz o cliente e um texto sugerido marcado **"Resumo das últimas mensagens: confira antes de enviar"** (editável, contador até 2.000); nada sai sem "Enviar ao Comercial"; chave e `externalId` (`atd-orc-<id>`) gravados antes da chamada.
+6. **Dado** a concessão sem `quotes.create`, **quando** a conversa abre, **então** o botão aparece **desabilitado** com a `<Dica>` "O BemAqui Empresas ainda não liberou pedidos de orçamento para o Conecta. O Proprietário libera em Configurações → Integrações → Conecta → Autorizar de novo.".
+7. **Dado** 201, **quando** chega, **então** a conversa mostra "Pedido de orçamento ORC-… enviado ao Comercial em dd/mm" (nota interna e cartão), com o próximo passo "Avisar o cliente" (prévia: "Recebemos seu pedido de orçamento ORC-…; o Comercial vai te enviar a proposta.").
+8. **Dado** cliente sem cadastro, **quando** abre o pedido de orçamento, **então** vem antes o cadastro mínimo da ATD-03a CA 2 (sem endereço).
 
 ## Regras de negócio e técnicas
-- **Rota nova (ERP, `integration-v1`):** `POST /api/v1/integration/quote-requests` (`quotes.create`), grupo `MapIntegrationGroup`, `RequireModule("quotes")`, `RequirePermission("quotes.create")`, `Idempotency-Key` obrigatória, `Cache-Control: no-store`; erros `validation`, `not_found`, `idempotency_key_required`, `idempotency_key_reused`, `external_id_conflict`, `rate_limited`, `insufficient_scope`, `module_not_released`.
-- **Unicidade:** `(origin, source_app_id, external_id)` no orçamento, como no pedido de venda (VND-02a CA 2); colunas novas e aditivas em `commercial.quotes` (`origin`, `source_app_id`, `external_id`).
-- **Texto do pedido** é dado do cliente: fica nas notas do orçamento (já cobertas pela auditoria e pelo inventário de dados pessoais do Comercial); o Conecta não guarda cópia além da mensagem original da conversa.
-- **Sem aviso novo de saída** na v1 (`quote.*` fica fora do catálogo da INT-02).
+- **Rota nova (ERP):** `POST /api/v1/integration/quote-requests` (`quotes.create`), `MapIntegrationGroup`, `RequireModule("quotes")`, `RequirePermission("quotes.create")`, `Idempotency-Key` obrigatória, `no-store`; erros `validation`, `not_found`, `idempotency_key_required`, `idempotency_key_reused`, `idempotency_in_progress`, `external_id_conflict`, `rate_limited`, `insufficient_scope`, `module_not_released`.
+- **Unicidade:** `(origin, source_app_id, external_id)` em `commercial.quotes` (colunas novas, migration aditiva), dono = aplicativo + empresa.
+- **Sem aviso de saída** `quote.*` na v1.
 
 ## O que muda em cada repositório
-**ERP:** adendo à ADR 0053 (§5: `quotes.create` entra; nova autorização necessária); `ConnectedAppScopes.Conecta`; rota no `Commercial.Endpoints` sobre o serviço de orçamento existente; colunas de origem em `commercial.quotes` (migration aditiva); limite do CA 4; notificação do CA 5; chip na lista; "O Conecta pode ganhar…" na página do Conecta (INT-01); OpenAPI `integration-v1` e o arquivo versionado; ajuda `Ajuda/configuracoes-integracoes-conecta.md` ("Autorizar de novo para ganhar acessos novos") e `Ajuda/comercial-orcamentos.md` (chip "Pelo Conecta").
-**Conecta:** "Pedido de orçamento" na conversa (web e app), entidade `ErpQuoteRequestLink` (conversa, contato, atendente, `erp_quote_id`, número, chave, `externalId`).
+**ERP:** rota no `Commercial.Endpoints` sobre o serviço de orçamento; colunas de origem; limite; notificação; chip; sanitização do texto; OpenAPI `integration-v1`; ajudas `Ajuda/comercial-orcamentos.md` e `Ajuda/comercial-orcamento.md` (chip e origem).
+**Conecta:** botão e formulário na conversa (web e app, folha com prévia no app), `ErpQuoteRequestLink` (conversa, contato, atendente, `erp_quote_id`, número, chave, `externalId`).
 
 ## Telas e estados
-- **ERP:** linha "O Conecta pode ganhar" (some quando nada falta); chip "Pelo Conecta" com `<Dica>` "Aberto pelo atendimento no Conecta; complete itens e preço".
-- **Conecta:** formulário com carregando, erro, "Enviando…"; escopo ausente esconde o botão; sucesso com o próximo passo (mensagem ao cliente).
-- **Verbos:** "Enviar ao Comercial" → "Enviado ao Comercial"; "Autorizar de novo" → "Autorizado".
+- **Conecta:** formulário com carregando, erro e "Enviando…"; botão desabilitado com Dica (CA 6); sucesso com o próximo passo.
+- **ERP:** chip "Pelo Conecta"; notificação.
+- **Verbos:** "Enviar ao Comercial" → "Enviado ao Comercial"; "Avisar o cliente" → "Cliente avisado".
 
 ## Plano de testes
-- **ERP, integração (Testcontainers):** criação com a trilha do aplicativo (CA 3); idempotência e `external_id_conflict` (CA 3); limite por cliente e por tenant (CA 4); 403 sem escopo e sem módulo (CA 6); conexão antiga sem `quotes.create` recebe 403 até autorizar de novo (CA 2); notificação (CA 5); IDOR de cliente de outro tenant (404). Teste de contrato do `integration-v1`.
-- **Conecta:** formulário, repetição sem duplicar, escopo ausente.
+- **ERP, integração (Testcontainers):** criação com trilha do aplicativo e do atendente; idempotência; limites; 403 sem escopo e sem módulo; IDOR; texto com HTML e controle sai escapado; teste de contrato.
+- **Conecta:** formulário, botão desabilitado sem escopo, repetição sem duplicar.
 
 ## Tarefas
-- [ ] ERP: adendo à ADR 0053, escopo, rota, colunas, limite, notificação, chip, "O Conecta pode ganhar", OpenAPI, ajudas.
-- [ ] Conecta: botão, formulário, vínculo e mensagem ao cliente.
-- [ ] Fluxo dos dois repositórios: ERP primeiro (PR, CI, deploy), depois o Conecta.
+- [ ] ERP: rota, colunas, limite, notificação, chip, sanitização, OpenAPI, ajudas.
+- [ ] Conecta: botão, formulário, cartão e mensagem ao cliente.
+- [ ] ERP primeiro (PR, CI, deploy), depois o Conecta.
 
 ## Dev Notes
-- **ERP:** `src/BuildingBlocks/BemAqui.BuildingBlocks/Modules/ConnectedAppScopes.cs`, `ModuleCatalog.cs` (`quotes`), `src/Modules/Commercial/BemAqui.Commercial.Application/QuoteService.cs` e `QuoteDtos.cs` (`QuoteCreateInput`), `QuoteService.Header.cs` (`Notes`), `src/Modules/Commercial/BemAqui.Commercial.Domain/Quote.cs` (`QuoteStatus.Draft`), `src/Modules/Sales/BemAqui.Sales.Endpoints/SalesEndpoints.cs` (molde do grupo de integração e da idempotência), `src/Modules/Identity/BemAqui.Identity.Application/ConnectedApps/` (concessão).
-- **Conecta:** mesmos pontos da ATD-03a.
+- **ERP:** `src/Modules/Commercial/BemAqui.Commercial.Application/QuoteService.cs`, `QuoteDtos.cs` (`QuoteCreateInput`), `QuoteService.Header.cs` (`Notes`), `src/Modules/Commercial/BemAqui.Commercial.Domain/Quote.cs` (`QuoteStatus.Draft`), `src/Modules/Sales/BemAqui.Sales.Endpoints/IntegrationOrderEndpoints.cs` (molde).
+- **Conecta:** os mesmos da ATD-03a.
 
 ## Fora do escopo
-- Leitura do andamento do orçamento pelo Conecta (`quotes.view`), avisos `quote.*`, anexos (fotos e plantas mandados no WhatsApp) e ferramenta da IA para orçamento.
-- Preço, itens ou proposta pelo Conecta: tudo isso é do Comercial no ERP.
+- `quotes.view`, avisos `quote.*`, anexos (fotos, plantas), orçamento pela IA, preço ou itens pelo Conecta.
 
-## Pontos em aberto (para o PO)
-1. **Anexos** (foto do poço do elevador, planta): **recomendação:** fora da v1; o Comercial vê a conversa no Conecta. Numa próxima, anexos pelo armazenamento do ERP com limite de tipo e tamanho.
-2. **Acompanhar o orçamento pelo Conecta** (`quotes.view` + aviso `quote.sent`): **recomendação:** depois do piloto, se a fábrica pedir.
-3. **IA abrindo pedido de orçamento:** **recomendação:** só depois do piloto da ATD-04; quando entrar, a IA monta o texto e um atendente envia.
+## Pontos em aberto
+Decididos (PO, 27/11/2026): anexos fora da v1; acompanhar o orçamento pelo Conecta depois do piloto; IA abrindo orçamento só depois do piloto da ATD-04, com envio por atendente. Nada pendente.
 
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
-| 27/11/2026 | 0.1 | Story separada da ATD-03 porque exige mudança no ERP (escopo `quotes.create`, rota nova e nova autorização), conforme a ADR 0053 §5. | Claude (planejamento) |
+| 27/11/2026 | 0.1 | Story separada da ATD-03 por mudar o ERP. | Claude (planejamento) |
+| 27/11/2026 | 0.2 | Revisões de 27/11/2026: arquitetura, segurança, UX; decisões do PO. Escopo e reautorização movidos para a INT-04; tamanho M; depende da ATD-03a; texto escapado e editável; botão desabilitado com Dica; texto sugerido marcado para conferir; dono = aplicativo + empresa. | Claude (planejamento) |

@@ -3,92 +3,91 @@
 | Campo | Valor |
 |---|---|
 | ID | ATD-03a |
-| Título | Na conversa, o atendente busca produto com preço e disponível, cadastra o cliente no ERP se faltar, monta o pedido (rascunho no ERP com `Idempotency-Key` e `externalId` do Conecta), confirma com o cliente (reserva), gera a cobrança (boleto com Pix do Inter) e manda linha digitável, Pix e PDF na conversa assim que o boleto sai; cancela antes do pagamento; o pedido fica ligado à conversa e ao negócio do funil |
+| Título | Na conversa, o atendente busca produto com preço e disponível, cadastra o cliente com o mínimo, monta o pedido (rascunho no BemAqui Empresas com `Idempotency-Key` e `externalId`), manda o resumo, marca "Cliente confirmou" (sugerido, nunca automático), confirma (reserva), gera a cobrança e manda linha digitável, Pix e PDF com prévia; rascunho parado é cancelado sozinho; um job reconcilia os pedidos em aberto; o pedido é do Conecta da empresa e sobrevive a uma reconexão |
 | Tamanho | M |
 | Status | Draft (27/11/2026) |
-| Requisitos | [ADR 0052](../adr/0052-integracoes-conecta-e-marketplaces.md) §1, §3 e §4 · [ADR 0053](../adr/0053-aplicativos-conectados.md) §13 · [VND-02a](VND-02a-pedido-de-venda-nucleo.md) (CA 2 a 5, 9, 12, 13, 15, 25) · [INT-03](INT-03-api-integracao-v1.md) (CA 4 a 6, 10 a 16) · [INT-02](INT-02-webhooks-de-saida.md) (catálogo) |
-| Dependências | ATD-01, ATD-02 (vínculo e telefone conferido); VND-02a e INT-03 (Done); Inter ativo no tenant do ERP (BNK-01b) e `sales.order_bank_slip_payment_method_id` configurado; módulo `sales` liberado no tenant (na fábrica, por exceção manual, ADR 0052 §3) |
-| Bloqueia | ATD-04, ATD-05 (vínculo pedido ↔ conversa) |
-| Repositórios | **Conecta** (`bemaqui-atende-api`, `bemaqui-atende-web`, `bemaqui-conecta`). ERP: nenhuma mudança |
+| Requisitos | [ADR 0052](../adr/0052-integracoes-conecta-e-marketplaces.md) §1, §3 e §4 · [ADR 0053](../adr/0053-aplicativos-conectados.md) §13 · [VND-02a](VND-02a-pedido-de-venda-nucleo.md) (CA 2 a 5, 9, 12, 13, 15, 25) · [INT-03](INT-03-api-integracao-v1.md) (CA 4 a 6, 10 a 16) · [INT-04](INT-04-ajustes-avisos-e-conexao.md) (CA 1, 6, 11) · decisões do PO de 27/11/2026 (3) |
+| Dependências | ATD-01, ATD-02, INT-04; VND-02a e INT-03 (Done); Inter ativo e `sales.order_bank_slip_payment_method_id` no tenant; módulo `sales` liberado (na fábrica, por exceção manual) |
+| Bloqueia | ATD-03b, ATD-04, ATD-05a |
+| Repositórios | **Conecta** (`bemaqui-atende-api`, `bemaqui-atende-web`, `bemaqui-conecta`). ERP: nada além da INT-04 |
 | Ordem | 3 (F2) |
 
 ## User story
-Como **atendente do Conecta**, quero **montar o pedido na conversa, confirmar com o cliente e mandar o Pix ou o boleto ali mesmo**, para **fechar a venda no WhatsApp com o estoque segurado e o pagamento caindo direto no ERP**.
+Como **atendente do Conecta**, quero **montar o pedido na conversa, confirmar com o cliente e mandar o Pix ou o boleto ali mesmo**, para **fechar a venda no WhatsApp com o estoque segurado e o pagamento caindo direto no BemAqui Empresas**.
 
 ## Contexto
-- **Ajuste de escopo:** o título do backlog juntava "criar pedido e mandar a cobrança" e "pedido de orçamento para fábrica". A leitura mostrou que o segundo exige **mudança no ERP** (rota nova e o escopo `quotes.create`, que a ADR 0053 §5 deixou fora da v1, e por isso **nova autorização** de cada conexão), enquanto o primeiro usa só o contrato `integration-v1` pronto. Separadas, a ATD-03a entra só no Conecta e a [ATD-03b](ATD-03b-pedido-de-orcamento-fabrica.md) leva a mudança do ERP com a sua ADR.
-- O pedido de aplicativo nasce `Draft` "Pedido do Conecta: confirme com o cliente", **não reserva nem cobra sozinho**; confirmar reserva tudo ou nada; o pedido de aplicativo `Open` sem cobrança expira em 2 h (`sales.app_order_hold_hours`); a cobrança do aplicativo vence em no máximo 3 dias; preço vem sempre da tabela; desconto acima de `sales.app_discount_limit_pct` (padrão 0%) só é confirmado no ERP (VND-02a CA 4, 5, 12, 13).
-- Hoje o Conecta não tem catálogo, carrinho nem pedido; o que mais se parece é o `Deal` do funil (`Deal`: contato, etapa, valor, `open|won|lost`).
+- A ATD-03 original foi dividida: esta parte usa só o `integration-v1`; o pedido de orçamento da fábrica ([ATD-03b](ATD-03b-pedido-de-orcamento-fabrica.md)) muda o ERP.
+- Pedido de aplicativo: `Draft` "Pedido do Conecta: confirme com o cliente", sem reserva nem cobrança sozinho; confirmar reserva tudo ou nada; `Open` sem cobrança expira em 2 h; cobrança do aplicativo vence em até 3 dias; preço da tabela; desconto acima de 0% só confirma no ERP; limite de 5 pedidos em aberto por cliente (VND-02a CA 4, 5, 12, 13). Com a INT-04, o pedido pertence ao **aplicativo + empresa**: reconectar não deixa pedido órfão nem perde a idempotência.
+- O Conecta não tem catálogo, carrinho nem pedido; o mais próximo é o `Deal` do funil.
 
 ## Critérios de aceite
 
 ### Produto e cliente
-1. **Dado** `catalog.view`, **quando** o atendente abre "Novo pedido" na conversa e digita na busca, **então** vê `GET /products?q=&page=&pageSize=20`: código, descrição, unidade, preço e, com `inventory.view`, "Disponível: {n}" (sem `inventory.view`, a linha mostra "Disponível: consulte o ERP"); sem custo nem margem.
-2. **Dado** o contato sem vínculo com o ERP (ATD-02 CA 1), **quando** o atendente clica "Cadastrar no ERP", **então** o formulário vem preenchido com nome e telefone da conversa e pede tipo, CPF ou CNPJ, e-mail e endereço (CEP preenche o resto); `POST /customers` com `Idempotency-Key`; criado, o vínculo nasce com o telefone conferido; 409 `party_exists` mostra "Este documento já está no ERP" e leva à busca por documento (ATD-02 CA 2), sem criar outro.
-3. **Dado** o cliente sem `canBill`, **quando** o pedido vai ser cobrado, **então** o Conecta mostra o que falta ("Falta o endereço completo para emitir o boleto") e "Completar no ERP" (só preenche campo vazio, `PATCH /customers/{id}`); campo já preenchido diferente só muda no ERP (422 `field_change_requires_backoffice`: "Esse dado só é trocado no ERP.").
+1. **Dado** `catalog.view`, **quando** o atendente abre "Novo pedido" e busca, **então** vê `GET /products?q=&pageSize=20`: código, descrição, unidade, preço e, com `inventory.view`, "Disponível: {n}" (sem ele, "Disponível: consulte o BemAqui Empresas"); sem custo nem margem.
+2. **Dado** o cliente não encontrado (ATD-02 CA 1), **quando** o atendente clica "Cadastrar no BemAqui Empresas", **então** o formulário pede **só o mínimo**: nome e telefone (preenchidos da conversa), tipo e CPF/CNPJ; `POST /customers` com `Idempotency-Key`; criado, o cliente fica "identificado pela conversa" (ATD-02 CA 4); 409 `party_exists` mostra "Este CPF/CNPJ já está no BemAqui Empresas" e leva à busca e à confirmação de identidade (ATD-02 CA 2 e 3), sem criar outro.
+3. **Dado** o cliente sem `canBill` na hora de cobrar, **quando** o atendente clica "Gerar cobrança", **então** o Conecta diz o que falta ("Para o boleto, falta o endereço completo") com **"Pedir o endereço ao cliente"** (manda a pergunta na conversa, com prévia) e "Preencher endereço" (só campo vazio, `PATCH /customers/{id}`); campo já preenchido diferente: "Esse dado só é trocado no BemAqui Empresas.".
 
-### Rascunho e confirmação
-4. **[Segurança]** **Dado** o carrinho com linhas (produto e quantidade), **quando** o atendente clica "Criar pedido", **então** o Conecta grava antes o `ErpOrderDraft` (conversa, contato, atendente, linhas, `externalId` = `atd-<id do rascunho>`, `Idempotency-Key` nova) e chama `POST /orders` com `customerId`, linhas, `externalId` e observação; **nunca manda preço** (o ERP ignora) e não manda desconto na v1 (ponto em aberto 1); a resposta (`Draft`, número `PV-…`, total) liga o pedido à conversa (`ErpOrderLink`).
-5. **Dado** uma falha de rede no `POST /orders`, **quando** o atendente tenta de novo, **então** a nova chamada usa **a mesma chave e o mesmo corpo** e recebe o mesmo pedido; mudou o carrinho depois de uma falha, o Conecta gera chave nova **e** `externalId` novo (409 `idempotency_key_reused` ou `external_id_conflict` nunca é tratado como sucesso).
-6. **Dado** o pedido `Draft`, **quando** o atendente clica "Mandar resumo", **então** sai na conversa o resumo (itens, quantidades, total, "Confirma o pedido?") como mensagem do atendente, e o pedido mostra "Aguardando o sim do cliente".
-7. **Dado** o cliente confirmou na conversa, **quando** o atendente clica "Confirmar pedido", **então** o Conecta chama `POST /orders/{id}/confirm` com `version`; a resposta `Open` mostra "Estoque reservado por 2 h: gere a cobrança"; os erros viram texto e ação: 409 `insufficient_stock` ("Só há {n} {unidade} de {produto}", com "Ajustar quantidades", que cancela e recria o rascunho); 409 `price_changed` (mostra o preço novo; "Confirmar com o preço novo" manda `acceptNewPrices = true` só depois de o atendente avisar o cliente); 403 `approval_required` ("Desconto para aprovar no ERP"); 409 `too_many_open_orders` ("Este cliente já tem 5 pedidos em aberto pelo Conecta"); 422 `customer_not_billable` (CA 3); 422 `app_quantity_limit`; 409 de versão com "Recarregar".
+### Rascunho, resumo e confirmação
+4. **[Segurança]** **Dado** o carrinho, **quando** o atendente clica "Criar pedido", **então** o Conecta grava antes o `ErpOrderDraft` (conversa, contato, atendente, linhas, `externalId` `atd-<id>`, `Idempotency-Key`) e chama `POST /orders` com `customerId`, linhas, `externalId` e observação "Atendente: {primeiro nome}", com `BemAqui-On-Behalf-Of`; nunca manda preço nem desconto; a resposta (`Draft`, número `PV-…`, total) cria o `ErpOrderLink` com a conversa.
+5. **Dado** falha de rede no `POST /orders`, **quando** o atendente tenta de novo, **então** a nova chamada usa a mesma chave e o mesmo corpo e recebe o mesmo pedido; mudou o carrinho, gera chave e `externalId` novos; `idempotency_in_progress` espera e repete (ATD-01 CA 13); 409 `idempotency_key_reused`/`external_id_conflict` nunca é tratado como sucesso.
+6. **Dado** o pedido no cartão da conversa, **quando** o atendente olha, **então** há **um botão principal que muda por etapa** — "Mandar resumo" → "Confirmar pedido" → "Gerar cobrança" — e **todo botão que envia algo ao cliente abre a prévia** do que ele vai receber; "Mandar resumo" manda itens, quantidades, total do ERP e "Confirma o pedido?".
+7. **Dado** o resumo enviado, **quando** o cliente responde, **então** o Conecta **sugere** "Cliente confirmou?" quando a resposta parece um sim, mas **nunca marca sozinho**: o atendente clica "Cliente confirmou" (grava a mensagem do cliente que confirmou) e só então "Confirmar pedido" fica liberado.
+8. **Dado** "Confirmar pedido", **quando** o Conecta chama `POST /orders/{id}/confirm` com `version`, **então** `Open` mostra "Estoque reservado por 2 h: gere a cobrança"; erros em português com ação: `insufficient_stock` → "Só temos {n} {unidade} de {produto}. Oferecer essa quantidade?" (recria o rascunho com a quantidade disponível, nova chave); `price_changed` → "O preço mudou: era R$ X, agora R$ Y. Avise o cliente antes." e "Confirmar com o preço novo" (`acceptNewPrices`) só depois de "Avisei o cliente"; `approval_required` → "Desconto para aprovar no BemAqui Empresas"; `too_many_open_orders` → "Este cliente já tem 5 pedidos em aberto pelo Conecta" com **"Cancelar pedidos parados"** (lista os rascunhos e abertos dele, para cancelar com motivo); `customer_not_billable` → CA 3; `app_quantity_limit`; `concurrency_conflict` → "O pedido mudou. Recarregar.".
 
 ### Cobrança
-8. **Dado** um pedido `Open`, **quando** o atendente clica "Gerar cobrança", **então** o diálogo vem preenchido com o vencimento padrão (1 dia útil, no máximo 3) e o `POST /orders/{id}/charge` sai com `Idempotency-Key`; a resposta 202 (`Requested`) mostra "Gerando o boleto no banco…"; o pedido vai a "Aguardando pagamento".
-9. **Dado** o aviso `billing_slip.issued` (ATD-01) do título do pedido (`receivable_id` igual ao da cobrança do pedido, lido em `GET /orders/{id}`), **quando** chega, **então** o Conecta lê `GET /charges/{id}?customerId=` e, se o atendente marcou "Mandar sozinho quando sair" (padrão ligado), manda na conversa a linha digitável, o Pix copia-e-cola e o PDF (como na 2ª via da ATD-02 CA 9 e 14); se o boleto não sair em 2 min, o pedido mostra "O banco está demorando" com "Ver no ERP"; `billing_slip.cancelled` mostra "Cobrança cancelada" com o motivo e "Gerar de novo".
-10. **Dado** `sales_order.paid`, **quando** chega, **então** o pedido na conversa mostra "Pago" (o aviso ao cliente é da ATD-05).
-11. **Dado** um pedido `Draft`, `Open` ou `AwaitingPayment`, **quando** o atendente clica "Cancelar pedido" e informa o motivo, **então** o Conecta chama `POST /orders/{id}/cancel`; em `Paid` em diante, 409 `order_cancel_requires_backoffice` vira "Este pedido já foi pago. O cancelamento é feito no ERP.".
-12. **Dado** o pedido de aplicativo que expirou no ERP (2 h sem cobrança), **quando** chega `sales_order.cancelled`, **então** a conversa mostra "Pedido cancelado: prazo da reserva vencido" com "Recriar pedido" (carrinho preenchido).
+9. **Dado** um pedido `Open`, **quando** o atendente clica "Gerar cobrança", **então** o diálogo traz o vencimento padrão (1 dia útil, até 3) e `POST /orders/{id}/charge` sai com `Idempotency-Key`; 202 mostra "Gerando o boleto no banco…" e o pedido vai a "Aguardando pagamento"; `bank_slip_method_missing` mostra o texto da ATD-01 CA 13. Opção da conta: exigir `supervisor` para cobrança acima de R$ {valor} (padrão desligada).
+10. **[Segurança]** **Dado** o aviso `billing_slip.issued` do título do pedido (ATD-01; `resource` = `/charges/{receivable_id}`, INT-04 CA 1), **quando** chega, **então** o cartão mostra "Boleto pronto" com **"Mandar cobrança"** (prévia: valor, vencimento, linha digitável, Pix, PDF); a opção "Mandar sozinho quando sair" existe por conversa e vem **desligada**; quando ligada, o job que manda **reconfere o destino na hora** (ATD-02 CA 11) e, divergindo, não manda e avisa o atendente. A mensagem é sensível (ATD-02 CA 16). Boleto que não sai em 2 min: "O banco está demorando" com "Ver no BemAqui Empresas"; `billing_slip.cancelled`: "Cobrança cancelada: {motivo}" com "Gerar de novo".
+11. **Dado** `sales_order.paid`, **quando** chega, **então** o cartão mostra "Pago" (o aviso ao cliente é da ATD-05a).
+12. **Dado** um pedido `Draft`, `Open` ou `AwaitingPayment`, **quando** o atendente clica "Cancelar pedido" com motivo, **então** `POST /orders/{id}/cancel`; depois de pago, "Este pedido já foi pago. O cancelamento é feito no BemAqui Empresas.". Opção da conta: exigir `supervisor` para cancelar (padrão desligada).
 
-### Funil, vínculo e auditoria
-13. **Dado** um pedido criado pelo Conecta, **quando** nasce, **então** o `ErpOrderLink` guarda conversa, contato, atendente, número, situação e o negócio (`Deal`) aberto mais recente do contato (ou cria um no estágio padrão, com título "PV-…" e valor = total); mover o negócio por evento é da ATD-05.
-14. **Dado** qualquer ação de pedido, **quando** é feita, **então** o Conecta grava no `erp_access_log` (ATD-02) o atendente, a ação, o pedido e a data; no ERP, a trilha mostra "Integração Conecta (autorizada por Fulano)" (o ERP não sabe qual atendente: por isso o registro do Conecta e a observação do pedido com "Atendente: {primeiro nome}").
-15. **Dado** os papéis do Conecta, **quando** um usuário usa o pedido, **então** criar, confirmar, gerar cobrança e cancelar: `agent`, `supervisor` e `admin` com acesso à conversa; a conta pode exigir `supervisor` para "Cancelar pedido" (padrão: não).
+### Pedidos parados e reconciliação
+13. **Dado** um rascunho do Conecta sem "Cliente confirmou" há mais de `ErpOrders:DraftTtlHours` (padrão **24 h**), **quando** o job `ErpDraftExpiryJob` roda (a cada hora, por tenant), **então** cancela no ERP com o motivo "Rascunho sem confirmação do cliente" e o cartão mostra "Pedido cancelado: o cliente não confirmou" com "Recriar pedido".
+14. **Dado** o pedido de aplicativo que expirou no ERP (2 h sem cobrança), **quando** chega `sales_order.cancelled`, **então** o cartão mostra "Pedido cancelado: prazo da reserva vencido" com "Recriar pedido" (carrinho preenchido).
+15. **Dado** `ErpOrderLink` em `Draft`, `Open` ou `AwaitingPayment`, **quando** o job `ErpOrderReconcileJob` roda (a cada **10 min** e logo depois de uma reconexão), **então** relê `GET /orders/{id}` e aplica a situação atual, idempotente por **(pedido, situação)**: um aviso perdido não deixa o cartão parado, e a mudança passa pelas mesmas reações dos avisos (ATD-05a).
+
+### Funil, registro e permissões
+16. **Dado** um pedido criado pelo Conecta, **quando** nasce, **então** o `ErpOrderLink` guarda o negócio (`Deal`) aberto mais recente do contato ou cria um no estágio padrão ("PV-…", valor = total); mover por evento é da ATD-05b.
+17. **Dado** qualquer ação de pedido, **quando** feita, **então** vai ao `erp_access_log` (ATD-02) com atendente, ação, pedido e data.
+18. **Dado** os papéis, **quando** usam o pedido, **então** criar, confirmar, cobrar e cancelar: `agent`, `supervisor`, `admin` com acesso à conversa, respeitando as opções dos CA 9 e 12; quem não pode vê "Peça a um supervisor para…".
 
 ## Regras de negócio e técnicas
-- **Rotas do ERP (contrato `integration-v1`):** `GET /products`, `GET /products/{id}` (`catalog.view`; `available` só com `inventory.view`); `POST /customers` (`parties.create`), `PATCH /customers/{id}` (`parties.edit`); `POST /orders` e `POST /orders/{id}/confirm` (`sales.create`); `POST /orders/{id}/charge` e `POST /orders/{id}/cancel` (`sales.edit`); `GET /orders/{id}` (`sales.view`); `GET /charges/{id}`, `GET /charges/{id}/pdf` (`finance.view`).
-- **Idempotência:** `Idempotency-Key` em **todo** `POST` (`/customers`, `/orders`, `/confirm`, `/charge`, `/cancel`), gerada e gravada no Conecta antes da chamada, reaproveitada só com o mesmo corpo; `externalId` único por rascunho.
-- **Avisos consumidos:** `sales_order.created|confirmed|paid|cancelled`, `billing_slip.issued|paid|cancelled`. A ordem não é garantida: o Conecta relê `GET /orders/{id}` antes de mudar a tela.
-- **Dinheiro:** valores exibidos como vieram do ERP (2 casas); o Conecta não calcula total nem desconto.
-- **Pedido de outro canal:** pedidos criados no ERP para um cliente vinculado aparecem no painel (ATD-02), mas só os criados pelo Conecta têm as ações desta story (o ERP já recusa ação em pedido de outra conexão com 404, INT-03 Change Log item 4).
+- **Rotas do ERP:** `GET /products`, `GET /products/{id}` (`catalog.view`, `inventory.view`); `POST /customers` (`parties.create`), `PATCH /customers/{id}` (`parties.edit`); `POST /orders`, `POST /orders/{id}/confirm` (`sales.create`); `POST /orders/{id}/charge`, `POST /orders/{id}/cancel` (`sales.edit`); `GET /orders/{id}` (`sales.view`); `GET /charges/{id}`, `GET /charges/{id}/pdf` (`finance.view`).
+- **Idempotência:** `Idempotency-Key` em todo `POST`, gravada antes; `externalId` único por rascunho; o ERP escopa por aplicativo + empresa (INT-04 CA 6).
+- **Avisos usados:** `sales_order.created|confirmed|paid|cancelled`, `billing_slip.issued|paid|cancelled`; sempre relendo `GET /orders/{id}`.
+- **Pedidos feitos fora do Conecta** aparecem no painel, mas só os do Conecta têm ações (o ERP responde 404 para os demais).
 
 ## O que muda em cada repositório
-**Conecta (`bemaqui-atende-api`):** `ErpOrderDraft` e `ErpOrderLink` (`ITenantEntity`, `erp_order_id`, `number`, `status`, `conversation_id`, `contact_id`, `deal_id`, `created_by_user_id`, `external_id`, `charge_id`, `idempotency_keys`); migration aditiva; comandos MediatR "Criar pedido", "Confirmar", "Gerar cobrança", "Cancelar", "Mandar resumo", "Mandar cobrança"; reação a `billing_slip.issued` e `sales_order.*` no `ProcessErpEventJob`.
-**Conecta (`bemaqui-atende-web`):** "Novo pedido" na conversa (busca, carrinho, cliente), cartão do pedido na conversa com o próximo passo.
-**Conecta (`bemaqui-conecta`, app):** o mesmo fluxo em folha deslizante na conversa.
-**ERP:** nenhuma mudança.
+**Conecta (`bemaqui-atende-api`):** `ErpOrderDraft`, `ErpOrderLink` (`erp_order_id`, `number`, `status`, `conversation_id`, `contact_id`, `deal_id`, `created_by_user_id`, `external_id`, `charge_id`, `customer_confirmed_message_id`, `auto_send_charge`); migration aditiva; comandos (criar, mandar resumo, cliente confirmou, confirmar, cobrar, mandar cobrança, cancelar, cancelar parados); `ErpDraftExpiryJob`, `ErpOrderReconcileJob`; reações aos avisos.
+**Conecta (`bemaqui-atende-web`):** "Novo pedido" (busca, carrinho, cadastro mínimo) e cartão do pedido com botão por etapa e prévias.
+**Conecta (`bemaqui-conecta`, app):** carrinho em **folha própria com o total sempre à vista**; confirmações que mandam algo ao cliente em folha com a prévia; botões de 56 px.
 
 ## Telas e estados (Conecta)
-- **Novo pedido:** busca com carregando, vazio ("Nenhum produto com esse nome"), erro; carrinho com total do ERP; "Criar pedido" desabilitado enquanto envia.
-- **Cartão do pedido na conversa:** indicador do próximo passo ("Mandar resumo" → "Confirmar pedido" → "Gerar cobrança" → "Aguardando pagamento" → "Pago"), faixa de problema com a ação (CA 7 e 9), "Ver no ERP" (link para o pedido no ERP, que pede login de pessoa).
-- **Verbos:** "Criar pedido" → "Pedido criado"; "Confirmar pedido" → "Pedido confirmado"; "Gerar cobrança" → "Cobrança gerada"; "Cancelar pedido" → "Pedido cancelado".
-- **Propositivo:** criado, oferece "Mandar resumo"; confirmado, "Gerar cobrança"; boleto emitido, manda sozinho (CA 9).
+- **Novo pedido:** busca (carregando, "Nenhum produto com esse nome", erro); carrinho com o total do BemAqui Empresas; "Criar pedido" desabilitado enquanto envia.
+- **Cartão:** etapa atual, botão principal, faixa de problema com a ação (CA 8 a 10, 13, 14), "Ver no BemAqui Empresas".
+- **Verbos:** "Criar pedido" → "Pedido criado"; "Mandar resumo" → "Resumo enviado"; "Cliente confirmou" → "Confirmação registrada"; "Confirmar pedido" → "Pedido confirmado"; "Gerar cobrança" → "Cobrança gerada"; "Mandar cobrança" → "Cobrança enviada"; "Cancelar pedido" → "Pedido cancelado".
 
 ## Plano de testes
-- **Unidade:** máquina do cartão (próximo passo por situação); chave e `externalId` (mesmo corpo reaproveita, corpo novo gera novos).
-- **Integração (Conecta, ERP falso):** fluxo `Draft → Open → AwaitingPayment → Paid` com os avisos fora de ordem (CA 4 a 10); falha de rede e repetição sem pedido duplicado (CA 5); cada erro do CA 7; boleto que demora e boleto cancelado (CA 9); expiração (CA 12); cancelamento depois do pago (CA 11); negócio criado ou reaproveitado (CA 13).
-- **Manual (piloto):** pedido real no ERP SaaS com Inter em homologação até o boleto; conferir no ERP a reserva, o título `SalesOrder` e a trilha "Integração Conecta".
+- **Unidade:** botão por etapa; chave e `externalId`; sugestão de "sim" sem marcar sozinho; tradução dos erros.
+- **Integração (Conecta, ERP falso):** `Draft → Open → AwaitingPayment → Paid` com avisos fora de ordem e um aviso perdido recuperado pela reconciliação; falha de rede sem duplicar e `idempotency_in_progress`; cada erro do CA 8; "Cancelar pedidos parados"; rascunho vencido em 24 h; expiração de 2 h; "Mandar sozinho" com telefone trocado no meio (não manda); pedido criado antes de reconectar segue confirmável depois (INT-04); dois tenants.
 
 ## Tarefas
-- [ ] Conecta API: entidades, comandos e reações aos avisos.
-- [ ] Conecta web e app: novo pedido e cartão na conversa.
-- [ ] Manual do usuário do Conecta: "Vender pelo ERP na conversa".
+- [ ] Conecta API: entidades, comandos, jobs, reações.
+- [ ] Conecta web e app: novo pedido, carrinho, cartão.
+- [ ] Manual do usuário: "Vender pelo BemAqui Empresas na conversa".
 - [ ] Fluxo do repositório do Conecta.
 
 ## Dev Notes
-- **Conecta:** `Domain/Entities/Deal.cs`, `Application/Features/Pipeline/Commands/MoveDealCommand.cs` (dispara `deal_stage_changed`), `Infrastructure/Automations/AutomationEngine.cs` (`create_deal`), `Infrastructure/Jobs/YampiPaymentPollingJob.cs` e `Infrastructure/Channels/YampiOrderService.cs` (precedente do Yampi: aqui não há consulta periódica, os avisos do ERP substituem).
-- **ERP:** VND-02a Change Log ("Preço mudado na confirmação: 409 `price_changed`"; `sales.app_max_line_qty` 50 e `sales.app_max_order_qty` 200); INT-03 Change Log itens 2 a 4 (chave obrigatória também em `/customers` e `/charge`; `version` opcional; ações só nos pedidos da própria conexão).
+- **Conecta:** `Domain/Entities/Deal.cs`, `Application/Features/Pipeline/Commands/MoveDealCommand.cs`, `Infrastructure/Automations/AutomationEngine.cs` (`create_deal`), `Infrastructure/Jobs/YampiPaymentPollingJob.cs` (precedente; aqui avisos + reconciliação).
+- **ERP:** VND-02a Change Log (`price_changed`, limites 50/200); INT-03 Change Log itens 2 a 4; INT-04 CA 6.
 
 ## Fora do escopo
-- Pedido de orçamento da fábrica (ATD-03b); ferramentas da IA (ATD-04); avisos automáticos ao cliente e funil por evento (ATD-05).
-- Cartão de crédito (PP-21), Pix imediato (`cob`), frete e entrega (VND-02b, ECM-04), edição das linhas de um pedido já criado (cancela e recria na v1).
+- Orçamento (ATD-03b); IA (ATD-04); avisos e funil (ATD-05a/b); cartão (PP-21), Pix `cob`, frete (VND-02b, ECM-04); editar linhas de pedido criado (cancela e recria).
 
-## Pontos em aberto (para o PO)
-1. **Desconto pelo atendente:** com `sales.app_discount_limit_pct` em 0%, qualquer desconto fica "para aprovar" no ERP. **Recomendação:** v1 sem campo de desconto no Conecta; quando o tenant subir o limite, a ATD seguinte libera o campo até o limite.
-2. **"Mandar sozinho quando sair"** ligado por padrão: **recomendação:** sim, porque o atendente já pediu a cobrança naquela conversa; o envio aparece na conversa como mensagem do atendente que gerou.
-3. **Cancelar pelo `agent`:** **recomendação:** permitido antes do pagamento (o ERP limita o resto), com a opção de exigir `supervisor`.
+## Pontos em aberto
+Decididos (PO, 27/11/2026): sem desconto no Conecta na v1; "Mandar sozinho" desligado por padrão; cancelar antes do pagamento liberado ao `agent`, com opção de exigir `supervisor`; pedido do aplicativo + empresa (decisão 3). Nada pendente.
 
 ## Change Log
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
-| 27/11/2026 | 0.1 | Story escrita a partir da VND-02a e da INT-03 implementadas; ATD-03 dividida em 03a (só Conecta) e 03b (pedido de orçamento, com mudança no ERP). | Claude (planejamento) |
+| 27/11/2026 | 0.1 | Story escrita a partir da VND-02a e da INT-03; ATD-03 dividida em 03a e 03b. | Claude (planejamento) |
+| 27/11/2026 | 0.2 | Revisões de 27/11/2026: arquitetura, segurança, UX; decisões do PO. Rascunho parado cancelado em 24 h; "Cancelar pedidos parados"; reconciliação a cada 10 min e na reconexão; "Mandar sozinho" desligado e destino reconferido no job; botão por etapa com prévia; "Cliente confirmou" nunca automático; erros traduzidos; cadastro mínimo e "Pedir o endereço ao cliente"; opções de exigir supervisor; folhas no app; pedido do aplicativo + empresa (INT-04). | Claude (planejamento) |
