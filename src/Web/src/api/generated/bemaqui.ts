@@ -478,6 +478,7 @@ import type {
   InstallerOption,
   InstallmentDue,
   IntegrationConnectionView,
+  IntegrationWebhookSubscriptionView,
   InvalidateNumbersRequest,
   InvalidationResultView,
   InventoryCountDetail,
@@ -575,6 +576,7 @@ import type {
   ListMyNotificationsParams,
   ListNonConformitiesParams,
   ListOrderForecastsParams,
+  ListOutboundDeliveriesParams,
   ListOutgoingInvoicesParams,
   ListPartiesParams,
   ListPayablesParams,
@@ -732,6 +734,12 @@ import type {
   OrderRequisitions,
   OrderSerialDetail,
   OrderSerialsView,
+  OutboundDeliveryDetail,
+  OutboundDeliveryList,
+  OutboundSecretRotation,
+  OutboundSubscriptionInput,
+  OutboundTestResult,
+  OutboundWebhookSummary,
   OutgoingInvoiceItemView,
   OutgoingInvoicePage,
   OutgoingInvoiceVersionRequest,
@@ -1081,6 +1089,7 @@ import type {
   RfqSubmitResult,
   RfqSupplierInput,
   RfqVersionInput,
+  RotateOutboundSecretRequest,
   RotateWebhookRequest,
   RoutingItemLinkInput,
   RoutingItemView,
@@ -2981,6 +2990,695 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getRotateWebhookSecretMutationOptions(options), queryClient);
     }
+
+export const getGetOutboundWebhookSummaryUrl = () => {
+
+
+
+
+  return `/api/v1/outbound-webhooks/summary`
+}
+
+export const getOutboundWebhookSummary = async ( options?: Parameters<typeof apiFetch>[1]): Promise<OutboundWebhookSummary> => {
+
+  return apiFetch<OutboundWebhookSummary>(getGetOutboundWebhookSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOutboundWebhookSummaryQueryKey = () => {
+    return [
+    `/api/v1/outbound-webhooks/summary`
+    ] as const;
+    }
+
+
+export const getGetOutboundWebhookSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getOutboundWebhookSummary>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOutboundWebhookSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOutboundWebhookSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOutboundWebhookSummary>>> = ({ signal }) => getOutboundWebhookSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOutboundWebhookSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOutboundWebhookSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getOutboundWebhookSummary>>>
+export type GetOutboundWebhookSummaryQueryError = unknown
+
+
+export function useGetOutboundWebhookSummary<TData = Awaited<ReturnType<typeof getOutboundWebhookSummary>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOutboundWebhookSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOutboundWebhookSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getOutboundWebhookSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOutboundWebhookSummary<TData = Awaited<ReturnType<typeof getOutboundWebhookSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOutboundWebhookSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOutboundWebhookSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getOutboundWebhookSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOutboundWebhookSummary<TData = Awaited<ReturnType<typeof getOutboundWebhookSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOutboundWebhookSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOutboundWebhookSummary<TData = Awaited<ReturnType<typeof getOutboundWebhookSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOutboundWebhookSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOutboundWebhookSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListOutboundDeliveriesUrl = (params?: ListOutboundDeliveriesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/outbound-webhooks/deliveries?${stringifiedParams}` : `/api/v1/outbound-webhooks/deliveries`
+}
+
+export const listOutboundDeliveries = async (params?: ListOutboundDeliveriesParams, options?: Parameters<typeof apiFetch>[1]): Promise<OutboundDeliveryList> => {
+
+  return apiFetch<OutboundDeliveryList>(getListOutboundDeliveriesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOutboundDeliveriesQueryKey = (params?: ListOutboundDeliveriesParams,) => {
+    return [
+    `/api/v1/outbound-webhooks/deliveries`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListOutboundDeliveriesQueryOptions = <TData = Awaited<ReturnType<typeof listOutboundDeliveries>>, TError = unknown>(params?: ListOutboundDeliveriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOutboundDeliveries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOutboundDeliveriesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOutboundDeliveries>>> = ({ signal }) => listOutboundDeliveries(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOutboundDeliveries>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListOutboundDeliveriesQueryResult = NonNullable<Awaited<ReturnType<typeof listOutboundDeliveries>>>
+export type ListOutboundDeliveriesQueryError = unknown
+
+
+export function useListOutboundDeliveries<TData = Awaited<ReturnType<typeof listOutboundDeliveries>>, TError = unknown>(
+ params: undefined |  ListOutboundDeliveriesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOutboundDeliveries>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOutboundDeliveries>>,
+          TError,
+          Awaited<ReturnType<typeof listOutboundDeliveries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOutboundDeliveries<TData = Awaited<ReturnType<typeof listOutboundDeliveries>>, TError = unknown>(
+ params?: ListOutboundDeliveriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOutboundDeliveries>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOutboundDeliveries>>,
+          TError,
+          Awaited<ReturnType<typeof listOutboundDeliveries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOutboundDeliveries<TData = Awaited<ReturnType<typeof listOutboundDeliveries>>, TError = unknown>(
+ params?: ListOutboundDeliveriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOutboundDeliveries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListOutboundDeliveries<TData = Awaited<ReturnType<typeof listOutboundDeliveries>>, TError = unknown>(
+ params?: ListOutboundDeliveriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOutboundDeliveries>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListOutboundDeliveriesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetOutboundDeliveryUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/outbound-webhooks/deliveries/${id}`
+}
+
+export const getOutboundDelivery = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<OutboundDeliveryDetail> => {
+
+  return apiFetch<OutboundDeliveryDetail>(getGetOutboundDeliveryUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOutboundDeliveryQueryKey = (id: string,) => {
+    return [
+    `/api/v1/outbound-webhooks/deliveries/${id}`
+    ] as const;
+    }
+
+
+export const getGetOutboundDeliveryQueryOptions = <TData = Awaited<ReturnType<typeof getOutboundDelivery>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOutboundDelivery>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOutboundDeliveryQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOutboundDelivery>>> = ({ signal }) => getOutboundDelivery(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOutboundDelivery>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOutboundDeliveryQueryResult = NonNullable<Awaited<ReturnType<typeof getOutboundDelivery>>>
+export type GetOutboundDeliveryQueryError = unknown
+
+
+export function useGetOutboundDelivery<TData = Awaited<ReturnType<typeof getOutboundDelivery>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOutboundDelivery>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOutboundDelivery>>,
+          TError,
+          Awaited<ReturnType<typeof getOutboundDelivery>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOutboundDelivery<TData = Awaited<ReturnType<typeof getOutboundDelivery>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOutboundDelivery>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOutboundDelivery>>,
+          TError,
+          Awaited<ReturnType<typeof getOutboundDelivery>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOutboundDelivery<TData = Awaited<ReturnType<typeof getOutboundDelivery>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOutboundDelivery>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetOutboundDelivery<TData = Awaited<ReturnType<typeof getOutboundDelivery>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOutboundDelivery>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOutboundDeliveryQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getResendOutboundDeliveryUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/outbound-webhooks/deliveries/${id}/resend`
+}
+
+export const resendOutboundDelivery = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getResendOutboundDeliveryUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getResendOutboundDeliveryMutationKey = () => ['resendOutboundDelivery'] as const;
+
+export const getResendOutboundDeliveryMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resendOutboundDelivery>>, TError,ResendOutboundDeliveryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resendOutboundDelivery>>, TError,ResendOutboundDeliveryMutationVariables, TContext> => {
+
+const mutationKey = getResendOutboundDeliveryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resendOutboundDelivery>>, ResendOutboundDeliveryMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  resendOutboundDelivery(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResendOutboundDeliveryMutationResult = NonNullable<Awaited<ReturnType<typeof resendOutboundDelivery>>>
+
+    export type ResendOutboundDeliveryMutationError = unknown
+    export type ResendOutboundDeliveryMutationVariables = {id: string}
+
+    export const useResendOutboundDelivery = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resendOutboundDelivery>>, TError,ResendOutboundDeliveryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof resendOutboundDelivery>>,
+        TError,
+        ResendOutboundDeliveryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getResendOutboundDeliveryMutationOptions(options), queryClient);
+    }
+
+export const getUpdateOutboundSubscriptionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/outbound-webhooks/subscriptions/${id}`
+}
+
+export const updateOutboundSubscription = async (id: string,
+    outboundSubscriptionInput: OutboundSubscriptionInput, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getUpdateOutboundSubscriptionUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(outboundSubscriptionInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateOutboundSubscriptionMutationKey = () => ['updateOutboundSubscription'] as const;
+
+export const getUpdateOutboundSubscriptionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOutboundSubscription>>, TError,UpdateOutboundSubscriptionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateOutboundSubscription>>, TError,UpdateOutboundSubscriptionMutationVariables, TContext> => {
+
+const mutationKey = getUpdateOutboundSubscriptionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateOutboundSubscription>>, UpdateOutboundSubscriptionMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateOutboundSubscription(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateOutboundSubscriptionMutationResult = NonNullable<Awaited<ReturnType<typeof updateOutboundSubscription>>>
+    export type UpdateOutboundSubscriptionMutationBody = OutboundSubscriptionInput
+    export type UpdateOutboundSubscriptionMutationError = unknown
+    export type UpdateOutboundSubscriptionMutationVariables = {id: string;data: OutboundSubscriptionInput}
+
+    export const useUpdateOutboundSubscription = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOutboundSubscription>>, TError,UpdateOutboundSubscriptionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateOutboundSubscription>>,
+        TError,
+        UpdateOutboundSubscriptionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateOutboundSubscriptionMutationOptions(options), queryClient);
+    }
+
+export const getTestOutboundSubscriptionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/outbound-webhooks/subscriptions/${id}/test`
+}
+
+export const testOutboundSubscription = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<OutboundTestResult> => {
+
+  return apiFetch<OutboundTestResult>(getTestOutboundSubscriptionUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getTestOutboundSubscriptionMutationKey = () => ['testOutboundSubscription'] as const;
+
+export const getTestOutboundSubscriptionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testOutboundSubscription>>, TError,TestOutboundSubscriptionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof testOutboundSubscription>>, TError,TestOutboundSubscriptionMutationVariables, TContext> => {
+
+const mutationKey = getTestOutboundSubscriptionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof testOutboundSubscription>>, TestOutboundSubscriptionMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  testOutboundSubscription(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TestOutboundSubscriptionMutationResult = NonNullable<Awaited<ReturnType<typeof testOutboundSubscription>>>
+
+    export type TestOutboundSubscriptionMutationError = unknown
+    export type TestOutboundSubscriptionMutationVariables = {id: string}
+
+    export const useTestOutboundSubscription = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testOutboundSubscription>>, TError,TestOutboundSubscriptionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof testOutboundSubscription>>,
+        TError,
+        TestOutboundSubscriptionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTestOutboundSubscriptionMutationOptions(options), queryClient);
+    }
+
+export const getRotateOutboundSecretUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/outbound-webhooks/subscriptions/${id}/secret/rotate`
+}
+
+export const rotateOutboundSecret = async (id: string,
+    rotateOutboundSecretRequest: RotateOutboundSecretRequest, options?: Parameters<typeof apiFetch>[1]): Promise<OutboundSecretRotation> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<OutboundSecretRotation>(getRotateOutboundSecretUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(rotateOutboundSecretRequest)
+  }
+);}
+
+
+
+
+
+export const getRotateOutboundSecretMutationKey = () => ['rotateOutboundSecret'] as const;
+
+export const getRotateOutboundSecretMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rotateOutboundSecret>>, TError,RotateOutboundSecretMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rotateOutboundSecret>>, TError,RotateOutboundSecretMutationVariables, TContext> => {
+
+const mutationKey = getRotateOutboundSecretMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rotateOutboundSecret>>, RotateOutboundSecretMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  rotateOutboundSecret(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RotateOutboundSecretMutationResult = NonNullable<Awaited<ReturnType<typeof rotateOutboundSecret>>>
+    export type RotateOutboundSecretMutationBody = RotateOutboundSecretRequest
+    export type RotateOutboundSecretMutationError = unknown
+    export type RotateOutboundSecretMutationVariables = {id: string;data: RotateOutboundSecretRequest}
+
+    export const useRotateOutboundSecret = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rotateOutboundSecret>>, TError,RotateOutboundSecretMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rotateOutboundSecret>>,
+        TError,
+        RotateOutboundSecretMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRotateOutboundSecretMutationOptions(options), queryClient);
+    }
+
+export const getGetIntegrationWebhookSubscriptionUrl = () => {
+
+
+
+
+  return `/api/v1/integration/webhooks/subscription`
+}
+
+export const getIntegrationWebhookSubscription = async ( options?: Parameters<typeof apiFetch>[1]): Promise<IntegrationWebhookSubscriptionView> => {
+
+  return apiFetch<IntegrationWebhookSubscriptionView>(getGetIntegrationWebhookSubscriptionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetIntegrationWebhookSubscriptionQueryKey = () => {
+    return [
+    `/api/v1/integration/webhooks/subscription`
+    ] as const;
+    }
+
+
+export const getGetIntegrationWebhookSubscriptionQueryOptions = <TData = Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetIntegrationWebhookSubscriptionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>> = ({ signal }) => getIntegrationWebhookSubscription({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetIntegrationWebhookSubscriptionQueryResult = NonNullable<Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>>
+export type GetIntegrationWebhookSubscriptionQueryError = unknown
+
+
+export function useGetIntegrationWebhookSubscription<TData = Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>,
+          TError,
+          Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetIntegrationWebhookSubscription<TData = Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>,
+          TError,
+          Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetIntegrationWebhookSubscription<TData = Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetIntegrationWebhookSubscription<TData = Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrationWebhookSubscription>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetIntegrationWebhookSubscriptionQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getPlatformLoginUrl = () => {
 

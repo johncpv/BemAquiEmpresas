@@ -25,6 +25,28 @@ public static class WebhooksServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Avisos de saída para os aplicativos conectados (INT-02): inscrições, publicador do catálogo, envio com o <c>HttpClient</c>
+    /// <c>outbound-webhooks</c> (IP conferido a cada conexão, CA 16), varredor e expurgo. O <see cref="Integration.IConnectedAppAccess"/> vem do Identity.
+    /// </summary>
+    public static IServiceCollection AddBemAquiOutboundWebhooks(this IServiceCollection services, IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        services.Configure<OutboundWebhookOptions>(configuration.GetSection(OutboundWebhookOptions.Section));
+        services.Configure<ConectaWebhookOptions>(configuration.GetSection(ConectaWebhookOptions.Section));
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddScoped<OutboundDeliveryScheduler>();
+        services.AddScoped<OutboundSubscriptionService>();
+        services.AddScoped<Integration.IOutboundSubscriptions>(sp => sp.GetRequiredService<OutboundSubscriptionService>());
+        services.AddScoped<Integration.IOutboundWebhookPublisher, OutboundWebhookPublisher>();
+        services.AddScoped<OutboundWebhooksAdmin>();
+        services.AddAuditableEntity<OutboundSubscription>("conecta");
+        services.AddHttpClient(OutboundWebhookDeliveryJob.HttpClientName, c => c.Timeout = TimeSpan.FromSeconds(10))
+            .ConfigurePrimaryHttpMessageHandler(sp => OutboundUrlGuard.CreateHandler(OutboundSubscriptionService.PrivateAllowed(
+                sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<OutboundWebhookOptions>>().Value, sp.GetRequiredService<Microsoft.Extensions.Hosting.IHostEnvironment>())));
+        return services;
+    }
+
     /// <summary>Registra um provedor e o handler dele (scoped, resolvido no escopo do tenant).</summary>
     public static IServiceCollection AddWebhookProvider(this IServiceCollection services, WebhookProvider provider)
     {

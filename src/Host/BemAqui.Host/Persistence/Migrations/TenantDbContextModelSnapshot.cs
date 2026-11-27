@@ -1263,6 +1263,264 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("number_sequences", "shared");
                 });
 
+            modelBuilder.Entity("BemAqui.BuildingBlocks.Webhooks.OutboundAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.Property<Guid>("DeliveryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("delivery_id");
+
+                    b.Property<int>("DurationMs")
+                        .HasColumnType("integer")
+                        .HasColumnName("duration_ms");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("error");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<int?>("StatusCode")
+                        .HasColumnType("integer")
+                        .HasColumnName("status_code");
+
+                    b.HasKey("Id")
+                        .HasName("pk_outbound_webhook_attempts");
+
+                    b.HasIndex("DeliveryId", "Number")
+                        .HasDatabaseName("ix_outbound_webhook_attempts_delivery_id_number");
+
+                    b.ToTable("outbound_webhook_attempts", "shared");
+                });
+
+            modelBuilder.Entity("BemAqui.BuildingBlocks.Webhooks.OutboundDelivery", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempts");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeliveredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delivered_at");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("event_id");
+
+                    b.Property<DateTimeOffset?>("LastAttemptAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_attempt_at");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("last_error");
+
+                    b.Property<DateTimeOffset>("LastQueuedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_queued_at");
+
+                    b.Property<int?>("LastStatusCode")
+                        .HasColumnType("integer")
+                        .HasColumnName("last_status_code");
+
+                    b.Property<DateTimeOffset>("NextAttemptAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("next_attempt_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("SubscriptionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subscription_id");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_outbound_webhook_deliveries");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_outbound_webhook_deliveries_open")
+                        .HasFilter("status IN ('Pending','Retrying')");
+
+                    b.HasIndex("EventId", "SubscriptionId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_outbound_webhook_deliveries_event_id_subscription_id");
+
+                    b.HasIndex("SubscriptionId", "Status", "CreatedAt")
+                        .HasDatabaseName("ix_outbound_webhook_deliveries_subscription_id_status_created_");
+
+                    b.ToTable("outbound_webhook_deliveries", "shared");
+                });
+
+            modelBuilder.Entity("BemAqui.BuildingBlocks.Webhooks.OutboundEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Data")
+                        .HasColumnType("text")
+                        .HasColumnName("data");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<string>("Resource")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("resource");
+
+                    b.Property<Guid>("ResourceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resource_id");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_outbound_webhook_events");
+
+                    b.HasIndex("OccurredAt")
+                        .HasDatabaseName("ix_outbound_webhook_events_occurred_at");
+
+                    b.ToTable("outbound_webhook_events", "shared");
+                });
+
+            modelBuilder.Entity("BemAqui.BuildingBlocks.Webhooks.OutboundSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("client_id");
+
+                    b.Property<Guid>("ConnectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("connection_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ended_at");
+
+                    b.PrimitiveCollection<string[]>("Events")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("events");
+
+                    b.Property<DateTimeOffset?>("LastSuccessAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_success_at");
+
+                    b.Property<bool>("PendingSecretDelivery")
+                        .HasColumnType("boolean")
+                        .HasColumnName("pending_secret_delivery");
+
+                    b.Property<string>("PreviousSecretCipher")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("previous_secret_cipher");
+
+                    b.Property<DateTimeOffset?>("PreviousValidUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("previous_valid_until");
+
+                    b.Property<DateOnly?>("RotationDay")
+                        .HasColumnType("date")
+                        .HasColumnName("rotation_day");
+
+                    b.Property<int>("RotationsOnDay")
+                        .HasColumnType("integer")
+                        .HasColumnName("rotations_on_day");
+
+                    b.Property<string>("SecretCipher")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("secret_cipher");
+
+                    b.Property<DateTimeOffset?>("SecretRotatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("secret_rotated_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("url");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_outbound_webhook_subscriptions");
+
+                    b.HasIndex("ConnectionId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_outbound_webhook_subscriptions_connection_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_outbound_webhook_subscriptions_status");
+
+                    b.ToTable("outbound_webhook_subscriptions", "shared");
+                });
+
             modelBuilder.Entity("BemAqui.BuildingBlocks.Webhooks.WebhookCredential", b =>
                 {
                     b.Property<Guid>("Id")

@@ -140,6 +140,7 @@ public sealed partial class BankPaymentService(
                 if (settled.IsSuccess)
                 {
                     slip.MarkPaid(paid, creditDate, settled.Value.Id, origin.WebhookEventId, remote.Payload, now);
+                    events.Publish(new BillingSlipPaid(slip.Id, slip.ReceivableId, paid, creditDate)); // INT-02: aviso billing_slip.paid, mesma transação
                     await NotifyPaidAsync(slip, receivable, paid, now, ct);
                     return new BankPaymentResult(BankPaymentOutcome.Settled);
                 }

@@ -16,7 +16,13 @@ import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
 import { PageHeading } from '@/shell/PageHeading'
+import { UrlTabs } from '@/components/ui/url-tabs'
+import { useUrlTab } from '@/components/ui/url-tab'
+import { useHelpTab } from '@/help/help-context'
+import { useNavigation } from '@/navigation/navigation-context'
 import { IntegrationsNav } from './IntegrationsNav'
+import { SentEventsTab } from './OutboundWebhooks'
+import { EVENTS_HELP_TAB } from './outbound'
 import { CONTENT_HINT, defaultStatus, EVENT_STATUS, STALLED_HINT, STATUS_OPTIONS } from './events'
 
 function Status({ row }: { row: WebhookEventRow }) {
@@ -53,7 +59,7 @@ function ContentPanel({ id, onClose }: { id: string; onClose: () => void }) {
  * erro na linha expansível; filtros na URL; "Reprocessar" para o parado (sem reenvio enquanto processa) e "Ver conteúdo" só com a
  * aprovação do módulo dono. Com algum parado, abre no filtro "Parados".
  */
-export function IntegrationEventsPage() {
+function ReceivedEventsTab() {
   const [search] = useTableSearch()
   const { provedor, situacao, de, ate } = useTableFilters(['provedor', 'situacao', 'de', 'ate'])
   const navigate = useNavigate()
@@ -106,8 +112,6 @@ export function IntegrationEventsPage() {
 
   return (
     <>
-      <PageHeading title="Avisos recebidos de sistemas externos" description="Os avisos que a nota fiscal e o banco mandam ao BemAqui, na ordem em que chegaram. O conteúdo não aparece na lista." />
-      <IntegrationsNav />
       <div role="group" aria-label="Período" className="mb-3 flex flex-wrap items-end gap-3 text-sm">
         <label className="space-y-1 font-medium">De<DateInput value={de ?? ''} onChange={(v) => setSearch({ de: v || undefined })} /></label>
         <label className="space-y-1 font-medium">Até<DateInput value={ate ?? ''} onChange={(v) => setSearch({ ate: v || undefined })} /></label>
@@ -131,6 +135,31 @@ export function IntegrationEventsPage() {
         filteredEmpty={situacao === 'DeadLettered' ? { title: 'Nenhum aviso parado.', description: 'Tudo o que chegou foi processado ou está na fila.' } : undefined}
       />
       {viewing ? <ContentPanel id={viewing} onClose={() => setViewing(undefined)} /> : null}
+    </>
+  )
+}
+
+/**
+ * Configurações → Integrações → Eventos (FND-16 e INT-02): "Recebidos" (avisos dos sistemas externos) e, com <c>conecta.view</c>, "Enviados"
+ * (avisos do ERP ao Conecta). A aba fica em ?aba= e define a ajuda da tela.
+ */
+export function IntegrationEventsPage() {
+  const { all } = useNavigation()
+  const conecta = all.find((m) => m.code === 'conecta')
+  const canSeeSent = !!conecta && !conecta.locked && conecta.actions.includes('view')
+  const [tab] = useUrlTab('recebidos')
+  const active = canSeeSent && tab === 'enviados' ? 'enviados' : 'recebidos'
+  useHelpTab(EVENTS_HELP_TAB[active])
+  return (
+    <>
+      <PageHeading title="Avisos de sistemas externos" description="Os avisos que a nota fiscal e o banco mandam ao BemAqui e os que o BemAqui manda ao Conecta. O conteúdo não aparece na lista." />
+      <IntegrationsNav />
+      {canSeeSent ? (
+        <UrlTabs label="Avisos" fallback="recebidos" help={false} tabs={[
+          { id: 'recebidos', label: 'Recebidos', icon: null, content: <ReceivedEventsTab /> },
+          { id: 'enviados', label: 'Enviados', icon: null, content: <SentEventsTab /> },
+        ]} />
+      ) : <ReceivedEventsTab />}
     </>
   )
 }

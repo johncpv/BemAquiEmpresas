@@ -15,6 +15,7 @@ Ligar o ERP ao Conecta com um clique, para o atendimento pelo WhatsApp vender, c
 - **Autorizar de novo**: aparece quando a conexão está **Suspensa**. Repita o caminho de **Conectar**; a conexão nova substitui a anterior.
 - Depois de conectado, o próximo passo é ativar o WhatsApp do Conecta para os avisos de cobrança chegarem ao cliente.
 - A referência técnica (para quem integra) fica recolhida em **Para desenvolvedores**.
+- **Avisos ao Conecta** (com a permissão de ver o Conecta): mostra "Os avisos estão chegando ao Conecta" ou, quando algum falha, "O Conecta não está recebendo os avisos desde dd/mm", com **Reenviar os parados**. **Avançado** abre o registro detalhado na aba **Enviados** dos eventos.
 
 ## Situações
 - **Conectado**: o Conecta usa o ERP em nome de quem autorizou, só com o que essa pessoa também pode fazer.

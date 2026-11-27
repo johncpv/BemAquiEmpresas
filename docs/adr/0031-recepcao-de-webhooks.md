@@ -52,3 +52,13 @@
 - **Credencial:** `shared.webhook_tokens` guarda, por provedor e escopo, o hash do token ou o segredo HMAC cifrado (`webhook-secret`), com o anterior até `previous_valid_until`. Validar exige ler a credencial antes da gravação; a gravação continua uma só (evento + outbox).
 - **Rate limit:** política `webhooks` por IP real e provedor (60/min); o abuso por tenant é coberto pelo alerta de 20 recusas em 5 min por provedor e tenant.
 - **2FA de novo:** contrato `IStepUpTwoFactor` (BuildingBlocks), implementado pelo Identity, com o código do aplicativo no corpo da ação.
+
+## Adendo de 27/11/2026: Saída (INT-02, ADR 0053)
+
+O espelho de saída usa as tabelas `shared.outbound_webhook_subscriptions`, `outbound_webhook_events`, `outbound_webhook_deliveries` e `outbound_webhook_attempts` e as mesmas regras da entrada, com estas diferenças:
+
+- **Origem:** o evento interno nunca sai cru. O módulo dono traduz o evento de contrato para o aviso público do catálogo v1 (`IOutboundWebhookPublisher`), com o `data` mínimo; o publicador recusa campo fora do catálogo.
+- **Assinatura:** `BemAqui-Signature: v1=<hex do HMAC-SHA256 de "{timestamp}.{corpo}">`, segredo por inscrição (`outbound-webhook-secret`), com o anterior por 24 h na troca (`v1=<nova>,v1=<antiga>`) ou invalidado na hora. O segredo só sai no `/oauth/token`.
+- **Nova tentativa:** do próprio job (sem o retry do Hangfire), 8 envios em cerca de 2 dias, `Retry-After` até 1 h; depois `DeadLettered` e "Reenviar". Sem pausa automática na v1.
+- **SSRF:** URL só `https`, 443, sem credencial, host na lista `Integrations:Conecta:WebhookAllowedHosts`; o `HttpClient` `outbound-webhooks` confere o IP de fato conectado no `ConnectCallback` (faixas privadas, reservadas, IPv4 mapeado, NAT64, 6to4), sem redirecionamento, cookies ou proxy. Rede privada só com `Integrations:OutboundWebhooks:AllowPrivateNetworks` em `Development` e nos testes.
+- **Retenção:** o `data` do aviso some em 90 dias quando todas as entregas terminaram; a linha fica.

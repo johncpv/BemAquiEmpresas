@@ -28,4 +28,7 @@ public enum SecretKind
 
     /// <summary>Chave do índice cego do documento do consumidor (OFF-02 CA 17): HMAC por tenant, guardada cifrada.</summary>
     BlindIndexKey,
+
+    /// <summary>Segredo de assinatura dos avisos de saída por inscrição (INT-02, ADR 0007 adendo de 26/11/2026, ADR 0053).</summary>
+    OutboundWebhookSecret,
 }

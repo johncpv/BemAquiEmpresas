@@ -13,7 +13,21 @@ public static class HostEvents
         ArgumentNullException.ThrowIfNull(events);
         events.AddEmailEvents().AddWebhookEvents().AddEvent<UserActivated>()
             // INT-01: vida da conexão do aplicativo (os consumidores da INT-02 só encerram ou suspendem a inscrição).
-            .AddEvent<AppConnected>().AddEvent<AppConnectionRevoked>().AddEvent<AppConnectionSuspended>()
+            .AddEvent<AppConnected>()
+            // INT-02 CA 3: a vida da conexão só encerra (com o último app.disconnected) ou suspende a inscrição de avisos.
+            .AddHandler<AppConnectionRevoked, BemAqui.Identity.Application.ConnectedApps.OutboundSubscriptionConsumers>()
+            .AddHandler<AppConnectionSuspended, BemAqui.Identity.Application.ConnectedApps.OutboundSubscriptionConsumers>()
+            // INT-02 CA 7: cada módulo dono traduz os seus eventos de contrato para os avisos públicos do catálogo v1.
+            .AddHandler<BemAqui.Sales.Contracts.OrderCreated, BemAqui.Sales.Application.SalesOrderWebhooks>()
+            .AddHandler<BemAqui.Sales.Contracts.OrderConfirmed, BemAqui.Sales.Application.SalesOrderWebhooks>()
+            .AddHandler<BemAqui.Sales.Contracts.OrderPaid, BemAqui.Sales.Application.SalesOrderWebhooks>()
+            .AddHandler<BemAqui.Sales.Contracts.OrderCancelled, BemAqui.Sales.Application.SalesOrderWebhooks>()
+            .AddHandler<BemAqui.Finance.Contracts.BillingSlipIssued, BemAqui.Finance.Application.BillingSlipWebhooks>()
+            .AddHandler<BemAqui.Finance.Contracts.BillingSlipCancelled, BemAqui.Finance.Application.BillingSlipWebhooks>()
+            .AddHandler<BemAqui.Finance.Contracts.BillingSlipPaid, BemAqui.Finance.Application.BillingSlipWebhooks>()
+            .AddHandler<BemAqui.Fiscal.Contracts.InvoiceAuthorized, BemAqui.Fiscal.Application.Invoices.InvoiceWebhooks>()
+            .AddHandler<BemAqui.Fiscal.Contracts.InvoiceCancelled, BemAqui.Fiscal.Application.Invoices.InvoiceWebhooks>()
+            .AddHandler<BemAqui.Fiscal.Contracts.InvoiceRejected, BemAqui.Fiscal.Application.Invoices.InvoiceWebhooks>()
             // LGPD-01b CA 9: titular anonimizado; o Financeiro troca o retrato do favorecido nas OPs terminadas.
             .AddHandler<BemAqui.BuildingBlocks.Privacy.SubjectAnonymized, BemAqui.Finance.Application.SubjectAnonymizedConsumer>()
             // CAD-06 → CAD-04a: o % de encargos recalcula o custo-hora dos cargos.
