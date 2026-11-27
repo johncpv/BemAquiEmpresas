@@ -7,7 +7,7 @@
 | Tamanho | M |
 | Status | Draft |
 | Requisitos | [Proposta](../produto/execucao-pos-contrato.md) §5 e §6 · ENG-01 (editor de roteiro: letra, horas, checklist, aprovação) · COM-06 P-22 (modelo configurável do tenant) · ADR 0046 (adendo PERF-04: pacote de dados por perfil) · R-SEC-5 |
-| Dependências | EXE-01 (recurso `projects.service_execution`) |
+| Dependências | EXE-01a (recurso `projects.service_execution`, tipo do projeto) |
 | Bloqueia | EXE-03, EXE-05 |
 | Ordem de execução | 2 (Execução depois do contrato, antes da F2 do Conecta) |
 
@@ -70,3 +70,4 @@ Como **dono de uma empresa de serviço**, quero **ter modelos de etapas prontos 
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 27/11/2026 | 0.1 | Story escrita a partir da proposta aprovada pelo PO (27/11/2026) | Claude |
+| 27/11/2026 | 0.2 | Dependência ajustada para EXE-01a (divisão da EXE-01) | Claude |
