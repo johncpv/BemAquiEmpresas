@@ -763,12 +763,13 @@ Decisões do PO de 26/11/2026 ([ADR 0052](adr/0052-integracoes-conecta-e-marketp
 - **INT-03 [x] API de integração v1: catálogo, estoque, clientes, pedidos, cobranças e notas (M)** — ordem 4 ([story](stories/INT-03-api-integracao-v1.md), contrato em [integracoes/openapi-integration-v1.json](integracoes/openapi-integration-v1.json))
 
 **F2 — Conecta** (repositório do Conecta e ERP)
-- **ATD-01 [ ] Conectar com um clique (começa no ERP), credencial cifrada e recebimento de eventos (M)**
-- **ATD-02 [ ] Painel do cliente na conversa: pedidos, cobranças, notas e 2ª via (M)**
-- **ATD-03 [ ] Criar pedido e mandar a cobrança pelo atendente; pedido de orçamento para fábrica (M)**
-- **ATD-04 [ ] Ferramentas do agente de IA no lugar do bloco `[PEDIDO]` (M)**
-- **ATD-05 [ ] Avisos automáticos por evento e etapa do funil (P)**
-- **ATD-06 [ ] WhatsApp do ERP pelo Conecta, fechando o WPP-01 e o P-29 (P)**
+- **ATD-01 [ ] Conectar com um clique (começa no ERP), credencial cifrada e recebimento de eventos (M)** — ordem 1 ([story](stories/ATD-01-conectar-conecta-ao-erp.md))
+- **ATD-02 [ ] Painel do cliente na conversa: pedidos, cobranças, notas e 2ª via (M)** — ordem 2 ([story](stories/ATD-02-painel-do-cliente-na-conversa.md); nota do pedido depende da VND-02b)
+- **ATD-03a [ ] Criar pedido e mandar a cobrança pelo atendente (M)** — ordem 3 ([story](stories/ATD-03a-pedido-e-cobranca-pelo-atendente.md); só no Conecta)
+- **ATD-03b [ ] Pedido de orçamento para fábrica pelo Conecta (P)** — ordem 4 ([story](stories/ATD-03b-pedido-de-orcamento-fabrica.md); ERP: escopo `quotes.create`, rota nova e "Autorizar de novo"). A ATD-03 foi dividida em 03a e 03b em 27/11/2026 porque só a parte da fábrica muda o ERP.
+- **ATD-04 [ ] Ferramentas do agente de IA no lugar do bloco `[PEDIDO]` (M)** — ordem 5 ([story](stories/ATD-04-ferramentas-do-agente-de-ia.md))
+- **ATD-05 [ ] Avisos automáticos por evento e etapa do funil (P)** — ordem 6 ([story](stories/ATD-05-avisos-automaticos-e-funil.md); avisos de separação, nota, envio e entrega dependem da VND-02b)
+- **ATD-06 [ ] WhatsApp do ERP pelo Conecta, fechando o WPP-01 e o P-29 (P)** — ordem 7 ([story](stories/ATD-06-whatsapp-do-erp-pelo-conecta.md); transporte no ERP e no Conecta; os gatilhos seguem na WPP-01)
 
 **F3 — Marketplaces**
 - **MKT-00 [ ] Base de canais: domínio central de integrações, anúncio ↔ SKU, estoque por canal, pedido importado, tarifas e repasse (G)**
