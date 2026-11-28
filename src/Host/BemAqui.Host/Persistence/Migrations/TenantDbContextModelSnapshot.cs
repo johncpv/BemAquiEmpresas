@@ -2653,6 +2653,31 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("site_address_id");
 
+                    b.Property<Guid?>("StageTemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stage_template_id");
+
+                    b.Property<string>("StageTemplateName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("stage_template_name");
+
+                    b.Property<int?>("StageTemplateRevision")
+                        .HasColumnType("integer")
+                        .HasColumnName("stage_template_revision");
+
+                    b.Property<DateTimeOffset?>("StagesAppliedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("stages_applied_at");
+
+                    b.Property<Guid?>("StagesAppliedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stages_applied_by");
+
+                    b.Property<DateTimeOffset?>("StagesChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("stages_changed_at");
+
                     b.Property<DateOnly?>("StartedOn")
                         .HasColumnType("date")
                         .HasColumnName("started_on");
@@ -2685,6 +2710,10 @@ namespace BemAqui.Host.Persistence.Migrations
 
                     b.HasIndex("PartyId")
                         .HasDatabaseName("ix_projects_party_id");
+
+                    b.HasIndex("StageTemplateId")
+                        .HasDatabaseName("ix_projects_stage_template_id")
+                        .HasFilter("stage_template_id IS NOT NULL");
 
                     b.ToTable("projects", "commercial");
                 });
@@ -3019,6 +3048,162 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_project_items_routing_template_id");
 
                     b.ToTable("project_items", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectServiceStage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("ApprovedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("approved_by");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(1)
+                        .HasColumnType("character(1)")
+                        .HasColumnName("code")
+                        .IsFixedLength();
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<Guid?>("CompletedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("completed_by");
+
+                    b.Property<DateOnly?>("CompletedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("completed_on");
+
+                    b.Property<int>("CompletionVersion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("completion_version");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.Property<DateOnly?>("PlannedEnd")
+                        .HasColumnType("date")
+                        .HasColumnName("planned_end");
+
+                    b.Property<decimal>("PlannedHours")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("planned_hours");
+
+                    b.Property<DateOnly?>("PlannedStart")
+                        .HasColumnType("date")
+                        .HasColumnName("planned_start");
+
+                    b.Property<Guid?>("PositionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("position_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<bool>("RequiresApproval")
+                        .HasColumnType("boolean")
+                        .HasColumnName("requires_approval");
+
+                    b.Property<Guid?>("ResponsibleUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("responsible_user_id");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("role");
+
+                    b.Property<bool>("SelfApproved")
+                        .HasColumnType("boolean")
+                        .HasColumnName("self_approved");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<DateTimeOffset?>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_project_stages");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_project_stages_project_id");
+
+                    b.HasIndex("ResponsibleUserId")
+                        .HasDatabaseName("ix_project_stages_responsible_user_id");
+
+                    b.ToTable("project_stages", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectServiceStageCheck", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("MarkedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("marked_at");
+
+                    b.Property<Guid?>("MarkedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("marked_by");
+
+                    b.Property<string>("Result")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("result");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<Guid>("StageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stage_id");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("text");
+
+                    b.HasKey("Id")
+                        .HasName("pk_project_stage_checklist");
+
+                    b.HasIndex("StageId", "Sequence")
+                        .HasDatabaseName("ix_project_stage_checklist_stage_id_sequence");
+
+                    b.ToTable("project_stage_checklist", "commercial");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.Quote", b =>
@@ -22250,6 +22435,26 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_items_quote_items_quote_item_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectServiceStage", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_project_stages_projects_project_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectServiceStageCheck", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.ProjectServiceStage", null)
+                        .WithMany()
+                        .HasForeignKey("StageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_project_stage_checklist_project_service_stages_stage_id");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.QuoteDispatch", b =>

@@ -49,6 +49,19 @@ public static class StageTemplateRules
         return (steps, milestones, errors);
     }
 
+    /// <summary>
+    /// Só as etapas (letra, nome, papel, horas, checklist) com os erros por linha (<c>steps[n].campo</c>): a edição das etapas do projeto
+    /// (EXE-03a CA 5) usa as mesmas validações do modelo.
+    /// </summary>
+    public static (IReadOnlyList<NormalizedStageStep> Steps, Dictionary<string, string[]> Errors) ValidateSteps(IReadOnlyList<StageStepInput> steps)
+    {
+        ArgumentNullException.ThrowIfNull(steps);
+        var errors = new Dictionary<string, string[]>(StringComparer.Ordinal);
+        var normalized = NormalizeSteps(steps, errors);
+        RoleRules(normalized, errors);
+        return (normalized, errors);
+    }
+
     private static List<NormalizedStageStep> NormalizeSteps(IReadOnlyList<StageStepInput> list, Dictionary<string, string[]> errors)
     {
         void Add(string field, string message) => errors.TryAdd(field, [message]);

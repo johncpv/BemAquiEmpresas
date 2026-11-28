@@ -19,11 +19,14 @@ public sealed partial class QuoteApprovalService
         var partyName = party is null ? string.Empty : party.TradeName ?? party.LegalName;
         // EXE-01a CA 2 e 3: o tipo do projeto pela regra única, recalculado na aprovação.
         var kind = ExecutionKindRule.For(ServiceExecutionReleased, items.Select(i => i.Kind).ToList());
+        // EXE-03a CA 2: no projeto de serviço, as etapas do modelo sugerido (item → segmento → padrão do tenant) são copiadas e congeladas no snapshot.
+        var stagePlan = kind == ExecutionKind.Service ? await stages.ForApprovalAsync(items.Select(i => (i.ItemId, i.Quantity)).ToList(), ct) : null;
 
         var contract = new Contract
         {
             Number = await numbers.NextAsync(ContractDocType, ct), QuoteId = quote.Id, PartyId = quote.PartyId, SignedAt = input.SignedAt, TotalValue = quote.TotalPrice,
-            RevenueAccountId = input.RevenueAccountId, Snapshot = ContractSnapshots.Serialize(quote, partyName, items, costs, milestones, input.IsOnboarding, onboarding, kind), CreatedAt = now, CreatedBy = currentUser.UserId,
+            RevenueAccountId = input.RevenueAccountId, Snapshot = ContractSnapshots.Serialize(quote, partyName, items, costs, milestones, input.IsOnboarding, onboarding, kind,
+                stagePlan is { } frozen ? ProjectStageService.Snapshot(frozen.Stages) : null), CreatedAt = now, CreatedBy = currentUser.UserId,
             IsOnboarding = input.IsOnboarding,
         };
         db.Contracts.Add(contract);
@@ -41,6 +44,11 @@ public sealed partial class QuoteApprovalService
             ExecutionKind = kind, ExecutionKindSource = ExecutionKindSource.Approval,
         };
         db.Projects.Add(project);
+        if (stagePlan is { } plan)
+        {
+            stages.Attach(project, plan.Template, plan.Stages, now);
+        }
+
         var projectItems = items.Select(i => new ProjectItem
         {
             ProjectId = project.Id, QuoteItemId = i.Id, Sequence = i.Sequence, Description = i.Description, Quantity = i.Quantity, ItemId = i.ItemId,

@@ -328,6 +328,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<BemAqui.Commercial.Domain.StageTemplateItem> StageTemplateItems => Set<BemAqui.Commercial.Domain.StageTemplateItem>();
 
+    public DbSet<BemAqui.Commercial.Domain.ProjectServiceStage> ProjectServiceStages => Set<BemAqui.Commercial.Domain.ProjectServiceStage>();
+
+    public DbSet<BemAqui.Commercial.Domain.ProjectServiceStageCheck> ProjectServiceStageChecks => Set<BemAqui.Commercial.Domain.ProjectServiceStageCheck>();
+
     public DbSet<BemAqui.Engineering.Domain.RoutingTemplate> RoutingTemplates => Set<BemAqui.Engineering.Domain.RoutingTemplate>();
 
     public DbSet<BemAqui.Engineering.Domain.RoutingTemplateStep> RoutingTemplateSteps => Set<BemAqui.Engineering.Domain.RoutingTemplateStep>();

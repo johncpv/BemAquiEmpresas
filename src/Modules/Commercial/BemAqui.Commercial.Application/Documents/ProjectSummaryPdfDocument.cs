@@ -52,6 +52,12 @@ public sealed class ProjectSummaryPdfDocument : PdfDocumentFrame
             });
         }
 
+        if (m.CurrentStage is { } current)
+        {
+            // EXE-03a CA 9: a etapa do modelo, separada da etapa do projeto; sem o responsável.
+            col.Item().Text(ProjectSummaryPdf.CurrentStageText(current));
+        }
+
         col.Item().Element(c => Section(c, "Itens"));
         col.Item().Element(Items);
         if (m.Orders is { } orders)

@@ -159,6 +159,21 @@ public sealed class Project : Entity, IAuditable, IConcurrencyVersioned
 
     /// <summary>Quem registrou a entrega (EXE-01a CA 14: segregação opcional entre entrega e aceite).</summary>
     public Guid? DeliveredBy { get; set; }
+
+    /// <summary>Modelo de etapas copiado para o projeto (EXE-03a CA 1): id e revisão na hora da cópia; nulo = sem etapas do modelo.</summary>
+    public Guid? StageTemplateId { get; set; }
+
+    public int? StageTemplateRevision { get; set; }
+
+    /// <summary>Nome do modelo na hora da cópia, para o histórico "Etapas do modelo {nome} (revisão {n})" (CA 4) não mudar se o modelo mudar.</summary>
+    public string? StageTemplateName { get; set; }
+
+    public DateTimeOffset? StagesAppliedAt { get; set; }
+
+    public Guid? StagesAppliedBy { get; set; }
+
+    /// <summary>Última edição das etapas (CA 5): gravada no projeto para a edição conferir e mudar a versão (xmin) do projeto.</summary>
+    public DateTimeOffset? StagesChangedAt { get; set; }
 }
 
 /// <summary>Item do projeto (<c>commercial.project_items</c>): o item do orçamento que a produção vai fabricar (PRD-01).</summary>

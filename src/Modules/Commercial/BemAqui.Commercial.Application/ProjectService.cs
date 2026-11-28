@@ -50,12 +50,16 @@ public sealed partial class ProjectService(
         var required = await AcceptanceRequiredAsync(project, cancellationToken);
         var acceptance = released && project.ExecutionKind == ExecutionKind.Service ? await AcceptanceViewAsync(project.Id, cancellationToken) : null;
         var stage = ProjectStageMap.For(project.ExecutionKind, project.Status, project.AcceptedOn is not null, required);
+        // EXE-03a CA 8 e 9: a etapa do modelo, separada da etapa do projeto, só com o recurso.
+        var current = released && project.ExecutionKind == ExecutionKind.Service
+            ? (await ProjectStageService.CurrentAsync(db, [project.Id], cancellationToken)).GetValueOrDefault(project.Id)
+            : null;
         return new ProjectDetail(
             project.Id, project.Number, project.Name, project.Status, project.PartyId, party is null ? string.Empty : party.TradeName ?? party.LegalName, project.ContractId, contractNumber,
             project.SiteAddressId, site is null ? null : $"{site.Street}, {site.Number} — {site.City}/{site.State}", project.PromisedDate, forecast.ForecastDate, project.Priority,
             project.ManagerUserId, manager, project.CreatedAt, items, project.Version, project.FabricatedOn, project.DeliveredOn, project.DeliveredManually, hasFabrication,
             contract.Status.ToString(), contract.IsOnboarding, project.FabricatedByOrders, fabricationOrders, openFabricationOrders, forecast, hasInstallation,
-            project.ExecutionKind, stage, released ? project.StartedOn : null, released ? project.AcceptedOn : null, acceptance, released && required, released);
+            project.ExecutionKind, stage, released ? project.StartedOn : null, released ? project.AcceptedOn : null, acceptance, released && required, released, current);
     }
 
     /// <summary>Recurso por perfil do projeto de serviço (adendo de 27/11/2026 da ADR 0046) no tenant do request ou do job.</summary>
@@ -171,8 +175,19 @@ public sealed partial class ProjectService(
         return row is null ? null : new ContractInfo(row.Id, row.Number, Enum.Parse<ContractState>(row.Status.ToString()), row.PartyId, row.ProjectId);
     }
 
-    public async Task<IReadOnlyList<ProjectSummary>> ListByPartyAsync(Guid partyId, CancellationToken cancellationToken = default) =>
-        await Summaries(db.Projects.Where(p => p.PartyId == partyId).OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id).Take(50)).ToListAsync(cancellationToken);
+    /// <summary>INT-03 CA 19; EXE-03a CA 9: com o recurso, o projeto de serviço com etapas leva a etapa atual do modelo (sem o responsável).</summary>
+    public async Task<IReadOnlyList<ProjectSummary>> ListByPartyAsync(Guid partyId, CancellationToken cancellationToken = default)
+    {
+        var list = await Summaries(db.Projects.Where(p => p.PartyId == partyId).OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id).Take(50)).ToListAsync(cancellationToken);
+        var service = list.Where(p => p.IsService).Select(p => p.Id).ToList();
+        if (!ServiceExecutionReleased || service.Count == 0)
+        {
+            return list;
+        }
+
+        var current = await ProjectStageService.CurrentAsync(db, service, cancellationToken);
+        return list.Select(p => current.TryGetValue(p.Id, out var c) ? p with { CurrentStage = c } : p).ToList();
+    }
 
     private IQueryable<ProjectSummary> Summaries(IQueryable<Project> projects) =>
         projects.AsNoTracking().Select(p => new ProjectSummary(p.Id, p.Number, p.Name, p.PartyId, p.ContractId, p.Status.ToString(), p.SiteAddressId, p.ManagerUserId, p.PromisedDate,

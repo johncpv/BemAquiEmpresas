@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using BemAqui.BuildingBlocks.Integration;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Time;
@@ -16,8 +17,16 @@ namespace BemAqui.Commercial.Endpoints;
 /// ("No prazo", "Atrasado", "Entregue" ou "Cancelado") e data prevista de entrega. Nenhum campo de custo, orçado, margem ou valor: o teste de campos
 /// proibidos confere por reflexão.
 /// </summary>
-/// <remarks>EXE-01a CA 30: <c>ExecutionKind</c> é aditivo (contrato v1 mantido); a letra e o nome vêm da função única <see cref="ProjectStageMap"/>, sem dado do aceite.</remarks>
-public sealed record IntegrationProjectStatus(string Number, string Name, string? StageLetter, string StageName, string Situation, DateOnly? PromisedDate, string ExecutionKind = "Fabrication");
+/// <remarks>
+/// EXE-01a CA 30: <c>ExecutionKind</c> é aditivo (contrato v1 mantido); a letra e o nome vêm da função única <see cref="ProjectStageMap"/>, sem dado do aceite.
+/// EXE-03a CA 9: <c>CurrentStage</c> (etapa do modelo no projeto de serviço) também é aditivo e nunca leva o responsável.
+/// </remarks>
+public sealed record IntegrationProjectStatus(
+    string Number, string Name, string? StageLetter, string StageName, string Situation, DateOnly? PromisedDate, string ExecutionKind = "Fabrication",
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IntegrationCurrentStage? CurrentStage = null);
+
+/// <summary>Etapa atual do modelo para o aplicativo (EXE-03a CA 9): letra, nome, posição e total.</summary>
+public sealed record IntegrationCurrentStage(string Code, string Name, int Sequence, int Total);
 
 /// <summary><c>GET /api/v1/integration/customers/{id}/projects</c> com <c>projects.view</c> (perfil fábrica), montado a partir do <see cref="IProjects"/>.</summary>
 public static class IntegrationProjectEndpoints
@@ -53,6 +62,7 @@ public static class IntegrationProjectEndpoints
             _ when project.PromisedDate is { } promised && promised < today => "Atrasado",
             _ => "No prazo",
         };
-        return new IntegrationProjectStatus(project.Number, project.Name, stage.Letter, stage.Label, situation, project.PromisedDate, kind.ToString());
+        var current = project.CurrentStage is { } c ? new IntegrationCurrentStage(c.Code, c.Name, c.Sequence, c.Total) : null;
+        return new IntegrationProjectStatus(project.Number, project.Name, stage.Letter, stage.Label, situation, project.PromisedDate, kind.ToString(), current);
     }
 }

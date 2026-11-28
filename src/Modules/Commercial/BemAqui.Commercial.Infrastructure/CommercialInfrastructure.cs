@@ -60,6 +60,11 @@ public static class CommercialInfrastructure
         services.AddAuditableEntity<StageTemplate>("projects");
         services.AddAuditableEntity<StageTemplateStep>("projects");
         services.AddAuditableEntity<StageTemplateItem>("projects");
+        // EXE-03a: etapas do projeto de serviço; a checagem de marcos por etapa passa sempre até a EXE-05a trocar a implementação.
+        services.TryAddScoped<ProjectStageService>();
+        services.TryAddScoped<IStageMilestoneGuard, NoStageMilestoneGuard>();
+        services.AddAuditableEntity<ProjectServiceStage>("projects");
+        services.AddAuditableEntity<ProjectServiceStageCheck>("projects");
         services.TryAddScoped<AmendmentService>();
         // Minha pauta (DSH-04): aditivo aguardando aprovação (projects) e orçamentos vencendo (quotes).
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, ProjectsAgendaSource>());

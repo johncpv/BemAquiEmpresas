@@ -1,3 +1,4 @@
+using BemAqui.Commercial.Contracts;
 using BemAqui.Commercial.Domain;
 using BemAqui.SharedKernel;
 
@@ -30,7 +31,7 @@ public sealed record ProjectDetail(
     DateOnly? FabricatedOn = null, DateOnly? DeliveredOn = null, bool DeliveredManually = false, bool HasFabricationMilestone = false, string? ContractStatus = null, bool IsOnboarding = false,
     bool FabricatedByOrders = false, int FabricationOrders = 0, int OpenFabricationOrders = 0, ProjectForecastView? Forecast = null, bool HasInstallation = false,
     ExecutionKind ExecutionKind = ExecutionKind.Fabrication, ProjectStage? Stage = null, DateOnly? StartedOn = null, DateOnly? AcceptedOn = null,
-    ProjectAcceptanceView? Acceptance = null, bool AcceptanceRequired = false, bool ServiceExecution = false);
+    ProjectAcceptanceView? Acceptance = null, bool AcceptanceRequired = false, bool ServiceExecution = false, ProjectCurrentStage? CurrentStage = null);
 
 /// <summary>
 /// Aceite vigente do projeto de serviço (EXE-01a), só no detalhe e só com o recurso <c>projects.service_execution</c> (CA 22): nome e papel de quem

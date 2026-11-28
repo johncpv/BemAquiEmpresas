@@ -54,6 +54,11 @@ public interface ICommercialDb
 
     DbSet<StageTemplateItem> StageTemplateItems { get; }
 
+    /// <summary>Etapas do projeto de serviço e o checklist de cada uma (EXE-03a).</summary>
+    DbSet<ProjectServiceStage> ProjectServiceStages { get; }
+
+    DbSet<ProjectServiceStageCheck> ProjectServiceStageChecks { get; }
+
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
