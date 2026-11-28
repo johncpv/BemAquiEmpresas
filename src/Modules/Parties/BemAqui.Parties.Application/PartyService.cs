@@ -12,7 +12,7 @@ namespace BemAqui.Parties.Application;
 /// </summary>
 public sealed partial class PartyService(
     IPartiesDb db, IEnumerable<IPartyUsageProvider> usages, BemAqui.Finance.Contracts.IPaymentTerms paymentTerms, TimeProvider clock, PartyAddressIbge ibge,
-    BemAqui.BuildingBlocks.Email.IEmailSender email)
+    BemAqui.BuildingBlocks.Email.IEmailSender email, BemAqui.BuildingBlocks.Security.ConnectedAppContext app)
 {
     /// <summary>Aviso ao contato anterior do cliente quando o ERP troca o e-mail ou o telefone (INT-03, Parties).</summary>
     public const string ContactChangedTemplate = "contact-changed";
@@ -70,6 +70,9 @@ public sealed partial class PartyService(
         var party = new Party { Kind = request.Kind, CreatedAt = clock.GetUtcNow(), TaxRegime = request.TaxRegime ?? TaxRegime.NotInformed, DefaultPaymentTermId = request.DefaultPaymentTermId };
         Apply(party, request.Kind, document, request.LegalName, request.TradeName, request.StateRegistration, request.MunicipalRegistration, party.TaxRegime, request.Email, request.Phone, request.Notes);
         party.Roles.AddRange(request.Roles.Distinct().Select(r => new PartyRole { PartyId = party.Id, Role = r }));
+        // INT-04 CA 11: contato gravado por aplicativo fica marcado até uma pessoa confirmar no ERP.
+        party.EmailSetByApp = app.Current is not null && party.Email is not null;
+        party.PhoneSetByApp = app.Current is not null && party.Phone is not null;
         if (request.BillingAddress is { } billing)
         {
             party.Addresses.Add(NewAddress(party.Id, billing with { Kind = AddressKind.Billing }, isDefault: true));
@@ -118,6 +121,9 @@ public sealed partial class PartyService(
         var (oldEmail, oldPhone) = (party.Email, party.Phone);
         Apply(party, request.Kind, document, request.LegalName, request.TradeName, request.StateRegistration, request.MunicipalRegistration, request.TaxRegime, request.Email, request.Phone, request.Notes);
         NotifyContactChange(party, oldEmail, oldPhone);
+        // INT-04 CA 11: a pessoa que digitou outro valor no ERP é a origem dele.
+        party.EmailSetByApp &= party.Email == oldEmail && party.Email is not null;
+        party.PhoneSetByApp &= party.Phone == oldPhone && party.Phone is not null;
         party.DefaultPaymentTermId = request.DefaultPaymentTermId;
         var wanted = request.Roles.Distinct().ToHashSet();
         db.PartyRoles.RemoveRange(party.Roles.Where(r => !wanted.Contains(r.Role)));
@@ -127,6 +133,29 @@ public sealed partial class PartyService(
         }
 
         return await SaveAsync(party.Id, document, cancellationToken);
+    }
+
+    /// <summary>
+    /// "Confirmar contato" (INT-04 CA 11): uma pessoa no ERP confirma o e-mail e o telefone que vieram de aplicativo; a partir daí valem como destino do
+    /// código de identidade. Auditado (IAuditable).
+    /// </summary>
+    public async Task<Result<PartyDetail>> ConfirmContactAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var party = await db.Parties.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+        if (party is null)
+        {
+            return NotFound();
+        }
+
+        if (party.AnonymizedAt is not null)
+        {
+            return Anonymized();
+        }
+
+        party.EmailSetByApp = false;
+        party.PhoneSetByApp = false;
+        await db.SaveChangesAsync(cancellationToken);
+        return await GetAsync(id, cancellationToken);
     }
 
     private async Task<Result<PartyDetail>> SaveAsync(Guid id, string? document, CancellationToken cancellationToken)

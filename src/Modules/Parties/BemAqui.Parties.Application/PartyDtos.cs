@@ -30,7 +30,9 @@ public sealed record PartyDetail(
     PaymentTermRef? DefaultPaymentTerm = null,
     string? ImportSource = null,
     DateTimeOffset? AnonymizedAt = null,
-    string? AnonymizationRequest = null);
+    string? AnonymizationRequest = null,
+    bool EmailSetByApp = false,
+    bool PhoneSetByApp = false);
 
 /// <summary>Condição padrão do terceiro, com o nome e se ainda está ativa (inativa continua aparecendo, com o chip "Inativa").</summary>
 public sealed record PaymentTermRef(Guid Id, string Name, bool IsActive);

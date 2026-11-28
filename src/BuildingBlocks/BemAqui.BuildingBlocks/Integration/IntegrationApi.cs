@@ -65,6 +65,8 @@ public static class IntegrationErrorCodes
         "idempotency_key_required", "idempotency_key_reused", "idempotency_in_progress", "external_id_conflict", "insufficient_stock", "invalid_order_transition",
         "approval_required", "party_exists", "field_change_requires_backoffice", "order_cancel_requires_backoffice", "customer_not_billable", "app_quantity_limit",
         "too_many_open_orders", "price_changed", "concurrency_conflict", "bank_slip_method_missing",
+        // INT-04 CA 12 e 13 (aditivos).
+        "no_verified_contact", "channel_unavailable", "identity_challenge_expired",
     ];
 }
 
@@ -122,6 +124,35 @@ public static class IntegrationData
     /// <summary>Hash do termo de busca para a auditoria (nunca o termo): SHA-256 de tenant, tipo e termo normalizado, 32 hexa.</summary>
     public static string TermHash(Guid tenantId, string kind, string term) =>
         Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(tenantId.ToString("N") + ":" + kind + ":" + term)))[..32];
+
+    /// <summary>E-mail mascarado para o atendente (INT-04 CA 12): <c>maria@gmail.com</c> → <c>m***@g***.com</c>; nunca o endereço completo.</summary>
+    public static string MaskEmail(string email)
+    {
+        ArgumentNullException.ThrowIfNull(email);
+        var at = email.LastIndexOf('@');
+        if (at <= 0 || at == email.Length - 1)
+        {
+            return "***";
+        }
+
+        var domain = email[(at + 1)..];
+        var dot = domain.IndexOf('.', StringComparison.Ordinal);
+        var suffix = dot > 0 ? domain[dot..] : string.Empty;
+        return char.ToLowerInvariant(email[0]) + "***@" + char.ToLowerInvariant(domain[0]) + "***" + suffix.ToLowerInvariant();
+    }
+
+    /// <summary>Telefone mascarado (INT-04 CA 12): só os 4 últimos dígitos, <c>(**) *****-4321</c> (celular) ou <c>(**) ****-4321</c> (fixo).</summary>
+    public static string MaskPhone(string phone)
+    {
+        ArgumentNullException.ThrowIfNull(phone);
+        var digits = new string(phone.Where(char.IsAsciiDigit).ToArray());
+        if (digits.Length < 4)
+        {
+            return "(**) ****-****";
+        }
+
+        return "(**) " + new string('*', digits.Length >= 11 ? 5 : 4) + "-" + digits[^4..];
+    }
 
     /// <summary>Data de negócio em ISO 8601 (<c>yyyy-MM-dd</c>).</summary>
     public static string Iso(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);

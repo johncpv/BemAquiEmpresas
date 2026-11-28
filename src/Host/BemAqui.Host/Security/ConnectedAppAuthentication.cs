@@ -46,7 +46,7 @@ public sealed class ConnectedAppAuthenticationHandler(IOptionsMonitor<Authentica
         }
 
         Context.RequestServices.GetRequiredService<ConnectedAppContext>().Current = grant;
-        Context.RequestServices.GetRequiredService<AuditOrigin>().Label = "Integração " + grant.AppName + " (autorizada por " + grant.GrantorName + ")";
+        Context.RequestServices.GetRequiredService<AuditOrigin>().Label = OnBehalfOf.Label(grant.AppName, grant.GrantorName, Request.Headers[OnBehalfOf.Header].ToString());
         return AuthenticateResult.Success(new AuthenticationTicket(AppClaims.Create(tenant.Id, grant), AppClaims.Scheme));
     }
 

@@ -44,6 +44,13 @@ public interface IAuditWriter
     /// registros mudaram, sem o arquivo nem os valores. Grava junto com o que estiver pendente no contexto (uma transação).
     /// </summary>
     Task RecordImportAsync(string entity, string entityId, string format, int rows, int records, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Evento de segurança no registro (INT-04 CA 12 e 13: código de identidade pedido e conferido), com detalhes sem segredo. Grava junto com o que estiver
+    /// pendente no contexto.
+    /// </summary>
+    Task RecordEventAsync(string entity, string entityId, string action, IReadOnlyDictionary<string, object?> details, CancellationToken cancellationToken = default) =>
+        Task.CompletedTask;
 }
 
 /// <remarks>Com aplicativo conectado (INT-03 CA 23), a linha leva a origem "Integração {aplicativo} (autorizada por {pessoa})" do <see cref="AuditOrigin"/>.</remarks>
@@ -99,6 +106,14 @@ public sealed class AuditWriter(BemAquiDbContext db, ICurrentUser currentUser, T
             db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = id, Action = AuditActions.Exported, UserId = currentUser.UserId, At = at, Origin = origin.Label, Changes = changes });
         }
 
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RecordEventAsync(string entity, string entityId, string action, IReadOnlyDictionary<string, object?> details, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(details);
+        var changes = System.Text.Json.JsonSerializer.Serialize(details.ToDictionary(d => d.Key, d => (object)new { old = (object?)null, @new = d.Value }));
+        db.AuditEntries.Add(new AuditEntry { Entity = entity, EntityId = entityId, Action = action, UserId = currentUser.UserId, At = clock.GetUtcNow(), Ip = currentUser.IpAddress, Origin = origin.Label, Changes = changes });
         await db.SaveChangesAsync(cancellationToken);
     }
 

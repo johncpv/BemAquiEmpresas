@@ -153,7 +153,10 @@ public static partial class ModuleCatalog
         new("settings", "Configurações", ModuleAreas.System, 0, 160, "Parâmetros da empresa: segurança, numeração, IA e mais.", [StandardActions.View, StandardActions.Edit], []),
         // INT-01 (ADR 0052 §6 e 0053 §12): liga o ERP ao Conecta. Fora de todos os perfis, liberado por empresa só por exceção manual. Conectar,
         // autorizar e desconectar exigem settings.edit (Proprietário); conecta.edit (não reservada) é dos avisos e do segredo (INT-02).
-        new("conecta", "Conecta", ModuleAreas.System, 12, 170, "Liga o ERP ao Conecta: vender, cobrar e avisar o cliente pelo WhatsApp.", [StandardActions.View, StandardActions.Edit], []),
+        // INT-04 (ADR 0053 §5 adendo, ADR 0003): send_whatsapp é o escopo do aplicativo para os avisos do ERP pelo WhatsApp do Conecta (não há módulo
+        // whatsapp). Sem seed patch: nasce só com o Proprietário, que autoriza o Conecta.
+        new("conecta", "Conecta", ModuleAreas.System, 12, 170, "Liga o ERP ao Conecta: vender, cobrar e avisar o cliente pelo WhatsApp.", [StandardActions.View, StandardActions.Edit],
+            [new("send_whatsapp", "Mandar WhatsApp pelo Conecta", "Mandar WhatsApp pelo Conecta: permitir que o Conecta envie os avisos do ERP (cobrança, pedido) pelo WhatsApp da empresa.")]),
     ];
 
     /// <summary>

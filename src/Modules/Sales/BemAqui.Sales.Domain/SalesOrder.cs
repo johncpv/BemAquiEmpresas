@@ -24,8 +24,14 @@ public sealed class SalesOrder : Entity, IAuditable, IConcurrencyVersioned
 
     public SalesOrderOrigin Origin { get; init; }
 
-    /// <summary>Conexão do aplicativo que criou (ADR 0053); nula para pessoa.</summary>
+    /// <summary>
+    /// Aplicativo que criou (<c>connected_apps.id</c>, INT-04 CA 6 e ADR 0053 §13); nulo para pessoa. Ações, limite de pedidos em aberto, id externo e
+    /// idempotência são por aplicativo + tenant: reconectar não deixa o pedido sem dono.
+    /// </summary>
     public Guid? SourceAppId { get; init; }
+
+    /// <summary>Conexão que criou o pedido: só para a trilha (INT-04 CA 6).</summary>
+    public Guid? SourceConnectionId { get; init; }
 
     /// <summary>Nome do aplicativo, para o rótulo "Pedido de {aplicativo}" e a trilha.</summary>
     public string? SourceAppName { get; init; }
@@ -94,10 +100,10 @@ public sealed class SalesOrder : Entity, IAuditable, IConcurrencyVersioned
 
     public static SalesOrder Create(
         Guid id, string number, SalesOrderOrigin origin, Guid? sourceAppId, string? sourceAppName, string? externalId, string? externalHash, Guid? createdBy, Guid customerId, Guid? storeId,
-        Guid stockLocationId, string? note, DateTimeOffset now) =>
+        Guid stockLocationId, string? note, DateTimeOffset now, Guid? sourceConnectionId = null) =>
         new()
         {
-            Id = id, Number = number, Origin = origin, SourceAppId = sourceAppId, SourceAppName = sourceAppName, ExternalId = externalId, ExternalHash = externalHash, CreatedBy = createdBy,
+            Id = id, Number = number, Origin = origin, SourceAppId = sourceAppId, SourceConnectionId = sourceConnectionId, SourceAppName = sourceAppName, ExternalId = externalId, ExternalHash = externalHash, CreatedBy = createdBy,
             CustomerId = customerId, StoreId = storeId, StockLocationId = stockLocationId, Note = note, CreatedAt = now, UpdatedAt = now,
         };
 

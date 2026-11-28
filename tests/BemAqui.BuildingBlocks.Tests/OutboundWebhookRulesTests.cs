@@ -110,12 +110,41 @@ public class OutboundWebhookRulesTests
         var conn = Guid.Parse("01938a4c-0000-7000-8000-000000000002");
         var at = new DateTimeOffset(2026, 11, 27, 10, 0, 0, TimeSpan.FromHours(-3));
         var data = OutboundWebhookBody.Data(new Dictionary<string, object?> { ["id"] = id, ["total"] = 10.5m, ["due_date"] = new DateOnly(2026, 12, 1) });
-        var first = OutboundWebhookBody.Build(id, "billing_slip.issued", at, "konebras", conn, data, "/api/v1/integration/billing-slips/" + id);
-        var again = OutboundWebhookBody.Build(id, "billing_slip.issued", at, "konebras", conn, data, "/api/v1/integration/billing-slips/" + id);
+        var first = OutboundWebhookBody.Build(id, "billing_slip.issued", at, "konebras", conn, data, "/api/v1/integration/charges/" + id);
+        var again = OutboundWebhookBody.Build(id, "billing_slip.issued", at, "konebras", conn, data, "/api/v1/integration/charges/" + id);
         again.Should().Equal(first);
         Encoding.UTF8.GetString(first).Should().Be(
             "{\"id\":\"01938a4c-0000-7000-8000-000000000001\",\"type\":\"billing_slip.issued\",\"contract\":1,\"occurred_at\":\"2026-11-27T13:00:00.000Z\",\"tenant\":\"konebras\"," +
             "\"connection_id\":\"01938a4c-0000-7000-8000-000000000002\",\"data\":{\"id\":\"01938a4c-0000-7000-8000-000000000001\",\"total\":10.5,\"due_date\":\"2026-12-01\"}," +
-            "\"resource\":\"/api/v1/integration/billing-slips/01938a4c-0000-7000-8000-000000000001\"}");
+            "\"resource\":\"/api/v1/integration/charges/01938a4c-0000-7000-8000-000000000001\"}");
+    }
+
+    /// <summary>
+    /// INT-04 CA 1: o resource de cada tipo é uma rota do contrato integration-v1 (docs/integracoes/openapi-integration-v1.json); o boleto aponta para o
+    /// título. whatsapp_message.requested aponta para a rota de leitura da mensagem, que nasce com a ATD-06a (nenhum aviso desse tipo sai antes dela).
+    /// </summary>
+    [Fact]
+    public void Resource_de_cada_tipo_e_uma_rota_do_integration_v1()
+    {
+        var root = AppContext.BaseDirectory;
+        while (!File.Exists(Path.Combine(root, "BemAquiEmpresas.slnx")))
+        {
+            root = Path.GetDirectoryName(root)!;
+        }
+
+        using var contract = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "docs", "integracoes", "openapi-integration-v1.json")));
+        var paths = contract.RootElement.GetProperty("paths").EnumerateObject().Select(p => p.Name).ToList();
+        var id = Guid.CreateVersion7();
+        var receivable = Guid.CreateVersion7();
+        foreach (var type in OutboundWebhookCatalog.All.Where(t => t.Type != OutboundWebhookCatalog.WhatsAppMessageRequested))
+        {
+            var resource = OutboundWebhookCatalog.ResourceFor(type, id, new Dictionary<string, object?> { ["receivable_id"] = receivable });
+            paths.Should().Contain(p => System.Text.RegularExpressions.Regex.IsMatch(resource, "^" + System.Text.RegularExpressions.Regex.Replace(p, @"\{[^}]+\}", "[0-9a-f-]{36}") + "$"), type.Type + " -> " + resource);
+        }
+
+        OutboundWebhookCatalog.ResourceFor(OutboundWebhookCatalog.Find("billing_slip.paid")!, id, new Dictionary<string, object?> { ["receivable_id"] = receivable })
+            .Should().Be("/api/v1/integration/charges/" + receivable, "data.id continua o do boleto; o resource é o título");
+        OutboundWebhookCatalog.ResourceFor(OutboundWebhookCatalog.Find("sales_order.paid")!, id).Should().Be("/api/v1/integration/orders/" + id);
+        OutboundWebhookCatalog.ResourceFor(OutboundWebhookCatalog.Find(OutboundWebhookCatalog.Ping)!, id).Should().Be("/api/v1/integration/connection");
     }
 }

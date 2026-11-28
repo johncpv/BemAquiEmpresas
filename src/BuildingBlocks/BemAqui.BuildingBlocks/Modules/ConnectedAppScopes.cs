@@ -9,11 +9,11 @@ public sealed record AppScopeGrant(IReadOnlyList<string> Granted, IReadOnlyList<
 /// </summary>
 public static class ConnectedAppScopes
 {
-    /// <summary>Fonte única dos escopos do Conecta (ADR 0053 §5).</summary>
+    /// <summary>Fonte única dos escopos do Conecta (ADR 0053 §5; <c>quotes.create</c> e <c>conecta.send_whatsapp</c> no adendo da INT-04).</summary>
     public static readonly string[] Conecta =
     [
         "catalog.view", "inventory.view", "parties.view", "parties.create", "parties.edit", "sales.view", "sales.create", "sales.edit",
-        "finance.view", "fiscal.view", "projects.view",
+        "finance.view", "fiscal.view", "projects.view", "quotes.create", "conecta.send_whatsapp",
     ];
 
     private static readonly string[] NeverGranted =
@@ -32,6 +32,8 @@ public static class ConnectedAppScopes
         ["finance.view"] = "Ver cobranças",
         ["fiscal.view"] = "Ver notas fiscais",
         ["projects.view"] = "Ver projetos e a etapa em que estão",
+        ["quotes.create"] = "Abrir pedidos de orçamento",
+        ["conecta.send_whatsapp"] = "Mandar avisos do ERP pelo WhatsApp do Conecta",
     };
 
     /// <summary>Ação que um aplicativo nunca recebe: <c>*.approve</c>, as reservadas do ADR 0008 e as que pedem 2FA de novo.</summary>

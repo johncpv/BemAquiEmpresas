@@ -6,9 +6,10 @@ namespace BemAqui.Sales.Application;
 
 /// <summary>
 /// Quem age no pedido (CA 2): sempre do principal autenticado, nunca do corpo. Pessoa = <see cref="SalesOrderOrigin.Backoffice"/> e o usuário; aplicativo
-/// (ADR 0053, INT-01/INT-03) = a origem do aplicativo, a conexão (<see cref="SourceAppId"/>), o nome e quem autorizou (<see cref="UserId"/>).
+/// (ADR 0053, INT-01/INT-03) = a origem do aplicativo, o aplicativo (<see cref="SourceAppId"/>, INT-04 CA 6), o nome, quem autorizou
+/// (<see cref="UserId"/>) e a conexão em uso (<see cref="ConnectionId"/>, só para a trilha).
 /// </summary>
-public sealed record SalesOrderActor(SalesOrderOrigin Origin, Guid? UserId, Guid? SourceAppId = null, string? AppName = null)
+public sealed record SalesOrderActor(SalesOrderOrigin Origin, Guid? UserId, Guid? SourceAppId = null, string? AppName = null, Guid? ConnectionId = null)
 {
     public bool IsApp => SourceAppId is not null;
 

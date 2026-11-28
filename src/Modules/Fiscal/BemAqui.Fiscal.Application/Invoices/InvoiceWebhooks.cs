@@ -1,6 +1,7 @@
 using BemAqui.BuildingBlocks.Integration;
 using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.Fiscal.Contracts;
+using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Fiscal.Application.Invoices;
 
@@ -8,7 +9,7 @@ namespace BemAqui.Fiscal.Application.Invoices;
 /// Tradutor dos eventos da nota para os avisos <c>invoice.*</c> (INT-02 CA 7, catálogo v1): id, tipo, data, total e o id do destinatário; nunca
 /// <c>Taxes</c>, <c>CostTaxAmount</c> nem dado do destinatário. Roda na transação do consumidor (outbox + inbox).
 /// </summary>
-public sealed class InvoiceWebhooks(IOutboundWebhookPublisher publisher, TimeProvider clock)
+public sealed class InvoiceWebhooks(IOutboundWebhookPublisher publisher, IFiscalDb db, TimeProvider clock)
     : IIntegrationEventConsumer<InvoiceAuthorized>, IIntegrationEventConsumer<InvoiceCancelled>, IIntegrationEventConsumer<InvoiceRejected>
 {
     public Task HandleAsync(InvoiceAuthorized integrationEvent, CancellationToken cancellationToken)
@@ -21,23 +22,28 @@ public sealed class InvoiceWebhooks(IOutboundWebhookPublisher publisher, TimePro
         }, cancellationToken);
     }
 
-    public Task HandleAsync(InvoiceCancelled integrationEvent, CancellationToken cancellationToken)
+    public async Task HandleAsync(InvoiceCancelled integrationEvent, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(integrationEvent);
-        return Publish("invoice.cancelled", integrationEvent.InvoiceId, new Dictionary<string, object?>
+        await Publish("invoice.cancelled", integrationEvent.InvoiceId, new Dictionary<string, object?>
         {
             ["id"] = integrationEvent.InvoiceId, ["type"] = Type(integrationEvent.Type), ["cancelled_on"] = integrationEvent.CancelledOn, ["total"] = integrationEvent.TotalAmount,
+            ["party_id"] = await PartyAsync(integrationEvent.InvoiceId, cancellationToken),
         }, cancellationToken);
     }
 
-    public Task HandleAsync(InvoiceRejected integrationEvent, CancellationToken cancellationToken)
+    public async Task HandleAsync(InvoiceRejected integrationEvent, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(integrationEvent);
-        return Publish("invoice.rejected", integrationEvent.InvoiceId, new Dictionary<string, object?>
+        await Publish("invoice.rejected", integrationEvent.InvoiceId, new Dictionary<string, object?>
         {
-            ["id"] = integrationEvent.InvoiceId, ["type"] = Type(integrationEvent.Type),
+            ["id"] = integrationEvent.InvoiceId, ["type"] = Type(integrationEvent.Type), ["party_id"] = await PartyAsync(integrationEvent.InvoiceId, cancellationToken),
         }, cancellationToken);
     }
+
+    /// <summary>INT-04 CA 3: o destinatário da nota (aditivo, contrato 1); sem destinatário ainda, nulo.</summary>
+    private Task<Guid?> PartyAsync(Guid invoiceId, CancellationToken cancellationToken) =>
+        db.OutgoingInvoices.AsNoTracking().Where(i => i.Id == invoiceId).Select(i => i.PartyId).FirstOrDefaultAsync(cancellationToken);
 
     private static string Type(InvoiceType type) => type == InvoiceType.NFe ? "nfe" : "nfse";
 

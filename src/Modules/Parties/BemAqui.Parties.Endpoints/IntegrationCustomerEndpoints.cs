@@ -25,7 +25,22 @@ public sealed record IntegrationCustomer(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? City,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? State,
     bool CanBill,
-    bool CanInvoice);
+    bool CanInvoice,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? PhoneSetByApp = null);
+
+/// <summary>Pedir o código de identidade (INT-04 CA 12): <c>email</c> ou <c>phone</c>.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record IntegrationIdentityChallengeInput(string Channel);
+
+/// <summary>Desafio criado: o id, o canal e o destino mascarado (<c>m***@g***.com</c>, <c>(**) *****-4321</c>); nunca o destino completo nem o código.</summary>
+public sealed record IntegrationIdentityChallenge(Guid ChallengeId, string Channel, string MaskedDestination);
+
+/// <summary>Conferir o código (INT-04 CA 13).</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record IntegrationIdentityVerifyInput(string Code);
+
+/// <summary>Resultado: conferiu; se não, quantas tentativas restam.</summary>
+public sealed record IntegrationIdentityVerification(bool Verified, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? AttemptsLeft = null);
 
 /// <summary>Endereço de cobrança enviado pelo aplicativo (o código IBGE o ERP completa).</summary>
 public sealed record IntegrationAddressInput(string ZipCode, string Street, string Number, string? Complement, string District, string City, string State);
@@ -63,6 +78,55 @@ internal static class IntegrationCustomerEndpoints
         customers.MapPost(string.Empty, CreateAsync).RequirePermission("parties.create").RequireIdempotencyKey().WithName("IntegrationCreateCustomer")
             .Produces<IntegrationCustomer>(StatusCodes.Status201Created);
         customers.MapPatch("/{id:guid}", PatchAsync).RequirePermission("parties.edit").WithName("IntegrationPatchCustomer").Produces<IntegrationCustomer>();
+        customers.MapPost("/{id:guid}/identity-challenges", ChallengeAsync).RequirePermission("parties.view").RequireIdempotencyKey()
+            .WithName("IntegrationCreateIdentityChallenge").Produces<IntegrationIdentityChallenge>(StatusCodes.Status201Created);
+        customers.MapPost("/{id:guid}/identity-challenges/{challengeId:guid}/verify", VerifyAsync).RequirePermission("parties.view")
+            .WithName("IntegrationVerifyIdentityChallenge").Produces<IntegrationIdentityVerification>();
+    }
+
+    /// <summary>
+    /// Código de identidade (INT-04 CA 12): 6 dígitos ao e-mail ou telefone do cadastro que não veio de aplicativo; responde só o destino mascarado.
+    /// Sem destino confirmado, 422 <c>no_verified_contact</c>; 3 por cliente e 20 por conexão por hora (429 com <c>Retry-After</c>).
+    /// </summary>
+    private static async Task<IResult> ChallengeAsync(Guid id, IntegrationIdentityChallengeInput input, IParties parties, IdentityChallengeService service, CancellationToken ct)
+    {
+        if (await CustomerAsync(id, parties, ct) is null)
+        {
+            return IntegrationApi.NotFound();
+        }
+
+        var (result, limit) = await service.StartAsync(id, input.Channel, ct);
+        if (limit is not null)
+        {
+            return IntegrationApi.RateLimited(limit.RetryAfter, "Muitos códigos pedidos. Tente de novo mais tarde.");
+        }
+
+        if (result.IsFailure)
+        {
+            return result.Error!.Type == ErrorType.NotFound ? IntegrationApi.NotFound() : result.Error.ToProblem();
+        }
+
+        var started = result.Value;
+        return Results.Created($"/api/v1/integration/customers/{id}/identity-challenges/{started.ChallengeId}",
+            new IntegrationIdentityChallenge(started.ChallengeId, started.Channel, started.MaskedDestination));
+    }
+
+    /// <summary>Conferir (INT-04 CA 13): tempo constante, 5 tentativas; vencido, usado ou morto: 410 <c>identity_challenge_expired</c>.</summary>
+    private static async Task<IResult> VerifyAsync(Guid id, Guid challengeId, IntegrationIdentityVerifyInput input, IParties parties, IdentityChallengeService service,
+        CancellationToken ct)
+    {
+        if (await CustomerAsync(id, parties, ct) is null || await service.VerifyAsync(id, challengeId, input.Code, ct) is not { } outcome)
+        {
+            return IntegrationApi.NotFound();
+        }
+
+        if (outcome.Gone)
+        {
+            return Results.Problem(statusCode: StatusCodes.Status410Gone, title: "O código venceu ou já foi usado. Peça um código novo.",
+                extensions: new Dictionary<string, object?> { ["code"] = IdentityChallengeService.ExpiredCode });
+        }
+
+        return Results.Ok(new IntegrationIdentityVerification(outcome.Verified, outcome.Verified ? null : outcome.AttemptsLeft));
     }
 
     private static async Task<IResult> SearchAsync(string? phone, string? document, IParties parties, IOrderCharges charges, IntegrationLookupService lookups, CancellationToken ct)
@@ -89,7 +153,8 @@ internal static class IntegrationCustomerEndpoints
             var views = new List<IntegrationCustomer>();
             foreach (var party in found)
             {
-                views.Add(await FullAsync(party, parties, charges, ct));
+                // INT-04 CA 11: telefone gravado por aplicativo e não confirmado no ERP não serve de prova para o Conecta.
+                views.Add(await FullAsync(party, parties, charges, ct) with { PhoneSetByApp = await parties.PhoneSetByAppAsync(party.Id, national, ct) });
             }
 
             return Results.Ok(views);

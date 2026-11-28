@@ -25,6 +25,12 @@ public sealed class PartiesContract(IPartiesDb db, PartyAddressIbge ibge) : IPar
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<bool> PhoneSetByAppAsync(Guid id, string phone, CancellationToken cancellationToken = default)
+    {
+        var digits = PartyValidation.Digits(phone);
+        return await db.Parties.AsNoTracking().AnyAsync(p => p.Id == id && p.PhoneSetByApp && p.Phone == digits && !p.Contacts.Any(c => c.Phone == digits), cancellationToken);
+    }
+
     public async Task<Result> FillEmptyContactAsync(Guid id, PartyContactFill fill, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(fill);
@@ -74,6 +80,9 @@ public sealed class PartiesContract(IPartiesDb db, PartyAddressIbge ibge) : IPar
             return Error.Validation(BackofficeOnlyCode, "Trocar um contato existente é só no ERP, por uma pessoa.", blocked);
         }
 
+        // INT-04 CA 11: o que o aplicativo preencheu fica marcado até uma pessoa confirmar no ERP.
+        party.EmailSetByApp |= party.Email is null && email is not null;
+        party.PhoneSetByApp |= party.Phone is null && phone is not null;
         party.Email ??= email;
         party.Phone ??= phone;
         if (address is not null && billing is null)

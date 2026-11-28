@@ -5,14 +5,17 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using BemAqui.BuildingBlocks.Identity;
+using BemAqui.BuildingBlocks.Modules;
 using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Tenancy;
+using BemAqui.BuildingBlocks.Webhooks;
 using BemAqui.Host.Persistence;
 using BemAqui.Identity.Application;
 using BemAqui.Identity.Application.ConnectedApps;
 using BemAqui.Identity.Domain;
 using BemAqui.Integration.Tests.Observability;
 using BemAqui.Integration.Tests.Tenancy;
+using BemAqui.Integration.Tests.Webhooks;
 using BemAqui.Platform.Application.Modules;
 using BemAqui.Platform.Domain;
 using BemAqui.SharedKernel;
@@ -51,6 +54,20 @@ public class ConnectedAppTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
         b.UseSetting("Integrations:AppRateLimit:ConsentPerMinute", "100000");
         b.ConfigureTestServices(s => s.AddSingleton<ILogEventSink>(tenancy.State<MemorySink>()));
     });
+
+    /// <summary>O mesmo ambiente com a URL dos avisos (INT-04 CA 5): a troca do código cria a inscrição e o segredo; o recebedor é falso.</summary>
+    private WebApplicationFactory<Program> WebhookFactory => tenancy.Shared("conecta-avisos", b =>
+    {
+        b.UseSetting("Integrations:Conecta:StartUrl", "https://conecta.test/conectar");
+        b.UseSetting("Integrations:Conecta:RedirectUris:0", Redirect);
+        b.UseSetting("Integrations:Conecta:ClientSecretHash", Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(ClientSecret))));
+        b.UseSetting("Integrations:AppRateLimit:TokenPerMinute", "100000");
+        b.UseSetting("Integrations:Conecta:WebhookUrl", "https://conecta.test/avisos");
+        b.UseSetting("Integrations:Conecta:WebhookAllowedHosts:0", "conecta.test");
+        b.ConfigureTestServices(s => s.AddHttpClient(OutboundWebhookDeliveryJob.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => new FakeReceiver.Handler(new FakeReceiver())));
+    });
+
+    private const string Pairing = "ABCD-2345";
 
     private sealed record Owner(Guid Id, HttpClient Client, Func<Task<string>> Totp);
 
@@ -131,10 +148,11 @@ public class ConnectedAppTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
 
     private static async Task<string> IntentAsync(Owner owner)
     {
-        var start = await OkAsync(await owner.Client.PostAsync("/api/v1/oauth/connect", null));
+        var start = await OkAsync(await owner.Client.PostAsJsonAsync("/api/v1/oauth/connect", new { pairingCode = "abcd2345" }));
         var url = start.GetProperty("redirectUrl").GetString()!;
         url.Should().StartWith("https://conecta.test/conectar?");
         Query(url)["erp"].Should().Be(owner.Client.DefaultRequestHeaders.Host);
+        Query(url)["pairing"].Should().Be(Pairing, "INT-04 CA 9: o código vai normalizado à StartUrl");
         return Query(url)["intent"];
     }
 
@@ -156,9 +174,9 @@ public class ConnectedAppTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
         return query["code"];
     }
 
-    private HttpClient App(string host = HostA, string? secret = ClientSecret)
+    private HttpClient App(string host = HostA, string? secret = ClientSecret, bool webhooks = false)
     {
-        var client = Factory.CreateClient();
+        var client = (webhooks ? WebhookFactory : Factory).CreateClient();
         client.DefaultRequestHeaders.Host = host;
         if (secret is not null)
         {
@@ -552,5 +570,99 @@ public class ConnectedAppTests(TenancyFixture tenancy) : IClassFixture<TenancyFi
         {
             lines.Should().NotContain(l => l.Contains(canary, StringComparison.Ordinal));
         }
+    }
+
+    // ---------- INT-04 ----------
+
+    /// <summary>Revoga a conexão aberta do Conecta no tenant (os testes da classe rodam em sequência).</summary>
+    private async Task RevokeOpenAsync(string host = HostA)
+    {
+        await using var scope = await ScopeAsync(host);
+        var db = scope.ServiceProvider.GetRequiredService<IIdentityDb>();
+        foreach (var open in await db.AppConnections.Where(c => c.Status != AppConnectionStatus.Revoked).ToListAsync())
+        {
+            open.Revoke(AppConnectionReason.Replaced, "teste", null, DateTimeOffset.UtcNow);
+        }
+
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>INT-04 CA 9: sem conexão, "Conectar" exige o código de pareamento no formato XXXX-XXXX (sem ambíguos); em "Autorizar de novo", é opcional.</summary>
+    [Fact]
+    public async Task Conectar_exige_o_codigo_de_pareamento_e_autorizar_de_novo_nao()
+    {
+        var owner = await OwnerAsync();
+        await RevokeOpenAsync();
+        (await ProblemCodeAsync(await owner.Client.PostAsJsonAsync("/api/v1/oauth/connect", new { pairingCode = (string?)null }), HttpStatusCode.UnprocessableEntity))
+            .Should().Be("pairing_code_required");
+        foreach (var invalid in new[] { "ABCD-0000", "ABC-2345", "ABCD-23456", "AB1D-2345", "ABCD 2345!" })
+        {
+            (await ProblemCodeAsync(await owner.Client.PostAsJsonAsync("/api/v1/oauth/connect", new { pairingCode = invalid }), HttpStatusCode.UnprocessableEntity))
+                .Should().Be("pairing_code_invalid", invalid);
+        }
+
+        await ConnectAsync(owner);
+        var again = await OkAsync(await owner.Client.PostAsJsonAsync("/api/v1/oauth/connect", new { pairingCode = (string?)null }));
+        Query(again.GetProperty("redirectUrl").GetString()!).Should().NotContainKey("pairing");
+    }
+
+    /// <summary>
+    /// INT-04 CA 8: conexão ativa sem os escopos novos mostra "O Conecta pode ganhar" só com o que hoje seria concedido (a fábrica não tem Vendas); depois
+    /// de autorizar de novo com tudo, a lista fica vazia.
+    /// </summary>
+    [Fact]
+    public async Task Conecta_pode_ganhar_os_escopos_novos_e_some_depois_de_autorizar_de_novo()
+    {
+        var owner = await OwnerAsync();
+        await ConnectAsync(owner);
+        var page = await OkAsync(await owner.Client.GetAsync("/api/v1/connected-apps/conecta"));
+        var gain = page.GetProperty("connection").GetProperty("canGain").EnumerateArray().ToDictionary(s => s.GetProperty("scope").GetString()!, s => s.GetProperty("text").GetString());
+        gain.Should().Contain("quotes.create", "Abrir pedidos de orçamento").And.Contain("conecta.send_whatsapp", "Mandar avisos do ERP pelo WhatsApp do Conecta");
+        gain.Should().NotContainKey("sales.view", "quem autorizou não tem Vendas: não seria concedido");
+
+        var all = string.Join(' ', ConnectedAppScopes.Conecta);
+        var code = await AuthorizeAsync(owner, all);
+        await OkAsync(await ExchangeAsync(App(), code));
+        var after = await OkAsync(await owner.Client.GetAsync("/api/v1/connected-apps/conecta"));
+        after.GetProperty("connection").GetProperty("scopes").EnumerateArray().Select(s => s.GetProperty("scope").GetString()).Should().Contain(["quotes.create", "conecta.send_whatsapp"]);
+        after.GetProperty("connection").GetProperty("canGain").GetArrayLength().Should().Be(0);
+    }
+
+    /// <summary>
+    /// INT-04 CA 5: o webhook_secret pendente vai em toda resposta do /oauth/token até o aplicativo renovar com o bqr_ de uma resposta que o levou. A troca
+    /// de segredo com a resposta da renovação perdida: a repetição do bqr_ dentro dos 10 s devolve o segredo; a renovação com o bqr_ dessa resposta baixa o
+    /// pendente.
+    /// </summary>
+    [Fact]
+    public async Task Segredo_dos_avisos_vai_em_toda_resposta_ate_a_renovacao_provar_que_a_resposta_foi_gravada()
+    {
+        var owner = await OwnerAsync();
+        var app = App(webhooks: true);
+        var exchanged = await OkAsync(await ExchangeAsync(app, await AuthorizeAsync(owner)));
+        var secret = exchanged.GetProperty("webhook_secret").GetString();
+        secret.Should().NotBeNullOrEmpty("conexão nova: o segredo sai na troca do código");
+        var connectionId = exchanged.GetProperty("connection_id").GetGuid();
+        string Refresh(JsonElement body) => body.GetProperty("refresh_token").GetString()!;
+        Task<HttpResponseMessage> RenewAsync(string refresh) => TokenAsync(app, ("grant_type", "refresh_token"), ("refresh_token", refresh));
+
+        var proven = await OkAsync(await RenewAsync(Refresh(exchanged)));
+        proven.GetProperty("webhook_secret").ValueKind.Should().Be(JsonValueKind.Null, "renovar com o bqr_ da troca prova que a resposta foi gravada");
+
+        Guid subscriptionId;
+        await using (var scope = await ScopeAsync())
+        {
+            subscriptionId = await scope.ServiceProvider.GetRequiredService<TenantDbContext>().OutboundSubscriptions.Where(x => x.ConnectionId == connectionId).Select(x => x.Id).SingleAsync();
+        }
+
+        (await owner.Client.PostAsJsonAsync($"/api/v1/outbound-webhooks/subscriptions/{subscriptionId}/secret/rotate", new { immediate = false })).StatusCode.Should().Be(HttpStatusCode.OK);
+        var lost = await OkAsync(await RenewAsync(Refresh(proven)));
+        var fresh = lost.GetProperty("webhook_secret").GetString();
+        fresh.Should().NotBeNullOrEmpty().And.NotBe(secret);
+        var repeated = await OkAsync(await RenewAsync(Refresh(proven)));
+        repeated.GetProperty("webhook_secret").GetString().Should().Be(fresh, "a resposta se perdeu: a repetição dentro dos 10 s devolve o segredo");
+
+        var confirmed = await OkAsync(await RenewAsync(Refresh(repeated)));
+        confirmed.GetProperty("webhook_secret").ValueKind.Should().Be(JsonValueKind.Null, "a renovação com o bqr_ da resposta que levou o segredo baixa o pendente");
+        (await OkAsync(await RenewAsync(Refresh(confirmed)))).GetProperty("webhook_secret").ValueKind.Should().Be(JsonValueKind.Null);
     }
 }

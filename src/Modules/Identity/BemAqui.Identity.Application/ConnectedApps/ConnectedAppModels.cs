@@ -5,6 +5,9 @@ namespace BemAqui.Identity.Application.ConnectedApps;
 /// <summary>Início da conexão no ERP (CA 1): o front navega para o Conecta com o host do tenant e a intenção.</summary>
 public sealed record ConnectStart(string RedirectUrl);
 
+/// <summary>"Conectar" (INT-04 CA 9): o código de pareamento gerado no Conecta (<c>XXXX-XXXX</c>); opcional só em "Autorizar de novo".</summary>
+public sealed record ConnectStartInput(string? PairingCode);
+
 /// <summary>Pedido do <c>/oauth/authorize</c>, como chegou na URL; o front repassa sem alterar (CA 3).</summary>
 public sealed record AuthorizeRequest(
     string? ResponseType,
@@ -81,7 +84,8 @@ public sealed record AppConnectionView(
     DateTimeOffset ReconsentDueAt,
     DateTimeOffset? LastUsedAt,
     DateTimeOffset? RevokedAt,
-    IReadOnlyList<AppScopeView> Scopes);
+    IReadOnlyList<AppScopeView> Scopes,
+    IReadOnlyList<AppScopeView>? CanGain = null);
 
 /// <summary>Página Configurações → Integrações → Conecta: o aplicativo, o que ele pode pedir e a última conexão (ativa, suspensa ou a revogada mais recente).</summary>
 public sealed record ConnectedAppPage(string ClientId, string Name, bool Configured, IReadOnlyList<AppScopeView> AllowedScopes, AppConnectionView? Connection);

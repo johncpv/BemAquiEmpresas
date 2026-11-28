@@ -5,8 +5,11 @@ using System.Text.Json;
 
 namespace BemAqui.BuildingBlocks.Webhooks;
 
-/// <summary>Um tipo do catálogo de avisos v1: escopo e módulo exigidos no envio (CA 8), recurso para consultar de novo e os campos permitidos no <c>data</c>.</summary>
-public sealed record OutboundEventType(string Type, string? Scope, string? Module, string Resource, IReadOnlyList<string> Fields, string Label);
+/// <summary>
+/// Um tipo do catálogo de avisos v1: escopo e módulo exigidos no envio (CA 8), recurso para consultar de novo e os campos permitidos no <c>data</c>.
+/// <paramref name="ResourceIdField"/>: campo do <c>data</c> cujo id entra no <c>resource</c> (INT-04 CA 1: o boleto aponta para o título); nulo, o id do aviso.
+/// </summary>
+public sealed record OutboundEventType(string Type, string? Scope, string? Module, string Resource, IReadOnlyList<string> Fields, string Label, string? ResourceIdField = null);
 
 /// <summary>
 /// Catálogo de avisos v1 (INT-02, Regras; contrato <c>1</c>): campo novo é compatível; remover ou mudar sentido exige contrato <c>2</c>. O
@@ -20,8 +23,12 @@ public static class OutboundWebhookCatalog
     public const string AppDisconnected = "app.disconnected";
 
     private static readonly string[] OrderFields = ["id", "number", "status", "total", "party_id"];
-    private const string OrderResource = "/api/v1/integration/sales-orders/{0}";
-    private const string SlipResource = "/api/v1/integration/billing-slips/{0}";
+    public const string WhatsAppMessageRequested = "whatsapp_message.requested";
+
+    // INT-04 CA 1: todo resource é uma rota do integration-v1 (o teste confere contra docs/integracoes/openapi-integration-v1.json).
+    private const string OrderResource = "/api/v1/integration/orders/{0}";
+    private const string ChargeResource = "/api/v1/integration/charges/{0}";
+    private const string WhatsAppResource = "/api/v1/integration/whatsapp-messages/{0}";
     private const string InvoiceResource = "/api/v1/integration/invoices/{0}";
     private const string ConnectionResource = "/api/v1/integration/connection";
 
@@ -35,12 +42,15 @@ public static class OutboundWebhookCatalog
         Order("sales_order.invoiced", "Pedido faturado"),
         Order("sales_order.shipped", "Pedido enviado"),
         Order("sales_order.delivered", "Pedido entregue"),
-        new("billing_slip.issued", "finance.view", "finance", SlipResource, ["id", "receivable_id", "amount", "due_date", "party_id"], "Boleto emitido"),
-        new("billing_slip.cancelled", "finance.view", "finance", SlipResource, ["id", "receivable_id", "reason", "expired"], "Boleto cancelado ou vencido"),
-        new("billing_slip.paid", "finance.view", "finance", SlipResource, ["id", "receivable_id", "paid_amount", "credit_date"], "Boleto pago"),
+        new("billing_slip.issued", "finance.view", "finance", ChargeResource, ["id", "receivable_id", "amount", "due_date", "party_id"], "Boleto emitido", "receivable_id"),
+        new("billing_slip.cancelled", "finance.view", "finance", ChargeResource, ["id", "receivable_id", "reason", "expired", "party_id"], "Boleto cancelado ou vencido", "receivable_id"),
+        new("billing_slip.paid", "finance.view", "finance", ChargeResource, ["id", "receivable_id", "paid_amount", "credit_date"], "Boleto pago", "receivable_id"),
         new("invoice.authorized", "fiscal.view", "fiscal", InvoiceResource, ["id", "type", "issued_on", "total", "party_id"], "Nota autorizada"),
-        new("invoice.cancelled", "fiscal.view", "fiscal", InvoiceResource, ["id", "type", "cancelled_on", "total"], "Nota cancelada"),
-        new("invoice.rejected", "fiscal.view", "fiscal", InvoiceResource, ["id", "type"], "Nota rejeitada"),
+        new("invoice.cancelled", "fiscal.view", "fiscal", InvoiceResource, ["id", "type", "cancelled_on", "total", "party_id"], "Nota cancelada"),
+        new("invoice.rejected", "fiscal.view", "fiscal", InvoiceResource, ["id", "type", "party_id"], "Nota rejeitada"),
+        // INT-04 CA 7 (ADR 0053 §5): o ERP avisa "há mensagem"; o Conecta lê o destino na rota protegida pelo mesmo escopo (ATD-06a). Sem telefone,
+        // nome ou variáveis no aviso.
+        new(WhatsAppMessageRequested, "conecta.send_whatsapp", "conecta", WhatsAppResource, ["id", "template", "not_after"], "Mensagem de WhatsApp pedida"),
         new(AppDisconnected, null, null, ConnectionResource, ["connection_id"], "Aplicativo desconectado"),
         new(Ping, null, null, ConnectionResource, ["connection_id"], "Teste"),
     ];
@@ -64,9 +74,14 @@ public static class OutboundWebhookCatalog
         return type.Scope is null || grantedScopes.Contains(type.Scope, StringComparer.Ordinal);
     }
 
-    public static string ResourceFor(OutboundEventType type, Guid id)
+    public static string ResourceFor(OutboundEventType type, Guid id, IReadOnlyDictionary<string, object?>? data = null)
     {
         ArgumentNullException.ThrowIfNull(type);
+        if (type.ResourceIdField is { } field && data is not null && data.TryGetValue(field, out var value) && value is Guid other)
+        {
+            id = other;
+        }
+
         return type.Resource.Contains("{0}", StringComparison.Ordinal) ? string.Format(CultureInfo.InvariantCulture, type.Resource, id) : type.Resource;
     }
 
@@ -76,6 +91,7 @@ public static class OutboundWebhookCatalog
         "sales.view" => "Sem permissão para ver pedidos",
         "finance.view" => "Sem permissão para ver cobranças",
         "fiscal.view" => "Sem permissão para ver notas",
+        "conecta.send_whatsapp" => "Sem permissão para mandar WhatsApp",
         _ => "Sem permissão para " + scope,
     };
 }
@@ -127,6 +143,9 @@ public static class OutboundWebhookSigner
     public const string EventTypeHeader = "BemAqui-Event-Type";
     public const string TimestampHeader = "BemAqui-Timestamp";
     public const string SignatureHeader = "BemAqui-Signature";
+
+    /// <summary>INT-04 CA 4: id da conexão, fora da assinatura, para o recebedor achar o segredo sem ler corpo ainda não autenticado.</summary>
+    public const string ConnectionHeader = "BemAqui-Connection";
     public const string UserAgent = "BemAqui-Webhooks/1";
 
     public static string Sign(string secret, long timestamp, ReadOnlySpan<byte> body)

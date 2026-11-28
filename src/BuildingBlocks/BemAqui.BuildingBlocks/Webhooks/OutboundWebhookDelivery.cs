@@ -163,7 +163,7 @@ public sealed partial class OutboundWebhookDeliveryJob(ITenantDirectory director
         var current = protector.Unprotect(scope, SecretKind.OutboundWebhookSecret, subscription.SecretCipher).Reveal();
         var previous = subscription.PreviousIfValid(start) is { } cipher ? protector.Unprotect(scope, SecretKind.OutboundWebhookSecret, cipher).Reveal() : null;
         var body = OutboundWebhookBody.Build(evt.Id, evt.Type, evt.OccurredAt, tenant.Key, subscription.ConnectionId, evt.Data!, evt.Resource);
-        var result = await PostAsync(services.GetRequiredService<IHttpClientFactory>(), subscription.Url, evt, body, current, previous, start.ToUnixTimeSeconds(), cancellationToken);
+        var result = await PostAsync(services.GetRequiredService<IHttpClientFactory>(), subscription.Url, evt, body, current, previous, start.ToUnixTimeSeconds(), cancellationToken, subscription.ConnectionId);
 
         var now = clock.GetUtcNow();
         db.OutboundAttempts.Add(new OutboundAttempt
@@ -223,7 +223,7 @@ public sealed partial class OutboundWebhookDeliveryJob(ITenantDirectory director
     /// (CA 10). A resposta é lida até 4 KB e descartada (CA 15).
     /// </summary>
     public static async Task<OutboundSendResult> PostAsync(IHttpClientFactory factory, string url, OutboundEvent evt, byte[] body, string current, string? previous, long timestamp,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, Guid? connectionId = null)
     {
         ArgumentNullException.ThrowIfNull(factory);
         ArgumentNullException.ThrowIfNull(evt);
@@ -237,6 +237,10 @@ public sealed partial class OutboundWebhookDeliveryJob(ITenantDirectory director
             request.Headers.Add(OutboundWebhookSigner.EventTypeHeader, evt.Type);
             request.Headers.Add(OutboundWebhookSigner.TimestampHeader, timestamp.ToString(CultureInfo.InvariantCulture));
             request.Headers.Add(OutboundWebhookSigner.SignatureHeader, OutboundWebhookSigner.Header(current, previous, timestamp, body));
+            if (connectionId is { } connection)
+            {
+                request.Headers.Add(OutboundWebhookSigner.ConnectionHeader, connection.ToString());
+            }
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             timeout.CancelAfter(TimeSpan.FromSeconds(10));
             using var response = await factory.CreateClient(HttpClientName).SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token);

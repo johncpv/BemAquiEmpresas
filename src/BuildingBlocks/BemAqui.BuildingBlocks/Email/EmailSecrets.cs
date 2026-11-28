@@ -19,6 +19,7 @@ public static class EmailSecrets
     {
         ["invite"] = ["link"],
         ["password-reset"] = ["link"],
+        ["identity-code"] = ["code"],
     };
 
     /// <summary>Templates com campo secreto declarado (usado também pela limpeza dos registros antigos).</summary>

@@ -65,5 +65,7 @@ public sealed partial class PartyService
         p.CreatedAt,
         ImportSource: p.ImportSource,
         AnonymizedAt: p.AnonymizedAt,
-        AnonymizationRequest: p.AnonymizationRequest);
+        AnonymizationRequest: p.AnonymizationRequest,
+        EmailSetByApp: p.EmailSetByApp,
+        PhoneSetByApp: p.PhoneSetByApp);
 }

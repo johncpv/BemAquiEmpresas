@@ -15,6 +15,7 @@ public static class PartiesInfrastructure
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddScoped<PartyAddressIbge>();
         services.TryAddScoped<PartyService>();
+        services.TryAddScoped<IdentityChallengeService>();
         services.TryAddScoped<IParties, PartiesContract>();
         services.TryAddScoped<IPartyImport, PartyImport>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.IProfileSeedPackage, PartiesRetailSeedPackage>()); // PERF-04

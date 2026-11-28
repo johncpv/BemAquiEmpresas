@@ -36,7 +36,7 @@ namespace BemAqui.Integration.Tests.Webhooks;
 /// <summary>Recebedor falso dos avisos (substitui o handler do <c>HttpClient</c> <c>outbound-webhooks</c>): guarda cada pedido e responde o código pedido.</summary>
 public sealed class FakeReceiver
 {
-    public sealed record Captured(string Type, string EventId, string Timestamp, string Signature, string UserAgent, byte[] Body);
+    public sealed record Captured(string Type, string EventId, string Timestamp, string Signature, string UserAgent, byte[] Body, string Connection = "");
 
     public ConcurrentQueue<Captured> Requests { get; } = new();
 
@@ -53,7 +53,8 @@ public sealed class FakeReceiver
         }
 
         Requests.Enqueue(new Captured(Header(request, OutboundWebhookSigner.EventTypeHeader), Header(request, OutboundWebhookSigner.EventIdHeader),
-            Header(request, OutboundWebhookSigner.TimestampHeader), Header(request, OutboundWebhookSigner.SignatureHeader), request.Headers.UserAgent.ToString(), body));
+            Header(request, OutboundWebhookSigner.TimestampHeader), Header(request, OutboundWebhookSigner.SignatureHeader), request.Headers.UserAgent.ToString(), body,
+            Header(request, OutboundWebhookSigner.ConnectionHeader)));
         return new HttpResponseMessage(Status) { Content = new StringContent("{\"segredo-da-resposta\":true}") };
     }
 
@@ -170,9 +171,9 @@ public class OutboundWebhookTests(TenancyFixture tenancy) : IClassFixture<Tenanc
         var secret = await sp.GetRequiredService<IOutboundSubscriptions>().CreateForConnectionAsync(connection.Id, app.ClientId, replaced, scopes);
         await db.SaveChangesAsync();
         await transaction.CommitAsync();
-        secret.Should().NotBeNullOrEmpty();
+        secret.Should().NotBeNull();
         var subscriptionId = await db.OutboundSubscriptions.Where(s => s.ConnectionId == connection.Id).Select(s => s.Id).SingleAsync();
-        return new Connected(connection.Id, subscriptionId, secret!);
+        return new Connected(connection.Id, subscriptionId, secret!.Secret);
     }
 
     private static async Task<Guid> PingAsync(Owner owner, Guid subscriptionId)
@@ -209,7 +210,9 @@ public class OutboundWebhookTests(TenancyFixture tenancy) : IClassFixture<Tenanc
 
         await using (var scope = await ScopeAsync())
         {
-            (await scope.ServiceProvider.GetRequiredService<IOutboundSubscriptions>().TakePendingSecretAsync(connected.ConnectionId)).Should().BeNull("o segredo da criação já saiu na troca");
+            // INT-04 CA 5: o segredo da criação fica pendente (e sai em toda resposta do /oauth/token) até o aplicativo provar que gravou a resposta.
+            var pendingSecret = await scope.ServiceProvider.GetRequiredService<IOutboundSubscriptions>().PendingSecretAsync(connected.ConnectionId);
+            pendingSecret.Should().Be(new PendingWebhookSecret(connected.Secret, 1));
         }
 
         // CA 1: falha ao criar a inscrição desfaz a conexão (URL fora da regra).
@@ -273,7 +276,7 @@ public class OutboundWebhookTests(TenancyFixture tenancy) : IClassFixture<Tenanc
     }
 
     /// <summary>Processa o outbox até a mensagem da nota estar processada pelo tradutor (o dispatcher do host pode pegar parte; SKIP LOCKED).</summary>
-    private async Task DrainAsync(Guid invoiceId)
+    private async Task DrainAsync(Guid invoiceId, string handler = "InvoiceWebhooks")
     {
         var info = (await Factory.Services.GetRequiredService<ITenantDirectory>().FindAsync(tenancy.TenantA.Id))!;
         var like = "%" + invoiceId + "%";
@@ -285,7 +288,7 @@ public class OutboundWebhookTests(TenancyFixture tenancy) : IClassFixture<Tenanc
             }
 
             var done = await DbAsync(db => db.Database.SqlQuery<int>(
-                $"SELECT count(*)::int AS \"Value\" FROM shared.inbox_messages i JOIN shared.outbox_messages m ON m.id = i.message_id WHERE m.payload::text LIKE {like} AND i.handler LIKE '%InvoiceWebhooks'").SingleAsync());
+                $"SELECT count(*)::int AS \"Value\" FROM shared.inbox_messages i JOIN shared.outbox_messages m ON m.id = i.message_id WHERE m.payload::text LIKE {like} AND i.handler LIKE {"%" + handler}").SingleAsync());
             if (done > 0)
             {
                 return;
@@ -297,6 +300,60 @@ public class OutboundWebhookTests(TenancyFixture tenancy) : IClassFixture<Tenanc
         var errors = await DbAsync(db => db.Database.SqlQuery<string>(
             $"SELECT coalesce(m.error, 'sem erro') AS \"Value\" FROM shared.outbox_messages m WHERE m.payload::text LIKE {like}").ToListAsync());
         errors.Should().BeEmpty("a mensagem da nota devia ter sido processada");
+    }
+
+    /// <summary>
+    /// INT-04 CA 1, 3 e 4: boleto cancelado, nota cancelada e nota rejeitada levam <c>party_id</c> (do título ou da nota; nulo sem destinatário); o
+    /// <c>resource</c> do boleto é o título; todo aviso leva <c>BemAqui-Connection</c>, que fica fora da assinatura.
+    /// </summary>
+    [Fact]
+    public async Task Avisos_levam_party_id_resource_da_api_e_o_cabecalho_da_conexao_fora_da_assinatura()
+    {
+        var owner = await OwnerAsync();
+        var connected = await ConnectAsync(owner, ["fiscal.view", "finance.view"]);
+        var party = Guid.CreateVersion7();
+        var rejected = Guid.CreateVersion7();
+        var slip = Guid.CreateVersion7();
+        var receivable = Guid.CreateVersion7();
+        Guid cancelled;
+        await using (var scope = await ScopeAsync())
+        {
+            var fiscal = scope.ServiceProvider.GetRequiredService<BemAqui.Fiscal.Application.IFiscalDb>();
+            var invoice = new BemAqui.Fiscal.Domain.OutgoingInvoice { PartyId = party, TotalAmount = 10m, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow };
+            fiscal.OutgoingInvoices.Add(invoice);
+            cancelled = invoice.Id;
+            var events = scope.ServiceProvider.GetRequiredService<IEventPublisher>();
+            events.Publish(new InvoiceCancelled(cancelled, InvoiceType.NFe, null, null, new DateOnly(2026, 11, 28), 0m, 10m));
+            events.Publish(new InvoiceRejected(rejected, InvoiceType.NFe, null, 539));
+            events.Publish(new BemAqui.Finance.Contracts.BillingSlipCancelled(slip, receivable, "expired", true));
+            await scope.ServiceProvider.GetRequiredService<TenantDbContext>().SaveChangesAsync();
+        }
+
+        await DrainAsync(cancelled);
+        await DrainAsync(rejected);
+        await DrainAsync(slip, "BillingSlipWebhooks");
+        async Task<(OutboundEvent Event, JsonElement Data)> EventAsync(Guid id)
+        {
+            var evt = await DbAsync(db => db.OutboundEvents.AsNoTracking().SingleAsync(e => e.ResourceId == id));
+            return (evt, JsonDocument.Parse(evt.Data!).RootElement);
+        }
+
+        var (cancelledEvent, cancelledData) = await EventAsync(cancelled);
+        cancelledData.GetProperty("party_id").GetGuid().Should().Be(party, "lido da nota pelo módulo dono");
+        cancelledEvent.Resource.Should().Be("/api/v1/integration/invoices/" + cancelled);
+        (await EventAsync(rejected)).Data.GetProperty("party_id").ValueKind.Should().Be(JsonValueKind.Null, "nota rejeitada sem destinatário: nulo");
+        var (slipEvent, slipData) = await EventAsync(slip);
+        slipData.GetProperty("id").GetGuid().Should().Be(slip, "data.id continua o do boleto");
+        slipData.TryGetProperty("party_id", out _).Should().BeTrue();
+        slipEvent.Resource.Should().Be("/api/v1/integration/charges/" + receivable, "o resource do boleto é o título");
+
+        var delivery = await DbAsync(db => db.OutboundDeliveries.AsNoTracking().SingleAsync(d => d.EventId == cancelledEvent.Id && d.SubscriptionId == connected.SubscriptionId));
+        await RunJobAsync(delivery.Id);
+        var sent = LastFor(cancelledEvent.Id);
+        sent.Connection.Should().Be(connected.ConnectionId.ToString());
+        sent.Signature.Should().Be(OutboundWebhookSigner.Sign(connected.Secret, long.Parse(sent.Timestamp, System.Globalization.CultureInfo.InvariantCulture), sent.Body),
+            "a assinatura continua sobre {timestamp}.{corpo}, sem o cabeçalho");
+        JsonDocument.Parse(sent.Body).RootElement.GetProperty("tenant").GetString().Should().Be(TenantOf(HostA).Key, "tenant é o identificador (slug), não o host");
     }
 
     [Fact]
@@ -385,9 +442,14 @@ public class OutboundWebhookTests(TenancyFixture tenancy) : IClassFixture<Tenanc
         await using (var scope = await ScopeAsync())
         {
             var subscriptions = scope.ServiceProvider.GetRequiredService<IOutboundSubscriptions>();
-            fresh = (await subscriptions.TakePendingSecretAsync(connected.ConnectionId))!;
+            var pending = (await subscriptions.PendingSecretAsync(connected.ConnectionId))!;
+            fresh = pending.Secret;
             fresh.Should().NotBeNullOrEmpty().And.NotBe(connected.Secret);
-            (await subscriptions.TakePendingSecretAsync(connected.ConnectionId)).Should().BeNull("uma vez só");
+            pending.Version.Should().Be(2, "a troca sobe a versão");
+            await subscriptions.ConfirmSecretAsync(connected.ConnectionId, 1);
+            (await subscriptions.PendingSecretAsync(connected.ConnectionId)).Should().NotBeNull("a prova de uma versão anterior não baixa o segredo novo");
+            await subscriptions.ConfirmSecretAsync(connected.ConnectionId, 2);
+            (await subscriptions.PendingSecretAsync(connected.ConnectionId)).Should().BeNull("baixado depois da prova");
         }
 
         var ping = await PingAsync(owner, connected.SubscriptionId);
@@ -400,7 +462,7 @@ public class OutboundWebhookTests(TenancyFixture tenancy) : IClassFixture<Tenanc
         string newest;
         await using (var scope = await ScopeAsync())
         {
-            newest = (await scope.ServiceProvider.GetRequiredService<IOutboundSubscriptions>().TakePendingSecretAsync(connected.ConnectionId))!;
+            newest = (await scope.ServiceProvider.GetRequiredService<IOutboundSubscriptions>().PendingSecretAsync(connected.ConnectionId))!.Secret;
         }
 
         var second = await PingAsync(owner, connected.SubscriptionId);

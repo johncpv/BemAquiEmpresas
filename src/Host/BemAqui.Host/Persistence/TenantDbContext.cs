@@ -97,6 +97,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<CnpjLookupCache> CnpjLookups => Set<CnpjLookupCache>();
 
+    public DbSet<IdentityChallenge> IdentityChallenges => Set<IdentityChallenge>();
+
     public DbSet<BankAccount> BankAccounts => Set<BankAccount>();
 
     public DbSet<PaymentTerm> PaymentTerms => Set<PaymentTerm>();

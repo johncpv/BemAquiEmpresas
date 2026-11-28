@@ -37,6 +37,7 @@ internal sealed class SalesOrderConfiguration : IEntityTypeConfiguration<SalesOr
         b.HasIndex(e => e.HoldUntil).HasFilter("hold_until IS NOT NULL").HasDatabaseName("ix_orders_hold_until");
         b.HasIndex(e => e.ReceivableId).HasFilter("receivable_id IS NOT NULL");
         b.HasIndex(e => new { e.CustomerId, e.SourceAppId });
+        b.HasIndex(e => e.SourceConnectionId).HasFilter("source_connection_id IS NOT NULL");
     }
 }
 
