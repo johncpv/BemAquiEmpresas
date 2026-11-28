@@ -60,11 +60,11 @@ export function MyPayslipsPage() {
   const { all, status } = useNavigation()
   const hr = all.find((m) => m.code === 'hr')
   const client = useQueryClient()
-  const released = status === 'ready' && !!hr && !hr.locked
+  const released = status === 'ready' && !!hr && !hr.locked && !hr.partial
   const query = useListMyPayslips({ query: { enabled: released, retry: (count, error) => !(error instanceof ApiError && error.status === 403) && count < 2 } })
 
   if (status === 'loading') return null
-  if (hr?.locked) return <ModuleNotReleased module={hr} />
+  if (hr?.locked || hr?.partial) return <ModuleNotReleased module={hr} />
   const heading = (
     <PageHeading title="Meus holerites" description={
       <span className="inline-flex items-center">

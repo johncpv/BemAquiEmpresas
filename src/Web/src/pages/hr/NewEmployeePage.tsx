@@ -10,7 +10,7 @@ import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
 import { FormLayout } from '@/components/layout/form-layout'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { notifySuccess } from '@/components/ui/messages'
-import { useCan } from '@/pages/use-can'
+import { useCan, usePartial } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
 import { type EmployeeDraft, employeeDraftErrors, emptyEmployeeDraft, outsideRange, todayIso, withPosition } from './employee'
 
@@ -19,23 +19,26 @@ export function NewEmployeePage() {
   const { cargo } = useSearch({ strict: false }) as { cargo?: string }
   const canSensitive = useCan('hr.view_sensitive')
   const positions = useListPositions({ pageSize: 100 })
-  const schedules = useListSchedules()
+  // EXE-RH: só com o cadastro de pessoas (sem o RH no plano), a jornada não aparece nem é pedida.
+  const partial = usePartial('hr')
+  const schedules = useListSchedules({ query: { enabled: !partial } })
   if (!canSensitive) return <EmptyState title="Cadastrar funcionário exige ver dados sensíveis." description="CPF e salário são obrigatórios e protegidos. Peça ao administrador a permissão Ver dados sensíveis do RH." />
-  if (positions.isPending || schedules.isPending) return <Skeleton className="h-96 max-w-4xl" />
-  if (positions.isError || schedules.isError) return <ErrorState onRetry={() => { void positions.refetch(); void schedules.refetch() }} />
+  if (positions.isPending || (!partial && schedules.isPending)) return <Skeleton className="h-96 max-w-4xl" />
+  if (positions.isError || (!partial && schedules.isError)) return <ErrorState onRetry={() => { void positions.refetch(); void schedules.refetch() }} />
   const active = positions.data.items.filter((p) => p.isActive)
   if (active.length === 0) {
     return <EmptyState title="Cadastre um cargo antes do funcionário." description="O cargo sugere a jornada e o salário." action={<Link to="/app/rh/cargos" className="text-sm font-semibold text-primary">Ir para Cargos</Link>} />
   }
 
-  return <NewEmployeeForm initialPositionId={active.some((p) => p.id === cargo) ? cargo : undefined} positions={active} schedules={schedules.data.filter((s) => s.isActive)} />
+  return <NewEmployeeForm initialPositionId={active.some((p) => p.id === cargo) ? cargo : undefined} positions={active} schedules={partial ? null : (schedules.data ?? []).filter((s) => s.isActive)} />
 }
 
 interface FormProps {
   /** ?cargo= vindo do painel do cargo: já escolhido, com as sugestões. */
   initialPositionId?: string
   positions: { id: string; name: string; workScheduleId: string | null }[]
-  schedules: { id: string; name: string }[]
+  /** null: sem a jornada (EXE-RH, só o cadastro de pessoas). */
+  schedules: { id: string; name: string }[] | null
 }
 
 function NewEmployeeForm({ initialPositionId, positions, schedules }: FormProps) {
@@ -108,14 +111,14 @@ function NewEmployeeForm({ initialPositionId, positions, schedules }: FormProps)
               </select>
             )}
           </Field>
-          <Field label="Jornada" size="md" hint={draft.touched.schedule ? undefined : 'A do cargo, enquanto você não trocar.'}>
+          {schedules === null ? null : <Field label="Jornada" size="md" hint={draft.touched.schedule ? undefined : 'A do cargo, enquanto você não trocar.'}>
             {(p) => (
               <select {...p} value={draft.workScheduleId} onChange={(e) => set({ workScheduleId: e.target.value, touched: { ...draft.touched, schedule: true } })} className={inputClass}>
                 <option value="">Sem jornada</option>
                 {schedules.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             )}
-          </Field>
+          </Field>}
           <Field label="Salário base" required size="sm" error={errors.baseSalary} warning={outsideRange(draft.baseSalary, range)} hint={draft.touched.salary ? undefined : 'O de referência do cargo, enquanto você não trocar.'}>
             {(p) => <MoneyInput {...p} value={draft.baseSalary} onChange={(baseSalary) => set({ baseSalary, touched: { ...draft.touched, salary: true } })} />}
           </Field>

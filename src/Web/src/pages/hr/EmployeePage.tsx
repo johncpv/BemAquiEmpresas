@@ -14,7 +14,7 @@ import { Tag } from '@/components/ui/tag'
 import { useUrlTab } from '@/components/ui/url-tab'
 import { UrlTabs } from '@/components/ui/url-tabs'
 import { Can } from '@/pages/ModuleGate'
-import { useCan } from '@/pages/use-can'
+import { useCan, usePartial } from '@/pages/use-can'
 import { Dica } from '@/help/Dica'
 import { PageHeading } from '@/shell/PageHeading'
 import { EMPLOYEE_DICAS, STATUS_LABELS, STATUS_TONES } from './employee'
@@ -32,6 +32,8 @@ import { EmployeeTermination } from './termination/EmployeeTermination'
 import { EmployeeVacations } from './vacations/EmployeeVacations'
 
 const button = 'rounded-md border border-border px-3 py-2 text-sm font-semibold'
+/** Abas do cadastro de pessoas (EXE-RH): sem o RH no plano, contrato, dependentes, pagamento, documentos, ponto, férias e rescisão somem. */
+const REGISTRY_TABS = ['geral', 'pessoais', 'linha-do-tempo', 'historico']
 
 /** Funcionário (CAD-04b, molde "detalhe com abas"): Dados gerais, Dados pessoais, Contrato e salário, Linha do tempo, Dependentes, Pagamento e adicionais e Documentos (CAD-04c2) e Histórico. */
 export function EmployeePage() {
@@ -44,8 +46,10 @@ export function EmployeePage() {
   const canEditHr = useCan('hr.edit')
   const canSensitive = useCan('hr.view_sensitive')
   const canHealth = useCan('hr.view_health')
+  // EXE-RH: só com o cadastro de pessoas (perfil Serviços sem o RH no plano): sem afastamento, rescisão, folha, ponto e férias.
+  const partial = usePartial('hr')
   const canUsers = useCan('identity.edit')
-  const bankStatus = useGetEmployeeBankStatus(id, { query: { enabled: canSensitive } })
+  const bankStatus = useGetEmployeeBankStatus(id, { query: { enabled: canSensitive && !partial } })
   const [steps, setSteps] = useState<'created' | 'terminated' | 'leave' | 'dependent' | null>(search.novo === '1' ? 'created' : null)
   const [, setTab] = useUrlTab('geral')
   const [linking, setLinking] = useState(false)
@@ -79,7 +83,7 @@ export function EmployeePage() {
   // Proprietário segurou o login, o passo leva a Usuários.
   const kept = login?.outcome === 'KeptLastOwner' || login?.outcome === 'KeptOwner'
   const terminatedSteps = [
-    ...(canSensitive ? [{ label: 'Calcular rescisão', onSelect: () => { setTab('rescisao'); setSteps(null); void client.invalidateQueries({ queryKey: getGetEmployeeTerminationQueryKey(id) }) } }] : []),
+    ...(canSensitive && !partial ? [{ label: 'Calcular rescisão', onSelect: () => { setTab('rescisao'); setSteps(null); void client.invalidateQueries({ queryKey: getGetEmployeeTerminationQueryKey(id) }) } }] : []),
     ...(canUsers && kept ? [{ label: 'Abrir Usuários', onSelect: () => { void navigate({ to: '/app/acessos/usuarios' }) } }] : []),
   ]
   const leaveSteps = [{ label: 'Ver na linha do tempo', onSelect: () => { setTab('linha-do-tempo'); setSteps(null) } }]
@@ -105,7 +109,7 @@ export function EmployeePage() {
             {canEdit && active ? (
               <>
                 <PositionDialog employee={employee} onDone={setEmployee} />
-                {canSensitive ? <button type="button" onClick={() => setLeaving(true)} className={button}>Registrar afastamento</button> : null}
+                {canSensitive && !partial ? <button type="button" onClick={() => setLeaving(true)} className={button}>Registrar afastamento</button> : null}
                 <button type="button" onClick={() => setTerminating(true)} className={button}>Registrar desligamento</button>
               </>
             ) : null}
@@ -118,7 +122,7 @@ export function EmployeePage() {
           </>
         } />
       <AnonymizedBand at={employee.anonymizedAt} request={employee.anonymizationRequest} />
-      {canEdit && canSensitive && active ? (
+      {canEdit && canSensitive && active && !partial ? (
         <LeaveDialog employee={employee} canHealth={canHealth} open={leaving} onOpenChange={setLeaving} onReload={() => query.refetch()}
           onDone={(e) => { setEmployee(e); void client.invalidateQueries({ queryKey: getListEmployeeLeavesSensitiveQueryKey(id) }); setSteps('leave') }} />
       ) : null}
@@ -140,7 +144,7 @@ export function EmployeePage() {
         { id: 'ferias', label: 'Férias', content: <EmployeeVacations employee={employee} canEdit={canEdit && active} /> },
         { id: 'rescisao', label: 'Rescisão', content: <EmployeeTermination employee={employee} canEdit={canEdit} /> },
         { id: 'historico', label: 'Histórico de alterações', content: canSensitive ? <RecordHistory entity="Employee" id={employee.id} /> : <EmployeeProtected /> },
-      ]} />
+      ].filter((t) => !partial || REGISTRY_TABS.includes(t.id))} />
     </>
   )
 }

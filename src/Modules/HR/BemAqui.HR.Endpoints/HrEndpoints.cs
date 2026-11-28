@@ -18,30 +18,23 @@ internal static partial class HrEndpoints
 {
     public static IEndpointRouteBuilder MapHrEndpoints(this IEndpointRouteBuilder api)
     {
-        var hr = api.MapGroup("/hr").WithTags("RH").RequireModule("hr")
+        var root = api.MapGroup("/hr").WithTags("RH")
             .AddEndpointFilter(async (context, next) =>
             {
                 context.HttpContext.Response.Headers.CacheControl = "no-store";
                 return await next(context);
             });
-        MapPositions(hr.MapGroup("/positions"));
+        var hr = root.MapGroup(string.Empty).RequireModule("hr");
+        // EXE-RH: Cargos e o cadastro mínimo de Funcionários abrem também pelo recurso do perfil Serviços, com o hr fora do plano
+        // ("módulo liberado OU recurso"). Jornadas, sindicatos, afastamentos, ponto, folha, férias e o resto continuam só com o módulo.
+        var people = root.MapGroup(string.Empty).RequireModuleOrProfileFeature("hr", BemAqui.BuildingBlocks.Modules.BusinessProfileCatalog.PeopleRegistryFeature);
+        MapPositions(people.MapGroup("/positions"));
         MapSchedules(hr.MapGroup("/schedules"));
         MapUnions(hr.MapGroup("/unions"));
         // LGPD-01b CA 4: funcionário anonimizado é só leitura; toda escrita na rota dele responde 409 employee_anonymized.
-        var employees = hr.MapGroup("/employees").AddEndpointFilter(async (context, next) =>
-        {
-            var http = context.HttpContext;
-            if (!HttpMethods.IsGet(http.Request.Method) && !HttpMethods.IsHead(http.Request.Method)
-                && (http.Request.RouteValues.TryGetValue("id", out var raw) || http.Request.RouteValues.TryGetValue("employeeId", out raw))
-                && Guid.TryParse(raw?.ToString(), out var employeeId)
-                && await http.RequestServices.GetRequiredService<IHrDb>().Employees.IgnoreQueryFilters().AnyAsync(e => e.Id == employeeId && e.AnonymizedAt != null, http.RequestAborted))
-            {
-                return Result.Failure(Error.Conflict("employee_anonymized", "Cadastro anonimizado a pedido do titular: não pode ser alterado.")).ToHttpResult();
-            }
-
-            return await next(context);
-        });
-        MapEmployees(employees);
+        var employees = hr.MapGroup("/employees").AddEndpointFilter(RejectAnonymizedWrite);
+        var registry = people.MapGroup("/employees").AddEndpointFilter(RejectAnonymizedWrite);
+        MapEmployees(registry, employees);
         MapEmployeeComplement(employees);
         MapPayrollItems(hr.MapGroup("/payroll-items"));
         MapHrParameters(hr.MapGroup("/parameters"));
@@ -57,7 +50,7 @@ internal static partial class HrEndpoints
         MapTimesheets(hr, employees, runs);
         MapVacations(hr, employees);
         MapTerminations(hr, employees);
-        MapHrExports(hr, employees, runs);
+        MapHrExports(hr, people, registry, runs);
 
         // Autoatendimento do funcionário (RH-02b, ADR 0035): camada 1 no grupo; o vínculo ativo em cada endpoint.
         var me = api.MapGroup("/me/hr").WithTags("Autoatendimento").RequireModule("hr")
@@ -72,6 +65,20 @@ internal static partial class HrEndpoints
         MapMyTimesheets(me);
         MapMyVacations(me);
         return api;
+    }
+
+    private static async ValueTask<object?> RejectAnonymizedWrite(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+    {
+        var http = context.HttpContext;
+        if (!HttpMethods.IsGet(http.Request.Method) && !HttpMethods.IsHead(http.Request.Method)
+            && (http.Request.RouteValues.TryGetValue("id", out var raw) || http.Request.RouteValues.TryGetValue("employeeId", out raw))
+            && Guid.TryParse(raw?.ToString(), out var employeeId)
+            && await http.RequestServices.GetRequiredService<IHrDb>().Employees.IgnoreQueryFilters().AnyAsync(e => e.Id == employeeId && e.AnonymizedAt != null, http.RequestAborted))
+        {
+            return Result.Failure(Error.Conflict("employee_anonymized", "Cadastro anonimizado a pedido do titular: não pode ser alterado.")).ToHttpResult();
+        }
+
+        return await next(context);
     }
 
     private static void MapPositions(RouteGroupBuilder positions)

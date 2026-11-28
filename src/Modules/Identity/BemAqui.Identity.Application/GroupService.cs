@@ -61,7 +61,7 @@ public sealed partial class GroupService(IIdentityDb db, IPermissionService perm
                 m.Code,
                 m.Name,
                 m.Area,
-                tenant.Resolved?.IsReleased(m.Code) == true,
+                tenant.Resolved?.IsAccessible(m.Code) == true, // EXE-RH: o RH aberto pelo recurso do perfil entra no editor de grupos
                 group.IsOwner || grants.Enabled.Contains(m.Code),
                 group.IsOwner ? m.Actions.ToList() : grants.Actions.Where(p => p.Module == m.Code).Select(p => p.Action).Order(StringComparer.Ordinal).ToList(),
                 m.Standard.Select(a => new GroupActionInfo(a, StandardActions.Label(a), a == StandardActions.Approve ? "Aprovar aqui significa: " + m.ApproveMeaning + "." : string.Empty, true))

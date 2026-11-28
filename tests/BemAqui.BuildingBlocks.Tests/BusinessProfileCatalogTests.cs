@@ -56,4 +56,17 @@ public class BusinessProfileCatalogTests
         var allButCatalog = ModuleCatalog.All.Select(m => m.Code).Where(c => c != "catalog").ToHashSet(StringComparer.Ordinal);
         BusinessProfileCatalog.Hidden([BusinessProfileCatalog.Factory], allButCatalog).Should().Equal("catalog");
     }
+
+    /// <summary>EXE-RH: o cadastro de pessoas do RH é só do perfil Serviços e é o único recurso que abre parte de um módulo não liberado.</summary>
+    [Fact]
+    public void Cadastro_de_pessoas_do_RH_so_no_perfil_Servicos_e_abre_so_o_hr()
+    {
+        BusinessProfileCatalog.Features[BusinessProfileCatalog.PeopleRegistryFeature].Should().Equal(BusinessProfileCatalog.Services);
+        BusinessProfileCatalog.HasFeature([BusinessProfileCatalog.Factory], BusinessProfileCatalog.PeopleRegistryFeature).Should().BeFalse("a Konebras tem o RH pelo plano");
+        BusinessProfileCatalog.HasFeature([BusinessProfileCatalog.Retail], BusinessProfileCatalog.PeopleRegistryFeature).Should().BeFalse();
+        BusinessProfileCatalog.PartialModuleFeatures.Should().BeEquivalentTo(new Dictionary<string, string> { [BusinessProfileCatalog.PeopleRegistryFeature] = "hr" });
+        BusinessProfileCatalog.OpensModule(BusinessProfileCatalog.PeopleRegistryFeature, "hr").Should().BeTrue();
+        BusinessProfileCatalog.OpensModule(BusinessProfileCatalog.PeopleRegistryFeature, "finance").Should().BeFalse();
+        BusinessProfileCatalog.OpensModule(BusinessProfileCatalog.ServiceExecutionFeature, "projects").Should().BeFalse("os demais recursos valem só com o módulo liberado");
+    }
 }

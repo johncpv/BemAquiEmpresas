@@ -8,8 +8,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BemAqui.BuildingBlocks.Web;
 
-/// <summary>Metadado do endpoint: a qual módulo do catálogo ele pertence.</summary>
-public sealed record RequiresModuleMetadata(string ModuleCode);
+/// <summary>
+/// Metadado do endpoint: a qual módulo do catálogo ele pertence. <c>OrFeature</c>: recurso do perfil que também abre a rota com o módulo
+/// não liberado (<see cref="ModuleEndpoints.RequireModuleOrProfileFeature"/>, EXE-RH).
+/// </summary>
+public sealed record RequiresModuleMetadata(string ModuleCode, string? OrFeature = null)
+{
+    /// <summary>Camada 1 da rota: módulo liberado ou, quando a rota aceita, o recurso do perfil.</summary>
+    public bool IsOpenFor(ResolvedTenant? tenant) =>
+        tenant is not null && (tenant.IsReleased(ModuleCode) || (OrFeature is { } feature && tenant.HasFeature(feature)));
+}
 
 /// <summary>Módulo do catálogo como o front vê: para o menu (FND-06d) e a tela "não liberada".</summary>
 public sealed record ModuleSummary(string Code, string Name, string Area, int Order, string Description, bool Released, bool Hidden);
@@ -85,6 +93,27 @@ public static class ModuleEndpoints
         builder.WithMetadata(new RequiresModuleMetadata(moduleCode));
         builder.AddEndpointFilter(async (context, next) =>
             IsReleased(context.HttpContext, moduleCode) ? await next(context) : NotReleased(moduleCode));
+        return builder;
+    }
+
+    /// <summary>
+    /// Camada 1 com a regra "módulo liberado OU recurso" (EXE-RH): a rota responde com o módulo liberado ou com o recurso do perfil que abre
+    /// parte dele (<see cref="BusinessProfileCatalog.PartialModuleFeatures"/>); sem os dois, 403 <c>module_not_released</c>. Use no lugar do
+    /// <see cref="RequireModule"/>, só nos grupos de rota que o recurso abre. As camadas 2 e 3 seguem iguais.
+    /// </summary>
+    public static TBuilder RequireModuleOrProfileFeature<TBuilder>(this TBuilder builder, string moduleCode, string feature)
+        where TBuilder : IEndpointConventionBuilder
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        if (ModuleCatalog.Find(moduleCode) is null || !BusinessProfileCatalog.OpensModule(feature, moduleCode))
+        {
+            throw new ArgumentException("Recurso " + feature + " não abre o módulo " + moduleCode + " no BusinessProfileCatalog.", nameof(feature));
+        }
+
+        var metadata = new RequiresModuleMetadata(moduleCode, feature);
+        builder.WithMetadata(metadata);
+        builder.AddEndpointFilter(async (context, next) =>
+            metadata.IsOpenFor(context.HttpContext.RequestServices.GetService<TenantContextHolder>()?.Resolved) ? await next(context) : NotReleased(moduleCode));
         return builder;
     }
 

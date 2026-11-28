@@ -42,8 +42,10 @@ public sealed class PermissionService(IIdentityDb db, TenantContextHolder tenant
         }) ?? new Grants(false, new HashSet<string>());
 
         var released = grants.IsOwner
-            ? ModuleCatalog.All.Where(m => resolved.IsReleased(m.Code)).SelectMany(m => m.Actions.Select(a => m.Code + "." + a))
-            : grants.Permissions.Where(p => resolved.IsReleased(p[..p.IndexOf('.', StringComparison.Ordinal)]));
+            ? ModuleCatalog.All.Where(m => resolved.IsAccessible(m.Code)).SelectMany(m => m.Actions.Select(a => m.Code + "." + a))
+            : grants.Permissions.Where(p => resolved.IsAccessible(p[..p.IndexOf('.', StringComparison.Ordinal)]));
+        // EXE-RH: módulo com parte aberta pelo recurso do perfil (hr.people_registry) entra na efetiva; as rotas fora dessa parte continuam
+        // barradas na camada 1 (RequireModule), antes da ação.
         // INT-01 CA 16 (ADR 0053 §6): com um aplicativo conectado agindo pelo autorizador, a efetiva é a concessão ∩ as permissões atuais dele, e
         // nunca a de Proprietário; vale também nas checagens feitas dentro dos serviços.
         if (app.Current is { } grant && grant.GrantorId == userId)

@@ -65,6 +65,11 @@ export interface ModuleUi {
   href?: string
   /** Fora do menu, da busca e da ajuda do menu (ex.: Conecta, INT-01: a entrada fica em Configurações → Integrações). */
   menu?: false
+  /**
+   * Abas abertas pelo recurso do perfil com o módulo não liberado (EXE-RH: Funcionários e Cargos do RH no perfil Serviços). Só elas aparecem
+   * no menu e na busca; as outras rotas do módulo mostram a tela de não liberado.
+   */
+  partialTabs?: readonly string[]
 }
 
 /**
@@ -134,7 +139,8 @@ export const MODULE_UI: Readonly<Record<string, ModuleUi>> = {
   ] },
   // FIS-02b: Regras fiscais no grupo "Configuração fiscal" (a NF-e de saída entra com a FIS-03a). FIS-04a: Notas de entrada.
   fiscal: { slug: 'fiscal', icon: Receipt, tabs: [{ slug: 'entrada', label: 'Notas de entrada', icon: FileInput }, { slug: 'regras', label: 'Regras fiscais', icon: BookText, group: 'Configuração fiscal' }] },
-  hr: { slug: 'rh', icon: Users, tabs: [{ slug: 'funcionarios', label: 'Funcionários', icon: Users }, { slug: 'cargos', label: 'Cargos', icon: Award }, { slug: 'jornadas', label: 'Jornadas', icon: CalendarClock }, { slug: 'sindicatos', label: 'Sindicatos', icon: Building2 }, { slug: 'ponto', label: 'Ponto', icon: Clock }, { slug: 'ferias', label: 'Férias', icon: TreePalm }, { slug: 'folha', label: 'Folha', icon: FileSpreadsheet }, { slug: 'rubricas', label: 'Rubricas', icon: Tags }, { slug: 'tabelas-folha', label: 'Tabelas da folha', icon: Table }, { slug: 'conferencia-folha', label: 'Conferência da folha', icon: ClipboardCheck }, { slug: 'exportar-contadora', label: 'Exportar para a contadora', icon: FileOutput, action: 'view_sensitive' }] },
+  // EXE-RH: no perfil Serviços sem o RH no plano, só Funcionários e Cargos (recurso hr.people_registry).
+  hr: { slug: 'rh', icon: Users, partialTabs: ['funcionarios', 'cargos'], tabs: [{ slug: 'funcionarios', label: 'Funcionários', icon: Users }, { slug: 'cargos', label: 'Cargos', icon: Award }, { slug: 'jornadas', label: 'Jornadas', icon: CalendarClock }, { slug: 'sindicatos', label: 'Sindicatos', icon: Building2 }, { slug: 'ponto', label: 'Ponto', icon: Clock }, { slug: 'ferias', label: 'Férias', icon: TreePalm }, { slug: 'folha', label: 'Folha', icon: FileSpreadsheet }, { slug: 'rubricas', label: 'Rubricas', icon: Tags }, { slug: 'tabelas-folha', label: 'Tabelas da folha', icon: Table }, { slug: 'conferencia-folha', label: 'Conferência da folha', icon: ClipboardCheck }, { slug: 'exportar-contadora', label: 'Exportar para a contadora', icon: FileOutput, action: 'view_sensitive' }] },
   kiosk: { slug: 'painel-tv', icon: MonitorPlay },
   shopfloor: { slug: 'operador', icon: HardHat, href: '/fab' },
   // INT-01: o Conecta não entra no menu; a página fica em Configurações → Integrações → Conecta.
@@ -155,6 +161,8 @@ export interface PermissionModule {
   actions: readonly string[]
   /** Fora de todo perfil de negócio do tenant e não liberado (PERF-01, ADR 0046): some do dock e da busca; a URL direta mostra ModuleNotReleased. */
   hidden?: boolean
+  /** Não liberado, com parte aberta pelo recurso do perfil (EXE-RH): o menu mostra só as abas de partialTabs. */
+  partial?: boolean
 }
 
 export interface NavModule extends PermissionModule {
@@ -190,13 +198,15 @@ const grants = (modules: readonly PermissionModule[], permission: string) => {
 
 const toNav = (m: PermissionModule, modules: readonly PermissionModule[], isOwner: boolean, profiles: readonly string[]): NavModule | null => {
   const ui = MODULE_UI[m.code]
+  // EXE-RH: módulo aberto em parte pelo recurso do perfil aparece sem cadeado, só com as abas dessa parte.
+  const partial = !m.released && !!m.partial && !!ui?.partialTabs
   const allowed = (ui?.tabs ?? []).filter(
     (t) => (!t.action || m.actions.includes(t.action)) && (!t.requiresAny || t.requiresAny.some((p) => grants(modules, p))) && (!t.ownerOnly || isOwner)
-      && (!t.profiles || t.profiles.some((p) => profiles.includes(p))),
+      && (!t.profiles || t.profiles.some((p) => profiles.includes(p))) && (!partial || ui!.partialTabs!.includes(t.slug)),
   )
   const first = (t: Tab) => !!t.firstFor?.some((a) => m.actions.includes(a))
   const tabs = [...allowed.filter(first), ...allowed.filter((t) => !first(t))]
-  return ui ? { ...m, slug: ui.slug, aliases: ui.aliases ?? [], path: ui.href ?? `/app/${ui.slug}`, icon: ui.icon, tabs, locked: !m.released, ...(ui.menu === false ? { inMenu: false as const } : {}) } : null
+  return ui ? { ...m, partial, slug: ui.slug, aliases: ui.aliases ?? [], path: ui.href ?? `/app/${ui.slug}`, icon: ui.icon, tabs, locked: !m.released && !partial, ...(ui.menu === false ? { inMenu: false as const } : {}) } : null
 }
 
 /**

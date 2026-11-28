@@ -6,12 +6,13 @@ import { AccessDenied, ModuleNotReleased, NotFound } from './ModulePage'
  * Tela real de um módulo: as mesmas regras do menu (FND-06d). Não liberado mostra o cadeado; sem acesso mostra acesso
  * negado; a autorização de verdade continua no backend.
  */
-export function ModuleGate({ code, children }: { code: string; children: ReactNode }) {
+export function ModuleGate({ code, part, children }: { code: string; part?: string; children: ReactNode }) {
   const { all, status } = useNavigation()
   if (status === 'loading') return null
   const module = all.find((m) => m.code === code)
   if (!module) return <NotFound />
-  if (module.locked) return <ModuleNotReleased module={module} />
+  // EXE-RH: módulo aberto em parte pelo recurso do perfil: só as telas dessa parte (part = aba do menu); as demais, a tela de não liberado.
+  if (module.locked || (module.partial && !module.tabs.some((t) => t.slug === part))) return <ModuleNotReleased module={module} />
   if (!module.enabled) return <AccessDenied module={module} />
   return <>{children}</>
 }
@@ -46,6 +47,6 @@ export function ReleasedGate({ code, children }: { code: string; children: React
   if (status === 'loading') return null
   const module = all.find((m) => m.code === code)
   if (!module) return <NotFound />
-  if (module.locked) return <ModuleNotReleased module={module} />
+  if (module.locked || module.partial) return <ModuleNotReleased module={module} />
   return <>{children}</>
 }

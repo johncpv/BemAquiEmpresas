@@ -4,7 +4,10 @@ export function hourlyCost(salary: number | null, chargesPct: number, monthlyHou
   return (salary * (1 + chargesPct / 100)) / monthlyHours
 }
 
-export const average = (min: number | null, max: number | null) => (min !== null && max !== null ? Math.round(((min + max) / 2) * 100) / 100 : min ?? max)
+/** Cargo com custo-hora (EXE-RH CA 4): sem salário de referência nem valor ajustado, a lista mostra "Sem custo-hora". */
+export const hasHourlyCost = (p: { hourlyCost: number }) => p.hourlyCost > 0
+
+export const average =(min: number | null, max: number | null) => (min !== null && max !== null ? Math.round(((min + max) / 2) * 100) / 100 : min ?? max)
 
 export const WEEKDAY_LABELS = ['', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo']
 

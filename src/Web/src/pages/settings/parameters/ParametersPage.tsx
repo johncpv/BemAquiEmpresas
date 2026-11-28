@@ -27,7 +27,8 @@ import { COMMERCE_PROFILES } from '@/navigation/modules'
 import { useHasProfile } from '@/navigation/navigation-context'
 import { useCanSettings } from '../use-can-settings'
 
-const CHARGES_DICA = 'Custo-hora do cargo = salário × (1 + % de encargos) ÷ horas do mês. Valor sugerido. Confirme com a contadora.'
+// EXE-RH CA 5: a mesma dica para quem tem o RH completo e para quem tem só o cadastro de pessoas (perfil Serviços).
+const CHARGES_DICA = 'Encargos sobre o salário usados no custo-hora dos cargos: salário × (1 + % de encargos) ÷ horas do mês. Valor sugerido. Confirme com a contadora.'
 const MODES = [
   { value: PricingMode.Markup, label: 'Markup sobre o custo' },
   { value: PricingMode.Margin, label: 'Margem sobre o preço' },

@@ -14,8 +14,9 @@ public sealed record SetUserGroupsRequest(IReadOnlyList<Guid> GroupIds);
 /// <summary>
 /// Módulo como o menu vê (FND-06d): a descrição explica, na tela de não liberado, o que o módulo fará. <c>Hidden</c> (ADR 0046): fora
 /// de todo perfil do tenant e não liberado; o menu, a busca e a ajuda o escondem, e a rota direta mostra a tela de não liberado.
+/// <c>Partial</c> (EXE-RH): não liberado, com parte aberta pelo recurso do perfil (Cargos e Funcionários do RH); o menu mostra só essa parte.
 /// </summary>
-public sealed record MyModule(string Code, string Name, string Area, int Order, string Description, bool Released, bool Enabled, IReadOnlyList<string> Actions, bool Hidden);
+public sealed record MyModule(string Code, string Name, string Area, int Order, string Description, bool Released, bool Enabled, IReadOnlyList<string> Actions, bool Hidden, bool Partial = false);
 
 /// <summary>
 /// Permissões e contexto autenticado do tenant. <c>Profiles</c>: perfis de negócio ativos (ADR 0046), para o menu esconder os
@@ -74,7 +75,7 @@ internal static class UserEndpoints
                     {
                         var actions = m.Actions.Where(a => effective.Has(m.Code + "." + a)).ToList();
                         return new MyModule(m.Code, m.Name, m.Area, m.Order, m.Description, tenant.Resolved?.IsReleased(m.Code) == true, actions.Count > 0, actions,
-                            tenant.Resolved?.IsHidden(m.Code) == true);
+                            tenant.Resolved?.IsHidden(m.Code) == true, tenant.Resolved?.IsPartiallyReleased(m.Code) == true);
                     })
                     .ToList();
                 var vocabulary = tenant.Resolved?.Vocabulary ?? new Dictionary<string, string>(StringComparer.Ordinal);

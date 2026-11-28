@@ -4,6 +4,7 @@ rota: /app/rh/funcionarios
 aba: funcionarios
 padrao: true
 modulo: hr
+recurso: hr.people_registry
 ---
 
 ## Para que serve
@@ -13,6 +14,12 @@ Ver quem trabalha na empresa, em qual cargo e centro de trabalho, e abrir o cada
 - Busque pelo nome ou pela matrícula. Filtre por situação, cargo ou centro de trabalho.
 - Clique no nome para abrir o funcionário.
 - Clique em **Novo funcionário** para cadastrar. O botão só aparece para quem pode ver dados sensíveis, porque o CPF e o salário são obrigatórios.
+
+## Para empresas de serviço sem folha
+Sem o RH completo no plano, a empresa de serviço cadastra só o básico do funcionário: nome, CPF, nascimento, cargo, admissão e salário base. Jornada, sindicato, contrato, dependentes, pagamento, documentos, ponto, férias, afastamentos e folha não aparecem.
+- O funcionário é quem lança as horas no projeto; o custo vem do custo-hora do cargo dele.
+- Quando alguém sai da empresa, use **Registrar desligamento**: o login dele no sistema é desativado.
+- Para ter ponto e folha, fale com o suporte para incluir o RH no plano.
 
 ## Imprimir e exportar
 - **Exportar → Excel (.xlsx)**, na barra da lista, baixa os funcionários com a busca e os filtros da tela (todas as páginas): matrícula, nome, CPF, cargo, admissão, situação, jornada, sindicato e salário. O arquivo se chama funcionarios-{data}.xlsx, sem nome nem CPF de ninguém.

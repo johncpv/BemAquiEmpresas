@@ -66,14 +66,17 @@ public sealed class PermissionHandler : AuthorizationHandler<PermissionRequireme
         var resolved = http.RequestServices.GetRequiredService<TenantContextHolder>().Resolved;
         // Camada 1 primeiro: a rota de um módulo (RequireModule) não liberado responde module_not_released, mesmo que uma alternativa
         // de outro módulo esteja liberada (a autorização roda antes do filtro do RequireModule).
-        if (http.GetEndpoint()?.Metadata.GetMetadata<RequiresModuleMetadata>() is { } owner && resolved?.IsReleased(owner.ModuleCode) != true)
+        // EXE-RH: a rota com RequireModuleOrProfileFeature abre também pelo recurso do perfil (módulo liberado OU recurso).
+        var owner = http.GetEndpoint()?.Metadata.GetMetadata<RequiresModuleMetadata>();
+        if (owner is not null && !owner.IsOpenFor(resolved))
         {
             context.Fail(new AuthorizationFailureReason(this, NotReleasedReason + ":" + owner.ModuleCode));
             return;
         }
 
-        // Alternativas de módulos diferentes (RequireAnyPermissionOf): basta um dos módulos estar liberado.
-        if (!requirement.Alternatives.Any(a => resolved?.IsReleased(a[..a.IndexOf('.', StringComparison.Ordinal)]) == true))
+        // Alternativas de módulos diferentes (RequireAnyPermissionOf): basta um dos módulos estar liberado; o da rota vale também aberto
+        // pelo recurso.
+        if (!requirement.Alternatives.Any(a => IsOpen(resolved, owner, a[..a.IndexOf('.', StringComparison.Ordinal)])))
         {
             context.Fail(new AuthorizationFailureReason(this, NotReleasedReason + ":" + requirement.Module));
             return;
@@ -110,6 +113,9 @@ public sealed class PermissionHandler : AuthorizationHandler<PermissionRequireme
     }
 
     public const string InsufficientScopeReason = "insufficient_scope";
+
+    private static bool IsOpen(ResolvedTenant? resolved, RequiresModuleMetadata? owner, string module) =>
+        resolved?.IsReleased(module) == true || (owner is not null && owner.ModuleCode == module && owner.IsOpenFor(resolved));
 }
 
 /// <summary>Hub: módulo liberado no tenant, depois uma das ações na permissão efetiva (mesma ordem do <see cref="PermissionHandler"/>).</summary>
