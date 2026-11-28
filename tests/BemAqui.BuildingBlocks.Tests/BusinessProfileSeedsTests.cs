@@ -29,7 +29,8 @@ public class BusinessProfileSeedsTests
         BusinessProfileSeeds.PackagesFor([BusinessProfileCatalog.Retail], ["supermarket"]).Should().NotContain(BusinessProfileSeeds.InventoryFood);
         BusinessProfileSeeds.PackagesFor([BusinessProfileCatalog.Ecommerce, BusinessProfileCatalog.Retail, BusinessProfileCatalog.Factory], ["bakery", "snack_bar"])
             .Should().OnlyHaveUniqueItems().And.HaveCount(7);
-        BusinessProfileSeeds.PackagesFor([BusinessProfileCatalog.Services], ["bakery"]).Should().BeEmpty("segmento de outro perfil não vale");
+        // Segmento de outro perfil não vale: o Serviços com "bakery" roda só o pacote do próprio perfil (EXE-02).
+        BusinessProfileSeeds.PackagesFor([BusinessProfileCatalog.Services], ["bakery"]).Should().Equal(BusinessProfileSeeds.ProjectsServices);
     }
 
     [Fact]

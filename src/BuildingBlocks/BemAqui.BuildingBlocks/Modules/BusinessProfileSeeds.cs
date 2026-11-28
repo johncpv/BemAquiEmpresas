@@ -28,6 +28,9 @@ public static class BusinessProfileSeeds
     /// <summary>Unidades do segmento de alimentação (Inventory).</summary>
     public const string InventoryFood = "inventory.food";
 
+    /// <summary>Modelos de etapas do projeto de serviço da proposta §6 (Commercial, EXE-02), com os marcos sugeridos.</summary>
+    public const string ProjectsServices = "projects.services";
+
     /// <summary>Segmentos de alimentação (PRD do PDV, seção 3.3: os que terão restaurante e KDS na Fase 15).</summary>
     public static readonly IReadOnlySet<string> FoodSegments = new HashSet<string>(StringComparer.Ordinal) { "bakery", "restaurant", "snack_bar", "food_truck" };
 
@@ -36,7 +39,7 @@ public static class BusinessProfileSeeds
     {
         [BusinessProfileCatalog.Factory] = [],
         [BusinessProfileCatalog.Retail] = [PartiesRetail, FinanceRetail, InventoryRetail, IdentityRetail, CatalogRetail, PosRetail],
-        [BusinessProfileCatalog.Services] = [], // Fase 14
+        [BusinessProfileCatalog.Services] = [ProjectsServices],
         [BusinessProfileCatalog.Ecommerce] = [], // Fase 17
     };
 

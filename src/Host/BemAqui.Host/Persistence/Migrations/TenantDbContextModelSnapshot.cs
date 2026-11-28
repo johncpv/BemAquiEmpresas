@@ -3434,6 +3434,177 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("quote_milestones", "commercial");
                 });
 
+            modelBuilder.Entity("BemAqui.Commercial.Domain.StageTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_default");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("integer")
+                        .HasColumnName("revision");
+
+                    b.Property<string>("SeedKey")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("seed_key");
+
+                    b.Property<string>("Segment")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("segment");
+
+                    b.Property<string>("SuggestedMilestones")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("suggested_milestones");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_stage_templates");
+
+                    b.HasIndex("SeedKey")
+                        .IsUnique()
+                        .HasDatabaseName("ux_stage_templates_seed_key")
+                        .HasFilter("seed_key IS NOT NULL");
+
+                    b.ToTable("stage_templates", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.StageTemplateItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("template_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_stage_template_items");
+
+                    b.HasIndex("ItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_stage_template_items_item");
+
+                    b.HasIndex("TemplateId")
+                        .HasDatabaseName("ix_stage_template_items_template_id");
+
+                    b.ToTable("stage_template_items", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.StageTemplateStep", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Checklist")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("checklist");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(1)
+                        .HasColumnType("character(1)")
+                        .HasColumnName("code")
+                        .IsFixedLength();
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid?>("PositionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("position_id");
+
+                    b.Property<bool>("RequiresApproval")
+                        .HasColumnType("boolean")
+                        .HasColumnName("requires_approval");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("role");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<decimal>("StandardHoursPerUnit")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("standard_hours_per_unit");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("template_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_stage_template_steps");
+
+                    b.HasIndex("PositionId")
+                        .HasDatabaseName("ix_stage_template_steps_position_id");
+
+                    b.HasIndex("TemplateId", "Sequence")
+                        .HasDatabaseName("ix_stage_template_steps_template_id_sequence");
+
+                    b.ToTable("stage_template_steps", "commercial");
+                });
+
             modelBuilder.Entity("BemAqui.Engineering.Domain.Bom", b =>
                 {
                     b.Property<Guid>("Id")
@@ -22119,6 +22290,26 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_quote_milestones_quotes_quote_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.StageTemplateItem", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.StageTemplate", null)
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_stage_template_items_stage_templates_template_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.StageTemplateStep", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.StageTemplate", null)
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_stage_template_steps_stage_templates_template_id");
                 });
 
             modelBuilder.Entity("BemAqui.Engineering.Domain.BomLine", b =>
