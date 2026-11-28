@@ -263,7 +263,8 @@ const myPayslipsRoute = createRoute({ getParentRoute: () => appRoute, path: 'meu
 // "Meu ponto" (RH-01a, ADR 0035): do funcionário, sem ação no grupo; o mesmo painel do /fab/ponto, mais "Minhas marcações".
 const myTimeClockRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'meu-ponto', component: MyTimeClockPage, validateSearch: (s: Record<string, unknown>): { aba?: string } => ({ aba: text(s.aba) }) })
 // Telas reais de módulo: mesmas regras do menu (ModuleGate) e rota própria por aba (FND-09b CA 8).
-const gated = (code: string, Page: () => React.ReactNode) => () => <ModuleGate code={code}><Page /></ModuleGate>
+// part: aba do menu a que a tela pertence, para o módulo aberto em parte pelo recurso do perfil (EXE-RH).
+const gated = (code: string, Page: () => React.ReactNode, part?: string) => () => <ModuleGate code={code} part={part}><Page /></ModuleGate>
 const accessRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos', beforeLoad: () => { throw redirect({ to: '/app/acessos/usuarios' }) } })
 const usersRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos/usuarios', component: gated('identity', UsersPage) })
 const groupsRoute = createRoute({ getParentRoute: () => appRoute, path: 'acessos/grupos', component: gated('identity', GroupsPage), validateSearch: (s: Record<string, unknown>): { grupo?: string } => ({ grupo: text(s.grupo) }) })
@@ -465,10 +466,10 @@ const tagRoute = createRoute({
 })
 // RH (CAD-04a e CAD-04b): funcionários, cargos, jornadas e sindicatos.
 const hrRootRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh', beforeLoad: () => { throw redirect({ to: '/app/rh/funcionarios' }) } })
-const employeesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/funcionarios', component: gated('hr', EmployeesPage) })
-const newEmployeeRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'rh/funcionarios/novo', component: gated('hr', NewEmployeePage) })
-const employeeRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/funcionarios/$id', component: gated('hr', EmployeePage) })
-const positionsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/cargos', component: gated('hr', PositionsPage) })
+const employeesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/funcionarios', component: gated('hr', EmployeesPage, 'funcionarios') })
+const newEmployeeRoute = createRoute({ getParentRoute: () => appRoute, staticData: FORM, path: 'rh/funcionarios/novo', component: gated('hr', NewEmployeePage, 'funcionarios') })
+const employeeRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/funcionarios/$id', component: gated('hr', EmployeePage, 'funcionarios') })
+const positionsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/cargos', component: gated('hr', PositionsPage, 'cargos') })
 const schedulesRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/jornadas', component: gated('hr', SchedulesPage) })
 const unionsRoute = createRoute({ getParentRoute: () => appRoute, path: 'rh/sindicatos', component: gated('hr', UnionsPage) })
 // Ponto (RH-01a): marcações por dia, com o período, o funcionário e o centro na URL (?de, ?ate, ?funcionario, ?centro).

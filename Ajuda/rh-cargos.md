@@ -4,6 +4,7 @@ rota: /app/rh/cargos
 aba: cargos
 padrao: true
 modulo: hr
+recurso: hr.people_registry
 ---
 
 ## Para que serve
@@ -14,6 +15,12 @@ Cadastrar os cargos da empresa e saber quanto custa cada hora trabalhada, já co
 - Clique em **Salvar cargo**.
 - Em **Faixa salarial**, informe o salário mínimo e o máximo. O salário de referência vem como a média da faixa, e a prévia mostra o custo-hora. Clique em **Salvar faixa salarial**.
 - Para usar um custo-hora diferente, informe o valor e clique em **Ajustar custo-hora**. **Voltar ao calculado** retoma a fórmula.
+
+## Para empresas de serviço sem folha
+Sem o RH completo no plano, a empresa de serviço tem só Cargos e Funcionários, para as horas da equipe virarem custo no projeto. A jornada não aparece: informe as horas mensais no cargo.
+- O custo-hora nasce de um dos dois jeitos: pela **Faixa salarial** (o salário de referência × (1 + % de encargos) ÷ horas mensais, para quem pode ver dados sensíveis) ou em **Ajustar custo-hora**, com o valor da hora digitado (quem edita o RH).
+- O % de encargos fica em **Configurações → Parâmetros**, seção Encargos.
+- Cargo sem salário de referência e sem valor ajustado aparece com o selo **Sem custo-hora** na lista. Defina o custo antes de lançar horas nesse cargo.
 
 ## Imprimir e exportar
 - **Exportar → Excel (.xlsx)**, na barra da lista, baixa os cargos com a busca e o filtro de inativos da tela: nome, CBO, centro padrão, jornada, horas no mês, salário base, custo-hora, funcionários e situação.

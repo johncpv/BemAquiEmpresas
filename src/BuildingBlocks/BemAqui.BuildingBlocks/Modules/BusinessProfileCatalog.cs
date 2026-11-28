@@ -87,7 +87,28 @@ public static class BusinessProfileCatalog
         [OperationUsersFeature] = [Retail],
         [StockShortfallsFeature] = [Retail, Services, Ecommerce],
         [ServiceExecutionFeature] = [Services],
+        [PeopleRegistryFeature] = [Services],
     };
+
+    /// <summary>
+    /// Cadastro de pessoas do RH (EXE-RH, adendo de 27/11/2026 da ADR 0046): com o módulo <c>hr</c> fora do plano, o perfil Serviços tem só
+    /// Cargos, Funcionários (cadastro mínimo e desligamento) e o parâmetro de encargos, para o custo-hora do cargo. Ponto, folha, férias,
+    /// afastamentos e o resto do RH continuam não liberados. A fábrica fica fora: o RH dela vem do plano. Nada é gravado em <c>tenant_modules</c>.
+    /// </summary>
+    public const string PeopleRegistryFeature = "hr.people_registry";
+
+    /// <summary>
+    /// Recursos que abrem parte de um módulo não liberado (regra "módulo liberado OU recurso", EXE-RH): recurso → módulo. Os demais recursos
+    /// valem só dentro do módulo liberado (regra "módulo liberado E recurso").
+    /// </summary>
+    public static IReadOnlyDictionary<string, string> PartialModuleFeatures { get; } = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        [PeopleRegistryFeature] = "hr",
+    };
+
+    /// <summary>O recurso abre parte do módulo quando ele não está liberado (<see cref="PartialModuleFeatures"/>).</summary>
+    public static bool OpensModule(string feature, string moduleCode) =>
+        PartialModuleFeatures.TryGetValue(feature, out var module) && string.Equals(module, moduleCode, StringComparison.Ordinal);
 
     /// <summary>
     /// Caixas da loja na lista de aparelhos de Configurações → Segurança (PDV-01): coluna Tipo, filtro por loja e a ajuda deles. Só o Comércio;

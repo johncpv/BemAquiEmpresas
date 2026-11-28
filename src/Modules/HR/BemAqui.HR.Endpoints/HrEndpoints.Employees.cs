@@ -11,8 +11,11 @@ namespace BemAqui.HR.Endpoints;
 
 internal static partial class HrEndpoints
 {
-    /// <summary>Funcionários (CAD-04b). Os comandos sensíveis conferem hr.view_sensitive no serviço; o vínculo confere identity.edit.</summary>
-    private static void MapEmployees(RouteGroupBuilder employees)
+    /// <summary>
+    /// Funcionários (CAD-04b). Os comandos sensíveis conferem hr.view_sensitive no serviço; o vínculo confere identity.edit. <c>employees</c>:
+    /// o cadastro mínimo, aberto também pelo recurso hr.people_registry (EXE-RH); <c>full</c>: reajuste e afastamentos, só com o módulo.
+    /// </summary>
+    private static void MapEmployees(RouteGroupBuilder employees, RouteGroupBuilder full)
     {
         employees.MapGet(string.Empty, async (string? q, EmployeeStatus? status, Guid? positionId, Guid? workCenterId, int? page, int? pageSize, string? sort, EmployeeService service, CancellationToken ct) =>
                 Results.Ok(await service.ListAsync(new EmployeeListQuery(q, status, positionId, workCenterId), new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize, sort).Normalize(), ct)))
@@ -34,7 +37,7 @@ internal static partial class HrEndpoints
             .RequirePermission("hr.edit").WithName("UpdateEmployee").Produces<EmployeeDetail>();
         employees.MapPut("/{id:guid}/personal", async (Guid id, EmployeePersonalInput input, EmployeeService service, CancellationToken ct) => (await service.UpdatePersonalAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("UpdateEmployeePersonal").Produces<EmployeeDetail>();
-        employees.MapPost("/{id:guid}/salary", async (Guid id, SalaryChangeInput input, EmployeeService service, CancellationToken ct) => (await service.ChangeSalaryAsync(id, input, ct)).ToHttpResult())
+        full.MapPost("/{id:guid}/salary", async (Guid id, SalaryChangeInput input, EmployeeService service, CancellationToken ct) => (await service.ChangeSalaryAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("ChangeEmployeeSalary").Produces<EmployeeDetail>();
         employees.MapPost("/{id:guid}/position", async (Guid id, PositionChangeInput input, EmployeeService service, CancellationToken ct) => (await service.ChangePositionAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("ChangeEmployeePosition").Produces<EmployeeDetail>();
@@ -44,17 +47,17 @@ internal static partial class HrEndpoints
         employees.MapGet("/invitable", async (EmployeeService service, CancellationToken ct) => (await service.InvitableAsync(ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("ListInvitableEmployees").Produces<IReadOnlyList<InvitableEmployee>>();
         // Afastamentos (CAD-04c1): registrar exige hr.edit e, no serviço, hr.view_sensitive; tipo, datas e motivo só pela rota /sensitive.
-        employees.MapPost("/{id:guid}/leaves", async (Guid id, LeaveInput input, EmployeeService service, CancellationToken ct) => (await service.RegisterLeaveAsync(id, input, ct)).ToHttpResult())
+        full.MapPost("/{id:guid}/leaves", async (Guid id, LeaveInput input, EmployeeService service, CancellationToken ct) => (await service.RegisterLeaveAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("RegisterEmployeeLeave").Produces<EmployeeDetail>();
-        employees.MapGet("/{id:guid}/leaves/sensitive", async (Guid id, EmployeeService service, CancellationToken ct) => (await service.LeavesAsync(id, ct)).ToHttpResult())
+        full.MapGet("/{id:guid}/leaves/sensitive", async (Guid id, EmployeeService service, CancellationToken ct) => (await service.LeavesAsync(id, ct)).ToHttpResult())
             .RequirePermission("hr.view_sensitive").WithName("ListEmployeeLeavesSensitive").Produces<IReadOnlyList<LeaveDetail>>();
         // CAD-04c1b: editar, encerrar antes e cancelar seguem o registro (hr.edit e, no serviço, hr.view_sensitive; tipo de saúde
         // com hr.view_health). O afastamento precisa ser do funcionário da rota.
-        employees.MapPut("/{id:guid}/leaves/{leaveId:guid}", async (Guid id, Guid leaveId, LeaveInput input, EmployeeService service, CancellationToken ct) => (await service.UpdateLeaveAsync(id, leaveId, input, ct)).ToHttpResult())
+        full.MapPut("/{id:guid}/leaves/{leaveId:guid}", async (Guid id, Guid leaveId, LeaveInput input, EmployeeService service, CancellationToken ct) => (await service.UpdateLeaveAsync(id, leaveId, input, ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("UpdateEmployeeLeave").Produces<EmployeeDetail>();
-        employees.MapPost("/{id:guid}/leaves/{leaveId:guid}/end", async (Guid id, Guid leaveId, LeaveEndInput input, EmployeeService service, CancellationToken ct) => (await service.EndLeaveAsync(id, leaveId, input, ct)).ToHttpResult())
+        full.MapPost("/{id:guid}/leaves/{leaveId:guid}/end", async (Guid id, Guid leaveId, LeaveEndInput input, EmployeeService service, CancellationToken ct) => (await service.EndLeaveAsync(id, leaveId, input, ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("EndEmployeeLeave").Produces<EmployeeDetail>();
-        employees.MapPost("/{id:guid}/leaves/{leaveId:guid}/cancel", async (Guid id, Guid leaveId, LeaveCancelInput input, EmployeeService service, CancellationToken ct) => (await service.CancelLeaveAsync(id, leaveId, input, ct)).ToHttpResult())
+        full.MapPost("/{id:guid}/leaves/{leaveId:guid}/cancel", async (Guid id, Guid leaveId, LeaveCancelInput input, EmployeeService service, CancellationToken ct) => (await service.CancelLeaveAsync(id, leaveId, input, ct)).ToHttpResult())
             .RequirePermission("hr.edit").WithName("CancelEmployeeLeave").Produces<EmployeeDetail>();
         employees.MapDelete("/{id:guid}", async (Guid id, EmployeeService service, CancellationToken ct) => (await service.DeleteAsync(id, ct)).ToHttpResult())
             .RequirePermission("hr.delete").WithName("DeleteEmployee");

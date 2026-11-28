@@ -30,6 +30,16 @@ public sealed record ResolvedTenant(TenantInfo Tenant, string LegalName, string?
     public bool HasFeature(string feature) => Modules.BusinessProfileCatalog.HasFeature(Profiles, feature);
 
     /// <summary>
+    /// Módulo não liberado com parte aberta por um recurso do perfil (EXE-RH: Cargos e Funcionários do RH no perfil Serviços). Só as rotas com
+    /// <c>RequireModuleOrProfileFeature</c> respondem; o resto do módulo continua 403 <c>module_not_released</c>.
+    /// </summary>
+    public bool IsPartiallyReleased(string moduleCode) =>
+        !IsReleased(moduleCode) && Modules.BusinessProfileCatalog.PartialModuleFeatures.Any(f => f.Value == moduleCode && HasFeature(f.Key));
+
+    /// <summary>Liberado ou com parte aberta pelo recurso: as ações do módulo entram na permissão efetiva e no editor de grupos.</summary>
+    public bool IsAccessible(string moduleCode) => IsReleased(moduleCode) || IsPartiallyReleased(moduleCode);
+
+    /// <summary>
     /// Vocabulário dos perfis do tenant (PERF-03, ADR 0046 §6), só com o que difere do padrão: a fábrica recebe vazio. Vem de
     /// <c>tenant_profiles</c>, então troca de perfil chega pelo mesmo NOTIFY que recarrega o tenant.
     /// </summary>

@@ -17,7 +17,7 @@ namespace BemAqui.HR.Endpoints;
 /// </summary>
 internal static partial class HrEndpoints
 {
-    private static void MapHrExports(RouteGroupBuilder hr, RouteGroupBuilder employees, RouteGroupBuilder runs)
+    private static void MapHrExports(RouteGroupBuilder hr, RouteGroupBuilder people, RouteGroupBuilder employees, RouteGroupBuilder runs)
     {
         employees.MapGet("/export", (string? format, string? q, EmployeeStatus? status, Guid? positionId, Guid? workCenterId, string? sort, HttpContext http, HrExportService service,
                 ListExportService export, CancellationToken ct) =>
@@ -32,7 +32,7 @@ internal static partial class HrEndpoints
         hr.MapGet("/timesheets/export", (string? format, string? period, HttpContext http, HrExportService service, ListExportService export, CancellationToken ct) =>
                 export.ExportAsync(http, format, (_, c) => service.TimesheetsAsync(period, c), ct))
             .RequirePermission("hr.view").WithName("ExportTimesheetOverview");
-        hr.MapGet("/positions/export", (string? format, string? q, bool? includeInactive, string? sort, HttpContext http, HrExportService service, ListExportService export,
+        people.MapGet("/positions/export", (string? format, string? q, bool? includeInactive, string? sort, HttpContext http, HrExportService service, ListExportService export,
                 CancellationToken ct) => export.ExportAsync(http, format, (max, c) => service.PositionsAsync(new PositionListQuery(q, includeInactive == true), sort, max, c), ct))
             .RequirePermission("hr.view").WithName("ExportPositions");
 

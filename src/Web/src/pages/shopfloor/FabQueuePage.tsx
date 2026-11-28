@@ -132,7 +132,7 @@ function CreatePinOffer() {
 function TimeClockEntry() {
   const { all } = useNavigation()
   const hr = all.find((m) => m.code === 'hr')
-  if (!hr || hr.locked) return null
+  if (!hr || hr.locked || hr.partial) return null
   return (
     <Link to="/fab/ponto" data-floor-target="" className="flex min-h-[56px] items-center justify-between gap-2 rounded-md border-2 border-primary bg-card px-4 text-[18px] font-semibold">
       <span className="inline-flex items-center gap-2"><Clock aria-hidden="true" className="size-6" />Meu ponto</span>

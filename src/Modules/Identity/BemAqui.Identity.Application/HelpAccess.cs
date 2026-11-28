@@ -75,7 +75,12 @@ public sealed class HelpAccess(HelpCatalog catalog, IPermissionService permissio
             return null;
         }
 
-        if (tenant.Resolved?.IsReleased(module) != true || ModuleCatalog.Find(module) is null || (document.Feature is { } feature && tenant.Resolved?.HasFeature(feature) != true))
+        // EXE-RH: o recurso que abre parte do módulo (hr.people_registry) vale como "módulo liberado OU recurso"; os demais, como
+        // "módulo liberado E recurso" (adendo da PAG-01).
+        var resolved = tenant.Resolved;
+        var opens = document.Feature is { } partial && BusinessProfileCatalog.OpensModule(partial, module);
+        var moduleOpen = resolved?.IsReleased(module) == true || (opens && resolved!.HasFeature(document.Feature!));
+        if (!moduleOpen || ModuleCatalog.Find(module) is null || (!opens && document.Feature is { } feature && resolved?.HasFeature(feature) != true))
         {
             return Error.Forbidden(Error.Codes.ModuleNotReleased, "Funcionalidade não liberada nessa versão do sistema.");
         }

@@ -9,7 +9,7 @@ import { CboInput, DecimalInput } from '@/components/form/inputs'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { SidePanel } from '@/components/ui/side-panel'
 import { notifySuccess } from '@/components/ui/messages'
-import { useCan } from '@/pages/use-can'
+import { useCan, usePartial } from '@/pages/use-can'
 import { DICAS } from './hr'
 import { PositionActions } from './PositionActions'
 import { PositionCost, PositionMissingCosts } from './PositionCost'
@@ -21,7 +21,9 @@ const toDraft = (p: PositionDetail | null): Draft => ({ name: p?.name ?? '', cbo
 
 /** Painel do cargo (CAD-04a CA 1 a 9): dados gerais, custo-hora (calculado ou ajustado), a faixa salarial protegida e o atalho para cadastrar funcionário (CAD-04b). */
 export function PositionPanel({ position, chargesPct, onClose, onSaved }: { position: PositionDetail | null; chargesPct: number; onClose: () => void; onSaved: () => void }) {
-  const schedules = useListSchedules()
+  // EXE-RH: só com o cadastro de pessoas (sem o RH no plano), a jornada não aparece: as horas mensais são digitadas.
+  const partial = usePartial('hr')
+  const schedules = useListSchedules({ query: { enabled: !partial } })
   const centers = useListPositionWorkCenters()
   const [current, setCurrent] = useState(position)
   const [draft, setDraft] = useState(() => toDraft(position))
@@ -82,14 +84,14 @@ export function PositionPanel({ position, chargesPct, onClose, onSaved }: { posi
             )}
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Jornada" error={field('workScheduleId')}>
+            {partial ? null : <Field label="Jornada" error={field('workScheduleId')}>
               {(p) => (
                 <select {...p} value={draft.scheduleId} onChange={(e) => pickSchedule(e.target.value)} className={inputClass}>
                   <option value="">Nenhuma</option>
                   {(schedules.data ?? []).filter((s) => s.isActive || s.id === draft.scheduleId).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               )}
-            </Field>
+            </Field>}
             <Field label="Horas mensais" error={field('monthlyHours')} dica={DICAS.horas}>{(p) => <DecimalInput {...p} scale={2} suffix="h" value={draft.monthlyHours} onChange={(monthlyHours) => setDraft({ ...draft, monthlyHours })} />}</Field>
           </div>
         </fieldset>

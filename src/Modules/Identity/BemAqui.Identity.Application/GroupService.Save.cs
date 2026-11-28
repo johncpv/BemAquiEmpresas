@@ -141,7 +141,7 @@ public sealed partial class GroupService
         var changedModules = after.Concat(before).Select(p => p[..p.IndexOf('.', StringComparison.Ordinal)])
             .Where(m => after.Where(p => p.StartsWith(m + ".", StringComparison.Ordinal)).ToHashSet().SetEquals(before.Where(p => p.StartsWith(m + ".", StringComparison.Ordinal))) == false)
             .Distinct();
-        var notReleased = changedModules.FirstOrDefault(m => tenant.Resolved?.IsReleased(m) != true);
+        var notReleased = changedModules.FirstOrDefault(m => tenant.Resolved?.IsAccessible(m) != true);
         if (notReleased is not null)
         {
             return Error.Validation("module_not_released", "Módulo não liberado nesta versão: " + ModuleCatalog.Find(notReleased)!.Name + ".");

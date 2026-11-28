@@ -5694,432 +5694,6 @@
         }
       }
     },
-    "/api/v1/hr/positions": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "ListPositions",
-        "parameters": [
-          {
-            "name": "q",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "includeInactive",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PagedListOfPositionDetail"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "CreatePosition",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PositionInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PositionDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/positions/summary": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "GetPositionsSummary",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PositionSummary"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/positions/work-centers": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "ListPositionWorkCenters",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/WorkCenterChoice"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/positions/{id}": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "GetPosition",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PositionDetail"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "UpdatePosition",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PositionInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PositionDetail"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "DeletePosition",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/v1/hr/positions/{id}/sensitive": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "GetPositionSalary",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PositionSalaryDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/positions/{id}/salary": {
-      "put": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "UpdatePositionSalary",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PositionSalaryInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PositionDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/positions/{id}/hourly-cost": {
-      "put": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "SetPositionHourlyCost",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/HourlyCostInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PositionDetail"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "ResetPositionHourlyCost",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PositionDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/positions/{id}/inactivate": {
-      "post": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "InactivatePosition",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PositionDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/positions/{id}/reactivate": {
-      "post": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "ReactivatePosition",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PositionDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/hr/schedules": {
       "get": {
         "tags": [
@@ -6472,360 +6046,6 @@
         }
       }
     },
-    "/api/v1/hr/employees": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "ListEmployees",
-        "parameters": [
-          {
-            "name": "q",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "schema": {
-              "$ref": "#/components/schemas/EmployeeStatus"
-            }
-          },
-          {
-            "name": "positionId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "workCenterId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PagedListOfEmployeeDetail"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "CreateEmployee",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EmployeeCreateInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmployeeCreated"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/employees/linkable-users": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "ListLinkableUsers",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/LinkableUser"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/employees/cep/{cep}": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "LookupEmployeeCep",
-        "parameters": [
-          {
-            "name": "cep",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AddressData"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/employees/{id}": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "GetEmployee",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmployeeDetail"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "UpdateEmployee",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EmployeeGeneralInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmployeeDetail"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "DeleteEmployee",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/v1/hr/employees/{id}/sensitive": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "GetEmployeeSensitive",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmployeeSensitiveDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/employees/{id}/timeline": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "GetEmployeeTimeline",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TimelineEntry"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/employees/{id}/personal": {
-      "put": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "UpdateEmployeePersonal",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EmployeePersonalInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmployeeDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/hr/employees/{id}/salary": {
       "post": {
         "tags": [
@@ -6860,140 +6080,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EmployeeDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/employees/{id}/position": {
-      "post": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "ChangeEmployeePosition",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PositionChangeInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmployeeDetail"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/employees/{id}/termination": {
-      "post": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "TerminateEmployee",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TerminationInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmployeeTerminationDone"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "GetEmployeeTermination",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TerminationView"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/employees/invitable": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "ListInvitableEmployees",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/InvitableEmployee"
-                  }
                 }
               }
             }
@@ -7222,98 +6308,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/employees/{id}/user": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "GetEmployeeUser",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LinkedUserView"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "LinkEmployeeUser",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserLinkInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LinkableUser"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "UnlinkEmployeeUser",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
           }
         }
       }
@@ -8514,6 +7508,76 @@
         }
       }
     },
+    "/api/v1/hr/employees/{id}/termination": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployeeTermination",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminationView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "TerminateEmployee",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TerminationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeTerminationDone"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/employees/{id}/termination/simulate": {
       "post": {
         "tags": [
@@ -8592,65 +7656,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/employees/export": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "ExportEmployees",
-        "parameters": [
-          {
-            "name": "format",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "schema": {
-              "$ref": "#/components/schemas/EmployeeStatus"
-            }
-          },
-          {
-            "name": "positionId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "workCenterId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
           }
         }
       }
@@ -11449,49 +10454,6 @@
         }
       }
     },
-    "/api/v1/hr/positions/export": {
-      "get": {
-        "tags": [
-          "RH"
-        ],
-        "operationId": "ExportPositions",
-        "parameters": [
-          {
-            "name": "format",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "includeInactive",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/api/v1/hr/time-adjustments": {
       "get": {
         "tags": [
@@ -12091,6 +11053,1044 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/positions": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListPositions",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfPositionDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CreatePosition",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PositionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/positions/summary": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPositionsSummary",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/positions/work-centers": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListPositionWorkCenters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkCenterChoice"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/positions/{id}": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPosition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "UpdatePosition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PositionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DeletePosition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/positions/{id}/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetPositionSalary",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionSalaryDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/positions/{id}/salary": {
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "UpdatePositionSalary",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PositionSalaryInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/positions/{id}/hourly-cost": {
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "SetPositionHourlyCost",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HourlyCostInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ResetPositionHourlyCost",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/positions/{id}/inactivate": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "InactivatePosition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/positions/{id}/reactivate": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ReactivatePosition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListEmployees",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/EmployeeStatus"
+            }
+          },
+          {
+            "name": "positionId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfEmployeeDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "CreateEmployee",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeCreateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeCreated"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/linkable-users": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListLinkableUsers",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LinkableUser"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/cep/{cep}": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "LookupEmployeeCep",
+        "parameters": [
+          {
+            "name": "cep",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddressData"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployee",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "UpdateEmployee",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeGeneralInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "DeleteEmployee",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/sensitive": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployeeSensitive",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeSensitiveDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/timeline": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployeeTimeline",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TimelineEntry"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/personal": {
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "UpdateEmployeePersonal",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeePersonalInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/position": {
+      "post": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ChangeEmployeePosition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PositionChangeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/invitable": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ListInvitableEmployees",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InvitableEmployee"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/{id}/user": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "GetEmployeeUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkedUserView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "LinkEmployeeUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLinkInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkableUser"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "UnlinkEmployeeUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employees/export": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ExportEmployees",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/EmployeeStatus"
+            }
+          },
+          {
+            "name": "positionId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "workCenterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/positions/export": {
+      "get": {
+        "tags": [
+          "RH"
+        ],
+        "operationId": "ExportPositions",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -79194,6 +79194,10 @@
           },
           "hidden": {
             "type": "boolean"
+          },
+          "partial": {
+            "type": "boolean",
+            "default": false
           }
         }
       },

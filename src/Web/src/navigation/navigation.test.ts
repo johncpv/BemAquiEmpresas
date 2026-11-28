@@ -91,6 +91,31 @@ describe('área Loja e rótulo de área por perfil (PERF-03)', () => {
   })
 })
 
+describe('cadastro de pessoas do RH no perfil Serviços (EXE-RH)', () => {
+  const hr = (partial: boolean, released = false) =>
+    buildNavigation([{ ...m('hr', 'Pessoas', released, true), actions: ['view', 'create', 'edit'], partial }], false, ['services'])
+
+  it('com só o recurso, Pessoas mostra o RH sem cadeado e só com Funcionários e Cargos (menu e busca)', () => {
+    const nav = hr(true)
+    const people = nav.areas.find((a) => a.id === 'people')!.modules
+    expect(people.map((x) => x.code)).toEqual(['hr'])
+    expect(people[0].locked).toBe(false)
+    expect(people[0].partial).toBe(true)
+    expect(people[0].tabs.map((t) => t.slug)).toEqual(['funcionarios', 'cargos'])
+  })
+
+  it('sem o recurso e sem o RH no plano, o RH fica com cadeado; com o RH no plano, todas as abas (Konebras)', () => {
+    expect(hr(false).all[0].locked).toBe(true)
+    const full = hr(false, true).all[0]
+    expect(full.partial).toBe(false)
+    expect(full.tabs.map((t) => t.slug)).toEqual(expect.arrayContaining(['funcionarios', 'cargos', 'ponto', 'folha', 'ferias', 'jornadas']))
+  })
+
+  it('o RH liberado pelo plano ignora a marca parcial (o plano vale mais que o recurso)', () => {
+    expect(hr(true, true).all[0].tabs.length).toBeGreaterThan(2)
+  })
+})
+
 describe('recurso por perfil dentro do Financeiro (PAG-01, decisão do PO de 17/11/2026)', () => {
   const tabs = (profiles: string[]) => buildNavigation([m('finance', 'Financeiro', true, true)], false, profiles).all[0].tabs.map((t) => t.slug)
 

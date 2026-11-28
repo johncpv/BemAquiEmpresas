@@ -63,7 +63,7 @@ export function MyTimeClockPage() {
   const [showMine, setShowMine] = useState(false)
   const [request, setRequest] = useState<{ mode: AdjustmentMode; target?: VoidTarget } | null>(null)
   if (status === 'loading') return null
-  if (hr?.locked) return <ModuleNotReleased module={hr} />
+  if (hr?.locked || hr?.partial) return <ModuleNotReleased module={hr} />
   return (
     <>
       <PageHeading title="Meu ponto" description={

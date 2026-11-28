@@ -4,6 +4,7 @@ rota: /app/rh/funcionarios/novo
 aba: novo
 padrao: true
 modulo: hr
+recurso: hr.people_registry
 ---
 
 ## Para que serve

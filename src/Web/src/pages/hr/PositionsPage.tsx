@@ -11,6 +11,7 @@ import { Money } from '@/components/ui/money'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Can } from '@/pages/ModuleGate'
 import { PageHeading } from '@/shell/PageHeading'
+import { hasHourlyCost } from './hr'
 import { PositionPanel } from './PositionPanel'
 
 const cbo = (c: string | null) => (c ? `${c.slice(0, 4)}-${c.slice(4)}` : '—')
@@ -44,7 +45,9 @@ export function PositionsPage() {
     { id: 'center', header: 'Centro padrão', meta: { secondary: true }, cell: ({ row: { original: p } }) => p.defaultWorkCenterName ?? '—' },
     {
       id: 'cost', header: 'Custo-hora', meta: { numeric: true, sortField: 'hourlyCost' }, cell: ({ row: { original: p } }) => (
-        <span className="inline-flex items-center gap-1.5"><Money value={p.hourlyCost} />{p.hourlyCostManual ? <StatusChip tone="warn">Ajustado</StatusChip> : null}</span>
+        // EXE-RH CA 4: sem salário de referência nem valor ajustado, o cargo não tem custo-hora e as horas lançadas nele ficariam sem custo.
+        hasHourlyCost(p) ? <span className="inline-flex items-center gap-1.5"><Money value={p.hourlyCost} />{p.hourlyCostManual ? <StatusChip tone="warn">Ajustado</StatusChip> : null}</span>
+          : <StatusChip tone="warn">Sem custo-hora</StatusChip>
       ),
     },
     { id: 'employees', header: 'Funcionários', meta: { numeric: true, secondary: true }, cell: ({ row: { original: p } }) => <span className="tabular-nums">{p.activeEmployees}</span> },

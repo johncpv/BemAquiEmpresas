@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDateTime } from '@/lib/format'
-import { useCan } from '@/pages/use-can'
+import { useCan, usePartial } from '@/pages/use-can'
 
 const PENDING = 'A confirmar com a contadora'
 const PENDING_DICA = 'Valor sugerido pelo sistema. Confira com a contadora e clique em "Marcar como conferido". Se o valor mudar depois, volta para "A confirmar".'
@@ -42,7 +42,9 @@ const suffix = (i: HrParameterItem) => (i.kind === 'Percent' ? '%' : i.key === '
  * aparece com hr.view, salva com settings.edit, com o histórico de cada valor.
  */
 export function HrParametersSection({ canEdit }: { canEdit: boolean }) {
-  const canSee = useCan('hr.view')
+  // EXE-RH: só com o cadastro de pessoas (sem o RH no plano), os parâmetros da folha não aparecem; o % de encargos fica na seção Encargos.
+  const partial = usePartial('hr')
+  const canSee = useCan('hr.view') && !partial
   const query = useGetHrParameters({ query: { enabled: canSee } })
   if (!canSee) return null
   if (query.isPending) return <Skeleton className="h-48" />

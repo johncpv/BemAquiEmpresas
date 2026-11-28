@@ -7,6 +7,7 @@ import { inputClass } from '@/components/form/form-utils'
 import { DateInput } from '@/components/form/inputs'
 import { UnsavedChangesGuard } from '@/components/form/UnsavedChangesGuard'
 import { FormLayout } from '@/components/layout/form-layout'
+import { usePartial } from '@/pages/use-can'
 import { notifySuccess } from '@/components/ui/messages'
 import { EMPLOYEE_DICAS } from './employee'
 import { EmployeePayslips } from './EmployeePayslips'
@@ -14,8 +15,10 @@ import { EmployeeUser } from './EmployeeUser'
 
 /** Dados gerais (CA 7 e 10): só campos não sensíveis; o cargo muda pela ação "Trocar cargo". */
 export function EmployeeGeneral({ employee, canEdit, onSaved, linking, onLinkingChange }: { employee: EmployeeDetail; canEdit: boolean; onSaved: (e: EmployeeDetail) => void; linking?: boolean; onLinkingChange?: (o: boolean) => void }) {
-  const schedules = useListSchedules()
-  const unions = useListUnions()
+  // EXE-RH: só com o cadastro de pessoas (sem o RH no plano), jornada, sindicato e holerites não aparecem nem são pedidos.
+  const partial = usePartial('hr')
+  const schedules = useListSchedules({ query: { enabled: !partial } })
+  const unions = useListUnions({ query: { enabled: !partial } })
   const initial = { name: employee.name, registration: employee.registration ?? '', workScheduleId: employee.workScheduleId ?? '', unionId: employee.unionId ?? '', admissionDate: employee.admissionDate }
   const [draft, setDraft] = useState(initial)
   const [error, setError] = useState<{ message: string; fields: Record<string, string[]> } | null>(null)
@@ -55,6 +58,7 @@ export function EmployeeGeneral({ employee, canEdit, onSaved, linking, onLinking
           <FormSection title="Contrato" description={`Cargo: ${employee.positionName}${employee.workCenterName ? ` · Centro: ${employee.workCenterName}` : ''}. Para mudar o cargo, use "Trocar cargo".`} grid="form">
             {/* Admissão 3 · Jornada 4 · Sindicato 4 */}
             <Field label="Admissão" required size="sm" error={field('admissionDate')}>{(p) => <DateInput {...p} value={draft.admissionDate} onChange={(admissionDate) => set({ admissionDate })} />}</Field>
+            {partial ? null : <>
             <Field label="Jornada" size="md" error={field('workScheduleId')}>
               {(p) => (
                 <select {...p} value={draft.workScheduleId} onChange={(e) => set({ workScheduleId: e.target.value })} className={inputClass}>
@@ -71,6 +75,7 @@ export function EmployeeGeneral({ employee, canEdit, onSaved, linking, onLinking
                 </select>
               )}
             </Field>
+            </>}
           </FormSection>
           {canEdit ? (
             <FormActions sticky dirty={dirty}>
@@ -80,7 +85,7 @@ export function EmployeeGeneral({ employee, canEdit, onSaved, linking, onLinking
         </fieldset>
       </form>
       <EmployeeUser employee={employee} linking={linking} onLinkingChange={onLinkingChange} />
-      <EmployeePayslips employee={employee} />
+      {partial ? null : <EmployeePayslips employee={employee} />}
       </div>
     </FormLayout>
   )

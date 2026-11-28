@@ -5,7 +5,7 @@ import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatDateTime, formatMoney } from '@/lib/format'
-import { useCan } from '@/pages/use-can'
+import { useCan, usePartial } from '@/pages/use-can'
 import { EMPLOYEE_DICAS, LEAVE_STATE_LABELS, LEAVE_STATE_TONES, LEAVE_TYPE_LABELS, type LeaveType, leaveActions, leaveTitle } from './employee'
 import { CancelLeaveDialog, EndLeaveDialog, LeaveDialog } from './EmployeeDialogs'
 import { EmployeeProtected } from './EmployeeProtected'
@@ -21,12 +21,16 @@ const period = (start: string, end: string) => `${formatDate(start)} a ${formatD
  */
 export function EmployeeTimeline({ employee, onChanged, onReload }: { employee: EmployeeDetail; onChanged: (e: EmployeeDetail) => void; onReload: () => Promise<unknown> }) {
   const canSensitive = useCan('hr.view_sensitive')
+  // EXE-RH: só com o cadastro de pessoas (sem o RH no plano), os afastamentos não aparecem nem são pedidos.
+  const partial = usePartial('hr')
   return (
     <div className="max-w-4xl space-y-6">
-      <section aria-labelledby="afastamentos" className="space-y-3">
-        <h2 id="afastamentos" className="text-base font-semibold">Afastamentos</h2>
-        {canSensitive ? <EmployeeLeaves employee={employee} onChanged={onChanged} onReload={onReload} /> : <EmployeeProtected />}
-      </section>
+      {partial ? null : (
+        <section aria-labelledby="afastamentos" className="space-y-3">
+          <h2 id="afastamentos" className="text-base font-semibold">Afastamentos</h2>
+          {canSensitive ? <EmployeeLeaves employee={employee} onChanged={onChanged} onReload={onReload} /> : <EmployeeProtected />}
+        </section>
+      )}
       <section aria-labelledby="carreira" className="space-y-3">
         <h2 id="carreira" className="text-base font-semibold">Cargo e salário</h2>
         <CareerTimeline id={employee.id} canSensitive={canSensitive} />

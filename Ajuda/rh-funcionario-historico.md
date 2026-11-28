@@ -4,6 +4,7 @@ rota: /app/rh/funcionarios/$id
 aba: historico
 padrao: false
 modulo: hr
+recurso: hr.people_registry
 ---
 
 ## Para que serve
