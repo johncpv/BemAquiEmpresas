@@ -33,6 +33,9 @@ public interface ICommercialDb
     /// <summary>Edições diretas do custo orçado (COM-09): só inclusão.</summary>
     DbSet<ProjectBudgetRevision> ProjectBudgetRevisions { get; }
 
+    /// <summary>Aceites do cliente no projeto de serviço (EXE-01a): só inclusão; o desfazer marca a linha.</summary>
+    DbSet<ProjectAcceptance> ProjectAcceptances { get; }
+
     DbSet<ProjectCost> ProjectCosts { get; }
 
     /// <summary>Previsão de entrega do projeto (PLN-01b), escrita só pelo consumidor do <c>ProjectForecastChanged</c>.</summary>

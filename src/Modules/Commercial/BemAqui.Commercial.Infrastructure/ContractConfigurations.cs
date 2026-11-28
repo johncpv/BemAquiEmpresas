@@ -50,6 +50,32 @@ internal sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
         b.HasIndex(e => e.Number).IsUnique();
         b.HasIndex(e => e.ContractId);
         b.HasIndex(e => e.PartyId);
+        // EXE-01a CA 1: tipo e origem com padrão no banco (projetos anteriores à migration ficam Fabrication + Default até o ajuste automático).
+        b.Property(e => e.ExecutionKind).HasConversion<string>().HasMaxLength(12).HasDefaultValue(ExecutionKind.Fabrication).HasSentinel(ExecutionKind.Fabrication);
+        b.Property(e => e.ExecutionKindSource).HasConversion<string>().HasMaxLength(12).HasDefaultValue(ExecutionKindSource.Default).HasSentinel(ExecutionKindSource.Default);
+        b.HasIndex(e => e.ExecutionKindSource).HasFilter("execution_kind_source = 'Default'").HasDatabaseName("ix_projects_execution_kind_source_default");
+    }
+}
+
+/// <summary>
+/// Aceite do cliente (EXE-01a): único por (projeto, versão) e um só vigente por projeto (índice parcial). Só inclusão; o desfazer marca a linha.
+/// </summary>
+internal sealed class ProjectAcceptanceConfiguration : IEntityTypeConfiguration<ProjectAcceptance>
+{
+    public const string ActiveIndex = "ix_project_acceptances_project_id_active";
+
+    public void Configure(EntityTypeBuilder<ProjectAcceptance> b)
+    {
+        b.ToTable("project_acceptances", CommercialSchema.Name);
+        b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(16);
+        b.Property(e => e.AcceptedByName).HasMaxLength(ProjectAcceptance.NameMaxLength);
+        b.Property(e => e.AcceptedByRole).HasMaxLength(ProjectAcceptance.RoleMaxLength);
+        b.Property(e => e.BackdateReason).HasMaxLength(ProjectAcceptance.ReasonMaxLength);
+        b.Property(e => e.RevertReason).HasMaxLength(ProjectAcceptance.ReasonMaxLength);
+        b.Ignore(e => e.IsActive);
+        b.HasOne<Project>().WithMany().HasForeignKey(e => e.ProjectId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(e => new { e.ProjectId, e.Version }).IsUnique();
+        b.HasIndex(e => e.ProjectId).IsUnique().HasFilter("reverted_at IS NULL").HasDatabaseName(ActiveIndex);
     }
 }
 

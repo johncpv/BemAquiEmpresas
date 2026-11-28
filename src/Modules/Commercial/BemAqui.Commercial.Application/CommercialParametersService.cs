@@ -13,6 +13,15 @@ public sealed class CommercialParametersService(ICommercialDb db, ITenantParamet
     public const string DefaultPct = "pricing.default_pct";
     public const string ValidityDays = "quotes.validity_days";
 
+    /// <summary>EXE-01a CA 14: segregação entre quem registra a entrega e quem registra o aceite (1 ligada; ausente ou 0, desligada).</summary>
+    public const string AcceptanceSegregation = "projects.acceptance_segregation";
+
+    /// <summary>EXE-01a CA 5: marca por tenant do ajuste automático do tipo do projeto; presente, o job termina sem ler nada.</summary>
+    public const string ExecutionKindBackfillDone = "backfill.execution_kind_done";
+
+    public async Task<bool> AcceptanceSegregationAsync(CancellationToken cancellationToken = default) =>
+        await db.CommercialParameters.AsNoTracking().Where(p => p.Key == AcceptanceSegregation).Select(p => p.Value).FirstOrDefaultAsync(cancellationToken) is > 0m;
+
     public async Task<int> ValidityDaysAsync(CancellationToken cancellationToken = default) =>
         (int)(await db.CommercialParameters.AsNoTracking().Where(p => p.Key == ValidityDays).Select(p => p.Value).FirstOrDefaultAsync(cancellationToken) ?? 15m);
 
@@ -20,7 +29,8 @@ public sealed class CommercialParametersService(ICommercialDb db, ITenantParamet
         await db.CommercialParameters.AsNoTracking().Where(p => p.Key == DefaultPct).Select(p => p.Value).FirstOrDefaultAsync(cancellationToken);
 
     public async Task<CommercialParametersView> GetAsync(CancellationToken cancellationToken = default) =>
-        new(await DefaultPricingPctAsync(cancellationToken), (await tenantParameters.PricingModeAsync(cancellationToken)).ToString(), await ValidityDaysAsync(cancellationToken));
+        new(await DefaultPricingPctAsync(cancellationToken), (await tenantParameters.PricingModeAsync(cancellationToken)).ToString(), await ValidityDaysAsync(cancellationToken),
+            await AcceptanceSegregationAsync(cancellationToken));
 
     public async Task<Result<CommercialParametersView>> UpdateAsync(CommercialParametersInput input, CancellationToken cancellationToken = default)
     {
@@ -46,6 +56,11 @@ public sealed class CommercialParametersService(ICommercialDb db, ITenantParamet
         }
 
         await SetAsync(ValidityDays, input.ValidityDays, cancellationToken);
+        if (input.AcceptanceSegregation is { } segregation)
+        {
+            await SetAsync(AcceptanceSegregation, segregation ? 1m : 0m, cancellationToken);
+        }
+
         var parameter = await db.CommercialParameters.FirstOrDefaultAsync(p => p.Key == DefaultPct, cancellationToken);
         if (parameter is null)
         {

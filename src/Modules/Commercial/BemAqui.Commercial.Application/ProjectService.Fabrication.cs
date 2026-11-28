@@ -11,6 +11,9 @@ public sealed partial class ProjectService
 {
     public const string PastFabricationMessage = "O projeto já passou da fabricação.";
 
+    /// <summary>EXE-01a: "Projeto de serviço não tem fabricação." (409 <c>not_a_fabrication_project</c> e motivo do estorno da OS).</summary>
+    public const string NotAFabricationMessage = "Projeto de serviço não tem fabricação.";
+
     /// <summary>"A parcela {marco} já foi recebida. Fale com o Financeiro antes de estornar." (PRD-06a1 CA 11, ponto 83).</summary>
     public static string ReceivedMessage(string milestone) => $"A parcela {milestone} já foi recebida. Fale com o Financeiro antes de estornar.";
 
@@ -28,6 +31,12 @@ public sealed partial class ProjectService
         if (project is null)
         {
             return null;
+        }
+
+        // EXE-01a: projeto de serviço não tem fabricação nem parcela de fabricação a mostrar.
+        if (project.ExecutionKind == ExecutionKind.Service)
+        {
+            return new ProjectFabricationInfo(project.Id, project.Number, project.Status.ToString(), project.FabricatedOn, false, [], NotAFabricationMessage);
         }
 
         var milestones = await FabricationMilestonesAsync(project.ContractId, cancellationToken);

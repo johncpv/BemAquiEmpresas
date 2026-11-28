@@ -86,6 +86,7 @@ public static class BusinessProfileCatalog
         [PosDevicesFeature] = [Retail],
         [OperationUsersFeature] = [Retail],
         [StockShortfallsFeature] = [Retail, Services, Ecommerce],
+        [ServiceExecutionFeature] = [Services],
     };
 
     /// <summary>
@@ -102,6 +103,12 @@ public static class BusinessProfileCatalog
 
     /// <summary>Estoque → Divergências (PDV-05): faltas de saldo das vendas do caixa. Só os perfis que vendem; a fábrica (Konebras) não tem a tela nem a API.</summary>
     public const string StockShortfallsFeature = "inventory.stock_shortfalls";
+
+    /// <summary>
+    /// Projeto de serviço (EXE-01a, adendo de 27/11/2026 da ADR 0046): tipo Serviço, início, entrega e aceite do cliente separados. Só o perfil
+    /// Serviços; a fábrica (Konebras) não vê nada.
+    /// </summary>
+    public const string ServiceExecutionFeature = "projects.service_execution";
 
     public static bool HasFeature(IEnumerable<string> profiles, string feature)
     {

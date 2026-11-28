@@ -50,6 +50,9 @@ public static class CommercialInfrastructure
         services.TryAddScoped<BemAqui.Commercial.Application.Documents.ProjectSummaryDocumentService>();
         // EST-03 CA 11: recomposição do custo de material das saídas com projeto anteriores ao consumidor (D3).
         services.TryAddScoped<MaterialCostBackfill>();
+        // EXE-01a: projeto de serviço (iniciar, entregar, aceite do cliente) e o ajuste automático do tipo dos projetos anteriores (CA 5).
+        services.TryAddScoped<ProjectExecutionService>();
+        services.TryAddScoped<ExecutionKindBackfill>();
         services.TryAddScoped<AmendmentService>();
         // Minha pauta (DSH-04): aditivo aguardando aprovação (projects) e orçamentos vencendo (quotes).
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, ProjectsAgendaSource>());
@@ -70,6 +73,7 @@ public static class CommercialInfrastructure
         services.AddAuditableEntity<ContractMilestone>("projects");
         services.AddAuditableEntity<Project>("projects");
         services.AddAuditableEntity<ProjectItem>("projects");
+        services.AddAuditableEntity<ProjectAcceptance>("projects");
         services.AddAuditableEntity<ProjectBudget>("projects", "view_cost");
         services.AddAuditableEntity<ProjectBudgetRevision>("projects", "view_cost");
         services.AddAuditableEntity<ContractAmendment>("projects");
@@ -85,6 +89,11 @@ public static class CommercialInfrastructure
         services.AddAttachmentOwner(ProjectService.AttachmentOwner, new AttachmentOwnerRules("projects", ["application/pdf", "image/png", "image/jpeg"], 25 * 1024 * 1024,
             OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<ICommercialDb>().Projects.AnyAsync(p => p.Id == id, ct),
             ReadAction: "view", WriteAction: "edit"));
+
+        // Termo de aceite do cliente (EXE-01a CA 13 e 25): PDF ou imagem até 25 MB; enviar exige a ação própria register_acceptance.
+        services.AddAttachmentOwner(ProjectExecutionService.AcceptanceAttachmentOwner, new AttachmentOwnerRules("projects", ["application/pdf", "image/png", "image/jpeg"], 25 * 1024 * 1024,
+            OwnerExists: async (sp, id, ct) => await sp.GetRequiredService<ICommercialDb>().Projects.AnyAsync(p => p.Id == id && p.ExecutionKind == ExecutionKind.Service, ct),
+            ReadAction: "view", WriteAction: "register_acceptance"));
         return services;
     }
 }

@@ -12,9 +12,44 @@ namespace BemAqui.Commercial.Application;
 /// passa a concluído e o projeto a encerrado, no último dos dois eventos; o estorno de uma baixa reabre os dois.
 /// </summary>
 public sealed class ContractCompletionConsumer(ICommercialDb db, IReceivables receivables, AuditOrigin origin, TimeProvider clock)
-    : IIntegrationEventConsumer<ReceivableSettled>, IIntegrationEventConsumer<ProjectDelivered>
+    : IIntegrationEventConsumer<ReceivableSettled>, IIntegrationEventConsumer<ProjectDelivered>, IIntegrationEventConsumer<TechnicalAcceptance>,
+        IIntegrationEventConsumer<TechnicalAcceptanceReverted>
 {
     public const string ReopenReason = "Baixa estornada";
+
+    /// <summary>EXE-01a CA 21: motivo da reabertura quando o aceite é desfeito com o contrato já concluído (corrida).</summary>
+    public const string AcceptanceRevertedReason = "Aceite desfeito";
+
+    /// <summary>EXE-01a CA 20: o aceite do cliente pode ser o último passo que faltava.</summary>
+    public Task HandleAsync(TechnicalAcceptance integrationEvent, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(integrationEvent);
+        return TryCompleteAsync(integrationEvent.ProjectId, cancellationToken);
+    }
+
+    /// <summary>EXE-01a CA 21: aceite desfeito com o contrato concluído na corrida reabre contrato e projeto.</summary>
+    public async Task HandleAsync(TechnicalAcceptanceReverted integrationEvent, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(integrationEvent);
+        var project = await db.Projects.FirstOrDefaultAsync(p => p.Id == integrationEvent.ProjectId, cancellationToken);
+        if (project is null || project.ContractId != integrationEvent.ContractId || project.AcceptedOn is not null)
+        {
+            return;
+        }
+
+        var contract = await db.Contracts.FirstAsync(c => c.Id == project.ContractId, cancellationToken);
+        if (contract.Status != ContractStatus.Completed)
+        {
+            return;
+        }
+
+        origin.Label = AcceptanceRevertedReason + (origin.Label is null ? string.Empty : " · " + origin.Label);
+        contract.Status = ContractStatus.Active;
+        contract.CompletedAt = null;
+        project.Status = ProjectStatus.Delivered;
+        project.ClosedAt = null;
+        await db.SaveChangesAsync(cancellationToken);
+    }
 
     public async Task HandleAsync(ReceivableSettled integrationEvent, CancellationToken cancellationToken)
     {
@@ -51,6 +86,20 @@ public sealed class ContractCompletionConsumer(ICommercialDb db, IReceivables re
         if (contract.Status != ContractStatus.Active)
         {
             return;
+        }
+
+        // EXE-01a CA 20: projeto de serviço com marco de aceite só conclui com aceite vigente.
+        if (project.AcceptedOn is null && project.ExecutionKind == ExecutionKind.Service)
+        {
+            var triggers = await db.ContractMilestones.Where(m => m.ContractId == contract.Id).Select(m => m.TriggerEvent).ToListAsync(ct);
+            var amended = await (from m in db.ContractAmendmentMilestones
+                                 join a in db.ContractAmendments on m.AmendmentId equals a.Id
+                                 where a.ContractId == contract.Id && a.Status == AmendmentStatus.Approved
+                                 select m.TriggerEvent).ToListAsync(ct);
+            if (CompletionRules.RequiresAcceptance(project.ExecutionKind, triggers.Concat(amended)))
+            {
+                return;
+            }
         }
 
         // Marco recebido antes da implantação conta como quitado (COM-04c CA 5); os demais precisam do título pago ou cancelado.

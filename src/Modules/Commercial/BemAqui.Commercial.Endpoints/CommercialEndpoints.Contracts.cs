@@ -78,8 +78,27 @@ internal static partial class CommercialEndpoints
             .RequirePermission("projects.view_cost").WithName("ListProjectBudgetRevisions").Produces<IReadOnlyList<ProjectBudgetRevisionView>>();
         projects.MapPost("/{id:guid}/fabrication", async (Guid id, ProjectEventInput input, ProjectService service, CancellationToken ct) => (await service.RegisterFabricationAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("projects.edit").WithName("RegisterProjectFabrication").Produces<ProjectDetail>();
-        projects.MapPost("/{id:guid}/delivery", async (Guid id, ProjectEventInput input, ProjectService service, CancellationToken ct) => (await service.RegisterDeliveryAsync(id, input, ct)).ToHttpResult())
-            .RequirePermission("projects.approve").WithName("RegisterProjectDelivery").Produces<ProjectDetail>();
+        // EXE-01a CA 11 e 23: o corpo novo vale para o serviço; o antigo (date, version) segue no projeto de fabricação. Idempotency-Key obrigatória.
+        projects.MapPost("/{id:guid}/delivery", async (Guid id, ProjectDeliveryInput input, ProjectExecutionService service, CancellationToken ct) => (await service.RegisterDeliveryAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("projects.approve").RequireIdempotencyKey().WithName("RegisterProjectDelivery").Produces<ProjectDetail>();
+        MapServiceExecution(projects);
+    }
+
+    /// <summary>
+    /// Projeto de serviço (EXE-01a CA 10, 13, 15, 22 e 23): iniciar, registrar e desfazer o aceite do cliente, só com o recurso por perfil
+    /// <c>projects.service_execution</c> (403 <c>module_not_released</c> fora dele) e com <c>Idempotency-Key</c>. Desfazer exige o mesmo que registrar.
+    /// </summary>
+    private static void MapServiceExecution(RouteGroupBuilder projects)
+    {
+        var service = projects.MapGroup(string.Empty).RequireProfileFeature("projects", BemAqui.BuildingBlocks.Modules.BusinessProfileCatalog.ServiceExecutionFeature);
+        service.MapPost("/{id:guid}/start", async (Guid id, ProjectStartInput input, ProjectExecutionService execution, CancellationToken ct) => (await execution.StartAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("projects.edit").RequireIdempotencyKey().WithName("StartProject").Produces<ProjectDetail>();
+        service.MapPost("/{id:guid}/acceptance", async (Guid id, ProjectAcceptanceInput input, ProjectExecutionService execution, CancellationToken ct) =>
+                (await execution.RegisterAcceptanceAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("projects.register_acceptance").RequireIdempotencyKey().WithName("RegisterProjectAcceptance").Produces<ProjectDetail>();
+        service.MapPost("/{id:guid}/acceptance/revert", async (Guid id, ProjectAcceptanceRevertInput input, ProjectExecutionService execution, CancellationToken ct) =>
+                (await execution.RevertAcceptanceAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("projects.register_acceptance").RequireIdempotencyKey().WithName("RevertProjectAcceptance").Produces<ProjectDetail>();
     }
 }
 

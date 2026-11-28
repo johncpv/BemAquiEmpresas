@@ -10,7 +10,9 @@ namespace BemAqui.Commercial.Application;
 /// em que o contato é o contato), só número, tipo, situação e data, sem o conteúdo comercial; e os envios do orçamento por e-mail
 /// (<c>commercial.quote_dispatches</c>) a ele, com o destinatário de outras pessoas mascarado.
 /// </summary>
-[PersonalDataCovers(typeof(QuoteDispatch))]
+/// EXE-01a: nome e papel de quem aceitou o serviço (<c>commercial.project_acceptances</c>), pelo nome completo do titular; na anonimização, o nome vira o
+/// marcador e o aceite continua válido (execução do contrato, LGPD art. 7º V).
+[PersonalDataCovers(typeof(QuoteDispatch), typeof(ProjectAcceptance))]
 public sealed class CommercialPersonalDataProvider(ICommercialDb db) : IPersonalDataProvider
 {
     public string Module => "commercial";
@@ -52,10 +54,16 @@ public sealed class CommercialPersonalDataProvider(ICommercialDb db) : IPersonal
                 ("Enviado em", PersonalDataMask.At(r.CreatedAt)))));
         }
 
+        var acceptances = (await AcceptancesOf(context.Subject).AsNoTracking()
+                .Join(db.Projects.AsNoTracking(), a => a.ProjectId, p => p.Id, (a, p) => new { p.Number, a.OccurredOn, a.AcceptedByRole, a.RecordedAt })
+                .OrderBy(x => x.RecordedAt).ToListAsync(cancellationToken))
+            .Select(x => PersonalDataRecord.Of(x.RecordedAt, ("Projeto", x.Number), ("Aceite em", x.OccurredOn.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)),
+                ("Papel", x.AcceptedByRole ?? "—"))).ToList();
         return new PersonalDataSection(Module, Title,
         [
             new PersonalDataBlock("Documentos em que aparece", "commercial.quotes, commercial.contracts, commercial.projects", documents),
             new PersonalDataBlock("Orçamentos enviados por e-mail", "commercial.quote_dispatches", dispatches),
+            new PersonalDataBlock("Aceites de serviço registrados em seu nome", "commercial.project_acceptances", acceptances),
         ]);
     }
 
@@ -124,8 +132,38 @@ public sealed class CommercialPersonalDataProvider(ICommercialDb db) : IPersonal
             await db.SaveChangesAsync(ct);
         }
 
+        // EXE-01a: o nome de quem aceitou vira o marcador e o papel some; o aceite continua valendo.
+        var acceptances = await AcceptancesOf(subject).ToListAsync(ct);
+        if (apply && !decision.Retained && acceptances.Count > 0)
+        {
+            foreach (var a in acceptances)
+            {
+                a.AcceptedByName = context.Marker;
+                a.AcceptedByRole = null;
+            }
+
+            await db.SaveChangesAsync(ct);
+        }
+
+        plan.Fields(decision, "Nome de quem aceitou o serviço", "commercial.project_acceptances", acceptances.Count);
         var built = plan.Fields(decision, "Destinatário dos orçamentos enviados por e-mail", "commercial.quote_dispatches", dispatches.Count).Build();
         return built.Items.Count == 0 ? null : built;
+    }
+
+    /// <summary>Aceites com o nome completo do titular; para o terceiro, só nos projetos dele.</summary>
+    private IQueryable<ProjectAcceptance> AcceptancesOf(PersonalDataSubject subject)
+    {
+        var name = subject.Name?.Trim();
+        if (string.IsNullOrEmpty(name) || !name.Contains(' ', StringComparison.Ordinal) || PersonalDataMarker.IsMarker(name))
+        {
+            return db.ProjectAcceptances.Where(_ => false);
+        }
+
+        var exact = PersonalDataQuery.Exact(name);
+        var rows = db.ProjectAcceptances.Where(a => a.AcceptedByName != null && EF.Functions.ILike(a.AcceptedByName, exact));
+        return subject.Kind == PersonalDataSubjectKind.Party && subject.PartyId is { } party
+            ? rows.Where(a => db.Projects.Any(p => p.Id == a.ProjectId && p.PartyId == party))
+            : rows;
     }
 
     private static PersonalDataRecord Document(string kind, string number, string status, DateTimeOffset at) =>

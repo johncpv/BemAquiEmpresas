@@ -24,6 +24,12 @@ public sealed partial class InstallationOrderService
             return Error.NotFound("project_not_found", "Projeto não encontrado.");
         }
 
+        // EXE-01a: projeto de serviço não tem OS de instalação (a entrega e o aceite são registrados no projeto).
+        if (project.IsService)
+        {
+            return Error.Conflict("not_an_installation_project", "Projeto de serviço não tem instalação. Registre a entrega e o aceite no projeto.");
+        }
+
         if (!OpenProjectStatuses.Contains(project.Status))
         {
             return Error.Conflict("project_not_open", "Só projeto planejado, em produção, fabricado ou em instalação recebe OS de instalação.");

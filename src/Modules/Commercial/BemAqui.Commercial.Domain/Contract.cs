@@ -142,6 +142,23 @@ public sealed class Project : Entity, IAuditable, IConcurrencyVersioned
     public DateTimeOffset CreatedAt { get; init; }
 
     public uint Version { get; set; }
+
+    /// <summary>Tipo do projeto (EXE-01a CA 1 a 4): vale o do projeto, não o do snapshot.</summary>
+    public ExecutionKind ExecutionKind { get; set; } = ExecutionKind.Fabrication;
+
+    public ExecutionKindSource ExecutionKindSource { get; set; } = ExecutionKindSource.Default;
+
+    /// <summary>Início da execução do projeto de serviço (EXE-01a CA 10; vindo de <c>Planned</c> na entrega, a data da entrega).</summary>
+    public DateOnly? StartedOn { get; set; }
+
+    /// <summary>Cópia, para leitura, da data do aceite vigente (<see cref="ProjectAcceptance"/>); nula sem aceite vigente.</summary>
+    public DateOnly? AcceptedOn { get; set; }
+
+    /// <summary>"Fabricação" de compatibilidade publicada na entrega do serviço com marco antigo <c>FabricationDone</c> (EXE-01a CA 12): uma vez só.</summary>
+    public DateOnly? FabricationCompatOn { get; set; }
+
+    /// <summary>Quem registrou a entrega (EXE-01a CA 14: segregação opcional entre entrega e aceite).</summary>
+    public Guid? DeliveredBy { get; set; }
 }
 
 /// <summary>Item do projeto (<c>commercial.project_items</c>): o item do orçamento que a produção vai fabricar (PRD-01).</summary>

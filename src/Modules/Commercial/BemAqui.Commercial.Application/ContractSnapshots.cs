@@ -3,7 +3,8 @@ using BemAqui.Commercial.Domain;
 
 namespace BemAqui.Commercial.Application;
 
-// Snapshot do contrato (COM-04a CA 12), esquema "v1": o cliente só por id e nome; custo só com projects.view_cost.
+// Snapshot do contrato (COM-04a CA 12), esquema "v1": o cliente só por id e nome; custo só com projects.view_cost. EXE-01a CA 3: executionKind
+// (ausente no snapshot antigo = Fabrication na leitura); o que vale é o tipo do projeto (CA 4).
 
 public sealed record SnapshotParty(Guid Id, string Name);
 
@@ -15,7 +16,7 @@ public sealed record SnapshotMilestone(int Sequence, string Description, decimal
 
 public sealed record ContractSnapshot(
     string Schema, string QuoteNumber, int QuoteRevision, SnapshotParty Party, int? DeliveryDays, string? Notes, string PricingMode, IReadOnlyList<SnapshotItem> Items,
-    IReadOnlyList<SnapshotMilestone> Milestones, decimal TotalPrice, decimal? TotalCost, decimal? MarginPct, bool IsOnboarding = false);
+    IReadOnlyList<SnapshotMilestone> Milestones, decimal TotalPrice, decimal? TotalCost, decimal? MarginPct, bool IsOnboarding = false, string ExecutionKind = "Fabrication");
 
 public static class ContractSnapshots
 {
@@ -23,7 +24,7 @@ public static class ContractSnapshots
 
     public static string Serialize(
         Quote quote, string partyName, IReadOnlyList<QuoteItem> items, IReadOnlyList<QuoteItemCost> costs, IReadOnlyList<QuoteMilestone> milestones, bool isOnboarding = false,
-        IReadOnlyDictionary<Guid, OnboardingMilestoneInput>? onboarding = null)
+        IReadOnlyDictionary<Guid, OnboardingMilestoneInput>? onboarding = null, ExecutionKind executionKind = ExecutionKind.Fabrication)
     {
         ArgumentNullException.ThrowIfNull(quote);
         return JsonSerializer.Serialize(new ContractSnapshot(
@@ -32,7 +33,7 @@ public static class ContractSnapshots
                 costs.Where(c => c.QuoteItemId == i.Id).Select(c => new SnapshotCost(c.CostType.ToString(), c.Description, c.ItemId, c.Quantity, c.UnitCost, c.Total)).ToList())).ToList(),
             milestones.Select(m => new SnapshotMilestone(m.Sequence, m.Description, m.Percent, m.Amount, m.Trigger.ToString(), m.TriggerEvent?.ToString(),
                 onboarding?.GetValueOrDefault(m.Id)?.DueDate ?? m.DueDate, m.DaysAfterEvent, onboarding?.GetValueOrDefault(m.Id)?.ReceivedBefore ?? false)).ToList(),
-            quote.TotalPrice, quote.TotalCost, quote.MarginPct, isOnboarding), Json);
+            quote.TotalPrice, quote.TotalCost, quote.MarginPct, isOnboarding, executionKind.ToString()), Json);
     }
 
     /// <summary>Lê o snapshot; sem <c>projects.view_cost</c>, tira composições, custo e margem (D7).</summary>

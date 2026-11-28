@@ -41,6 +41,12 @@ public sealed partial class AmendmentService
             }
 
             milestones = built.Value;
+            // EXE-01a CA 28: marco novo de fabricação em contrato de serviço é recusado; os antigos do contrato continuam (modo Legacy).
+            var kind = await db.Projects.AsNoTracking().Where(p => p.ContractId == contract.Id).Select(p => p.ExecutionKind).FirstOrDefaultAsync(ct);
+            if (MilestoneTriggerPolicy.Validate(kind, milestones.Select(m => (m.TriggerEvent, m.Description)).ToList(), MilestoneValidationMode.Amendment) is { } violation)
+            {
+                return QuoteApprovalService.MilestonePolicyError(violation, withTab: false);
+            }
         }
         else if (input.ValueDelta < 0)
         {

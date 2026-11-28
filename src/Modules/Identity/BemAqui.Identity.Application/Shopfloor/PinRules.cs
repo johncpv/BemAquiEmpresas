@@ -72,7 +72,8 @@ public static class PinProfile
     public static bool IsSensitive(string permission)
     {
         ArgumentNullException.ThrowIfNull(permission);
-        return permission.EndsWith(".approve", StringComparison.Ordinal) || Reserved.Contains(permission, StringComparer.Ordinal);
+        return permission.EndsWith(".approve", StringComparison.Ordinal) || Reserved.Contains(permission, StringComparer.Ordinal)
+            || BemAqui.BuildingBlocks.Modules.ModuleCatalog.TwoFactorActions.Contains(permission);
     }
 
     /// <summary>As ações que impedem o PIN (para a auditoria); vazio quando o perfil pode usar PIN.</summary>

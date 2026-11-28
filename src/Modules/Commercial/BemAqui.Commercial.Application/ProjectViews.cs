@@ -13,7 +13,8 @@ namespace BemAqui.Commercial.Application;
 /// </summary>
 public sealed record ProjectListRow(
     Guid Id, string Number, string Name, Guid PartyId, string PartyName, ProjectStatus Status, DateOnly? PromisedDate, int? DelayDays, decimal ContractValue, Guid? ManagerUserId,
-    string? ManagerName, Guid ContractId, DateOnly? ForecastDate = null, int? SlackDays = null, DeliveryRisk Risk = DeliveryRisk.None, string? ForecastReason = null);
+    string? ManagerName, Guid ContractId, DateOnly? ForecastDate = null, int? SlackDays = null, DeliveryRisk Risk = DeliveryRisk.None, string? ForecastReason = null,
+    ExecutionKind ExecutionKind = ExecutionKind.Fabrication, ProjectStage? Stage = null);
 
 public sealed record ProjectListPage(IReadOnlyList<ProjectListRow> Items, int Page, int PageSize, int Total);
 

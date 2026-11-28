@@ -17,11 +17,13 @@ public sealed partial class QuoteApprovalService
         var milestones = await db.QuoteMilestones.AsNoTracking().Where(m => m.QuoteId == quote.Id).OrderBy(m => m.Sequence).ToListAsync(ct);
         var party = await parties.FindAsync(quote.PartyId, ct);
         var partyName = party is null ? string.Empty : party.TradeName ?? party.LegalName;
+        // EXE-01a CA 2 e 3: o tipo do projeto pela regra única, recalculado na aprovação.
+        var kind = ExecutionKindRule.For(ServiceExecutionReleased, items.Select(i => i.Kind).ToList());
 
         var contract = new Contract
         {
             Number = await numbers.NextAsync(ContractDocType, ct), QuoteId = quote.Id, PartyId = quote.PartyId, SignedAt = input.SignedAt, TotalValue = quote.TotalPrice,
-            RevenueAccountId = input.RevenueAccountId, Snapshot = ContractSnapshots.Serialize(quote, partyName, items, costs, milestones, input.IsOnboarding, onboarding), CreatedAt = now, CreatedBy = currentUser.UserId,
+            RevenueAccountId = input.RevenueAccountId, Snapshot = ContractSnapshots.Serialize(quote, partyName, items, costs, milestones, input.IsOnboarding, onboarding, kind), CreatedAt = now, CreatedBy = currentUser.UserId,
             IsOnboarding = input.IsOnboarding,
         };
         db.Contracts.Add(contract);
@@ -36,6 +38,7 @@ public sealed partial class QuoteApprovalService
         {
             Number = await numbers.NextAsync(ProjectDocType, ct), ContractId = contract.Id, PartyId = quote.PartyId, Name = projectName, SiteAddressId = quote.SiteAddressId,
             PromisedDate = quote.DeliveryDays is { } days ? input.SignedAt.AddDays(days) : null, ManagerUserId = quote.CreatedBy, CreatedAt = now,
+            ExecutionKind = kind, ExecutionKindSource = ExecutionKindSource.Approval,
         };
         db.Projects.Add(project);
         var projectItems = items.Select(i => new ProjectItem

@@ -12,7 +12,7 @@ public sealed partial class ProjectService
     /// Previsão de entrega dos projetos dados (PLN-01b CA 8 e 9): a linha de <c>project_forecasts</c>, o fim da instalação digitado para quem já
     /// está em <c>Fabricated</c> ou <c>Installing</c> (só esses leem as OS de instalação) e o número da OS do motivo, de uma vez.
     /// </summary>
-    internal async Task<Dictionary<Guid, ProjectForecastView>> ForecastViewsAsync(IReadOnlyCollection<(Guid Id, ProjectStatus Status, DateOnly? Promised)> list, CancellationToken ct)
+    internal async Task<Dictionary<Guid, ProjectForecastView>> ForecastViewsAsync(IReadOnlyCollection<(Guid Id, ProjectStatus Status, DateOnly? Promised, ExecutionKind Kind)> list, CancellationToken ct)
     {
         var ids = list.Select(p => p.Id).Distinct().ToList();
         if (ids.Count == 0)
@@ -22,7 +22,7 @@ public sealed partial class ProjectService
 
         var rows = await db.ProjectForecasts.AsNoTracking().Where(f => ids.Contains(f.ProjectId)).ToDictionaryAsync(f => f.ProjectId, ct);
         // DSH-01b: o fim das OS de instalação em lote (uma consulta), não uma por projeto.
-        var installing = list.Where(p => ProjectDelivery.InstallationPhase(p.Status)).Select(p => p.Id).Distinct().ToList();
+        var installing = list.Where(p => p.Kind == ExecutionKind.Fabrication && ProjectDelivery.InstallationPhase(p.Status)).Select(p => p.Id).Distinct().ToList();
         IReadOnlyDictionary<Guid, DateOnly> installationEnds = installing.Count == 0 ? new Dictionary<Guid, DateOnly>() : await installations.LatestPlannedEndsAsync(installing, ct);
 
         var reasonOrders = rows.Values.Where(r => r.ForecastDate is null && r.ReasonOrderId is not null).Select(r => r.ReasonOrderId!.Value).Distinct().ToList();
@@ -34,14 +34,14 @@ public sealed partial class ProjectService
             var row = rows.GetValueOrDefault(project.Id);
             DateOnly? installationEnd = installationEnds.TryGetValue(project.Id, out var end) ? end : null;
             var number = row?.ReasonOrderId is { } orderId ? numbers.GetValueOrDefault(orderId) : null;
-            result[project.Id] = ProjectDelivery.Assess(project.Status, project.Promised, row, installationEnd, today, number);
+            result[project.Id] = ProjectDelivery.Assess(project.Status, project.Promised, row, installationEnd, today, number, project.Kind);
         }
 
         return result;
     }
 
     async Task<IReadOnlyList<ProjectSummary>> IProjects.PlanningCandidatesAsync(CancellationToken cancellationToken) =>
-        await Summaries(db.Projects.Where(p => (p.Status == ProjectStatus.Planned || p.Status == ProjectStatus.InProgress)
+        await Summaries(db.Projects.Where(p => (p.Status == ProjectStatus.Planned || p.Status == ProjectStatus.InProgress) && p.ExecutionKind == ExecutionKind.Fabrication
             && db.Contracts.Any(c => c.Id == p.ContractId && c.Status != ContractStatus.Cancelled))).ToListAsync(cancellationToken);
 
     async Task<IReadOnlyDictionary<Guid, decimal>> IProjects.BudgetedManyAsync(IReadOnlyCollection<Guid> projectIds, CostType costType, CancellationToken cancellationToken)
@@ -67,16 +67,16 @@ public sealed partial class ProjectService
             .Select(x => new
             {
                 x.Project.Id, x.Project.Number, x.Project.Name, x.Project.PartyId, x.Project.Status, ContractStatus = x.Contract.Status, x.Contract.SignedAt, x.Project.PromisedDate,
-                x.Project.DeliveredOn,
+                x.Project.DeliveredOn, x.Project.ExecutionKind,
                 Contracted = x.Contract.TotalValue + db.ContractAmendments.Where(a => a.ContractId == x.Contract.Id && a.Status == AmendmentStatus.Approved).Sum(a => a.ValueDelta),
             })
             .ToListAsync(cancellationToken);
-        var views = await ForecastViewsAsync([.. rows.Select(r => (r.Id, r.Status, r.PromisedDate))], cancellationToken);
+        var views = await ForecastViewsAsync([.. rows.Select(r => (r.Id, r.Status, r.PromisedDate, r.ExecutionKind))], cancellationToken);
         return rows.Select(r =>
         {
             var v = views[r.Id];
             return new ProjectPortfolioItem(r.Id, r.Number, r.Name, r.PartyId, r.Status.ToString(), r.ContractStatus.ToString(), r.SignedAt, r.Contracted, r.DeliveredOn,
-                new ProjectForecastSummary(r.Id, r.PromisedDate, v.ForecastDate, v.FabricationEnd, v.Reason, v.SlackDays, v.Risk, v.DelayDays, v.ComputedAt));
+                new ProjectForecastSummary(r.Id, r.PromisedDate, v.ForecastDate, v.FabricationEnd, v.Reason, v.SlackDays, v.Risk, v.DelayDays, v.ComputedAt), r.ExecutionKind.ToString());
         }).ToList();
     }
 
@@ -106,8 +106,8 @@ public sealed partial class ProjectService
             return [];
         }
 
-        var projects = await db.Projects.AsNoTracking().Where(p => projectIds.Contains(p.Id)).Select(p => new { p.Id, p.Status, p.PromisedDate }).ToListAsync(cancellationToken);
-        var views = await ForecastViewsAsync([.. projects.Select(p => (p.Id, p.Status, p.PromisedDate))], cancellationToken);
+        var projects = await db.Projects.AsNoTracking().Where(p => projectIds.Contains(p.Id)).Select(p => new { p.Id, p.Status, p.PromisedDate, p.ExecutionKind }).ToListAsync(cancellationToken);
+        var views = await ForecastViewsAsync([.. projects.Select(p => (p.Id, p.Status, p.PromisedDate, p.ExecutionKind))], cancellationToken);
         return projects.Select(p =>
         {
             var v = views[p.Id];

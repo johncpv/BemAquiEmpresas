@@ -1,6 +1,8 @@
 using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Messaging;
+using BemAqui.BuildingBlocks.Modules;
+using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.Commercial.Contracts;
 using BemAqui.Commercial.Domain;
 using BemAqui.Finance.Contracts;
@@ -17,7 +19,7 @@ namespace BemAqui.Commercial.Application;
 public sealed partial class ProjectService(
     ICommercialDb db, IParties parties, IUserDirectory users, IPermissionChecker permissions, IEventPublisher events, IReceivables receivables, IPayables payables,
     BemAqui.Production.Contracts.IInstallationOrders installations, BemAqui.Production.Contracts.IProductionOrders productionOrders, TimeProvider clock,
-    BemAqui.Inventory.Contracts.IStockSerials serials, BemAqui.Production.Contracts.IShipments shipments)
+    BemAqui.Inventory.Contracts.IStockSerials serials, BemAqui.Production.Contracts.IShipments shipments, TenantContextHolder tenant)
     : IProjects, IContracts
 {
     public const string AttachmentOwner = "Project";
@@ -40,14 +42,51 @@ public sealed partial class ProjectService(
         var manager = project.ManagerUserId is { } userId ? await users.DisplayNameAsync(userId, cancellationToken) : null;
         var (fabricationOrders, openFabricationOrders) = await FabricationOrdersAsync(project.Id, cancellationToken);
         // PLN-01b CA 8: "Entrega prevista" lida de commercial.project_forecasts (a coluna projects.forecast_date fica sem uso, ADR 0029).
-        var forecast = (await ForecastViewsAsync([(project.Id, project.Status, project.PromisedDate)], cancellationToken))[project.Id];
+        var forecast = (await ForecastViewsAsync([(project.Id, project.Status, project.PromisedDate, project.ExecutionKind)], cancellationToken))[project.Id];
         // COM-04b CA 10: com instalação, "Registrar entrega" sai da tela e o próximo passo é a OS de instalação.
         var (hasInstallation, _) = await InstallationAsync(project.Id, cancellationToken);
+        // EXE-01a CA 22 e 29: o tipo e a etapa saem sempre; início, aceite e os dados do aceite só com o recurso projects.service_execution.
+        var released = ServiceExecutionReleased;
+        var required = await AcceptanceRequiredAsync(project, cancellationToken);
+        var acceptance = released && project.ExecutionKind == ExecutionKind.Service ? await AcceptanceViewAsync(project.Id, cancellationToken) : null;
+        var stage = ProjectStageMap.For(project.ExecutionKind, project.Status, project.AcceptedOn is not null, required);
         return new ProjectDetail(
             project.Id, project.Number, project.Name, project.Status, project.PartyId, party is null ? string.Empty : party.TradeName ?? party.LegalName, project.ContractId, contractNumber,
             project.SiteAddressId, site is null ? null : $"{site.Street}, {site.Number} — {site.City}/{site.State}", project.PromisedDate, forecast.ForecastDate, project.Priority,
             project.ManagerUserId, manager, project.CreatedAt, items, project.Version, project.FabricatedOn, project.DeliveredOn, project.DeliveredManually, hasFabrication,
-            contract.Status.ToString(), contract.IsOnboarding, project.FabricatedByOrders, fabricationOrders, openFabricationOrders, forecast, hasInstallation);
+            contract.Status.ToString(), contract.IsOnboarding, project.FabricatedByOrders, fabricationOrders, openFabricationOrders, forecast, hasInstallation,
+            project.ExecutionKind, stage, released ? project.StartedOn : null, released ? project.AcceptedOn : null, acceptance, released && required, released);
+    }
+
+    /// <summary>Recurso por perfil do projeto de serviço (adendo de 27/11/2026 da ADR 0046) no tenant do request ou do job.</summary>
+    internal bool ServiceExecutionReleased => tenant.Resolved?.HasFeature(BusinessProfileCatalog.ServiceExecutionFeature) == true;
+
+    /// <summary>Aceite exigido (EXE-01a CA 20): projeto de serviço e contrato (ou aditivo aprovado) com marco "aceite do cliente".</summary>
+    internal async Task<bool> AcceptanceRequiredAsync(Project project, CancellationToken ct) =>
+        project.ExecutionKind == ExecutionKind.Service && CompletionRules.RequiresAcceptance(project.ExecutionKind, await MilestoneTriggersAsync(project.ContractId, ct));
+
+    /// <summary>Gatilhos dos marcos do contrato e dos aditivos aprovados.</summary>
+    internal async Task<IReadOnlyList<TriggerEvent?>> MilestoneTriggersAsync(Guid contractId, CancellationToken ct)
+    {
+        var own = await db.ContractMilestones.AsNoTracking().Where(m => m.ContractId == contractId).Select(m => m.TriggerEvent).ToListAsync(ct);
+        var amended = await (from m in db.ContractAmendmentMilestones.AsNoTracking()
+                             join a in db.ContractAmendments.AsNoTracking() on m.AmendmentId equals a.Id
+                             where a.ContractId == contractId && a.Status == AmendmentStatus.Approved
+                             select m.TriggerEvent).ToListAsync(ct);
+        return [.. own, .. amended];
+    }
+
+    private async Task<ProjectAcceptanceView?> AcceptanceViewAsync(Guid projectId, CancellationToken ct)
+    {
+        var row = await db.ProjectAcceptances.AsNoTracking().Where(a => a.ProjectId == projectId && a.RevertedAt == null).FirstOrDefaultAsync(ct);
+        if (row is null)
+        {
+            return null;
+        }
+
+        var recorder = row.RecordedBy is { } by ? await users.DisplayNameAsync(by, ct) : null;
+        return new ProjectAcceptanceView(row.Id, row.Version, row.Kind, row.OccurredOn, row.RecordedAt, row.RecordedBy, recorder ?? (row.RecordedBy is null ? "Sistema" : null),
+            row.AcceptedByName, row.AcceptedByRole, row.AttachmentId, row.BackdateReason);
     }
 
     public async Task<Result<IReadOnlyList<ProjectBudgetLine>>> BudgetAsync(Guid id, CancellationToken cancellationToken = default)
@@ -95,7 +134,7 @@ public sealed partial class ProjectService(
         // PRD-01 CA 5 e 6 (D14): equipamento ou componente, projeto planejado ou em produção, contrato ativo e não de implantação.
         var items = db.ProjectItems.Where(i =>
             db.QuoteItems.Any(q => q.Id == i.QuoteItemId && q.Kind != QuoteItemKind.Service)
-            && db.Projects.Any(p => p.Id == i.ProjectId && (p.Status == ProjectStatus.Planned || p.Status == ProjectStatus.InProgress)
+            && db.Projects.Any(p => p.Id == i.ProjectId && (p.Status == ProjectStatus.Planned || p.Status == ProjectStatus.InProgress) && p.ExecutionKind == ExecutionKind.Fabrication
                 && db.Contracts.Any(c => c.Id == p.ContractId && c.Status == ContractStatus.Active && !c.IsOnboarding)));
         if (projectId is { } project)
         {
@@ -137,7 +176,7 @@ public sealed partial class ProjectService(
 
     private IQueryable<ProjectSummary> Summaries(IQueryable<Project> projects) =>
         projects.AsNoTracking().Select(p => new ProjectSummary(p.Id, p.Number, p.Name, p.PartyId, p.ContractId, p.Status.ToString(), p.SiteAddressId, p.ManagerUserId, p.PromisedDate,
-            db.Contracts.Where(c => c.Id == p.ContractId).Select(c => (DateOnly?)c.SignedAt).FirstOrDefault()));
+            db.Contracts.Where(c => c.Id == p.ContractId).Select(c => (DateOnly?)c.SignedAt).FirstOrDefault(), p.ExecutionKind.ToString()));
 
     internal static Error NotFound() => Error.NotFound("project_not_found", "Projeto não encontrado.");
 }

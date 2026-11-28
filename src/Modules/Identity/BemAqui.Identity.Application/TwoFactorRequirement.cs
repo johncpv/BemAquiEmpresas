@@ -52,7 +52,7 @@ public sealed class GroupRequiresTwoFactorRule(IIdentityDb db) : ITwoFactorRequi
 
 /// <summary>
 /// Quem aprova ou paga, e o Proprietário, precisa de 2FA (FND-06c CA 12; revisão §2.3): a permissão efetiva inclui
-/// alguma <c>*.approve</c> ou <c>*.pay</c>.
+/// alguma <c>*.approve</c> ou <c>*.pay</c>, ou uma ação da lista <c>ModuleCatalog.TwoFactorActions</c> (EXE-01a CA 26).
 /// </summary>
 public sealed class ApproverRequiresTwoFactorRule(BemAqui.BuildingBlocks.Identity.IPermissionService permissions) : ITwoFactorRequirementRule
 {
@@ -60,6 +60,14 @@ public sealed class ApproverRequiresTwoFactorRule(BemAqui.BuildingBlocks.Identit
     {
         ArgumentNullException.ThrowIfNull(user);
         var effective = await permissions.GetAsync(user.Id, cancellationToken);
-        return effective.IsOwner || effective.Permissions.Any(p => p.EndsWith(".approve", StringComparison.Ordinal) || p.EndsWith(".pay", StringComparison.Ordinal));
+        return effective.IsOwner || effective.Permissions.Any(Requires);
+    }
+
+    /// <summary>Permissão que exige 2FA no login: <c>*.approve</c>, <c>*.pay</c> ou da lista <c>TwoFactorActions</c> do catálogo.</summary>
+    public static bool Requires(string permission)
+    {
+        ArgumentNullException.ThrowIfNull(permission);
+        return permission.EndsWith(".approve", StringComparison.Ordinal) || permission.EndsWith(".pay", StringComparison.Ordinal)
+            || BemAqui.BuildingBlocks.Modules.ModuleCatalog.TwoFactorActions.Contains(permission);
     }
 }
