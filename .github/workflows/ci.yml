@@ -91,6 +91,12 @@ jobs:
             filter: >-
               --filter-namespace "BemAqui.Integration.Tests.Fiscal*"
               --filter-namespace "BemAqui.Integration.Tests.Assets*"
+          # Identity, Tenancy e Pos saíram do "resto" (cerca de 290 testes de integração de 630); o resto segue com unidade, arquitetura e o que sobrar.
+          - name: plataforma
+            filter: >-
+              --filter-namespace "BemAqui.Integration.Tests.Identity*"
+              --filter-namespace "BemAqui.Integration.Tests.Tenancy*"
+              --filter-namespace "BemAqui.Integration.Tests.Pos*"
           - name: resto
             vuln: true
             filter: >-
@@ -105,6 +111,9 @@ jobs:
               --filter-not-namespace "BemAqui.Integration.Tests.HR*"
               --filter-not-namespace "BemAqui.Integration.Tests.Fiscal*"
               --filter-not-namespace "BemAqui.Integration.Tests.Assets*"
+              --filter-not-namespace "BemAqui.Integration.Tests.Identity*"
+              --filter-not-namespace "BemAqui.Integration.Tests.Tenancy*"
+              --filter-not-namespace "BemAqui.Integration.Tests.Pos*"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
