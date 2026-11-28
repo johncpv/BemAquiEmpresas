@@ -1,4 +1,5 @@
 using BemAqui.Commercial.Domain;
+using BemAqui.Inventory.Contracts;
 using BemAqui.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,7 +20,8 @@ public sealed partial class QuoteService
         }
 
         var quote = editable.Value;
-        if (await ItemErrorAsync(input, cancellationToken) is { } error)
+        var check = await CheckItemAsync(input, null, cancellationToken);
+        if (check.Error is { } error)
         {
             return error;
         }
@@ -32,7 +34,7 @@ public sealed partial class QuoteService
 
         var sequence = count == 0 ? 1 : await db.QuoteItems.Where(i => i.QuoteId == quote.Id).MaxAsync(i => i.Sequence, cancellationToken) + 1;
         var item = new QuoteItem { QuoteId = quote.Id, Sequence = sequence };
-        Apply(item, input);
+        Apply(item, input with { Kind = check.Kind });
         db.QuoteItems.Add(item);
         await RecalculateAsync(quote, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
@@ -59,12 +61,13 @@ public sealed partial class QuoteService
             return Error.NotFound("quote_item_not_found", "Item não encontrado neste orçamento.");
         }
 
-        if (await ItemErrorAsync(input, cancellationToken) is { } error)
+        var check = await CheckItemAsync(input, item.ItemId, cancellationToken);
+        if (check.Error is { } error)
         {
             return error;
         }
 
-        Apply(item, input);
+        Apply(item, input with { Kind = check.Kind });
         if (input.ResetPrice || !item.PriceOverridden)
         {
             if (await SuggestAsync(quote, item, item.Pct, cancellationToken) is { } suggestError)
@@ -100,7 +103,36 @@ public sealed partial class QuoteService
         return await DetailAsync(quote, cancellationToken);
     }
 
-    private async Task<Error?> ItemErrorAsync(QuoteItemInput input, CancellationToken ct)
+    /// <summary>
+    /// Valida a linha (CA 7) e o vínculo (PRC-00 CA 5 e 6): o item tem de existir no banco do tenant, ativo e não excluído; o vínculo que a
+    /// linha já tinha (<paramref name="linked"/>) é aceito mesmo inativado. Com item, o tipo da linha sai do tipo do item.
+    /// </summary>
+    private async Task<(Error? Error, QuoteItemKind Kind)> CheckItemAsync(QuoteItemInput input, Guid? linked, CancellationToken ct)
+    {
+        if (FieldError(input) is { } error)
+        {
+            return (error, input.Kind);
+        }
+
+        if (input.ItemId is not { } itemId)
+        {
+            return (null, input.Kind);
+        }
+
+        var found = First(await items.FindAsync([itemId], ct));
+        var accepted = found is not null && (found is { IsActive: true, IsDeleted: false } || itemId == linked);
+        return accepted ? (null, KindFor(found!.Type)) : (Invalid("itemId", "Escolha um item ativo do estoque."), input.Kind);
+    }
+
+    /// <summary>PRC-00 CA 3: Serviço → Serviço, Produto acabado → Equipamento, os demais → Produto.</summary>
+    internal static QuoteItemKind KindFor(ItemType type) => type switch
+    {
+        ItemType.Service => QuoteItemKind.Service,
+        ItemType.Finished => QuoteItemKind.Equipment,
+        _ => QuoteItemKind.Product,
+    };
+
+    private static Error? FieldError(QuoteItemInput input)
     {
         if (string.IsNullOrWhiteSpace(input.Description) || input.Description.Trim().Length > 300)
         {
@@ -117,9 +149,7 @@ public sealed partial class QuoteService
             return Invalid("unitPrice", "O preço não pode ser negativo.");
         }
 
-        return input.ItemId is { } itemId && First(await items.FindAsync([itemId], ct)) is not { IsActive: true, IsDeleted: false }
-            ? Invalid("itemId", "Escolha um item ativo do estoque.")
-            : null;
+        return null;
     }
 
     private static void Apply(QuoteItem item, QuoteItemInput input)

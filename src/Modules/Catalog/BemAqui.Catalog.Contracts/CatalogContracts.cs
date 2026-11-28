@@ -106,6 +106,16 @@ public interface IProductUsageProvider
 }
 
 /// <summary>
+/// Item de estoque pelo código de barras (PRC-00: a busca do orçamento acha o item pelo GTIN do produto). Só leitura, sem preço nem tabela
+/// (o <see cref="ICatalogLookup"/> cria a tabela padrão no primeiro uso; este não grava nada). Só produtos ativos e vendáveis; GTIN que não
+/// existe devolve lista vazia.
+/// </summary>
+public interface IProductBarcodes
+{
+    Task<IReadOnlyList<Guid>> ItemIdsByGtinAsync(string gtin, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
 /// Situação do catálogo para o cartão "Primeiros passos" (PERF-04, passo "Importar produtos"): o passo se conclui pelo dado, quando o
 /// tenant já tem algum produto cadastrado (pela importação da CAT-02 ou à mão).
 /// </summary>

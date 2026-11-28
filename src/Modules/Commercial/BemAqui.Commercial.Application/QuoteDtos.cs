@@ -1,4 +1,5 @@
 using BemAqui.Commercial.Domain;
+using BemAqui.Inventory.Contracts;
 using BemAqui.SharedKernel;
 
 namespace BemAqui.Commercial.Application;
@@ -9,7 +10,7 @@ public sealed record QuoteSummary(Guid Id, string Number, int Revision, QuoteSta
 
 public sealed record QuotePage(IReadOnlyList<QuoteSummary> Items, int Page, int PageSize, int Total);
 
-public sealed record QuoteItemView(Guid Id, int Sequence, QuoteItemKind Kind, Guid? ItemId, string? ItemName, string Description, decimal Quantity, decimal UnitPrice, bool PriceOverridden, decimal Total);
+public sealed record QuoteItemView(Guid Id, int Sequence, QuoteItemKind Kind, Guid? ItemId, string? ItemName, string Description, decimal Quantity, decimal UnitPrice, bool PriceOverridden, decimal Total, string? UnitCode = null);
 
 public sealed record QuoteDetail(
     Guid Id, string Number, int Revision, QuoteStatus Status, Guid PartyId, string PartyName, Guid? ContactId, Guid? SiteAddressId, int? DeliveryDays, string? Notes,
@@ -51,7 +52,11 @@ public sealed record CostRefreshPreview(IReadOnlyList<CostRefreshLine> Lines, de
 
 public sealed record QuotePartyOption(Guid Id, string Name, string? Document);
 
-public sealed record QuoteItemOption(Guid Id, string Code, string Name, string UnitCode);
+/// <summary>
+/// Item do seletor do orçamento (PRC-00): tipo e unidade para a linha nascer certa; <c>AverageCost</c> (custo médio, <c>numeric(18,6)</c>) só
+/// para quem tem <c>quotes.view_cost</c>, nulo para os demais (filtrado no servidor, D7).
+/// </summary>
+public sealed record QuoteItemOption(Guid Id, string Code, string Name, string UnitCode, ItemType Type, decimal? AverageCost);
 
 public sealed record LaborPositionOption(Guid Id, string Name, Guid? DefaultWorkCenterId, decimal HourlyCost);
 

@@ -33,6 +33,7 @@ public static class CatalogInfrastructure
         services.TryAddScoped<ISellableProducts>(sp => sp.GetRequiredService<CatalogReadContract>());
         services.TryAddScoped<ICatalogLookup>(sp => sp.GetRequiredService<CatalogReadContract>());
         services.TryAddScoped<ICatalogStatus>(sp => sp.GetRequiredService<CatalogReadContract>());
+        services.TryAddScoped<IProductBarcodes>(sp => sp.GetRequiredService<CatalogReadContract>()); // PRC-00: GTIN na busca do orçamento
         services.TryAddScoped<IPriceLists, PriceListsContract>(); // PDV-01: a tabela padrão da loja
         services.TryAddScoped<IPosCatalogFeed, PosCatalogFeed>(); // OFF-01: fonte do modelo de leitura do caixa
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IItemUsageProvider, CatalogItemUsage>());

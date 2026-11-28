@@ -104068,7 +104068,9 @@
           "id",
           "code",
           "name",
-          "unitCode"
+          "unitCode",
+          "type",
+          "averageCost"
         ],
         "type": "object",
         "properties": {
@@ -104084,6 +104086,16 @@
           },
           "unitCode": {
             "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ItemType"
+          },
+          "averageCost": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -104143,6 +104155,12 @@
           "total": {
             "type": "number",
             "format": "double"
+          },
+          "unitCode": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
