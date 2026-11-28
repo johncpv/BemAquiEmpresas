@@ -59,6 +59,8 @@ Não há chave para copiar e colar. A conexão pode ser desfeita dos dois lados 
 | Atualizar a etapa do negócio (Deal) no CRM conforme o pedido anda | Automação | Eventos | Funil do CRM |
 | Para fábrica (Konebras): status do projeto e 2ª via de boleto | Atendente e agente de IA | `projects.view`, `finance.view` | Painel |
 
+**Descadastro (decisão do PO de 28/11/2026):** o cliente que responde SAIR para de receber a **categoria da última mensagem automática** (avisos do pedido ou novidades e ofertas; sem mensagem recente, tudo), e VOLTAR religa tudo, sem criar o aceite dos avisos. O Conecta não tinha detector de SAIR; só o bloqueio manual `Contact.IsBlocked`, que a ATD-05a estende numa porta única de envio automático em vez de criar um segundo mecanismo (hub de soluções: um padrão só).
+
 **Agente de IA:** trocar o padrão de texto `[PEDIDO]...[/PEDIDO]` lido por regex por **ferramentas (function calling)**: `buscar_produto`, `ver_estoque`, `criar_pedido`, `status_pedido` e `segunda_via`. A IA **sugere, mas não decide**: um pedido criado pela IA entra como "aguardando confirmação do cliente", e o efeito financeiro e de estoque só vale com o pagamento. O Yampi da Curamedic migra para esse padrão quando fizer sentido.
 
 ### 3.4 Bônus: o WhatsApp do ERP sai pelo Atende

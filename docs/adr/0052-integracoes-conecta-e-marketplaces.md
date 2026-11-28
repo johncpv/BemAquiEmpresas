@@ -27,3 +27,7 @@ O ERP não aceita acesso de outro sistema: só sessão de pessoa, PIN de aparelh
 - **Mudanças no repositório do Conecta** (credencial de integração cifrada por empresa, recebimento de eventos, painel, ferramentas da IA) seguem o fluxo combinado com o mantenedor do Conecta: branch, merge na main e depois deploy.
 - **API pública e MCP (F4)** reaproveitam o INT-01 a INT-03, com cadastro de aplicativo de terceiros.
 - **Risco externo:** prazos de aprovação de Shopee e Amazon, e regras de dado pessoal da Amazon (token restrito).
+
+## Adendo de 28/11/2026: SAIR por categoria
+
+Decisão do PO que **revisa o "SAIR global"** da decisão 4 de 27/11/2026. O SAIR respeita a regra da Meta e **desliga a categoria do que o cliente está recebendo**: (a) avisos do pedido, ou (b) marketing do Conecta (campanhas, reengajamento, retomada e automações que não são de evento do ERP). A categoria é a da última mensagem automática enviada àquele telefone naquele tenant nos últimos 7 dias; sem mensagem recente ou em caso ambíguo, desliga tudo (opção segura pela Meta e pela LGPD); o botão "Parar promoções" da Meta desliga só (b). **VOLTAR volta geral**, mas não cria o aceite dos avisos (a pergunta separada da ATD-05a continua exigida). O tratamento é **único**: no Conecta estende-se o `Contact.IsBlocked` e a lista de bloqueio existentes, com `ContactSuppression` por categoria e uma porta única de envio automático, em vez de criar um mecanismo paralelo. Detalhes na ATD-05a (CA 11 a 15); o mantenedor do Conecta (Thiago) revisa.

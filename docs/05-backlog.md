@@ -778,12 +778,12 @@ Decisões do PO de 26/11/2026 ([ADR 0052](adr/0052-integracoes-conecta-e-marketp
 - **INT-02 [x] Avisos de saída (webhooks): inscrição na conexão, assinatura HMAC, nova tentativa e registro de entregas (M)** — ordem 3
 - **INT-03 [x] API de integração v1: catálogo, estoque, clientes, pedidos, cobranças e notas (M)** — ordem 4 ([story](stories/INT-03-api-integracao-v1.md), contrato em [integracoes/openapi-integration-v1.json](integracoes/openapi-integration-v1.json))
 
-**F2 — Conecta** (repositório do Conecta e ERP). Revisada em 27/11/2026 (arquitetura, segurança, UX) com as decisões do PO: prova de identidade por código, pareamento, pedido do aplicativo + empresa, SAIR global. Ordem: INT-04 → ATD-01 → ATD-02 → ATD-03a → ATD-05a; em paralelo, o ERP da ATD-03b e a ATD-06a; ATD-04 depois da ATD-03a; depois ATD-05b, ATD-06b e o fechamento ATD-99.
+**F2 — Conecta** (repositório do Conecta e ERP). Revisada em 27/11/2026 (arquitetura, segurança, UX) com as decisões do PO: prova de identidade por código, pareamento, pedido do aplicativo + empresa, SAIR por categoria e VOLTAR geral (revisto em 28/11/2026). Ordem: INT-04 → ATD-01 → ATD-02 → ATD-03a → ATD-05a; em paralelo, o ERP da ATD-03b e a ATD-06a; ATD-04 depois da ATD-03a; depois ATD-05b, ATD-06b e o fechamento ATD-99.
 - **INT-04 [ ] Ajustes da base para o Conecta: avisos, segredo, dono do pedido, escopos novos, pareamento e prova de identidade (M)** — ordem 0, ERP ([story](stories/INT-04-ajustes-avisos-e-conexao.md))
 - **ATD-01 [ ] Conectar com um clique (começa no ERP), credencial cifrada e recebimento de eventos (M)** — ordem 1 ([story](stories/ATD-01-conectar-conecta-ao-erp.md))
 - **ATD-02 [ ] Painel do cliente na conversa: pedidos, cobranças, notas e 2ª via (M)** — ordem 2 ([story](stories/ATD-02-painel-do-cliente-na-conversa.md); nota do pedido com a VND-02b)
 - **ATD-03a [ ] Criar pedido e mandar a cobrança pelo atendente (M)** — ordem 3 ([story](stories/ATD-03a-pedido-e-cobranca-pelo-atendente.md))
-- **ATD-05a [ ] Avisos automáticos ao cliente, consentimento e SAIR (M)** — ordem 4 ([story](stories/ATD-05a-avisos-ao-cliente-consentimento-e-sair.md); separado, nota, envio e entrega com a VND-02b)
+- **ATD-05a [ ] Avisos automáticos ao cliente, consentimento e SAIR por categoria (M)** — ordem 4 ([story](stories/ATD-05a-avisos-ao-cliente-consentimento-e-sair.md); separado, nota, envio e entrega com a VND-02b)
 - **ATD-03b [ ] Pedido de orçamento para fábrica pelo Conecta (M)** — ERP em paralelo depois da INT-04; Conecta depois da ATD-03a ([story](stories/ATD-03b-pedido-de-orcamento-fabrica.md))
 - **ATD-06a [ ] WhatsApp do ERP pelo Conecta: lado do BemAqui Empresas, fecha o P-29 (M)** — em paralelo depois da INT-04 ([story](stories/ATD-06a-whatsapp-do-erp-pelo-conecta-erp.md))
 - **ATD-04 [ ] Ferramentas do agente de IA no lugar do bloco `[PEDIDO]` (M)** — depois da ATD-03a ([story](stories/ATD-04-ferramentas-do-agente-de-ia.md))
