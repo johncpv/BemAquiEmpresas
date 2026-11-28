@@ -1,6 +1,6 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
-import { getDownloadProjectSummaryPdfUrl, useGetContract, useGetProjectMilestonePreview } from '@/api/generated/bemaqui'
+import { getDownloadProjectSummaryPdfUrl, useGetContract, useGetProjectMilestonePreview, useGetProjectStages } from '@/api/generated/bemaqui'
 import type { ProjectDetail } from '@/api/generated/model'
 import { RecordHistory } from '@/components/history/RecordHistory'
 import { DocumentActions } from '@/components/ui/document-actions'
@@ -22,7 +22,7 @@ import { ProjectTimelineTab } from '../ProjectTimelineTab'
 import { ProjectStagesTab } from './ProjectStagesTab'
 import { nextStep, SERVICE_DICAS, type ServiceStep, STEP_VERBS } from './service'
 import { ServiceStepDialog } from './ServiceStepDialog'
-import { currentStageText, STAGE_DICAS } from './stages'
+import { currentStageOf, currentStageText, STAGE_DICAS, stageStepText } from './stages'
 
 /** Ajuda própria do projeto de serviço (EXE-01b CA 19; EXE-03a): Resumo, Etapas e Itens; as demais abas usam a ajuda de sempre. */
 const SERVICE_HELP_TABS = { resumo: 'servico', etapas: 'etapas', itens: 'servico-itens' } as const
@@ -37,7 +37,7 @@ const secondaryClass = 'rounded-md border border-border px-3 py-2 text-sm font-s
  */
 export function ServiceProjectView({ project: p, refresh }: { project: ProjectDetail; refresh: () => Promise<void> }) {
   const navigate = useNavigate()
-  const search = useSearch({ strict: false }) as { acao?: string }
+  const search = useSearch({ strict: false }) as { acao?: string; aba?: string }
   const canCost = useCan('projects.view_cost')
   const canFinance = useCan('finance.view')
   const canEdit = useCan('projects.edit')
@@ -59,8 +59,14 @@ export function ServiceProjectView({ project: p, refresh }: { project: ProjectDe
     if (next === null) setAutoClosed(true)
   }
 
+  // EXE-03b CA 8: com etapas, o próximo passo é o verbo da etapa atual e leva à aba Etapas (onde está o painel da etapa).
+  const stagesQuery = useGetProjectStages(p.id, { query: { enabled: !!p.currentStage && p.serviceExecution !== false } })
+  const stageText = p.currentStage ? stageStepText(currentStageOf(stagesQuery?.data?.stages ?? [])) : null
+  const goStages = () => void navigate({ to: '/app/projetos/$id', params: { id: p.id }, search: { aba: 'etapas' } } as never)
   const primary = step.primary ? (
     <button type="button" onClick={() => setDialog(step.primary)} className={primaryClass}>{STEP_VERBS[step.primary].verb}</button>
+  ) : stageText && active && search.aba !== 'etapas' ? (
+    <button type="button" onClick={goStages} className={primaryClass}>{stageText}</button>
   ) : null
   const more = step.more.length > 0 || (canEdit && active) ? (
     <details className="relative">
@@ -110,11 +116,11 @@ export function ServiceProjectView({ project: p, refresh }: { project: ProjectDe
             {primary ? <span className="hidden sm:inline-flex">{primary}</span> : null}
           </>
         } />
-      <p className="mb-3 text-sm text-muted-foreground" data-testid="proximo-passo">{step.context}</p>
+      <p className="mb-3 text-sm text-muted-foreground" data-testid="proximo-passo">{stageText && active ? `${step.context} Próximo passo: ${stageText}.` : step.context}</p>
       {p.acceptance && p.acceptance.kind === 'Inherited' ? <p className="mb-3 text-sm text-muted-foreground">Aceite herdado da entrega em {formatDate(p.acceptance.occurredOn)} (ajuste automático).</p> : null}
       <UrlTabs label="Seções do projeto" fallback="resumo" helpTabs={SERVICE_HELP_TABS} tabs={[
         { id: 'resumo', label: 'Resumo', content: <ProjectSummaryTab project={p} onSaved={refresh} onCosts={() => void navigate({ to: '/app/projetos/$id', params: { id: p.id }, search: { aba: 'custos' } } as never)} /> },
-        ...(p.serviceExecution !== false ? [{ id: 'etapas', label: 'Etapas', content: <ProjectStagesTab projectId={p.id} /> }] : []),
+        ...(p.serviceExecution !== false ? [{ id: 'etapas', label: 'Etapas', content: <ProjectStagesTab projectId={p.id} projectStatus={p.status} onChanged={refresh} /> }] : []),
         { id: 'itens', label: 'Itens', content: <ProjectItemsTab project={p} /> },
         ...(canFinance ? [{ id: 'financeiro', label: 'Financeiro', content: <ProjectFinancialTab projectId={p.id} /> }] : []),
         ...(canCost ? [{ id: 'custos', label: 'Custos', content: <ProjectCostsTab projectId={p.id} contractId={p.contractId} project={p} /> }] : []),

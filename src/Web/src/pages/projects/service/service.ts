@@ -61,14 +61,16 @@ export function releasesText(preview: MilestonePreview | null | undefined): stri
 
 /**
  * Tabela fixa do próximo passo (EXE-01b CA 1 a 3, 9): um botão primário por situação, com a linha de contexto. O aceite vigente vem do DTO
- * (`acceptance`/`acceptedOn`); o encerramento usa a data de conclusão do contrato quando há.
+ * (`acceptance`/`acceptedOn`); o encerramento usa a data de conclusão do contrato quando há. EXE-03b CA 1 e 8: com etapas do modelo
+ * (`currentStage`), "Iniciar execução", "Registrar entrega" e "Registrar aceite do cliente" saem do cabeçalho (o caminho é a etapa).
  */
 export function nextStep(p: ProjectDetail, can: Can, opts: { acceptancePreview?: MilestonePreview | null; closedOn?: string | null } = {}): NextStep {
+  const hasStages = !!p.currentStage
   const accepted = !!p.acceptance || !!p.acceptedOn
   const active = p.contractStatus === 'Active' && p.serviceExecution !== false
   const result: NextStep = { primary: null, context: '', awaitingAcceptance: false, more: [] }
   const offer = (step: 'start' | 'delivery' | 'acceptance', context: string) => {
-    if (!active) {
+    if (!active || hasStages) {
       result.context = context
       return
     }
@@ -83,7 +85,7 @@ export function nextStep(p: ProjectDetail, can: Can, opts: { acceptancePreview?:
   switch (p.status) {
     case 'Planned':
       offer('start', 'Projeto planejado. Quando começar o trabalho, inicie a execução.')
-      if (active && can(STEP_PERMISSION.delivery)) result.more.push('delivery')
+      if (active && !hasStages && can(STEP_PERMISSION.delivery)) result.more.push('delivery')
       break
     case 'InProgress':
     case 'Fabricated':

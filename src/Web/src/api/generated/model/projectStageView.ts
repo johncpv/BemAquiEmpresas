@@ -36,4 +36,11 @@ export interface ProjectStageView {
   checklistDone: number;
   checklistTotal: number;
   checklist: ProjectStageCheckView[];
+  hasMilestone?: boolean;
+  selfApproved?: boolean;
+  /** @nullable */
+  completedByName?: string | null;
+  /** @nullable */
+  approvedByName?: string | null;
+  completionVersion?: number;
 }

@@ -159,3 +159,70 @@ public static class ServiceStagePlan
     /// <summary>Etapas mudam em projeto <c>Planned</c>, <c>InProgress</c> ou <c>Delivered</c> (CA 3); encerrado ou cancelado, nunca.</summary>
     public static bool AcceptsStages(ProjectStatus status) => status is not (ProjectStatus.Closed or ProjectStatus.Cancelled);
 }
+
+/// <summary>Comando sobre a etapa (EXE-03b): iniciar, marcar o checklist, concluir e aprovar.</summary>
+public enum StageCommand
+{
+    Start,
+    Mark,
+    Complete,
+    Approve,
+}
+
+/// <summary>
+/// Máquina da etapa do projeto de serviço (EXE-03b): <c>Waiting → Ready</c> (a anterior concluída), <c>Ready → InProgress</c> (iniciar),
+/// checklist só em <c>InProgress</c>, <c>InProgress → AwaitingApproval | Done</c> (concluir) e <c>AwaitingApproval → Done</c> (aprovar). Reabrir é
+/// da EXE-03c.
+/// </summary>
+public static class ServiceStageFlow
+{
+    public const string MilestoneRefusal = "Esta etapa libera parcela: quem conclui são usuários com permissão de aprovar projetos.";
+    public const string DeliveryRefusal = "A etapa de entrega libera parcela: quem conclui são usuários com permissão de aprovar projetos.";
+    public const string AcceptanceRefusal = "Registrar o aceite do cliente exige a permissão própria. Fale com o administrador.";
+    public const string EditRefusal = "Concluir a etapa exige a permissão de editar projetos.";
+    public const string ChecklistIncomplete = "Marque todos os itens do checklist (Feito ou Não se aplica) antes de concluir.";
+
+    /// <summary>Situação de onde cada comando parte.</summary>
+    public static bool Allows(ProjectStageStatus status, StageCommand command) => command switch
+    {
+        StageCommand.Start => status == ProjectStageStatus.Ready,
+        StageCommand.Mark or StageCommand.Complete => status == ProjectStageStatus.InProgress,
+        _ => status == ProjectStageStatus.AwaitingApproval,
+    };
+
+    public static string Refusal(StageCommand command) => command switch
+    {
+        StageCommand.Start => "Só a etapa pronta para começar pode ser iniciada.",
+        StageCommand.Mark => "O checklist é marcado com a etapa em andamento.",
+        StageCommand.Complete => "Só a etapa em andamento pode ser concluída.",
+        _ => "Só a etapa aguardando aprovação pode ser aprovada.",
+    };
+
+    /// <summary>Checklist completo: todo item marcado (Feito ou Não se aplica). Sem itens, completo.</summary>
+    public static bool ChecklistDone(IEnumerable<StageChecklistResult?> results) => results.All(r => r is not null);
+
+    /// <summary>
+    /// Ação de <c>projects</c> para concluir (CA 3, 4, 6 e 7): Entrega e etapa com marco financeiro, <c>approve</c>; Aceite do cliente,
+    /// <c>register_acceptance</c>; Execução sem marco, <c>edit</c>.
+    /// </summary>
+    public static string CompletionAction(StageRole role, bool hasMilestone) => role switch
+    {
+        StageRole.Delivery => "approve",
+        StageRole.Acceptance => "register_acceptance",
+        _ => hasMilestone ? "approve" : "edit",
+    };
+
+    public static string CompletionRefusal(StageRole role, bool hasMilestone) => role switch
+    {
+        StageRole.Delivery => DeliveryRefusal,
+        StageRole.Acceptance => AcceptanceRefusal,
+        _ => hasMilestone ? MilestoneRefusal : EditRefusal,
+    };
+
+    /// <summary>Concluir com as regras de data e situação esperada da EXE-01a (CA 4, 6 e 7): Entrega, Aceite ou marco financeiro.</summary>
+    public static bool Guarded(StageRole role, bool hasMilestone) => hasMilestone || role != StageRole.Execution;
+
+    /// <summary>Destino do concluir (CA 3 e 5): sem "Exige aprovação", ou aprovada na hora pela autoaprovação, <c>Done</c>; senão, aguarda aprovação.</summary>
+    public static ProjectStageStatus AfterComplete(bool requiresApproval, bool approvedNow) =>
+        requiresApproval && !approvedNow ? ProjectStageStatus.AwaitingApproval : ProjectStageStatus.Done;
+}

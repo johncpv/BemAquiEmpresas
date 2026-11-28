@@ -25,7 +25,7 @@ namespace BemAqui.Integration.Tests.Commercial;
 /// EXE-03a: etapas do modelo no projeto de serviço (cópia na aprovação, "Usar um modelo", edição antes de começar, leitura, API v1 e PDF). O tenant
 /// nasce só com <c>factory</c> (como a Konebras); cada teste liga o perfil Serviços quando precisa. Banco desta classe.
 /// </summary>
-public class ProjectStageTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>
+public partial class ProjectStageTests(TenancyFixture tenancy) : IClassFixture<TenancyFixture>
 {
     private const string Host = "a.localhost";
     private const string Quotes = "/api/v1/quotes";

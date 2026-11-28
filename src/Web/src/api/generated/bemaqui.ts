@@ -990,6 +990,10 @@ import type {
   ProjectResultCell,
   ProjectResultDetail,
   ProjectResultsPage,
+  ProjectStageApproveInput,
+  ProjectStageCheckInput,
+  ProjectStageCompleteInput,
+  ProjectStageStartInput,
   ProjectStageTemplateInput,
   ProjectStagesInput,
   ProjectStagesView,
@@ -43422,6 +43426,348 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getApplyProjectStageTemplateMutationOptions(options), queryClient);
+    }
+
+export const getStartProjectStageUrl = (id: string,
+    stageId: string,) => {
+
+
+
+
+  return `/api/v1/projects/${id}/stages/${stageId}/start`
+}
+
+export const startProjectStage = async (id: string,
+    stageId: string,
+    projectStageStartInput: ProjectStageStartInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectStagesView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ProjectStagesView>(getStartProjectStageUrl(id,stageId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(projectStageStartInput)
+  }
+);}
+
+
+
+
+
+export const getStartProjectStageMutationKey = () => ['startProjectStage'] as const;
+
+export const getStartProjectStageMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startProjectStage>>, TError,StartProjectStageMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startProjectStage>>, TError,StartProjectStageMutationVariables, TContext> => {
+
+const mutationKey = getStartProjectStageMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startProjectStage>>, StartProjectStageMutationVariables> = (props) => {
+          const {id,stageId,data} = props ?? {};
+
+          return  startProjectStage(id,stageId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartProjectStageMutationResult = NonNullable<Awaited<ReturnType<typeof startProjectStage>>>
+    export type StartProjectStageMutationBody = ProjectStageStartInput
+    export type StartProjectStageMutationError = unknown
+    export type StartProjectStageMutationVariables = {id: string;stageId: string;data: ProjectStageStartInput}
+
+    export const useStartProjectStage = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startProjectStage>>, TError,StartProjectStageMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startProjectStage>>,
+        TError,
+        StartProjectStageMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartProjectStageMutationOptions(options), queryClient);
+    }
+
+export const getMarkProjectStageCheckUrl = (id: string,
+    stageId: string,
+    n: number,) => {
+
+
+
+
+  return `/api/v1/projects/${id}/stages/${stageId}/checklist/${n}`
+}
+
+export const markProjectStageCheck = async (id: string,
+    stageId: string,
+    n: number,
+    projectStageCheckInput: ProjectStageCheckInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectStagesView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ProjectStagesView>(getMarkProjectStageCheckUrl(id,stageId,n),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(projectStageCheckInput)
+  }
+);}
+
+
+
+
+
+export const getMarkProjectStageCheckMutationKey = () => ['markProjectStageCheck'] as const;
+
+export const getMarkProjectStageCheckMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markProjectStageCheck>>, TError,MarkProjectStageCheckMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markProjectStageCheck>>, TError,MarkProjectStageCheckMutationVariables, TContext> => {
+
+const mutationKey = getMarkProjectStageCheckMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markProjectStageCheck>>, MarkProjectStageCheckMutationVariables> = (props) => {
+          const {id,stageId,n,data} = props ?? {};
+
+          return  markProjectStageCheck(id,stageId,n,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkProjectStageCheckMutationResult = NonNullable<Awaited<ReturnType<typeof markProjectStageCheck>>>
+    export type MarkProjectStageCheckMutationBody = ProjectStageCheckInput
+    export type MarkProjectStageCheckMutationError = unknown
+    export type MarkProjectStageCheckMutationVariables = {id: string;stageId: string;n: number;data: ProjectStageCheckInput}
+
+    export const useMarkProjectStageCheck = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markProjectStageCheck>>, TError,MarkProjectStageCheckMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof markProjectStageCheck>>,
+        TError,
+        MarkProjectStageCheckMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMarkProjectStageCheckMutationOptions(options), queryClient);
+    }
+
+export const getCompleteProjectStageUrl = (id: string,
+    stageId: string,) => {
+
+
+
+
+  return `/api/v1/projects/${id}/stages/${stageId}/complete`
+}
+
+export const completeProjectStage = async (id: string,
+    stageId: string,
+    projectStageCompleteInput: ProjectStageCompleteInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectStagesView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ProjectStagesView>(getCompleteProjectStageUrl(id,stageId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(projectStageCompleteInput)
+  }
+);}
+
+
+
+
+
+export const getCompleteProjectStageMutationKey = () => ['completeProjectStage'] as const;
+
+export const getCompleteProjectStageMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeProjectStage>>, TError,CompleteProjectStageMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeProjectStage>>, TError,CompleteProjectStageMutationVariables, TContext> => {
+
+const mutationKey = getCompleteProjectStageMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeProjectStage>>, CompleteProjectStageMutationVariables> = (props) => {
+          const {id,stageId,data} = props ?? {};
+
+          return  completeProjectStage(id,stageId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteProjectStageMutationResult = NonNullable<Awaited<ReturnType<typeof completeProjectStage>>>
+    export type CompleteProjectStageMutationBody = ProjectStageCompleteInput
+    export type CompleteProjectStageMutationError = unknown
+    export type CompleteProjectStageMutationVariables = {id: string;stageId: string;data: ProjectStageCompleteInput}
+
+    export const useCompleteProjectStage = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeProjectStage>>, TError,CompleteProjectStageMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof completeProjectStage>>,
+        TError,
+        CompleteProjectStageMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCompleteProjectStageMutationOptions(options), queryClient);
+    }
+
+export const getApproveProjectStageUrl = (id: string,
+    stageId: string,) => {
+
+
+
+
+  return `/api/v1/projects/${id}/stages/${stageId}/approve`
+}
+
+export const approveProjectStage = async (id: string,
+    stageId: string,
+    projectStageApproveInput: ProjectStageApproveInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectStagesView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ProjectStagesView>(getApproveProjectStageUrl(id,stageId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(projectStageApproveInput)
+  }
+);}
+
+
+
+
+
+export const getApproveProjectStageMutationKey = () => ['approveProjectStage'] as const;
+
+export const getApproveProjectStageMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveProjectStage>>, TError,ApproveProjectStageMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof approveProjectStage>>, TError,ApproveProjectStageMutationVariables, TContext> => {
+
+const mutationKey = getApproveProjectStageMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveProjectStage>>, ApproveProjectStageMutationVariables> = (props) => {
+          const {id,stageId,data} = props ?? {};
+
+          return  approveProjectStage(id,stageId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApproveProjectStageMutationResult = NonNullable<Awaited<ReturnType<typeof approveProjectStage>>>
+    export type ApproveProjectStageMutationBody = ProjectStageApproveInput
+    export type ApproveProjectStageMutationError = unknown
+    export type ApproveProjectStageMutationVariables = {id: string;stageId: string;data: ProjectStageApproveInput}
+
+    export const useApproveProjectStage = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveProjectStage>>, TError,ApproveProjectStageMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof approveProjectStage>>,
+        TError,
+        ApproveProjectStageMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApproveProjectStageMutationOptions(options), queryClient);
     }
 
 export const getListStageTemplatesUrl = (params?: ListStageTemplatesParams,) => {

@@ -22,6 +22,7 @@ import { ProductionParametersSection } from './ProductionParametersSection'
 import { PurchasingParametersSection } from './PurchasingParametersSection'
 import { RevenueTargetsSection } from './RevenueTargetsSection'
 import { SellWithoutStockSection } from './SellWithoutStockSection'
+import { StageSelfApprovalSection } from './StageSelfApprovalSection'
 import { SalesOrderParametersSection } from './SalesOrderParametersSection'
 import { COMMERCE_PROFILES } from '@/navigation/modules'
 import { useHasProfile } from '@/navigation/navigation-context'
@@ -57,6 +58,7 @@ export function ParametersPage() {
           <ChargesSection key={`c${query.data.payrollChargesPct}`} params={query.data} canEdit={canEdit} />
           <PricingSection key={`p${query.data.pricingMode}`} params={query.data} canEdit={canEdit} />
           <CommercialPricingSection canEdit={canEdit} />
+          <StageSelfApprovalSection />
           <FinanceLimitsSection canEdit={canEdit} />
           <DreParametersSection canEdit={canEdit} />
           <RevenueTargetsSection canEdit={canEdit} />
