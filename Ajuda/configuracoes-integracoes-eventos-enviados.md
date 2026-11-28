@@ -25,12 +25,13 @@ Mostrar os avisos que o BemAqui manda ao Conecta quando um pedido muda, um bolet
 - **Ignorado**: o aviso não saiu porque a conexão acabou, foi substituída ou o Conecta perdeu a permissão de ver aquele dado (por exemplo, "Sem permissão para ver notas"). O motivo aparece na linha.
 
 ## Para desenvolvedores
-- **Formato:** `POST` com JSON UTF-8 `{"id","type","contract":1,"occurred_at","tenant","connection_id","data":{...},"resource"}`. O `data` leva só ids, número, situação, valor e datas; nunca nome, documento, telefone, e-mail, endereço, custo, imposto ou margem.
-- **Cabeçalhos:** `BemAqui-Event-Id`, `BemAqui-Event-Type`, `BemAqui-Timestamp` e `BemAqui-Signature: v1=<hex>`; `User-Agent: BemAqui-Webhooks/1`.
+- **Formato:** `POST` com JSON UTF-8 `{"id","type","contract":1,"occurred_at","tenant","connection_id","data":{...},"resource"}`. O `data` leva só ids, número, situação, valor e datas; nunca nome, documento, telefone, e-mail, endereço, custo, imposto ou margem. O `tenant` é o **identificador da empresa** (slug, estável), não o endereço do site.
+- **`resource`:** sempre uma rota da API v1: `/api/v1/integration/orders/{id}` (pedidos), `/api/v1/integration/charges/{id do título}` (boletos: o `data.id` continua o do boleto), `/api/v1/integration/invoices/{id}` (notas) e `/api/v1/integration/connection` (teste e desconexão). Boleto cancelado, nota cancelada e nota rejeitada trazem `party_id` (nulo quando a nota foi rejeitada antes de ter destinatário).
+- **Cabeçalhos:** `BemAqui-Event-Id`, `BemAqui-Event-Type`, `BemAqui-Timestamp`, `BemAqui-Signature: v1=<hex>` e `BemAqui-Connection: <connection_id>` (fora da assinatura: use para achar o segredo antes de ler o corpo); `User-Agent: BemAqui-Webhooks/1`.
 - **Assinatura:** HMAC-SHA256 de `"{timestamp}.{corpo}"` com o segredo como chave (bytes UTF-8). Na troca, vão duas: `v1=<nova>,v1=<antiga>`; aceite se qualquer uma bater. Compare em tempo constante e recuse timestamp com mais de 5 minutos de diferença.
 - **Use o id e consulte de novo:** o mesmo aviso pode chegar mais de uma vez e fora de ordem. Guarde o `id` para não processar duas vezes e consulte o `resource` para saber o estado atual.
 - **Resposta:** responda 2xx em até 10 segundos. Redirecionamento não é seguido. Com 429 ou 503, o `Retry-After` é respeitado até 1 hora.
-- **Perdeu o segredo:** clique em **Trocar segredo**. O segredo só sai na resposta do `/oauth/token`, nunca numa tela.
+- **Segredo:** sai só na resposta do `/oauth/token`, nunca numa tela. Enquanto o Conecta não renovar o acesso com o `refresh_token` da resposta que levou o segredo, toda resposta leva o segredo de novo: uma resposta perdida não perde o segredo. Perdeu mesmo assim? Clique em **Trocar segredo**.
 
 ## Perguntas frequentes
 **O cliente recebe a mensagem em dobro se eu reenviar?** Não. O aviso sai com o mesmo id, e o Conecta reconhece o id.

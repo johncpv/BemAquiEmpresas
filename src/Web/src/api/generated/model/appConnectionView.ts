@@ -24,4 +24,6 @@ export interface AppConnectionView {
   /** @nullable */
   revokedAt: string | null;
   scopes: AppScopeView[];
+  /** @nullable */
+  canGain?: AppScopeView[] | null;
 }

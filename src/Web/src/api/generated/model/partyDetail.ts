@@ -42,4 +42,6 @@ export interface PartyDetail {
   anonymizedAt?: string | null;
   /** @nullable */
   anonymizationRequest?: string | null;
+  emailSetByApp?: boolean;
+  phoneSetByApp?: boolean;
 }
