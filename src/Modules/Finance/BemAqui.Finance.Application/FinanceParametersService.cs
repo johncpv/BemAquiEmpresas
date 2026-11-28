@@ -1,6 +1,7 @@
 using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Identity;
 using BemAqui.BuildingBlocks.Notifications;
+using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.Finance.Contracts;
 using BemAqui.Finance.Domain;
 using BemAqui.SharedKernel;
@@ -12,7 +13,7 @@ namespace BemAqui.Finance.Application;
 /// Parâmetros do Finance (ADR 0016 adendo M6, FIN-01): limites de desconto, cancelamento e data retroativa. O seed grava os
 /// padrões sem sobrescrever; Configurações → Parâmetros edita com <c>settings.edit</c>, com auditoria.
 /// </summary>
-public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker permissions, IUserDirectory users, ICurrentUser currentUser, INotificationService notifications, TimeProvider clock)
+public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker permissions, IUserDirectory users, ICurrentUser currentUser, INotificationService notifications, IStepUpTwoFactor stepUp, TimeProvider clock)
     : IFinanceParameters
 {
     public const string DiscountPct = "finance.discount_approval_pct";
@@ -24,6 +25,17 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
     public const string TransferNotifyAmount = "finance.transfer_notify_amount";
     public const string AdjustedDefaultThreshold = "finance.adjusted_default_threshold_pct";
     public const string OfxBankEntryCap = "finance.ofx_bank_entry_cap";
+
+    /// <summary>FIN-10a CA 17: o modo mudou desde que a tela abriu, ou outra gravação ganhou a corrida.</summary>
+    public const string ChangedCode = "parameters_changed";
+    public const string ChangedMessage = "Outra pessoa mudou os parâmetros. Recarregue e tente de novo.";
+    public const string TwoFactorRequiredCode = "two_factor_required";
+    public const string TwoFactorInvalidCode = "two_factor_invalid";
+    public const string OnlyOwnerMessage = "Só o Proprietário muda esta regra.";
+    public const string EnrollMessage = "Para continuar, ative a verificação em duas etapas.";
+    public const string CodeMissingMessage = "Confirme com o código do autenticador.";
+    public const string CodeInvalidMessage = "Código inválido ou já usado. Peça um novo.";
+    public const string SelfApprovalQuestion = "Quem solicitou a ordem pode aprová-la?";
 
     /// <summary>Padrões aprovados pelo PO (D8): 5,00%, R$ 500,00, R$ 1.000,00 e 7 dias.</summary>
     public static readonly IReadOnlyDictionary<string, decimal> Defaults = new Dictionary<string, decimal>(StringComparer.Ordinal)
@@ -44,7 +56,9 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
         var keys = Defaults.Keys.ToList();
         var values = await db.FinanceParameters.AsNoTracking().Where(p => keys.Contains(p.Key)).ToDictionaryAsync(p => p.Key, p => p.Value, cancellationToken);
         decimal Get(string key) => values.TryGetValue(key, out var v) ? v : Defaults[key];
-        return new FinanceLimits(Get(DiscountPct), Get(DiscountAmount), Get(CancelAmount), (int)Get(BackdateDays), Get(OwnerCanApproveOwn) != 0, Get(PaymentTolerance), Get(TransferNotifyAmount), Get(AdjustedDefaultThreshold), Get(OfxBankEntryCap));
+        var mode = PaymentOrderRules.ModeOf(Get(OwnerCanApproveOwn));
+        return new FinanceLimits(Get(DiscountPct), Get(DiscountAmount), Get(CancelAmount), (int)Get(BackdateDays), mode != SelfApprovalMode.Never, Get(PaymentTolerance), Get(TransferNotifyAmount),
+            Get(AdjustedDefaultThreshold), Get(OfxBankEntryCap), mode);
     }
 
     public async Task<Result<FinanceLimits>> UpdateAsync(FinanceLimitsInput input, CancellationToken cancellationToken = default)
@@ -90,22 +104,41 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
             return ReceivableService.Invalid("backdateDays", "Informe de 0 a 365 dias.");
         }
 
+        if (input.SelfApprovalMode is { } asked && !Enum.IsDefined(asked))
+        {
+            return ReceivableService.Invalid("selfApprovalMode", "Escolha uma das opções.");
+        }
+
+        var before = await LimitsAsync(cancellationToken);
+        var mode = PaymentOrderRules.ResolveMode(before.SelfApprovalMode, input.SelfApprovalMode, input.OwnerCanApproveOwn);
+        var modeChanged = mode != before.SelfApprovalMode;
+        if (modeChanged && await ModeChangeErrorAsync(input, before.SelfApprovalMode, cancellationToken) is { } refused)
+        {
+            return refused;
+        }
+
         var values = new Dictionary<string, decimal>(StringComparer.Ordinal)
         {
             [DiscountPct] = Math.Round(input.DiscountApprovalPct, 4),
             [DiscountAmount] = Math.Round(input.DiscountApprovalAmount, 2),
             [CancelAmount] = Math.Round(input.CancelApprovalAmount, 2),
             [BackdateDays] = input.BackdateDays,
-            [OwnerCanApproveOwn] = input.OwnerCanApproveOwn ? 1m : 0m,
+            [OwnerCanApproveOwn] = (int)mode,
             [PaymentTolerance] = Math.Round(input.PaymentTolerance, 2),
             [TransferNotifyAmount] = Math.Round(input.TransferNotifyAmount, 2),
         };
-        var before = await LimitsAsync(cancellationToken);
         // FIN-07 CA 15: sem o campo (telas antigas), o limite do ajustado fica como está.
         values[AdjustedDefaultThreshold] = Math.Round(input.AdjustedDefaultThresholdPct ?? before.AdjustedDefaultThresholdPct, 2, MidpointRounding.AwayFromZero);
         // BNK-03b CA 6: teto do lançamento sem OP a partir de linha de OFX; sem o campo, fica como está.
         values[OfxBankEntryCap] = Math.Round(input.OfxBankEntryCap ?? before.OfxBankEntryCap, 2, MidpointRounding.AwayFromZero);
         var existing = await db.FinanceParameters.Where(p => values.Keys.Contains(p.Key)).ToDictionaryAsync(p => p.Key, cancellationToken);
+        // FIN-10a CA 17: a linha rastreada (com o xmin de agora) ainda tem o modo lido antes; se outra troca entrou no meio, 409.
+        if (modeChanged && existing.TryGetValue(OwnerCanApproveOwn, out var tracked) && PaymentOrderRules.ModeOf(tracked.Value) != before.SelfApprovalMode)
+        {
+            db.ChangeTracker.Clear();
+            return Error.Conflict(ChangedCode, ChangedMessage);
+        }
+
         foreach (var (key, value) in values)
         {
             if (existing.TryGetValue(key, out var parameter))
@@ -122,18 +155,66 @@ public sealed class FinanceParametersService(IFinanceDb db, IPermissionChecker p
             }
         }
 
-        if (before.OwnerCanApproveOwn != input.OwnerCanApproveOwn)
+        if (modeChanged)
         {
-            // FIN-03a CA 10: a troca avisa todos os membros do Proprietário.
-            var who = currentUser.UserId is { } me ? await users.DisplayNameAsync(me, cancellationToken) ?? "Um usuário" : "O sistema";
-            var title = $"{who} {(input.OwnerCanApproveOwn ? "ligou" : "desligou")} a aprovação da própria ordem pelo Proprietário.";
-            foreach (var owner in await users.OwnerIdsAsync(cancellationToken))
+            // FIN-10a CA 16: os outros Proprietários são avisados no mesmo SaveChanges da troca; a auditoria (antes/depois) vem do
+            // interceptor e grava mesmo sem ninguém a avisar.
+            var me = currentUser.UserId;
+            var who = me is { } id ? await users.DisplayNameAsync(id, cancellationToken) ?? "Um usuário" : "O sistema";
+            var title = $"{who} mudou \"{SelfApprovalQuestion}\" de {Label(before.SelfApprovalMode)} para {Label(mode)}.";
+            foreach (var owner in (await users.OwnerIdsAsync(cancellationToken)).Where(o => o != me))
             {
                 notifications.Notify(owner, "finance.parameters", title, "/app/configuracoes/parametros");
             }
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (ex is DbUpdateConcurrencyException || DbErrors.IsUniqueViolation(ex))
+        {
+            db.ChangeTracker.Clear(); // nada da troca recusada (nem o aviso) fica para outra gravação do escopo
+            return Error.Conflict(ChangedCode, ChangedMessage);
+        }
+
         return await LimitsAsync(cancellationToken);
+    }
+
+    /// <summary>Rótulo do modo na tela, no aviso e na ajuda (FIN-10a CA 3 e 16).</summary>
+    public static string Label(SelfApprovalMode mode) => mode switch
+    {
+        SelfApprovalMode.OwnerOnly => "Só o Proprietário",
+        SelfApprovalMode.AnyApprover => "Qualquer aprovador (só no 1º nível)",
+        _ => "Nunca",
+    };
+
+    /// <summary>
+    /// Trocar o modo (FIN-10a CA 13, 14 e 17), nesta ordem: é do Proprietário; o modo visto ainda é o gravado; tem 2FA ativo; mandou o
+    /// código; o código vale e não foi usado (uso único, sem a janela do "2FA recente").
+    /// </summary>
+    private async Task<Error?> ModeChangeErrorAsync(FinanceLimitsInput input, SelfApprovalMode stored, CancellationToken ct)
+    {
+        if (currentUser.UserId is not { } me || !(await users.OwnerIdsAsync(ct)).Contains(me))
+        {
+            return Error.Forbidden(Error.Codes.Forbidden, OnlyOwnerMessage);
+        }
+
+        if (input.SelfApprovalModeSeen is { } seen && seen != stored)
+        {
+            return Error.Conflict(ChangedCode, ChangedMessage);
+        }
+
+        if (!await stepUp.IsEnrolledAsync(me, ct))
+        {
+            return Error.Forbidden(TwoFactorRequiredCode, EnrollMessage) with { Data = new Dictionary<string, object?> { ["enrolled"] = false } };
+        }
+
+        if (string.IsNullOrWhiteSpace(input.Code))
+        {
+            return Error.Forbidden(TwoFactorRequiredCode, CodeMissingMessage) with { Data = new Dictionary<string, object?> { ["enrolled"] = true } };
+        }
+
+        return await stepUp.VerifyAsync(me, input.Code, ct) ? null : Error.Forbidden(TwoFactorInvalidCode, CodeInvalidMessage);
     }
 }

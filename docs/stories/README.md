@@ -1035,3 +1035,15 @@ Decisão do PO de 15/11/2026: o custo orçado do projeto é informado ou corrigi
 | Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
 |---|---|---|---|---|---|---|---|
 | 1 | COM-09 | Editar o custo orçado do projeto: por natureza, com permissão própria, motivo, versão e histórico | P | Done | Decisão do PO de 15/11/2026, DSH-02, R-SEC-5, D7 | COM-04a, COM-05, COM-07, DSH-02 | [COM-09](COM-09-editar-custo-orcado.md) |
+
+---
+
+# Pós-go-live: autoaprovação configurável
+
+Pedido do PO de 27/11/2026 (BemAqui, empresa de uma pessoa): quem solicitou pode aprovar a própria ordem de pagamento, conforme um parâmetro de três opções, sem esconder a autoaprovação ([ADR 0054](../adr/0054-autoaprovacao-configuravel.md)). A FIN-10 foi dividida na revisão de 27/11/2026.
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 | FIN-10a | Autoaprovação configurável da ordem de pagamento: Nunca / Só o Proprietário / Qualquer aprovador (só no 1º nível), padrão de tenant novo pelo provisionamento, troca com o código do autenticador | P | Done | R-FIN-5, R-SEC-5, FIN-03a D6, ADR 0008 | FIN-03a, FIN-03b, FND-05 | [FIN-10a](FIN-10a-autoaprovacao-da-op.md) |
+| 2 | FIN-10b | Autoconfirmação configurável da conciliação | P | Draft | R-FIN-8, R-FIN-5, BNK-03b D13 | FIN-10a, BNK-03b | [FIN-10b](FIN-10b-autoconfirmacao-da-conciliacao.md) |

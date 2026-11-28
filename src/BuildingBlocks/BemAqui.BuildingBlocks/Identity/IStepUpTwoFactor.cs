@@ -8,10 +8,15 @@ namespace BemAqui.BuildingBlocks.Identity;
 public interface IStepUpTwoFactor
 {
     Task<bool> VerifyAsync(Guid userId, string? code, CancellationToken cancellationToken = default);
+
+    /// <summary>O usuário ativo tem o 2FA ligado? Para a tela mandar ativar antes de pedir o código (FIN-10a CA 14).</summary>
+    Task<bool> IsEnrolledAsync(Guid userId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Sem o Identity no processo: falha fechada.</summary>
 public sealed class DenyStepUpTwoFactor : IStepUpTwoFactor
 {
     public Task<bool> VerifyAsync(Guid userId, string? code, CancellationToken cancellationToken = default) => Task.FromResult(false);
+
+    public Task<bool> IsEnrolledAsync(Guid userId, CancellationToken cancellationToken = default) => Task.FromResult(false);
 }

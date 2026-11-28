@@ -14,6 +14,7 @@ public partial class QuoteTests
     {
         var (_, author) = await ActorAsync(Group.OwnerSeedKey);
         var (_, approver) = await ActorAsync(Group.OwnerSeedKey);
+        await SetModeAsync(BemAqui.Finance.Contracts.SelfApprovalMode.Never); // como um tenant antigo (FIN-10a): o de teste nasce em "Só o Proprietário"
         var (id, quote, _) = await SentQuoteAsync(author, canary: false);
         var (contractId, projectId) = await ApproveAsync(author, id, quote, Today);
         var before = await JsonAsync(await author.GetAsync($"/api/v1/projects/{projectId}"));

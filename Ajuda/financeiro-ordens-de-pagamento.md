@@ -12,7 +12,7 @@ Garantir que nenhum dinheiro saia da empresa sem uma ordem aprovada. Toda saída
 ## Como usar
 - Em **A pagar**, marque os títulos (ou use **Selecionar os que vencem até…**) e clique em **Criar ordem de pagamento**.
 - Use o filtro **Aguardando você** para ver o que espera a sua aprovação.
-- O filtro **Aprovadas pelo próprio solicitante** mostra as ordens que o próprio Proprietário pediu e aprovou.
+- O filtro **Aprovadas pelo próprio solicitante** mostra as ordens que quem pediu também aprovou. O selo aparece na lista, no cabeçalho da ordem, na linha da decisão, no PDF e na exportação.
 
 ## Imprimir e exportar
 - Clique em **Exportar** e escolha **Excel (.xlsx)** ou **PDF**. Valem a situação e o "Mostrar" da tela, com todas as páginas.
@@ -26,7 +26,9 @@ Garantir que nenhum dinheiro saia da empresa sem uma ordem aprovada. Toda saída
 
 **Quem paga?** O Financeiro, depois da aprovação, registrando a saída da conta.
 
-**Posso aprovar a ordem que eu pedi?** Não. A exceção é o Proprietário único, ou o parâmetro "Proprietário aprova a própria ordem" ligado.
+**Posso aprovar a ordem que eu pedi?** Depende da regra **Quem solicitou a ordem pode aprová-la?**, em Configurações → Parâmetros → Limites do financeiro: **Nunca** (só o Proprietário único aprova a própria), **Só o Proprietário** ou **Qualquer aprovador (só no 1º nível)**. Quando pode, o diálogo **Aprovar** avisa que a aprovação fica registrada como feita pelo próprio solicitante. Quando não pode, peça a outra pessoa; se você é do Proprietário, o atalho **Permitir que eu aprove minhas ordens** leva aos parâmetros. Pagar continua pedindo a verificação em duas etapas, e numa alçada de dois níveis quem aprovou o 1º nunca aprova o 2º.
+
+**Reenviei ou estornei uma ordem autoaprovada. O selo some?** A decisão antiga continua no histórico com o selo. No reenvio, a ordem perde o selo até a nova decisão; no estorno, ela o mantém.
 
 **Salários: conta lida no pagamento.** O título de salário paga na conta do funcionário, que fica no RH. A ordem guarda só o final da conta. No "Pagar", o bloco **Para onde vai o dinheiro** lê os dados na hora, só para quem paga. Se a conta mudou depois do envio, a ordem precisa de nova aprovação (**Reenviar para aprovação**). Conta em quarentena não entra na ordem.
 

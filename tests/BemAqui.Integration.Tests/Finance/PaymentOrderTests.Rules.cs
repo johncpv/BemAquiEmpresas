@@ -12,7 +12,8 @@ public partial class PaymentOrderTests
     [Fact]
     public async Task Solicitante_nao_aprova_a_propria_OP_salvo_as_excecoes_da_D6()
     {
-        var (_, owner) = await ActorAsync(Group.OwnerSeedKey);
+        await SetModeAsync(BemAqui.Finance.Contracts.SelfApprovalMode.Never); // tenant antigo (FIN-10a CA 1): o tenant de teste nasce em "Só o Proprietário"
+        var (ownerId, owner, code) = await OwnerWithTotpAsync();
         await ActorAsync(Group.OwnerSeedKey); // Proprietário com mais de um membro
         var supplier = await SupplierAsync(owner);
         var payable = (await PayableAsync(owner, supplier)).GetProperty("id").GetGuid();
@@ -23,18 +24,20 @@ public partial class PaymentOrderTests
         denied.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         Code(await JsonAsync(denied)).Should().Be("own_payment_order");
 
-        // CA 10: ligado o parâmetro, o Proprietário aprova a própria e a OP fica marcada.
+        // CA 10 (e FIN-10a CA 15): ligado o parâmetro pelo booleano antigo, com o código, o Proprietário aprova a própria e a OP fica marcada.
         var limits = await JsonAsync(await owner.GetAsync("/api/v1/finance/parameters"));
         var update = await owner.PutAsJsonAsync("/api/v1/finance/parameters", new
         {
             discountApprovalPct = limits.GetProperty("discountApprovalPct").GetDecimal(), discountApprovalAmount = limits.GetProperty("discountApprovalAmount").GetDecimal(),
             cancelApprovalAmount = limits.GetProperty("cancelApprovalAmount").GetDecimal(), backdateDays = limits.GetProperty("backdateDays").GetInt32(), ownerCanApproveOwn = true, paymentTolerance = 0m,
+            code = await code(),
         });
         update.StatusCode.Should().Be(HttpStatusCode.OK, await update.Content.ReadAsStringAsync());
-        (await WithDbAsync(db => db.Notifications.CountAsync(n => n.Title.EndsWith("ligou a aprovação da própria ordem pelo Proprietário.")))).Should().BeGreaterThan(1, "todos os membros do Proprietário");
+        (await WithDbAsync(db => db.Notifications.CountAsync(n => n.Title.EndsWith("de Nunca para Só o Proprietário.") && n.UserId != ownerId))).Should().BeGreaterThan(0, "os outros membros do Proprietário");
         var self = await JsonAsync(await owner.PostAsJsonAsync($"{Base}/{id}/approve", new { comment = (string?)null, version = Version(order) }));
         self.GetProperty("summary").GetProperty("selfApproved").GetBoolean().Should().BeTrue();
-        (await JsonAsync(await owner.GetAsync($"{Base}?selfApproved=true"))).GetProperty("items").EnumerateArray().Should().ContainSingle();
+        (await JsonAsync(await owner.GetAsync($"{Base}?selfApproved=true"))).GetProperty("items").EnumerateArray().Should().Contain(i => i.GetProperty("id").GetGuid() == id);
+        await SetModeAsync(BemAqui.Finance.Contracts.SelfApprovalMode.Never);
     }
 
     [Fact]

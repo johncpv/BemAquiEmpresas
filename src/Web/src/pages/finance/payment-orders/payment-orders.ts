@@ -23,8 +23,13 @@ export const ORDER_DICAS = {
   parcial: 'Pague menos que o saldo do título. O que faltar continua em aberto e entra noutra ordem.',
   acrescimos: 'Juros e multa que você já espera pagar. Entram no total aprovado.',
   aprovado: 'Valor a pagar mais os acréscimos previstos. O pagamento não passa disso sem nova aprovação.',
-  propria: 'O próprio solicitante aprovou, porque é o único Proprietário ou porque o parâmetro permite.',
+  propria: 'O próprio solicitante aprovou, porque é o único Proprietário ou porque a regra "Quem solicitou a ordem pode aprová-la?" (Configurações → Parâmetros) permite.',
 }
+
+/** Diálogo "Aprovar" quando quem aprova é o solicitante (FIN-10a CA 12). */
+export const OWN_ORDER_WARNING = 'Você solicitou esta ordem. A aprovação ficará registrada como feita pelo próprio solicitante.'
+export const OWN_ORDER_BLOCKED = 'Quem solicitou a ordem não pode aprová-la. Peça a outra pessoa que aprove.'
+export const OWN_ORDER_SHORTCUT = 'Permitir que eu aprove minhas ordens'
 
 /** Para onde vai o dinheiro, numa linha (retrato já mascarado pela API). */
 export function destination(p: PaymentDetailsInput) {

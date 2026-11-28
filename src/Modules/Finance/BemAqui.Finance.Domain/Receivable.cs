@@ -295,8 +295,12 @@ public sealed class FinancialTransaction : Entity, IAuditable, IConcurrencyVersi
 /// id de uma conta do plano), com auditoria. Os valores que dependem da contadora (ADR 0042) levam a marca de conferência:
 /// <see cref="ReviewState"/>, quem e quando; trocar o valor volta para "A confirmar".
 /// </summary>
-public sealed class FinanceParameter : Entity, IAuditable
+[DocumentName("O parâmetro")]
+public sealed class FinanceParameter : Entity, IAuditable, IConcurrencyVersioned
 {
+    /// <summary><c>xmin</c> (FIN-10a CA 17): duas trocas simultâneas do mesmo parâmetro, a segunda dá 409.</summary>
+    public uint Version { get; set; }
+
     public string Key { get; init; } = string.Empty;
 
     public decimal Value { get; set; }
