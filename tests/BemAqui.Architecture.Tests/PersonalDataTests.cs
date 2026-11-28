@@ -16,7 +16,9 @@ public class PersonalDataTests
             // LGPD-01b: a data e o número do pedido da anonimização são marcas técnicas, sem dado do titular.
             "AnonymizedAt", "AnonymizationRequest",
             // PERF-04: a chave do seed por perfil é técnica, sem dado do titular.
-            "SeedKey"],
+            "SeedKey",
+            // INT-04 CA 11: marcas da origem do contato (veio de aplicativo), sem o valor.
+            "EmailSetByApp", "PhoneSetByApp"],
         ["PartyRole"] = ["Id", "PartyId", "Role"],
         ["PartyAddress"] = ["Id", "PartyId", "Kind", "ZipCode", "Street", "Number", "Complement", "District", "City", "IbgeCode", "State", "IsDefault"],
         ["PartyContact"] = ["Id", "PartyId", "Role", "ReceivesBilling"],

@@ -39,6 +39,18 @@ export const INTEGRATION_V1_ROUTES: readonly IntegrationRoute[] = [
     "operationId": "IntegrationPatchCustomer"
   },
   {
+    "method": "POST",
+    "path": "/api/v1/integration/customers/{id}/identity-challenges",
+    "scope": "parties.view",
+    "operationId": "IntegrationCreateIdentityChallenge"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/integration/customers/{id}/identity-challenges/{challengeId}/verify",
+    "scope": "parties.view",
+    "operationId": "IntegrationVerifyIdentityChallenge"
+  },
+  {
     "method": "GET",
     "path": "/api/v1/integration/customers/{id}/projects",
     "scope": "projects.view",
@@ -103,6 +115,12 @@ export const INTEGRATION_V1_ROUTES: readonly IntegrationRoute[] = [
     "path": "/api/v1/integration/customers/{id}/orders",
     "scope": "sales.view",
     "operationId": "IntegrationListCustomerOrders"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/integration/invoices/{id}",
+    "scope": "fiscal.view",
+    "operationId": "IntegrationGetInvoice"
   },
   {
     "method": "GET",

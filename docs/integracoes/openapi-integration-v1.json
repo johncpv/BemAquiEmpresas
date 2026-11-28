@@ -187,6 +187,99 @@
         "x-scope": "parties.edit"
       }
     },
+    "/api/v1/integration/customers/{id}/identity-challenges": {
+      "post": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationCreateIdentityChallenge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationIdentityChallengeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationIdentityChallenge"
+                }
+              }
+            }
+          }
+        },
+        "x-scope": "parties.view"
+      }
+    },
+    "/api/v1/integration/customers/{id}/identity-challenges/{challengeId}/verify": {
+      "post": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationVerifyIdentityChallenge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "challengeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationIdentityVerifyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationIdentityVerification"
+                }
+              }
+            }
+          }
+        },
+        "x-scope": "parties.view"
+      }
+    },
     "/api/v1/integration/customers/{id}/projects": {
       "get": {
         "tags": [
@@ -608,6 +701,38 @@
         "x-scope": "sales.view"
       }
     },
+    "/api/v1/integration/invoices/{id}": {
+      "get": {
+        "tags": [
+          "Integra\u00E7\u00E3o (aplicativos)"
+        ],
+        "operationId": "IntegrationGetInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationInvoice"
+                }
+              }
+            }
+          }
+        },
+        "x-scope": "fiscal.view"
+      }
+    },
     "/api/v1/integration/invoices/{id}/danfe": {
       "get": {
         "tags": [
@@ -999,6 +1124,12 @@
           },
           "canInvoice": {
             "type": "boolean"
+          },
+          "phoneSetByApp": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
@@ -1085,6 +1216,139 @@
           }
         },
         "additionalProperties": false
+      },
+      "IntegrationIdentityChallenge": {
+        "required": [
+          "challengeId",
+          "channel",
+          "maskedDestination"
+        ],
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "channel": {
+            "type": "string"
+          },
+          "maskedDestination": {
+            "type": "string"
+          }
+        }
+      },
+      "IntegrationIdentityChallengeInput": {
+        "required": [
+          "channel"
+        ],
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "IntegrationIdentityVerification": {
+        "required": [
+          "verified"
+        ],
+        "type": "object",
+        "properties": {
+          "verified": {
+            "type": "boolean"
+          },
+          "attemptsLeft": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "IntegrationIdentityVerifyInput": {
+        "required": [
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "IntegrationInvoice": {
+        "required": [
+          "id",
+          "type",
+          "status",
+          "series",
+          "number",
+          "accessKey",
+          "issuedOn",
+          "partyId",
+          "salesOrderId",
+          "danfeUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/InvoiceType"
+          },
+          "status": {
+            "type": "string"
+          },
+          "series": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "number": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "accessKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issuedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "salesOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "danfeUrl": {
+            "type": "string"
+          }
+        }
       },
       "IntegrationOrder": {
         "required": [
@@ -1403,6 +1667,20 @@
           },
           "danfeUrl": {
             "type": "string"
+          },
+          "partyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "salesOrderId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -1740,6 +2018,9 @@
     "too_many_open_orders",
     "price_changed",
     "concurrency_conflict",
-    "bank_slip_method_missing"
+    "bank_slip_method_missing",
+    "no_verified_contact",
+    "channel_unavailable",
+    "identity_challenge_expired"
   ]
 }

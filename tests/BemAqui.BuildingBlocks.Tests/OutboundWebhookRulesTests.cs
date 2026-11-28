@@ -124,9 +124,11 @@ public class OutboundWebhookRulesTests
     /// título. whatsapp_message.requested aponta para a rota de leitura da mensagem, que nasce com a ATD-06a (nenhum aviso desse tipo sai antes dela).
     /// </summary>
     [Fact]
-    public void Resource_de_cada_tipo_e_uma_rota_do_integration_v1()
+    public void Resource_de_cada_tipo_e_uma_rota_do_integration_v1() => ResourcesMatchContract();
+
+    private static void ResourcesMatchContract([System.Runtime.CompilerServices.CallerFilePath] string here = "")
     {
-        var root = AppContext.BaseDirectory;
+        var root = Path.GetDirectoryName(here)!;
         while (!File.Exists(Path.Combine(root, "BemAquiEmpresas.slnx")))
         {
             root = Path.GetDirectoryName(root)!;

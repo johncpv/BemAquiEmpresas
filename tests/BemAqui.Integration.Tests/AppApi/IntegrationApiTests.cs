@@ -246,7 +246,8 @@ public sealed class IntegrationApiTests(BillingSlipFixture fixture) : IClassFixt
             ("POST", "/orders", "sales.create"), ("GET", "/orders/{id:guid}", "sales.view"), ("GET", "/customers/{id:guid}/orders", "sales.view"),
             ("POST", "/orders/{id:guid}/confirm", "sales.create"), ("POST", "/orders/{id:guid}/charge", "sales.edit"), ("POST", "/orders/{id:guid}/cancel", "sales.edit"),
             ("GET", "/customers/{id:guid}/charges", "finance.view"), ("GET", "/charges/{id:guid}", "finance.view"), ("GET", "/charges/{id:guid}/pdf", "finance.view"),
-            ("GET", "/orders/{id:guid}/invoice", "fiscal.view"), ("GET", "/invoices/{id:guid}/danfe", "fiscal.view"),
+            ("GET", "/orders/{id:guid}/invoice", "fiscal.view"), ("GET", "/invoices/{id:guid}/danfe", "fiscal.view"), ("GET", "/invoices/{id:guid}", "fiscal.view"),
+            ("POST", "/customers/{id:guid}/identity-challenges", "parties.view"), ("POST", "/customers/{id:guid}/identity-challenges/{challengeId:guid}/verify", "parties.view"),
             ("GET", "/customers/{id:guid}/projects", "projects.view"),
         };
         var endpoints = fixture.Factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>()
