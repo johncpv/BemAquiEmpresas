@@ -5,7 +5,7 @@ using BemAqui.Commercial.Domain;
 namespace BemAqui.Commercial.Application;
 
 /// <summary>Item do checklist da etapa na leitura (EXE-03a CA 7); marcar é da EXE-03b.</summary>
-public sealed record ProjectStageCheckView(Guid Id, int Sequence, string Text, ChecklistResult? Result);
+public sealed record ProjectStageCheckView(Guid Id, int Sequence, string Text, StageChecklistResult? Result);
 
 /// <summary>
 /// Etapa do projeto de serviço na aba Etapas (CA 7): letra, nome, papel, situação, responsável, previsto, realizado e o progresso do checklist.

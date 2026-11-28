@@ -921,6 +921,31 @@
           }
         }
       },
+      "IntegrationCurrentStage": {
+        "required": [
+          "code",
+          "name",
+          "sequence",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "IntegrationCustomer": {
         "required": [
           "id",
@@ -1578,6 +1603,16 @@
           "executionKind": {
             "type": "string",
             "default": "Fabrication"
+          },
+          "currentStage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IntegrationCurrentStage"
+              }
+            ]
           }
         }
       },

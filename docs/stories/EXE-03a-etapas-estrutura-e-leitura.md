@@ -5,7 +5,7 @@
 | ID | EXE-03a |
 | Título | Tabelas das etapas do projeto; cópia do modelo na aprovação (etapas congeladas no snapshot do contrato); "Usar um modelo de etapas" em projeto existente, inclusive já entregue, sem evento nem efeito financeiro; edição antes de começar; aba Etapas em leitura; etapa do modelo como `currentStage` separado do estado do projeto (`ProjectStageMap`), também na API v1 e no PDF |
 | Tamanho | M |
-| Status | Draft (revisão combinada de 28/11/2026) |
+| Status | Done (28/11/2026) |
 | Requisitos | [Proposta](../produto/execucao-pos-contrato.md) §4.2 · PRD PRJ-4 · PRD-01 (etapas copiadas do roteiro, editáveis antes de começar) · EXE-01a (`ProjectStageMap`, snapshot `v1`, `IntegrationProjectEndpoints`) · INT-03 · R-SEC-5 |
 | Dependências | EXE-01a, EXE-01b (página do projeto), EXE-02 |
 | Bloqueia | EXE-03b, EXE-05a |
@@ -51,10 +51,10 @@ Como **responsável pelo projeto de serviço**, quero **ver as etapas do projeto
 - **Front (Vitest):** aba Etapas nos estados; cabeçalho com "Etapa atual".
 
 ## Tarefas
-- [ ] Domain/Application: `ProjectStage`, cópia, edição, `IStageMilestoneGuard` (sem implementação real até a EXE-05a), `currentStage` nas views.
-- [ ] Snapshot `stages`; `IntegrationProjectEndpoints` e `ProjectSummaryPdf` com `currentStage`.
-- [ ] Endpoints `GET/PUT /api/v1/projects/{id}/stages`, `POST .../stages/apply-template`; OpenAPI e Orval.
-- [ ] Front (aba, cabeçalho) e ajuda; docs `03-modelo-dados`.
+- [x] Domain/Application: `ProjectStage`, cópia, edição, `IStageMilestoneGuard` (sem implementação real até a EXE-05a), `currentStage` nas views.
+- [x] Snapshot `stages`; `IntegrationProjectEndpoints` e `ProjectSummaryPdf` com `currentStage`.
+- [x] Endpoints `GET/PUT /api/v1/projects/{id}/stages`, `POST .../stages/apply-template`; OpenAPI e Orval.
+- [x] Front (aba, cabeçalho) e ajuda; docs `03-modelo-dados`.
 
 ## Dev Notes
 - `src/Modules/Commercial/BemAqui.Commercial.Domain/ProjectExecution.cs`, `Application/ProjectExecutionService.cs`, `QuoteApprovalService.Create.cs`, `ContractSnapshots.cs`, `ProjectViews.cs`, `Documents/ProjectSummaryPdf.cs`, `Endpoints/IntegrationProjectEndpoints.cs`.
@@ -68,3 +68,5 @@ Como **responsável pelo projeto de serviço**, quero **ver as etapas do projeto
 | 27/11/2026 | 0.1 | Story EXE-03 escrita a partir da proposta aprovada pelo PO | Claude |
 | 27/11/2026 | 0.2 | Ajuste às revisões da EXE-01 | Claude |
 | 28/11/2026 | 0.3 | **Revisão combinada de 28/11/2026:** EXE-03 dividida em 03a (estrutura e leitura), 03b (andamento) e 03c (reabrir, atraso, pauta). Etapas congeladas no snapshot; "Usar um modelo" em projeto entregue sem evento nem efeito em título e recusado em encerrado/cancelado; checagem de marcos na edição pelo ponto de extensão preenchido na EXE-05a; `currentStage` separado da `ProjectStageMap`, na API v1 e no PDF sem o responsável. **Decisão do mantenedor:** horas previstas = horas por unidade × quantidade do item. | Claude |
+| 28/11/2026 | 1.0 | **Implementada.** Tabelas `project_stages` e `project_stage_checklist` e colunas novas em `projects` (migration `ProjectStagesExe03a`, só CREATE TABLE, ADD COLUMN nulável e constraints novas, letra e sequência únicas DEFERRABLE). Domínio `ProjectServiceStage`/`ProjectServiceStageCheck` (o nome `ProjectStage` já era o record do display de andar da EXE-01a) e regras puras `ServiceStagePlan` (cópia pela situação, horas × quantidade, etapa atual). `ProjectStageService`: cópia na aprovação pelo `IStageTemplates.SuggestAsync` (item → segmento → padrão), snapshot com `stages`, "Usar um modelo" e troca antes de começar, edição (`StageTemplateRules.ValidateSteps`, 422 por linha `stages[n].campo`), `IStageMilestoneGuard` com `NoStageMilestoneGuard` até a EXE-05a, IDOR 404, versão do projeto. Rotas `GET/PUT /api/v1/projects/{id}/stages` e `POST .../stages/apply-template` no grupo com `RequireProfileFeature`. `currentStage` em `ProjectDetail`, `ProjectSummary` (só `ListByPartyAsync`), PDF do resumo ("Etapa atual: K Kickoff (1 de 4)") e API v1 (`IntegrationCurrentStage`, omitido quando nulo). Linha do tempo "Etapas do modelo {nome} (revisão {n})". Contador "Usado em {n} projetos" da EXE-02 ligado. Front: aba Etapas (tabela; cartões no celular; vazio com "Usar um modelo de etapas"), "Etapa atual" com `<Dica>` no cabeçalho, ajuda `projetos-projeto-etapas.md`. | Claude |
+| 28/11/2026 | 1.1 | **Decisões sem o PO (opção mais segura):** (1) `projects` ganhou também `stage_template_name`, `stages_applied_at`, `stages_applied_by` (histórico do CA 4 com o nome da hora da cópia) e `stages_changed_at` (a edição das etapas muda o xmin do projeto); (2) etapa concluída pela cópia em projeto entregue fica com `completion_version = 0` e `completed_by` nulo (não houve conclusão por alguém nem evento); (3) o segmento da sugestão é o primeiro segmento do perfil Serviços do tenant; (4) a edição das etapas (PUT) fica só na API nesta story: a aba é de leitura, como pede o CA 7; (5) projeto entregue sem etapas que recebe etapas pelo PUT segue a mesma regra da cópia (concluídas pela entrega); (6) `apply-template` e `PUT` sem `Idempotency-Key` (a versão do projeto já barra o duplo clique); (7) modelo inativo ou excluído no "Usar um modelo", 422 em `templateId`; (8) `currentStage` só com o recurso `projects.service_execution` (sem o recurso, nulo, como os dados do aceite na EXE-01a); (9) o resultado do checklist da etapa é `StageChecklistResult` (o `ChecklistResult` da Produção já existe no OpenAPI com `NonConforming`). | Claude |

@@ -15981,6 +15981,117 @@
         }
       }
     },
+    "/api/v1/projects/{id}/stages": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "GetProjectStages",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectStagesView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "UpdateProjectStages",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectStagesInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectStagesView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/stages/apply-template": {
+      "post": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "ApplyProjectStageTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectStageTemplateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectStagesView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/stage-templates": {
       "get": {
         "tags": [
@@ -60610,6 +60721,15 @@
           "executionKind": {
             "type": "string",
             "default": "Fabrication"
+          },
+          "stages": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SnapshotStage"
+            }
           }
         }
       },
@@ -71628,6 +71748,31 @@
           }
         }
       },
+      "IntegrationCurrentStage": {
+        "required": [
+          "code",
+          "name",
+          "sequence",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "IntegrationCustomer": {
         "required": [
           "id",
@@ -72285,6 +72430,16 @@
           "executionKind": {
             "type": "string",
             "default": "Fabrication"
+          },
+          "currentStage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IntegrationCurrentStage"
+              }
+            ]
           }
         }
       },
@@ -97958,6 +98113,31 @@
           }
         }
       },
+      "ProjectCurrentStage": {
+        "required": [
+          "code",
+          "name",
+          "sequence",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "ProjectDeliveryInput": {
         "required": [
           "date",
@@ -98222,6 +98402,16 @@
           "serviceExecution": {
             "type": "boolean",
             "default": false
+          },
+          "currentStage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectCurrentStage"
+              }
+            ]
           }
         }
       },
@@ -99475,6 +99665,366 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "ProjectStageCheckView": {
+        "required": [
+          "id",
+          "sequence",
+          "text",
+          "result"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": "string"
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StageChecklistResult"
+              }
+            ]
+          }
+        }
+      },
+      "ProjectStageInput": {
+        "required": [
+          "id",
+          "name",
+          "code",
+          "role",
+          "plannedHours",
+          "positionId",
+          "requiresApproval",
+          "checklist",
+          "responsibleUserId",
+          "plannedStart",
+          "plannedEnd"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/StageRole"
+          },
+          "plannedHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "positionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "requiresApproval": {
+            "type": "boolean"
+          },
+          "checklist": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "responsibleUserId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "plannedStart": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "plannedEnd": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProjectStagesInput": {
+        "required": [
+          "stages",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "stages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectStageInput"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProjectStageStatus": {
+        "enum": [
+          "Waiting",
+          "Ready",
+          "InProgress",
+          "AwaitingApproval",
+          "Done"
+        ]
+      },
+      "ProjectStagesView": {
+        "required": [
+          "projectId",
+          "stages",
+          "templateId",
+          "templateName",
+          "templateRevision",
+          "started",
+          "currentStage",
+          "canApplyTemplate",
+          "suggestedTemplateId",
+          "templates",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectStageView"
+            }
+          },
+          "templateId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "templateName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "templateRevision": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "started": {
+            "type": "boolean"
+          },
+          "currentStage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectCurrentStage"
+              }
+            ]
+          },
+          "canApplyTemplate": {
+            "type": "boolean"
+          },
+          "suggestedTemplateId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "templates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageTemplateOption"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        }
+      },
+      "ProjectStageTemplateInput": {
+        "required": [
+          "templateId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "templateId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProjectStageView": {
+        "required": [
+          "id",
+          "sequence",
+          "code",
+          "name",
+          "role",
+          "status",
+          "plannedHours",
+          "positionId",
+          "positionName",
+          "requiresApproval",
+          "responsibleUserId",
+          "responsibleName",
+          "plannedStart",
+          "plannedEnd",
+          "startedAt",
+          "completedOn",
+          "checklistDone",
+          "checklistTotal",
+          "checklist"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/StageRole"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProjectStageStatus"
+          },
+          "plannedHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "positionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "positionName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requiresApproval": {
+            "type": "boolean"
+          },
+          "responsibleUserId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "responsibleName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "plannedStart": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "plannedEnd": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "startedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "completedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "checklistDone": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "checklistTotal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectStageCheckView"
+            }
           }
         }
       },
@@ -115082,6 +115632,25 @@
           }
         }
       },
+      "SnapshotStage": {
+        "required": [
+          "code",
+          "name",
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      },
       "SplitPreviewInput": {
         "required": [
           "paymentTermId",
@@ -115128,6 +115697,13 @@
             "format": "date"
           }
         }
+      },
+      "StageChecklistResult": {
+        "enum": [
+          "Done",
+          "NotApplicable",
+          null
+        ]
       },
       "StageItemOption": {
         "required": [
@@ -115484,6 +116060,33 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "StageTemplateOption": {
+        "required": [
+          "id",
+          "name",
+          "segment",
+          "isDefault"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "segment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDefault": {
+            "type": "boolean"
           }
         }
       },

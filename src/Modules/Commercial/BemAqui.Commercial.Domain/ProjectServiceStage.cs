@@ -16,8 +16,8 @@ public enum ProjectStageStatus
 }
 
 /// <summary>Resultado de um item do checklist da etapa: feito ou não se aplica; nulo = ainda não marcado.</summary>
-[JsonConverter(typeof(JsonStringEnumConverter<ChecklistResult>))]
-public enum ChecklistResult
+[JsonConverter(typeof(JsonStringEnumConverter<StageChecklistResult>))]
+public enum StageChecklistResult
 {
     Done,
     NotApplicable,
@@ -87,7 +87,7 @@ public sealed class ProjectServiceStageCheck : Entity, IAuditable
 
     public string Text { get; set; } = string.Empty;
 
-    public ChecklistResult? Result { get; set; }
+    public StageChecklistResult? Result { get; set; }
 
     public DateTimeOffset? MarkedAt { get; set; }
 

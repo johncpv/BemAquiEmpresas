@@ -6,6 +6,7 @@
  */
 import type { ExecutionKind } from './executionKind';
 import type { ProjectAcceptanceView } from './projectAcceptanceView';
+import type { ProjectCurrentStage } from './projectCurrentStage';
 import type { ProjectForecastView } from './projectForecastView';
 import type { ProjectItemView } from './projectItemView';
 import type { ProjectStage } from './projectStage';
@@ -60,4 +61,5 @@ export interface ProjectDetail {
   acceptance?: null | ProjectAcceptanceView;
   acceptanceRequired?: boolean;
   serviceExecution?: boolean;
+  currentStage?: null | ProjectCurrentStage;
 }

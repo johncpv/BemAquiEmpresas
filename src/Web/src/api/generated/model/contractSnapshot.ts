@@ -7,6 +7,7 @@
 import type { SnapshotItem } from './snapshotItem';
 import type { SnapshotMilestone } from './snapshotMilestone';
 import type { SnapshotParty } from './snapshotParty';
+import type { SnapshotStage } from './snapshotStage';
 
 export interface ContractSnapshot {
   schema: string;
@@ -27,4 +28,6 @@ export interface ContractSnapshot {
   marginPct: number | null;
   isOnboarding?: boolean;
   executionKind?: string;
+  /** @nullable */
+  stages?: SnapshotStage[] | null;
 }

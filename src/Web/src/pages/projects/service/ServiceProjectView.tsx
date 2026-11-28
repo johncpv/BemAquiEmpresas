@@ -19,11 +19,13 @@ import { ProjectItemsTab } from '../ProjectItemsTab'
 import { ProjectStageIndicator } from '../ProjectStageIndicator'
 import { ProjectSummaryTab } from '../ProjectSummaryTab'
 import { ProjectTimelineTab } from '../ProjectTimelineTab'
+import { ProjectStagesTab } from './ProjectStagesTab'
 import { nextStep, SERVICE_DICAS, type ServiceStep, STEP_VERBS } from './service'
 import { ServiceStepDialog } from './ServiceStepDialog'
+import { currentStageText, STAGE_DICAS } from './stages'
 
-/** Ajuda própria do projeto de serviço (EXE-01b CA 19): Resumo e Itens; as demais abas usam a ajuda de sempre. */
-const SERVICE_HELP_TABS = { resumo: 'servico', itens: 'servico-itens' } as const
+/** Ajuda própria do projeto de serviço (EXE-01b CA 19; EXE-03a): Resumo, Etapas e Itens; as demais abas usam a ajuda de sempre. */
+const SERVICE_HELP_TABS = { resumo: 'servico', etapas: 'etapas', itens: 'servico-itens' } as const
 
 const primaryClass = 'rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground'
 const secondaryClass = 'rounded-md border border-border px-3 py-2 text-sm font-semibold'
@@ -86,6 +88,12 @@ export function ServiceProjectView({ project: p, refresh }: { project: ProjectDe
               <ProjectStageIndicator project={p} showLabel />
               <Dica nome="Etapas do serviço" texto={SERVICE_DICAS.legenda} />
             </span>
+            {/* EXE-03a CA 8: a etapa do modelo ao lado do indicador do projeto, que continua. */}
+            {p.currentStage ? (
+              <span className="inline-flex items-center text-sm font-semibold" data-testid="etapa-atual" title={`Etapa ${p.currentStage.sequence} de ${p.currentStage.total}`}>
+                {currentStageText(p.currentStage)}<Dica nome="Etapa atual" texto={STAGE_DICAS.atual} />
+              </span>
+            ) : null}
             {step.awaitingAcceptance ? (
               <span className="inline-flex items-center"><StatusChip tone="warn">Aguardando aceite do cliente</StatusChip><Dica nome="Aguardando aceite do cliente" texto={SERVICE_DICAS.aguardando} /></span>
             ) : null}
@@ -106,6 +114,7 @@ export function ServiceProjectView({ project: p, refresh }: { project: ProjectDe
       {p.acceptance && p.acceptance.kind === 'Inherited' ? <p className="mb-3 text-sm text-muted-foreground">Aceite herdado da entrega em {formatDate(p.acceptance.occurredOn)} (ajuste automático).</p> : null}
       <UrlTabs label="Seções do projeto" fallback="resumo" helpTabs={SERVICE_HELP_TABS} tabs={[
         { id: 'resumo', label: 'Resumo', content: <ProjectSummaryTab project={p} onSaved={refresh} onCosts={() => void navigate({ to: '/app/projetos/$id', params: { id: p.id }, search: { aba: 'custos' } } as never)} /> },
+        ...(p.serviceExecution !== false ? [{ id: 'etapas', label: 'Etapas', content: <ProjectStagesTab projectId={p.id} /> }] : []),
         { id: 'itens', label: 'Itens', content: <ProjectItemsTab project={p} /> },
         ...(canFinance ? [{ id: 'financeiro', label: 'Financeiro', content: <ProjectFinancialTab projectId={p.id} /> }] : []),
         ...(canCost ? [{ id: 'custos', label: 'Custos', content: <ProjectCostsTab projectId={p.id} contractId={p.contractId} project={p} /> }] : []),
