@@ -35,6 +35,8 @@ public partial class SalesTests
         a.IsSuccess.Should().BeTrue();
         b.IsSuccess.Should().BeTrue();
         c.IsSuccess.Should().BeTrue();
+        // Os consumidores do outbox (o Host os roda em segundo plano) atualizam a linha da venda (estoque); cancelar antes de drenar disputa a linha e dá DbUpdateConcurrencyException.
+        await DrainAsync();
         (await CancelAsync(b.Value.SaleId)).IsSuccess.Should().BeTrue();
         await using (var scope = await ScopeAsync())
         {
