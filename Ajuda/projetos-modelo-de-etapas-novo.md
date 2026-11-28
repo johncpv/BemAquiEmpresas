@@ -18,3 +18,6 @@ Criar um modelo de etapas para um tipo de serviço.
 - **Marcos sugeridos**: a soma tem de dar 100%. O gatilho **Ao concluir a etapa** só aceita letras de etapas de Execução; a Entrega e o Aceite têm gatilhos próprios.
 - No celular, cada etapa vira um cartão. Use **Mover para cima** e **Mover para baixo** para mudar a ordem.
 - **Salvar modelo** grava e abre o modelo com os próximos passos.
+
+## Perguntas frequentes
+**Preciso de etapa de Aceite?** Não. Sem ela, o projeto termina na Entrega. Com ela, o Aceite do cliente vem por último.

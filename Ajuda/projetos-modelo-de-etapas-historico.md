@@ -12,3 +12,6 @@ Ver quem mudou o modelo, as etapas e os itens vinculados, e quando.
 
 ## Como usar
 - Cada linha mostra o que foi criado, alterado ou excluído, com o antes e o depois, o usuário e a data.
+
+## Perguntas frequentes
+**O histórico mostra o custo?** Não. O modelo de etapas não tem custo: só horas, cargo e marcos sugeridos.

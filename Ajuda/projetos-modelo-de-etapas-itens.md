@@ -15,3 +15,6 @@ Ligar itens de serviço ao modelo, para o orçamento sugerir este modelo quando 
 - Cada item tem um modelo só. Se o item já usa outro, a mensagem oferece **Abrir modelo**.
 - **Desvincular** faz o orçamento voltar a sugerir o padrão. Os projetos já criados não mudam.
 - A ficha do item mostra o modelo ligado a ele, só para consulta.
+
+## Perguntas frequentes
+**Por que não acho um produto para vincular?** Só itens do tipo Serviço, ativos, podem ter modelo de etapas. Produtos e componentes seguem o roteiro da Engenharia.
