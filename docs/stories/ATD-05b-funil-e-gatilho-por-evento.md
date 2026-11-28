@@ -23,7 +23,7 @@ Como **gestor comercial**, quero **ver no funil do Conecta em que pé cada venda
 2. **Dado** um aviso atrasado ou repetido (ou a reconciliação da ATD-03a), **quando** iria mover o negócio, **então** o Conecta relê o pedido e só avança: nunca volta de etapa pela ordem do funil; idempotente por **(pedido, situação)**.
 3. **Dado** um pedido feito no BemAqui Empresas para um cliente identificado, **quando** chega `sales_order.created`, **então** a opção "Criar negócio para pedidos feitos fora do Conecta" (padrão desligada) cria o negócio na etapa configurada.
 4. **Dado** o editor de automações (`AutomationEditorView.vue`), **quando** o `admin` cria uma automação, **então** há o gatilho **"Evento do BemAqui Empresas"** (`erp_event`) com o filtro do tipo de aviso (rótulos humanos: "Pagamento confirmado", "Pedido enviado"…); o contexto leva contato, conversa, negócio, tipo e número do pedido (sem dado pessoal).
-5. **[Segurança]** **Dado** um nó de envio numa automação `erp_event`, **quando** executa, **então** manda pelo canal da conversa do pedido (nunca pelo canal mais recente da conta), só canal oficial, respeitando "o cliente falou nas últimas 24 h" (texto) ou a mensagem pronta, o consentimento e a supressão da ATD-05a, e a chave (pedido, situação, telefone, automação); o nó `send_message_to_contact` de hoje não é oferecido para esse gatilho.
+5. **[Segurança]** **Dado** um nó de envio numa automação `erp_event`, **quando** executa, **então** manda pelo canal da conversa do pedido (nunca pelo canal mais recente da conta), só canal oficial, respeitando "o cliente falou nas últimas 24 h" (texto) ou a mensagem pronta, o consentimento e a supressão **da categoria (a), avisos do pedido** (ATD-05a CA 13: a automação `erp_event` é sempre (a); a categoria vem do gatilho e não é escolhida na automação), e a chave (pedido, situação, telefone, automação); o nó `send_message_to_contact` de hoje não é oferecido para esse gatilho.
 6. **Dado** um movimento feito por evento, **quando** o atendente abre o negócio, **então** o histórico diz "Movido para Pago: pagamento confirmado no BemAqui Empresas em dd/mm hh:mm".
 
 ## O que muda (Conecta)
@@ -52,3 +52,4 @@ Nada pendente.
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 27/11/2026 | 0.1 | Separada da ATD-05 nas revisões de 27/11/2026 (arquitetura, segurança, UX; decisões do PO): funil e gatilho sem voltar etapa, idempotentes por (pedido, situação), envios com as regras da ATD-05a. | Claude (planejamento) |
+| 28/11/2026 | 0.2 | Decisão do PO de 28/11/2026: SAIR por categoria; VOLTAR geral; unificar com o opt-out existente do Conecta. O mantenedor (Thiago) revisa. Automação `erp_event` é categoria (a); os envios passam pela porta única da ATD-05a. | Claude (planejamento) |
