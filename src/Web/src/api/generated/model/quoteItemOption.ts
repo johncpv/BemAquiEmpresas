@@ -4,10 +4,14 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { ItemType } from './itemType';
 
 export interface QuoteItemOption {
   id: string;
   code: string;
   name: string;
   unitCode: string;
+  type: ItemType;
+  /** @nullable */
+  averageCost: number | null;
 }

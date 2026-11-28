@@ -1,4 +1,5 @@
-import type { CostType, QuotePricingMode } from '@/api/generated/model'
+import type { CostType, ItemType, QuoteItemKind, QuotePricingMode } from '@/api/generated/model'
+import { formatMoney } from '@/lib/format'
 import type { Tone } from '../finance/receivables/receivables'
 
 export const QUOTE_STATUS: Record<string, { label: string; tone: Tone }> = {
@@ -15,6 +16,23 @@ export const ITEM_KINDS = [
   { value: 'Product', label: 'Produto' },
   { value: 'Service', label: 'Serviço' },
 ] as const
+
+/** PRC-00 CA 3: o tipo da linha pelo tipo do item (o servidor aplica a mesma regra). */
+export function kindForItemType(type: ItemType): QuoteItemKind {
+  if (type === 'Service') return 'Service'
+  if (type === 'Finished') return 'Equipment'
+  return 'Product'
+}
+
+/** Teto da busca de item no servidor (PRC-00 CA 7). */
+export const ITEM_SEARCH_LIMIT = 20
+
+/** Linha de apoio do resultado da busca (PRC-00 CA 1 e 2): tipo, unidade e, para quem vê custo, o custo médio. */
+export function itemOptionHint(typeLabel: string, unitCode: string, averageCost?: number | null): string {
+  const parts = [typeLabel, unitCode]
+  if (averageCost != null) parts.push(`custo médio ${formatMoney(averageCost)}`)
+  return parts.filter(Boolean).join(' · ')
+}
 
 export const COST_SECTIONS: { type: CostType; label: string }[] = [
   { type: 'Material', label: 'Material' },
