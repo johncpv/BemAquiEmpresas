@@ -102,7 +102,7 @@ public partial class StageTemplateTests
         var consulting = seeded.Single(t => t.SeedKey == "service-consulting");
         consulting.SuggestedMilestones.Select(m => m.Percent).Should().Equal(30m, 30m, 40m);
         consulting.SuggestedMilestones[1].StageCode.Should().Be("P");
-        var list = await JsonAsync(await owner.GetAsync(Base + "?situation=active"));
+        var list = await JsonAsync(await owner.GetAsync(Base + "?situation=active&pageSize=100"));
         list.GetProperty("items").EnumerateArray().Where(i => i.GetProperty("isSuggested").GetBoolean()).Should().HaveCount(4);
 
         // Idempotente: rodar de novo não cria nada.
