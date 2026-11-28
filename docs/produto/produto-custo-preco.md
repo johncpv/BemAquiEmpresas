@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Situação | **Proposta, aguardando o PO** (perguntas no §13). Só documentação: nenhuma story foi criada nem o backlog alterado |
+| Situação | **Aprovada pelo PO em 27/11/2026** (decisões no §14). Stories no bloco "Pós-go-live: melhorias do produto" do `05-backlog.md` (arquivos de story ainda não escritos) |
 | Data | 27/11/2026 |
 | Pedido | PO, 27/11/2026: "Temos o item no estoque, mas não temos a precificação dele. O orçamento deveria buscar itens já cadastrados (manter a opção de digitar à mão, mas o ideal é buscar), e o item já vir com a composição de custo, a margem e o preço de venda estabelecidos. O cliente tem que conseguir configurar o preço de venda e, nessa configuração, ter o preço de compra/custo. Quero pensar no projeto todo e não remendar; não quero perder o esqueleto que temos. Esse tem que ser o melhor caminho para atender os modelos de negócio do ERP (Fábrica, Serviços, Comércio, E-commerce) para outros clientes." |
 | Decisões do PO já tomadas | O item guarda uma **composição de custo padrão**, copiada para o orçamento e ajustável lá · prioridade: bloco "Pós-go-live: melhorias do produto" (depois da F2 do Conecta) |
@@ -98,7 +98,7 @@ Alternativas avaliadas:
 | Ficha no Commercial | O Commercial (orçamento) não está no Comércio nem no E-commerce |
 | **Módulo `pricing` (recomendado)** | Dono da política, da ficha e do custo de referência; consumido pelo Commercial, Catálogo, Vendas e PDV por `Pricing.Contracts`; permissões próprias; tela própria ("Precificação") e aba "Custo e preço" na tela do item e do produto. Segue a ADR 0006 (cada módulo com suas tabelas, contrato entre módulos) |
 
-- **Perfis:** `services`, `retail`, `ecommerce`. **`factory` só com decisão do PO** (pergunta 1), pela regra da ADR 0046.
+- **Perfis:** **todos, `factory` inclusive, desde o início** (decisão do PO, §14). Na Fábrica é a decisão explícita que a ADR 0046 exige; o módulo fica **oculto até alguém configurar a política** (entrada em Configurações para quem tem `pricing.edit`) e, enquanto não configurado, não muda nada visível na Konebras (teste de regressão do perfil `factory`).
 - **Área:** Comercial (no Comércio e no E-commerce, que não têm área Comercial visível, aparece na área "Loja").
 - Vira ADR (proposta: **ADR 0054 — Precificação: ficha de custo padrão, política e preço sugerido**) na primeira story.
 
@@ -195,6 +195,13 @@ Hoje a BOM existe só por OS. Proposta **ENG-03 "Estrutura padrão do produto"**
 
 Mão de obra do acabado: horas por cargo digitadas na ficha (o roteiro de hoje tem etapas, não horas). Sugerir horas a partir do realizado das OS é evolução (não entra agora).
 
+**Com a Precificação na Fábrica desde o início (decisão do PO):**
+
+- **Divisão de papéis.** A Engenharia é dona do *quê* (estrutura padrão: componentes e quantidades, com revisão); a Precificação é dona do *quanto* (custo de referência de cada componente, mão de obra, instalação, frete, despesas %). A ficha do acabado **lê** a estrutura padrão liberada, não a copia; uma nova revisão liberada recalcula a ficha (PRC-05).
+- **Antes da ENG-03**, a ficha do acabado tem o material digitado nela (mesmo editor); quando a ENG-03 chegar, a ficha oferece "Usar a estrutura padrão" e as linhas digitadas ficam com a origem "Manual" (nada se perde).
+- **Fluxo na Fábrica:** estrutura padrão (Engenharia) → ficha (Precificação) → orçamento (cópia editável da ficha) → aprovação → projeto → OS com BOM partindo da estrutura padrão (ENG-02 + ENG-03) → realizado. O orçado × realizado compara a composição copiada com o lançado, como hoje.
+- **Sem política configurada**, nada disso aparece: o orçamento da Fábrica segue a COM-01a como está (composição manual, material pelo último orçamento) e a BOM da OS segue o ENG-02.
+
 ### 5.3 Kit
 
 Item vendido como um conjunto (ex.: "Kit portão": motor + controle + instalação). Proposta: produto do Catálogo marcado **Kit**, com componentes (itens e quantidades); a venda baixa **os componentes** (consumidor de estoque da venda, como o `ConsumeOnSale` da CAT-06); o disponível do kit é o menor entre os componentes; a ficha nasce dos componentes. Unifica com a CAT-05 (combos) e a CAT-06 (ficha técnica de alimentação), que passam a usar a mesma ficha em vez de criar outra.
@@ -274,10 +281,10 @@ Custo e margem ficam **ausentes** (não zerados) na resposta sem a permissão, c
 
 ## 10. O que muda para a Konebras (Fábrica)
 
-- **Nada visível sem decisão.** `pricing` não entra em `factory` (ADR 0046); o Catálogo continua oculto; tabelas não aparecem.
-- **Exceção proposta: a PRC-00** (busca de item no orçamento) vale para todos, porque cumpre a COM-01a CA 7 já aprovada. Para a Konebras ela só liga o item, traz descrição, unidade e tipo; **não** muda a composição (o custo do material continua vindo do último orçamento, CA 11). Fica como pergunta 1 para o PO confirmar.
+- **`pricing` entra em `factory` desde o início** (decisão do PO), **oculto até alguém configurar** a política. Enquanto não configurado, a Konebras não vê menu, aba nem chip novo; o Catálogo continua oculto e tabelas de preço não aparecem.
+- **A PRC-00** (busca de item no orçamento) vale para todos (decisão do PO). Para a Konebras ela só liga o item, traz descrição, unidade e tipo; **não** muda a composição (o custo do material continua vindo do último orçamento, CA 11).
 - Fórmula: o motor único dá o mesmo preço de hoje com despesas 0% (teste de regressão com orçamentos reais da Konebras).
-- Se o PO liberar a Precificação para a Fábrica: estrutura padrão (ENG-03), ficha do elevador e cópia no orçamento passam a valer, com o teste de regressão do perfil `factory`.
+- Quando a Konebras configurar: ficha do elevador, estrutura padrão (ENG-03) e cópia no orçamento passam a valer (§5.2), com o teste de regressão do perfil `factory` em cada story que toca a Fábrica (PRC-01, PRC-03, ENG-03).
 - Migração **só aditiva**: tabelas novas no schema `pricing`; colunas novas anuláveis em `quote_items`, `quote_item_costs`, `order_lines`, `price_lists`; nenhuma coluna removida; `pricing.mode` e `pricing.default_pct` continuam sendo lidos (a política nasce com esses valores).
 
 ---
@@ -311,7 +318,7 @@ Tamanhos: P (≤ 2 dias), M (3 a 5), G (> 5). Cada story passa pela revisão (ar
 
 | Ordem | Story | Tam. | Depende de | O que entrega |
 |---|---|---|---|---|
-| 1 | **PRC-00 Orçamento busca item cadastrado** (correção da COM-01a CA 7) | P | — | Busca única no "Adicionar item" (código, nome, GTIN; tipo, unidade e, com `quotes.view_cost`, custo médio); escolhido o item: vínculo, descrição, unidade e tipo (Serviço→Serviço, Acabado→Equipamento, demais→Produto); **"Digitar à mão"** mantido; cadastro rápido de item fica para a UX-02. Vale para todos os perfis (pergunta 1) |
+| 1 | **PRC-00 Orçamento busca item cadastrado** (correção da COM-01a CA 7) | P | — | Busca única no "Adicionar item" (código, nome, GTIN; tipo, unidade e, com `quotes.view_cost`, custo médio); escolhido o item: vínculo, descrição, unidade e tipo (Serviço→Serviço, Acabado→Equipamento, demais→Produto); **"Digitar à mão"** mantido; cadastro rápido de item fica para a UX-02. Vale para todos os perfis (decisão do PO) |
 | 2 | **PRC-01 Precificação: módulo, política e motor único** | M | PRC-00 | Módulo `pricing` (5 camadas, `ModuleCatalog`, perfis `services`/`retail`/`ecommerce`, plano), ADR 0054, `PriceFormation` no `SharedKernel` (orçamento e Catálogo passam a usá-lo, regressão com despesas 0%), tela "Política de preço" (base de custo, modo, %, impostos, comissão, despesas, arredondamento, margem mínima), regra por categoria do Estoque e migração da margem da categoria do Catálogo |
 | 3 | **PRC-02 Ficha de custo padrão do item** | M | PRC-01 | Aba "Custo e preço" no item (e no produto): linhas por natureza (editor do orçamento), base de custo, custo de referência, sugerido, mínimo, margem; versão e histórico; `item_prices` |
 | 4 | **PRC-03 Orçamento traz ficha e preço** | M | PRC-02 | Cópia da ficha no item do orçamento, origem do preço ("Sugerido", "Digitado à mão"), despesas % na fórmula do orçamento e conversão por natureza na aprovação; item sem ficha (revenda) nasce com "o próprio item" no custo de referência; "Atualizar custos" passa a olhar material e ficha |
@@ -319,19 +326,19 @@ Tamanhos: P (≤ 2 dias), M (3 a 5), G (> 5). Cada story passa pela revisão (ar
 | 6 | **CAT-03a Tabelas por canal e cliente, derivadas e vigência; resolvedor** | M | CAT-08 | Tipos de tabela, tabela no cliente, regra derivada, `IPriceResolver`; orçamento ("Venda direta"), pedido de venda e API (tabela da conexão) passam a resolver por ele; origem "Da tabela X" |
 | 7 | **PRC-04 Preço mínimo e alçada** | M | PRC-03, CAT-03a | Mínimo gravado nas linhas; chip e bloqueio no orçamento (`quotes.approve`) e no pedido (`sales.approve`); rascunho "para aprovar" do aplicativo; mínimo no feed do PDV e supervisor |
 | 8 | **PRC-05 Custo mudou: recálculo e "Preços a revisar"** | M | PRC-02 (e CAT-03a para aplicar em tabela) | Evento `ItemAverageCostChanged`, job por tenant, lista e sino, aplicar em lote, faixa no orçamento em rascunho |
-| 9 | **ENG-03 Estrutura padrão do produto acabado** | M | PRC-02 | BOM-modelo por item, liberada com revisão; alimenta a ficha e vira ponto de partida da BOM da OS. Útil de verdade só na Fábrica (pergunta 1) |
+| 9 | **ENG-03 Estrutura padrão do produto acabado** | M | PRC-02 | BOM-modelo por item, liberada com revisão; alimenta a ficha e vira ponto de partida da BOM da OS. Útil de verdade na Fábrica; sem estrutura padrão, nada muda (regressão do `factory`) |
 | 10 | **CAT-09 Kit** | M | PRC-02, CAT-03a | Produto kit com componentes, baixa dos componentes, disponível derivado, ficha pelos componentes; CAT-05/CAT-06 passam a reusar |
 | — | **CAT-03b** atacado, promoção por regra e remarcação em lote | M | CAT-03a | Continua na fase do PDV (era parte da CAT-03) |
 | — | **MKT-00** (critério novo) | — | CAT-03a, PRC-01 | Tabela por conta de marketplace e tarifa como despesa % |
 | — | **REC-01** (critério novo) | — | PRC-00; preço do plano melhora com CAT-03a | Plano = item de serviço recorrente; mensalidade da tabela ou sugerida |
 
-Ordem resumida: **PRC-00 → PRC-01 → PRC-02 → PRC-03 → CAT-08 → CAT-03a → PRC-04 → PRC-05 → ENG-03 → CAT-09**. O valor que o PO pediu ("o item já vem com composição, margem e preço") chega na PRC-03 (quatro stories, 1 P + 3 M).
+Ordem decidida pelo PO (27/11/2026), dentro do bloco de melhorias: **PRC-00 → REC-01 → PRC-01 → PRC-02 → PRC-03 → EXE-06 → EXE-07 → COM-10 → UX-02 → UX-01 → CAD-07 → CAT-08 → CAT-03a → PRC-04 → PRC-05 → ENG-03 → CAT-09**, tudo antes do MKT-00. O valor que o PO pediu ("o item já vem com composição, margem e preço") chega na PRC-03. A PRC-01 traz o módulo em todos os perfis, `factory` inclusive (§2.3), e a ENG-03 deixa de ser condicionada à decisão sobre a Fábrica.
 
 ---
 
 ## 13. Perguntas para o PO
 
-Só as que mudam o desenho; cada uma com a recomendação.
+Respondidas em 27/11/2026 (§14). Mantidas como registro, cada uma com a recomendação dada.
 
 1. **Fábrica (Konebras).** A PRC-00 (busca de item no orçamento) vale também para a Konebras, já que cumpre a COM-01a CA 7 aprovada? E a Precificação (ficha, sugerido, estrutura padrão ENG-03) entra no perfil `factory`?
    **Recomendação:** PRC-00 sim, para todos (só vínculo, descrição, unidade e tipo; a composição da Konebras não muda). Precificação na Fábrica **depois** de validada no BemAqui (após a PRC-03), por decisão explícita com teste de regressão do `factory`; a ENG-03 só entra junto.
@@ -349,3 +356,13 @@ Só as que mudam o desenho; cada uma com a recomendação.
    **Recomendação:** não. Lista "Preços a revisar" com aplicar em lote (`catalog.edit_price`). Só a tabela derivada de outra tabela acompanha sozinha, porque é regra que alguém já decidiu.
 8. **Onde a PRC entra no bloco de melhorias?**
    **Recomendação:** PRC-00 primeiro do bloco (P, é correção); PRC-01 a PRC-03 logo depois da REC-01 e antes da COM-10. O restante (CAT-08 em diante) depois do bloco, antes do MKT-00, que precisa da CAT-03a.
+
+---
+
+## 14. Decisões do PO (27/11/2026)
+
+1. **Precificação para todos os perfis desde o início, inclusive a Fábrica.** Oculta até alguém configurar a política; sem efeito visível na Konebras enquanto não configurada; teste de regressão do perfil `factory`. A PRC-00 vale para todos. Consequências no desenho: §2.3 (perfis), §5.2 (relação com a estrutura da Engenharia e com o orçamento da Fábrica), §10.
+2. **Impostos, comissão, despesas e tarifa do canal** como % "por dentro" na política (markup divisor), com exceção por categoria e por item; com 0% o preço fica igual ao de hoje (§4.2).
+3. **Preço mínimo bloqueia sem aprovação**, com as aprovações que já existem (`quotes.approve`, `sales.approve`), supervisor no PDV; Conecta e agente de IA nunca confirmam abaixo do mínimo; sem margem mínima configurada, não há mínimo (§4.4).
+4. **Ordem no bloco de melhorias:** PRC-00 → REC-01 → PRC-01 → PRC-02 → PRC-03 → EXE-06 → EXE-07 → COM-10 → UX-02 → UX-01 → CAD-07 → CAT-08 → CAT-03a → PRC-04 → PRC-05 → ENG-03 → CAT-09, antes do MKT-00 (§12).
+5. **Demais perguntas, pela recomendação:** base de custo padrão = custo médio (última compra e manual como opção); a tabela vence a ficha (o sugerido aparece ao lado para quem vê custo); tabela por cliente agora, grupo só com caso real; a tabela não muda sozinha quando o custo muda, vai para "Preços a revisar" (só a derivada de outra tabela acompanha).
