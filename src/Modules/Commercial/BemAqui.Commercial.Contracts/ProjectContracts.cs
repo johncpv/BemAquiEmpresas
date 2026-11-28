@@ -229,6 +229,15 @@ public sealed record TechnicalAcceptance(Guid ProjectId, Guid ContractId, DateOn
 public sealed record ProjectStarted(Guid ProjectId, Guid ContractId, DateOnly OccurredOn) : IIntegrationEvent;
 
 /// <summary>
+/// Etapa do modelo concluída no projeto de serviço (EXE-03b CA 3, 6 e 7): <c>StageCode</c> é a letra da etapa e <c>Version</c> a
+/// <c>completion_version</c> dela (sobe a cada conclusão), para o consumidor descartar o evento velho. Sem nome nem texto. Consumidor no Finance só na EXE-05a.
+/// </summary>
+public sealed record ProjectStageCompleted(Guid ProjectId, Guid ContractId, string StageCode, int Version, DateOnly OccurredOn) : IIntegrationEvent;
+
+/// <summary>Etapa do modelo reaberta (publicado na EXE-03c), com a mesma versão da conclusão desfeita. Sem nome nem texto.</summary>
+public sealed record ProjectStageReopened(Guid ProjectId, Guid ContractId, string StageCode, int Version, DateOnly OccurredOn) : IIntegrationEvent;
+
+/// <summary>
 /// Aceite do cliente desfeito (EXE-01a CA 15 e 18), com a mesma versão do aceite: o Finance volta a <c>Planned</c> o título de aceite ainda sem
 /// baixa e sem boleto, sob lock; o Commercial reabre o contrato concluído na corrida (CA 21). Sem o motivo (texto livre, ADR 0019 §19).
 /// </summary>

@@ -16,11 +16,25 @@ Ver o caminho do projeto de serviço até o aceite do cliente: cada etapa do mod
 - Projeto sem etapas mostra **Este projeto ainda não tem etapas.** e o botão **Usar um modelo de etapas** (para quem pode editar projetos). O modelo sugerido já vem marcado.
 - No cabeçalho, ao lado do indicador P · I · E · A · C, aparece **Etapa atual**: a primeira etapa ainda não concluída.
 
+## Concluir e aprovar
+- A etapa atual aparece num painel acima da lista, com o checklist e o botão do próximo passo. No celular, o botão fica fixo no rodapé.
+- **Iniciar etapa** (quem edita projetos): a etapa pronta para começar passa a **Em andamento**. Se o projeto ainda está planejado, ele passa a Em execução junto (pede a data do início).
+- **Checklist:** com a etapa em andamento, marque cada item como **Feito** ou **Não se aplica**; clique de novo para desmarcar. O sistema guarda quem marcou e quando.
+- **Concluir etapa:** com o checklist completo, informe a data (até hoje). A próxima etapa fica pronta para começar.
+  - Etapa de **Entrega** e etapa que libera parcela do contrato: só quem aprova projetos conclui. Data anterior a hoje pede o motivo; mais de 30 dias, também a permissão de aprovar no financeiro. Concluir a Entrega registra a entrega do projeto.
+  - Etapa de **Aceite do cliente**: só quem tem a permissão Registrar aceite do cliente. Informe quem aceitou e, se tiver, anexe o termo assinado. Concluir registra o aceite do cliente.
+- **Exige aprovação:** quem conclui deixa a etapa **Aguardando aprovação**, e quem aprova projetos clica **Aprovar etapa**. Quem concluiu só aprova a própria etapa se a regra "Quem concluiu a etapa pode aprová-la?" (Configurações > Parâmetros) deixar; aí a etapa ganha o selo **Autoaprovada**.
+- Com etapas, os botões soltos "Iniciar execução", "Registrar entrega" e "Registrar aceite do cliente" saem do cabeçalho: o próximo passo é o da etapa atual (ex.: "Concluir Treinamento").
+
 ## Etapa do projeto x etapa do modelo
 - **P · I · E · A · C** é a situação do projeto (Planejado, Em execução, Entregue, Aceito, Encerrado) e continua igual.
 - **Etapa atual** é a etapa do modelo em que o trabalho está (ex.: "T Treinamento"). As duas convivem.
 
 ## Perguntas frequentes
+**Por que não consigo concluir a etapa?** Falta marcar algum item do checklist, a data é depois de hoje, ou a etapa pede outra permissão (Entrega e etapa que libera parcela: aprovar projetos; Aceite: registrar aceite do cliente).
+
+**Outra pessoa mexeu no projeto ao mesmo tempo.** O sistema grava só um dos comandos e avisa o outro: recarregue e tente de novo.
+
 **Usei um modelo num projeto já entregue. Alguma parcela foi liberada?** Não. As etapas nascem concluídas pela data da entrega (e a de aceite, pela data do aceite, se houver), sem publicar nenhum evento e sem mexer em nenhum título.
 
 **Posso trocar o modelo?** Sim, enquanto nenhuma etapa começou. Depois disso, só o responsável e as datas previstas mudam.

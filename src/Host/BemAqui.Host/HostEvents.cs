@@ -63,6 +63,9 @@ public static class HostEvents
             .AddHandler<BemAqui.Commercial.Contracts.TechnicalAcceptanceReverted, BemAqui.Finance.Application.AcceptanceRevertedConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.TechnicalAcceptanceReverted, BemAqui.Commercial.Application.ContractCompletionConsumer>()
             .AddEvent<BemAqui.Commercial.Contracts.ProjectStarted>()
+            // EXE-03b: etapa do modelo concluída (consumidor no Finance na EXE-05a); reaberta na EXE-03c.
+            .AddEvent<BemAqui.Commercial.Contracts.ProjectStageCompleted>()
+            .AddEvent<BemAqui.Commercial.Contracts.ProjectStageReopened>()
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Finance.Application.ContractCancelledConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ContractAmended, BemAqui.Finance.Application.ContractAmendedConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Production.Application.InstallationContractCancelledConsumer>()

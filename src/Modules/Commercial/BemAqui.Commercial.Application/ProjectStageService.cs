@@ -1,4 +1,6 @@
+using BemAqui.BuildingBlocks.Authorization;
 using BemAqui.BuildingBlocks.Identity;
+using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.BuildingBlocks.Modules;
 using BemAqui.BuildingBlocks.Persistence;
 using BemAqui.BuildingBlocks.Tenancy;
@@ -13,11 +15,12 @@ namespace BemAqui.Commercial.Application;
 /// <summary>
 /// Etapas do projeto de serviço (EXE-03a): cópia do modelo na aprovação e em projeto existente ("Usar um modelo de etapas"), edição antes de
 /// começar e leitura. Nenhum evento é publicado e nenhum título é tocado; a etapa do modelo é a <see cref="ProjectCurrentStage"/>, separada da etapa
-/// do projeto (<see cref="ProjectStageMap"/>). Iniciar, concluir e aprovar são da EXE-03b.
+/// do projeto (<see cref="ProjectStageMap"/>). Iniciar, checklist, concluir e aprovar: EXE-03b (<c>ProjectStageService.Progress.cs</c>).
 /// </summary>
 public sealed partial class ProjectStageService(
     ICommercialDb db, IStageTemplates templates, IStageMilestoneGuard milestoneGuard, IPositions positions, IUserDirectory users, ICurrentUser currentUser,
-    TenantContextHolder tenant, TimeProvider clock)
+    TenantContextHolder tenant, ProjectExecutionService execution, CommercialParametersService parameters, IPermissionChecker permissions, IEventPublisher events,
+    TimeProvider clock)
 {
     /// <summary>Horas previstas de uma etapa do projeto: de 0 a 9.999.999 (as do modelo vão até 99.999 por unidade).</summary>
     public const decimal MaxPlannedHours = 9_999_999m;
@@ -107,18 +110,32 @@ public sealed partial class ProjectStageService(
         var checks = (await db.ProjectServiceStageChecks.AsNoTracking().Where(c => stageIds.Contains(c.StageId)).OrderBy(c => c.Sequence).ToListAsync(ct)).ToLookup(c => c.StageId);
         var positionNames = (await positions.FindAsync(stages.Where(s => s.PositionId != null).Select(s => s.PositionId!.Value).Distinct().ToList(), ct)).ToDictionary(p => p.Id, p => p.Name);
         var names = new Dictionary<Guid, string?>();
-        foreach (var userId in stages.Where(s => s.ResponsibleUserId != null).Select(s => s.ResponsibleUserId!.Value).Distinct())
+        var people = stages.SelectMany(s => new[] { s.ResponsibleUserId, s.CompletedBy, s.ApprovedBy }).Concat(checks.SelectMany(g => g.Select(c => c.MarkedBy)))
+            .Where(u => u is not null).Select(u => u!.Value).Distinct();
+        foreach (var userId in people)
         {
             names[userId] = await users.DisplayNameAsync(userId, ct);
         }
 
+        string? Name(Guid? userId) => userId is { } u ? names.GetValueOrDefault(u) : null;
+        // EXE-03b: marco financeiro por etapa (até a EXE-05a, nenhum); decide quem conclui e o bloco de efeito nas parcelas.
+        var milestones = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var code in stages.Select(s => s.Code).Distinct(StringComparer.Ordinal))
+        {
+            if ((await milestoneGuard.MilestonesForAsync(project.Id, [code], ct)).Count > 0)
+            {
+                milestones.Add(code);
+            }
+        }
+
         var views = stages.Select(s =>
         {
-            var list = checks[s.Id].Select(c => new ProjectStageCheckView(c.Id, c.Sequence, c.Text, c.Result)).ToList();
+            var list = checks[s.Id].Select(c => new ProjectStageCheckView(c.Id, c.Sequence, c.Text, c.Result, c.MarkedAt, Name(c.MarkedBy))).ToList();
             return new ProjectStageView(s.Id, s.Sequence, s.Code, s.Name, s.Role, s.Status, s.PlannedHours, s.PositionId,
                 s.PositionId is { } p ? positionNames.GetValueOrDefault(p) : null, s.RequiresApproval, s.ResponsibleUserId,
-                s.ResponsibleUserId is { } u ? names.GetValueOrDefault(u) : null, s.PlannedStart, s.PlannedEnd, s.StartedAt, s.CompletedOn,
-                list.Count(c => c.Result is not null), list.Count, list);
+                Name(s.ResponsibleUserId), s.PlannedStart, s.PlannedEnd, s.StartedAt, s.CompletedOn,
+                list.Count(c => c.Result is not null), list.Count, list, milestones.Contains(s.Code), s.SelfApproved, Name(s.CompletedBy), Name(s.ApprovedBy),
+                s.CompletionVersion);
         }).ToList();
         var started = stages.Any(s => s.IsStarted);
         var canApply = ServiceStagePlan.AcceptsStages(project.Status) && !started;

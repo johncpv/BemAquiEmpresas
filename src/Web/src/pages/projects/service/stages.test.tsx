@@ -9,12 +9,17 @@ import { NavigationContext, type NavigationValue } from '@/navigation/navigation
 import { renderWithRouter } from '@/test-utils'
 import { ProjectStagesTab } from './ProjectStagesTab'
 import { ServiceProjectView } from './ServiceProjectView'
-import { currentStageText, doneText, plannedText } from './stages'
+import { nextStep } from './service'
+import { completionPermission, currentStageText, doneText, plannedText, stageAction, stageStepText } from './stages'
 
 vi.mock('@/api/generated/bemaqui', async (original) => ({
   ...(await original<typeof import('@/api/generated/bemaqui')>()),
   useGetProjectStages: vi.fn(),
   applyProjectStageTemplate: vi.fn(),
+  markProjectStageCheck: vi.fn(),
+  startProjectStage: vi.fn(),
+  completeProjectStage: vi.fn(),
+  approveProjectStage: vi.fn(),
   useGetProjectMilestonePreview: vi.fn(() => ({ isPending: true })),
   useGetContract: vi.fn(() => ({ isPending: true })),
   useGetProjectFinancial: vi.fn(() => ({ isPending: true })),
@@ -132,5 +137,72 @@ describe('cabeçalho do projeto de serviço com a etapa atual (EXE-03a CA 8)', (
     renderIn(<ServiceProjectView project={project()} refresh={async () => undefined} />)
     await screen.findByTestId('proximo-passo')
     expect(screen.queryByTestId('etapa-atual')).toBeNull()
+  })
+})
+
+describe('andamento da etapa (EXE-03b)', () => {
+  afterEach(() => vi.clearAllMocks())
+
+  const checklist = [
+    { id: 'c1', sequence: 1, text: 'Lista de presença', result: null },
+    { id: 'c2', sequence: 2, text: 'Material', result: 'NotApplicable' as const, markedByName: 'Ana' },
+  ]
+
+  it('painel marca o checklist e "Concluir etapa" pede o checklist completo', async () => {
+    mockStages({ isPending: false, isError: false, data: view({ started: true, canApplyTemplate: false, stages: [stage({ status: 'InProgress', checklist, checklistDone: 1, checklistTotal: 2 })] }) })
+    vi.mocked(api.markProjectStageCheck).mockResolvedValue(view() as never)
+    renderIn(<ProjectStagesTab projectId="p1" />)
+    const panel = await screen.findByTestId('painel-etapa')
+    expect(within(panel).getByText('Não se aplica · Ana')).not.toBeNull()
+    fireEvent.click(within(panel).getAllByRole('button', { name: 'Feito' })[0])
+    await waitFor(() => expect(api.markProjectStageCheck).toHaveBeenCalledWith('p1', 's1', 1, { result: 'Done', version: 7 }, expect.anything()))
+    fireEvent.click(within(panel).getAllByRole('button', { name: 'Concluir etapa' })[0])
+    const dialog = await screen.findByRole('alertdialog')
+    expect(within(dialog).getByText(/Marque todos os itens do checklist/)).not.toBeNull()
+  })
+
+  it('Entrega sem projects.approve mostra quem conclui; aguardando aprovação com o selo e "Aprovar etapa"', async () => {
+    mockStages({ isPending: false, isError: false, data: view({ started: true, canApplyTemplate: false, stages: [stage({ code: 'G', name: 'Go-live', role: 'Delivery', status: 'InProgress' })] }) })
+    const { unmount } = renderIn(<ProjectStagesTab projectId="p1" />)
+    const panel = await screen.findByTestId('painel-etapa')
+    expect(within(panel).queryByRole('button', { name: 'Concluir etapa' })).toBeNull()
+    expect(within(panel).getByText(/quem conclui são usuários com permissão de aprovar projetos/)).not.toBeNull()
+    unmount()
+    mockStages({
+      isPending: false, isError: false, data: view({
+        started: true, canApplyTemplate: false,
+        stages: [stage({ status: 'Done', requiresApproval: true, selfApproved: true }), stage({ id: 's2', sequence: 2, code: 'T', name: 'Treinamento', status: 'AwaitingApproval', requiresApproval: true })],
+      }),
+    })
+    renderIn(<ProjectStagesTab projectId="p1" />, ['view', 'edit', 'approve'])
+    expect((await screen.findAllByText('Autoaprovada')).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Exige aprovação').length).toBeGreaterThan(0)
+    expect(within(screen.getByTestId('painel-etapa')).getAllByRole('button', { name: 'Aprovar etapa' }).length).toBeGreaterThan(0)
+  })
+
+  it('próximo passo do cabeçalho: com etapas, sem os botões soltos e com o verbo da etapa atual', async () => {
+    const all = () => true
+    const withStages = project({ status: 'Planned', currentStage: { code: 'K', name: 'Kickoff', sequence: 1, total: 4 } })
+    expect(nextStep(withStages, all).primary).toBeNull()
+    expect(nextStep(withStages, all).more).not.toContain('delivery')
+    expect(nextStep(project({ status: 'Planned' }), all).primary).toBe('start')
+    expect(nextStep(project({ status: 'InProgress', currentStage: { code: 'T', name: 'Treinamento', sequence: 2, total: 4 } }), all).primary).toBeNull()
+
+    mockStages({ isPending: false, isError: false, data: view({ stages: [stage({ status: 'Done' }), stage({ id: 's2', sequence: 2, code: 'T', name: 'Treinamento', status: 'InProgress' })] }) })
+    renderIn(<ServiceProjectView project={project({ currentStage: { code: 'T', name: 'Treinamento', sequence: 2, total: 4 } })} refresh={async () => undefined} />, ['view', 'edit', 'approve', 'register_acceptance'])
+    expect((await screen.findAllByRole('button', { name: 'Concluir Treinamento' })).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: 'Registrar entrega' })).toBeNull()
+    expect(screen.getByTestId('proximo-passo').textContent).toContain('Próximo passo: Concluir Treinamento.')
+  })
+
+  it('regras do painel', () => {
+    expect(completionPermission({ role: 'Execution', hasMilestone: true })).toBe('projects.approve')
+    expect(completionPermission({ role: 'Acceptance', hasMilestone: false })).toBe('projects.register_acceptance')
+    const only = (p: string) => (perm: string) => perm === p
+    expect(stageAction({ status: 'InProgress', role: 'Execution', hasMilestone: false, checklistDone: 0, checklistTotal: 0 }, only('projects.edit'))).toBe('complete')
+    expect(stageAction({ status: 'InProgress', role: 'Execution', hasMilestone: true, checklistDone: 0, checklistTotal: 0 }, only('projects.edit'))).toBeNull()
+    expect(stageAction({ status: 'Ready', role: 'Delivery', hasMilestone: false, checklistDone: 0, checklistTotal: 0 }, only('projects.edit'))).toBe('start')
+    expect(stageStepText({ status: 'AwaitingApproval', name: 'Treinamento' })).toBe('Aprovar Treinamento')
+    expect(stageStepText({ status: 'Done', name: 'Treinamento' })).toBeNull()
   })
 })

@@ -11,4 +11,8 @@ export interface ProjectStageCheckView {
   sequence: number;
   text: string;
   result: null | StageChecklistResult;
+  /** @nullable */
+  markedAt?: string | null;
+  /** @nullable */
+  markedByName?: string | null;
 }

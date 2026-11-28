@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { SelfApprovalMode } from './selfApprovalMode';
 
 export interface CommercialParametersInput {
   /** @nullable */
@@ -11,4 +12,8 @@ export interface CommercialParametersInput {
   validityDays?: number;
   /** @nullable */
   acceptanceSegregation?: boolean | null;
+  stageSelfApprovalMode?: null | SelfApprovalMode;
+  stageSelfApprovalModeSeen?: null | SelfApprovalMode;
+  /** @nullable */
+  code?: string | null;
 }

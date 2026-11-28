@@ -63,10 +63,18 @@ public sealed record LaborPositionOption(Guid Id, string Name, Guid? DefaultWork
 public sealed record LaborWorkCenterOption(Guid Id, string Name);
 
 /// <summary>EXE-01a CA 14: <c>AcceptanceSegregation</c> = quem registrou a entrega não registra o aceite (desligada por padrão).</summary>
-public sealed record CommercialParametersView(decimal? DefaultPct, string PricingMode, int ValidityDays = 15, bool AcceptanceSegregation = false);
+/// <summary>EXE-03b CA 5: <c>StageSelfApprovalMode</c> = quem concluiu a etapa pode aprová-la (padrão Só o Proprietário).</summary>
+public sealed record CommercialParametersView(
+    decimal? DefaultPct, string PricingMode, int ValidityDays = 15, bool AcceptanceSegregation = false,
+    BemAqui.Finance.Contracts.SelfApprovalMode StageSelfApprovalMode = BemAqui.Finance.Contracts.SelfApprovalMode.OwnerOnly);
 
-/// <summary>EXE-01a CA 14: <c>AcceptanceSegregation</c> nulo mantém o valor atual.</summary>
-public sealed record CommercialParametersInput(decimal? DefaultPct, int ValidityDays = 15, bool? AcceptanceSegregation = null);
+/// <summary>
+/// EXE-01a CA 14: <c>AcceptanceSegregation</c> nulo mantém o valor atual. EXE-03b CA 5: <c>StageSelfApprovalMode</c> nulo mantém; trocar exige o
+/// Proprietário, o modo visto (<c>StageSelfApprovalModeSeen</c>) e o código do autenticador (<c>Code</c>), como na FIN-10a.
+/// </summary>
+public sealed record CommercialParametersInput(
+    decimal? DefaultPct, int ValidityDays = 15, bool? AcceptanceSegregation = null, BemAqui.Finance.Contracts.SelfApprovalMode? StageSelfApprovalMode = null,
+    BemAqui.Finance.Contracts.SelfApprovalMode? StageSelfApprovalModeSeen = null, string? Code = null);
 
 public sealed record QuoteTermOption(Guid Id, string Name);
 

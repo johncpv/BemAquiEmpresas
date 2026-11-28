@@ -112,6 +112,21 @@ internal static partial class CommercialEndpoints
         service.MapPost("/{id:guid}/stages/apply-template", async (Guid id, ProjectStageTemplateInput input, ProjectStageService stages, CancellationToken ct) =>
                 (await stages.ApplyTemplateAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("projects.edit").WithName("ApplyProjectStageTemplate").Produces<ProjectStagesView>();
+        // EXE-03b: andamento da etapa, com Idempotency-Key e a versão do projeto (xmin) no corpo; o serviço trava a linha do projeto. Concluir aceita
+        // quem edita, aprova ou registra o aceite; o serviço exige a ação certa pelo papel e pelo marco da etapa (CA 3, 4, 6 e 7).
+        service.MapPost("/{id:guid}/stages/{stageId:guid}/start", async (Guid id, Guid stageId, ProjectStageStartInput input, ProjectStageService stages, CancellationToken ct) =>
+                (await stages.StartStageAsync(id, stageId, input, ct)).ToHttpResult())
+            .RequirePermission("projects.edit").RequireIdempotencyKey().WithName("StartProjectStage").Produces<ProjectStagesView>();
+        service.MapPut("/{id:guid}/stages/{stageId:guid}/checklist/{n:int}", async (Guid id, Guid stageId, int n, ProjectStageCheckInput input, ProjectStageService stages, CancellationToken ct) =>
+                (await stages.MarkAsync(id, stageId, n, input, ct)).ToHttpResult())
+            .RequirePermission("projects.edit").RequireIdempotencyKey().WithName("MarkProjectStageCheck").Produces<ProjectStagesView>();
+        service.MapPost("/{id:guid}/stages/{stageId:guid}/complete", async (Guid id, Guid stageId, ProjectStageCompleteInput input, ProjectStageService stages, CancellationToken ct) =>
+                (await stages.CompleteStageAsync(id, stageId, input, ct)).ToHttpResult())
+            .RequireAnyPermission("projects.edit", "projects.approve", "projects.register_acceptance").RequireIdempotencyKey().WithName("CompleteProjectStage")
+            .Produces<ProjectStagesView>();
+        service.MapPost("/{id:guid}/stages/{stageId:guid}/approve", async (Guid id, Guid stageId, ProjectStageApproveInput input, ProjectStageService stages, CancellationToken ct) =>
+                (await stages.ApproveStageAsync(id, stageId, input, ct)).ToHttpResult())
+            .RequirePermission("projects.approve").RequireIdempotencyKey().WithName("ApproveProjectStage").Produces<ProjectStagesView>();
     }
 }
 

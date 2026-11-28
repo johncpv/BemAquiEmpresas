@@ -4,12 +4,13 @@ using BemAqui.Commercial.Domain;
 
 namespace BemAqui.Commercial.Application;
 
-/// <summary>Item do checklist da etapa na leitura (EXE-03a CA 7); marcar é da EXE-03b.</summary>
-public sealed record ProjectStageCheckView(Guid Id, int Sequence, string Text, StageChecklistResult? Result);
+/// <summary>Item do checklist da etapa na leitura (EXE-03a CA 7), com quem marcou e quando (EXE-03b CA 2).</summary>
+public sealed record ProjectStageCheckView(Guid Id, int Sequence, string Text, StageChecklistResult? Result, DateTimeOffset? MarkedAt = null, string? MarkedByName = null);
 
 /// <summary>
 /// Etapa do projeto de serviço na aba Etapas (CA 7): letra, nome, papel, situação, responsável, previsto, realizado e o progresso do checklist.
-/// O nome do responsável só sai aqui (nunca na API v1 nem no PDF, CA 9).
+/// O nome do responsável só sai aqui (nunca na API v1 nem no PDF, CA 9). EXE-03b: <c>HasMilestone</c> (etapa ligada a marco financeiro), o selo
+/// "Autoaprovada", quem concluiu e quem aprovou.
 /// </summary>
 public sealed record ProjectStageView(
     Guid Id,
@@ -30,7 +31,12 @@ public sealed record ProjectStageView(
     DateOnly? CompletedOn,
     int ChecklistDone,
     int ChecklistTotal,
-    IReadOnlyList<ProjectStageCheckView> Checklist);
+    IReadOnlyList<ProjectStageCheckView> Checklist,
+    bool HasMilestone = false,
+    bool SelfApproved = false,
+    string? CompletedByName = null,
+    string? ApprovedByName = null,
+    int CompletionVersion = 0);
 
 /// <summary>
 /// Etapas do projeto (CA 7): a lista, o modelo copiado (nome e revisão), se já começou (só responsável e datas mudam, CA 5), a etapa atual e, para
@@ -89,3 +95,28 @@ public sealed class NoStageMilestoneGuard : IStageMilestoneGuard
     public Task<IReadOnlyList<string>> MilestonesForAsync(Guid projectId, IReadOnlyCollection<string> stageCodes, CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<string>>([]);
 }
+
+/// <summary>Iniciar a etapa (EXE-03b CA 1): com o projeto <c>Planned</c>, a data, a situação vista e o motivo vão ao "Iniciar execução" da EXE-01a.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ProjectStageStartInput(uint Version, ProjectStatus? ExpectedStatus = null, DateOnly? Date = null, string? BackdateReason = null);
+
+/// <summary>Marcar (Feito / Não se aplica) ou desmarcar (nulo) um item do checklist (EXE-03b CA 2).</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ProjectStageCheckInput(StageChecklistResult? Result, uint Version);
+
+/// <summary>
+/// Concluir a etapa (EXE-03b CA 3 a 7): data do fato; situação vista e motivo da data anterior (Entrega, Aceite e marco financeiro); quem aceitou,
+/// papel e o termo (Aceite do cliente).
+/// </summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ProjectStageCompleteInput(
+    DateOnly Date, uint Version, ProjectStatus? ExpectedStatus = null, string? BackdateReason = null, string? AcceptedByName = null, string? AcceptedByRole = null,
+    Guid? AttachmentId = null);
+
+/// <summary>
+/// Aprovar a etapa (EXE-03b CA 5). A data é a da conclusão; na Entrega, no Aceite e com marco, a situação vista e o motivo da data anterior
+/// valem como no concluir (o Aceite leva quem aceitou).
+/// </summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ProjectStageApproveInput(
+    uint Version, ProjectStatus? ExpectedStatus = null, string? BackdateReason = null, string? AcceptedByName = null, string? AcceptedByRole = null, Guid? AttachmentId = null);

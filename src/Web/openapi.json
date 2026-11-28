@@ -16092,6 +16092,215 @@
         }
       }
     },
+    "/api/v1/projects/{id}/stages/{stageId}/start": {
+      "post": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "StartProjectStage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "stageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectStageStartInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectStagesView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/stages/{stageId}/checklist/{n}": {
+      "put": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "MarkProjectStageCheck",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "stageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "n",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectStageCheckInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectStagesView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/stages/{stageId}/complete": {
+      "post": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "CompleteProjectStage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "stageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectStageCompleteInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectStagesView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/stages/{stageId}/approve": {
+      "post": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "ApproveProjectStage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "stageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectStageApproveInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectStagesView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/stage-templates": {
       "get": {
         "tags": [
@@ -59534,6 +59743,32 @@
               "null",
               "boolean"
             ]
+          },
+          "stageSelfApprovalMode": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SelfApprovalMode"
+              }
+            ]
+          },
+          "stageSelfApprovalModeSeen": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SelfApprovalMode"
+              }
+            ]
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -59562,6 +59797,9 @@
           "acceptanceSegregation": {
             "type": "boolean",
             "default": false
+          },
+          "stageSelfApprovalMode": {
+            "$ref": "#/components/schemas/SelfApprovalMode"
           }
         }
       },
@@ -99668,6 +99906,78 @@
           }
         }
       },
+      "ProjectStageApproveInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "expectedStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectStatus"
+              }
+            ]
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "acceptedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "acceptedByRole": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "attachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProjectStageCheckInput": {
+        "required": [
+          "result",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StageChecklistResult"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
       "ProjectStageCheckView": {
         "required": [
           "id",
@@ -99697,8 +100007,74 @@
                 "$ref": "#/components/schemas/StageChecklistResult"
               }
             ]
+          },
+          "markedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "markedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
+      },
+      "ProjectStageCompleteInput": {
+        "required": [
+          "date",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "expectedStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectStatus"
+              }
+            ]
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "acceptedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "acceptedByRole": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "attachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
       },
       "ProjectStageInput": {
         "required": [
@@ -99795,6 +100171,42 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProjectStageStartInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "expectedStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectStatus"
+              }
+            ]
+          },
+          "date": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         },
         "additionalProperties": false
@@ -100025,6 +100437,31 @@
             "items": {
               "$ref": "#/components/schemas/ProjectStageCheckView"
             }
+          },
+          "hasMilestone": {
+            "type": "boolean",
+            "default": false
+          },
+          "selfApproved": {
+            "type": "boolean",
+            "default": false
+          },
+          "completedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "approvedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "completionVersion": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
           }
         }
       },
@@ -113144,7 +113581,7 @@
           "OwnerOnly",
           "AnyApprover"
         ],
-        "default": "Never"
+        "default": "OwnerOnly"
       },
       "SellWithoutStockInput": {
         "required": [

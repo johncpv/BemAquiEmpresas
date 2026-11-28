@@ -451,7 +451,7 @@ public sealed class ProjectExecutionService(
     /// <summary>
     /// Data do fato (CA 24): futura, 422; antes de hoje, motivo obrigatório (até 200); mais de 30 dias, também <c>finance.approve</c> (403).
     /// </summary>
-    private async Task<Error?> DateErrorAsync(DateOnly date, string? backdateReason, CancellationToken ct)
+    internal async Task<Error?> DateErrorAsync(DateOnly date, string? backdateReason, CancellationToken ct)
     {
         var today = BusinessTime.Today(clock);
         if (date > today)
@@ -476,7 +476,7 @@ public sealed class ProjectExecutionService(
     }
 
     /// <summary>A auditoria mostra a data do fato, a diferença em dias para o registro e o motivo (CA 24).</summary>
-    private void Backdate(DateOnly date, string? backdateReason)
+    internal void Backdate(DateOnly date, string? backdateReason)
     {
         var days = BusinessTime.Today(clock).DayNumber - date.DayNumber;
         if (days > 0)
