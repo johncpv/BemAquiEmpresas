@@ -781,6 +781,7 @@ Decisões do PO de 26/11/2026 ([ADR 0052](adr/0052-integracoes-conecta-e-marketp
 
 **F3 — Marketplaces**
 - **MKT-00 [ ] Base de canais: domínio central de integrações, anúncio ↔ SKU, estoque por canal, pedido importado, tarifas e repasse (G)**
+  - preço por canal ([proposta de custo e preço](produto/produto-custo-preco.md) §7): cada conta de marketplace tem a sua tabela de preço (canal Marketplace, CAT-03a), fixa ou derivada da padrão; a tarifa do canal entra como despesa % "por dentro" na formação (PRC-01), para o sugerido por canal; o anúncio recebe o preço resolvido pelo `IPriceResolver` e nunca é publicado abaixo do mínimo (PRC-04). Depende de CAT-03a e PRC-04.
 - **MKT-01 [ ] Mercado Livre (G)** · **MKT-02 [ ] Shopee (M)** · **MKT-03 [ ] Amazon (M)** · **MKT-04 [ ] Magalu (M)** · **MKT-05 [ ] TikTok Shop, sob demanda (M)**
 
 **F4 — API pública**
@@ -799,8 +800,14 @@ Decisões do PO (27/11/2026):
 - Logo: o sistema ajusta sozinho e mostra prévia; nunca recusa por tamanho.
 - Logo do terceiro: no cadastro e no cabeçalho dos documentos feitos para ele; nota fiscal e boleto seguem o padrão oficial.
 - Cadastro rápido: painel lateral sobre a tela, componente único.
+- Produto, custo e preço ([proposta](produto/produto-custo-preco.md) §14): Precificação (`pricing`) para **todos os perfis desde o início, inclusive a Fábrica**, oculta até alguém configurar e sem efeito visível na Konebras enquanto não configurada (teste de regressão do perfil `factory`); a PRC-00 vale para todos. Impostos, comissão, despesas e tarifa do canal são % "por dentro" na política (markup divisor), com exceção por categoria e por item; com 0% o preço fica igual ao de hoje. Preço mínimo bloqueia sem aprovação (as aprovações que já existem; supervisor no PDV; Conecta e IA nunca confirmam abaixo do mínimo); sem margem mínima, não há mínimo. Base de custo padrão = custo médio; a tabela vence a ficha; tabela por cliente (grupo só com caso real); a tabela não muda sozinha quando o custo muda (vai para "Preços a revisar").
 
-Ordem sugerida dentro do bloco: REC-01 → EXE-06 → EXE-07 → COM-10 → UX-02 → UX-01 → CAD-07 (EXE-08 e EXE-09 opcionais, por decisão).
+Ordem dentro do bloco: PRC-00 → REC-01 → PRC-01 → PRC-02 → PRC-03 → EXE-06 → EXE-07 → COM-10 → UX-02 → UX-01 → CAD-07 → CAT-08 → CAT-03a → PRC-04 → PRC-05 → ENG-03 → CAT-09, tudo antes do MKT-00 (EXE-08 e EXE-09 opcionais, por decisão).
+
+- **PRC-00 [ ] Orçamento busca item cadastrado (P)** — correção da COM-01a CA 7; todos os perfis, Konebras inclusive
+  - "Adicionar item" com busca única por código, nome e GTIN (`IItems` e, onde houver Catálogo, o produto), mostrando tipo, unidade e, com `quotes.view_cost`, o custo médio;
+  - escolhido o item: vínculo (`item_id`), descrição, unidade e tipo (Serviço → Serviço, Produto acabado → Equipamento, demais → Produto); **"Digitar à mão"** continua (item sem vínculo);
+  - a composição **não** muda nesta story (o custo do material segue a COM-01a CA 11); cadastro rápido de item fica para a UX-02.
 
 - **REC-01 [ ] Contrato de assinatura de serviços (receita recorrente) (G)**
   - item **recorrente** no orçamento (tipo "Assinatura"): plano, valor mensal, dia de vencimento fixo no mês, início (data ou evento do projeto, com os gatilhos da EXE-05: entrega, aceite do cliente ou "ao concluir a etapa X"), fidelidade em meses, 1º mês cheio ou proporcional, índice de reajuste; convive com itens de marco (setup/implantação) no mesmo orçamento;
@@ -810,7 +817,21 @@ Ordem sugerida dentro do bloco: REC-01 → EXE-06 → EXE-07 → COM-10 → UX-0
   - reajuste anual: índice buscado no Banco Central (séries públicas) com valor editável, proposta 30 dias antes, confirmação com permissão e aviso ao cliente; troca de plano e reajuste registrados como aditivo (COM-07);
   - suspensão por inadimplência (opcional por contrato), cancelamento com aviso prévio e multa de fidelidade calculada, encerramento;
   - painel de receita recorrente: MRR, contratos ativos, novos, cancelados, em atraso, próximas renovações e reajustes;
-  - migração: transformar os títulos parcelados à mão (ex.: CR-2026-00004…) em assinatura sem duplicar cobrança.
+  - migração: transformar os títulos parcelados à mão (ex.: CR-2026-00004…) em assinatura sem duplicar cobrança;
+  - plano = item de **Serviço** marcado recorrente, escolhido pela busca da PRC-00; a mensalidade vem da tabela de preço do cliente ou da padrão quando o plano tem produto no Catálogo, senão é digitada (com a PRC-03, sugerida pela ficha: horas de suporte por cargo e infraestrutura em "Outros"); congela no contrato.
+- **PRC-01 [ ] Precificação: módulo, política de preço e motor único (M)** — depende de PRC-00; ADR 0054
+  - módulo `pricing` nas cinco camadas, no `ModuleCatalog` (`pricing.view`, que inclui ver custo, e `pricing.edit`) e em **todos os perfis**, `factory` inclusive; oculto no menu até a política ser configurada por quem tem `pricing.edit` (entrada em Configurações), sem nada visível na Konebras enquanto isso; teste de regressão do perfil `factory`;
+  - `PriceFormation` (código puro no `SharedKernel`) no lugar do `QuotePricing` e do `MarginRules`: markup divisor com impostos, comissão, despesas e tarifa do canal "por dentro"; com 0% dá o mesmo preço de hoje (regressão com orçamentos reais);
+  - tela "Política de preço": base de custo (padrão: custo médio; opções: última compra, manual), modo e % (nascem de `pricing.mode` e `pricing.default_pct`), impostos %, comissão %, despesas %, arredondamento, margem mínima (vazia = sem mínimo), limite do aviso de custo; exceções por categoria do Estoque; a margem por categoria do Catálogo é copiada para elas (campos antigos só leitura).
+- **PRC-02 [ ] Ficha de custo padrão do item (M)** — depende de PRC-01
+  - aba "Custo e preço" no item (e no produto do Catálogo): linhas por natureza com o editor do orçamento (material, mão de obra por cargo, instalação, frete, impostos, outros) e as despesas % à parte; nasce pelo tipo (revenda: "o próprio item" no custo de referência; serviço: horas por cargo; acabado: material e horas);
+  - custos unitários vivos das fontes (custo médio, última compra, custo-hora do cargo), salvo o fixado à mão; componente com ficha própria entra pelo custo de referência dele (até 5 níveis, ciclo recusado);
+  - custo de referência, sugerido, mínimo e margem gravados em `pricing.item_prices`; ficha versionada e auditada; sem `pricing.view`, custo e margem ficam ausentes.
+- **PRC-03 [ ] Orçamento traz a ficha e o preço (M)** — depende de PRC-02
+  - escolhido o item, o orçamento **copia** a ficha (snapshot editável, origem "Ficha do item, versão N"), a margem/markup e as despesas %; item sem ficha de revenda nasce com "o próprio item" no custo de referência;
+  - preço: tabela do cliente/"Venda direta"/padrão quando houver (a tabela vence a ficha; a resolução completa chega na CAT-03a), senão o sugerido; chip de origem ("Da tabela", "Sugerido", "Digitado à mão");
+  - na aprovação, as despesas % viram valores por natureza (impostos → `Tax`, demais → `Other`) para o orçado do projeto fechar com o preço; "Atualizar custos" passa a olhar material e ficha, no rascunho, sem mexer em preço digitado;
+  - na Fábrica: sem política configurada, o orçamento segue exatamente como hoje.
 - **COM-10 [ ] Modelos de termos e condições nos documentos (M)**
   - cadastro de modelos em Configurações por tipo de documento (orçamento, contrato, aditivo, pedido de venda, pedido de compra, cotação, OS de instalação e de manutenção) e por perfil de negócio, com um padrão por tipo;
   - editor com formatação simples (títulos, negrito, listas, cláusulas numeradas) e campos automáticos clicáveis (`{cliente}`, `{cnpj}`, `{valor}`, `{marcos}`, `{mensalidade}`, `{fidelidade}`, `{validade}`…); campo desconhecido é recusado; texto sanitizado (sem HTML livre);
@@ -839,6 +860,26 @@ Ordem sugerida dentro do bloco: REC-01 → EXE-06 → EXE-07 → COM-10 → UX-0
   - liberar o recurso `projects.service_execution` para `factory` (ex.: modernização ou conserto sob contrato), com teste de regressão da Konebras.
 - **EXE-09 [ ] Faturar por horas (M)** — opcional, depois; depende de EXE-04
   - marco "por horas lançadas no período" (tempo e material), com aprovação das horas faturáveis antes de gerar o título.
+
+**Produto, custo e preço, continuação** ([proposta](produto/produto-custo-preco.md); PRC-00 a PRC-03 acima; tudo antes do MKT-00)
+- **CAT-08 [ ] Catálogo usa a formação de preço (P)** — depende de PRC-02
+  - o produto mostra a ficha (custo de referência, sugerido, mínimo, margem atual) e "Aplicar sugerido" na tabela escolhida, com prévia do impacto na margem (`catalog.edit_price`, pelo `PriceService`, com versão e `PriceChanged`); a margem por categoria do Catálogo deixa de calcular.
+- **CAT-03a [ ] Tabelas de preço por canal e cliente, derivadas, vigência e resolvedor (M)** — depende de CAT-08; parte da CAT-03 (atacado, promoção por regra e remarcação em lote ficam na CAT-03b, fase do PDV)
+  - tipos: padrão, canal (PDV, loja virtual, delivery, **Venda direta**, **Marketplace** por conta, **Aplicativo conectado** por conexão), cliente (`customer_price_lists` no Catálogo, por `party_id`) e promoção com vigência;
+  - tabela derivada: "base ± x%" de outra tabela (acompanha sozinha) ou "custo de referência com margem y%" (não muda sozinha), com arredondamento e exceção por item;
+  - `IPriceResolver` (promoção vigente > cliente > canal/loja > padrão) usado pelo orçamento, pelo pedido de venda (no lugar de sempre a padrão) e pela API de integração (tabela da conexão); o documento grava tabela, versão e origem.
+- **PRC-04 [ ] Preço mínimo e alçada (M)** — depende de PRC-03 e CAT-03a
+  - mínimo = preço com a margem mínima (política, categoria, item) ou valor fixo na ficha; sem margem mínima, não há mínimo; gravado na linha do documento;
+  - abaixo do mínimo (líquido de desconto) bloqueia sem aprovação: orçamento enviar/aprovar com `quotes.approve`, pedido confirmar com `sales.approve`, PDV com supervisor (PDV-04; o feed offline leva só o mínimo, nunca o custo); Conecta e agente de IA nunca confirmam abaixo do mínimo (rascunho "para aprovar"); a auditoria mostra preço, mínimo e quem aprovou.
+- **PRC-05 [ ] Custo mudou: recálculo e "Preços a revisar" (M)** — depende de PRC-02 e CAT-03a
+  - o motor de estoque publica `ItemAverageCostChanged` (outbox); com ele, o custo-hora do cargo, a estrutura padrão liberada e a ficha gravada disparam o recálculo por job Hangfire por tenant (com `tenantId`, idempotente, agrupado), inclusive das fichas que usam o item como componente;
+  - lista "Preços a revisar" e sino para quem tem `catalog.edit_price`: margem abaixo da meta, abaixo do mínimo ou sugerido mudou acima do limite; "Aplicar sugerido" (um ou em lote, com prévia) ou "Manter preço"; a tabela nunca muda sozinha por causa do custo;
+  - orçamento em rascunho ganha a faixa "O custo de N itens mudou" com "Atualizar custos"; enviado, contrato, pedido confirmado, venda e assinatura nunca mudam.
+- **ENG-03 [ ] Estrutura padrão do produto acabado (M)** — depende de PRC-02
+  - BOM-modelo por item acabado, da Engenharia, com revisão e liberação; alimenta o material da ficha por contrato (`IStandardBoms`, sem cópia: "Da estrutura padrão, rev. N") e vira o ponto de partida da BOM da OS (o ENG-02 passa a copiar também dela);
+  - sem estrutura padrão, a BOM da OS e o orçamento da Fábrica seguem como hoje; teste de regressão do perfil `factory`.
+- **CAT-09 [ ] Kit (M)** — depende de PRC-02 e CAT-03a
+  - produto marcado Kit com componentes (itens e quantidades); a venda baixa os componentes; o disponível é o menor entre os componentes; a ficha nasce dos componentes; CAT-05 (combos) e CAT-06 (ficha técnica) passam a reusar a mesma ficha.
 
 ---
 
