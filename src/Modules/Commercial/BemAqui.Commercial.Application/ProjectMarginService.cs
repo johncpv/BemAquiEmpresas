@@ -231,7 +231,7 @@ public sealed partial class ProjectMarginService(
     internal async Task<List<ComputedProject>> ComputeAsync(IQueryable<Project> projects, CancellationToken ct)
     {
         var heads = await projects.AsNoTracking()
-            .Join(db.Contracts, p => p.ContractId, c => c.Id, (p, c) => new ProjectHead(p.Id, p.Number, p.Name, p.PartyId, p.Status, p.ManagerUserId, p.ContractId, c.SignedAt, c.TotalValue))
+            .Join(db.Contracts, p => p.ContractId, c => c.Id, (p, c) => new ProjectHead(p.Id, p.Number, p.Name, p.PartyId, p.Status, p.ManagerUserId, p.ContractId, c.SignedAt, c.TotalValue, p.ExecutionKind))
             .ToListAsync(ct);
         if (heads.Count == 0)
         {
@@ -316,7 +316,7 @@ public sealed partial class ProjectMarginService(
         return rows.Select(r => new ProjectMarginRow(
             new ProjectMarginHeader(
                 r.Head.Id, r.Head.Number, r.Head.Name, r.Head.PartyId, names.GetValueOrDefault(r.Head.PartyId, string.Empty), r.Head.Status.ToString(), r.Head.ManagerUserId,
-                r.Head.ManagerUserId is { } m ? managers.GetValueOrDefault(m) : null, r.Head.ContractId, r.Head.SignedAt),
+                r.Head.ManagerUserId is { } m ? managers.GetValueOrDefault(m) : null, r.Head.ContractId, r.Head.SignedAt, r.Head.ExecutionKind.ToString()),
             r.Figures, ProjectCosts.Worst(r.Figures))).ToList();
     }
 
@@ -324,7 +324,9 @@ public sealed partial class ProjectMarginService(
 
     private static Error NoCost() => Error.Forbidden(Error.Codes.Forbidden, "Custo e margem do projeto são restritos. Fale com o administrador.");
 
-    internal sealed record ProjectHead(Guid Id, string Number, string Name, Guid PartyId, ProjectStatus Status, Guid? ManagerUserId, Guid ContractId, DateOnly SignedAt, decimal ContractValue);
+    internal sealed record ProjectHead(
+        Guid Id, string Number, string Name, Guid PartyId, ProjectStatus Status, Guid? ManagerUserId, Guid ContractId, DateOnly SignedAt, decimal ContractValue,
+        ExecutionKind ExecutionKind = ExecutionKind.Fabrication);
 
     /// <summary>Um projeto calculado; os números no formato do contrato só quando pedidos (o ranking ordena pelo resultado e monta só a página).</summary>
     internal sealed record ComputedProject(ProjectHead Head, MarginResult Result)

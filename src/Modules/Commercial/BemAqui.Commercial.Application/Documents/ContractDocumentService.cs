@@ -59,7 +59,7 @@ public sealed class ContractDocumentService(
 
         var contract = (await contracts.GetAsync(contractId, cancellationToken)).Value;
         var party = await parties.FindAsync(contract.PartyId, cancellationToken);
-        var model = ContractPdf.Build(amendment, party?.LegalName ?? contract.PartyName, contract.PartyDocument, contract.ProjectNumber, BusinessTime.Today(clock));
+        var model = ContractPdf.Build(amendment, party?.LegalName ?? contract.PartyName, contract.PartyDocument, contract.ProjectNumber, BusinessTime.Today(clock), contract.ExecutionKind);
         var frame = await frames.CreateAsync(cancellationToken);
         DateOnly? date = amendment.ApprovedAt is { } at ? DateOnly.FromDateTime(BusinessTime.ToBusiness(at).DateTime) : null;
         var bytes = await renderer.RenderAsync(new AmendmentPdfDocument(frame, model, date), cancellationToken);

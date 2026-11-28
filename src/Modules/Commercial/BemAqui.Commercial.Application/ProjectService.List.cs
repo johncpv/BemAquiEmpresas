@@ -9,7 +9,13 @@ namespace BemAqui.Commercial.Application;
 public sealed partial class ProjectService
 {
     /// <summary>Lista de projetos (COM-05 CA 1, 2): por página, com nomes resolvidos em lote; margem e recebido em rotas próprias.</summary>
-    public async Task<ProjectListPage> ListAsync(string? q, string? situation, Guid? partyId, Guid? managerId, PageRequest page, CancellationToken cancellationToken = default)
+    public async Task<ProjectListPage> ListAsync(
+        string? q, string? situation, Guid? partyId, Guid? managerId, PageRequest page, CancellationToken cancellationToken = default) =>
+        await ListAsync(q, situation, partyId, managerId, page, null, cancellationToken);
+
+    /// <summary>Lista com o filtro "Tipo" (EXE-01b CA 12): <c>fabricacao</c> ou <c>servico</c>; outro valor, todos.</summary>
+    public async Task<ProjectListPage> ListAsync(
+        string? q, string? situation, Guid? partyId, Guid? managerId, PageRequest page, string? kind, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(page);
         var projects = db.Projects.AsNoTracking();
@@ -19,6 +25,12 @@ public sealed partial class ProjectService
             "entregue" => projects.Where(p => p.Status == ProjectStatus.Delivered),
             "encerrado" => projects.Where(p => p.Status == ProjectStatus.Closed),
             "cancelado" => projects.Where(p => p.Status == ProjectStatus.Cancelled),
+            _ => projects,
+        };
+        projects = kind switch
+        {
+            "fabricacao" => projects.Where(p => p.ExecutionKind == ExecutionKind.Fabrication),
+            "servico" => projects.Where(p => p.ExecutionKind == ExecutionKind.Service),
             _ => projects,
         };
         if (partyId is { } party)

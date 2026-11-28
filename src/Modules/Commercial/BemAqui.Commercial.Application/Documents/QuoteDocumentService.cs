@@ -97,19 +97,20 @@ public sealed partial class QuoteDocumentService(
                 contact is null ? null : string.Join(" · ", new[] { contact.Name, contact.Email, contact.Phone }.Where(x => !string.IsNullOrWhiteSpace(x)))),
             detail.Items.Select(i => new QuotePdfItem(i.Sequence, i.Description, i.Quantity, i.ItemId is { } it ? units.GetValueOrDefault(it) : null, i.UnitPrice, i.Total)).ToList(),
             detail.TotalPrice,
-            conditions.Milestones.Select(m => new QuotePdfMilestone(m.Description, m.Percent, m.Amount, When(m))).ToList(),
+            conditions.Milestones.Select(m => new QuotePdfMilestone(m.Description, m.Percent, m.Amount, When(m, detail.ExecutionKind))).ToList(),
             detail.ValidUntil, detail.DeliveryDays, detail.Notes);
         var (mark, notice) = QuotePdf.Mark(quote.Status, quote.ValidUntil, quote.ExpiredAt);
         return (quote, model with { Mark = mark, Notice = notice });
     }
 
-    private static string When(QuoteMilestoneView m) => m.Trigger == MilestoneTrigger.Date
+    // EXE-01b CA 15: no serviço, "aceite do cliente" e "conclusão da execução (antes: fabricação concluída)".
+    private static string When(QuoteMilestoneView m, ExecutionKind kind) => m.Trigger == MilestoneTrigger.Date
         ? $"em {m.DueDate:dd/MM/yyyy}"
-        : $"{(m.DaysAfterEvent is > 0 ? $"{m.DaysAfterEvent} dias após " : "na ")}{m.TriggerEvent switch
+        : $"{(m.DaysAfterEvent is > 0 ? $"{m.DaysAfterEvent} dias após " : "na ")}{(kind == ExecutionKind.Service ? MilestoneEventLabels.Lower(m.TriggerEvent, kind) : m.TriggerEvent switch
         {
             TriggerEvent.Signature => "assinatura do contrato",
             TriggerEvent.FabricationDone => "fabricação concluída",
             TriggerEvent.Delivered => "entrega",
             _ => "aceite técnico",
-        }}";
+        })}";
 }

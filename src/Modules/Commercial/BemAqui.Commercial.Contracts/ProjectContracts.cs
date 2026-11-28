@@ -98,7 +98,18 @@ public interface IProjects
     /// </summary>
     Task<IReadOnlyList<ProjectSummary>> ListAsync(IReadOnlyCollection<string> statuses, Guid? partyId, CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<ProjectSummary>>([]);
+
+    /// <summary>
+    /// Projetos de serviço entregues sem aceite vigente (EXE-01b CA 16, pauta DSH-04), com o valor das parcelas ligadas ao aceite (contrato + aditivos
+    /// aprovados; null sem parcela) e os dias corridos desde a entrega até <paramref name="today"/>. Vazio no tenant sem o recurso
+    /// <c>projects.service_execution</c>. Sem dado de quem aceitou.
+    /// </summary>
+    Task<IReadOnlyList<ProjectAwaitingAcceptance>> AwaitingAcceptanceAsync(DateOnly today, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<ProjectAwaitingAcceptance>>([]);
 }
+
+/// <summary>Projeto de serviço aguardando o aceite do cliente (EXE-01b CA 16): responsável, entrega e o valor que o aceite libera (null sem parcela).</summary>
+public sealed record ProjectAwaitingAcceptance(Guid Id, string Number, string Name, Guid? ManagerUserId, DateOnly DeliveredOn, int DaysSinceDelivery, decimal? AcceptanceAmount);
 
 /// <summary>
 /// Projeto na carteira do painel do dono (DSH-01b): situação (nome de <c>ProjectStatus</c>), situação do contrato (nome de <c>ContractStatus</c>),

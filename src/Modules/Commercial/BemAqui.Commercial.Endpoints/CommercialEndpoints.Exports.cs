@@ -35,8 +35,8 @@ internal static partial class CommercialEndpoints
         contracts.MapGet("/{contractId:guid}/amendments/{id:guid}/pdf", async (Guid contractId, Guid id, HttpContext http, ContractDocumentService service, CancellationToken ct) =>
                 File(http, await service.AmendmentPdfAsync(contractId, id, ct)))
             .RequirePermission("projects.view").WithName("DownloadAmendmentPdf").Produces(StatusCodes.Status200OK, contentType: "application/pdf");
-        projects.MapGet("/export", (string? format, string? q, string? situation, Guid? partyId, Guid? managerId, HttpContext http, CommercialExportService service,
-                ListExportService export, CancellationToken ct) => export.ExportAsync(http, format, (max, c) => service.ProjectsAsync(q, situation, partyId, managerId, max, c), ct))
+        projects.MapGet("/export", (string? format, string? q, string? situation, Guid? partyId, Guid? managerId, string? kind, HttpContext http, CommercialExportService service,
+                ListExportService export, CancellationToken ct) => export.ExportAsync(http, format, (max, c) => service.ProjectsAsync(q, situation, partyId, managerId, max, kind, c), ct))
             .RequirePermission("projects.view").WithName("ExportProjects");
     }
 

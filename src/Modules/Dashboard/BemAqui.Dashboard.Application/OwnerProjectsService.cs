@@ -66,7 +66,7 @@ public sealed class OwnerProjectsService(
             var names = (await parties.FindManyAsync(shown.Select(p => p.PartyId).Distinct().ToList(), ct)).ToDictionary(p => p.Id, p => p.TradeName ?? p.LegalName);
             return new ActiveProjectsCard(ordered.Count, shown.Select(p => new ActiveProjectItem(
                 p.Id, p.Number, p.Name, names.GetValueOrDefault(p.PartyId, string.Empty), p.Status, p.Forecast.PromisedDate, p.Forecast.ForecastDate, p.Forecast.SlackDays,
-                p.Forecast.Risk, p.Forecast.DelayDays, p.ContractedAmount)).ToList(), clock.GetUtcNow());
+                p.Forecast.Risk, p.Forecast.DelayDays, p.ContractedAmount, p.ExecutionKind)).ToList(), clock.GetUtcNow());
         }, cancellationToken);
 
     /// <summary>Coluna "Margem" dos projetos do card (com <c>projects.view_cost</c>): orçada → projetada pelo <see cref="IProjectMargins"/>.</summary>
@@ -139,7 +139,8 @@ public sealed class OwnerProjectsService(
     public Task<ProductionCard> ProductionAsync(CancellationToken cancellationToken = default) =>
         access.CachedAsync(DashboardCards.Production, "weeks=" + OwnerRules.LoadWeeks, async ct =>
         {
-            var active = (await PortfolioAsync(ct)).Count(p => OwnerRules.IsActive(p.Status));
+            // EXE-01b CA 13: o card de produção conta só os projetos de fabricação (o de serviço não passa pela fábrica).
+            var active = (await PortfolioAsync(ct)).Count(p => OwnerRules.IsActive(p.Status) && p.ExecutionKind != "Service");
             var summary = await board.SummaryAsync(null, ct);
             var load = await factoryLoad.WeeklyAsync(OwnerRules.LoadWeeks, null, ct);
             var cells = load.Factory.Cells.ToDictionary(c => c.WeekStart);

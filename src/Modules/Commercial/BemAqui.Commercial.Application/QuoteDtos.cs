@@ -14,7 +14,7 @@ public sealed record QuoteItemView(Guid Id, int Sequence, QuoteItemKind Kind, Gu
 public sealed record QuoteDetail(
     Guid Id, string Number, int Revision, QuoteStatus Status, Guid PartyId, string PartyName, Guid? ContactId, Guid? SiteAddressId, int? DeliveryDays, string? Notes,
     QuotePricingMode PricingMode, IReadOnlyList<QuoteItemView> Items, decimal TotalPrice, DateTimeOffset? SentAt, DateTimeOffset CreatedAt, DateOnly? ValidUntil, QuoteLostReason? LostReason, string? LostDetail,
-    bool IsCurrent, Guid? ParentQuoteId, string? CopiedFromNumber, uint Version);
+    bool IsCurrent, Guid? ParentQuoteId, string? CopiedFromNumber, uint Version, ExecutionKind ExecutionKind = ExecutionKind.Fabrication);
 
 // DTOs com custo: só com quotes.view_cost, em rotas próprias.
 

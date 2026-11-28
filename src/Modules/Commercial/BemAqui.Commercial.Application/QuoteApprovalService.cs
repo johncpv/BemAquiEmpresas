@@ -36,7 +36,7 @@ public sealed partial class QuoteApprovalService(
         var suggested = SuggestedAccounts.Select(code => accounts.FirstOrDefault(a => a.Code == code && a.IsActive)).FirstOrDefault(a => a is not null);
         return new ApprovalPreview(
             await PreconditionsAsync(quote, conditions, cancellationToken), quote.TotalPrice, detail.Items.Count, quote.DeliveryDays,
-            conditions.Milestones.Select(m => new ApprovalMilestone(m.Description, m.Percent, m.Amount, When(m), m.Id, m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent)).ToList(),
+            conditions.Milestones.Select(m => new ApprovalMilestone(m.Description, m.Percent, m.Amount, When(m, detail.ExecutionKind), m.Id, m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent)).ToList(),
             accounts.Where(a => a.IsActive).Select(a => new ApprovalAccount(a.Id, $"{a.Code} {a.Name}")).ToList(), suggested?.Id, await ProjectNameAsync(quote, detail, cancellationToken),
             await opening.StatusAsync(cancellationToken) is var status ? new ApprovalOnboarding(status.CutoverDate, status.CompletedAt) : null);
     }
@@ -87,13 +87,14 @@ public sealed partial class QuoteApprovalService(
         return full.Length <= 200 ? full : full[..200];
     }
 
-    private static string When(QuoteMilestoneView m) => m.Trigger == MilestoneTrigger.Date
+    // EXE-01b CA 15: no serviço, "aceite do cliente" e "conclusão da execução (antes: fabricação concluída)".
+    private static string When(QuoteMilestoneView m, ExecutionKind kind) => m.Trigger == MilestoneTrigger.Date
         ? $"em {m.DueDate:dd/MM/yyyy}"
-        : $"{(m.DaysAfterEvent is > 0 ? $"{m.DaysAfterEvent} dias após " : "na ")}{m.TriggerEvent switch
+        : $"{(m.DaysAfterEvent is > 0 ? $"{m.DaysAfterEvent} dias após " : "na ")}{(kind == ExecutionKind.Service ? MilestoneEventLabels.Lower(m.TriggerEvent, kind) : m.TriggerEvent switch
         {
             TriggerEvent.Signature => "assinatura do contrato",
             TriggerEvent.FabricationDone => "fabricação concluída",
             TriggerEvent.Delivered => "entrega",
             _ => "aceite técnico",
-        }}";
+        })}";
 }

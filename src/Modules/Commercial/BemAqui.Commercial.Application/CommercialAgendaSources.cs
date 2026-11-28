@@ -11,13 +11,20 @@ namespace BemAqui.Commercial.Application;
 /// Detector de Projetos para a Minha pauta (DSH-04 CA 2): aditivo aguardando aprovação, para quem tem <c>projects.approve</c>, menos o
 /// autor; a exceção é a mesma do <c>canDecide</c> do aditivo (COM-07, D6): o Proprietário único, ou com o parâmetro ligado, decide o próprio.
 /// </summary>
-public sealed class ProjectsAgendaSource(ICommercialDb db, IUserDirectory users, IFinanceParameters financeParameters) : IAgendaSource
+public sealed class ProjectsAgendaSource(ICommercialDb db, IUserDirectory users, IFinanceParameters financeParameters, BemAqui.Commercial.Contracts.IProjects projects) : IAgendaSource
 {
     public const string AmendmentsPending = "projects.amendments_pending";
+
+    /// <summary>EXE-01b CA 16: aceite do cliente pendente no projeto de serviço (o destinatário é o responsável do projeto).</summary>
+    public const string AcceptancePending = "projects.acceptance_pending";
+
+    /// <summary>Sem parcela ligada ao aceite, o lembrete aparece a partir de 7 dias corridos depois da entrega.</summary>
+    public const int AcceptanceReminderDays = 7;
 
     private static readonly AgendaCategory[] Declared =
     [
         new(AmendmentsPending, "projects", "projects.approve", AgendaTier.Unblocks, "os aditivos aguardando aprovação"),
+        new(AcceptancePending, "projects", "projects.view", AgendaTier.Unblocks, "os aceites do cliente pendentes"),
     ];
 
     public string Module => "projects";
@@ -27,11 +34,51 @@ public sealed class ProjectsAgendaSource(ICommercialDb db, IUserDirectory users,
     public async Task<IReadOnlyList<AgendaItem>> ItemsAsync(AgendaRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (!request.Wants(AmendmentsPending))
+        var items = new List<AgendaItem>();
+        if (request.Wants(AmendmentsPending) && await AmendmentsAsync(request, cancellationToken) is { } amendments)
         {
-            return [];
+            items.Add(amendments);
         }
 
+        if (request.Wants(AcceptancePending) && await AcceptancesAsync(request, cancellationToken) is { } acceptances)
+        {
+            items.Add(acceptances);
+        }
+
+        return items;
+    }
+
+    /// <summary>
+    /// Aceite do cliente pendente (EXE-01b CA 16): para o responsável do projeto (sem responsável, quem tem <c>projects.register_acceptance</c>).
+    /// Com parcela ligada ao aceite, desde o dia da entrega ("libera R$ …"); sem parcela, a partir de 7 dias corridos depois da entrega.
+    /// </summary>
+    private async Task<AgendaItem?> AcceptancesAsync(AgendaRequest request, CancellationToken ct)
+    {
+        var me = request.UserId;
+        var canRegister = request.Permissions.Has("projects.register_acceptance");
+        var mine = (await projects.AwaitingAcceptanceAsync(request.Today, ct))
+            .Where(p => p.ManagerUserId == me || (p.ManagerUserId is null && canRegister))
+            .Where(p => p.AcceptanceAmount is not null ? p.DaysSinceDelivery >= 0 : p.DaysSinceDelivery >= AcceptanceReminderDays)
+            .ToList();
+        if (mine.Count == 0)
+        {
+            return null;
+        }
+
+        var total = mine.Sum(p => p.AcceptanceAmount ?? 0);
+        var oldest = mine.Min(p => p.DeliveredOn);
+        return new AgendaItem(
+            AcceptancePending,
+            AgendaText.Count(mine.Count, "aceite do cliente pendente", "aceites do cliente pendentes"),
+            AgendaText.Sentence(total > 0 ? "libera " + AgendaText.Money(total) + " para cobrança" : null, "o mais antigo foi entregue em " + AgendaText.DayMonth(oldest, request.Today)),
+            null, null, total > 0 ? total : null, AgendaTier.Unblocks, mine.Count, "Registrar aceite do cliente",
+            [.. mine.Take(AgendaLimits.EntriesPerCategory).Select(p => new AgendaEntry(
+                p.AcceptanceAmount is { } amount ? $"Aceite do cliente pendente: {p.Number}, libera {AgendaText.Money(amount)}" : $"Aceite do cliente pendente: {p.Number}",
+                Short(p.Name), $"/app/projetos/{p.Id}?acao=aceite", null, p.AcceptanceAmount))]);
+    }
+
+    private async Task<AgendaItem?> AmendmentsAsync(AgendaRequest request, CancellationToken cancellationToken)
+    {
         var me = request.UserId;
         var pending = db.ContractAmendments.AsNoTracking().Where(a => a.Status == AmendmentStatus.PendingApproval);
         if (!await MayDecideOwnAsync(me, cancellationToken))
@@ -42,7 +89,7 @@ public sealed class ProjectsAgendaSource(ICommercialDb db, IUserDirectory users,
         var count = await pending.CountAsync(cancellationToken);
         if (count == 0)
         {
-            return [];
+            return null;
         }
 
         var total = await pending.SumAsync(a => a.ValueDelta, cancellationToken);
@@ -51,16 +98,13 @@ public sealed class ProjectsAgendaSource(ICommercialDb db, IUserDirectory users,
             .ToListAsync(cancellationToken);
         var oldest = rows.Where(r => r.SubmittedAt != null).Select(r => r.SubmittedAt!.Value).DefaultIfEmpty().Min();
         var since = oldest == default ? null : "o mais antigo foi enviado em " + AgendaText.DayMonth(DateOnly.FromDateTime(BemAqui.BuildingBlocks.Time.BusinessTime.ToBusiness(oldest).DateTime), request.Today);
-        return
-        [
-            new AgendaItem(
-                AmendmentsPending,
-                AgendaText.Count(count, "aditivo de contrato aguarda aprovação", "aditivos de contrato aguardam aprovação"),
-                AgendaText.Sentence((total >= 0 ? "+" : string.Empty) + AgendaText.Money(total) + " no valor dos contratos", since),
-                null, null, total, AgendaTier.Unblocks, count, "Aprovar",
-                [.. rows.OrderBy(r => r.SubmittedAt).Select(r => new AgendaEntry(
-                    $"Aditivo {r.Number} do {r.Contract}", Short(r.Description), $"/app/contratos/{r.ContractId}/aditivos/{r.Id}", null, r.ValueDelta))]),
-        ];
+        return new AgendaItem(
+            AmendmentsPending,
+            AgendaText.Count(count, "aditivo de contrato aguarda aprovação", "aditivos de contrato aguardam aprovação"),
+            AgendaText.Sentence((total >= 0 ? "+" : string.Empty) + AgendaText.Money(total) + " no valor dos contratos", since),
+            null, null, total, AgendaTier.Unblocks, count, "Aprovar",
+            [.. rows.OrderBy(r => r.SubmittedAt).Select(r => new AgendaEntry(
+                $"Aditivo {r.Number} do {r.Contract}", Short(r.Description), $"/app/contratos/{r.ContractId}/aditivos/{r.Id}", null, r.ValueDelta))]);
     }
 
     /// <summary>Regra do autor (D6): só o Proprietário de um membro, ou com o parâmetro ligado, aprova o próprio aditivo.</summary>

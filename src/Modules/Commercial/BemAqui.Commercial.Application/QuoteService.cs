@@ -82,7 +82,9 @@ public sealed partial class QuoteService(
                 l.PriceOverridden, QuotePricing.Money(l.Quantity * l.UnitPrice))).ToList(),
             quote.TotalPrice, quote.SentAt, quote.CreatedAt, quote.ValidUntil, quote.LostReason, quote.LostDetail,
             quote.IsCurrent, quote.ParentQuoteId,
-            quote.CopiedFromQuoteId is { } from ? await db.Quotes.IgnoreQueryFilters().Where(x => x.Id == from).Select(x => x.Number).FirstOrDefaultAsync(ct) : null, quote.Version);
+            quote.CopiedFromQuoteId is { } from ? await db.Quotes.IgnoreQueryFilters().Where(x => x.Id == from).Select(x => x.Number).FirstOrDefaultAsync(ct) : null, quote.Version,
+            // EXE-01b CA 15: o tipo pelos itens agora (a mesma regra da aprovação), para os rótulos do marco.
+            ExecutionKindRule.For(tenant.Resolved?.HasFeature(BemAqui.BuildingBlocks.Modules.BusinessProfileCatalog.ServiceExecutionFeature) == true, lines.Select(l => l.Kind).ToList()));
     }
 
     /// <summary>Refaz custo, preço e margem do orçamento com as fórmulas do CA 15 (o servidor grava, o front só mostra).</summary>
