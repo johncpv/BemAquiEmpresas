@@ -1,5 +1,5 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { getDownloadProjectSummaryPdfUrl, useGetContract, useGetProjectMilestonePreview } from '@/api/generated/bemaqui'
 import type { ProjectDetail } from '@/api/generated/model'
 import { RecordHistory } from '@/components/history/RecordHistory'
@@ -47,12 +47,15 @@ export function ServiceProjectView({ project: p, refresh }: { project: ProjectDe
   const acceptancePreview = useGetProjectMilestonePreview(p.id, { step: 'acceptance' }, { query: { enabled: delivered && p.serviceExecution !== false } })
   const contract = useGetContract(p.contractId, { query: { enabled: p.status === 'Closed' } })
   const step = nextStep(p, (perm) => perms[perm] ?? false, { acceptancePreview: acceptancePreview.data, closedOn: contract.data?.completedAt?.slice(0, 10) ?? null })
-  const [dialog, setDialog] = useState<ServiceStep | null>(null)
+  const [chosen, setChosen] = useState<ServiceStep | null>(null)
+  const [autoClosed, setAutoClosed] = useState(false)
   const active = p.contractStatus === 'Active'
-  // Pauta (CA 16): "Registrar aceite do cliente" leva a ?acao=aceite e o diálogo abre direto.
-  useEffect(() => {
-    if (search.acao === 'aceite' && step.primary === 'acceptance') setDialog('acceptance')
-  }, [search.acao, step.primary])
+  // Pauta (CA 16): "Registrar aceite do cliente" leva a ?acao=aceite e o diálogo abre direto (uma vez).
+  const dialog = chosen ?? (search.acao === 'aceite' && step.primary === 'acceptance' && !autoClosed ? 'acceptance' : null)
+  const setDialog = (next: ServiceStep | null) => {
+    setChosen(next)
+    if (next === null) setAutoClosed(true)
+  }
 
   const primary = step.primary ? (
     <button type="button" onClick={() => setDialog(step.primary)} className={primaryClass}>{STEP_VERBS[step.primary].verb}</button>

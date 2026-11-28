@@ -91,7 +91,7 @@ describe('indicador P · I · E · A · C (EXE-01b CA 5)', () => {
 
     render(<ProjectStageIndicator project={{ status: 'Closed', executionKind: 'Service', stage: { letters: [...SERVICE_LETTERS], index: 4, label: 'Encerrado', acceptanceWaived: true } }} showLabel />)
     const img = screen.getByRole('img')
-    expect(img).toHaveAccessibleName('Etapa Encerrado, 5 de 5. Aceite dispensado')
+    expect(img.getAttribute('aria-label')).toBe('Etapa Encerrado, 5 de 5. Aceite dispensado')
     expect(img.querySelector('[data-state="waived"]')).not.toBeNull()
   })
 
@@ -99,7 +99,7 @@ describe('indicador P · I · E · A · C (EXE-01b CA 5)', () => {
     const { container: now } = render(<ProjectStageIndicator project={{ status: 'InProgress', executionKind: 'Fabrication' }} />)
     const { container: before } = render(<StageIndicator stages={PROJECT_STAGES} letters={PROJECT_LETTERS} current={1} />)
     expect(now.innerHTML).toBe(before.innerHTML)
-    expect(screen.getAllByRole('img')[0]).toHaveAccessibleName('Etapa Em produção, 2 de 6')
+    expect(screen.getAllByRole('img')[0].getAttribute('aria-label')).toBe('Etapa Em produção, 2 de 6')
   })
 
   it('faixa âmbar só no entregue com aceite exigido (CA 12)', () => {
@@ -118,22 +118,22 @@ describe('efeito nas parcelas (EXE-01b CA 7)', () => {
 
   it('sem parcela, uma, várias e a de compatibilidade', () => {
     const { rerender } = render(<ParcelEffect step="start" preview={preview({ step: 'start' })} />)
-    expect(screen.getByText('Nenhuma parcela é liberada por este passo.')).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma parcela é liberada por este passo.')).toBeTruthy()
     rerender(<ParcelEffect step="delivery" preview={preview({ lines: [line(2, 'Entrega', 3000)], total: 3000, stillWaiting: ['Aceite'] })} />)
-    expect(screen.getByText('Ao confirmar, estas parcelas passam a valer para cobrança:')).toBeInTheDocument()
-    expect(screen.getByText('Parcela 2, Entrega: R$ 3.000,00, vence 03/12/2026')).toBeInTheDocument()
-    expect(screen.getByText('A parcela Aceite continua aguardando o aceite do cliente.')).toBeInTheDocument()
+    expect(screen.getByText('Ao confirmar, estas parcelas passam a valer para cobrança:')).toBeTruthy()
+    expect(screen.getByText(/^Parcela 2, Entrega: R\$\s3\.000,00, vence 03\/12\/2026$/)).toBeTruthy()
+    expect(screen.getByText('A parcela Aceite continua aguardando o aceite do cliente.')).toBeTruthy()
     rerender(<ParcelEffect step="delivery" preview={preview({ lines: [line(2, 'Entrega', 3000), line(3, 'Fabricação', 2000, true)], total: 5000 })} />)
     expect(within(screen.getByRole('list', { name: 'Parcelas liberadas' })).getAllByRole('listitem')).toHaveLength(2)
-    expect(screen.getByText(/Parcela 3, Conclusão da execução \(antes: Fabricação concluída\)/)).toBeInTheDocument()
-    expect(screen.getByText(/Total liberado/)).toHaveTextContent('Total liberado: R$ 5.000,00')
+    expect(screen.getByText(/Parcela 3, Conclusão da execução \(antes: Fabricação concluída\)/)).toBeTruthy()
+    expect(screen.getByText(/Total liberado/).textContent).toBe('Total liberado: R$ 5.000,00')
   })
 
   it('sem finance.view, só o marco; desfazer devolve a parcela', () => {
     expect(parcelLine(line(2, 'Entrega', null))).toBe('Parcela 2, Entrega')
     expect(releasesText(preview({ lines: [line(2, 'Entrega', null), line(3, 'Aceite', null)] }))).toBe('as parcelas Entrega e Aceite')
     render(<ParcelEffect step="revert" preview={preview({ step: 'revert', lines: [line(3, 'Aceite', 4000)] })} />)
-    expect(screen.getByText('A parcela Aceite volta a aguardar o aceite.')).toBeInTheDocument()
+    expect(screen.getByText('A parcela Aceite volta a aguardar o aceite.')).toBeTruthy()
   })
 })
 
@@ -176,11 +176,11 @@ describe('diálogos do projeto de serviço (EXE-01b CA 8 a 10)', () => {
     const done = vi.fn().mockResolvedValue(undefined)
     renderDialog(<ServiceStepDialog project={project({ status: 'InProgress' })} step="delivery" open onOpenChange={() => undefined} onDone={done} onReload={async () => undefined} />)
     const box = await screen.findByRole('checkbox', { name: /Também registrar que o cliente aceitou/ })
-    expect(box).not.toBeChecked()
+    expect((box as HTMLInputElement).checked).toBe(false)
     fireEvent.click(box)
-    expect(screen.getByLabelText(/Quem aceitou/)).toBeInTheDocument()
+    expect(screen.getByLabelText(/Quem aceitou/)).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Registrar entrega' }))
-    expect(await screen.findByText('Informe quem aceitou.')).toBeInTheDocument()
+    expect(await screen.findByText('Informe quem aceitou.')).toBeTruthy()
     expect(api.registerProjectDelivery).not.toHaveBeenCalled()
     fireEvent.change(screen.getByLabelText(/Quem aceitou/), { target: { value: 'Joana Prado' } })
     fireEvent.click(screen.getByRole('button', { name: 'Registrar entrega' }))
@@ -202,11 +202,11 @@ describe('diálogos do projeto de serviço (EXE-01b CA 8 a 10)', () => {
       acceptance: { id: 'a1', version: 1, kind: 'Manual', occurredOn: '2026-11-26', recordedAt: '2026-11-26T12:00:00Z', recordedBy: null, recordedByName: null, acceptedByName: 'Joana Prado', acceptedByRole: null, attachmentId: null, backdateReason: null },
     })
     renderDialog(<ServiceStepDialog project={accepted} step="revert" open onOpenChange={() => undefined} onDone={async () => undefined} onReload={async () => undefined} />)
-    expect(await screen.findByText('Desfazer o aceite de Joana Prado, registrado em 26/11/2026?')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Desfazer aceite' })).toBeDisabled()
-    expect(screen.getByText('A parcela já foi recebida ou cobrada. Para corrigir, use um aditivo.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Fazer aditivo' })).toBeInTheDocument()
-    expect(screen.getByText('0/200')).toBeInTheDocument()
+    expect(await screen.findByText('Desfazer o aceite de Joana Prado, registrado em 26/11/2026?')).toBeTruthy()
+    expect((screen.getByRole('button', { name: 'Desfazer aceite' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.getByText('A parcela já foi recebida ou cobrada. Para corrigir, use um aditivo.')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Fazer aditivo' })).toBeTruthy()
+    expect(screen.getByText('0/200')).toBeTruthy()
   })
 
   it('data anterior a hoje pede o motivo (CA 10)', async () => {
@@ -215,6 +215,6 @@ describe('diálogos do projeto de serviço (EXE-01b CA 8 a 10)', () => {
     await screen.findByRole('alertdialog')
     expect(screen.queryByLabelText(/Por que a data é anterior/)).toBeNull()
     fireEvent.change(screen.getByLabelText(/Data do início/), { target: { value: '01/11/2026' } })
-    expect(await screen.findByLabelText(/Por que a data é anterior/)).toBeInTheDocument()
+    expect(await screen.findByLabelText(/Por que a data é anterior/)).toBeTruthy()
   })
 })

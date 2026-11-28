@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { ExecutionKind } from './executionKind';
 import type { QuoteItemView } from './quoteItemView';
 import type { QuoteLostReason } from './quoteLostReason';
 import type { QuotePricingMode } from './quotePricingMode';
@@ -41,4 +42,5 @@ export interface QuoteDetail {
   /** @nullable */
   copiedFromNumber: string | null;
   version: number;
+  executionKind?: ExecutionKind;
 }

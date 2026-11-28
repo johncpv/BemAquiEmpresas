@@ -14892,6 +14892,13 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -14952,6 +14959,13 @@
             "schema": {
               "type": "integer",
               "format": "int32"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -15791,6 +15805,52 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProjectDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/milestone-preview": {
+      "get": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "GetProjectMilestonePreview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "step",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilestonePreview"
                 }
               }
             }
@@ -48022,6 +48082,10 @@
           "contractedAmount": {
             "type": "number",
             "format": "double"
+          },
+          "executionKind": {
+            "type": "string",
+            "default": "Fabrication"
           }
         }
       },
@@ -59722,6 +59786,9 @@
               "number"
             ],
             "format": "double"
+          },
+          "executionKind": {
+            "$ref": "#/components/schemas/ExecutionKind"
           }
         }
       },
@@ -78529,6 +78596,98 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "MilestonePreview": {
+        "required": [
+          "step",
+          "lines",
+          "total",
+          "stillWaiting",
+          "amountsVisible",
+          "lockedReason",
+          "hasAcceptanceMilestone"
+        ],
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MilestonePreviewLine"
+            }
+          },
+          "total": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "stillWaiting": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "amountsVisible": {
+            "type": "boolean"
+          },
+          "lockedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hasAcceptanceMilestone": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MilestonePreviewLine": {
+        "required": [
+          "sequence",
+          "description",
+          "triggerEvent",
+          "label",
+          "compatibility",
+          "amount",
+          "dueDate"
+        ],
+        "type": "object",
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "triggerEvent": {
+            "$ref": "#/components/schemas/TriggerEvent"
+          },
+          "label": {
+            "type": "string"
+          },
+          "compatibility": {
+            "type": "boolean"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "dueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
           }
         }
       },
@@ -97974,6 +98133,10 @@
           "signedAt": {
             "type": "string",
             "format": "date"
+          },
+          "executionKind": {
+            "type": "string",
+            "default": "Fabrication"
           }
         }
       },
@@ -102416,6 +102579,9 @@
           "version": {
             "type": "integer",
             "format": "uint32"
+          },
+          "executionKind": {
+            "$ref": "#/components/schemas/ExecutionKind"
           }
         }
       },
@@ -104004,6 +104170,12 @@
               "number"
             ],
             "format": "double"
+          },
+          "projectExecutionKind": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

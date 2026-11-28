@@ -12,4 +12,5 @@ partyId?: string;
 managerId?: string;
 page?: number;
 pageSize?: number;
+kind?: string;
 };

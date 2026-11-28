@@ -403,6 +403,7 @@ import type {
   GetProjectBillingParams,
   GetProjectGanttParams,
   GetProjectMarginPortfolioParams,
+  GetProjectMilestonePreviewParams,
   GetProjectsGanttParams,
   GetPurchaseOrderDefaultsParams,
   GetPurchaseOrderHistoryParams,
@@ -694,6 +695,7 @@ import type {
   MeterReadingInput,
   MeterReadingResult,
   MeterReadingView,
+  MilestonePreview,
   ModuleRelease,
   ModuleSummary,
   MovementDetail,
@@ -42782,6 +42784,116 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getRegisterProjectDeliveryMutationOptions(options), queryClient);
     }
+
+export const getGetProjectMilestonePreviewUrl = (id: string,
+    params?: GetProjectMilestonePreviewParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/projects/${id}/milestone-preview?${stringifiedParams}` : `/api/v1/projects/${id}/milestone-preview`
+}
+
+export const getProjectMilestonePreview = async (id: string,
+    params?: GetProjectMilestonePreviewParams, options?: Parameters<typeof apiFetch>[1]): Promise<MilestonePreview> => {
+
+  return apiFetch<MilestonePreview>(getGetProjectMilestonePreviewUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetProjectMilestonePreviewQueryKey = (id: string,
+    params?: GetProjectMilestonePreviewParams,) => {
+    return [
+    `/api/v1/projects/${id}/milestone-preview`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetProjectMilestonePreviewQueryOptions = <TData = Awaited<ReturnType<typeof getProjectMilestonePreview>>, TError = unknown>(id: string,
+    params?: GetProjectMilestonePreviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProjectMilestonePreview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProjectMilestonePreviewQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProjectMilestonePreview>>> = ({ signal }) => getProjectMilestonePreview(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProjectMilestonePreview>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetProjectMilestonePreviewQueryResult = NonNullable<Awaited<ReturnType<typeof getProjectMilestonePreview>>>
+export type GetProjectMilestonePreviewQueryError = unknown
+
+
+export function useGetProjectMilestonePreview<TData = Awaited<ReturnType<typeof getProjectMilestonePreview>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetProjectMilestonePreviewParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProjectMilestonePreview>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProjectMilestonePreview>>,
+          TError,
+          Awaited<ReturnType<typeof getProjectMilestonePreview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProjectMilestonePreview<TData = Awaited<ReturnType<typeof getProjectMilestonePreview>>, TError = unknown>(
+ id: string,
+    params?: GetProjectMilestonePreviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProjectMilestonePreview>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProjectMilestonePreview>>,
+          TError,
+          Awaited<ReturnType<typeof getProjectMilestonePreview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProjectMilestonePreview<TData = Awaited<ReturnType<typeof getProjectMilestonePreview>>, TError = unknown>(
+ id: string,
+    params?: GetProjectMilestonePreviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProjectMilestonePreview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetProjectMilestonePreview<TData = Awaited<ReturnType<typeof getProjectMilestonePreview>>, TError = unknown>(
+ id: string,
+    params?: GetProjectMilestonePreviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProjectMilestonePreview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetProjectMilestonePreviewQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getStartProjectUrl = (id: string,) => {
 
