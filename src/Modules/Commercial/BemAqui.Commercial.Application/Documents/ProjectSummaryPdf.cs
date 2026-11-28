@@ -14,7 +14,14 @@ namespace BemAqui.Commercial.Application.Documents;
 public sealed record ProjectSummaryPdfModel(
     string Number, string Name, ProjectStatus Status, string StatusLabel, string Customer, string? Manager, string? SiteAddress, int StageIndex, DateOnly? PromisedDate,
     DateOnly? ForecastDate, int? DelayDays, string ContractNumber, IReadOnlyList<ProjectSummaryPdfItem> Items, IReadOnlyList<ProjectSummaryPdfOrder>? Orders,
-    IReadOnlyList<ProjectSummaryPdfMilestone> Milestones, ProjectSummaryPdfCosts? Costs, ProjectSummaryPdfFinance? Finance, DateOnly IssueDate);
+    IReadOnlyList<ProjectSummaryPdfMilestone> Milestones, ProjectSummaryPdfCosts? Costs, ProjectSummaryPdfFinance? Finance, DateOnly IssueDate)
+{
+    /// <summary>Letras do indicador pelo tipo (EXE-01b CA 14): P E F I T C na fabricação, P I E A C no serviço.</summary>
+    public IReadOnlyList<string> Letters { get; init; } = ProjectStageMap.FabricationLetters;
+
+    /// <summary>Só a data do aceite do cliente (EXE-01b CA 14): nunca quem aceitou (LGPD).</summary>
+    public DateOnly? AcceptedOn { get; init; }
+}
 
 public sealed record ProjectSummaryPdfItem(int Sequence, string Description, decimal Quantity);
 
@@ -76,9 +83,14 @@ public static class ProjectSummaryPdf
 
     public static (PdfMark Mark, string? Notice) Mark(ProjectStatus status) => status == ProjectStatus.Cancelled ? (PdfMark.Cancelled, null) : (PdfMark.None, null);
 
-    public static string When(ContractMilestoneView m)
+    public static string When(ContractMilestoneView m, ExecutionKind kind = ExecutionKind.Fabrication)
     {
         ArgumentNullException.ThrowIfNull(m);
+        if (kind == ExecutionKind.Service && m.Trigger != MilestoneTrigger.Date)
+        {
+            return $"{(m.DaysAfterEvent is > 0 ? $"{m.DaysAfterEvent} dias após " : "na ")}{MilestoneEventLabels.Lower(m.TriggerEvent, kind)}";
+        }
+
         return m.Trigger == MilestoneTrigger.Date
             ? m.DueDate is { } due ? "em " + PdfTheme.Date(due) : "data a definir"
             : $"{(m.DaysAfterEvent is > 0 ? $"{m.DaysAfterEvent} dias após " : "na ")}{m.TriggerEvent switch
@@ -112,14 +124,19 @@ public static class ProjectSummaryPdf
         ArgumentNullException.ThrowIfNull(project);
         var items = project.Items.OrderBy(i => i.Sequence).Select(i => new ProjectSummaryPdfItem(i.Sequence, i.Description, i.Quantity)).ToList();
         var descriptions = project.Items.ToDictionary(i => i.Id, i => i.Description);
-        var orderRows = orders?.Where(o => o.Type == ProductionOrderKind.Fabrication).OrderBy(o => o.Number, StringComparer.Ordinal)
+        var orderRows = project.ExecutionKind == ExecutionKind.Service ? null : orders?.Where(o => o.Type == ProductionOrderKind.Fabrication).OrderBy(o => o.Number, StringComparer.Ordinal)
             .Select(o => new ProjectSummaryPdfOrder(o.Number, descriptions.GetValueOrDefault(o.ProjectItemId, "—"),
                 o.CurrentStepCode is { } code ? $"{code} · {o.CurrentStepName}" : null, OrderStatusLabel(o.Status))).ToList();
-        var milestones = contract?.Milestones.OrderBy(m => m.Sequence).Select(m => new ProjectSummaryPdfMilestone(m.Sequence, m.Description, m.Percent, m.Amount, When(m))).ToList() ?? [];
+        var milestones = contract?.Milestones.OrderBy(m => m.Sequence).Select(m => new ProjectSummaryPdfMilestone(m.Sequence, m.Description, m.Percent, m.Amount, When(m, project.ExecutionKind))).ToList() ?? [];
+        var stage = project.Stage ?? ProjectStageMap.For(project.ExecutionKind, project.Status, project.AcceptedOn is not null, project.AcceptanceRequired);
         var contracted = contract is null ? 0 : contract.CurrentValue ?? contract.TotalValue;
         return new ProjectSummaryPdfModel(
-            project.Number, project.Name, project.Status, StatusLabel(project.Status), project.PartyName, project.ManagerName, project.SiteAddress, StageIndex(project.Status),
+            project.Number, project.Name, project.Status, stage.Label, project.PartyName, project.ManagerName, project.SiteAddress, stage.Index,
             project.PromisedDate, project.ForecastDate, Delay(project, today), project.ContractNumber, items, orderRows, milestones, costs is null ? null : Costs(costs),
-            financial is null ? null : Finance(financial, contracted), today);
+            financial is null ? null : Finance(financial, contracted), today)
+        {
+            Letters = stage.Letters,
+            AcceptedOn = project.ExecutionKind == ExecutionKind.Service ? project.AcceptedOn : null,
+        };
     }
 }

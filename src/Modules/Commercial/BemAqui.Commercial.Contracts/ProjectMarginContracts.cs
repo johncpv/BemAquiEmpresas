@@ -31,7 +31,8 @@ public sealed record ProjectMarginFigures(
 
 /// <summary>Projeto no relatório, sem custo (DSH-02 CA 9 e 19): número, nome, cliente, situação, responsável e assinatura.</summary>
 public sealed record ProjectMarginHeader(
-    Guid Id, string Number, string Name, Guid PartyId, string PartyName, string Status, Guid? ManagerUserId, string? ManagerName, Guid ContractId, DateOnly SignedAt);
+    Guid Id, string Number, string Name, Guid PartyId, string PartyName, string Status, Guid? ManagerUserId, string? ManagerName, Guid ContractId, DateOnly SignedAt,
+    string ExecutionKind = "Fabrication");
 
 /// <summary>
 /// Projeto com os números (DSH-02 CA 9 e 11): o cabeçalho sem custo, os números e a natureza que mais desviou (para o chip "Margem abaixo"

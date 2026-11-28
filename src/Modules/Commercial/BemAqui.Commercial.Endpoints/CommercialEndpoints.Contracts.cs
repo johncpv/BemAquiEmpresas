@@ -38,8 +38,8 @@ internal static partial class CommercialEndpoints
 
         var projects = api.MapGroup("/projects").WithTags("Contratos e projetos").RequireModule("projects");
         MapContractDocuments(contracts, projects);
-        projects.MapGet(string.Empty, async (string? q, string? situation, Guid? partyId, Guid? managerId, int? page, int? pageSize, ProjectService service, CancellationToken ct) =>
-                Results.Ok(await service.ListAsync(q, situation, partyId, managerId, new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), ct)))
+        projects.MapGet(string.Empty, async (string? q, string? situation, Guid? partyId, Guid? managerId, int? page, int? pageSize, string? kind, ProjectService service, CancellationToken ct) =>
+                Results.Ok(await service.ListAsync(q, situation, partyId, managerId, new PageRequest(page ?? 1, pageSize ?? PageRequest.DefaultPageSize).Normalize(), kind, ct)))
             .RequirePermission("projects.view").WithName("ListProjects").Produces<ProjectListPage>();
         projects.MapGet("/margins", async (string ids, ProjectService service, CancellationToken ct) => (await service.MarginsAsync(ParseIds(ids), ct)).ToHttpResult())
             .RequirePermission("projects.view_cost").WithName("ListProjectMargins").Produces<IReadOnlyList<ProjectMargin>>();
@@ -91,6 +91,10 @@ internal static partial class CommercialEndpoints
     private static void MapServiceExecution(RouteGroupBuilder projects)
     {
         var service = projects.MapGroup(string.Empty).RequireProfileFeature("projects", BemAqui.BuildingBlocks.Modules.BusinessProfileCatalog.ServiceExecutionFeature);
+        // EXE-01b CA 7 e 9: prévia do efeito nas parcelas por passo (start, delivery, acceptance, revert); valores só com finance.view.
+        service.MapGet("/{id:guid}/milestone-preview", async (Guid id, string? step, DateOnly? date, ProjectExecutionService execution, CancellationToken ct) =>
+                (await execution.PreviewAsync(id, step, date, ct)).ToHttpResult())
+            .RequirePermission("projects.view").WithName("GetProjectMilestonePreview").Produces<MilestonePreview>();
         service.MapPost("/{id:guid}/start", async (Guid id, ProjectStartInput input, ProjectExecutionService execution, CancellationToken ct) => (await execution.StartAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("projects.edit").RequireIdempotencyKey().WithName("StartProject").Produces<ProjectDetail>();
         service.MapPost("/{id:guid}/acceptance", async (Guid id, ProjectAcceptanceInput input, ProjectExecutionService execution, CancellationToken ct) =>

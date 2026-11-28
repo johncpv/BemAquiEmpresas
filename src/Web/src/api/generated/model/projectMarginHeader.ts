@@ -18,4 +18,5 @@ export interface ProjectMarginHeader {
   managerName: string | null;
   contractId: string;
   signedAt: string;
+  executionKind?: string;
 }

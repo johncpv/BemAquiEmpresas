@@ -92,6 +92,13 @@ public static class CommercialExports
         ProjectStatus.Closed => "C · Encerrado",
         _ => "Cancelado",
     };
+
+    /// <summary>
+    /// Etapa pela função única (EXE-01b CA 14): no serviço, P · I · E · A · C ("I · Em execução", "A · Aceito"); na fabricação, como sempre. Sem dado
+    /// de quem aceitou.
+    /// </summary>
+    public static string Stage(ProjectStatus status, ProjectStage? stage) =>
+        stage is { Letter: { } letter } && stage.Letters.SequenceEqual(ProjectStageMap.ServiceLetters) ? $"{letter} · {stage.Label}" : Stage(status);
 }
 
 /// <summary>
@@ -130,14 +137,18 @@ public sealed class CommercialExportService(QuoteService quotes, ContractService
         return new ExportData<ContractExportRow>(CommercialExports.Contracts, filters, new ExportRows<ContractExportRow>(page.Total, rows));
     }
 
-    public async Task<Result<ExportData<ProjectExportRow>>> ProjectsAsync(string? q, string? situation, Guid? partyId, Guid? managerId, int max, CancellationToken ct)
+    public async Task<Result<ExportData<ProjectExportRow>>> ProjectsAsync(
+        string? q, string? situation, Guid? partyId, Guid? managerId, int max, CancellationToken ct) => await ProjectsAsync(q, situation, partyId, managerId, max, null, ct);
+
+    public async Task<Result<ExportData<ProjectExportRow>>> ProjectsAsync(
+        string? q, string? situation, Guid? partyId, Guid? managerId, int max, string? kind, CancellationToken ct)
     {
-        var page = await projects.ListAsync(q, situation, partyId, managerId, All(max), ct);
+        var page = await projects.ListAsync(q, situation, partyId, managerId, All(max), kind, ct);
         var ids = page.Items.Select(p => p.Id).ToList();
         var fits = page.Total <= max && ids.Count > 0;
         var margins = fits && await projects.MarginsAsync(ids, ct) is { IsSuccess: true } m ? m.Value.ToDictionary(x => x.Id, x => x.MarginPct) : new Dictionary<Guid, decimal?>();
         var received = fits && await projects.ReceivedAsync(ids, ct) is { IsSuccess: true } r ? r.Value.ToDictionary(x => x.Id, x => (decimal?)x.ReceivedPct) : new Dictionary<Guid, decimal?>();
-        var rows = page.Items.Select(p => new ProjectExportRow(p.Number, p.Name, p.PartyName, CommercialExports.Stage(p.Status), p.PromisedDate, p.DelayDays, p.ContractValue,
+        var rows = page.Items.Select(p => new ProjectExportRow(p.Number, p.Name, p.PartyName, CommercialExports.Stage(p.Status, p.Stage), p.PromisedDate, p.DelayDays, p.ContractValue,
             p.ManagerName, margins.GetValueOrDefault(p.Id), received.GetValueOrDefault(p.Id))).ToList();
         ExportFilter[] filters =
         [
@@ -145,6 +156,7 @@ public sealed class CommercialExportService(QuoteService quotes, ContractService
             new("Situação", situation is { } s ? CommercialExports.ProjectSituations.GetValueOrDefault(s, s) : null),
             new("Cliente", await PartyAsync(partyId, ct)),
             new("Responsável", managerId is null ? null : (page.Items.Count > 0 ? page.Items[0].ManagerName : null) ?? "Um responsável"),
+            new("Tipo", kind switch { "fabricacao" => "Fabricação", "servico" => "Serviço", _ => null }),
         ];
         return new ExportData<ProjectExportRow>(CommercialExports.Projects, filters, new ExportRows<ProjectExportRow>(page.Total, rows));
     }

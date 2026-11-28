@@ -11,4 +11,5 @@ q?: string;
 situation?: string;
 partyId?: string;
 managerId?: string;
+kind?: string;
 };

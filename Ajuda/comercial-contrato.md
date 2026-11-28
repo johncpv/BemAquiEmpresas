@@ -17,6 +17,12 @@ Ver os dados do contrato: cliente, valor, data de assinatura, conta de receita d
 - **Cancelar contrato** (Proprietário): informe o motivo. O projeto é cancelado junto. As parcelas sem baixa são canceladas no financeiro; as que já têm baixa ficam para o financeiro estornar ou manter. Projeto entregue não cancela: use um aditivo.
 - O contrato fica **concluído** sozinho quando o projeto foi entregue e todas as parcelas estão pagas ou canceladas. Se uma baixa for estornada, ele volta a ativo.
 
+## Contrato de serviço
+- No contrato de projeto de serviço, o gatilho **aceite técnico** aparece como **aceite do cliente**, na tela e no PDF.
+- Marco antigo de **fabricação concluída** aparece como **Conclusão da execução (antes: Fabricação concluída)** e é liberado pela entrega do serviço, uma vez só.
+- Em aditivo de contrato de serviço, o gatilho **Fabricação concluída** não é oferecido para marco novo.
+- Quem aceitou não sai no PDF do contrato nem nas exportações.
+
 ## Imprimir e exportar
 - **Baixar PDF** e **Imprimir**, no cabeçalho, geram o **resumo do contrato** para assinar e arquivar: número, situação, cliente (razão social, CNPJ ou CPF e endereço), projeto, orçamento de origem e revisão, data de assinatura, valor original e vigente, data prometida e endereço da obra.
 - Depois vêm os **itens** (descrição, quantidade e preço), os **marcos de pagamento** (marco, %, valor, prazo e a situação da parcela: prevista, em aberto ou paga), os **aditivos aprovados** (número, data, efeito no valor e no prazo) e as assinaturas **Contratante** e **Contratada**.

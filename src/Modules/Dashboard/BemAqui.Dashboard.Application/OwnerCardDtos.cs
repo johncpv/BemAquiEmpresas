@@ -17,7 +17,7 @@ public sealed class CostDtoAttribute : Attribute;
 /// <summary>Projeto em andamento no card (CA 1): etapa (nome de <c>ProjectStatus</c>), entrega prometida e prevista, folga, risco e contratado.</summary>
 public sealed record ActiveProjectItem(
     Guid Id, string Number, string Name, string PartyName, string Status, DateOnly? PromisedDate, DateOnly? ForecastDate, int? SlackDays, DeliveryRisk Risk, int? DelayDays,
-    decimal ContractedAmount);
+    decimal ContractedAmount, string ExecutionKind = "Fabrication");
 
 /// <summary>"Projetos em andamento" (CA 1): quantos e até 8, os atrasados e em risco primeiro, sem margem nem recebido (rotas próprias).</summary>
 public sealed record ActiveProjectsCard(int Total, IReadOnlyList<ActiveProjectItem> Items, DateTimeOffset UpdatedAt);

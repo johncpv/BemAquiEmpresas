@@ -10,14 +10,13 @@ import { ColumnChart } from '@/components/ui/column-chart'
 import { DashboardCard } from '@/components/ui/dashboard-card'
 import { Kpi } from '@/components/ui/kpi'
 import { Money } from '@/components/ui/money'
-import { StageIndicator } from '@/components/ui/stage-indicator'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatMoney } from '@/lib/format'
 import { AccessDenied } from '@/pages/ModulePage'
 import { useCan } from '@/pages/use-can'
 import { PageHeading } from '@/shell/PageHeading'
-import { PROJECT_LETTERS, PROJECT_STAGES, projectStage } from '../../contracts/contracts'
+import { ProjectStageIndicator } from '../ProjectStageIndicator'
 import { CostEntriesPanel, type CostCell } from './CostEntriesPanel'
 import { CostLinesTable } from './CostLinesTable'
 import { costLabel, marginChip, marginContext, MARGIN_DICAS, NO_COST_BUDGET, pct1, pp, shortMoney, unbudgetedLabel, worstSummary } from './margins'
@@ -92,7 +91,8 @@ export function ProjectMarginsPage() {
         <button type="button" onClick={() => setFilters({ cliente: r.project.partyId, clienteNome: r.project.partyName })} className="text-left hover:underline" title="Filtrar por este cliente">{r.project.partyName || '—'}</button>
       ),
     },
-    { id: 'stage', header: 'Etapa', meta: { secondary: true }, cell: ({ row: { original: r } }) => (projectStage(r.project.status) < 0 ? <StatusChip tone="neutral">Cancelado</StatusChip> : <StageIndicator stages={PROJECT_STAGES} letters={PROJECT_LETTERS} current={projectStage(r.project.status)} />) },
+    // EXE-01b CA 13: a etapa pelo tipo ("Em execução" no serviço, nunca "Em produção").
+    { id: 'stage', header: 'Etapa', meta: { secondary: true }, cell: ({ row: { original: r } }) => <ProjectStageIndicator project={r.project} /> },
     { id: 'revenue', header: 'Receita', meta: { numeric: true, secondary: true, sortField: 'revenue' }, cell: ({ row: { original: r } }) => <Money value={r.figures.revenue} cents={false} /> },
     { id: 'budgeted', header: 'Orçado', meta: { numeric: true, secondary: true }, cell: ({ row: { original: r } }) => <Money value={r.figures.total.budgeted} cents={false} /> },
     { id: 'realized', header: 'Realizado', meta: { numeric: true, secondary: true }, cell: ({ row: { original: r } }) => <Money value={r.figures.total.realized} cents={false} /> },

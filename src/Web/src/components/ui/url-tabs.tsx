@@ -25,11 +25,12 @@ export interface UrlTab {
  * keepMounted nasce montada. A faixa quebra linha quando as abas não cabem na coluna (nunca rola escondendo opção).
  */
 /** `help`: a aba vira a "aba" da ajuda (Ajuda/<chave>.md com `aba: <id>`, ADR 0013). */
-export function UrlTabs({ tabs, fallback, label, help = true }: { tabs: UrlTab[]; fallback?: string; label: string; help?: boolean }) {
+/** `helpTabs`: troca a aba da ajuda de algumas abas (ex.: o projeto de serviço usa `servico` no Resumo, EXE-01b CA 19). */
+export function UrlTabs({ tabs, fallback, label, help = true, helpTabs }: { tabs: UrlTab[]; fallback?: string; label: string; help?: boolean; helpTabs?: Readonly<Record<string, string>> }) {
   const first = fallback ?? tabs[0]?.id ?? ''
   const [current, setCurrent] = useUrlTab(first)
   const active = tabs.find((t) => t.id === current && !t.disabled) ? current : first
-  useHelpTab(help ? active : null)
+  useHelpTab(help ? (helpTabs?.[active] ?? active) : null)
   const refs = useRef<(HTMLButtonElement | null)[]>([])
   const [visited, setVisited] = useState<Set<string>>(() => new Set([active]))
   if (!visited.has(active)) setVisited(new Set([...visited, active]))

@@ -54,7 +54,7 @@ public sealed partial class ContractService(
         }
 
         var quote = await db.Quotes.IgnoreQueryFilters().AsNoTracking().Where(q => q.Id == contract.QuoteId).Select(q => new { q.Number, q.Revision }).FirstAsync(cancellationToken);
-        var project = await db.Projects.AsNoTracking().Where(p => p.ContractId == id).Select(p => new { p.Id, p.Number, p.Name, p.Status }).FirstOrDefaultAsync(cancellationToken);
+        var project = await db.Projects.AsNoTracking().Where(p => p.ContractId == id).Select(p => new { p.Id, p.Number, p.Name, p.Status, p.ExecutionKind }).FirstOrDefaultAsync(cancellationToken);
         var milestones = await db.ContractMilestones.AsNoTracking().Where(m => m.ContractId == id).OrderBy(m => m.Sequence)
             .Select(m => new ContractMilestoneView(m.Id, m.Sequence, m.Description, m.Percent, m.Amount, m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent, false, null, m.ReceivedBeforeOnboarding)).ToListAsync(cancellationToken);
         var party = await parties.FindAsync(contract.PartyId, cancellationToken);
@@ -71,7 +71,9 @@ public sealed partial class ContractService(
             contract.SignedAt, contract.RevenueAccountId, account is null ? null : $"{account.Code} {account.Name}", contract.QuoteId, quote.Number, quote.Revision, project?.Id,
             project?.Number, project?.Name, contract.CreatedAt, milestoneViews, ContractSnapshots.Read(contract.Snapshot, withCost),
             parcels.Count, contract.Version, contract.CancelReason, contract.CancelledAt, contract.CompletedAt, project?.Status, contract.IsOnboarding,
-            contract.TotalValue + await db.ContractAmendments.Where(a => a.ContractId == id && a.Status == AmendmentStatus.Approved).SumAsync(a => a.ValueDelta, cancellationToken));
+            contract.TotalValue + await db.ContractAmendments.Where(a => a.ContractId == id && a.Status == AmendmentStatus.Approved).SumAsync(a => a.ValueDelta, cancellationToken),
+            // EXE-01b CA 15: vale o tipo do projeto (EXE-01a CA 4); sem projeto, o do snapshot.
+            project?.ExecutionKind ?? (ContractSnapshots.Read(contract.Snapshot, false).ExecutionKind == nameof(ExecutionKind.Service) ? ExecutionKind.Service : ExecutionKind.Fabrication));
     }
 
     /// <summary>Contrato do orçamento aprovado, para o link do 409 "já foi aprovado" e do orçamento (CA 9).</summary>

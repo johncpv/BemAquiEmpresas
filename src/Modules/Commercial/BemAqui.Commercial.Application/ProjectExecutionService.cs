@@ -35,6 +35,21 @@ public sealed record ProjectAcceptanceInput(
 public sealed record ProjectAcceptanceRevertInput(uint Version, string? Reason, ProjectStatus? ExpectedStatus = null);
 
 /// <summary>
+/// Uma parcela afetada pelo passo (EXE-01b CA 7): número do marco, descrição, gatilho e o rótulo do serviço; <c>Compatibility</c> = marco antigo
+/// "fabricação concluída" liberado pela entrega. Valor e vencimento só com <c>finance.view</c> (null sem a ação).
+/// </summary>
+public sealed record MilestonePreviewLine(int Sequence, string Description, TriggerEvent TriggerEvent, string Label, bool Compatibility, decimal? Amount, DateOnly? DueDate);
+
+/// <summary>
+/// Prévia do efeito nas parcelas (EXE-01b CA 7 e 9): <c>Lines</c> = parcelas que o passo libera (no desfazer, as que voltam a aguardar);
+/// <c>StillWaiting</c> = parcelas de aceite que continuam aguardando (na entrega); <c>LockedReason</c> = por que o desfazer está travado;
+/// <c>HasAcceptanceMilestone</c> = o contrato tem parcela ligada ao aceite (a caixa "também aceitou" só aparece sem ela, CA 8).
+/// </summary>
+public sealed record MilestonePreview(
+    string Step, IReadOnlyList<MilestonePreviewLine> Lines, decimal? Total, IReadOnlyList<string> StillWaiting, bool AmountsVisible, string? LockedReason,
+    bool HasAcceptanceMilestone);
+
+/// <summary>
 /// Projeto de serviço (EXE-01a): iniciar, registrar a entrega, registrar e desfazer o aceite do cliente, pela tabela de transições, com versão e
 /// situação esperada, data retroativa controlada e o <c>contractId</c> dos eventos sempre lido do projeto. O projeto de fabricação segue o
 /// <see cref="ProjectService.RegisterDeliveryAsync"/> como antes (Konebras sem mudança).
@@ -291,6 +306,73 @@ public sealed class ProjectExecutionService(
         project.AcceptedOn = null;
         events.Publish(new TechnicalAcceptanceReverted(project.Id, project.ContractId, active.OccurredOn, active.Version));
         return await SaveAsync(project, cancellationToken);
+    }
+
+    /// <summary>
+    /// Prévia do efeito nas parcelas (EXE-01b CA 7 e 9): o que o passo libera (ou devolve, no desfazer), calculado aqui e não no front. Iniciar
+    /// não libera nada; a entrega libera as parcelas de entrega e, no contrato antigo, a de "conclusão da execução" (uma vez); o aceite libera
+    /// as de aceite; desfazer devolve as de aceite a "aguardando" e diz se está travado. Valor e vencimento só com <c>finance.view</c>.
+    /// </summary>
+    public async Task<Result<MilestonePreview>> PreviewAsync(Guid id, string? step, DateOnly? date, CancellationToken cancellationToken = default)
+    {
+        var parsed = step?.Trim().ToLowerInvariant() switch
+        {
+            "start" => (ServiceAction?)ServiceAction.Start,
+            "delivery" => ServiceAction.Deliver,
+            "acceptance" => ServiceAction.Accept,
+            "revert" => ServiceAction.RevertAcceptance,
+            _ => null,
+        };
+        if (parsed is not { } action)
+        {
+            return QuoteService.Invalid("step", "Informe o passo: start, delivery, acceptance ou revert.");
+        }
+
+        var loaded = await LoadAsync(id, cancellationToken);
+        if (loaded.IsFailure)
+        {
+            return loaded.Error!;
+        }
+
+        var project = loaded.Value;
+        TriggerEvent[] released = action switch
+        {
+            ServiceAction.Deliver => project.FabricationCompatOn is null ? [TriggerEvent.Delivered, TriggerEvent.FabricationDone] : new[] { TriggerEvent.Delivered },
+            ServiceAction.Accept or ServiceAction.RevertAcceptance => [TriggerEvent.TechnicalAcceptance],
+            _ => Array.Empty<TriggerEvent>(),
+        };
+        var own = await db.ContractMilestones.AsNoTracking().Where(m => m.ContractId == project.ContractId && m.Trigger == MilestoneTrigger.Event)
+            .Select(m => new { m.Id, m.Sequence, m.Description, m.Amount, m.TriggerEvent, m.DaysAfterEvent }).ToListAsync(cancellationToken);
+        var amended = await (from m in db.ContractAmendmentMilestones.AsNoTracking()
+                             join a in db.ContractAmendments.AsNoTracking() on m.AmendmentId equals a.Id
+                             where a.ContractId == project.ContractId && a.Status == AmendmentStatus.Approved && m.Trigger == MilestoneTrigger.Event
+                             select new { m.Id, m.Sequence, m.Description, m.Amount, m.TriggerEvent, m.DaysAfterEvent }).ToListAsync(cancellationToken);
+        var milestones = own.Concat(amended).ToList();
+        IReadOnlyList<ContractReceivable> parcels = milestones.Count == 0 ? [] : await receivables.ForContractAsync(project.ContractId, cancellationToken);
+        var byMilestone = parcels.Where(r => r.Status != ReceivableStatus.Cancelled).GroupBy(r => r.MilestoneId).ToDictionary(g => g.Key, g => g.First());
+        bool Waiting(Guid milestoneId) => !byMilestone.TryGetValue(milestoneId, out var r) || r.Status == ReceivableStatus.Planned;
+        var withFinance = await permissions.HasPermissionAsync("finance", "view", cancellationToken);
+        var when = date ?? BusinessTime.Today(clock);
+        var lines = milestones
+            .Where(m => m.TriggerEvent is { } e && released.Contains(e) && (action == ServiceAction.RevertAcceptance ? byMilestone.ContainsKey(m.Id) && !Waiting(m.Id) : Waiting(m.Id)))
+            .OrderBy(m => m.Sequence)
+            .Select(m => new MilestonePreviewLine(
+                m.Sequence, m.Description, m.TriggerEvent!.Value, MilestoneEventLabels.Label(m.TriggerEvent, ExecutionKind.Service), m.TriggerEvent == TriggerEvent.FabricationDone,
+                withFinance ? m.Amount : null,
+                withFinance && action != ServiceAction.RevertAcceptance ? when.AddDays(m.DaysAfterEvent ?? 0) : null))
+            .ToList();
+        var stillWaiting = action == ServiceAction.Deliver
+            ? milestones.Where(m => m.TriggerEvent == TriggerEvent.TechnicalAcceptance && Waiting(m.Id)).OrderBy(m => m.Sequence).Select(m => m.Description).ToList()
+            : [];
+        string? locked = null;
+        if (action == ServiceAction.RevertAcceptance
+            && await db.ProjectAcceptances.AsNoTracking().FirstOrDefaultAsync(a => a.ProjectId == id && a.RevertedAt == null, cancellationToken) is { } active)
+        {
+            locked = await LockedReasonAsync(project, active, cancellationToken);
+        }
+
+        return new MilestonePreview(step!.Trim().ToLowerInvariant(), lines, withFinance ? lines.Sum(l => l.Amount ?? 0) : null, stillWaiting, withFinance, locked,
+            milestones.Any(m => m.TriggerEvent == TriggerEvent.TechnicalAcceptance));
     }
 
     /// <summary>Motivo do 409 <c>acceptance_locked</c> ou null: parcelas de gatilho "aceite" (contrato e aditivos aprovados) e as NF do projeto.</summary>

@@ -36,12 +36,18 @@ public sealed class ProjectSummaryPdfDocument : PdfDocumentFrame
             ("Entrega prometida", m.PromisedDate is { } p ? PdfTheme.Date(p) : null),
             ("Entrega prevista", m.ForecastDate is { } f ? PdfTheme.Date(f) : null),
             ("Atraso", m.DelayDays is { } d ? $"{d} {(d == 1 ? "dia" : "dias")}" : "Sem atraso")));
+        if (m.AcceptedOn is { } accepted)
+        {
+            // EXE-01b CA 14: no PDF do resumo sai só a data do aceite, nunca quem aceitou.
+            col.Item().Text($"Aceito em {PdfTheme.Date(accepted)}.");
+        }
+
         if (m.StageIndex >= 0)
         {
             col.Item().Row(r =>
             {
                 r.AutoItem().AlignMiddle().PaddingRight(6).Text("Etapa").FontSize(PdfTheme.SmallFontSize).FontColor(PdfTheme.Muted);
-                r.AutoItem().Element(e => PdfStageIndicator.Compose(e, ProjectSummaryPdf.Letters, m.StageIndex));
+                r.AutoItem().Element(e => PdfStageIndicator.Compose(e, m.Letters, m.StageIndex));
                 r.AutoItem().AlignMiddle().PaddingLeft(6).Text(m.StatusLabel);
             });
         }

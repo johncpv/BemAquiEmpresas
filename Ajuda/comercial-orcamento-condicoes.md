@@ -16,6 +16,11 @@ Definir como o cliente vai pagar, em marcos, e até quando o preço vale.
 - **Preencher pela condição de pagamento** troca os marcos pelas parcelas da condição escolhida (a do cliente vem sugerida).
 - Ajuste a **validade** e clique em **Salvar condições**.
 
+## Orçamento de serviço
+- Orçamento só com itens de serviço vira projeto de serviço na aprovação (quando a empresa tem o perfil Serviços).
+- Nele, o gatilho **Fabricação concluída** não é oferecido e o **aceite técnico** aparece como **Aceite do cliente**. O PDF do orçamento usa os mesmos nomes.
+- Se um marco ainda estiver com fabricação concluída, a aprovação recusa e **Abrir as condições** traz você direto para cá, com o marco em destaque. Troque o gatilho para entrega, aceite do cliente ou data.
+
 ## Perguntas frequentes
 **Posso salvar sem fechar 100%?** Pode, como rascunho. Para aprovar o orçamento, a soma precisa ser 100%.
 

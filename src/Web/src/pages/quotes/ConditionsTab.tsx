@@ -1,3 +1,4 @@
+import { useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import { quoteMilestonesFromTerm, saveQuoteConditions, useGetQuoteConditions, useListQuotePaymentTerms } from '@/api/generated/bemaqui'
 import type { QuoteConditions, QuoteDetail } from '@/api/generated/model'
@@ -25,6 +26,8 @@ export function ConditionsTab({ quote, editable, refresh }: { quote: QuoteDetail
 
 function ConditionsForm({ quote, conditions, editable, refresh }: { quote: QuoteDetail; conditions: QuoteConditions; editable: boolean; refresh: () => Promise<void> }) {
   const terms = useListQuotePaymentTerms()
+  // EXE-01b CA 15: vindo do 422 da aprovação, o marco recusado fica em destaque no topo da aba.
+  const { marco } = useSearch({ strict: false }) as { marco?: number | string }
   const [rows, setRows] = useState<MilestoneDraft[]>(() => conditions.milestones.map(fromView))
   const [valid, setValid] = useState(conditions.validUntil ?? '')
   const [term, setTerm] = useState(conditions.defaultPaymentTermId ?? '')
@@ -51,13 +54,14 @@ function ConditionsForm({ quote, conditions, editable, refresh }: { quote: Quote
     <FormLayout>
     <fieldset disabled={!editable} className="space-y-4">
       <FormError message={error} />
+      {marco ? <p role="alert" className="rounded-md border border-l-4 border-warn-soft border-l-warn bg-warn-soft px-3 py-2 text-sm text-warn-ink">Marco {marco}: projeto de serviço não tem fabricação. Troque o gatilho para entrega, aceite do cliente ou data.</p> : null}
       <FormGrid>
         <Field label="Validade" size="sm" dica="Até quando o preço vale. Depois disso, o orçamento não é enviado sem ajustar a data.">
           {(p) => <DateInput {...p} value={valid} onChange={setValid} />}
         </Field>
       </FormGrid>
       {rows.length === 0 ? <p className="text-sm text-muted-foreground">Defina como o cliente vai pagar.</p> : null}
-      <RowsEditor noun="marco" rows={rows} onChange={setRows} newRow={emptyMilestone} duplicate disabled={!editable} columns={milestoneColumns(values)}
+      <RowsEditor noun="marco" rows={rows} onChange={setRows} newRow={emptyMilestone} duplicate disabled={!editable} columns={milestoneColumns(values, quote.executionKind)}
         summary={<span>Soma {sum.toLocaleString('pt-BR', { maximumFractionDigits: 4 })}% · <Money value={values.reduce((a, b) => a + b, 0)} />{missing ? <b className="ml-2 text-warn-ink">{missing}</b> : null}</span>} />
       {editable ? (
         <div className="flex flex-wrap items-end gap-2">

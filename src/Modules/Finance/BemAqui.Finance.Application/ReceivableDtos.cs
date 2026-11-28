@@ -76,7 +76,8 @@ public sealed record ReceivableDetail(
     decimal? GrossAmount = null,
     decimal? ExpectedFee = null,
     Guid? CashSessionId = null,
-    decimal? NetAmount = null);
+    decimal? NetAmount = null,
+    string? ProjectExecutionKind = null);
 
 /// <summary>Totais do filtro inteiro (rodapé da lista).</summary>
 public sealed record ReceivableTotals(decimal Open, decimal Overdue);

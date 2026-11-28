@@ -7,6 +7,24 @@ export const EVENTS: { value: NonNullable<TriggerEvent>; label: string }[] = [
   { value: 'TechnicalAcceptance', label: 'Aceite técnico' },
 ]
 
+/** Marco antigo "fabricação concluída" no projeto de serviço (EXE-01b CA 15), espelho de MilestoneEventLabels.ServiceCompat. */
+export const SERVICE_COMPAT_LABEL = 'Conclusão da execução (antes: Fabricação concluída)'
+
+/** Rótulo do gatilho pelo tipo (EXE-01b CA 15): no serviço, "Aceite do cliente" e o marco antigo como "Conclusão da execução (antes: …)". */
+export function eventLabel(event: string | null | undefined, kind?: string | null): string {
+  if (kind === 'Service') {
+    if (event === 'TechnicalAcceptance') return 'Aceite do cliente'
+    if (event === 'FabricationDone') return SERVICE_COMPAT_LABEL
+  }
+  return EVENTS.find((e) => e.value === event)?.label ?? event ?? ''
+}
+
+/** Gatilhos oferecidos pelo tipo (EXE-01b CA 15): no serviço, "Fabricação concluída" não é oferecido (o marco já gravado continua aparecendo). */
+export function eventsFor(kind?: string | null, keep?: string | null): { value: NonNullable<TriggerEvent>; label: string }[] {
+  if (kind !== 'Service') return EVENTS
+  return EVENTS.filter((e) => e.value !== 'FabricationDone' || keep === 'FabricationDone').map((e) => ({ ...e, label: eventLabel(e.value, kind) }))
+}
+
 export interface MilestoneDraft { description: string; percent: string | null; trigger: MilestoneTrigger; triggerEvent: NonNullable<TriggerEvent>; dueDate: string; days: string }
 
 export const emptyMilestone = (): MilestoneDraft => ({ description: '', percent: null, trigger: 'Event', triggerEvent: 'Signature', dueDate: '', days: '0' })

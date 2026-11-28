@@ -1,6 +1,7 @@
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput, PercentInput } from '@/components/form/inputs'
 import { Money } from '@/components/ui/money'
+import { eventLabel } from '../../quotes/milestones'
 import { emptyMilestone, milestoneAmounts, type MilestoneDraft } from './amendments'
 
 const EVENTS = [{ value: 'Signature', label: 'Assinatura' }, { value: 'FabricationDone', label: 'Fabricação concluída' }, { value: 'Delivered', label: 'Entrega' }, { value: 'TechnicalAcceptance', label: 'Aceite técnico' }]
@@ -9,7 +10,13 @@ const EVENTS = [{ value: 'Signature', label: 'Assinatura' }, { value: 'Fabricati
  * Marcos do acréscimo (COM-07 CA 3): somam 100%; o valor de cada um sai pelo maior resto, como no servidor. O gatilho tem
  * largura mínima para mostrar o evento inteiro ("Fabricação concluída"); abaixo de 1024 px os campos vão em duas colunas.
  */
-export function AmendmentMilestones({ value, rows, onChange }: { value: number; rows: MilestoneDraft[]; onChange: (rows: MilestoneDraft[]) => void }) {
+/** EXE-01b CA 15: no contrato de serviço, "Fabricação concluída" não é oferecido em marco novo e o aceite aparece como "Aceite do cliente". */
+function eventsOf(kind: string | null | undefined, current: string | null | undefined) {
+  if (kind !== 'Service') return EVENTS
+  return EVENTS.filter((e) => e.value !== 'FabricationDone' || current === 'FabricationDone').map((e) => (e.value === 'Signature' ? e : { ...e, label: eventLabel(e.value, kind) }))
+}
+
+export function AmendmentMilestones({ value, rows, onChange, kind }: { value: number; rows: MilestoneDraft[]; onChange: (rows: MilestoneDraft[]) => void; kind?: string | null }) {
   const amounts = milestoneAmounts(value, rows.map((r) => Number(r.percent ?? 0)))
   const sum = rows.reduce((a, r) => a + Number(r.percent ?? 0), 0)
   const set = (i: number, patch: Partial<MilestoneDraft>) => onChange(rows.map((r, k) => (k === i ? { ...r, ...patch } : r)))
@@ -21,7 +28,7 @@ export function AmendmentMilestones({ value, rows, onChange }: { value: number; 
           <PercentInput aria-label={`Percentual do marco ${i + 1}`} value={r.percent} onChange={(percent) => set(i, { percent })} />
           <select aria-label={`Gatilho do marco ${i + 1}`} value={r.trigger === 'Date' ? 'Date' : r.triggerEvent} onChange={(e) => set(i, e.target.value === 'Date' ? { trigger: 'Date' } : { trigger: 'Event', triggerEvent: e.target.value })} className={inputClass}>
             <option value="Date">Data</option>
-            {EVENTS.map((ev) => <option key={ev.value} value={ev.value}>{ev.label}</option>)}
+            {eventsOf(kind, r.trigger === 'Event' ? r.triggerEvent : null).map((ev) => <option key={ev.value} value={ev.value}>{ev.label}</option>)}
           </select>
           {r.trigger === 'Date'
             ? <DateInput aria-label={`Data do marco ${i + 1}`} value={r.dueDate} onChange={(dueDate) => set(i, { dueDate })} />

@@ -75,20 +75,23 @@ public static class ContractPdf
         _ => "Reprovado",
     };
 
-    public static string EventLabel(TriggerEvent? trigger) => trigger switch
+    /// <summary>Evento no meio da frase; no serviço (EXE-01b CA 15), "o aceite do cliente" e "a conclusão da execução (antes: fabricação concluída)".</summary>
+    public static string EventLabel(TriggerEvent? trigger, ExecutionKind kind = ExecutionKind.Fabrication) => trigger switch
     {
         TriggerEvent.Signature => "a assinatura",
+        TriggerEvent.FabricationDone when kind == ExecutionKind.Service => "a " + MilestoneEventLabels.Lower(trigger, kind),
         TriggerEvent.FabricationDone => "a fabricação concluída",
         TriggerEvent.Delivered => "a entrega",
+        TriggerEvent.TechnicalAcceptance when kind == ExecutionKind.Service => "o aceite do cliente",
         TriggerEvent.TechnicalAcceptance => "o aceite técnico",
         _ => "o evento",
     };
 
     /// <summary>Prazo do marco como a tela: a data, ou "{n} dias após {evento}" (0 dias: "Na/No {evento}").</summary>
-    public static string Due(MilestoneTrigger trigger, TriggerEvent? triggerEvent, DateOnly? dueDate, int? daysAfter) =>
+    public static string Due(MilestoneTrigger trigger, TriggerEvent? triggerEvent, DateOnly? dueDate, int? daysAfter, ExecutionKind kind = ExecutionKind.Fabrication) =>
         trigger == MilestoneTrigger.Date || triggerEvent is null
             ? dueDate is { } d ? PdfTheme.Date(d) : "—"
-            : daysAfter is > 0 ? $"{daysAfter} dias após {EventLabel(triggerEvent)}" : "Após " + EventLabel(triggerEvent);
+            : daysAfter is > 0 ? $"{daysAfter} dias após {EventLabel(triggerEvent, kind)}" : "Após " + EventLabel(triggerEvent, kind);
 
     /// <summary>Situação da parcela (CA 4): pelo título com <c>finance.view</c>; sem a ação, só "Parcela gerada", como a tela.</summary>
     public static string Parcel(ContractMilestoneView milestone)
@@ -125,7 +128,7 @@ public static class ContractPdf
         ArgumentNullException.ThrowIfNull(amendments);
         var items = contract.Snapshot.Items.OrderBy(i => i.Sequence).Select(i => new ContractPdfItem(i.Sequence, i.Description, i.Quantity, i.UnitPrice, i.Total)).ToList();
         var milestones = contract.Milestones.OrderBy(m => m.Sequence)
-            .Select(m => new ContractPdfMilestone(m.Sequence, m.Description, m.Percent, m.Amount, Due(m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent), Parcel(m))).ToList();
+            .Select(m => new ContractPdfMilestone(m.Sequence, m.Description, m.Percent, m.Amount, Due(m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent, project?.ExecutionKind ?? ExecutionKind.Fabrication), Parcel(m))).ToList();
         var approved = amendments.Where(a => a.Status == AmendmentStatus.Approved).OrderBy(a => a.Number)
             .Select(a => new ContractPdfAmendment(a.Number, a.ApprovedAt is { } at ? DateOnly.FromDateTime(BemAqui.BuildingBlocks.Time.BusinessTime.ToBusiness(at).DateTime) : null, a.Description, a.ValueDelta, a.DaysDelta)).ToList();
         return new ContractPdfModel(
@@ -135,14 +138,15 @@ public static class ContractPdf
             approved, today);
     }
 
-    public static AmendmentPdfModel Build(AmendmentDetail amendment, string legalName, string? partyDocument, string? projectNumber, DateOnly today)
+    public static AmendmentPdfModel Build(
+        AmendmentDetail amendment, string legalName, string? partyDocument, string? projectNumber, DateOnly today, ExecutionKind kind = ExecutionKind.Fabrication)
     {
         ArgumentNullException.ThrowIfNull(amendment);
         return new AmendmentPdfModel(
             amendment.ContractNumber, amendment.Number, amendment.Status, StatusLabel(amendment.Status), legalName,
             partyDocument is { Length: > 0 } doc ? BrazilianDocuments.Format(doc) : null, projectNumber, amendment.Description, amendment.Preview.ValueBefore,
             amendment.Preview.ValueAfter, amendment.Preview.PromisedBefore, amendment.Preview.PromisedAfter, amendment.DaysDelta,
-            amendment.Milestones.OrderBy(m => m.Sequence).Select(m => new ContractPdfMilestone(m.Sequence, m.Description, m.Percent, m.Amount, Due(m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent), "—")).ToList(),
+            amendment.Milestones.OrderBy(m => m.Sequence).Select(m => new ContractPdfMilestone(m.Sequence, m.Description, m.Percent, m.Amount, Due(m.Trigger, m.TriggerEvent, m.DueDate, m.DaysAfterEvent, kind), "—")).ToList(),
             amendment.Reductions.Select(r => new AmendmentPdfReduction(r.Number ?? "Título", r.CurrentAmount, r.NewAmount)).ToList(),
             amendment.CreatedByName, amendment.ApprovedByName, amendment.ApprovedAt, amendment.SelfApproved, amendment.RejectionComment, today);
     }

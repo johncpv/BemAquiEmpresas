@@ -187,7 +187,8 @@ public sealed partial class ReceivableService(
         var accountIds = receivables.Select(r => r.AccountId).Distinct().ToList();
         var accounts = (await chart.FindAsync(accountIds, ct)).ToDictionary(a => a.Id, a => a.Code + " " + a.Name);
         var projectIds = receivables.Where(r => r.ProjectId is not null).Select(r => r.ProjectId!.Value).Distinct().ToList();
-        var projectNumbers = (await projects.FindManyAsync(projectIds, ct)).ToDictionary(p => p.Id, p => p.Number);
+        var projectRows = (await projects.FindManyAsync(projectIds, ct)).ToDictionary(p => p.Id);
+        var projectNumbers = projectRows.ToDictionary(p => p.Key, p => p.Value.Number);
         var slipIds = receivables.Where(r => r.BillingSlipId is not null).Select(r => r.BillingSlipId!.Value).ToList();
         var slipStatus = slipIds.Count == 0 ? new Dictionary<Guid, BillingSlipStatus>() : await db.BillingSlips.AsNoTracking().Where(s => slipIds.Contains(s.Id)).ToDictionaryAsync(s => s.Id, s => s.Status, ct);
         return receivables.Select(r => new ReceivableDetail(
@@ -196,7 +197,9 @@ public sealed partial class ReceivableService(
             r.IsOverdue(today), r.IsDueToday(today), r.Origin, r.OriginId, r.OpeningReference, r.InstallmentGroupId, r.CancelReason, r.CancelledAt, r.Version,
             r.ProjectId is { } project ? projectNumbers.GetValueOrDefault(project) : null, r.TriggerEvent, r.ContractId,
             r.BillingSlipId, r.BillingSlipId is { } slip && slipStatus.TryGetValue(slip, out var st) ? (BillingSlipStatus?)st : null,
-            r.SaleChannel, r.GrossAmount, r.ExpectedFee, r.CashSessionId, r.NetAmount)).ToList();
+            r.SaleChannel, r.GrossAmount, r.ExpectedFee, r.CashSessionId, r.NetAmount,
+            // EXE-01b CA 15: o chip "Aguarda: aceite do cliente" segue o tipo do projeto (só "Service" muda o rótulo).
+            r.ProjectId is { } kindOf && projectRows.TryGetValue(kindOf, out var head) ? head.ExecutionKind : null)).ToList();
     }
 
     private async Task NotifyOwnersAsync(string title, Guid receivableId, CancellationToken ct)

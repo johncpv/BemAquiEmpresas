@@ -6,14 +6,17 @@ import { Dica } from '@/help/Dica'
 import { formatDate } from '@/lib/format'
 import { COST_SECTIONS } from '../quotes/quotes'
 import { situation } from '../finance/receivables/receivables'
+import { eventLabel } from '../quotes/milestones'
 import { CONTRACT_DICAS } from './contracts'
 
 const EVENTS: Record<string, string> = { Signature: 'assinatura do contrato', FabricationDone: 'fabricação concluída', Delivered: 'entrega', TechnicalAcceptance: 'aceite técnico' }
 const qty = (v: number) => v.toLocaleString('pt-BR', { maximumFractionDigits: 4 })
 
-function when(m: ContractMilestoneView) {
+/** EXE-01b CA 15: no serviço, "aceite do cliente" e o marco antigo como "conclusão da execução (antes: fabricação concluída)". */
+function when(m: ContractMilestoneView, kind?: string | null) {
   if (m.trigger === 'Date') return m.dueDate ? `em ${formatDate(m.dueDate)}` : '—'
   const prefix = m.daysAfterEvent ? `${m.daysAfterEvent} dias após ` : 'na '
+  if (kind === 'Service') return prefix + eventLabel(m.triggerEvent, kind).replace(/^./, (c) => c.toLowerCase()).replace('(antes: Fabricação', '(antes: fabricação')
   return prefix + (EVENTS[m.triggerEvent ?? ''] ?? m.triggerEvent ?? '')
 }
 
@@ -45,7 +48,7 @@ export function ContractItems({ contract }: { contract: ContractDetail }) {
           <li key={m.id} className="space-y-1 p-3">
             <p className="flex flex-wrap justify-between gap-2">
               <span><b>{m.sequence}.</b> {m.description} · {qty(m.percent)}%</span>
-              <span className="text-muted-foreground">{when(m)}</span>
+              <span className="text-muted-foreground">{when(m, contract.executionKind)}</span>
               <Money value={m.amount} className="font-semibold" />
             </p>
             {m.receivable ? (

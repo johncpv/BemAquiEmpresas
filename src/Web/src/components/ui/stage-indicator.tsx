@@ -7,6 +7,10 @@ interface StageIndicatorProps {
   current: number
   /** Letra de cada etapa vinda do roteiro (ENG-01, D10); a inicial do nome é só a reserva (ex.: "T" de Entregue, COM-04a CA 17). */
   letters?: readonly (string | null | undefined)[]
+  /** Etapa dispensada (EXE-01b CA 5: o "A" do serviço sem aceite exigido nem registrado): o segmento vira um traço e o rótulo acessível diz "Aceite dispensado". */
+  waived?: number
+  /** Rótulo acessível da etapa dispensada. */
+  waivedLabel?: string
   /** Mostra o nome da etapa ao lado dos segmentos. */
   showLabel?: boolean
   /** "tv": tamanho do Painel da TV (kit TV, PNL-01a CA 18), lido a metros de distância. */
@@ -26,7 +30,7 @@ const SIZES = {
  * o trilho escuro e um segmento por etapa; só a atual fica em âmbar. Acima de 8 etapas mostra "letra · posição/total" para
  * caber a 400 px. O nome e a posição vão no rótulo acessível.
  */
-export function StageIndicator({ stages, current, letters, showLabel, size = 'default', className }: StageIndicatorProps) {
+export function StageIndicator({ stages, current, letters, waived, waivedLabel = 'Aceite dispensado', showLabel, size = 'default', className }: StageIndicatorProps) {
   const total = stages.length
   if (total === 0) return null
   const index = Math.min(Math.max(current, 0), total - 1)
@@ -35,7 +39,7 @@ export function StageIndicator({ stages, current, letters, showLabel, size = 'de
   const compact = total > STAGE_COMPACT_ABOVE
   const s = SIZES[size]
   return (
-    <span role="img" aria-label={`Etapa ${name}, ${index + 1} de ${total}`} data-size={size} className={cn('inline-flex min-w-0 max-w-full items-center', s.gap, className)}>
+    <span role="img" aria-label={`Etapa ${name}, ${index + 1} de ${total}${waived !== undefined ? `. ${waivedLabel}` : ''}`} data-size={size} className={cn('inline-flex min-w-0 max-w-full items-center', s.gap, className)}>
       <span className={cn('grid shrink-0 place-items-center bg-rail font-display font-extrabold tracking-wider text-signal font-wider', s.letter)}>
         {letter}
       </span>
@@ -45,6 +49,7 @@ export function StageIndicator({ stages, current, letters, showLabel, size = 'de
         <span aria-hidden="true" className={cn('flex shrink-0', s.segments)}>
           {stages.map((_, i) => {
             const state = segmentState(i, index)
+            if (i === waived) return <span key={i} data-state="waived" title={waivedLabel} className={cn('self-center rounded-sm bg-muted-foreground', s.segment, 'h-0.5')} />
             return <span key={i} data-state={state} className={cn('rounded-sm', s.segment, SEGMENT[state])} />
           })}
         </span>

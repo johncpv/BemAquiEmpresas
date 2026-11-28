@@ -19,13 +19,36 @@ import { NewInstallationDialog } from './NewInstallationDialog'
 
 const qty = (v: number) => v.toLocaleString('pt-BR', { maximumFractionDigits: 4 })
 
+/** Itens do projeto de serviço (EXE-01b CA 6 e 17): só a lista; vazio leva ao aditivo, porque os itens vêm do orçamento aprovado. */
+function ServiceItems({ project }: { project: ProjectDetail }) {
+  const canEdit = useCan('projects.edit')
+  if (project.items.length === 0) {
+    const aditivo = canEdit && project.contractStatus === 'Active'
+      ? <Link to={'/app/contratos/$id/aditivos/$aditivoId' as never} params={{ id: project.contractId, aditivoId: 'novo' } as never} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Aditivo</Link>
+      : undefined
+    return <EmptyState title="Este projeto não tem itens. Os itens vêm do orçamento aprovado." action={aditivo} />
+  }
+
+  return (
+    <ul className="divide-y divide-border rounded-md border border-border bg-card text-sm" aria-label="Itens do projeto">
+      {project.items.map((i) => (
+        <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 p-3">
+          <span><b>{i.sequence}.</b> {i.description} <span className="tabular-nums text-muted-foreground">· {qty(i.quantity)}</span></span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 /**
  * Itens e OS (COM-05 CA 5, COM-06, PRD-01 CA 5 e 21): cada item com a OS de fabricação e a etapa, ou "Gerar OS de fabricação"
  * (production.create) para o item que ainda pode gerar; abaixo, as OS de instalação e "Nova OS de instalação". PRD-06b CA 13: os romaneios do
  * projeto e "Novo romaneio" (production.create).
  */
 export function ProjectItemsTab({ project }: { project: ProjectDetail }) {
-  const canView = useCan('production.view')
+  // EXE-01b CA 6 e 17: no projeto de serviço, a aba é só "Itens" (sem OS de fabricação, romaneios nem OS de instalação).
+  const service = project.executionKind === 'Service'
+  const canView = useCan('production.view') && !service
   const canCreateFabrication = useCan('production.create')
   const canCreate = canCreateFabrication && ['Planned', 'InProgress', 'Fabricated', 'Installing'].includes(project.status ?? '') && project.contractStatus === 'Active'
   const orders = useListInstallations({ projectId: project.id, pageSize: 100 }, { query: { enabled: canView } })
@@ -55,6 +78,8 @@ export function ProjectItemsTab({ project }: { project: ProjectDetail }) {
       setBusy(null)
     }
   }
+
+  if (service) return <ServiceItems project={project} />
 
   return (
     <div className="space-y-3">

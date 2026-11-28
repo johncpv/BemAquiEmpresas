@@ -19,7 +19,8 @@ public sealed record ContractDetail(
     Guid Id, string Number, ContractStatus Status, Guid PartyId, string PartyName, string? PartyDocument, decimal TotalValue, DateOnly SignedAt, Guid RevenueAccountId,
     string? RevenueAccount, Guid QuoteId, string QuoteNumber, int QuoteRevision, Guid? ProjectId, string? ProjectNumber, string? ProjectName, DateTimeOffset CreatedAt,
     IReadOnlyList<ContractMilestoneView> Milestones, ContractSnapshot Snapshot, int Receivables, uint Version, string? CancelReason = null,
-    DateTimeOffset? CancelledAt = null, DateTimeOffset? CompletedAt = null, ProjectStatus? ProjectStatus = null, bool IsOnboarding = false, decimal? CurrentValue = null);
+    DateTimeOffset? CancelledAt = null, DateTimeOffset? CompletedAt = null, ProjectStatus? ProjectStatus = null, bool IsOnboarding = false, decimal? CurrentValue = null,
+    ExecutionKind ExecutionKind = ExecutionKind.Fabrication);
 
 public sealed record ProjectItemView(Guid Id, int Sequence, string Description, decimal Quantity, Guid? ItemId, Guid QuoteItemId);
 

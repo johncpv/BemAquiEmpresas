@@ -7,6 +7,7 @@
 import type { ContractMilestoneView } from './contractMilestoneView';
 import type { ContractSnapshot } from './contractSnapshot';
 import type { ContractStatus } from './contractStatus';
+import type { ExecutionKind } from './executionKind';
 import type { ProjectStatus } from './projectStatus';
 
 export interface ContractDetail {
@@ -46,4 +47,5 @@ export interface ContractDetail {
   isOnboarding?: boolean;
   /** @nullable */
   currentValue?: number | null;
+  executionKind?: ExecutionKind;
 }

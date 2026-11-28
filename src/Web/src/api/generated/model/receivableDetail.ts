@@ -63,4 +63,6 @@ export interface ReceivableDetail {
   cashSessionId?: string | null;
   /** @nullable */
   netAmount?: number | null;
+  /** @nullable */
+  projectExecutionKind?: string | null;
 }

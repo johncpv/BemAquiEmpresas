@@ -22,4 +22,5 @@ export interface ActiveProjectItem {
   /** @nullable */
   delayDays: number | null;
   contractedAmount: number;
+  executionKind?: string;
 }

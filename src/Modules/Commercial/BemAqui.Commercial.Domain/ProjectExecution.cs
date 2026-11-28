@@ -217,6 +217,32 @@ public static class MilestoneTriggerPolicy
     }
 }
 
+/// <summary>
+/// Rótulo do gatilho do marco por tipo (EXE-01b CA 15), num lugar só para PDF e telas: no serviço, "aceite técnico" vira "aceite do cliente" e o
+/// marco antigo "fabricação concluída" aparece como "conclusão da execução (antes: fabricação concluída)". Na fabricação, como sempre.
+/// </summary>
+public static class MilestoneEventLabels
+{
+    public const string ServiceCompat = "Conclusão da execução (antes: Fabricação concluída)";
+
+    /// <summary>Rótulo com inicial maiúscula ("Aceite do cliente").</summary>
+    public static string Label(TriggerEvent? trigger, ExecutionKind kind) => trigger switch
+    {
+        TriggerEvent.Signature => "Assinatura do contrato",
+        TriggerEvent.FabricationDone => kind == ExecutionKind.Service ? ServiceCompat : "Fabricação concluída",
+        TriggerEvent.Delivered => "Entrega",
+        TriggerEvent.TechnicalAcceptance => kind == ExecutionKind.Service ? "Aceite do cliente" : "Aceite técnico",
+        _ => "Evento",
+    };
+
+    /// <summary>Rótulo em minúsculas, para o meio da frase ("10 dias após aceite do cliente").</summary>
+    public static string Lower(TriggerEvent? trigger, ExecutionKind kind)
+    {
+        var label = Label(trigger, kind);
+        return (char.ToLowerInvariant(label[0]) + label[1..]).Replace("(antes: Fabricação", "(antes: fabricação", StringComparison.Ordinal);
+    }
+}
+
 /// <summary>Conclusão do contrato (EXE-01a CA 20): o mesmo método serve à conclusão, ao desfazer e à EXE-01b.</summary>
 public static class CompletionRules
 {
