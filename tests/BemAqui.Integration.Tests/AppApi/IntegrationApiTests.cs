@@ -599,7 +599,7 @@ public sealed class IntegrationApiTests(BillingSlipFixture fixture) : IClassFixt
         var created = await app.SendAsync(Post(ChallengeUrl(person), new { channel = "email" }));
         var text = await created.Content.ReadAsStringAsync();
         created.StatusCode.Should().Be(HttpStatusCode.Created, text);
-        text.Should().NotContain("maria.silva").And.NotContain("gmail.com"");
+        text.Should().NotContain("maria.silva").And.NotContain("silva@");
         var challenge = JsonDocument.Parse(text).RootElement;
         challenge.GetProperty("maskedDestination").GetString().Should().Be("m***@g***.com");
         var first = challenge.GetProperty("challengeId").GetGuid();
