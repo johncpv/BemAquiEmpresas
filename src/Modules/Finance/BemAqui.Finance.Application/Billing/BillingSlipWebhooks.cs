@@ -1,6 +1,7 @@
 using BemAqui.BuildingBlocks.Integration;
 using BemAqui.BuildingBlocks.Messaging;
 using BemAqui.Finance.Contracts;
+using Microsoft.EntityFrameworkCore;
 
 namespace BemAqui.Finance.Application;
 
@@ -8,7 +9,7 @@ namespace BemAqui.Finance.Application;
 /// Tradutor dos eventos do boleto para os avisos <c>billing_slip.*</c> (INT-02 CA 7, catálogo v1): ids, valor, datas e o motivo em código; nunca
 /// nome, documento ou contato do pagador. Roda na transação do consumidor (outbox + inbox).
 /// </summary>
-public sealed class BillingSlipWebhooks(IOutboundWebhookPublisher publisher, TimeProvider clock)
+public sealed class BillingSlipWebhooks(IOutboundWebhookPublisher publisher, IFinanceDb db, TimeProvider clock)
     : IIntegrationEventConsumer<BillingSlipIssued>, IIntegrationEventConsumer<BillingSlipCancelled>, IIntegrationEventConsumer<BillingSlipPaid>
 {
     public Task HandleAsync(BillingSlipIssued integrationEvent, CancellationToken cancellationToken)
@@ -21,12 +22,15 @@ public sealed class BillingSlipWebhooks(IOutboundWebhookPublisher publisher, Tim
         }, cancellationToken);
     }
 
-    public Task HandleAsync(BillingSlipCancelled integrationEvent, CancellationToken cancellationToken)
+    public async Task HandleAsync(BillingSlipCancelled integrationEvent, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(integrationEvent);
-        return Publish("billing_slip.cancelled", integrationEvent.BillingSlipId, new Dictionary<string, object?>
+        // INT-04 CA 3: o cliente do título, para o Conecta achar a conversa (campo aditivo do contrato 1).
+        var party = await db.Receivables.AsNoTracking().Where(r => r.Id == integrationEvent.ReceivableId).Select(r => (Guid?)r.PartyId).FirstOrDefaultAsync(cancellationToken);
+        await Publish("billing_slip.cancelled", integrationEvent.BillingSlipId, new Dictionary<string, object?>
         {
             ["id"] = integrationEvent.BillingSlipId, ["receivable_id"] = integrationEvent.ReceivableId, ["reason"] = integrationEvent.Reason, ["expired"] = integrationEvent.Expired,
+            ["party_id"] = party,
         }, cancellationToken);
     }
 

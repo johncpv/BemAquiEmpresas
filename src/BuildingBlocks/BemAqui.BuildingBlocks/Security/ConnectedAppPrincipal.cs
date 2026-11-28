@@ -59,3 +59,52 @@ public sealed class ConnectedAppContext
 {
     public ConnectedAppGrant? Current { get; set; }
 }
+
+/// <summary>
+/// Atendente do aplicativo na trilha (INT-04 CA 14): cabeçalho opcional <c>BemAqui-On-Behalf-Of: &lt;id opaco&gt;;&lt;primeiro nome&gt;</c>, até 80 caracteres.
+/// Só muda o texto da origem da auditoria ("Integração Conecta (autorizada por Fulano) · atendente Ana"); nunca muda permissão. O nome é sanitizado:
+/// só letras, espaço, hífen, apóstrofo e ponto, até 40 caracteres; cabeçalho fora do formato é ignorado.
+/// </summary>
+public static class OnBehalfOf
+{
+    public const string Header = "BemAqui-On-Behalf-Of";
+    public const int MaxHeaderLength = 80;
+    public const int MaxNameLength = 40;
+    private const int MaxLabelLength = 300;
+
+    /// <summary>Primeiro nome do atendente, sanitizado; null se o cabeçalho falta ou está fora do formato.</summary>
+    public static string? Attendant(string? header)
+    {
+        if (string.IsNullOrWhiteSpace(header) || header.Length > MaxHeaderLength)
+        {
+            return null;
+        }
+
+        var separator = header.IndexOf(';', StringComparison.Ordinal);
+        if (separator <= 0 || separator == header.Length - 1)
+        {
+            return null;
+        }
+
+        var name = new string(header[(separator + 1)..].Where(c => char.IsLetter(c) || c is ' ' or '-' or '\'' or '.').ToArray()).Trim();
+        name = string.Join(' ', name.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        if (name.Length == 0)
+        {
+            return null;
+        }
+
+        return name.Length > MaxNameLength ? name[..MaxNameLength].TrimEnd() : name;
+    }
+
+    /// <summary>Origem da auditoria: "Integração {app} (autorizada por {pessoa})" e, com atendente, " · atendente {nome}" (até 300 caracteres).</summary>
+    public static string Label(string appName, string? grantorName, string? header)
+    {
+        var label = "Integração " + appName + " (autorizada por " + grantorName + ")";
+        if (Attendant(header) is { } attendant)
+        {
+            label += " · atendente " + attendant;
+        }
+
+        return label.Length > MaxLabelLength ? label[..MaxLabelLength] : label;
+    }
+}

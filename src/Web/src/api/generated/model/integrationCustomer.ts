@@ -18,4 +18,6 @@ export interface IntegrationCustomer {
   state: string | null;
   canBill: boolean;
   canInvoice: boolean;
+  /** @nullable */
+  phoneSetByApp?: boolean | null;
 }

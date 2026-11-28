@@ -88,7 +88,7 @@ public static class IdempotencyFilter
 
         if (record.Scope != scope || record.BodyHash != hash)
         {
-            return Reused(scope.Contains(" conn:", StringComparison.Ordinal)).ToProblem();
+            return Reused(scope.Contains(" app:", StringComparison.Ordinal)).ToProblem();
         }
 
         if (record.StatusCode is not { } status)
@@ -104,16 +104,17 @@ public static class IdempotencyFilter
     /// devolve a resposta guardada para quem não a enviou (D19).
     /// </summary>
     /// <remarks>
-    /// VND-02a CA 3 e ADR 0053 §13: para principal de aplicativo (claim <see cref="ConnectionClaim"/>), o escopo é a conexão, não o autorizador (o mesmo
-    /// em várias conexões): "POST /api/v1/… conn:{id}". O tenant já separa o banco.
+    /// VND-02a CA 3, ADR 0053 §13 e INT-04 CA 6: para principal de aplicativo (claim <see cref="ConnectionClaim"/>), o escopo é o <b>aplicativo</b>
+    /// (claim <c>app</c>), não a conexão nem o autorizador: "POST /api/v1/… app:{client_id}". Reconectar não perde a idempotência; o tenant já separa o banco.
     /// </remarks>
     public static string Scope(HttpContext http)
     {
         ArgumentNullException.ThrowIfNull(http);
         var route = (http.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText ?? http.Request.Path.Value;
-        if (ConnectionOf(http) is { } connection)
+        if (ConnectionOf(http) is not null)
         {
-            return http.Request.Method + " " + route + " conn:" + connection;
+            var app = http.User.FindFirst(Security.AppClaims.App)?.Value ?? "-";
+            return http.Request.Method + " " + route + " app:" + app;
         }
 
         var user = http.RequestServices.GetService<Identity.ICurrentUser>()?.UserId;
@@ -127,7 +128,7 @@ public static class IdempotencyFilter
 
     /// <summary>A mesma chave com outro corpo: 422 para pessoa (formulário reaberto); 409 para aplicativo (ADR 0053 §13).</summary>
     internal static Error Reused(bool app) => app
-        ? Error.Conflict("idempotency_key_reused", "Esta chave já foi usada em outro envio desta conexão.")
+        ? Error.Conflict("idempotency_key_reused", "Esta chave já foi usada em outro envio deste aplicativo.")
         : Error.Validation("idempotency_key_reused", "Esta chave já foi usada em outro envio. Abra o formulário de novo.");
 
     private static Task<int> ForgetAsync(BemAquiDbContext db, Guid key) =>

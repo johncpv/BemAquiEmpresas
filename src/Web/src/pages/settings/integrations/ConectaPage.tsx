@@ -11,7 +11,7 @@ import { formatDateTime } from '@/lib/format'
 import { Can } from '@/pages/ModuleGate'
 import { ModuleNotReleased } from '@/pages/ModulePage'
 import { PageHeading } from '@/shell/PageHeading'
-import { browser, CONECTA_MODULE, connectionState } from './conecta'
+import { browser, canGainText, CONECTA_MODULE, connectionState, normalizePairing, returnedFromConecta } from './conecta'
 import { INTEGRATION_V1_ROUTES } from './integration-v1-routes'
 import { IntegrationsNav } from './IntegrationsNav'
 import { OutboundHealthSection } from './OutboundWebhooks'
@@ -20,23 +20,26 @@ const primary = 'min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-semibold 
 const secondary = 'min-h-11 rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold'
 
 /**
- * Configurações → Integrações → Conecta (INT-01 CA 1, 20 e 21): sem conexão, o que o Conecta faz e "Conectar"; com conexão, a situação com chip,
- * motivo e ação, o que o Conecta poderá fazer, o último uso e a referência técnica recolhida. "Conectar" leva ao Conecta, que volta à tela de
- * autorizar; "Desconectar" existe só aqui.
+ * Configurações → Integrações → Conecta (INT-01 CA 1, 20 e 21; INT-04 CA 8 a 10): sem conexão, o que o Conecta faz e "Conectar", que pede o código de
+ * pareamento gerado no Conecta; com conexão, a situação com chip, motivo e ação, o que o Conecta poderá fazer (e o que pode ganhar, com "Autorizar de
+ * novo"), o último uso e a referência técnica recolhida. "Conectar" leva ao Conecta, que volta com `?conectado=1`; "Desconectar" existe só aqui.
  */
 export function ConectaPage() {
   const query = useGetConectaConnection({ query: { retry: false } })
   const client = useQueryClient()
   const [starting, setStarting] = useState(false)
   const [startError, setStartError] = useState<string>()
+  const [pairing, setPairing] = useState('')
+  const [returned] = useState(() => returnedFromConecta(browser.search()))
 
   if (query.error instanceof ApiError && query.error.code === 'module_not_released') return <ModuleNotReleased module={CONECTA_MODULE} />
 
-  const connect = async () => {
+  /** "Autorizar de novo" (conexão ativa ou suspensa): o Conecta já conhece a conta, sem código de pareamento. */
+  const reauthorize = async () => {
     setStartError(undefined)
     setStarting(true)
     try {
-      const start = await startConectaConnection()
+      const start = await startConectaConnection({ pairingCode: null })
       browser.assign(start.redirectUrl)
     } catch (e) {
       setStartError(e instanceof ApiError ? e.message : 'Não foi possível começar a conexão. Tente de novo.')
@@ -48,6 +51,8 @@ export function ConectaPage() {
   const connection = page?.connection ?? null
   const state = connectionState(connection)
   const active = connection?.status === 'Active'
+  const normalized = normalizePairing(pairing)
+  const gain = active ? canGainText(connection?.canGain) : null
 
   return (
     <>
@@ -85,22 +90,65 @@ export function ConectaPage() {
                     }}
                     trigger={<button type="button" className={secondary}>Desconectar</button>}
                   />
+                ) : state.action === 'reauthorize' ? (
+                  <button type="button" onClick={() => void reauthorize()} disabled={starting || !page.configured} className={primary}>Autorizar de novo</button>
                 ) : (
-                  <button type="button" onClick={() => void connect()} disabled={starting || !page.configured} className={primary}>
-                    {state.action === 'reauthorize' ? 'Autorizar de novo' : 'Conectar'}
-                  </button>
+                  <ConfirmDialog
+                    verb="Conectar"
+                    done="Abrindo o Conecta"
+                    title="Conectar ao Conecta"
+                    description="Você vai confirmar no Conecta com um usuário administrador."
+                    onOpen={() => setPairing('')}
+                    preconditions={[{ ok: normalized !== null, text: 'Informe o código de pareamento: 8 letras e números, como ABCD-2345.' }]}
+                    onConfirm={async () => {
+                      const start = await startConectaConnection({ pairingCode: normalized })
+                      browser.assign(start.redirectUrl)
+                    }}
+                    trigger={<button type="button" disabled={!page.configured} className={primary}>Conectar</button>}
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <label htmlFor="conecta-pareamento" className="text-sm font-semibold">Código de pareamento</label>
+                        <Dica texto="Peça o código a quem administra o Conecta. Ele fica em Configurações → Integrações → BemAqui Empresas, no Conecta." />
+                      </div>
+                      <input
+                        id="conecta-pareamento"
+                        value={pairing}
+                        onChange={(e) => setPairing(e.target.value)}
+                        placeholder="ABCD-2345"
+                        autoComplete="off"
+                        autoCapitalize="characters"
+                        maxLength={9}
+                        className="min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm uppercase tabular-nums"
+                      />
+                    </div>
+                  </ConfirmDialog>
                 )}
               </div>
               <InlineError id="conecta-erro" message={startError} />
             </Can>
           </section>
 
+          {gain ? (
+            <section aria-labelledby="conecta-ganhar" className="rounded-md border border-border border-l-4 border-l-info bg-card p-4">
+              <h2 id="conecta-ganhar" className="text-base font-semibold">{gain}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Autorize de novo uma vez: a conexão nova já nasce com tudo isso, e os pedidos do Conecta continuam com ele.</p>
+              <Can perm="settings.edit">
+                <button type="button" onClick={() => void reauthorize()} disabled={starting || !page.configured} className={primary + ' mt-3'}>Autorizar de novo</button>
+              </Can>
+            </section>
+          ) : null}
+
           {active ? <Can perm="conecta.view"><OutboundHealthSection /></Can> : null}
 
           {active ? (
             <section aria-labelledby="conecta-proximo" className="rounded-md border border-border bg-card p-4">
-              <h2 id="conecta-proximo" className="text-base font-semibold">Próximo passo</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Ative o WhatsApp do Conecta para os avisos de cobrança chegarem ao cliente.</p>
+              <h2 id="conecta-proximo" className="text-base font-semibold">{returned ? `Conectado à conta ${connection?.accountLabel ?? 'escolhida'} do Conecta` : 'Próximo passo'}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {returned
+                  ? 'Próximo passo: abra uma conversa no Conecta. O painel do cliente mostra pedidos e cobranças.'
+                  : 'Ative o WhatsApp do Conecta para os avisos de cobrança chegarem ao cliente.'}
+              </p>
             </section>
           ) : null}
 

@@ -12,6 +12,22 @@ public class ConnectedAppRulesTests
     private const string Verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
     private const string Challenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM";
 
+    /// <summary>INT-04 CA 9: o ERP só confere o formato do código de pareamento (XXXX-XXXX, sem 0, O, 1, I e L) e normaliza.</summary>
+    [Theory]
+    [InlineData("ABCD-2345", "ABCD-2345")]
+    [InlineData(" abcd2345 ", "ABCD-2345")]
+    [InlineData("wxyz-9876", "WXYZ-9876")]
+    [InlineData("ABCD-0000", null)]
+    [InlineData("ABCO-2345", null)]
+    [InlineData("ABCI-2345", null)]
+    [InlineData("ABCL-2345", null)]
+    [InlineData("ABC-2345", null)]
+    [InlineData("ABCD-23456", null)]
+    [InlineData("ABÇD-2345", null)]
+    [InlineData("", null)]
+    [InlineData(null, null)]
+    public void Codigo_de_pareamento_no_formato(string? code, string? normalized) => OAuthRules.NormalizePairing(code).Should().Be(normalized);
+
     [Fact]
     public void PKCE_S256_com_o_vetor_da_RFC_7636()
     {

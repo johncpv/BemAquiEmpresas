@@ -19,8 +19,8 @@ internal static class ConnectedAppEndpointsMap
     public static IEndpointRouteBuilder MapConnectedAppEndpoints(this IEndpointRouteBuilder api)
     {
         var oauth = api.MapGroup("/oauth").WithTags("Aplicativos conectados").RequireModule(ConnectedAppEndpoints.ModuleCode);
-        oauth.MapPost("/connect", async (HttpContext http, ICurrentUser user, OAuthAuthorizeService service, CancellationToken ct) =>
-                (await service.StartAsync(user.UserId!.Value, Host(http), ct)).ToHttpResult())
+        oauth.MapPost("/connect", async (ConnectStartInput? input, HttpContext http, ICurrentUser user, OAuthAuthorizeService service, CancellationToken ct) =>
+                (await service.StartAsync(user.UserId!.Value, Host(http), input?.PairingCode, ct)).ToHttpResult())
             .RequirePermission("settings.edit").WithName("StartConectaConnection").Produces<ConnectStart>();
         oauth.MapPost("/authorize/inspect", async (AuthorizeRequest request, HttpContext http, ICurrentUser user, OAuthAuthorizeService service, CancellationToken ct) =>
                 Results.Ok(await service.InspectAsync(request, user.UserId!.Value, Host(http), ct)))

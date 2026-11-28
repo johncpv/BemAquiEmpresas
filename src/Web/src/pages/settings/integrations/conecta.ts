@@ -41,3 +41,23 @@ export const browser = {
   assign: (url: string) => window.location.assign(url),
   search: () => window.location.search,
 }
+
+/** Letras e números do código de pareamento, sem os ambíguos (0, O, 1, I e L), como o Conecta gera (INT-04 CA 9). */
+const PAIRING_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+
+/** Código de pareamento no formato XXXX-XXXX (aceita minúsculas e sem o hífen); fora do formato, null. O ERP só confere o formato. */
+export function normalizePairing(code: string): string | null {
+  const text = code.trim().toUpperCase().replaceAll('-', '')
+  if (text.length !== 8 || [...text].some((c) => !PAIRING_ALPHABET.includes(c))) return null
+  return `${text.slice(0, 4)}-${text.slice(4)}`
+}
+
+/** Volta do Conecta depois do consentimento (INT-04 CA 10): `?conectado=1`. */
+export function returnedFromConecta(search: string): boolean {
+  return new URLSearchParams(search).get('conectado') === '1'
+}
+
+/** "O Conecta pode ganhar: A · B" (INT-04 CA 8); sem nada, null. */
+export function canGainText(items: readonly { text: string }[] | null | undefined): string | null {
+  return items && items.length > 0 ? `O Conecta pode ganhar: ${items.map((i) => i.text).join(' · ')}` : null
+}

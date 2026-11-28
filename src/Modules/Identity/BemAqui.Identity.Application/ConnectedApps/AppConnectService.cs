@@ -1,4 +1,5 @@
 using BemAqui.BuildingBlocks.Identity;
+using BemAqui.BuildingBlocks.Integration;
 using BemAqui.BuildingBlocks.Modules;
 using BemAqui.BuildingBlocks.Tenancy;
 using BemAqui.Identity.Domain;
@@ -18,6 +19,8 @@ public sealed class AppConnectService(
     OAuthAuthorizeService authorize,
     AppConnectionLifecycle lifecycle,
     IUserDirectory users,
+    IOutboundSubscriptions subscriptions,
+    IPermissionService permissions,
     TimeProvider clock)
 {
     private ConnectedAppOptions App => options.Value;
@@ -78,9 +81,24 @@ public sealed class AppConnectService(
 
         var name = await users.DisplayNameAsync(connection.GrantorUserId, cancellationToken);
         var (status, reason) = Texts(connection, name);
+        var canGain = connection.Status == AppConnectionStatus.Active ? await CanGainAsync(connection, cancellationToken) : [];
         return new AppConnectionView(connection.Id, connection.Status.ToString(), connection.StatusReason.ToString(), status, reason, connection.AccountLabel,
             connection.GrantorUserId, name, connection.ConnectedAt, connection.ReconsentDueAt, connection.LastUsedAt, connection.RevokedAt,
-            connection.GrantedScopes.Select(View).ToList());
+            connection.GrantedScopes.Select(View).ToList(), canGain);
+    }
+
+    /// <summary>
+    /// "O Conecta pode ganhar" (INT-04 CA 8): escopos que hoje seriam concedidos (o aplicativo pode pedir e quem autorizou tem) e a concessão não tem, e
+    /// tipos de aviso que a concessão permite e a inscrição não tem. "Autorizar de novo" cria a conexão nova com os escopos e a inscrição com os tipos, numa vez só.
+    /// </summary>
+    private async Task<IReadOnlyList<AppScopeView>> CanGainAsync(AppConnection connection, CancellationToken cancellationToken)
+    {
+        var granted = connection.GrantedScopes.ToHashSet(StringComparer.Ordinal);
+        var held = await permissions.GetAsync(connection.GrantorUserId, cancellationToken);
+        var scopes = ConnectedAppScopes.Compute(App.EffectiveScopes.Where(s => !granted.Contains(s)), App.EffectiveScopes.ToList(), held.Has).Granted.Select(View).ToList();
+        var events = (await subscriptions.MissingEventsAsync(connection.Id, granted, cancellationToken))
+            .Select(t => new AppScopeView(t, "Receber o aviso “" + (BuildingBlocks.Webhooks.OutboundWebhookCatalog.Find(t)?.Label ?? t) + "”"));
+        return [.. scopes, .. events];
     }
 
     /// <summary>Chip e motivo em linguagem simples (CA 20).</summary>

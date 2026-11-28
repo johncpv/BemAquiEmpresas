@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using BemAqui.BuildingBlocks.Security;
 using BemAqui.BuildingBlocks.Web;
 using BemAqui.Sales.Application;
 using BemAqui.Sales.Contracts;
@@ -93,24 +94,26 @@ public sealed class SalesOrderRulesUnitTests
     }
 
     [Fact]
-    public void Idempotencia_de_aplicativo_e_por_conexao_e_nao_pelo_autorizador()
+    public void Idempotencia_de_aplicativo_e_por_aplicativo_e_nao_pela_conexao_nem_pelo_autorizador()
     {
         var services = new ServiceCollection().BuildServiceProvider();
-        HttpContext Context(string? connection)
+        HttpContext Context(string? connection, string app = "conecta")
         {
             var http = new DefaultHttpContext { RequestServices = services };
             http.Request.Method = "POST";
             http.Request.Path = "/api/v1/integration/orders";
             if (connection is not null)
             {
-                http.User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(IdempotencyFilter.ConnectionClaim, connection)], "App"));
+                http.User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(IdempotencyFilter.ConnectionClaim, connection), new Claim(AppClaims.App, app)], "App"));
             }
 
             return http;
         }
 
-        IdempotencyFilter.Scope(Context("c1")).Should().Be("POST /api/v1/integration/orders conn:c1");
-        IdempotencyFilter.Scope(Context("c1")).Should().NotBe(IdempotencyFilter.Scope(Context("c2")));
+        // INT-04 CA 6: reconectar (conexão nova) não muda o escopo; outro aplicativo, sim.
+        IdempotencyFilter.Scope(Context("c1")).Should().Be("POST /api/v1/integration/orders app:conecta");
+        IdempotencyFilter.Scope(Context("c1")).Should().Be(IdempotencyFilter.Scope(Context("c2")));
+        IdempotencyFilter.Scope(Context("c1")).Should().NotBe(IdempotencyFilter.Scope(Context("c1", "outro")));
         IdempotencyFilter.Scope(Context(null)).Should().Be("POST /api/v1/integration/orders -");
     }
 }

@@ -108,6 +108,12 @@ public interface IParties
         Task.FromResult<IReadOnlyList<PartySummary>>([]);
 
     /// <summary>
+    /// O telefone que achou o terceiro é o do cadastro gravado por aplicativo e ainda não confirmado no ERP (INT-04 CA 11): o Conecta não o aceita como
+    /// prova de identidade. Telefone de um contato do terceiro (cadastrado no ERP) não conta como de aplicativo.
+    /// </summary>
+    Task<bool> PhoneSetByAppAsync(Guid id, string phone, CancellationToken cancellationToken = default) => Task.FromResult(false);
+
+    /// <summary>
     /// Completa o contato pelo aplicativo conectado (INT-03 CA 11): e-mail, telefone e endereço de cobrança <b>só preenchem campo vazio</b>; valor igual
     /// ao gravado não muda nada; trocar um valor existente é só no ERP, por pessoa (422 <c>field_change_requires_backoffice</c>). O documento nunca
     /// muda por aqui. Não existe ou excluído: 404.

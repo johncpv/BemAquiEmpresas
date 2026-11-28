@@ -59,6 +59,9 @@ internal static class PartyEndpoints
             .RequirePermission("parties.create").WithName("CreateParty").Produces<PartyDetail>(StatusCodes.Status201Created);
         parties.MapPut("/{id:guid}", async (Guid id, UpdatePartyRequest request, PartyService service, CancellationToken ct) => (await service.UpdateAsync(id, request, ct)).ToHttpResult())
             .RequirePermission("parties.edit").WithName("UpdateParty").Produces<PartyDetail>();
+        // INT-04 CA 11: uma pessoa confirma o contato que veio de aplicativo.
+        parties.MapPost("/{id:guid}/contact-confirmation", async (Guid id, PartyService service, CancellationToken ct) => (await service.ConfirmContactAsync(id, ct)).ToHttpResult())
+            .RequirePermission("parties.edit").WithName("ConfirmPartyContact").Produces<PartyDetail>();
         parties.MapPost("/{id:guid}/inactivate", async (Guid id, PartyService service, CancellationToken ct) => (await service.SetActiveAsync(id, false, ct)).ToHttpResult())
             .RequirePermission("parties.edit").WithName("InactivateParty").Produces<PartyDetail>();
         parties.MapPost("/{id:guid}/reactivate", async (Guid id, PartyService service, CancellationToken ct) => (await service.SetActiveAsync(id, true, ct)).ToHttpResult())

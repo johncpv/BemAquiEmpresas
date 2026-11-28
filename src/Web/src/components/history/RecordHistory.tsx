@@ -4,7 +4,7 @@ import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { formatDateTime } from '@/lib/format'
 import { describeChanges, exportLabel } from './describe-changes'
 
-const ACTIONS: Record<string, string> = { Created: 'Criou', SensitiveRead: 'Leitura de dado sensível', Exported: 'Exportou', Imported: 'Importou', Updated: 'Alterou', Deleted: 'Excluiu' }
+const ACTIONS: Record<string, string> = { Created: 'Criou', SensitiveRead: 'Leitura de dado sensível', Exported: 'Exportou', Imported: 'Importou', Updated: 'Alterou', Deleted: 'Excluiu', IdentityChallenge: 'Pediu o código de verificação', IdentityVerification: 'Conferiu o código de verificação' }
 
 /**
  * Histórico de um registro auditado (FND-09c CA 13): quem, quando (Brasília) e o que mudou, paginado. Sem usuário, mostra a

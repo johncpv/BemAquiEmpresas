@@ -1490,6 +1490,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("secret_rotated_at");
 
+                    b.Property<int>("SecretVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("secret_version");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -12312,6 +12316,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("token_hash");
 
+                    b.Property<int?>("WebhookSecretVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("webhook_secret_version");
+
                     b.HasKey("Id")
                         .HasName("pk_app_tokens");
 
@@ -16327,6 +16335,76 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.ToTable("cnpj_lookups", "parties");
                 });
 
+            modelBuilder.Entity("BemAqui.Parties.Domain.IdentityChallenge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AppId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("app_id");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempts");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("channel");
+
+                    b.Property<byte[]>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("bytea")
+                        .HasColumnName("code_hash");
+
+                    b.Property<Guid>("ConnectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("connection_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("party_id");
+
+                    b.Property<byte[]>("Salt")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("bytea")
+                        .HasColumnName("salt");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("verified_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_identity_challenges");
+
+                    b.HasIndex("ConnectionId", "CreatedAt")
+                        .HasDatabaseName("ix_identity_challenges_connection_id_created_at");
+
+                    b.HasIndex("PartyId", "CreatedAt")
+                        .HasDatabaseName("ix_identity_challenges_party_id_created_at");
+
+                    b.ToTable("identity_challenges", "parties");
+                });
+
             modelBuilder.Entity("BemAqui.Parties.Domain.Party", b =>
                 {
                     b.Property<Guid>("Id")
@@ -16364,6 +16442,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(254)
                         .HasColumnType("character varying(254)")
                         .HasColumnName("email");
+
+                    b.Property<bool>("EmailSetByApp")
+                        .HasColumnType("boolean")
+                        .HasColumnName("email_set_by_app");
 
                     b.Property<string>("ImportSource")
                         .HasMaxLength(100)
@@ -16404,6 +16486,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasMaxLength(11)
                         .HasColumnType("character varying(11)")
                         .HasColumnName("phone");
+
+                    b.Property<bool>("PhoneSetByApp")
+                        .HasColumnType("boolean")
+                        .HasColumnName("phone_set_by_app");
 
                     b.Property<string>("SearchText")
                         .IsRequired()
@@ -21771,6 +21857,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("character varying(80)")
                         .HasColumnName("source_app_name");
 
+                    b.Property<Guid?>("SourceConnectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_connection_id");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -21819,6 +21909,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasIndex("ReceivableId")
                         .HasDatabaseName("ix_orders_receivable_id")
                         .HasFilter("receivable_id IS NOT NULL");
+
+                    b.HasIndex("SourceConnectionId")
+                        .HasDatabaseName("ix_orders_source_connection_id")
+                        .HasFilter("source_connection_id IS NOT NULL");
 
                     b.HasIndex("CustomerId", "SourceAppId")
                         .HasDatabaseName("ix_orders_customer_id_source_app_id");
@@ -23696,6 +23790,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_import_items_import_runs_run_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Parties.Domain.IdentityChallenge", b =>
+                {
+                    b.HasOne("BemAqui.Parties.Domain.Party", null)
+                        .WithMany()
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_identity_challenges_parties_party_id");
                 });
 
             modelBuilder.Entity("BemAqui.Parties.Domain.PartyAddress", b =>

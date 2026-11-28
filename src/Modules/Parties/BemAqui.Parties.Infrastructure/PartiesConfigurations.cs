@@ -99,3 +99,20 @@ internal sealed class CnpjLookupCacheConfiguration : IEntityTypeConfiguration<Cn
         b.HasIndex(e => e.LookedUpAt);
     }
 }
+
+/// <summary>Código de identidade (INT-04 CA 12 e 13): só o HMAC com sal; limites por cliente e por conexão contam pela hora de criação.</summary>
+internal sealed class IdentityChallengeConfiguration : IEntityTypeConfiguration<IdentityChallenge>
+{
+    public void Configure(EntityTypeBuilder<IdentityChallenge> b)
+    {
+        b.ToTable("identity_challenges", PartiesSchema.Name);
+        b.Property(e => e.Id).ValueGeneratedNever();
+        b.Property(e => e.Channel).HasConversion<string>().HasMaxLength(8);
+        b.Property(e => e.Status).HasConversion<string>().HasMaxLength(10);
+        b.Property(e => e.Salt).HasMaxLength(16);
+        b.Property(e => e.CodeHash).HasMaxLength(32);
+        b.HasIndex(e => new { e.PartyId, e.CreatedAt });
+        b.HasIndex(e => new { e.ConnectionId, e.CreatedAt });
+        b.HasOne<Party>().WithMany().HasForeignKey(e => e.PartyId).OnDelete(DeleteBehavior.Cascade);
+    }
+}

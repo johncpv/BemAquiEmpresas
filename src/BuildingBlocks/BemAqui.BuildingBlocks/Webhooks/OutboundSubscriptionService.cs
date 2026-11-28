@@ -79,7 +79,7 @@ public sealed class OutboundSubscriptionService(
 
     private SecretScope Scope => SecretScope.ForTenant(tenant.Tenant?.Id ?? throw new InvalidOperationException("Inscrição de avisos fora do escopo de um tenant."));
 
-    public async Task<string?> CreateForConnectionAsync(Guid connectionId, string clientId, Guid? replacedConnectionId, IReadOnlyCollection<string> grantedScopes, CancellationToken cancellationToken = default)
+    public async Task<PendingWebhookSecret?> CreateForConnectionAsync(Guid connectionId, string clientId, Guid? replacedConnectionId, IReadOnlyCollection<string> grantedScopes, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(grantedScopes);
         var options = conecta.Value;
@@ -106,7 +106,7 @@ public sealed class OutboundSubscriptionService(
             await EndAsync(replaced, ReplacedReason, disconnected: false, cancellationToken);
         }
 
-        return secret;
+        return new PendingWebhookSecret(secret, 1);
     }
 
     private static IEnumerable<OutboundEventType> DefaultEvents(ConectaWebhookOptions options) =>
@@ -114,18 +114,33 @@ public sealed class OutboundSubscriptionService(
             ? OutboundWebhookCatalog.All.Where(t => t.Type != OutboundWebhookCatalog.Ping)
             : options.DefaultEvents.Select(OutboundWebhookCatalog.Find).OfType<OutboundEventType>().Where(t => t.Type != OutboundWebhookCatalog.Ping);
 
-    public async Task<string?> TakePendingSecretAsync(Guid connectionId, CancellationToken cancellationToken = default)
+    public async Task<PendingWebhookSecret?> PendingSecretAsync(Guid connectionId, CancellationToken cancellationToken = default)
+    {
+        var subscription = await db.OutboundSubscriptions.AsNoTracking().FirstOrDefaultAsync(
+            s => s.ConnectionId == connectionId && s.PendingSecretDelivery && s.Status != OutboundSubscriptionStatus.Ended, cancellationToken);
+        return subscription is null
+            ? null
+            : new PendingWebhookSecret(secrets.Unprotect(Scope, SecretKind.OutboundWebhookSecret, subscription.SecretCipher).Reveal(), subscription.SecretVersion);
+    }
+
+    public async Task ConfirmSecretAsync(Guid connectionId, int version, CancellationToken cancellationToken = default)
     {
         var subscription = await db.OutboundSubscriptions.FirstOrDefaultAsync(
             s => s.ConnectionId == connectionId && s.PendingSecretDelivery && s.Status != OutboundSubscriptionStatus.Ended, cancellationToken);
-        if (subscription is null)
+        if (subscription is not null && subscription.ConfirmSecret(version))
         {
-            return null;
+            await db.SaveChangesAsync(cancellationToken);
         }
+    }
 
-        subscription.SecretDelivered();
-        await db.SaveChangesAsync(cancellationToken); // xmin: duas renovações simultâneas, só uma leva o segredo
-        return secrets.Unprotect(Scope, SecretKind.OutboundWebhookSecret, subscription.SecretCipher).Reveal();
+    public async Task<IReadOnlyList<string>> MissingEventsAsync(Guid connectionId, IReadOnlyCollection<string> grantedScopes, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(grantedScopes);
+        var subscription = await db.OutboundSubscriptions.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.ConnectionId == connectionId && s.Status != OutboundSubscriptionStatus.Ended, cancellationToken);
+        return subscription is null
+            ? []
+            : DefaultEvents(conecta.Value).Where(t => OutboundWebhookCatalog.Allowed(t, grantedScopes) && !subscription.Subscribes(t.Type)).Select(t => t.Type).ToList();
     }
 
     public Task EndForConnectionAsync(Guid connectionId, CancellationToken cancellationToken = default) =>
@@ -182,7 +197,7 @@ public sealed class OutboundSubscriptionService(
         var definition = OutboundWebhookCatalog.Find(type) ?? throw new InvalidOperationException("Tipo de aviso fora do catálogo: " + type);
         var evt = new OutboundEvent
         {
-            Type = type, ResourceId = resourceId, Resource = OutboundWebhookCatalog.ResourceFor(definition, resourceId), OccurredAt = occurredAt,
+            Type = type, ResourceId = resourceId, Resource = OutboundWebhookCatalog.ResourceFor(definition, resourceId, data), OccurredAt = occurredAt,
             CreatedAt = clock.GetUtcNow(), Data = OutboundWebhookBody.Data(data),
         };
         db.OutboundEvents.Add(evt);

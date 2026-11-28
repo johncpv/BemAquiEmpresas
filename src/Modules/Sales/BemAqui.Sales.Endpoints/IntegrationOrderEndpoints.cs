@@ -41,8 +41,9 @@ public sealed record IntegrationOrderLine(Guid ProductId, string Description, st
 /// <summary>Cobrança do pedido: o id do título (o mesmo de <c>GET /charges/{id}</c>), a situação dele e a do boleto.</summary>
 public sealed record IntegrationOrderCharge(Guid Id, string Status, string? SlipStatus);
 
-/// <summary>Nota do pedido (CA 18): tipo, situação, série, número, chave, data e o link do DANFE.</summary>
-public sealed record IntegrationOrderInvoice(Guid Id, InvoiceType Type, string Status, int? Series, long? Number, string? AccessKey, DateOnly? IssuedOn, string DanfeUrl);
+/// <summary>Nota do pedido (CA 18): tipo, situação, série, número, chave, data e o link do DANFE; INT-04 CA 2 soma o destinatário e o pedido (aditivo).</summary>
+public sealed record IntegrationOrderInvoice(
+    Guid Id, InvoiceType Type, string Status, int? Series, long? Number, string? AccessKey, DateOnly? IssuedOn, string DanfeUrl, Guid? PartyId = null, Guid? SalesOrderId = null);
 
 /// <summary>Data de cada estado (a última passagem por ele); null se ainda não passou.</summary>
 public sealed record IntegrationOrderDates(DateTimeOffset CreatedAt, DateTimeOffset? ConfirmedAt, DateTimeOffset? ChargedAt, DateTimeOffset? PaidAt, DateTimeOffset? CancelledAt);
@@ -57,8 +58,8 @@ public sealed record IntegrationOrder(
     uint Version);
 
 /// <summary>
-/// Pedidos pela API de integração (INT-03 CA 12 a 16 e 18), finos sobre o <see cref="SalesOrderService"/> (VND-02a): a origem, a conexão
-/// (<c>source_app_id</c>) e quem autorizou vêm do token; ações só nos pedidos da própria conexão (o resto, 404). Leitura de qualquer pedido do tenant
+/// Pedidos pela API de integração (INT-03 CA 12 a 16 e 18), finos sobre o <see cref="SalesOrderService"/> (VND-02a): a origem, o aplicativo
+/// (<c>source_app_id</c>) e quem autorizou vêm do token; ações só nos pedidos do próprio aplicativo (o resto, 404; INT-04 CA 6). Leitura de qualquer pedido do tenant
 /// com <c>sales.view</c>, como a pessoa que autorizou.
 /// </summary>
 internal static class IntegrationOrderEndpoints
@@ -87,7 +88,7 @@ internal static class IntegrationOrderEndpoints
                 }
 
                 await audit.RecordReadAsync("OutgoingInvoice", invoice.Id.ToString(), "order-invoice", ct);
-                return Results.Ok(Invoice(invoice));
+                return Results.Ok(Invoice(invoice, id));
             })
             .RequirePermission("fiscal.view").WithName("IntegrationGetOrderInvoice").Produces<IntegrationOrderInvoice>();
         root.MapGet("/customers/{id:guid}/orders", async (Guid id, IParties parties, ISalesOrderLookup lookup, SalesOrderService service, IOutgoingInvoices invoices,
@@ -191,14 +192,14 @@ internal static class IntegrationOrderEndpoints
         version ?? (await service.DetailAsync(id, ct))?.Version;
 
     /// <summary>
-    /// Autor do pedido pelo token (VND-02a CA 2, ADR 0053 §13): o Conecta tem a origem própria; outro aplicativo, <c>Api</c>. A conexão é o
-    /// <c>source_app_id</c> e quem autorizou é o autor.
+    /// Autor do pedido pelo token (VND-02a CA 2, ADR 0053 §13): o Conecta tem a origem própria; outro aplicativo, <c>Api</c>. O <b>aplicativo</b> é o
+    /// <c>source_app_id</c> (INT-04 CA 6: reconectar não deixa pedido órfão), a conexão fica só na trilha e quem autorizou é o autor.
     /// </summary>
     internal static SalesOrderActor Actor(ConnectedAppContext app)
     {
         var grant = app.Current ?? throw new InvalidOperationException("Rota de aplicativo sem a concessão no request.");
         var origin = string.Equals(grant.ClientId, ConnectedAppEndpoints.ModuleCode, StringComparison.Ordinal) ? SalesOrderOrigin.Conecta : SalesOrderOrigin.Api;
-        return new SalesOrderActor(origin, grant.GrantorId, grant.ConnectionId, grant.AppName);
+        return new SalesOrderActor(origin, grant.GrantorId, grant.AppId, grant.AppName, grant.ConnectionId);
     }
 
     private static async Task<IntegrationOrder> ViewAsync(SalesOrderDetail d, IOutgoingInvoices invoices, CancellationToken ct)
@@ -212,11 +213,11 @@ internal static class IntegrationOrderEndpoints
                 ? d.Origin == SalesOrderOrigin.Conecta ? DraftMessage : "Pedido do aplicativo: confirme com o cliente."
                 : null,
             d.Charge is { } c ? new IntegrationOrderCharge(c.ReceivableId, c.Status.ToString(), c.Slip?.Status.ToString()) : null,
-            invoice is null ? null : Invoice(invoice),
+            invoice is null ? null : Invoice(invoice, d.Id),
             new IntegrationOrderDates(d.CreatedAt, Last(SalesOrderStatus.Open), Last(SalesOrderStatus.AwaitingPayment), Last(SalesOrderStatus.Paid), Last(SalesOrderStatus.Cancelled)),
             d.Version);
     }
 
-    private static IntegrationOrderInvoice Invoice(OutgoingInvoiceSummary i) =>
-        new(i.Id, i.Type, i.Status, i.Series, i.Number, i.AccessKey, i.IssuedOn, $"/api/v1/integration/invoices/{i.Id}/danfe");
+    private static IntegrationOrderInvoice Invoice(OutgoingInvoiceSummary i, Guid orderId) =>
+        new(i.Id, i.Type, i.Status, i.Series, i.Number, i.AccessKey, i.IssuedOn, $"/api/v1/integration/invoices/{i.Id}/danfe", i.PartyId, orderId);
 }

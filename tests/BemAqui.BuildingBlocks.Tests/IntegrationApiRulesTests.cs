@@ -98,6 +98,35 @@ public class IntegrationApiRulesTests
     private static IntegrationLookupGuard Guard(TimeProvider clock, int perMinute = 30, int dailyCap = 2000, int anomaly = 50) =>
         new(new StaticOptions(new IntegrationLookupOptions { LookupPerMinute = perMinute, LookupDailyCap = dailyCap, LookupAnomalyDocumentsPerHour = anomaly }), clock);
 
+    /// <summary>INT-04 CA 12: o atendente vê só o destino mascarado.</summary>
+    [Theory]
+    [InlineData("maria.silva@gmail.com", "m***@g***.com")]
+    [InlineData("Joao@Empresa.com.br", "j***@e***.com.br")]
+    [InlineData("x@localhost", "x***@l***")]
+    [InlineData("sem-arroba", "***")]
+    public void Email_mascarado(string email, string masked) => IntegrationData.MaskEmail(email).Should().Be(masked);
+
+    [Theory]
+    [InlineData("11987654321", "(**) *****-4321")]
+    [InlineData("1133334321", "(**) ****-4321")]
+    [InlineData("12", "(**) ****-****")]
+    public void Telefone_mascarado(string phone, string masked) => IntegrationData.MaskPhone(phone).Should().Be(masked);
+
+    /// <summary>INT-04 CA 14: o atendente entra na trilha sanitizado; fora do formato, é ignorado.</summary>
+    [Fact]
+    public void Atendente_na_origem_da_auditoria()
+    {
+        BemAqui.BuildingBlocks.Security.OnBehalfOf.Label("Conecta", "Paula", "a1b2;Ana").Should().Be("Integração Conecta (autorizada por Paula) · atendente Ana");
+        BemAqui.BuildingBlocks.Security.OnBehalfOf.Label("Conecta", "Paula", null).Should().Be("Integração Conecta (autorizada por Paula)");
+        BemAqui.BuildingBlocks.Security.OnBehalfOf.Attendant("a1;  Ana   Maria  ").Should().Be("Ana Maria");
+        BemAqui.BuildingBlocks.Security.OnBehalfOf.Attendant("a1;<img src=x>").Should().Be("img srcx");
+        BemAqui.BuildingBlocks.Security.OnBehalfOf.Attendant("sem-separador").Should().BeNull();
+        BemAqui.BuildingBlocks.Security.OnBehalfOf.Attendant(";Ana").Should().BeNull("sem o id do atendente");
+        BemAqui.BuildingBlocks.Security.OnBehalfOf.Attendant("a1;123").Should().BeNull("só números não é nome");
+        BemAqui.BuildingBlocks.Security.OnBehalfOf.Attendant("a1;" + new string('x', 90)).Should().BeNull("acima de 80 caracteres");
+        BemAqui.BuildingBlocks.Security.OnBehalfOf.Attendant("a1;" + new string('x', 60)).Should().HaveLength(40);
+    }
+
     private sealed class StaticOptions(IntegrationLookupOptions value) : IOptionsMonitor<IntegrationLookupOptions>
     {
         public IntegrationLookupOptions CurrentValue => value;

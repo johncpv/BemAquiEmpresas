@@ -44,4 +44,10 @@ public static class AuditActions
 
     /// <summary>Prévia da anonimização (LGPD-01b CA 11): quem pediu, quando e o resumo por módulo, sem dado pessoal.</summary>
     public const string AnonymizationPreviewed = "AnonymizationPreviewed";
+
+    /// <summary>Código de identidade pedido por aplicativo (INT-04 CA 12): canal e destino mascarado, nunca o código.</summary>
+    public const string IdentityChallenge = "IdentityChallenge";
+
+    /// <summary>Código de identidade conferido (INT-04 CA 13): se conferiu e as tentativas restantes, nunca o código informado.</summary>
+    public const string IdentityVerification = "IdentityVerification";
 }

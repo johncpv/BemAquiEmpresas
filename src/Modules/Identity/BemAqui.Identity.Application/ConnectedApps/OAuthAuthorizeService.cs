@@ -34,8 +34,14 @@ public sealed class OAuthAuthorizeService(
 
     private ConnectedAppOptions App => options.Value;
 
-    /// <summary>"Conectar" (CA 1): cria a intenção e devolve o endereço do Conecta com o host do tenant e o valor opaco.</summary>
-    public async Task<Result<ConnectStart>> StartAsync(Guid userId, string host, CancellationToken cancellationToken = default)
+    public const string PairingInvalidMessage = "Código de pareamento inválido. Confira no Conecta: são 8 letras e números, como ABCD-2345.";
+    public const string PairingRequiredMessage = "Informe o código de pareamento gerado no Conecta.";
+
+    /// <summary>
+    /// "Conectar" (CA 1): cria a intenção e devolve o endereço do Conecta com o host do tenant e o valor opaco. INT-04 CA 9: o código de pareamento do
+    /// Conecta vai como <c>pairing=</c>; é obrigatório quando não há conexão ativa ou suspensa (em "Autorizar de novo" o Conecta já conhece a conta).
+    /// </summary>
+    public async Task<Result<ConnectStart>> StartAsync(Guid userId, string host, string? pairingCode = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(App.StartUrl) || !Uri.TryCreate(App.StartUrl, UriKind.Absolute, out _))
         {
@@ -43,6 +49,20 @@ public sealed class OAuthAuthorizeService(
         }
 
         var app = await EnsureAppAsync(cancellationToken);
+        string? pairing = null;
+        if (!string.IsNullOrWhiteSpace(pairingCode))
+        {
+            pairing = OAuthRules.NormalizePairing(pairingCode);
+            if (pairing is null)
+            {
+                return Error.Validation("pairing_code_invalid", PairingInvalidMessage, new Dictionary<string, string[]> { ["pairingCode"] = [PairingInvalidMessage] });
+            }
+        }
+        else if (!await db.AppConnections.AnyAsync(c => c.AppId == app.Id && c.Status != AppConnectionStatus.Revoked, cancellationToken))
+        {
+            return Error.Validation("pairing_code_required", PairingRequiredMessage, new Dictionary<string, string[]> { ["pairingCode"] = [PairingRequiredMessage] });
+        }
+
         var intent = OpaqueToken.New();
         var now = clock.GetUtcNow();
         db.AppConnectIntents.Add(new AppConnectIntent
@@ -50,7 +70,13 @@ public sealed class OAuthAuthorizeService(
             IntentHash = OpaqueToken.Hash(intent), UserId = userId, AppId = app.Id, CreatedAt = now, ExpiresAt = now + AppConnectIntent.Lifetime,
         });
         await db.SaveChangesAsync(cancellationToken);
-        return new ConnectStart(OAuthRules.AppendQuery(App.StartUrl, [new("erp", host), new("intent", intent)]));
+        List<KeyValuePair<string, string?>> query = [new("erp", host), new("intent", intent)];
+        if (pairing is not null)
+        {
+            query.Add(new("pairing", pairing));
+        }
+
+        return new ConnectStart(OAuthRules.AppendQuery(App.StartUrl, query));
     }
 
     /// <summary>Confere o pedido e monta a tela (CA 3 a 6). No primeiro pedido válido, amarra a intenção a ele.</summary>

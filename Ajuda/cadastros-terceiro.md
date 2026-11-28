@@ -23,6 +23,9 @@ Mostra e altera os dados do terceiro: documento, nomes, papéis, dados fiscais, 
 - Em terceiro com CNPJ, clique em **Atualizar pela Receita** para comparar o cadastro com a base pública, campo a campo.
 - Marque o que quer trazer e clique em **Aplicar selecionados**. O resto não muda.
 
+## Contato informado pelo Conecta
+Quando o Conecta cadastra ou completa o e-mail ou o telefone do cliente, o cadastro mostra o aviso **"O telefone foi informado pelo Conecta"**. Confira com o cliente e clique em **Confirmar contato**. Até lá, esse contato não serve para mandar o código de verificação que prova quem é o cliente no atendimento. Se você mesmo digitar outro e-mail ou telefone e salvar, o aviso some para o campo trocado. A confirmação fica no **Histórico de alterações**.
+
 ## Perguntas frequentes
 **Qual é a diferença entre inativar e excluir?** Inativar esconde o terceiro dos seletores, mas ele continua nos documentos antigos e pode voltar com Reativar. Excluir é para cadastro feito por engano, que nunca foi usado.
 

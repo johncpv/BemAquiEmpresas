@@ -37,6 +37,24 @@ public sealed class ConnectedAppOptions
 /// <summary>Regras puras do OAuth (INT-01 CA 3, 5, 7 e 11), testadas com os vetores das RFCs.</summary>
 public static partial class OAuthRules
 {
+    /// <summary>Letras e números do código de pareamento, sem os ambíguos (0, O, 1, I e L), como o Conecta gera (INT-04 CA 9).</summary>
+    public const string PairingAlphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
+    /// <summary>
+    /// Código de pareamento do Conecta (INT-04 CA 9) no formato <c>XXXX-XXXX</c>: aceita minúsculas, espaços nas pontas e sem o hífen; devolve o código
+    /// normalizado ou null fora do formato. O ERP só confere o formato: quem valida o código (expiração, tentativas) é o Conecta.
+    /// </summary>
+    public static string? NormalizePairing(string? code)
+    {
+        var text = (code ?? string.Empty).Trim().ToUpperInvariant().Replace("-", string.Empty, StringComparison.Ordinal);
+        if (text.Length != 8 || text.Any(c => !PairingAlphabet.Contains(c, StringComparison.Ordinal)))
+        {
+            return null;
+        }
+
+        return text[..4] + "-" + text[4..];
+    }
+
     /// <summary>RFC 7636 §4.2: 43 caracteres base64url (SHA-256 sem preenchimento).</summary>
     public static bool IsValidChallenge(string? challenge) => challenge is { Length: 43 } && Base64Url().IsMatch(challenge);
 

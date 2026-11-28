@@ -10,7 +10,7 @@ import type { NavModule } from '@/navigation/modules'
 import { NavigationContext, type NavigationValue } from '@/navigation/navigation-context'
 import { renderWithRouter } from '@/test-utils'
 import { ThemeProvider } from '@/theme/ThemeProvider'
-import { authorizeErrorText, authorizeRequestFrom, browser, connectionState } from './conecta'
+import { authorizeErrorText, authorizeRequestFrom, browser, canGainText, connectionState, normalizePairing, returnedFromConecta } from './conecta'
 import { ConectaPage } from './ConectaPage'
 import { INTEGRATION_V1_ROUTES } from './integration-v1-routes'
 
@@ -52,6 +52,17 @@ const consent: AuthorizeInspection = {
 }
 
 describe('regras da tela do Conecta (INT-01)', () => {
+  it('INT-04: código de pareamento no formato, volta do Conecta e o que pode ganhar', () => {
+    expect(normalizePairing(' abcd2345 ')).toBe('ABCD-2345')
+    expect(normalizePairing('ABCD-0000')).toBeNull()
+    expect(normalizePairing('ABCI-2345')).toBeNull()
+    expect(normalizePairing('ABC-2345')).toBeNull()
+    expect(returnedFromConecta('?conectado=1')).toBe(true)
+    expect(returnedFromConecta('')).toBe(false)
+    expect(canGainText([])).toBeNull()
+    expect(canGainText([{ text: 'A' }, { text: 'B' }])).toBe('O Conecta pode ganhar: A · B')
+  })
+
   it('chip e ação por situação (CA 20)', () => {
     expect(connectionState(null)).toEqual({ tone: 'info', action: 'connect' })
     expect(connectionState({ status: 'Active', reason: 'None' })).toEqual({ tone: 'ok', action: 'disconnect' })
@@ -134,7 +145,35 @@ describe('Configurações → Integrações → Conecta (INT-01 CA 20 e 21)', ()
     expect(await screen.findByText('Não conectado')).toBeTruthy()
     expect(screen.getByText('Ver pedidos de venda')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Conectar' }))
+    expect(await screen.findByText('Você vai confirmar no Conecta com um usuário administrador.')).toBeTruthy()
+    const confirm = () => screen.getAllByRole('button', { name: 'Conectar' }).at(-1)!
+    expect((confirm() as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.change(screen.getByLabelText('Código de pareamento'), { target: { value: 'abcd2345' } })
+    await waitFor(() => expect((confirm() as HTMLButtonElement).disabled).toBe(false))
+    fireEvent.click(confirm())
+    await waitFor(() => expect(api.startConectaConnection).toHaveBeenCalledWith({ pairingCode: 'ABCD-2345' }))
     await waitFor(() => expect(assign).toHaveBeenCalledWith('https://conecta.test/conectar?erp=a&intent=x'))
+  })
+
+  it('INT-04: pode ganhar escopos novos com "Autorizar de novo" e, na volta do Conecta, mostra a conta e o próximo passo', async () => {
+    vi.spyOn(browser, 'search').mockReturnValue('?conectado=1')
+    const assign = vi.spyOn(browser, 'assign').mockImplementation(() => undefined)
+    vi.mocked(api.startConectaConnection).mockResolvedValue({ redirectUrl: 'https://conecta.test/conectar?erp=a&intent=y' })
+    query({
+      data: page({
+        id: 'c1', status: 'Active', reason: 'None', statusText: 'Conectado', reasonText: 'Conectado em 28/11 por Paula Lima', accountLabel: 'Loja do João',
+        grantorUserId: 'u1', grantorName: 'Paula Lima', connectedAt: '2026-11-28T10:00:00Z', reconsentDueAt: '2027-11-28T10:00:00Z', lastUsedAt: null, revokedAt: null,
+        scopes: [{ scope: 'finance.view', text: 'Ver cobranças' }],
+        canGain: [{ scope: 'quotes.create', text: 'Abrir pedidos de orçamento' }, { scope: 'conecta.send_whatsapp', text: 'Mandar avisos do ERP pelo WhatsApp do Conecta' }],
+      }),
+    })
+    renderPage(() => <ConectaPage />)
+    expect(await screen.findByText('O Conecta pode ganhar: Abrir pedidos de orçamento · Mandar avisos do ERP pelo WhatsApp do Conecta')).toBeTruthy()
+    expect(screen.getByText('Conectado à conta Loja do João do Conecta')).toBeTruthy()
+    expect(screen.getByText('Próximo passo: abra uma conversa no Conecta. O painel do cliente mostra pedidos e cobranças.')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Autorizar de novo' }))
+    await waitFor(() => expect(api.startConectaConnection).toHaveBeenCalledWith({ pairingCode: null }))
+    await waitFor(() => expect(assign).toHaveBeenCalledWith('https://conecta.test/conectar?erp=a&intent=y'))
   })
 
   it('"Para desenvolvedores" traz as rotas da API v1 com o escopo, geradas do OpenAPI integration-v1 (INT-03)', async () => {

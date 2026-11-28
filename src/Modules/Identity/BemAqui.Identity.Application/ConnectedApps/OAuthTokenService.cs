@@ -145,6 +145,7 @@ public sealed class OAuthTokenService(
         var (access, refresh) = Issue(connection.Id, Guid.CreateVersion7(), now);
         await db.SaveChangesAsync(cancellationToken);
         var secret = await subscriptions.CreateForConnectionAsync(connection.Id, app.ClientId, previous?.Id, grant.Scopes, cancellationToken);
+        Carried(refresh, secret);
         events.Publish(new AppConnected(connection.Id, app.Id, app.ClientId, grant.UserId, previous?.Id));
         lifecycle.Audit(connection.Id, "AppConnected", grant.UserId, new { app = app.ClientId, scopes = grant.Scopes, replaced = previous?.Id }, ip);
         await db.SaveChangesAsync(cancellationToken);
@@ -199,10 +200,18 @@ public sealed class OAuthTokenService(
             return InvalidGrant("Quem autorizou não tem mais acesso.");
         }
 
+        // INT-04 CA 5: renovar com o bqr_ de uma resposta que levou o segredo prova que o aplicativo a gravou; só então o pendente é baixado. Até lá,
+        // toda resposta (inclusive a repetição dentro dos 10 s de tolerância) leva o segredo de novo.
+        if (current.WebhookSecretVersion is { } carried)
+        {
+            await subscriptions.ConfirmSecretAsync(connection.Id, carried, cancellationToken);
+        }
+
         var (access, refresh) = Issue(connection.Id, current.FamilyId, now);
         current.ReplaceWith(db.AppTokens.Local.Single(t => t.TokenHash == OpaqueToken.Hash(refresh)).Id, now);
+        var secret = await subscriptions.PendingSecretAsync(connection.Id, cancellationToken);
+        Carried(refresh, secret);
         await db.SaveChangesAsync(cancellationToken);
-        var secret = await subscriptions.TakePendingSecretAsync(connection.Id, cancellationToken);
         return Response(access, refresh, connection, secret);
     }
 
@@ -240,6 +249,16 @@ public sealed class OAuthTokenService(
         return (access, refresh);
     }
 
-    private static OAuthTokenResponse Response(string access, string refresh, AppConnection connection, string? secret) =>
-        new(access, "Bearer", (int)AppToken.AccessLifetime.TotalSeconds, refresh, string.Join(' ', connection.GrantedScopes), connection.Id, secret);
+    /// <summary>Marca o token de renovação da resposta que leva o segredo com a versão dele (INT-04 CA 5).</summary>
+    private void Carried(string refresh, PendingWebhookSecret? secret)
+    {
+        if (secret is not null)
+        {
+            var hash = OpaqueToken.Hash(refresh);
+            db.AppTokens.Local.Single(t => t.TokenHash == hash).WebhookSecretVersion = secret.Version;
+        }
+    }
+
+    private static OAuthTokenResponse Response(string access, string refresh, AppConnection connection, PendingWebhookSecret? secret) =>
+        new(access, "Bearer", (int)AppToken.AccessLifetime.TotalSeconds, refresh, string.Join(' ', connection.GrantedScopes), connection.Id, secret?.Secret);
 }

@@ -17,6 +17,9 @@ public interface IPartiesDb
 
     DbSet<CnpjLookupCache> CnpjLookups { get; }
 
+    /// <summary>Códigos de identidade pedidos por aplicativo (INT-04 CA 12).</summary>
+    DbSet<IdentityChallenge> IdentityChallenges { get; }
+
     /// <summary>Para trocar o endereço padrão em dois passos numa transação (o índice único parcial é checado a cada comando).</summary>
     DatabaseFacade Database { get; }
 

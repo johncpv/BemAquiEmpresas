@@ -48,6 +48,14 @@ public sealed class Party : Entity, IAuditable, ISoftDeletable
     [PersonalData]
     public string? Phone { get; set; }
 
+    /// <summary>
+    /// O e-mail foi gravado por aplicativo conectado e ninguém o confirmou no ERP (INT-04 CA 11): não serve de destino do código de identidade.
+    /// </summary>
+    public bool EmailSetByApp { get; set; }
+
+    /// <summary>O telefone foi gravado por aplicativo conectado e ninguém o confirmou no ERP (INT-04 CA 11): o Conecta não o aceita como prova.</summary>
+    public bool PhoneSetByApp { get; set; }
+
     [PersonalData]
     public string? Notes { get; set; }
 

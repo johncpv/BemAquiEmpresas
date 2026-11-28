@@ -246,7 +246,8 @@ public sealed class IntegrationApiTests(BillingSlipFixture fixture) : IClassFixt
             ("POST", "/orders", "sales.create"), ("GET", "/orders/{id:guid}", "sales.view"), ("GET", "/customers/{id:guid}/orders", "sales.view"),
             ("POST", "/orders/{id:guid}/confirm", "sales.create"), ("POST", "/orders/{id:guid}/charge", "sales.edit"), ("POST", "/orders/{id:guid}/cancel", "sales.edit"),
             ("GET", "/customers/{id:guid}/charges", "finance.view"), ("GET", "/charges/{id:guid}", "finance.view"), ("GET", "/charges/{id:guid}/pdf", "finance.view"),
-            ("GET", "/orders/{id:guid}/invoice", "fiscal.view"), ("GET", "/invoices/{id:guid}/danfe", "fiscal.view"),
+            ("GET", "/orders/{id:guid}/invoice", "fiscal.view"), ("GET", "/invoices/{id:guid}/danfe", "fiscal.view"), ("GET", "/invoices/{id:guid}", "fiscal.view"),
+            ("POST", "/customers/{id:guid}/identity-challenges", "parties.view"), ("POST", "/customers/{id:guid}/identity-challenges/{challengeId:guid}/verify", "parties.view"),
             ("GET", "/customers/{id:guid}/projects", "projects.view"),
         };
         var endpoints = fixture.Factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>()
@@ -481,5 +482,185 @@ public sealed class IntegrationApiTests(BillingSlipFixture fixture) : IClassFixt
             new BemAqui.Commercial.Contracts.ProjectSummary(Guid.NewGuid(), "PRJ-2026-0001", "Elevador", s.Customer, Guid.NewGuid(), "Fabricated", null, PromisedDate: new DateOnly(2020, 1, 1)),
             new DateOnly(2026, 11, 27));
         view.Should().Be(new IntegrationProjectStatus("PRJ-2026-0001", "Elevador", "F", "Fabricado", "Atrasado", new DateOnly(2020, 1, 1)));
+    }
+
+    // ---------- INT-04 ----------
+
+    /// <summary>INT-04 CA 6: o pedido é do aplicativo; reconectar não deixa órfão nem perde a idempotência, e a conexão que criou fica na trilha.</summary>
+    [Fact]
+    public async Task Pedido_e_do_aplicativo_e_reconectar_nao_deixa_orfao_nem_perde_a_idempotencia()
+    {
+        var s = await SetupAsync();
+        var product = await ProductAsync(s.Location, 20m);
+        var first = await AppAsync(s.OwnerId, AllScopes, "conecta");
+        var firstConnection = await fixture.QueryAsync(db => db.AppConnections.Where(c => c.Status == AppConnectionStatus.Active).OrderByDescending(c => c.ConnectedAt).Select(c => c.Id).FirstAsync());
+        var body = new { customerId = s.Customer, externalId = "r-" + Guid.NewGuid().ToString("N")[..8], lines = new[] { new { productId = product, quantity = 1m } } };
+        var key = Guid.NewGuid();
+        var id = (await Json(await first.SendAsync(Post(Api + "/orders", body, key)), HttpStatusCode.Created)).GetProperty("id").GetGuid();
+
+        var second = await AppAsync(s.OwnerId, AllScopes, "conecta");
+        (await Json(await second.SendAsync(Post(Api + "/orders", body, key)), HttpStatusCode.Created)).GetProperty("id").GetGuid()
+            .Should().Be(id, "a mesma chave depois de reconectar devolve o mesmo pedido");
+        (await Json(await second.SendAsync(Post(Api + "/orders", body)), HttpStatusCode.OK)).GetProperty("id").GetGuid().Should().Be(id, "o mesmo externalId é do aplicativo");
+        (await Json(await second.PostAsJsonAsync($"{Api}/orders/{id}/confirm", new { }), HttpStatusCode.OK)).GetProperty("status").GetString().Should().Be("Open");
+        (await Json(await second.SendAsync(Post($"{Api}/orders/{id}/charge", new { sendEmail = false })), HttpStatusCode.Accepted)).GetProperty("status").GetString()
+            .Should().Be("AwaitingPayment", "pedido criado antes de reconectar é cobrado depois");
+
+        var appId = await fixture.QueryAsync(db => db.ConnectedApps.Where(a => a.ClientId == "conecta").Select(a => a.Id).SingleAsync());
+        var order = await fixture.QueryAsync(db => db.SalesOrders.AsNoTracking().SingleAsync(o => o.Id == id));
+        order.SourceAppId.Should().Be(appId);
+        order.SourceConnectionId.Should().Be(firstConnection);
+    }
+
+    /// <summary>INT-04 CA 2: GET /invoices/{id} só de nota de produção e não descartada, com o destinatário e o link do DANFE; o resto, 404 igual.</summary>
+    [Fact]
+    public async Task Nota_pela_api_so_de_producao_e_nao_descartada()
+    {
+        var s = await SetupAsync();
+        var app = await AppAsync(s.OwnerId, AllScopes);
+        Guid production, homolog, discarded;
+        await using (var scope = await fixture.ScopeAsync())
+        {
+            var fiscal = scope.ServiceProvider.GetRequiredService<BemAqui.Fiscal.Application.IFiscalDb>();
+            BemAqui.Fiscal.Domain.OutgoingInvoice Note(BemAqui.Fiscal.Domain.FiscalEnvironment environment, bool discard)
+            {
+                var invoice = new BemAqui.Fiscal.Domain.OutgoingInvoice
+                {
+                    PartyId = s.Customer, TotalAmount = 10m, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow, Environment = environment,
+                };
+                fiscal.OutgoingInvoices.Add(invoice);
+                var entry = fiscal.Entry(invoice);
+                entry.Property(i => i.Status).CurrentValue = discard ? BemAqui.Fiscal.Domain.OutgoingInvoiceStatus.Draft : BemAqui.Fiscal.Domain.OutgoingInvoiceStatus.Authorized;
+                entry.Property(i => i.Number).CurrentValue = discard ? null : 7;
+                entry.Property(i => i.Series).CurrentValue = discard ? null : 1;
+                entry.Property(i => i.IssuedOn).CurrentValue = new DateOnly(2026, 11, 28);
+                entry.Property(i => i.DiscardedAt).CurrentValue = discard ? DateTimeOffset.UtcNow : null;
+                return invoice;
+            }
+
+            production = Note(BemAqui.Fiscal.Domain.FiscalEnvironment.Production, false).Id;
+            homolog = Note(BemAqui.Fiscal.Domain.FiscalEnvironment.Homologation, false).Id;
+            discarded = Note(BemAqui.Fiscal.Domain.FiscalEnvironment.Production, true).Id;
+            await fiscal.SaveChangesAsync();
+        }
+
+        var view = await Json(await app.GetAsync(new Uri($"{Api}/invoices/{production}", UriKind.Relative)), HttpStatusCode.OK);
+        view.GetProperty("partyId").GetGuid().Should().Be(s.Customer);
+        view.GetProperty("number").GetInt64().Should().Be(7);
+        view.GetProperty("salesOrderId").ValueKind.Should().Be(JsonValueKind.Null);
+        view.GetProperty("danfeUrl").GetString().Should().Be($"/api/v1/integration/invoices/{production}/danfe");
+        foreach (var other in new[] { homolog, discarded, Guid.NewGuid() })
+        {
+            Code(await Json(await app.GetAsync(new Uri($"{Api}/invoices/{other}", UriKind.Relative)), HttpStatusCode.NotFound)).Should().Be("not_found");
+        }
+
+        (await fixture.QueryAsync(db => db.AuditEntries.AnyAsync(a => a.Entity == "OutgoingInvoice" && a.EntityId == production.ToString() && a.Origin!.StartsWith("Integração"))))
+            .Should().BeTrue("a leitura fica na auditoria com a origem do aplicativo");
+    }
+
+    /// <summary>INT-04 CA 11: telefone gravado pelo aplicativo volta com phoneSetByApp até uma pessoa confirmar no ERP.</summary>
+    [Fact]
+    public async Task Telefone_gravado_pelo_aplicativo_fica_marcado_ate_uma_pessoa_confirmar()
+    {
+        var s = await SetupAsync();
+        var app = await AppAsync(s.OwnerId, AllScopes);
+        var phone = NewPhone();
+        var id = await Created(await app.SendAsync(Post(Api + "/customers", new { kind = "PF", name = "Cliente do App", document = NewCpf(), phone })));
+        async Task<bool> SetByAppAsync() => (await Json(await app.GetAsync(new Uri($"{Api}/customers?phone={Uri.EscapeDataString(phone)}", UriKind.Relative)), HttpStatusCode.OK))
+            .EnumerateArray().Single(c => c.GetProperty("id").GetGuid() == id).GetProperty("phoneSetByApp").GetBoolean();
+
+        (await SetByAppAsync()).Should().BeTrue("o Conecta não aceita esse telefone como prova");
+        var confirmed = await Json(await s.Owner.PostAsync(new Uri($"/api/v1/parties/{id}/contact-confirmation", UriKind.Relative), null), HttpStatusCode.OK);
+        confirmed.GetProperty("phoneSetByApp").GetBoolean().Should().BeFalse();
+        (await SetByAppAsync()).Should().BeFalse("uma pessoa confirmou no ERP");
+    }
+
+    /// <summary>
+    /// INT-04 CA 12 e 13: o código vai ao e-mail do cadastro que não veio de aplicativo, a resposta só traz o destino mascarado, 5 tentativas em tempo
+    /// constante, vencido ou usado responde 410, 3 desafios por cliente por hora, e tudo fica na auditoria do cliente sem o código.
+    /// </summary>
+    [Fact]
+    public async Task Codigo_de_identidade_vai_ao_contato_confirmado_com_tentativas_vencimento_e_limite()
+    {
+        var s = await SetupAsync();
+        var app = await AppAsync(s.OwnerId, AllScopes);
+        string ChallengeUrl(Guid customer) => $"{Api}/customers/{customer}/identity-challenges";
+
+        var fromApp = await Created(await app.SendAsync(Post(Api + "/customers", new { kind = "PF", name = "Cliente App", document = NewCpf(), email = "app@exemplo.com.br" })));
+        Code(await Json(await app.SendAsync(Post(ChallengeUrl(fromApp), new { channel = "email" })), HttpStatusCode.UnprocessableEntity)).Should().Be("no_verified_contact",
+            "o e-mail veio do aplicativo");
+
+        var person = await Created(await s.Owner.PostAsJsonAsync("/api/v1/parties", new
+        {
+            kind = "PF", document = NewCpf(), legalName = "Maria da Silva", tradeName = (string?)null, roles = new[] { "Customer" }, email = "maria.silva@gmail.com", phone = "11987654321",
+        }));
+        Code(await Json(await app.SendAsync(Post(ChallengeUrl(person), new { channel = "phone" })), HttpStatusCode.UnprocessableEntity)).Should().Be("channel_unavailable");
+        Code(await Json(await app.SendAsync(Post(ChallengeUrl(person), new { channel = "email" }, withKey: false)), HttpStatusCode.BadRequest)).Should().Be("idempotency_key_required");
+
+        var created = await app.SendAsync(Post(ChallengeUrl(person), new { channel = "email" }));
+        var text = await created.Content.ReadAsStringAsync();
+        created.StatusCode.Should().Be(HttpStatusCode.Created, text);
+        text.Should().NotContain("maria.silva").And.NotContain("silva@");
+        var challenge = JsonDocument.Parse(text).RootElement;
+        challenge.GetProperty("maskedDestination").GetString().Should().Be("m***@g***.com");
+        var first = challenge.GetProperty("challengeId").GetGuid();
+        (await fixture.QueryAsync(db => db.EmailLogs.CountAsync(e => e.Template == "identity-code" && e.RelatedId == person && e.To == "maria.silva@gmail.com"))).Should().Be(1);
+
+        // O código é sorteado e só sai por e-mail: o teste troca o HMAC por um de código conhecido.
+        async Task KnownCodeAsync(Guid id)
+        {
+            var salt = RandomNumberGenerator.GetBytes(16);
+            var hash = HMACSHA256.HashData(salt, System.Text.Encoding.UTF8.GetBytes("123456"));
+            await fixture.QueryAsync(db => db.IdentityChallenges.Where(c => c.Id == id).ExecuteUpdateAsync(u => u.SetProperty(c => c.Salt, salt).SetProperty(c => c.CodeHash, hash)));
+        }
+
+        Task<HttpResponseMessage> VerifyAsync(Guid customer, Guid id, string code) => app.PostAsJsonAsync($"{ChallengeUrl(customer)}/{id}/verify", new { code });
+        await KnownCodeAsync(first);
+        var wrong = await Json(await VerifyAsync(person, first, "000000"), HttpStatusCode.OK);
+        wrong.GetProperty("verified").GetBoolean().Should().BeFalse();
+        wrong.GetProperty("attemptsLeft").GetInt32().Should().Be(4);
+        Code(await Json(await VerifyAsync(fromApp, first, "123456"), HttpStatusCode.NotFound)).Should().Be("not_found", "desafio de outro cliente");
+        (await Json(await VerifyAsync(person, first, "123-456"), HttpStatusCode.OK)).GetProperty("verified").GetBoolean().Should().BeTrue();
+        Code(await Json(await VerifyAsync(person, first, "123456"), HttpStatusCode.Gone)).Should().Be("identity_challenge_expired", "usado");
+
+        var second = (await Json(await app.SendAsync(Post(ChallengeUrl(person), new { channel = "email" })), HttpStatusCode.Created)).GetProperty("challengeId").GetGuid();
+        await KnownCodeAsync(second);
+        for (var i = 4; i >= 0; i--)
+        {
+            (await Json(await VerifyAsync(person, second, "999999"), HttpStatusCode.OK)).GetProperty("attemptsLeft").GetInt32().Should().Be(i);
+        }
+
+        Code(await Json(await VerifyAsync(person, second, "123456"), HttpStatusCode.Gone)).Should().Be("identity_challenge_expired", "depois de 5 tentativas o desafio morre");
+
+        var third = (await Json(await app.SendAsync(Post(ChallengeUrl(person), new { channel = "email" })), HttpStatusCode.Created)).GetProperty("challengeId").GetGuid();
+        var limited = await app.SendAsync(Post(ChallengeUrl(person), new { channel = "email" }));
+        Code(await Json(limited, HttpStatusCode.TooManyRequests)).Should().Be("rate_limited", "3 desafios por cliente por hora");
+        limited.Headers.RetryAfter.Should().NotBeNull();
+        await KnownCodeAsync(third);
+        await fixture.QueryAsync(db => db.IdentityChallenges.Where(c => c.Id == third).ExecuteUpdateAsync(u => u.SetProperty(c => c.ExpiresAt, DateTimeOffset.UtcNow.AddMinutes(-1))));
+        Code(await Json(await VerifyAsync(person, third, "123456"), HttpStatusCode.Gone)).Should().Be("identity_challenge_expired", "vencido");
+
+        var audit = await fixture.QueryAsync(db => db.AuditEntries.AsNoTracking().Where(a => a.Entity == "Party" && a.EntityId == person.ToString()).ToListAsync());
+        audit.Count(a => a.Action == "IdentityChallenge").Should().Be(3);
+        audit.Count(a => a.Action == "IdentityVerification").Should().BeGreaterThanOrEqualTo(9);
+        audit.Where(a => a.Action.StartsWith("Identity", StringComparison.Ordinal)).Should().OnlyContain(a => a.Origin!.StartsWith("Integração") && !a.Changes.Contains("123456"));
+    }
+
+    /// <summary>INT-04 CA 14: BemAqui-On-Behalf-Of entra na trilha como "· atendente {nome}", sanitizado, e não muda permissão.</summary>
+    [Fact]
+    public async Task Atendente_do_aplicativo_aparece_na_trilha_sem_mudar_permissao()
+    {
+        var s = await SetupAsync();
+        var app = await AppAsync(s.OwnerId, ["parties.view"]);
+        using var read = new HttpRequestMessage(HttpMethod.Get, $"{Api}/customers/{s.Customer}");
+        read.Headers.Add(OnBehalfOf.Header, "att-8f2c;Ana<script>");
+        await Json(await app.SendAsync(read), HttpStatusCode.OK);
+        var origin = await fixture.QueryAsync(db => db.AuditEntries.AsNoTracking().Where(a => a.Entity == "Party" && a.EntityId == s.Customer.ToString() && a.Action == "SensitiveRead")
+            .OrderByDescending(a => a.At).Select(a => a.Origin).FirstAsync());
+        origin.Should().StartWith("Integração ").And.Contain("(autorizada por ").And.EndWith(" · atendente Anascript");
+
+        using var write = Post(Api + "/customers", new { kind = "PF", name = "Sem permissão", document = NewCpf() });
+        write.Headers.Add(OnBehalfOf.Header, "att-1;Proprietário");
+        Code(await Json(await app.SendAsync(write), HttpStatusCode.Forbidden)).Should().Be("insufficient_scope", "o cabeçalho não muda permissão");
     }
 }

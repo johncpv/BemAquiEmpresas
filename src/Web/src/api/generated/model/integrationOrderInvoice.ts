@@ -19,4 +19,8 @@ export interface IntegrationOrderInvoice {
   /** @nullable */
   issuedOn: string | null;
   danfeUrl: string;
+  /** @nullable */
+  partyId?: string | null;
+  /** @nullable */
+  salesOrderId?: string | null;
 }

@@ -24,6 +24,7 @@ import { PartyAddresses } from './PartyAddresses'
 import { PartyContacts } from './PartyContacts'
 import { PartyDataForm } from './PartyDataForm'
 import { ReceitaUpdate } from './ReceitaUpdate'
+import { AppContactNotice } from './AppContactNotice'
 
 /** Ação permitida em parties (o mesmo critério do <Can>), para formulários em modo leitura. */
 function useCanParties(action: string) {
@@ -98,6 +99,7 @@ export function PartyPage() {
           </>
         )} />
       <AnonymizedBand at={party.anonymizedAt} request={party.anonymizationRequest} />
+      {anonymized ? null : <AppContactNotice party={party} onConfirmed={setParty} />}
 
       {steps && canEdit ? (
         <div className="mb-4">

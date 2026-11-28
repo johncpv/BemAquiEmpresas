@@ -51,8 +51,14 @@ public sealed class OutboundSubscription : Entity, IAuditable, IConcurrencyVersi
 
     public DateTimeOffset? PreviousValidUntil { get; private set; }
 
-    /// <summary>Segredo atual ainda não entregue ao aplicativo (sai na próxima renovação do token, CA 6).</summary>
+    /// <summary>
+    /// Segredo atual ainda não confirmado pelo aplicativo (INT-04 CA 5): vai em toda resposta do <c>/oauth/token</c> até o aplicativo renovar com o
+    /// <c>bqr_</c> de uma resposta que o levou (<see cref="SecretVersion"/>).
+    /// </summary>
     public bool PendingSecretDelivery { get; private set; }
+
+    /// <summary>Versão do segredo atual (1 na criação, +1 a cada troca): a renovação prova ter recebido esta versão, não uma anterior.</summary>
+    public int SecretVersion { get; private set; }
 
     public DateTimeOffset? SecretRotatedAt { get; private set; }
 
@@ -75,6 +81,8 @@ public sealed class OutboundSubscription : Entity, IAuditable, IConcurrencyVersi
         Url = url,
         Events = [.. events],
         SecretCipher = secretCipher,
+        SecretVersion = 1,
+        PendingSecretDelivery = true,
         CreatedAt = now,
     };
 
@@ -92,12 +100,23 @@ public sealed class OutboundSubscription : Entity, IAuditable, IConcurrencyVersi
         PreviousValidUntil = immediate ? null : now + Overlap;
         SecretCipher = newCipher;
         PendingSecretDelivery = true;
+        SecretVersion++;
         SecretRotatedAt = now;
         RotationsOnDay = RotationDay == today ? RotationsOnDay + 1 : 1;
         RotationDay = today;
     }
 
-    public void SecretDelivered() => PendingSecretDelivery = false;
+    /// <summary>O aplicativo provou ter gravado a resposta com o segredo <paramref name="version"/>: baixa o pendente só se for o atual.</summary>
+    public bool ConfirmSecret(int version)
+    {
+        if (!PendingSecretDelivery || version != SecretVersion)
+        {
+            return false;
+        }
+
+        PendingSecretDelivery = false;
+        return true;
+    }
 
     public void Hold()
     {

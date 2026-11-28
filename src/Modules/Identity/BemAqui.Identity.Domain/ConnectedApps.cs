@@ -259,6 +259,12 @@ public sealed class AppToken : Entity
 
     public DateTimeOffset ExpiresAt { get; init; }
 
+    /// <summary>
+    /// Token de renovação emitido na resposta que levou o <c>webhook_secret</c> desta versão (INT-04 CA 5): renovar com ele prova que o aplicativo
+    /// gravou aquela resposta, e o segredo pendente é baixado.
+    /// </summary>
+    public int? WebhookSecretVersion { get; set; }
+
     public DateTimeOffset? ReplacedAt { get; private set; }
 
     public Guid? ReplacedById { get; private set; }

@@ -5,7 +5,7 @@
 | ID | INT-04 |
 | Título | Correções e acréscimos no ERP achados na revisão da F2: `resource` dos avisos alinhado ao `integration-v1` (com `GET /invoices/{id}` novo e `party_id` onde faltava), cabeçalho `BemAqui-Connection`, `webhook_secret` reentregável até a confirmação, pedido do aplicativo pertencendo a **aplicativo + tenant** (não à conexão), escopos `quotes.create` e `conecta.send_whatsapp` com o aviso `whatsapp_message.requested` numa reautorização única, código de pareamento no "Conectar", origem do telefone do cliente e código de identidade de 6 dígitos, e o atendente identificado na auditoria |
 | Tamanho | M |
-| Status | Draft (27/11/2026) |
+| Status | Done (28/11/2026) |
 | Requisitos | [ADR 0053](../adr/0053-aplicativos-conectados.md) (adendo §5, §13 e §14 novo) · [INT-01](INT-01-aplicativos-conectados.md) · [INT-02](INT-02-webhooks-de-saida.md) · [INT-03](INT-03-api-integracao-v1.md) · [VND-02a](VND-02a-pedido-de-venda-nucleo.md) · decisões do PO de 27/11/2026 (1 a 4) |
 | Dependências | INT-01, INT-02, INT-03, VND-02a (Done) |
 | Bloqueia | ATD-01 (todas as ATD) |
@@ -64,11 +64,11 @@ Como **time das integrações**, quero **corrigir na base do ERP o que a revisã
 - **Integração (Testcontainers):** `GET /invoices/{id}` com IDOR (CA 2); `party_id` nos três tipos (CA 3); cabeçalho presente e fora da assinatura (CA 4); segredo perdido na troca e na renovação e recuperado (CA 5); pedido de antes da reconexão confirmado depois, e a mesma chave depois de reconectar (CA 6); reautorização única com escopos e aviso novos (CA 7, 8); `phoneSetByApp` (CA 11); desafio, limite, 5 tentativas e vencido (CA 12, 13); trilha com o atendente (CA 14).
 
 ## Tarefas
-- [ ] Avisos (CA 1 a 4) e segredo (CA 5).
-- [ ] Dono do pedido e idempotência (CA 6), com migration.
-- [ ] Escopos, aviso novo, "Autorizar de novo" e pareamento (CA 7 a 10).
-- [ ] Origem do telefone e código de identidade (CA 11 a 13); atendente na trilha (CA 14).
-- [ ] Adendos de ADR, OpenAPI, ajudas.
+- [x] Avisos (CA 1 a 4) e segredo (CA 5).
+- [x] Dono do pedido e idempotência (CA 6), com migration.
+- [x] Escopos, aviso novo, "Autorizar de novo" e pareamento (CA 7 a 10).
+- [x] Origem do telefone e código de identidade (CA 11 a 13); atendente na trilha (CA 14).
+- [x] Adendos de ADR, OpenAPI, ajudas.
 
 ## Dev Notes
 - `src/BuildingBlocks/BemAqui.BuildingBlocks/Webhooks/OutboundWebhookCatalog.cs`, `OutboundWebhookDelivery.cs` (linha do `Build` com `tenant.Key`), `OutboundSubscriptionService.cs` (`TakePendingSecretAsync`), `src/Modules/Identity/BemAqui.Identity.Application/ConnectedApps/OAuthTokenService.cs`, `src/Modules/Sales/BemAqui.Sales.Endpoints/IntegrationOrderEndpoints.cs` (`new SalesOrderActor(origin, grant.GrantorId, grant.ConnectionId, grant.AppName)`), `src/Modules/Sales/BemAqui.Sales.Application/SalesOrderService.cs`, `src/BuildingBlocks/BemAqui.BuildingBlocks/Web/IdempotencyFilter.cs`, `src/BuildingBlocks/BemAqui.BuildingBlocks/Modules/ConnectedAppScopes.cs`, `src/BuildingBlocks/BemAqui.BuildingBlocks/Integration/IntegrationApi.cs` (lista de códigos).
@@ -83,3 +83,4 @@ Como **time das integrações**, quero **corrigir na base do ERP o que a revisã
 | Data | Versão | Descrição | Autor |
 |---|---|---|---|
 | 27/11/2026 | 0.1 | Story criada a partir das revisões de 27/11/2026 da F2 (arquitetura, segurança, UX) e das decisões do PO; cada achado conferido no código do ERP. | Claude (planejamento) |
+| 28/11/2026 | 1.0 | Implementada (ERP). Migration aditiva `ConnectedAppsInt04`: `sales.orders.source_connection_id` (cópia da conexão e troca de `source_app_id` pelo aplicativo; pedidos com o mesmo `externalId` em conexões diferentes ficam, os mais antigos, na conexão, sem perda de dado), `identity.app_tokens.webhook_secret_version`, `shared.outbound_webhook_subscriptions.secret_version`, `parties.parties.email_set_by_app`/`phone_set_by_app` e `parties.identity_challenges`. Rotas novas: `GET /integration/invoices/{id}`, `POST /integration/customers/{id}/identity-challenges` e `…/{challengeId}/verify`, `POST /parties/{id}/contact-confirmation` (botão "Confirmar contato" no cadastro). Ação nova `conecta.send_whatsapp` (sem seed patch). Decisões sem o PO (a opção mais segura): (1) o código de pareamento é obrigatório em "Conectar" e opcional em "Autorizar de novo" (já existe conexão ativa ou suspensa); (2) `phone` no código de identidade responde 422 `channel_unavailable` até a ATD-06a; (3) o `resource` de `whatsapp_message.requested` é `/integration/whatsapp-messages/{id}`, rota da ATD-06a (o teste do CA 1 exclui só esse tipo; nenhum aviso dele sai antes); (4) a troca do código não pode ser repetida (código de uso único), então na conexão nova o segredo fica pendente até a primeira renovação com o `bqr_` da troca; a prova vale só para a versão atual do segredo; (5) "O Conecta pode ganhar" lista só o que hoje seria concedido (permissões atuais de quem autorizou); (6) o contato só perde a marca de aplicativo por "Confirmar contato" ou quando uma pessoa digita outro valor; (7) o código de identidade é guardado só como HMAC com sal, confere só pelo mesmo aplicativo, e no `email_logs` o código é apagado depois do envio (`EmailSecrets`); (8) do `BemAqui-On-Behalf-Of` fica na trilha só o primeiro nome sanitizado (até 40 caracteres), não o id; (9) `GET /invoices/{id}` não exige destinatário (a nota rejeitada sem destinatário também é lida); `sales_order_id` vai nulo até a VND-02b. | Claude (dev) |

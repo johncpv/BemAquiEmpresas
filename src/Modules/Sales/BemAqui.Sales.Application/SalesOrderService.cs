@@ -106,7 +106,7 @@ public sealed partial class SalesOrderService(
 
         var now = clock.GetUtcNow();
         var order = SalesOrder.Create(id, await numbers.NextAsync(SalesOrderRules.DocType, cancellationToken), actor.Origin, actor.SourceAppId, Cut(actor.AppName, 80), external, hash,
-            actor.UserId, input.CustomerId, input.StoreId, location.Value, Clean(input.Note), now);
+            actor.UserId, input.CustomerId, input.StoreId, location.Value, Clean(input.Note), now, actor.ConnectionId);
         order.ApplyTotals(built.Value, input.OrderDiscount);
         // CA 5: acima do limite do aplicativo, só rascunho com "Desconto para aprovar".
         order.DiscountNeedsApproval = actor.IsApp && AboveLimit(order, built.Value, settings.AppDiscountLimitPct);
