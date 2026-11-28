@@ -223,27 +223,23 @@ public partial class QuoteTests
             var aceite = (await ParcelsAsync(contractId)).Single(p => p.Description.Contains("Aceite"));
             aceite.Status.Should().Be(ReceivableStatus.Open);
 
-            // Corrida (CA 18): o Commercial deixa desfazer, mas a parcela é recebida antes do consumidor do Finance: não volta e avisa finance.edit.
-            var reverted = await owner.SendAsync(Post($"/api/v1/projects/{projectId}/acceptance/revert", new { version = Version(project), reason = "Cliente pediu revisão", expectedStatus = "Delivered" }));
-            reverted.StatusCode.Should().Be(HttpStatusCode.OK, await reverted.Content.ReadAsStringAsync());
+            // CA 15: com a parcela de aceite recebida, o Commercial recusa o desfazer.
             var bank = await SettleBankAsync(owner);
             await SettleAsync(owner, bank, aceite.Id);
             await DrainAsync();
-            (await ParcelsAsync(contractId)).Single(p => p.Id == aceite.Id).Status.Should().Be(ReceivableStatus.Paid);
-            (await WithDbAsync(db => db.ProjectTriggerEvents.AsNoTracking().SingleAsync(t => t.ProjectId == projectId && t.Event == TriggerEvent.TechnicalAcceptance)))
-                .Should().BeEquivalentTo(new { Reverted = false, RevertNote = BemAqui.Finance.Application.AcceptanceRevertedConsumer.BlockedNote });
-            (await WithDbAsync(db => db.Notifications.CountAsync(n => n.UserId == ownerId && n.Type == BemAqui.Finance.Application.AcceptanceRevertedConsumer.NotificationType))).Should().BeGreaterThan(0);
-
-            // CA 15: com a parcela de aceite recebida, o Commercial recusa o desfazer do novo aceite.
-            project = await ProjectAsync(owner, projectId);
-            var again = await owner.SendAsync(Post($"/api/v1/projects/{projectId}/acceptance", Accept(project, Today)));
-            again.StatusCode.Should().Be(HttpStatusCode.OK, await again.Content.ReadAsStringAsync());
-            project = await JsonAsync(again);
-            var locked = await owner.SendAsync(Post($"/api/v1/projects/{projectId}/acceptance/revert", new { version = Version(project), reason = "De novo", expectedStatus = "Delivered" }));
+            var locked = await owner.SendAsync(Post($"/api/v1/projects/{projectId}/acceptance/revert", new { version = Version(project), reason = "Cliente pediu revisão", expectedStatus = "Delivered" }));
             locked.StatusCode.Should().Be(HttpStatusCode.Conflict);
             var body = await JsonAsync(locked);
             Code(body).Should().Be("acceptance_locked");
             body.GetProperty("detail").GetString().Should().Be(ProjectExecutionService.AcceptanceLockedReceivable);
+
+            // Corrida (CA 18): o desfazer passou na checagem do Commercial antes da baixa e o evento chega ao Finance depois dela. O teste entrega
+            // o evento direto ao consumidor (pela API, o dispatcher do host pode processá-lo antes da baixa, e aí a baixa é que é recusada).
+            await RevertedConsumerAsync(new BemAqui.Commercial.Contracts.TechnicalAcceptanceReverted(projectId, contractId, Today, 1));
+            (await ParcelsAsync(contractId)).Single(p => p.Id == aceite.Id).Status.Should().Be(ReceivableStatus.Paid, "título com baixa não volta a previsto");
+            (await WithDbAsync(db => db.ProjectTriggerEvents.AsNoTracking().SingleAsync(t => t.ProjectId == projectId && t.Event == TriggerEvent.TechnicalAcceptance)))
+                .Should().BeEquivalentTo(new { Reverted = false, RevertNote = BemAqui.Finance.Application.AcceptanceRevertedConsumer.BlockedNote });
+            (await WithDbAsync(db => db.Notifications.CountAsync(n => n.UserId == ownerId && n.Type == BemAqui.Finance.Application.AcceptanceRevertedConsumer.NotificationType))).Should().BeGreaterThan(0);
         }
         finally
         {
@@ -352,6 +348,18 @@ public partial class QuoteTests
 
     private Task<int> OutboxCountAsync(string typeSuffix, string payloadPart) =>
         WithDbAsync(db => db.Database.SqlQuery<int>($"SELECT count(*)::int AS \"Value\" FROM shared.outbox_messages WHERE type LIKE {"%" + typeSuffix} AND payload::text LIKE {"%" + payloadPart + "%"}").SingleAsync());
+
+    /// <summary>Entrega o evento ao consumidor do Finance numa transação, como o OutboxProcessor (o FOR UPDATE precisa dela).</summary>
+    private async Task RevertedConsumerAsync(BemAqui.Commercial.Contracts.TechnicalAcceptanceReverted reverted)
+    {
+        var info = (await tenancy.Factory.Services.GetRequiredService<ITenantDirectory>().FindAsync(tenancy.TenantA.Id))!;
+        await using var scope = await tenancy.Factory.Services.GetRequiredService<ITenantScopeFactory>().CreateScopeAsync(info);
+        var db = scope.ServiceProvider.GetRequiredService<BemAqui.Host.Persistence.TenantDbContext>();
+        await using var transaction = await db.Database.BeginTransactionAsync();
+        await ActivatorUtilities.CreateInstance<BemAqui.Finance.Application.AcceptanceRevertedConsumer>(scope.ServiceProvider).HandleAsync(reverted, CancellationToken.None);
+        await db.SaveChangesAsync();
+        await transaction.CommitAsync();
+    }
 
     private async Task<int> RunBackfillAsync()
     {
