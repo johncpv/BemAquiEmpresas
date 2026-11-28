@@ -61,6 +61,7 @@ internal sealed class ProjectTriggerEventConfiguration : IEntityTypeConfiguratio
         b.ToTable("project_trigger_events", FinanceSchema.Name);
         b.Property(e => e.Event).HasConversion<string>().HasMaxLength(24);
         b.HasIndex(e => new { e.ProjectId, e.Event }).IsUnique().HasDatabaseName(ReceivableService.TriggerEventIndex);
+        b.Property(e => e.RevertNote).HasMaxLength(300);
     }
 }
 

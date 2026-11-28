@@ -24,8 +24,17 @@ public static class ProjectDelivery
     public static bool InstallationPhase(ProjectStatus status) => status is ProjectStatus.Fabricated or ProjectStatus.Installing;
 
     public static ProjectForecastView Assess(
-        ProjectStatus status, DateOnly? promised, ProjectForecast? row, DateOnly? installationEnd, DateOnly today, string? reasonOrderNumber = null)
+        ProjectStatus status, DateOnly? promised, ProjectForecast? row, DateOnly? installationEnd, DateOnly today, string? reasonOrderNumber = null,
+        ExecutionKind kind = ExecutionKind.Fabrication)
     {
+        if (kind == ExecutionKind.Service)
+        {
+            // EXE-01a CA 31: o serviço não passa pela fila da fábrica; a previsão é a data prometida, sem motivo de OS.
+            var done = Finished(status);
+            var service = DeliveryRiskRules.Evaluate(promised, promised, today, done);
+            return new ProjectForecastView(promised, null, null, null, null, done ? null : DeliveryRiskRules.SlackDays(promised, promised), service.Risk, service.DelayDays, null, false);
+        }
+
         var installationOnly = InstallationPhase(status) && installationEnd is not null;
         var forecast = installationOnly ? installationEnd : row?.ForecastDate;
         var finished = Finished(status);

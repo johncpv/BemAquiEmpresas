@@ -58,6 +58,11 @@ public static class HostEvents
             .AddHandler<BemAqui.Commercial.Contracts.ProjectDelivered, BemAqui.Finance.Application.MilestoneReachedConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ProjectDelivered, BemAqui.Commercial.Application.ContractCompletionConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.TechnicalAcceptance, BemAqui.Finance.Application.MilestoneReachedConsumer>()
+            // EXE-01a: aceite do cliente conclui o contrato (CA 20); o desfazer volta o título de aceite (CA 18) e reabre o contrato da corrida (CA 21).
+            .AddHandler<BemAqui.Commercial.Contracts.TechnicalAcceptance, BemAqui.Commercial.Application.ContractCompletionConsumer>()
+            .AddHandler<BemAqui.Commercial.Contracts.TechnicalAcceptanceReverted, BemAqui.Finance.Application.AcceptanceRevertedConsumer>()
+            .AddHandler<BemAqui.Commercial.Contracts.TechnicalAcceptanceReverted, BemAqui.Commercial.Application.ContractCompletionConsumer>()
+            .AddEvent<BemAqui.Commercial.Contracts.ProjectStarted>()
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Finance.Application.ContractCancelledConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ContractAmended, BemAqui.Finance.Application.ContractAmendedConsumer>()
             .AddHandler<BemAqui.Commercial.Contracts.ContractCancelled, BemAqui.Production.Application.InstallationContractCancelledConsumer>()

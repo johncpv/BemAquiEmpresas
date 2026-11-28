@@ -46,6 +46,12 @@ public sealed partial class QuoteApprovalService
             return Error.Validation("approval_preconditions", string.Join(" ", failing), new Dictionary<string, string[]> { ["preconditions"] = failing });
         }
 
+        // EXE-01a CA 27: o tipo é recalculado pelos itens; marco de fabricação em projeto de serviço volta para a aba Condições.
+        if (await MilestonePolicyErrorAsync(quote.Id, MilestoneValidationMode.Approval, cancellationToken) is { } milestoneError)
+        {
+            return milestoneError;
+        }
+
         var accounts = await chart.PostableAsync(AccountType.Revenue, cancellationToken);
         if (!accounts.Any(a => a.Id == input.RevenueAccountId && a.IsActive && a.AcceptsEntries))
         {
@@ -90,6 +96,28 @@ public sealed partial class QuoteApprovalService
         await transaction.CommitAsync(cancellationToken);
         return new ApprovalResult(contract.Id, contract.Number, project.Id, project.Number);
     }
+
+    /// <summary>Recurso por perfil do projeto de serviço no tenant do request (adendo de 27/11/2026 da ADR 0046).</summary>
+    private bool ServiceExecutionReleased => tenant.Resolved?.HasFeature(BemAqui.BuildingBlocks.Modules.BusinessProfileCatalog.ServiceExecutionFeature) == true;
+
+    /// <summary>Validador único de marco (EXE-01a CA 27) com o tipo calculado pelos itens do orçamento; na aprovação, o 422 leva a aba e o índice.</summary>
+    private async Task<Error?> MilestonePolicyErrorAsync(Guid quoteId, MilestoneValidationMode mode, CancellationToken ct)
+    {
+        var kinds = await db.QuoteItems.AsNoTracking().Where(i => i.QuoteId == quoteId).Select(i => i.Kind).ToListAsync(ct);
+        var kind = ExecutionKindRule.For(ServiceExecutionReleased, kinds);
+        var milestones = await db.QuoteMilestones.AsNoTracking().Where(m => m.QuoteId == quoteId).OrderBy(m => m.Sequence)
+            .Select(m => new { m.TriggerEvent, m.Description }).ToListAsync(ct);
+        return MilestoneTriggerPolicy.Validate(kind, milestones.Select(m => (m.TriggerEvent, m.Description)).ToList(), mode) is { } violation
+            ? MilestonePolicyError(violation, mode == MilestoneValidationMode.Approval)
+            : null;
+    }
+
+    /// <summary>422 <c>milestone_trigger_not_allowed</c> no campo do gatilho; com <paramref name="withTab"/>, a aba "condicoes" e o índice do marco.</summary>
+    internal static Error MilestonePolicyError(MilestoneViolation violation, bool withTab) =>
+        Error.Validation("milestone_trigger_not_allowed", violation.Message, new Dictionary<string, string[]> { [violation.Field] = [violation.Message] }) with
+        {
+            Data = withTab ? new Dictionary<string, object?> { ["tab"] = "condicoes", ["milestoneIndex"] = violation.Index } : null,
+        };
 
     private static Error AlreadyApproved() => Error.Conflict("quote_approved", "O orçamento já foi aprovado.");
 }

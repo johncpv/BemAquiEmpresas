@@ -53,14 +53,23 @@ public sealed partial class ProjectService
         }
 
         // PLN-01b CA 8 e 9: entrega prevista, folga e risco pela mesma função do Projeto 360 e do Kanban.
-        var forecasts = await ForecastViewsAsync([.. rows.Select(r => (r.Project.Id, r.Project.Status, r.Project.PromisedDate))], cancellationToken);
+        var forecasts = await ForecastViewsAsync([.. rows.Select(r => (r.Project.Id, r.Project.Status, r.Project.PromisedDate, r.Project.ExecutionKind))], cancellationToken);
+        // EXE-01a CA 29: etapa pela função única; no serviço, o "A" depende do marco de aceite do contrato (uma consulta para a página).
+        var serviceContracts = rows.Where(r => r.Project.ExecutionKind == ExecutionKind.Service).Select(r => r.Project.ContractId).Distinct().ToList();
+        HashSet<Guid> withAcceptance = serviceContracts.Count == 0 ? [] : (await db.ContractMilestones.AsNoTracking()
+            .Where(m => serviceContracts.Contains(m.ContractId) && m.TriggerEvent == TriggerEvent.TechnicalAcceptance).Select(m => m.ContractId).Distinct().ToListAsync(cancellationToken))
+            .Concat(await (from m in db.ContractAmendmentMilestones.AsNoTracking()
+                           join a in db.ContractAmendments.AsNoTracking() on m.AmendmentId equals a.Id
+                           where serviceContracts.Contains(a.ContractId) && a.Status == AmendmentStatus.Approved && m.TriggerEvent == TriggerEvent.TechnicalAcceptance
+                           select a.ContractId).Distinct().ToListAsync(cancellationToken)).ToHashSet();
         return new ProjectListPage(rows.Select(r =>
         {
             var f = forecasts[r.Project.Id];
+            var stage = ProjectStageMap.For(r.Project.ExecutionKind, r.Project.Status, r.Project.AcceptedOn is not null, withAcceptance.Contains(r.Project.ContractId));
             return new ProjectListRow(
                 r.Project.Id, r.Project.Number, r.Project.Name, r.Project.PartyId, names.GetValueOrDefault(r.Project.PartyId, string.Empty), r.Project.Status, r.Project.PromisedDate,
                 f.DelayDays, r.TotalValue, r.Project.ManagerUserId, r.Project.ManagerUserId is { } m ? managers.GetValueOrDefault(m) : null, r.Project.ContractId,
-                f.ForecastDate, f.SlackDays, f.Risk, f.Reason);
+                f.ForecastDate, f.SlackDays, f.Risk, f.Reason, r.Project.ExecutionKind, stage);
         }).ToList(), page.Page, page.PageSize, total);
     }
 

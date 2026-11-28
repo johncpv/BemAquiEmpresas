@@ -23,7 +23,7 @@ namespace BemAqui.Commercial.Application;
 public sealed partial class QuoteService(
     ICommercialDb db, IParties parties, IItems items, IHourlyCost hourlyCost, IPositions positions, IWorkCenters workCenters, ITenantParameters tenantParameters,
     ICommercialParameters commercialParameters, INumberSequence numbers, IPermissionChecker permissions, ICurrentUser currentUser, IPaymentTerms paymentTerms, IEventPublisher events,
-    IUserDirectory users, TimeProvider clock)
+    IUserDirectory users, TimeProvider clock, BemAqui.BuildingBlocks.Tenancy.TenantContextHolder tenant)
 {
     public const string DocType = "ORC";
 

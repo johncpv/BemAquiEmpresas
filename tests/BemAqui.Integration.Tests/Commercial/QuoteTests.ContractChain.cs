@@ -46,9 +46,9 @@ public partial class QuoteTests
         // CA 10 e 18: entrega com projects.approve; o comercial (só view) recebe 403.
         var project = await JsonAsync(await owner.GetAsync($"/api/v1/projects/{projectId}"));
         var (_, commercial) = await ActorAsync("commercial");
-        (await commercial.PostAsJsonAsync($"/api/v1/projects/{projectId}/delivery", new { date = Iso(Today), version = Version(project) })).StatusCode.Should().Be(HttpStatusCode.Forbidden);
-        (await owner.PostAsJsonAsync($"/api/v1/projects/{projectId}/delivery", new { date = Iso(Today.AddDays(1)), version = Version(project) })).StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
-        var delivered = await owner.PostAsJsonAsync($"/api/v1/projects/{projectId}/delivery", new { date = Iso(Today), version = Version(project) });
+        (await commercial.SendAsync(Post($"/api/v1/projects/{projectId}/delivery", new { date = Iso(Today), version = Version(project) }))).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        (await owner.SendAsync(Post($"/api/v1/projects/{projectId}/delivery", new { date = Iso(Today.AddDays(1)), version = Version(project) }))).StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+        var delivered = await owner.SendAsync(Post($"/api/v1/projects/{projectId}/delivery", new { date = Iso(Today), version = Version(project) }));
         delivered.StatusCode.Should().Be(HttpStatusCode.OK, await delivered.Content.ReadAsStringAsync());
         (await JsonAsync(delivered)).GetProperty("status").GetString().Should().Be("Delivered");
         await DrainAsync();

@@ -34,10 +34,34 @@ public sealed class MilestoneReachedConsumer(IFinanceDb db, IEnumerable<IContrac
             return;
         }
 
+        // EXE-01a CA 18: o aceite do cliente tem versão; evento velho (versão menor, ou a mesma já desfeita) é descartado, e o de versão maior
+        // regrava o gatilho (reaceite). Os outros gatilhos e o aceite técnico da OS (versão 0) seguem "o primeiro vale".
+        var version = reached is TechnicalAcceptance acceptance ? acceptance.Version : 0;
         var trigger = await db.ProjectTriggerEvents.FirstOrDefaultAsync(t => t.ProjectId == reached.ProjectId && t.Event == reached.Event, ct);
+        if (trigger is not null && version > 0)
+        {
+            if (version < trigger.Version || (version == trigger.Version && trigger.Reverted))
+            {
+                return;
+            }
+
+            if (version > trigger.Version)
+            {
+                trigger.Version = version;
+                trigger.OccurredOn = reached.OccurredOn;
+                trigger.ReceivedAt = clock.GetUtcNow();
+                trigger.Reverted = false;
+                trigger.RevertNote = null;
+                await db.SaveChangesAsync(ct);
+            }
+        }
+
         if (trigger is null)
         {
-            trigger = new ProjectTriggerEvent { ProjectId = reached.ProjectId, ContractId = reached.ContractId, Event = reached.Event, OccurredOn = reached.OccurredOn, ReceivedAt = clock.GetUtcNow() };
+            trigger = new ProjectTriggerEvent
+            {
+                ProjectId = reached.ProjectId, ContractId = reached.ContractId, Event = reached.Event, OccurredOn = reached.OccurredOn, ReceivedAt = clock.GetUtcNow(), Version = version,
+            };
             db.ProjectTriggerEvents.Add(trigger);
             try
             {
@@ -53,6 +77,11 @@ public sealed class MilestoneReachedConsumer(IFinanceDb db, IEnumerable<IContrac
         var planned = await db.Receivables.Where(r => r.Origin == DocumentOrigin.Contract && r.ContractId == reached.ContractId && r.ProjectId == reached.ProjectId
             && r.Status == ReceivableStatus.Planned && r.TriggerEvent == reached.Event).ToListAsync(ct);
         if (planned.Count == 0)
+        {
+            return;
+        }
+
+        if (trigger.Reverted)
         {
             return;
         }

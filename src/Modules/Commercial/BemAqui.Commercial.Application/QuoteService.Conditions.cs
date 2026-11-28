@@ -56,6 +56,15 @@ public sealed partial class QuoteService
             }
         }
 
+        // EXE-01a CA 27: tipo calculado pelos itens do orçamento neste momento; marco de fabricação em serviço é recusado.
+        var kinds = await db.QuoteItems.AsNoTracking().Where(i => i.QuoteId == id).Select(i => i.Kind).ToListAsync(cancellationToken);
+        var kind = ExecutionKindRule.For(tenant.Resolved?.HasFeature(BemAqui.BuildingBlocks.Modules.BusinessProfileCatalog.ServiceExecutionFeature) == true, kinds);
+        var milestoneTriggers = input.Milestones.Select(m => (m.Trigger == MilestoneTrigger.Event ? m.TriggerEvent : null, m.Description.Trim())).ToList();
+        if (MilestoneTriggerPolicy.Validate(kind, milestoneTriggers, MilestoneValidationMode.Quote) is { } violation)
+        {
+            return QuoteApprovalService.MilestonePolicyError(violation, withTab: false);
+        }
+
         db.QuoteMilestones.RemoveRange(await db.QuoteMilestones.Where(m => m.QuoteId == id).ToListAsync(cancellationToken));
         var amounts = PercentSplit.Amounts(quote.TotalPrice, input.Milestones.Select(m => Math.Round(m.Percent, 4, MidpointRounding.AwayFromZero)).ToList());
         var created = input.Milestones.Select((m, i) => new QuoteMilestone

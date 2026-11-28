@@ -62,6 +62,10 @@ internal sealed class RecurringJobsRegistrar(IRecurringJobManager recurring, ICo
         recurring.AddOrUpdate<BemAqui.Commercial.Application.MaterialCostBackfillRecurringJob>(BemAqui.Commercial.Application.MaterialCostBackfillRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             BemAqui.Commercial.Application.MaterialCostBackfillRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
         recurring.Trigger(BemAqui.Commercial.Application.MaterialCostBackfillRecurringJob.Id);
+        // EXE-01a CA 5: ajuste automático do tipo do projeto, na subida e de madrugada; com a marca do tenant, termina sem ler nada.
+        recurring.AddOrUpdate<BemAqui.Commercial.Application.ExecutionKindBackfillRecurringJob>(BemAqui.Commercial.Application.ExecutionKindBackfillRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
+            BemAqui.Commercial.Application.ExecutionKindBackfillRecurringJob.Cron, new RecurringJobOptions { TimeZone = BemAqui.BuildingBlocks.Time.BusinessTime.Zone });
+        recurring.Trigger(BemAqui.Commercial.Application.ExecutionKindBackfillRecurringJob.Id);
         // Afastamentos com data futura (CAD-04c1 CA 7): 00:15 de São Paulo, ou o horário do parâmetro.
         recurring.AddOrUpdate<BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob>(BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.Id, j => j.ExecuteAsync(CancellationToken.None),
             configuration[BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.CronSetting] ?? BemAqui.HR.Application.EmployeeLeaveEventsRecurringJob.Cron,

@@ -15778,7 +15778,130 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProjectEventInput"
+                "$ref": "#/components/schemas/ProjectDeliveryInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/start": {
+      "post": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "StartProject",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectStartInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/acceptance": {
+      "post": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "RegisterProjectAcceptance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectAcceptanceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/acceptance/revert": {
+      "post": {
+        "tags": [
+          "Contratos e projetos"
+        ],
+        "operationId": "RevertProjectAcceptance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectAcceptanceRevertInput"
               }
             }
           },
@@ -47262,6 +47385,13 @@
           "Both"
         ]
       },
+      "AcceptanceKind": {
+        "enum": [
+          "Manual",
+          "Inherited",
+          "FromDelivery"
+        ]
+      },
       "AcceptHighInput": {
         "required": [
           "from",
@@ -58637,6 +58767,12 @@
             "type": "integer",
             "format": "int32",
             "default": 15
+          },
+          "acceptanceSegregation": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
@@ -58661,6 +58797,10 @@
             "type": "integer",
             "format": "int32",
             "default": 15
+          },
+          "acceptanceSegregation": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -59813,6 +59953,10 @@
           "isOnboarding": {
             "type": "boolean",
             "default": false
+          },
+          "executionKind": {
+            "type": "string",
+            "default": "Fabrication"
           }
         }
       },
@@ -63021,6 +63165,13 @@
             "format": "int32"
           }
         }
+      },
+      "ExecutionKind": {
+        "enum": [
+          "Fabrication",
+          "Service"
+        ],
+        "default": "Fabrication"
       },
       "ExtendValidityInput": {
         "required": [
@@ -71446,6 +71597,10 @@
               "string"
             ],
             "format": "date"
+          },
+          "executionKind": {
+            "type": "string",
+            "default": "Fabrication"
           }
         }
       },
@@ -96453,6 +96608,163 @@
           }
         }
       },
+      "ProjectAcceptanceInput": {
+        "required": [
+          "date",
+          "version",
+          "acceptedByName"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "acceptedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expectedStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectStatus"
+              }
+            ]
+          },
+          "acceptedByRole": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "attachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProjectAcceptanceRevertInput": {
+        "required": [
+          "version",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expectedStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectStatus"
+              }
+            ]
+          }
+        }
+      },
+      "ProjectAcceptanceView": {
+        "required": [
+          "id",
+          "version",
+          "kind",
+          "occurredOn",
+          "recordedAt",
+          "recordedBy",
+          "recordedByName",
+          "acceptedByName",
+          "acceptedByRole",
+          "attachmentId",
+          "backdateReason"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AcceptanceKind"
+          },
+          "occurredOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "recordedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "recordedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "acceptedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "acceptedByRole": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "attachmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ProjectBillingView": {
         "required": [
           "projectId",
@@ -96815,6 +97127,55 @@
           }
         }
       },
+      "ProjectDeliveryInput": {
+        "required": [
+          "date",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "expectedStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectStatus"
+              }
+            ]
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "alsoAccept": {
+            "type": "boolean",
+            "default": false
+          },
+          "acceptedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "acceptedByRole": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ProjectDetail": {
         "required": [
           "id",
@@ -96983,6 +97344,51 @@
             ]
           },
           "hasInstallation": {
+            "type": "boolean",
+            "default": false
+          },
+          "executionKind": {
+            "$ref": "#/components/schemas/ExecutionKind"
+          },
+          "stage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectStage"
+              }
+            ]
+          },
+          "startedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "acceptedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "acceptance": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectAcceptanceView"
+              }
+            ]
+          },
+          "acceptanceRequired": {
+            "type": "boolean",
+            "default": false
+          },
+          "serviceExecution": {
             "type": "boolean",
             "default": false
           }
@@ -97362,6 +97768,19 @@
             "type": [
               "null",
               "string"
+            ]
+          },
+          "executionKind": {
+            "$ref": "#/components/schemas/ExecutionKind"
+          },
+          "stage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectStage"
+              }
             ]
           }
         }
@@ -98188,6 +98607,72 @@
               "number"
             ],
             "format": "double"
+          }
+        }
+      },
+      "ProjectStage": {
+        "required": [
+          "letters",
+          "index",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "letters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "index": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "label": {
+            "type": "string"
+          },
+          "acceptanceWaived": {
+            "type": "boolean",
+            "default": false
+          },
+          "letter": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProjectStartInput": {
+        "required": [
+          "date",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "expectedStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectStatus"
+              }
+            ]
+          },
+          "backdateReason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

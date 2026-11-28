@@ -28,6 +28,12 @@ public sealed partial class FabricationOrderService
             return Error.NotFound("project_not_found", "Projeto não encontrado.");
         }
 
+        // EXE-01a: projeto de serviço não tem OS de fabricação.
+        if (project.IsService)
+        {
+            return Error.Conflict("not_a_fabrication_project", "Projeto de serviço não tem fabricação.");
+        }
+
         if (FabricationRules.CanGenerate(item, project) is { } refused)
         {
             return refused;
@@ -144,7 +150,7 @@ public sealed partial class FabricationOrderService
         }
 
         var project = await projects.FindAsync(created.ProjectId, ct);
-        if (project is null || project.Status is not ("Planned" or "InProgress"))
+        if (project is null || project.IsService || project.Status is not ("Planned" or "InProgress"))
         {
             return;
         }

@@ -10,7 +10,11 @@ namespace BemAqui.Commercial.Contracts;
 /// </summary>
 public sealed record ProjectSummary(
     Guid Id, string Number, string Name, Guid PartyId, Guid ContractId, string Status, Guid? SiteAddressId, Guid? ManagerUserId = null, DateOnly? PromisedDate = null,
-    DateOnly? SignedAt = null);
+    DateOnly? SignedAt = null, string ExecutionKind = "Fabrication")
+{
+    /// <summary>Projeto de serviço (EXE-01a): sem fabricação nem instalação; fica fora da fila de produção.</summary>
+    public bool IsService => ExecutionKind == "Service";
+}
 
 public interface IProjects
 {
@@ -102,7 +106,7 @@ public interface IProjects
 /// </summary>
 public sealed record ProjectPortfolioItem(
     Guid Id, string Number, string Name, Guid PartyId, string Status, string ContractStatus, DateOnly SignedAt, decimal ContractedAmount, DateOnly? DeliveredOn,
-    ProjectForecastSummary Forecast);
+    ProjectForecastSummary Forecast, string ExecutionKind = "Fabrication");
 
 /// <summary>
 /// Previsão do projeto vista pelos outros módulos (PLN-01b CA 11): prometido, entrega prevista, fim da fabricação, motivo (código) da
@@ -194,12 +198,24 @@ public sealed record ProjectDelivered(Guid ProjectId, Guid ContractId, DateOnly 
     public TriggerEvent Event => TriggerEvent.Delivered;
 }
 
-/// <summary>Aceite técnico (COM-04b CA 10; COM-06).</summary>
-public sealed record TechnicalAcceptance(Guid ProjectId, Guid ContractId, DateOnly OccurredOn) : IProjectMilestoneReached
+/// <summary>
+/// Aceite técnico (COM-04b CA 10; COM-06) ou aceite do cliente do projeto de serviço (EXE-01a CA 13). <c>Version</c> é a versão do aceite (EXE-01a
+/// CA 18): o Finance descarta o evento velho; 0 no aceite técnico da OS de instalação e nas mensagens antigas.
+/// </summary>
+public sealed record TechnicalAcceptance(Guid ProjectId, Guid ContractId, DateOnly OccurredOn, int Version = 0) : IProjectMilestoneReached
 {
     [JsonIgnore]
     public TriggerEvent Event => TriggerEvent.TechnicalAcceptance;
 }
+
+/// <summary>Início da execução do projeto de serviço (EXE-01a CA 10). Sem consumidor de parcela: só registra o fato.</summary>
+public sealed record ProjectStarted(Guid ProjectId, Guid ContractId, DateOnly OccurredOn) : IIntegrationEvent;
+
+/// <summary>
+/// Aceite do cliente desfeito (EXE-01a CA 15 e 18), com a mesma versão do aceite: o Finance volta a <c>Planned</c> o título de aceite ainda sem
+/// baixa e sem boleto, sob lock; o Commercial reabre o contrato concluído na corrida (CA 21). Sem o motivo (texto livre, ADR 0019 §19).
+/// </summary>
+public sealed record TechnicalAcceptanceReverted(Guid ProjectId, Guid ContractId, DateOnly OccurredOn, int Version) : IIntegrationEvent;
 
 /// <summary>Contrato cancelado (COM-04b CA 12), sem texto livre (ADR 0019 §19).</summary>
 public sealed record ContractCancelled(Guid ContractId, Guid ProjectId) : IIntegrationEvent;

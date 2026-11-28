@@ -2,7 +2,6 @@ using BemAqui.BuildingBlocks.Integration;
 using BemAqui.BuildingBlocks.Persistence.Auditing;
 using BemAqui.BuildingBlocks.Time;
 using BemAqui.BuildingBlocks.Web;
-using BemAqui.Commercial.Application.Documents;
 using BemAqui.Commercial.Contracts;
 using BemAqui.Commercial.Domain;
 using BemAqui.Parties.Contracts;
@@ -17,7 +16,8 @@ namespace BemAqui.Commercial.Endpoints;
 /// ("No prazo", "Atrasado", "Entregue" ou "Cancelado") e data prevista de entrega. Nenhum campo de custo, orçado, margem ou valor: o teste de campos
 /// proibidos confere por reflexão.
 /// </summary>
-public sealed record IntegrationProjectStatus(string Number, string Name, string? StageLetter, string StageName, string Situation, DateOnly? PromisedDate);
+/// <remarks>EXE-01a CA 30: <c>ExecutionKind</c> é aditivo (contrato v1 mantido); a letra e o nome vêm da função única <see cref="ProjectStageMap"/>, sem dado do aceite.</remarks>
+public sealed record IntegrationProjectStatus(string Number, string Name, string? StageLetter, string StageName, string Situation, DateOnly? PromisedDate, string ExecutionKind = "Fabrication");
 
 /// <summary><c>GET /api/v1/integration/customers/{id}/projects</c> com <c>projects.view</c> (perfil fábrica), montado a partir do <see cref="IProjects"/>.</summary>
 public static class IntegrationProjectEndpoints
@@ -44,7 +44,8 @@ public static class IntegrationProjectEndpoints
     {
         ArgumentNullException.ThrowIfNull(project);
         var status = Enum.TryParse<ProjectStatus>(project.Status, out var parsed) ? parsed : ProjectStatus.Planned;
-        var index = ProjectSummaryPdf.StageIndex(status);
+        var kind = Enum.TryParse<ExecutionKind>(project.ExecutionKind, out var k) ? k : ExecutionKind.Fabrication;
+        var stage = ProjectStageMap.For(kind, status);
         var situation = status switch
         {
             ProjectStatus.Cancelled => "Cancelado",
@@ -52,7 +53,6 @@ public static class IntegrationProjectEndpoints
             _ when project.PromisedDate is { } promised && promised < today => "Atrasado",
             _ => "No prazo",
         };
-        return new IntegrationProjectStatus(project.Number, project.Name, index >= 0 ? ProjectSummaryPdf.Letters[index] : null, ProjectSummaryPdf.StatusLabel(status), situation,
-            project.PromisedDate);
+        return new IntegrationProjectStatus(project.Number, project.Name, stage.Letter, stage.Label, situation, project.PromisedDate, kind.ToString());
     }
 }

@@ -4,8 +4,11 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { ExecutionKind } from './executionKind';
+import type { ProjectAcceptanceView } from './projectAcceptanceView';
 import type { ProjectForecastView } from './projectForecastView';
 import type { ProjectItemView } from './projectItemView';
+import type { ProjectStage } from './projectStage';
 import type { ProjectStatus } from './projectStatus';
 
 export interface ProjectDetail {
@@ -48,4 +51,13 @@ export interface ProjectDetail {
   openFabricationOrders?: number;
   forecast?: null | ProjectForecastView;
   hasInstallation?: boolean;
+  executionKind?: ExecutionKind;
+  stage?: null | ProjectStage;
+  /** @nullable */
+  startedOn?: string | null;
+  /** @nullable */
+  acceptedOn?: string | null;
+  acceptance?: null | ProjectAcceptanceView;
+  acceptanceRequired?: boolean;
+  serviceExecution?: boolean;
 }

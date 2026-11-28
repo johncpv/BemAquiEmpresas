@@ -82,6 +82,9 @@ public static partial class ModuleCatalog
                 // COM-09 (PO 15/11/2026, ADR 0003 adendo de 15/11/2026): edição direta do orçado, separada de editar o projeto e de aprovar aditivo.
                 // Nenhum seed patch a concede: nasce só com o Proprietário, e o tenant concede a quem também tem "Ver custo e margem".
                 new("edit_budget", "Editar custo orçado", "Editar custo orçado: informar ou corrigir o custo orçado do projeto por natureza, com motivo. Muda a margem orçada; exige também Ver custo e margem."),
+                // EXE-01a (ADR 0003: segregação entre quem entrega e quem atesta o aceite). Sem seed patch: nasce só com o Proprietário, que delega
+                // (ADR 0008). Está em TwoFactorActions: quem a tem precisa de 2FA no login.
+                new("register_acceptance", "Registrar aceite do cliente", "Registrar aceite do cliente: registrar e desfazer o aceite do cliente no projeto de serviço; pode liberar parcela."),
             ], "aditivos de contrato"),
         new("parties", "Cadastros", ModuleAreas.Commercial, 1, 40, "Clientes, fornecedores e instaladores.", Crud, []),
         // CAT-01 (PDV, ADR 0046 e 0047): área Loja, só nos perfis de comércio; para a fábrica (Konebras) fica oculto. edit_price separa quem
@@ -152,6 +155,12 @@ public static partial class ModuleCatalog
         // autorizar e desconectar exigem settings.edit (Proprietário); conecta.edit (não reservada) é dos avisos e do segredo (INT-02).
         new("conecta", "Conecta", ModuleAreas.System, 12, 170, "Liga o ERP ao Conecta: vender, cobrar e avisar o cliente pelo WhatsApp.", [StandardActions.View, StandardActions.Edit], []),
     ];
+
+    /// <summary>
+    /// Ações específicas que, como <c>*.approve</c> e <c>*.pay</c>, exigem 2FA no login de quem as tem (EXE-01a CA 26; regra
+    /// <c>ApproverRequiresTwoFactorRule</c>): liberam dinheiro sem terminar em <c>.approve</c>.
+    /// </summary>
+    public static IReadOnlySet<string> TwoFactorActions { get; } = new HashSet<string>(StringComparer.Ordinal) { "projects.register_acceptance" };
 
     public static ModuleDefinition? Find(string code) => All.FirstOrDefault(m => string.Equals(m.Code, code, StringComparison.Ordinal));
 

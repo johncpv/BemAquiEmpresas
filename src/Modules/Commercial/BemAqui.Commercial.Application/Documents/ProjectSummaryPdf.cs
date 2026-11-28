@@ -33,23 +33,12 @@ public sealed record ProjectSummaryPdfFinance(decimal ToReceive, decimal Receive
 /// <summary>Montagem pura do resumo do projeto (EXP-05 CA 5): etapa, atraso, marca "Cancelado" e os blocos por permissão.</summary>
 public static class ProjectSummaryPdf
 {
-    public static readonly string[] Letters = ["P", "E", "F", "I", "T", "C"];
+    // EXE-01a CA 29: etapas pela função única ProjectStageMap (o PDF do projeto de serviço é da EXE-01b).
+    public static readonly IReadOnlyList<string> Letters = ProjectStageMap.FabricationLetters;
 
-    private static readonly ProjectStatus[] Order =
-        [ProjectStatus.Planned, ProjectStatus.InProgress, ProjectStatus.Fabricated, ProjectStatus.Installing, ProjectStatus.Delivered, ProjectStatus.Closed];
+    public static int StageIndex(ProjectStatus status) => ProjectStageMap.For(ExecutionKind.Fabrication, status).Index;
 
-    public static int StageIndex(ProjectStatus status) => Array.IndexOf(Order, status);
-
-    public static string StatusLabel(ProjectStatus status) => status switch
-    {
-        ProjectStatus.Planned => "Planejado",
-        ProjectStatus.InProgress => "Em produção",
-        ProjectStatus.Fabricated => "Fabricado",
-        ProjectStatus.Installing => "Instalando",
-        ProjectStatus.Delivered => "Entregue",
-        ProjectStatus.Closed => "Encerrado",
-        _ => "Cancelado",
-    };
+    public static string StatusLabel(ProjectStatus status) => ProjectStageMap.For(ExecutionKind.Fabrication, status).Label;
 
     public static string OrderStatusLabel(ProductionOrderState status) => status switch
     {

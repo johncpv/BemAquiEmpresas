@@ -38,7 +38,7 @@ public sealed class ContractSignedConsumer(
         var milestoneIds = milestones.Select(m => m.MilestoneId).ToList();
         var existing = await db.Receivables.Where(r => r.Origin == DocumentOrigin.Contract && r.OriginId != null && milestoneIds.Contains(r.OriginId.Value))
             .Select(r => r.OriginId!.Value).ToListAsync(cancellationToken);
-        var triggers = await db.ProjectTriggerEvents.AsNoTracking().Where(t => t.ProjectId == projectId && t.ContractId == contractId)
+        var triggers = await db.ProjectTriggerEvents.AsNoTracking().Where(t => t.ProjectId == projectId && t.ContractId == contractId && !t.Reverted)
             .ToDictionaryAsync(t => t.Event, t => t.OccurredOn, cancellationToken);
         var number = contract?.Number ?? "Contrato";
         var created = new List<Receivable>();

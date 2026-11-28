@@ -57,9 +57,11 @@ public sealed record LaborPositionOption(Guid Id, string Name, Guid? DefaultWork
 
 public sealed record LaborWorkCenterOption(Guid Id, string Name);
 
-public sealed record CommercialParametersView(decimal? DefaultPct, string PricingMode, int ValidityDays = 15);
+/// <summary>EXE-01a CA 14: <c>AcceptanceSegregation</c> = quem registrou a entrega não registra o aceite (desligada por padrão).</summary>
+public sealed record CommercialParametersView(decimal? DefaultPct, string PricingMode, int ValidityDays = 15, bool AcceptanceSegregation = false);
 
-public sealed record CommercialParametersInput(decimal? DefaultPct, int ValidityDays = 15);
+/// <summary>EXE-01a CA 14: <c>AcceptanceSegregation</c> nulo mantém o valor atual.</summary>
+public sealed record CommercialParametersInput(decimal? DefaultPct, int ValidityDays = 15, bool? AcceptanceSegregation = null);
 
 public sealed record QuoteTermOption(Guid Id, string Name);
 

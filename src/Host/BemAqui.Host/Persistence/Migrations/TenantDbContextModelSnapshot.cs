@@ -2557,6 +2557,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateOnly?>("AcceptedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("accepted_on");
+
                     b.Property<DateTimeOffset?>("BudgetRevisedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("budget_revised_at");
@@ -2573,6 +2577,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<Guid?>("DeliveredBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("delivered_by");
+
                     b.Property<bool>("DeliveredManually")
                         .HasColumnType("boolean")
                         .HasColumnName("delivered_manually");
@@ -2581,6 +2589,22 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("date")
                         .HasColumnName("delivered_on");
 
+                    b.Property<string>("ExecutionKind")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasDefaultValue("Fabrication")
+                        .HasColumnName("execution_kind");
+
+                    b.Property<string>("ExecutionKindSource")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasDefaultValue("Default")
+                        .HasColumnName("execution_kind_source");
+
                     b.Property<bool>("FabricatedByOrders")
                         .HasColumnType("boolean")
                         .HasColumnName("fabricated_by_orders");
@@ -2588,6 +2612,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<DateOnly?>("FabricatedOn")
                         .HasColumnType("date")
                         .HasColumnName("fabricated_on");
+
+                    b.Property<DateOnly?>("FabricationCompatOn")
+                        .HasColumnType("date")
+                        .HasColumnName("fabrication_compat_on");
 
                     b.Property<DateOnly?>("ForecastDate")
                         .HasColumnType("date")
@@ -2625,6 +2653,10 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("site_address_id");
 
+                    b.Property<DateOnly?>("StartedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("started_on");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(12)
@@ -2643,6 +2675,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.HasIndex("ContractId")
                         .HasDatabaseName("ix_projects_contract_id");
 
+                    b.HasIndex("ExecutionKindSource")
+                        .HasDatabaseName("ix_projects_execution_kind_source_default")
+                        .HasFilter("execution_kind_source = 'Default'");
+
                     b.HasIndex("Number")
                         .IsUnique()
                         .HasDatabaseName("ix_projects_number");
@@ -2651,6 +2687,86 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasDatabaseName("ix_projects_party_id");
 
                     b.ToTable("projects", "commercial");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectAcceptance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AcceptedByName")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("accepted_by_name");
+
+                    b.Property<string>("AcceptedByRole")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("accepted_by_role");
+
+                    b.Property<Guid?>("AttachmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attachment_id");
+
+                    b.Property<string>("BackdateReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("backdate_reason");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("kind");
+
+                    b.Property<DateOnly>("OccurredOn")
+                        .HasColumnType("date")
+                        .HasColumnName("occurred_on");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid?>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<string>("RevertReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("revert_reason");
+
+                    b.Property<DateTimeOffset?>("RevertedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reverted_at");
+
+                    b.Property<Guid?>("RevertedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reverted_by");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("pk_project_acceptances");
+
+                    b.HasIndex("ProjectId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_project_acceptances_project_id_active")
+                        .HasFilter("reverted_at IS NULL");
+
+                    b.HasIndex("ProjectId", "Version")
+                        .IsUnique()
+                        .HasDatabaseName("ix_project_acceptances_project_id_version");
+
+                    b.ToTable("project_acceptances", "commercial");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectBudget", b =>
@@ -6285,6 +6401,19 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<DateTimeOffset>("ReceivedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("received_at");
+
+                    b.Property<string>("RevertNote")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("revert_note");
+
+                    b.Property<bool>("Reverted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("reverted");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
 
                     b.HasKey("Id")
                         .HasName("pk_project_trigger_events");
@@ -21873,6 +22002,16 @@ namespace BemAqui.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_projects_contracts_contract_id");
+                });
+
+            modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectAcceptance", b =>
+                {
+                    b.HasOne("BemAqui.Commercial.Domain.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_project_acceptances_projects_project_id");
                 });
 
             modelBuilder.Entity("BemAqui.Commercial.Domain.ProjectBudget", b =>

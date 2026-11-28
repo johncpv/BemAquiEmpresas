@@ -24,6 +24,11 @@ public sealed partial class ProjectService
         }
 
         var project = loaded.Value;
+        if (project.ExecutionKind == ExecutionKind.Service)
+        {
+            return Error.Conflict("not_a_fabrication_project", NotAFabricationMessage);
+        }
+
         if (project.Status is not (ProjectStatus.Planned or ProjectStatus.InProgress))
         {
             return Error.Conflict("project_not_in_production", "A fabricação só é registrada em projeto planejado ou em produção.");

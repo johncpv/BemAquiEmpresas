@@ -10,4 +10,5 @@ export interface CommercialParametersView {
   defaultPct: number | null;
   pricingMode: string;
   validityDays?: number;
+  acceptanceSegregation?: boolean;
 }

@@ -961,12 +961,15 @@ import type {
   ProductionCard,
   ProductionParametersInput,
   ProductionParametersView,
+  ProjectAcceptanceInput,
+  ProjectAcceptanceRevertInput,
   ProjectBillingView,
   ProjectBudgetEditInput,
   ProjectBudgetLine,
   ProjectBudgetRevisionView,
   ProjectCostEntries,
   ProjectCostView,
+  ProjectDeliveryInput,
   ProjectDetail,
   ProjectEventInput,
   ProjectFinancial,
@@ -979,6 +982,7 @@ import type {
   ProjectResultCell,
   ProjectResultDetail,
   ProjectResultsPage,
+  ProjectStartInput,
   ProjectTimelineEntry,
   ProjectUpdateInput,
   ProvisionAccepted,
@@ -42705,7 +42709,7 @@ export const getRegisterProjectDeliveryUrl = (id: string,) => {
 }
 
 export const registerProjectDelivery = async (id: string,
-    projectEventInput: ProjectEventInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectDetail> => {
+    projectDeliveryInput: ProjectDeliveryInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectDetail> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -42726,7 +42730,7 @@ return apiFetch<ProjectDetail>(getRegisterProjectDeliveryUrl(id),
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(projectEventInput)
+    body: JSON.stringify(projectDeliveryInput)
   }
 );}
 
@@ -42764,9 +42768,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type RegisterProjectDeliveryMutationResult = NonNullable<Awaited<ReturnType<typeof registerProjectDelivery>>>
-    export type RegisterProjectDeliveryMutationBody = ProjectEventInput
+    export type RegisterProjectDeliveryMutationBody = ProjectDeliveryInput
     export type RegisterProjectDeliveryMutationError = unknown
-    export type RegisterProjectDeliveryMutationVariables = {id: string;data: ProjectEventInput}
+    export type RegisterProjectDeliveryMutationVariables = {id: string;data: ProjectDeliveryInput}
 
     export const useRegisterProjectDelivery = <TError = unknown,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerProjectDelivery>>, TError,RegisterProjectDeliveryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
@@ -42777,6 +42781,255 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getRegisterProjectDeliveryMutationOptions(options), queryClient);
+    }
+
+export const getStartProjectUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/projects/${id}/start`
+}
+
+export const startProject = async (id: string,
+    projectStartInput: ProjectStartInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ProjectDetail>(getStartProjectUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(projectStartInput)
+  }
+);}
+
+
+
+
+
+export const getStartProjectMutationKey = () => ['startProject'] as const;
+
+export const getStartProjectMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startProject>>, TError,StartProjectMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startProject>>, TError,StartProjectMutationVariables, TContext> => {
+
+const mutationKey = getStartProjectMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startProject>>, StartProjectMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  startProject(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartProjectMutationResult = NonNullable<Awaited<ReturnType<typeof startProject>>>
+    export type StartProjectMutationBody = ProjectStartInput
+    export type StartProjectMutationError = unknown
+    export type StartProjectMutationVariables = {id: string;data: ProjectStartInput}
+
+    export const useStartProject = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startProject>>, TError,StartProjectMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startProject>>,
+        TError,
+        StartProjectMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartProjectMutationOptions(options), queryClient);
+    }
+
+export const getRegisterProjectAcceptanceUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/projects/${id}/acceptance`
+}
+
+export const registerProjectAcceptance = async (id: string,
+    projectAcceptanceInput: ProjectAcceptanceInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ProjectDetail>(getRegisterProjectAcceptanceUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(projectAcceptanceInput)
+  }
+);}
+
+
+
+
+
+export const getRegisterProjectAcceptanceMutationKey = () => ['registerProjectAcceptance'] as const;
+
+export const getRegisterProjectAcceptanceMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerProjectAcceptance>>, TError,RegisterProjectAcceptanceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof registerProjectAcceptance>>, TError,RegisterProjectAcceptanceMutationVariables, TContext> => {
+
+const mutationKey = getRegisterProjectAcceptanceMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registerProjectAcceptance>>, RegisterProjectAcceptanceMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  registerProjectAcceptance(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterProjectAcceptanceMutationResult = NonNullable<Awaited<ReturnType<typeof registerProjectAcceptance>>>
+    export type RegisterProjectAcceptanceMutationBody = ProjectAcceptanceInput
+    export type RegisterProjectAcceptanceMutationError = unknown
+    export type RegisterProjectAcceptanceMutationVariables = {id: string;data: ProjectAcceptanceInput}
+
+    export const useRegisterProjectAcceptance = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerProjectAcceptance>>, TError,RegisterProjectAcceptanceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof registerProjectAcceptance>>,
+        TError,
+        RegisterProjectAcceptanceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRegisterProjectAcceptanceMutationOptions(options), queryClient);
+    }
+
+export const getRevertProjectAcceptanceUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/projects/${id}/acceptance/revert`
+}
+
+export const revertProjectAcceptance = async (id: string,
+    projectAcceptanceRevertInput: ProjectAcceptanceRevertInput, options?: Parameters<typeof apiFetch>[1]): Promise<ProjectDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ProjectDetail>(getRevertProjectAcceptanceUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(projectAcceptanceRevertInput)
+  }
+);}
+
+
+
+
+
+export const getRevertProjectAcceptanceMutationKey = () => ['revertProjectAcceptance'] as const;
+
+export const getRevertProjectAcceptanceMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revertProjectAcceptance>>, TError,RevertProjectAcceptanceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof revertProjectAcceptance>>, TError,RevertProjectAcceptanceMutationVariables, TContext> => {
+
+const mutationKey = getRevertProjectAcceptanceMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revertProjectAcceptance>>, RevertProjectAcceptanceMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  revertProjectAcceptance(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevertProjectAcceptanceMutationResult = NonNullable<Awaited<ReturnType<typeof revertProjectAcceptance>>>
+    export type RevertProjectAcceptanceMutationBody = ProjectAcceptanceRevertInput
+    export type RevertProjectAcceptanceMutationError = unknown
+    export type RevertProjectAcceptanceMutationVariables = {id: string;data: ProjectAcceptanceRevertInput}
+
+    export const useRevertProjectAcceptance = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revertProjectAcceptance>>, TError,RevertProjectAcceptanceMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof revertProjectAcceptance>>,
+        TError,
+        RevertProjectAcceptanceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRevertProjectAcceptanceMutationOptions(options), queryClient);
     }
 
 export const getGetCommercialParametersUrl = () => {

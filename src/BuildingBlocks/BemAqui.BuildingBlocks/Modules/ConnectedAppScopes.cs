@@ -38,7 +38,7 @@ public static class ConnectedAppScopes
     public static bool IsNeverGranted(string scope)
     {
         ArgumentNullException.ThrowIfNull(scope);
-        return scope.EndsWith(".approve", StringComparison.Ordinal) || NeverGranted.Contains(scope, StringComparer.Ordinal);
+        return scope.EndsWith(".approve", StringComparison.Ordinal) || NeverGranted.Contains(scope, StringComparer.Ordinal) || ModuleCatalog.TwoFactorActions.Contains(scope);
     }
 
     /// <summary>Texto em português simples para o consentimento e a ajuda.</summary>

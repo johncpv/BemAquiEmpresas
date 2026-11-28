@@ -70,7 +70,7 @@ public partial class QuoteTests
         fab.DueDate.Should().Be(Today.AddDays(-30));
 
         // CA 5: com a entrega e as duas parcelas pagas, conclui (o sinal conta como quitado).
-        (await owner.PostAsJsonAsync($"/api/v1/projects/{projectId}/delivery", new { date = Iso(Today.AddDays(-35)), version = Version(project) })).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await owner.SendAsync(Post($"/api/v1/projects/{projectId}/delivery", new { date = Iso(Today.AddDays(-35)), version = Version(project) }))).StatusCode.Should().Be(HttpStatusCode.OK);
         var bank = await SettleBankAsync(owner);
         await SettleAsync(owner, bank, parcela.Id);
         await SettleAsync(owner, bank, fab.Id);

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { registerProjectDelivery, registerProjectFabrication, useGetContract } from '@/api/generated/bemaqui'
 import type { ProjectDetail } from '@/api/generated/model'
+import { useIdempotencyKey } from '@/api/idempotency'
 import { DateInput } from '@/components/form/inputs'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Money } from '@/components/ui/money'
@@ -21,6 +22,8 @@ const addDays = (iso: string, days: number) => { const d = new Date(iso + 'T00:0
  */
 export function ProjectEventDialog({ project, kind, onDone }: { project: ProjectDetail; kind: Kind; onDone: () => Promise<void> }) {
   const [date, setDate] = useState(today())
+  // EXE-01a CA 23: a entrega exige Idempotency-Key (clique duplo e reenvio devolvem o resultado original).
+  const idempotency = useIdempotencyKey()
   const canFinance = useCan('finance.view')
   const contract = useGetContract(project.contractId)
   const milestones = (contract.data?.milestones ?? []).filter((m) => m.trigger === 'Event' && TRIGGERS[kind].includes(m.triggerEvent ?? '') && (!m.receivable || m.receivable.status === 'Planned'))
@@ -39,7 +42,9 @@ export function ProjectEventDialog({ project, kind, onDone }: { project: Project
       impact={impact}
       onConfirm={async () => {
         const input = { date, version: project.version }
-        await (kind === 'fabrication' ? registerProjectFabrication(project.id, input) : registerProjectDelivery(project.id, input))
+        const deliveryInput = { ...input, expectedStatus: project.status }
+        await (kind === 'fabrication' ? registerProjectFabrication(project.id, input) : registerProjectDelivery(project.id, deliveryInput, idempotency.options))
+        idempotency.renew()
         await onDone()
       }}
       trigger={<button type="button" className={kind === 'delivery' ? 'rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground' : 'rounded-md border border-border px-3 py-2 text-sm font-semibold'}>{verb}</button>}>

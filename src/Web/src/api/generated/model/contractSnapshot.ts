@@ -26,4 +26,5 @@ export interface ContractSnapshot {
   /** @nullable */
   marginPct: number | null;
   isOnboarding?: boolean;
+  executionKind?: string;
 }
