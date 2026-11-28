@@ -28,6 +28,13 @@ public sealed partial class ProjectService
         }
 
         entries.Add(new(At(contract.SignedAt), "contract_signed", $"Contrato {contract.Number} assinado", await WhoAsync(contract.CreatedBy, cancellationToken), "/app/contratos/" + contract.Id));
+        // EXE-03a CA 4: a cópia das etapas do modelo (na aprovação ou por "Usar um modelo de etapas"), com o nome e a revisão da hora da cópia.
+        if (project.StagesAppliedAt is { } applied && project.StageTemplateName is { } templateName)
+        {
+            entries.Add(new(applied, "stages_applied", $"Etapas do modelo {templateName} (revisão {project.StageTemplateRevision})", await WhoAsync(project.StagesAppliedBy, cancellationToken),
+                "/app/projetos/" + id + "?aba=etapas"));
+        }
+
         foreach (var a in await db.ContractAmendments.AsNoTracking().Where(a => a.ContractId == contract.Id && a.Status == AmendmentStatus.Approved).ToListAsync(cancellationToken))
         {
             entries.Add(new(a.ApprovedAt ?? a.CreatedAt, "amendment_approved", $"Aditivo {a.Number} aprovado: {a.Description}", await WhoAsync(a.ApprovedBy, cancellationToken), $"/app/contratos/{contract.Id}/aditivos/{a.Id}"));

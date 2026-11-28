@@ -10,11 +10,17 @@ namespace BemAqui.Commercial.Contracts;
 /// </summary>
 public sealed record ProjectSummary(
     Guid Id, string Number, string Name, Guid PartyId, Guid ContractId, string Status, Guid? SiteAddressId, Guid? ManagerUserId = null, DateOnly? PromisedDate = null,
-    DateOnly? SignedAt = null, string ExecutionKind = "Fabrication")
+    DateOnly? SignedAt = null, string ExecutionKind = "Fabrication", ProjectCurrentStage? CurrentStage = null)
 {
     /// <summary>Projeto de serviço (EXE-01a): sem fabricação nem instalação; fica fora da fila de produção.</summary>
     public bool IsService => ExecutionKind == "Service";
 }
+
+/// <summary>
+/// Etapa atual do modelo no projeto de serviço (EXE-03a CA 8 e 9): letra, nome, posição e total. Separada da etapa do projeto (P · I · E · A · C,
+/// que é o estado) e sem o responsável, para servir também à API v1 e ao PDF.
+/// </summary>
+public sealed record ProjectCurrentStage(string Code, string Name, int Sequence, int Total);
 
 public interface IProjects
 {

@@ -18,7 +18,7 @@ namespace BemAqui.Commercial.Application;
 public sealed partial class QuoteApprovalService(
     ICommercialDb db, QuoteService quotes, IParties parties, IChartOfAccounts chart, INumberSequence numbers, IPermissionChecker permissions, ICurrentUser currentUser,
     IEventPublisher events, IFinancialOpening opening, IUserDirectory users, BemAqui.BuildingBlocks.Notifications.INotificationService notifications, TimeProvider clock,
-    BemAqui.BuildingBlocks.Tenancy.TenantContextHolder tenant)
+    BemAqui.BuildingBlocks.Tenancy.TenantContextHolder tenant, ProjectStageService stages)
 {
     private static readonly string[] SuggestedAccounts = ["1.1", "1.9"];
 

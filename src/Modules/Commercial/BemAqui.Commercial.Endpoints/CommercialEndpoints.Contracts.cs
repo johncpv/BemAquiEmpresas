@@ -103,6 +103,15 @@ internal static partial class CommercialEndpoints
         service.MapPost("/{id:guid}/acceptance/revert", async (Guid id, ProjectAcceptanceRevertInput input, ProjectExecutionService execution, CancellationToken ct) =>
                 (await execution.RevertAcceptanceAsync(id, input, ct)).ToHttpResult())
             .RequirePermission("projects.register_acceptance").RequireIdempotencyKey().WithName("RevertProjectAcceptance").Produces<ProjectDetail>();
+        // EXE-03a CA 3 a 7: etapas do modelo no projeto de serviço (ler com projects.view; usar modelo e editar com projects.edit). Versão do projeto
+        // (xmin) no corpo; etapa de outro projeto, 404.
+        service.MapGet("/{id:guid}/stages", async (Guid id, ProjectStageService stages, CancellationToken ct) => (await stages.GetAsync(id, ct)).ToHttpResult())
+            .RequirePermission("projects.view").WithName("GetProjectStages").Produces<ProjectStagesView>();
+        service.MapPut("/{id:guid}/stages", async (Guid id, ProjectStagesInput input, ProjectStageService stages, CancellationToken ct) => (await stages.UpdateAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("projects.edit").WithName("UpdateProjectStages").Produces<ProjectStagesView>();
+        service.MapPost("/{id:guid}/stages/apply-template", async (Guid id, ProjectStageTemplateInput input, ProjectStageService stages, CancellationToken ct) =>
+                (await stages.ApplyTemplateAsync(id, input, ct)).ToHttpResult())
+            .RequirePermission("projects.edit").WithName("ApplyProjectStageTemplate").Produces<ProjectStagesView>();
     }
 }
 

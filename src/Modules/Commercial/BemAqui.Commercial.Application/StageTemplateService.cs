@@ -76,16 +76,10 @@ public sealed partial class StageTemplateService(ICommercialDb db, IPositions po
             template.Revision, steps.Sum(s => s.StandardHoursPerUnit), itemCount, usage, views, template.SuggestedMilestones.ToList(), template.Version, template.CreatedAt);
     }
 
-    /// <summary>
-    /// Projetos que copiaram as etapas de cada modelo (CA 6). A cópia nasce na EXE-03a, que grava o modelo no projeto; até lá nenhum projeto usa
-    /// modelo e a contagem é zero.
-    /// </summary>
-    private static Task<Dictionary<Guid, int>> UsageAsync(IReadOnlyCollection<Guid> ids, CancellationToken ct)
-    {
-        _ = ids;
-        _ = ct;
-        return Task.FromResult(new Dictionary<Guid, int>());
-    }
+    /// <summary>Projetos que copiaram as etapas de cada modelo (CA 6): o modelo fica gravado no projeto na cópia (EXE-03a).</summary>
+    private async Task<Dictionary<Guid, int>> UsageAsync(IReadOnlyCollection<Guid> ids, CancellationToken ct) =>
+        await db.Projects.AsNoTracking().Where(p => p.StageTemplateId != null && ids.Contains(p.StageTemplateId.Value)).GroupBy(p => p.StageTemplateId!.Value)
+            .Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count, ct);
 
     /// <summary>Chip "Sugerido — ajuste ao seu jeito" (CA 11): modelo do pacote do perfil que o tenant ainda não editou.</summary>
     private static bool IsSuggested(StageTemplate t) => t.SeedKey is not null && t.Revision == 1;

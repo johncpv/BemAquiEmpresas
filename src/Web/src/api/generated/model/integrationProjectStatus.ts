@@ -4,6 +4,7 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { IntegrationCurrentStage } from './integrationCurrentStage';
 
 export interface IntegrationProjectStatus {
   number: string;
@@ -15,4 +16,5 @@ export interface IntegrationProjectStatus {
   /** @nullable */
   promisedDate: string | null;
   executionKind?: string;
+  currentStage?: null | IntegrationCurrentStage;
 }

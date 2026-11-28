@@ -54,6 +54,9 @@ internal sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
         b.Property(e => e.ExecutionKind).HasConversion<string>().HasMaxLength(12).HasDefaultValue(ExecutionKind.Fabrication).HasSentinel(ExecutionKind.Fabrication);
         b.Property(e => e.ExecutionKindSource).HasConversion<string>().HasMaxLength(12).HasDefaultValue(ExecutionKindSource.Default).HasSentinel(ExecutionKindSource.Default);
         b.HasIndex(e => e.ExecutionKindSource).HasFilter("execution_kind_source = 'Default'").HasDatabaseName("ix_projects_execution_kind_source_default");
+        // EXE-03a CA 1: o modelo de etapas copiado (o contador "Usado em {n} projetos" da EXE-02 lê por aqui).
+        b.Property(e => e.StageTemplateName).HasMaxLength(BemAqui.Commercial.Application.StageTemplateRules.MaxName);
+        b.HasIndex(e => e.StageTemplateId).HasFilter("stage_template_id IS NOT NULL");
     }
 }
 

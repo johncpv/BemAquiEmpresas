@@ -21,6 +21,9 @@ public sealed record ProjectSummaryPdfModel(
 
     /// <summary>Só a data do aceite do cliente (EXE-01b CA 14): nunca quem aceitou (LGPD).</summary>
     public DateOnly? AcceptedOn { get; init; }
+
+    /// <summary>Etapa atual do modelo (EXE-03a CA 9): letra, nome e posição; nunca o responsável.</summary>
+    public ProjectCurrentStage? CurrentStage { get; init; }
 }
 
 public sealed record ProjectSummaryPdfItem(int Sequence, string Description, decimal Quantity);
@@ -46,6 +49,13 @@ public static class ProjectSummaryPdf
     public static int StageIndex(ProjectStatus status) => ProjectStageMap.For(ExecutionKind.Fabrication, status).Index;
 
     public static string StatusLabel(ProjectStatus status) => ProjectStageMap.For(ExecutionKind.Fabrication, status).Label;
+
+    /// <summary>"Etapa atual: T Treinamento (2 de 5)" (EXE-03a CA 9).</summary>
+    public static string CurrentStageText(ProjectCurrentStage stage)
+    {
+        ArgumentNullException.ThrowIfNull(stage);
+        return $"Etapa atual: {stage.Code} {stage.Name} ({stage.Sequence} de {stage.Total})";
+    }
 
     public static string OrderStatusLabel(ProductionOrderState status) => status switch
     {
@@ -137,6 +147,7 @@ public static class ProjectSummaryPdf
         {
             Letters = stage.Letters,
             AcceptedOn = project.ExecutionKind == ExecutionKind.Service ? project.AcceptedOn : null,
+            CurrentStage = project.ExecutionKind == ExecutionKind.Service ? project.CurrentStage : null,
         };
     }
 }

@@ -1,10 +1,12 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using BemAqui.Commercial.Domain;
 
 namespace BemAqui.Commercial.Application;
 
 // Snapshot do contrato (COM-04a CA 12), esquema "v1": o cliente só por id e nome; custo só com projects.view_cost. EXE-01a CA 3: executionKind
-// (ausente no snapshot antigo = Fabrication na leitura); o que vale é o tipo do projeto (CA 4).
+// (ausente no snapshot antigo = Fabrication na leitura); o que vale é o tipo do projeto (CA 4). EXE-03a CA 2: stages congeladas (código, nome, papel),
+// aditivo ao v1 e ausente quando o projeto nasce sem etapas.
 
 public sealed record SnapshotParty(Guid Id, string Name);
 
@@ -14,9 +16,13 @@ public sealed record SnapshotItem(int Sequence, string Kind, Guid? ItemId, strin
 
 public sealed record SnapshotMilestone(int Sequence, string Description, decimal Percent, decimal Amount, string Trigger, string? TriggerEvent, DateOnly? DueDate, int? DaysAfterEvent, bool ReceivedBeforeOnboarding = false);
 
+/// <summary>Etapa congelada no snapshot (EXE-03a CA 2): só letra, nome e papel; horas, responsável e checklist ficam no projeto.</summary>
+public sealed record SnapshotStage(string Code, string Name, string Role);
+
 public sealed record ContractSnapshot(
     string Schema, string QuoteNumber, int QuoteRevision, SnapshotParty Party, int? DeliveryDays, string? Notes, string PricingMode, IReadOnlyList<SnapshotItem> Items,
-    IReadOnlyList<SnapshotMilestone> Milestones, decimal TotalPrice, decimal? TotalCost, decimal? MarginPct, bool IsOnboarding = false, string ExecutionKind = "Fabrication");
+    IReadOnlyList<SnapshotMilestone> Milestones, decimal TotalPrice, decimal? TotalCost, decimal? MarginPct, bool IsOnboarding = false, string ExecutionKind = "Fabrication",
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<SnapshotStage>? Stages = null);
 
 public static class ContractSnapshots
 {
@@ -24,7 +30,8 @@ public static class ContractSnapshots
 
     public static string Serialize(
         Quote quote, string partyName, IReadOnlyList<QuoteItem> items, IReadOnlyList<QuoteItemCost> costs, IReadOnlyList<QuoteMilestone> milestones, bool isOnboarding = false,
-        IReadOnlyDictionary<Guid, OnboardingMilestoneInput>? onboarding = null, ExecutionKind executionKind = ExecutionKind.Fabrication)
+        IReadOnlyDictionary<Guid, OnboardingMilestoneInput>? onboarding = null, ExecutionKind executionKind = ExecutionKind.Fabrication,
+        IReadOnlyList<SnapshotStage>? stages = null)
     {
         ArgumentNullException.ThrowIfNull(quote);
         return JsonSerializer.Serialize(new ContractSnapshot(
@@ -33,7 +40,7 @@ public static class ContractSnapshots
                 costs.Where(c => c.QuoteItemId == i.Id).Select(c => new SnapshotCost(c.CostType.ToString(), c.Description, c.ItemId, c.Quantity, c.UnitCost, c.Total)).ToList())).ToList(),
             milestones.Select(m => new SnapshotMilestone(m.Sequence, m.Description, m.Percent, m.Amount, m.Trigger.ToString(), m.TriggerEvent?.ToString(),
                 onboarding?.GetValueOrDefault(m.Id)?.DueDate ?? m.DueDate, m.DaysAfterEvent, onboarding?.GetValueOrDefault(m.Id)?.ReceivedBefore ?? false)).ToList(),
-            quote.TotalPrice, quote.TotalCost, quote.MarginPct, isOnboarding, executionKind.ToString()), Json);
+            quote.TotalPrice, quote.TotalCost, quote.MarginPct, isOnboarding, executionKind.ToString(), stages is { Count: > 0 } ? stages : null), Json);
     }
 
     /// <summary>Lê o snapshot; sem <c>projects.view_cost</c>, tira composições, custo e margem (D7).</summary>
