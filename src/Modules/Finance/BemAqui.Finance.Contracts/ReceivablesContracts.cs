@@ -39,10 +39,25 @@ public sealed record ReceivableSettled(
     decimal Principal,
     bool IsReversal) : IIntegrationEvent;
 
-/// <summary>Parâmetros do Finance (ADR 0016 adendo M6): limites de desconto, cancelamento e data retroativa (FIN-01 CA 13, 14 e 18).</summary>
+/// <summary>
+/// Parâmetros do Finance (ADR 0016 adendo M6): limites de desconto, cancelamento e data retroativa (FIN-01 CA 13, 14 e 18).
+/// <c>SelfApprovalMode</c> (FIN-10a, ADR 0054): quem solicitou a OP pode aprová-la; <c>OwnerCanApproveOwn</c> é derivado
+/// (<c>modo != Never</c>) e o aditivo e a pauta do Comercial o usam só para quem já é do Proprietário.
+/// </summary>
 public sealed record FinanceLimits(
     decimal DiscountApprovalPct, decimal DiscountApprovalAmount, decimal CancelApprovalAmount, int BackdateDays, bool OwnerCanApproveOwn = false, decimal PaymentTolerance = 0, decimal TransferNotifyAmount = 10_000,
-    decimal AdjustedDefaultThresholdPct = 20, decimal OfxBankEntryCap = 500);
+    decimal AdjustedDefaultThresholdPct = 20, decimal OfxBankEntryCap = 500, SelfApprovalMode SelfApprovalMode = SelfApprovalMode.Never);
+
+/// <summary>
+/// Autoaprovação da OP (FIN-10a, ADR 0054), gravada em <c>finance.owner_can_approve_own</c> como 0, 1 ou 2: Nunca (só a exceção do
+/// Proprietário único, FIN-03a D6 a), Só o Proprietário e Qualquer aprovador (só no 1º nível da alçada).
+/// </summary>
+public enum SelfApprovalMode
+{
+    Never = 0,
+    OwnerOnly = 1,
+    AnyApprover = 2,
+}
 
 /// <summary>Leitura dos parâmetros do Finance pelos outros módulos e telas (Configurações → Parâmetros, seção Financeiro).</summary>
 public interface IFinanceParameters

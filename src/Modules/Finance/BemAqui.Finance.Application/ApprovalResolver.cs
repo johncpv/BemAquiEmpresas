@@ -120,8 +120,8 @@ public sealed class ApprovalResolver(IFinanceDb db, IUserDirectory users, IFinan
     }
 
     /// <summary>
-    /// O solicitante pode decidir o próprio documento? OP (D6): é do Proprietário e o Proprietário tem um membro só ou o parâmetro
-    /// <c>finance.owner_can_approve_own</c> está ligado. Demais tipos (ADR 0024 §4): só o Proprietário único, pelo <see cref="SoleOwnerRule"/>.
+    /// O solicitante pode decidir o próprio documento? OP (D6, FIN-10a): pelo modo de <c>finance.owner_can_approve_own</c>
+    /// (<see cref="PaymentOrderRules.CanDecide"/>); quem chama restringe o solicitante ao nível 1. Demais tipos (ADR 0024 §4): só o Proprietário único, pelo <see cref="SoleOwnerRule"/>.
     /// </summary>
     private async Task<bool> SelfAllowedAsync(string documentType, Guid? requester, IReadOnlyList<Guid> approvers, CancellationToken ct)
     {
@@ -133,7 +133,7 @@ public sealed class ApprovalResolver(IFinanceDb db, IUserDirectory users, IFinan
         var owners = await users.OwnerIdsAsync(ct);
         if (documentType == ApprovalDocumentTypes.PaymentOrder)
         {
-            return owners.Contains(r) && (owners.Count == 1 || (await parameters.LimitsAsync(ct)).OwnerCanApproveOwn);
+            return PaymentOrderRules.CanDecide(true, owners.Contains(r), owners.Count, (await parameters.LimitsAsync(ct)).SelfApprovalMode).Allowed;
         }
 
         return owners.Contains(r) && SoleOwnerRule.NoOtherEligible(approvers, r, [r]);

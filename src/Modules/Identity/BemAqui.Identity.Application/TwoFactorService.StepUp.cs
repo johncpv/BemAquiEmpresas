@@ -25,6 +25,9 @@ public sealed partial class TwoFactorService : IStepUpTwoFactor
         return accepted;
     }
 
+    public async Task<bool> IsEnrolledAsync(Guid userId, CancellationToken cancellationToken = default) =>
+        (await ActiveUserAsync(userId, cancellationToken))?.TotpEnabled == true;
+
     /// <summary>
     /// Renova a prova do 2FA (BNK-01a CA 1): confere o código e devolve só um access token novo com <c>otp_at</c> agora; a sessão
     /// (família de refresh e cookie) não muda. Sem 2FA ativo, 403 <c>two_factor_required</c> com o texto de ativar.

@@ -104,6 +104,9 @@ public sealed class PaymentOrderApproval : Entity, IAuditable
     public DateTimeOffset DecidedAt { get; init; }
 
     public bool SelfApproved { get; init; }
+
+    /// <summary>Modo da autoaprovação vigente na decisão (FIN-10a CA 8); nulo nas decisões antigas e nas que não são autoaprovação.</summary>
+    public SelfApprovalMode? SelfApprovalMode { get; init; }
 }
 
 /// <summary>

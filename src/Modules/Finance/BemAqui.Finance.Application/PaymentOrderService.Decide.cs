@@ -47,7 +47,7 @@ public sealed partial class PaymentOrderService
             return Decided();
         }
 
-        var (allowed, self) = await DecisionRuleAsync(order, ct);
+        var (allowed, self, mode) = await DecisionRuleAsync(order, ct);
         if (!allowed)
         {
             return Error.Forbidden("own_payment_order", "Quem solicitou a ordem não pode aprová-la.");
@@ -65,7 +65,7 @@ public sealed partial class PaymentOrderService
         db.PaymentOrderApprovals.Add(new PaymentOrderApproval
         {
             PaymentOrderId = order.Id, Level = level?.Level ?? 1, Kind = PaymentOrderDecisionKind.Decision, Decision = decision, Comment = comment, DecidedBy = currentUser.UserId,
-            DecidedAt = clock.GetUtcNow(), SelfApproved = approved && self,
+            DecidedAt = clock.GetUtcNow(), SelfApproved = approved && self, SelfApprovalMode = approved && self ? mode : null,
         });
         if (level is not null)
         {
@@ -178,18 +178,19 @@ public sealed partial class PaymentOrderService
             : Error.Forbidden("outside_approval_rule", "Esta ordem não está na sua alçada.");
     }
 
-    /// <summary>Regra do solicitante (CA 9 e 10) com o Proprietário de agora e o parâmetro.</summary>
-    private async Task<(bool Allowed, bool Self)> DecisionRuleAsync(PaymentOrder order, CancellationToken ct)
+    /// <summary>Regra do solicitante (CA 9 e 10; FIN-10a CA 4 a 6) com o Proprietário de agora e o modo vigente, que a decisão grava.</summary>
+    private async Task<(bool Allowed, bool Self, SelfApprovalMode Mode)> DecisionRuleAsync(PaymentOrder order, CancellationToken ct)
     {
         var isRequester = order.RequestedBy is { } r && r == currentUser.UserId;
         if (!isRequester)
         {
-            return (true, false);
+            return (true, false, SelfApprovalMode.Never);
         }
 
         var owners = await users.OwnerIdsAsync(ct);
-        var limits = await parameters.LimitsAsync(ct);
-        return PaymentOrderRules.CanDecide(true, owners.Contains(order.RequestedBy!.Value), owners.Count, limits.OwnerCanApproveOwn);
+        var mode = (await parameters.LimitsAsync(ct)).SelfApprovalMode;
+        var (allowed, self) = PaymentOrderRules.CanDecide(true, owners.Contains(order.RequestedBy!.Value), owners.Count, mode);
+        return (allowed, self, mode);
     }
 
     private async Task<List<Payable>> PayablesOfAsync(PaymentOrder order, CancellationToken ct)

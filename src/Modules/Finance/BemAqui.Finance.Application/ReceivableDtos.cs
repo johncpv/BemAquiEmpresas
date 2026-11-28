@@ -112,9 +112,14 @@ public sealed record CancellationLine(Guid ReceivableId, string Number, string P
 
 public sealed record DiscountsAndCancellations(DateOnly From, DateOnly To, IReadOnlyList<DiscountLine> Discounts, IReadOnlyList<CancellationLine> Cancellations, decimal TotalDiscount, decimal TotalCancelled);
 
+/// <summary>
+/// Limites do Finance (Configurações → Parâmetros). FIN-10a: campos novos opcionais (ausente = não mudou); <c>OwnerCanApproveOwn</c> é o
+/// booleano legado (só alterna Nunca e Só o Proprietário); <c>SelfApprovalModeSeen</c> é o modo que a tela mostrou (409 se mudou) e
+/// <c>Code</c>, o código do autenticador, pedido só quando o modo muda.
+/// </summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record FinanceLimitsInput(decimal DiscountApprovalPct, decimal DiscountApprovalAmount, decimal CancelApprovalAmount, int BackdateDays, bool OwnerCanApproveOwn = false, decimal PaymentTolerance = 0, decimal TransferNotifyAmount = 10_000,
-    decimal? AdjustedDefaultThresholdPct = null, decimal? OfxBankEntryCap = null);
+public sealed record FinanceLimitsInput(decimal DiscountApprovalPct, decimal DiscountApprovalAmount, decimal CancelApprovalAmount, int BackdateDays, bool? OwnerCanApproveOwn = null, decimal PaymentTolerance = 0, decimal TransferNotifyAmount = 10_000,
+    decimal? AdjustedDefaultThresholdPct = null, decimal? OfxBankEntryCap = null, SelfApprovalMode? SelfApprovalMode = null, SelfApprovalMode? SelfApprovalModeSeen = null, string? Code = null);
 
 /// <summary>Cliente para o seletor do título (CA 2): só PJ mostra o documento (CPF não aparece em lista, D9).</summary>
 public sealed record CustomerOption(Guid Id, string Name, string? Document, Guid? DefaultPaymentTermId);

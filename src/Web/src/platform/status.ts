@@ -10,6 +10,7 @@ export const STEP_LABEL: Record<string, string> = {
   CreateDatabase: 'Banco',
   Migrate: 'Estrutura',
   Seed: 'Dados iniciais',
+  NewTenantDefaults: 'Padrões de tenant novo',
   CreateOwner: 'Proprietário',
   SendInvite: 'Convite',
   Activate: 'Ativação',

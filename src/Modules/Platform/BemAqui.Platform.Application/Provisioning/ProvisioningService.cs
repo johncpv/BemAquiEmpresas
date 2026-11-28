@@ -14,7 +14,7 @@ namespace BemAqui.Platform.Application.Provisioning;
 
 /// <summary>
 /// Provisiona um tenant em etapas idempotentes e retomáveis (FND-03a e PERF-02): Register, Profile, CreateRole, CreateDatabase,
-/// Migrate, Seed, CreateOwner, SendInvite e Activate. Cada etapa registra Started, Succeeded ou Failed. Na
+/// Migrate, Seed, NewTenantDefaults (FIN-10a), CreateOwner, SendInvite e Activate. Cada etapa registra Started, Succeeded ou Failed. Na
 /// retomada, as etapas já concluídas são puladas. A senha do role nunca sai do processo em texto.
 /// </summary>
 public sealed partial class ProvisioningService(
@@ -24,6 +24,7 @@ public sealed partial class ProvisioningService(
     ITenantScopeFactory scopes,
     ITenantResolver resolver,
     IEnumerable<ITenantSeeder> seeders,
+    IEnumerable<ITenantProvisioningDefaults> newTenantDefaults,
     ITenantOwnerOnboarding onboarding,
     TenantModuleService modules,
     ISecretProtector protector,
@@ -181,6 +182,8 @@ public sealed partial class ProvisioningService(
                 }
 
                 break;
+            case ProvisioningSteps.NewTenantDefaults:
+                return await ApplyNewTenantDefaultsAsync(tenant, info, cancellationToken);
             case ProvisioningSteps.CreateOwner:
                 await using (var scope = await scopes.CreateScopeAsync(info, cancellationToken))
                 {
@@ -203,6 +206,27 @@ public sealed partial class ProvisioningService(
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Padrões de tenant novo (FIN-10a CA 2): só com o tenant em Provisioning. Numa retomada de tenant ativo (o passo não está no log
+    /// dos tenants provisionados antes dele), registra o passo sem gravar nada, para não mudar o que o tenant já usa.
+    /// </summary>
+    private async Task<string> ApplyNewTenantDefaultsAsync(Tenant tenant, TenantInfo info, CancellationToken cancellationToken)
+    {
+        if (tenant.Status != TenantLifecycle.Provisioning)
+        {
+            return "Pulada: tenant já ativo.";
+        }
+
+        var applied = new List<string>();
+        await using var scope = await scopes.CreateScopeAsync(info, cancellationToken);
+        foreach (var defaults in newTenantDefaults.OrderBy(d => d.Order))
+        {
+            applied.Add(await defaults.ApplyAsync(scope.ServiceProvider, cancellationToken));
+        }
+
+        return applied.Count == 0 ? "Nenhum padrão a gravar." : string.Join(" ", applied);
     }
 
     private static string? Validate(ProvisionRequest request, string host)

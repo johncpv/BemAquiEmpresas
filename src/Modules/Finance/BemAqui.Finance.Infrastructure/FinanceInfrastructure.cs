@@ -44,6 +44,7 @@ public static class FinanceInfrastructure
         services.TryAddScoped<FinanceParametersService>();
         services.TryAddScoped<IFinanceParameters>(sp => sp.GetRequiredService<FinanceParametersService>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantSeeder, FinanceParametersSeeder>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ITenantProvisioningDefaults, FinanceProvisioningDefaults>()); // FIN-10a: só tenant novo
         services.TryAddScoped<FinanceUsage>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IBankAccountUsageProvider, FinanceUsage>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IAccountUsageProvider, FinanceUsage>());

@@ -5473,6 +5473,12 @@ namespace BemAqui.Host.Persistence.Migrations
                         .HasColumnType("numeric(18,4)")
                         .HasColumnName("value");
 
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id")
                         .HasName("pk_parameters");
 
@@ -6212,6 +6218,10 @@ namespace BemAqui.Host.Persistence.Migrations
                     b.Property<Guid>("PaymentOrderId")
                         .HasColumnType("uuid")
                         .HasColumnName("payment_order_id");
+
+                    b.Property<short?>("SelfApprovalMode")
+                        .HasColumnType("smallint")
+                        .HasColumnName("self_approval_mode");
 
                     b.Property<bool>("SelfApproved")
                         .HasColumnType("boolean")

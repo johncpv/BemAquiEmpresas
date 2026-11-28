@@ -190,6 +190,9 @@ PaymentOrder: Pending → (todas as alçadas aprovam) Approved → Paid (baixa c
                       → Rejected (volta títulos para Open, comentário obrigatório)
               Approved → Pending (reenvio: pagamento acima do aprovado + tolerância, 409 exceeds_approved)
               Pending/Approved → Cancelled · Paid → Reversed (estorno: transações inversas, títulos voltam a Open)
+            Quem solicitou decide a própria só conforme o modo de finance.owner_can_approve_own (FIN-10a, ADR 0054): Nunca (só o
+            Proprietário único), Só o Proprietário, Qualquer aprovador; sempre só no nível 1, ninguém decide dois níveis; a decisão grava
+            self_approved e self_approval_mode; o reenvio zera só o selo corrente da OP, o estorno o mantém
 ```
 - O título entra em OP pela transição condicional dele (`Open → AwaitingApproval` com `xmin`); em OP não finalizada, fornecedor, valor, retenções, forma de pagamento, conta, centro e projeto ficam travados (409 `payable_in_payment_order`). A OP grava no envio o retrato de fornecedor, valor líquido e forma de pagamento por item; o pagamento não passa do aprovado (FIN-02, FIN-03a).
 - `paid_amount` do título a pagar é medido contra o valor líquido (valor − retenções).

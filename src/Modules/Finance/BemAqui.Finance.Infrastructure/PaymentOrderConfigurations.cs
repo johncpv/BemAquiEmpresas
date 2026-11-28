@@ -41,6 +41,7 @@ internal sealed class PaymentOrderApprovalConfiguration : IEntityTypeConfigurati
         b.Property(e => e.Kind).HasConversion<string>().HasMaxLength(16);
         b.Property(e => e.Decision).HasConversion<string>().HasMaxLength(16);
         b.Property(e => e.Comment).HasMaxLength(500);
+        b.Property(e => e.SelfApprovalMode).HasConversion<short>(); // FIN-10a: 0, 1 ou 2, como o parâmetro
         b.HasIndex(e => e.PaymentOrderId);
     }
 }

@@ -1,12 +1,14 @@
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import { approvePaymentOrder, cancelPaymentOrder, rejectPaymentOrder, reversePaymentOrder } from '@/api/generated/bemaqui'
 import type { PaymentOrderDetail } from '@/api/generated/model'
 import { inputClass } from '@/components/form/form-utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Money } from '@/components/ui/money'
+import { useNavigation } from '@/navigation/navigation-context'
 import { useCan } from '@/pages/use-can'
 import { OrderItemsList } from './OrderItemsList'
+import { OWN_ORDER_BLOCKED, OWN_ORDER_SHORTCUT, OWN_ORDER_WARNING } from './payment-orders'
 
 interface Props { order: PaymentOrderDetail; refresh: () => Promise<void>; onApproved: () => void }
 
@@ -25,6 +27,7 @@ export function DecisionActions({ order, refresh, onApproved }: Props) {
   const navigate = useNavigate()
   const canApprove = useCan('finance.approve')
   const canEdit = useCan('finance.edit')
+  const { isOwner } = useNavigation()
   const [comment, setComment] = useState('')
   const [reason, setReason] = useState('')
   const [approveOpen, setApproveOpen] = useState(acao === 'aprovar' && order.canDecide)
@@ -43,6 +46,7 @@ export function DecisionActions({ order, refresh, onApproved }: Props) {
             description="Confira para quem e para onde vai o dinheiro." impact={<p className="text-sm">Total aprovado: <Money value={order.summary.total} className="font-semibold" /></p>}
             onConfirm={async () => { await approvePaymentOrder(id, { comment: comment.trim() || null, version }); await after(); onApproved() }} onReload={refresh}
             trigger={button('Aprovar', true)}>
+            {order.isRequester ? <p role="note" className="rounded-md border border-warn-soft bg-warn-soft px-3 py-2 text-sm text-warn-ink">{OWN_ORDER_WARNING}</p> : null}
             <OrderItemsList items={order.items} compact />
             <Reason id="comentario-aprovar" label="Comentário (opcional)" value={comment} onChange={setComment} />
           </ConfirmDialog>
@@ -53,7 +57,11 @@ export function DecisionActions({ order, refresh, onApproved }: Props) {
           </ConfirmDialog>
         </>
       ) : null}
-      {pending && order.isRequester && !order.canDecide ? <p className="text-sm text-muted-foreground">Quem solicitou a ordem não pode aprová-la.</p> : null}
+      {pending && order.isRequester && !order.canDecide ? (
+        <p className="text-sm text-muted-foreground">
+          {OWN_ORDER_BLOCKED}{isOwner ? <> <Link to="/app/configuracoes/parametros" className="font-semibold text-primary underline">{OWN_ORDER_SHORTCUT}</Link></> : null}
+        </p>
+      ) : null}
       {(pending && (canEdit && (order.isRequester || canApprove))) || (status === 'Approved' && canApprove) ? (
         <ConfirmDialog verb="Cancelar ordem" done="Ordem cancelada" title={`Cancelar a ${order.summary.number}?`} description="Os títulos voltam para A pagar."
           preconditions={[{ ok: reason.trim().length > 0, text: 'Motivo do cancelamento escrito.' }]}
