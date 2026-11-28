@@ -17,6 +17,7 @@ import { UrlTabs } from '@/components/ui/url-tabs'
 import { Can } from '@/pages/ModuleGate'
 import { useCan } from '@/pages/use-can'
 import { LastPurchase } from '@/pages/purchasing/receipts/LastPurchase'
+import { ItemStageTemplate } from '@/pages/projects/templates/ItemStageTemplate'
 import { PageHeading } from '@/shell/PageHeading'
 import { TYPE_LABELS } from './item-labels'
 import { ItemConversions } from './ItemConversions'
@@ -63,6 +64,7 @@ export function ItemPage() {
             <Tag>{TYPE_LABELS[item.type]}</Tag>
             <ImportedTag source={item.importSource} />
             <span className="text-sm text-muted-foreground">Custo médio: <Money value={item.averageCost} /></span>
+            <ItemStageTemplate itemId={item.id} type={item.type} />
             <Link to="/app/estoque/itens" className="ml-2 text-sm font-semibold text-primary">Voltar à lista</Link>
           </>
         }
