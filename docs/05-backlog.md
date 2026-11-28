@@ -816,7 +816,7 @@ Decisões do PO (27/11/2026):
 
 Ordem dentro do bloco: PRC-00 → REC-01 → PRC-01 → PRC-02 → PRC-03 → EXE-06 → EXE-07 → COM-10 → UX-02 → UX-01 → CAD-07 → CAT-08 → CAT-03a → PRC-04 → PRC-05 → ENG-03 → CAT-09, tudo antes do MKT-00 (EXE-08 e EXE-09 opcionais, por decisão).
 
-- **PRC-00 [ ] Orçamento busca item cadastrado (P)** — correção da COM-01a CA 7; todos os perfis, Konebras inclusive
+- **PRC-00 [x] Orçamento busca item cadastrado (P)** — correção da COM-01a CA 7; todos os perfis, Konebras inclusive ([story](stories/PRC-00-orcamento-busca-item.md))
   - "Adicionar item" com busca única por código, nome e GTIN (`IItems` e, onde houver Catálogo, o produto), mostrando tipo, unidade e, com `quotes.view_cost`, o custo médio;
   - escolhido o item: vínculo (`item_id`), descrição, unidade e tipo (Serviço → Serviço, Produto acabado → Equipamento, demais → Produto); **"Digitar à mão"** continua (item sem vínculo);
   - a composição **não** muda nesta story (o custo do material segue a COM-01a CA 11); cadastro rápido de item fica para a UX-02.

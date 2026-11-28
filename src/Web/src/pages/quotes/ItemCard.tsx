@@ -33,7 +33,7 @@ export function ItemCard({ quote, item, costs, editable, refresh }: Props) {
       <div className="grid gap-2 sm:grid-cols-[3rem_minmax(0,2fr)_7rem_9rem_8rem_auto] sm:items-end">
         <span className="text-xs text-muted-foreground">#{item.sequence} {ITEM_KINDS.find((k) => k.value === item.kind)?.label}</span>
         <label className="space-y-1 text-xs font-medium">Descrição<input value={description} disabled={!editable} maxLength={300} onChange={(e) => setDescription(e.target.value)} className={inputClass} /></label>
-        <label className="space-y-1 text-xs font-medium">Quantidade<QuantityInput value={quantity} disabled={!editable} onChange={setQuantity} /></label>
+        <label className="space-y-1 text-xs font-medium">Quantidade{item.unitCode ? ` (${item.unitCode})` : ''}<QuantityInput value={quantity} disabled={!editable} onChange={setQuantity} /></label>
         <label className="space-y-1 text-xs font-medium">Preço unitário<MoneyInput value={price} disabled={!editable} onChange={setPrice} /></label>
         <span className="text-right text-sm">Total <Money value={item.total} className="font-semibold" /></span>
         {editable ? (
@@ -45,6 +45,7 @@ export function ItemCard({ quote, item, costs, editable, refresh }: Props) {
         ) : null}
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs">
+        {item.itemId && item.itemName ? <span className="text-muted-foreground">Item cadastrado: {item.itemName}</span> : null}
         {item.priceOverridden ? (
           <>
             <span className="inline-flex items-center"><Tag>Digitado à mão</Tag><Dica nome="Digitado à mão" texto={QUOTE_DICAS.digitado} /></span>

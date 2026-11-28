@@ -19,4 +19,6 @@ export interface QuoteItemView {
   unitPrice: number;
   priceOverridden: boolean;
   total: number;
+  /** @nullable */
+  unitCode?: string | null;
 }

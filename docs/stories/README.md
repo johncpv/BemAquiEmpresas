@@ -1047,3 +1047,14 @@ Pedido do PO de 27/11/2026 (BemAqui, empresa de uma pessoa): quem solicitou pode
 |---|---|---|---|---|---|---|---|
 | 1 | FIN-10a | Autoaprovação configurável da ordem de pagamento: Nunca / Só o Proprietário / Qualquer aprovador (só no 1º nível), padrão de tenant novo pelo provisionamento, troca com o código do autenticador | P | Done | R-FIN-5, R-SEC-5, FIN-03a D6, ADR 0008 | FIN-03a, FIN-03b, FND-05 | [FIN-10a](FIN-10a-autoaprovacao-da-op.md) |
 | 2 | FIN-10b | Autoconfirmação configurável da conciliação | P | Draft | R-FIN-8, R-FIN-5, BNK-03b D13 | FIN-10a, BNK-03b | [FIN-10b](FIN-10b-autoconfirmacao-da-conciliacao.md) |
+
+---
+
+# Pós-go-live: melhorias do produto (custo e preço)
+
+Bloco "Pós-go-live: melhorias do produto" do backlog, pela [proposta de produto, custo e preço](../produto/produto-custo-preco.md) (decisões do PO de 27/11/2026, §14).
+
+## Índice
+| Ordem | ID | Título | Tam. | Status | Requisitos | Depende de | Arquivo |
+|---|---|---|---|---|---|---|---|
+| 1 | PRC-00 | Orçamento busca item cadastrado: busca única por código, nome e GTIN; vínculo, descrição, unidade e tipo pelo item; "Digitar à mão" mantido | P | Done | COM-01a CA 7, D7, ADR 0006 | COM-01a, CAD-02a, CAT-01 | [PRC-00](PRC-00-orcamento-busca-item.md) |

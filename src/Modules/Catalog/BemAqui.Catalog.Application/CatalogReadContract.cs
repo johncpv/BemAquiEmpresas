@@ -11,10 +11,23 @@ namespace BemAqui.Catalog.Application;
 /// vigente da tabela pedida e a unidade do item (pelo <see cref="IItems"/>). O pai de grade fica fora: vende-se a variação. As consultas usam os
 /// índices do GTIN (único), do PLU e do trigrama do nome.
 /// </summary>
-public sealed class CatalogReadContract(ICatalogDb db, CatalogDefaults defaults, IItems items) : ISellableProducts, ICatalogLookup, ICatalogStatus
+public sealed class CatalogReadContract(ICatalogDb db, CatalogDefaults defaults, IItems items) : ISellableProducts, ICatalogLookup, ICatalogStatus, IProductBarcodes
 {
     /// <summary>PERF-04, passo "Importar produtos": algum produto cadastrado (os excluídos ficam fora pelo filtro de consulta).</summary>
     public Task<bool> HasProductsAsync(CancellationToken cancellationToken = default) => db.Products.AnyAsync(cancellationToken);
+
+    /// <summary>PRC-00: itens dos produtos ativos e vendáveis com o GTIN (inclusive o da embalagem); não lê preço nem cria tabela.</summary>
+    public async Task<IReadOnlyList<Guid>> ItemIdsByGtinAsync(string gtin, CancellationToken cancellationToken = default)
+    {
+        var code = GtinRules.Normalize(gtin);
+        if (!GtinRules.Lengths.Contains(code.Length) || !code.All(char.IsAsciiDigit))
+        {
+            return [];
+        }
+
+        var productIds = db.ProductBarcodes.AsNoTracking().Where(b => b.Gtin == code).Select(b => b.ProductId);
+        return await Sellable().Where(p => productIds.Contains(p.Id)).Select(p => p.ItemId).Distinct().Take(5).ToListAsync(cancellationToken);
+    }
 
     public async Task<SellableProduct?> FindAsync(Guid productId, CancellationToken cancellationToken = default)
     {

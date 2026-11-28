@@ -73,13 +73,13 @@ public sealed partial class QuoteService(
     private async Task<QuoteDetail> DetailAsync(Quote quote, CancellationToken ct)
     {
         var lines = await db.QuoteItems.AsNoTracking().Where(i => i.QuoteId == quote.Id).OrderBy(i => i.Sequence).ToListAsync(ct);
-        var itemNames = (await items.FindAsync(lines.Where(l => l.ItemId != null).Select(l => l.ItemId!.Value).Distinct().ToList(), ct)).ToDictionary(i => i.Id, i => i.Name);
+        var itemNames = (await items.FindAsync(lines.Where(l => l.ItemId != null).Select(l => l.ItemId!.Value).Distinct().ToList(), ct)).ToDictionary(i => i.Id);
         var party = await parties.FindAsync(quote.PartyId, ct);
         return new QuoteDetail(
             quote.Id, quote.Number, quote.Revision, quote.Status, quote.PartyId, party is null ? string.Empty : party.TradeName ?? party.LegalName, quote.ContactId, quote.SiteAddressId,
             quote.DeliveryDays, quote.Notes, quote.PricingMode,
-            lines.Select(l => new QuoteItemView(l.Id, l.Sequence, l.Kind, l.ItemId, l.ItemId is { } i ? itemNames.GetValueOrDefault(i) : null, l.Description, l.Quantity, l.UnitPrice,
-                l.PriceOverridden, QuotePricing.Money(l.Quantity * l.UnitPrice))).ToList(),
+            lines.Select(l => new QuoteItemView(l.Id, l.Sequence, l.Kind, l.ItemId, l.ItemId is { } i ? itemNames.GetValueOrDefault(i)?.Name : null, l.Description, l.Quantity, l.UnitPrice,
+                l.PriceOverridden, QuotePricing.Money(l.Quantity * l.UnitPrice), l.ItemId is { } u ? itemNames.GetValueOrDefault(u)?.UnitCode : null)).ToList(),
             quote.TotalPrice, quote.SentAt, quote.CreatedAt, quote.ValidUntil, quote.LostReason, quote.LostDetail,
             quote.IsCurrent, quote.ParentQuoteId,
             quote.CopiedFromQuoteId is { } from ? await db.Quotes.IgnoreQueryFilters().Where(x => x.Id == from).Select(x => x.Number).FirstOrDefaultAsync(ct) : null, quote.Version,
