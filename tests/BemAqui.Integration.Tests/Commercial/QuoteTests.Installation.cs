@@ -50,7 +50,7 @@ public partial class QuoteTests
         again.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
         (await again.Content.ReadAsStringAsync()).Should().Contain("já está na " + os.GetProperty("number").GetString());
         var project = await JsonAsync(await owner.GetAsync($"/api/v1/projects/{projectId}"));
-        var manual = await owner.PostAsJsonAsync($"/api/v1/projects/{projectId}/delivery", new { date = Iso(Today), version = Version(project) });
+        var manual = await owner.SendAsync(Post($"/api/v1/projects/{projectId}/delivery", new { date = Iso(Today), version = Version(project) }));
         (await manual.Content.ReadAsStringAsync()).Should().Contain("Há OS de instalação aberta");
 
         // CA 6 e 7: iniciar, etapas em sequência; a última só pelo aceite.

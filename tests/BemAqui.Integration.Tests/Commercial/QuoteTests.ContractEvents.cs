@@ -35,7 +35,7 @@ public partial class QuoteTests
 
         // CA 10: com marco de fabricação, a entrega espera a fabricação.
         var project = await JsonAsync(await owner.GetAsync($"/api/v1/projects/{projectId}"));
-        (await owner.PostAsJsonAsync($"/api/v1/projects/{projectId}/delivery", new { date = Iso(Today), version = Version(project) })).StatusCode.Should().Be(HttpStatusCode.Conflict);
+        (await owner.SendAsync(Post($"/api/v1/projects/{projectId}/delivery", new { date = Iso(Today), version = Version(project) }))).StatusCode.Should().Be(HttpStatusCode.Conflict);
 
         // CA 17: evento de outro projeto não libera nem grava gatilho.
         await ConsumeAsync<MilestoneReachedConsumer>(c => c.HandleAsync(new ProjectFabricated(Guid.NewGuid(), contractId, Today), CancellationToken.None));

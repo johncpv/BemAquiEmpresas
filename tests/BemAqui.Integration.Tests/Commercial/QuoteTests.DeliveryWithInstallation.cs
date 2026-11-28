@@ -23,7 +23,7 @@ public partial class QuoteTests
 
         var project = await JsonAsync(await owner.GetAsync($"/api/v1/projects/{projectId}"));
         project.GetProperty("hasInstallation").GetBoolean().Should().BeTrue();
-        var manual = await owner.PostAsJsonAsync($"/api/v1/projects/{projectId}/delivery", new { date = Iso(Today), version = Version(project) });
+        var manual = await owner.SendAsync(Post($"/api/v1/projects/{projectId}/delivery", new { date = Iso(Today), version = Version(project) }));
         manual.StatusCode.Should().Be(HttpStatusCode.Conflict);
         var body = await manual.Content.ReadAsStringAsync();
         body.Should().Contain("installation_pending").And.Contain("Abra a OS de instalação.");
