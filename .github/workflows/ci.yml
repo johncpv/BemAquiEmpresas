@@ -70,9 +70,19 @@ jobs:
               --filter-not-class "BemAqui.Integration.Tests.Production.FabricationDeliveryTests"
               --filter-not-class "BemAqui.Integration.Tests.Production.FabricationBoardTests"
           - name: estoque
+            filter: --filter-namespace "BemAqui.Integration.Tests.Inventory*"
+          # Compras ficou em dois blocos (estoque + compras juntos passavam de 25 min). "compras-2" pega o que "compras-1" exclui.
+          - name: compras-1
             filter: >-
-              --filter-namespace "BemAqui.Integration.Tests.Inventory*"
+              --filter-class "BemAqui.Integration.Tests.Purchasing.GoodsReceipt*"
+              --filter-class "BemAqui.Integration.Tests.Purchasing.InvoiceReceipt*"
+              --filter-class "BemAqui.Integration.Tests.Purchasing.Rfq*"
+          - name: compras-2
+            filter: >-
               --filter-namespace "BemAqui.Integration.Tests.Purchasing*"
+              --filter-not-class "BemAqui.Integration.Tests.Purchasing.GoodsReceipt*"
+              --filter-not-class "BemAqui.Integration.Tests.Purchasing.InvoiceReceipt*"
+              --filter-not-class "BemAqui.Integration.Tests.Purchasing.Rfq*"
           # RH e Fiscal + Patrimônio saíram do "resto": sozinhos eram metade dos testes dele, e o bloco passava de 20 min com os hosts de
           # teste disputando a CPU do runner (os testes com janela de tempo falhavam um por rodada).
           - name: rh
