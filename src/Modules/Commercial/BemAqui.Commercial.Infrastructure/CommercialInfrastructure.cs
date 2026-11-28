@@ -53,6 +53,13 @@ public static class CommercialInfrastructure
         // EXE-01a: projeto de serviço (iniciar, entregar, aceite do cliente) e o ajuste automático do tipo dos projetos anteriores (CA 5).
         services.TryAddScoped<ProjectExecutionService>();
         services.TryAddScoped<ExecutionKindBackfill>();
+        // EXE-02: modelos de etapas do projeto de serviço, o contrato para a EXE-03a/05b e o pacote do perfil Serviços.
+        services.TryAddScoped<StageTemplateService>();
+        services.TryAddScoped<IStageTemplates>(sp => sp.GetRequiredService<StageTemplateService>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Tenancy.IProfileSeedPackage, ProjectsServicesSeedPackage>());
+        services.AddAuditableEntity<StageTemplate>("projects");
+        services.AddAuditableEntity<StageTemplateStep>("projects");
+        services.AddAuditableEntity<StageTemplateItem>("projects");
         services.TryAddScoped<AmendmentService>();
         // Minha pauta (DSH-04): aditivo aguardando aprovação (projects) e orçamentos vencendo (quotes).
         services.TryAddEnumerable(ServiceDescriptor.Scoped<BemAqui.BuildingBlocks.Agenda.IAgendaSource, ProjectsAgendaSource>());

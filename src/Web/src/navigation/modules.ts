@@ -78,6 +78,9 @@ export interface ModuleUi {
  */
 export const COMMERCE_PROFILES = ['retail', 'services', 'ecommerce'] as const
 
+/** Perfis do recurso projects.service_execution (EXE-01a e EXE-02), o mesmo do BusinessProfileCatalog.Features: só Serviços; a fábrica não vê. */
+export const SERVICE_PROFILES = ['services'] as const
+
 const CASH = 'Caixa e pagamentos'
 const SETUP = 'Configuração financeira'
 const STOCK_OPERATION = 'Operação'

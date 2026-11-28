@@ -5,7 +5,7 @@
 | ID | EXE-02 |
 | Título | Cadastro de modelos de etapas em Projetos → Modelos de etapas (letra, nome, papel Execução/Entrega/Aceite, horas previstas por unidade, cargo sugerido, checklist, "exige aprovação", marcos sugeridos); padrão do tenant e por segmento; modelo sugerido no item de serviço; seeds do perfil Serviços; contrato `IStageTemplates` com revisão |
 | Tamanho | M |
-| Status | Draft (revisão combinada de 28/11/2026) |
+| Status | Done (28/11/2026) |
 | Requisitos | [Proposta](../produto/execucao-pos-contrato.md) §5 e §6 · ENG-01 (editor de roteiro) · COM-06 P-22 · ADR 0046 (adendo PERF-04: pacote de dados por perfil) · ADR 0019 §2 (`xmin`) · R-SEC-5 |
 | Dependências | EXE-01a (recurso `projects.service_execution`), EXE-RH (cargos para o tenant de serviço) |
 | Bloqueia | EXE-03a, EXE-05b |
@@ -62,10 +62,10 @@ Como **dono de uma empresa de serviço**, quero **ter modelos de etapas prontos 
 - **Front (Vitest):** editor (regras de papel, mover no celular), "Cargo inativo", vazio com "Usar os sugeridos".
 
 ## Tarefas
-- [ ] Domain/Application: `StageTemplate`, validação, `StageTemplateService`, `IStageTemplates`, lookup de cargos.
-- [ ] Infrastructure: migration; pacote `projects.services` com os quatro modelos e marcos.
-- [ ] Endpoints: `/api/v1/stage-templates` (GET, POST, PUT, DELETE), `/{id}/default`, `/{id}/items`, `/lookups/positions`, com `RequireProfileFeature`; OpenAPI e Orval.
-- [ ] Front e ajuda; docs `03-modelo-dados`.
+- [x] Domain/Application: `StageTemplate`, validação, `StageTemplateService`, `IStageTemplates`, lookup de cargos.
+- [x] Infrastructure: migration; pacote `projects.services` com os quatro modelos e marcos.
+- [x] Endpoints: `/api/v1/stage-templates` (GET, POST, PUT, DELETE), `/{id}/default`, `/{id}/items`, `/lookups/positions`, com `RequireProfileFeature`; OpenAPI e Orval.
+- [x] Front e ajuda; docs `03-modelo-dados`.
 
 ## Dev Notes
 - Editor e validação: `src/Modules/Engineering/` (ENG-01) e `src/Web/src/pages/engineering/`; padrão de lookup: `src/Modules/Commercial/BemAqui.Commercial.Application/QuoteLookups.cs`; cargos: `src/Modules/HR/BemAqui.HR.Contracts/PositionsContracts.cs`; itens: `IItems` (Inventory.Contracts); pacote: `BusinessProfileSeeds`, `IProfileSeedPackage`.
@@ -79,3 +79,4 @@ Como **dono de uma empresa de serviço**, quero **ter modelos de etapas prontos 
 | 27/11/2026 | 0.1 | Story escrita a partir da proposta aprovada pelo PO | Claude |
 | 27/11/2026 | 0.2 | Dependência ajustada para EXE-01a | Claude |
 | 28/11/2026 | 0.3 | **Revisão combinada de 28/11/2026:** lookup de cargos pelo Commercial (sem custo); `suggested_milestones` já nesta migration com os marcos do seed; Aceite exige Entrega e nada de Execução depois da Entrega; seed não toma o padrão nem ressuscita excluído; troca de padrão e exclusão numa transação com teste de corrida; "Cargo inativo"; vínculo só com item `Service`; revisão do modelo e `IStageTemplates`; regressão da Konebras; mover etapas no celular; "Usado em {n} projetos". **Decisão do mantenedor** (o PO pode rever): horas previstas por **unidade** do item, como a composição do orçamento. | Claude |
+| 28/11/2026 | 1.0 | **Implementada.** Tabelas `stage_templates`, `stage_template_steps` e `stage_template_items` (migration `StageTemplatesExe02`, só CREATE, com teste); `StageTemplateService` + `StageTemplateRules` (422 por linha); `IStageTemplates` com revisão; rotas `/api/v1/stage-templates` (lista, detalhe, histórico, criar, editar, `/default`, `/activate`, `/inactivate`, excluir, `/suggested`, `/{id}/items`, `/by-item/{itemId}`, `/lookups/positions`, `/lookups/segments`, `/lookups/items`) no módulo `projects` com o recurso `projects.service_execution`; pacote `projects.services`; telas `/app/projetos/modelos`, `/novo` e `/$id` (abas Etapas, Itens e Histórico), botão "Modelos de etapas" na lista de projetos (só Serviços) e o modelo na ficha do item de serviço; ajuda das três rotas e das abas. **Decisões (a mais segura, PO pode rever):** (1) no modelo "Consultoria", o "P Plano de ação" (entrega parcial na proposta §6) é **Execução**, porque o CA 3 permite uma Entrega só e nada de Execução depois dela; o marco de 30% continua no P; (2) horas que a proposta não dá (Aceite da consultoria e da obra) ficam 0; marcos do seed com prazo 0 dia; checklist de segurança da etapa X da obra com 4 itens genéricos; (3) o gatilho "No aceite do cliente" exige a etapa de Aceite no modelo; o "Na entrega" não exige etapa de Entrega (a entrega do projeto existe sempre, EXE-01a); o modelo com etapa de Aceite e sem marco de aceite não marca o aceite como obrigatório (não trava o encerramento: quem decide é o contrato, EXE-01a); (4) o gatilho dos marcos sugeridos é um enum próprio do contrato (`SuggestedMilestoneTrigger`, com `StageCompleted`), sem mexer no `TriggerEvent` do Finance (EXE-05a); (5) "Usado em {n} projetos" conta zero até a EXE-03a gravar o modelo no projeto (a migration não pode tocar `projects`); (6) ativar/inativar entraram (o CA 1 tem o filtro Ativos/Inativos); o padrão não pode ser inativado nem mudar de segmento; (7) o chip "Sugerido" some na primeira edição (revisão > 1). | Claude |

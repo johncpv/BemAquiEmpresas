@@ -69,7 +69,13 @@ export function ProjectsPage() {
   return (
     <>
       <PageHeading title="Comercial: Projetos" description="Cada contrato vira um projeto. Todo custo lançado cai aqui."
-        actions={<Link to={'/app/contratos' as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ver contratos</Link>} />
+        actions={(
+          <span className="flex flex-wrap gap-2">
+            {/* EXE-02: modelos de etapas do projeto de serviço, só no perfil Serviços. */}
+            {services ? <Link to={'/app/projetos/modelos' as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Modelos de etapas</Link> : null}
+            <Link to={'/app/contratos' as never} className="rounded-md border border-border px-3 py-2 text-sm font-semibold">Ver contratos</Link>
+          </span>
+        )} />
       <DataTable label="Projetos" columns={columns} query={query} getRowId={(p) => p.id} searchPlaceholder="Buscar pelo número ou nome"
         rowClassName={(p) => riskStripe(p.risk) ?? (p.delayDays ? 'border-l-4 border-l-crit' : awaitingAcceptance(p) ? 'border-l-4 border-l-warn' : undefined)}
         filters={[{ key: 'situacao', label: 'Situação', options: SITUATIONS }, ...(services ? [{ key: 'tipo', label: 'Tipo', options: KINDS }] : [])]}

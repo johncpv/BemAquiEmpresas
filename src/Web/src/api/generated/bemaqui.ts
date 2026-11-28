@@ -235,6 +235,7 @@ import type {
   DecisionsCard,
   DeclineCancellationInput,
   DeleteQuoteParams,
+  DeleteStageTemplateParams,
   DeliveriesCard,
   DeviceThemeInput,
   DisableBankIntegrationParams,
@@ -419,6 +420,7 @@ import type {
   GetSaleReturnsReportParams,
   GetShipmentFormParams,
   GetShipmentHistoryParams,
+  GetStageTemplateHistoryParams,
   GetStockAdjustmentHistoryParams,
   GetSupervisorApprovalsParams,
   GetSupervisorBoardParams,
@@ -520,6 +522,7 @@ import type {
   ItemInput,
   ItemLotRow,
   ItemSearchHit,
+  ItemStageTemplateView,
   ItemType,
   KioskBoard,
   KioskCard,
@@ -643,6 +646,8 @@ import type {
   ListShipmentCarriersParams,
   ListShipmentGeneralStockParams,
   ListShipmentsParams,
+  ListStageTemplateItemOptionsParams,
+  ListStageTemplatesParams,
   ListStockAdjustmentsParams,
   ListStockBalancesParams,
   ListStockMovementsParams,
@@ -796,6 +801,7 @@ import type {
   PagedListOfRfqSummary,
   PagedListOfRoutingTemplateSummary,
   PagedListOfShortageRow,
+  PagedListOfStageTemplateSummary,
   PagedListOfStockAdjustmentSummary,
   PagedListOfStockShortfallRow,
   PagedListOfTenantRow,
@@ -1203,6 +1209,16 @@ import type {
   SimulateTaxRequest,
   SplitPreviewInput,
   SplitPreviewRequest,
+  StageItemOption,
+  StagePositionOption,
+  StageSegmentOption,
+  StageTemplateDetail,
+  StageTemplateInput,
+  StageTemplateItemLinkInput,
+  StageTemplateItemView,
+  StageTemplateSeedResult,
+  StageTemplateUpdate,
+  StageTemplateVersionInput,
   StatementOfxForm,
   StatementResult,
   StepUpRequest,
@@ -43142,6 +43158,1507 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getRevertProjectAcceptanceMutationOptions(options), queryClient);
+    }
+
+export const getListStageTemplatesUrl = (params?: ListStageTemplatesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/stage-templates?${stringifiedParams}` : `/api/v1/stage-templates`
+}
+
+export const listStageTemplates = async (params?: ListStageTemplatesParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfStageTemplateSummary> => {
+
+  return apiFetch<PagedListOfStageTemplateSummary>(getListStageTemplatesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStageTemplatesQueryKey = (params?: ListStageTemplatesParams,) => {
+    return [
+    `/api/v1/stage-templates`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListStageTemplatesQueryOptions = <TData = Awaited<ReturnType<typeof listStageTemplates>>, TError = unknown>(params?: ListStageTemplatesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplates>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStageTemplatesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStageTemplates>>> = ({ signal }) => listStageTemplates(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStageTemplates>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStageTemplatesQueryResult = NonNullable<Awaited<ReturnType<typeof listStageTemplates>>>
+export type ListStageTemplatesQueryError = unknown
+
+
+export function useListStageTemplates<TData = Awaited<ReturnType<typeof listStageTemplates>>, TError = unknown>(
+ params: undefined |  ListStageTemplatesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplates>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStageTemplates>>,
+          TError,
+          Awaited<ReturnType<typeof listStageTemplates>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStageTemplates<TData = Awaited<ReturnType<typeof listStageTemplates>>, TError = unknown>(
+ params?: ListStageTemplatesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplates>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStageTemplates>>,
+          TError,
+          Awaited<ReturnType<typeof listStageTemplates>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStageTemplates<TData = Awaited<ReturnType<typeof listStageTemplates>>, TError = unknown>(
+ params?: ListStageTemplatesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplates>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListStageTemplates<TData = Awaited<ReturnType<typeof listStageTemplates>>, TError = unknown>(
+ params?: ListStageTemplatesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplates>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStageTemplatesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateStageTemplateUrl = () => {
+
+
+
+
+  return `/api/v1/stage-templates`
+}
+
+export const createStageTemplate = async (stageTemplateInput: StageTemplateInput, options?: Parameters<typeof apiFetch>[1]): Promise<StageTemplateDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StageTemplateDetail>(getCreateStageTemplateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stageTemplateInput)
+  }
+);}
+
+
+
+
+
+export const getCreateStageTemplateMutationKey = () => ['createStageTemplate'] as const;
+
+export const getCreateStageTemplateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStageTemplate>>, TError,CreateStageTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createStageTemplate>>, TError,CreateStageTemplateMutationVariables, TContext> => {
+
+const mutationKey = getCreateStageTemplateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createStageTemplate>>, CreateStageTemplateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createStageTemplate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateStageTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof createStageTemplate>>>
+    export type CreateStageTemplateMutationBody = StageTemplateInput
+    export type CreateStageTemplateMutationError = unknown
+    export type CreateStageTemplateMutationVariables = {data: StageTemplateInput}
+
+    export const useCreateStageTemplate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStageTemplate>>, TError,CreateStageTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createStageTemplate>>,
+        TError,
+        CreateStageTemplateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateStageTemplateMutationOptions(options), queryClient);
+    }
+
+export const getListStageTemplatePositionsUrl = () => {
+
+
+
+
+  return `/api/v1/stage-templates/lookups/positions`
+}
+
+export const listStageTemplatePositions = async ( options?: Parameters<typeof apiFetch>[1]): Promise<StagePositionOption[]> => {
+
+  return apiFetch<StagePositionOption[]>(getListStageTemplatePositionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStageTemplatePositionsQueryKey = () => {
+    return [
+    `/api/v1/stage-templates/lookups/positions`
+    ] as const;
+    }
+
+
+export const getListStageTemplatePositionsQueryOptions = <TData = Awaited<ReturnType<typeof listStageTemplatePositions>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplatePositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStageTemplatePositionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStageTemplatePositions>>> = ({ signal }) => listStageTemplatePositions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStageTemplatePositions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStageTemplatePositionsQueryResult = NonNullable<Awaited<ReturnType<typeof listStageTemplatePositions>>>
+export type ListStageTemplatePositionsQueryError = unknown
+
+
+export function useListStageTemplatePositions<TData = Awaited<ReturnType<typeof listStageTemplatePositions>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplatePositions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStageTemplatePositions>>,
+          TError,
+          Awaited<ReturnType<typeof listStageTemplatePositions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStageTemplatePositions<TData = Awaited<ReturnType<typeof listStageTemplatePositions>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplatePositions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStageTemplatePositions>>,
+          TError,
+          Awaited<ReturnType<typeof listStageTemplatePositions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStageTemplatePositions<TData = Awaited<ReturnType<typeof listStageTemplatePositions>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplatePositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListStageTemplatePositions<TData = Awaited<ReturnType<typeof listStageTemplatePositions>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplatePositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStageTemplatePositionsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListStageTemplateSegmentsUrl = () => {
+
+
+
+
+  return `/api/v1/stage-templates/lookups/segments`
+}
+
+export const listStageTemplateSegments = async ( options?: Parameters<typeof apiFetch>[1]): Promise<StageSegmentOption[]> => {
+
+  return apiFetch<StageSegmentOption[]>(getListStageTemplateSegmentsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStageTemplateSegmentsQueryKey = () => {
+    return [
+    `/api/v1/stage-templates/lookups/segments`
+    ] as const;
+    }
+
+
+export const getListStageTemplateSegmentsQueryOptions = <TData = Awaited<ReturnType<typeof listStageTemplateSegments>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateSegments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStageTemplateSegmentsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStageTemplateSegments>>> = ({ signal }) => listStageTemplateSegments({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateSegments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStageTemplateSegmentsQueryResult = NonNullable<Awaited<ReturnType<typeof listStageTemplateSegments>>>
+export type ListStageTemplateSegmentsQueryError = unknown
+
+
+export function useListStageTemplateSegments<TData = Awaited<ReturnType<typeof listStageTemplateSegments>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateSegments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStageTemplateSegments>>,
+          TError,
+          Awaited<ReturnType<typeof listStageTemplateSegments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStageTemplateSegments<TData = Awaited<ReturnType<typeof listStageTemplateSegments>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateSegments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStageTemplateSegments>>,
+          TError,
+          Awaited<ReturnType<typeof listStageTemplateSegments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStageTemplateSegments<TData = Awaited<ReturnType<typeof listStageTemplateSegments>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateSegments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListStageTemplateSegments<TData = Awaited<ReturnType<typeof listStageTemplateSegments>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateSegments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStageTemplateSegmentsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListStageTemplateItemOptionsUrl = (params?: ListStageTemplateItemOptionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/stage-templates/lookups/items?${stringifiedParams}` : `/api/v1/stage-templates/lookups/items`
+}
+
+export const listStageTemplateItemOptions = async (params?: ListStageTemplateItemOptionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<StageItemOption[]> => {
+
+  return apiFetch<StageItemOption[]>(getListStageTemplateItemOptionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStageTemplateItemOptionsQueryKey = (params?: ListStageTemplateItemOptionsParams,) => {
+    return [
+    `/api/v1/stage-templates/lookups/items`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListStageTemplateItemOptionsQueryOptions = <TData = Awaited<ReturnType<typeof listStageTemplateItemOptions>>, TError = unknown>(params?: ListStageTemplateItemOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateItemOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStageTemplateItemOptionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStageTemplateItemOptions>>> = ({ signal }) => listStageTemplateItemOptions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateItemOptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStageTemplateItemOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof listStageTemplateItemOptions>>>
+export type ListStageTemplateItemOptionsQueryError = unknown
+
+
+export function useListStageTemplateItemOptions<TData = Awaited<ReturnType<typeof listStageTemplateItemOptions>>, TError = unknown>(
+ params: undefined |  ListStageTemplateItemOptionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateItemOptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStageTemplateItemOptions>>,
+          TError,
+          Awaited<ReturnType<typeof listStageTemplateItemOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStageTemplateItemOptions<TData = Awaited<ReturnType<typeof listStageTemplateItemOptions>>, TError = unknown>(
+ params?: ListStageTemplateItemOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateItemOptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStageTemplateItemOptions>>,
+          TError,
+          Awaited<ReturnType<typeof listStageTemplateItemOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStageTemplateItemOptions<TData = Awaited<ReturnType<typeof listStageTemplateItemOptions>>, TError = unknown>(
+ params?: ListStageTemplateItemOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateItemOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListStageTemplateItemOptions<TData = Awaited<ReturnType<typeof listStageTemplateItemOptions>>, TError = unknown>(
+ params?: ListStageTemplateItemOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateItemOptions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStageTemplateItemOptionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetItemStageTemplateUrl = (itemId: string,) => {
+
+
+
+
+  return `/api/v1/stage-templates/by-item/${itemId}`
+}
+
+export const getItemStageTemplate = async (itemId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ItemStageTemplateView> => {
+
+  return apiFetch<ItemStageTemplateView>(getGetItemStageTemplateUrl(itemId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetItemStageTemplateQueryKey = (itemId: string,) => {
+    return [
+    `/api/v1/stage-templates/by-item/${itemId}`
+    ] as const;
+    }
+
+
+export const getGetItemStageTemplateQueryOptions = <TData = Awaited<ReturnType<typeof getItemStageTemplate>>, TError = unknown>(itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemStageTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetItemStageTemplateQueryKey(itemId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getItemStageTemplate>>> = ({ signal }) => getItemStageTemplate(itemId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: itemId !== null && itemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getItemStageTemplate>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetItemStageTemplateQueryResult = NonNullable<Awaited<ReturnType<typeof getItemStageTemplate>>>
+export type GetItemStageTemplateQueryError = unknown
+
+
+export function useGetItemStageTemplate<TData = Awaited<ReturnType<typeof getItemStageTemplate>>, TError = unknown>(
+ itemId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemStageTemplate>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getItemStageTemplate>>,
+          TError,
+          Awaited<ReturnType<typeof getItemStageTemplate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetItemStageTemplate<TData = Awaited<ReturnType<typeof getItemStageTemplate>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemStageTemplate>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getItemStageTemplate>>,
+          TError,
+          Awaited<ReturnType<typeof getItemStageTemplate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetItemStageTemplate<TData = Awaited<ReturnType<typeof getItemStageTemplate>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemStageTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetItemStageTemplate<TData = Awaited<ReturnType<typeof getItemStageTemplate>>, TError = unknown>(
+ itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemStageTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetItemStageTemplateQueryOptions(itemId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSeedSuggestedStageTemplatesUrl = () => {
+
+
+
+
+  return `/api/v1/stage-templates/suggested`
+}
+
+export const seedSuggestedStageTemplates = async ( options?: Parameters<typeof apiFetch>[1]): Promise<StageTemplateSeedResult> => {
+
+  return apiFetch<StageTemplateSeedResult>(getSeedSuggestedStageTemplatesUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getSeedSuggestedStageTemplatesMutationKey = () => ['seedSuggestedStageTemplates'] as const;
+
+export const getSeedSuggestedStageTemplatesMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof seedSuggestedStageTemplates>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof seedSuggestedStageTemplates>>, TError,void, TContext> => {
+
+const mutationKey = getSeedSuggestedStageTemplatesMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof seedSuggestedStageTemplates>>, void> = () => {
+
+
+          return  seedSuggestedStageTemplates(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SeedSuggestedStageTemplatesMutationResult = NonNullable<Awaited<ReturnType<typeof seedSuggestedStageTemplates>>>
+
+    export type SeedSuggestedStageTemplatesMutationError = unknown
+
+
+    export const useSeedSuggestedStageTemplates = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof seedSuggestedStageTemplates>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof seedSuggestedStageTemplates>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSeedSuggestedStageTemplatesMutationOptions(options), queryClient);
+    }
+
+export const getGetStageTemplateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/stage-templates/${id}`
+}
+
+export const getStageTemplate = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<StageTemplateDetail> => {
+
+  return apiFetch<StageTemplateDetail>(getGetStageTemplateUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStageTemplateQueryKey = (id: string,) => {
+    return [
+    `/api/v1/stage-templates/${id}`
+    ] as const;
+    }
+
+
+export const getGetStageTemplateQueryOptions = <TData = Awaited<ReturnType<typeof getStageTemplate>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStageTemplateQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStageTemplate>>> = ({ signal }) => getStageTemplate(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStageTemplate>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStageTemplateQueryResult = NonNullable<Awaited<ReturnType<typeof getStageTemplate>>>
+export type GetStageTemplateQueryError = unknown
+
+
+export function useGetStageTemplate<TData = Awaited<ReturnType<typeof getStageTemplate>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageTemplate>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStageTemplate>>,
+          TError,
+          Awaited<ReturnType<typeof getStageTemplate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStageTemplate<TData = Awaited<ReturnType<typeof getStageTemplate>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageTemplate>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStageTemplate>>,
+          TError,
+          Awaited<ReturnType<typeof getStageTemplate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStageTemplate<TData = Awaited<ReturnType<typeof getStageTemplate>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetStageTemplate<TData = Awaited<ReturnType<typeof getStageTemplate>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageTemplate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStageTemplateQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateStageTemplateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/stage-templates/${id}`
+}
+
+export const updateStageTemplate = async (id: string,
+    stageTemplateUpdate: StageTemplateUpdate, options?: Parameters<typeof apiFetch>[1]): Promise<StageTemplateDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StageTemplateDetail>(getUpdateStageTemplateUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stageTemplateUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateStageTemplateMutationKey = () => ['updateStageTemplate'] as const;
+
+export const getUpdateStageTemplateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStageTemplate>>, TError,UpdateStageTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateStageTemplate>>, TError,UpdateStageTemplateMutationVariables, TContext> => {
+
+const mutationKey = getUpdateStageTemplateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateStageTemplate>>, UpdateStageTemplateMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateStageTemplate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateStageTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof updateStageTemplate>>>
+    export type UpdateStageTemplateMutationBody = StageTemplateUpdate
+    export type UpdateStageTemplateMutationError = unknown
+    export type UpdateStageTemplateMutationVariables = {id: string;data: StageTemplateUpdate}
+
+    export const useUpdateStageTemplate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStageTemplate>>, TError,UpdateStageTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateStageTemplate>>,
+        TError,
+        UpdateStageTemplateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateStageTemplateMutationOptions(options), queryClient);
+    }
+
+export const getDeleteStageTemplateUrl = (id: string,
+    params: DeleteStageTemplateParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/stage-templates/${id}?${stringifiedParams}` : `/api/v1/stage-templates/${id}`
+}
+
+export const deleteStageTemplate = async (id: string,
+    params: DeleteStageTemplateParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteStageTemplateUrl(id,params),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteStageTemplateMutationKey = () => ['deleteStageTemplate'] as const;
+
+export const getDeleteStageTemplateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteStageTemplate>>, TError,DeleteStageTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteStageTemplate>>, TError,DeleteStageTemplateMutationVariables, TContext> => {
+
+const mutationKey = getDeleteStageTemplateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteStageTemplate>>, DeleteStageTemplateMutationVariables> = (props) => {
+          const {id,params} = props ?? {};
+
+          return  deleteStageTemplate(id,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteStageTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof deleteStageTemplate>>>
+
+    export type DeleteStageTemplateMutationError = unknown
+    export type DeleteStageTemplateMutationVariables = {id: string;params: DeleteStageTemplateParams}
+
+    export const useDeleteStageTemplate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteStageTemplate>>, TError,DeleteStageTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteStageTemplate>>,
+        TError,
+        DeleteStageTemplateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteStageTemplateMutationOptions(options), queryClient);
+    }
+
+export const getGetStageTemplateHistoryUrl = (id: string,
+    params?: GetStageTemplateHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/stage-templates/${id}/history?${stringifiedParams}` : `/api/v1/stage-templates/${id}/history`
+}
+
+export const getStageTemplateHistory = async (id: string,
+    params?: GetStageTemplateHistoryParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfRelatedAuditEntryDto> => {
+
+  return apiFetch<PagedListOfRelatedAuditEntryDto>(getGetStageTemplateHistoryUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStageTemplateHistoryQueryKey = (id: string,
+    params?: GetStageTemplateHistoryParams,) => {
+    return [
+    `/api/v1/stage-templates/${id}/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetStageTemplateHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getStageTemplateHistory>>, TError = unknown>(id: string,
+    params?: GetStageTemplateHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageTemplateHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStageTemplateHistoryQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStageTemplateHistory>>> = ({ signal }) => getStageTemplateHistory(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStageTemplateHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStageTemplateHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getStageTemplateHistory>>>
+export type GetStageTemplateHistoryQueryError = unknown
+
+
+export function useGetStageTemplateHistory<TData = Awaited<ReturnType<typeof getStageTemplateHistory>>, TError = unknown>(
+ id: string,
+    params: undefined |  GetStageTemplateHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageTemplateHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStageTemplateHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getStageTemplateHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStageTemplateHistory<TData = Awaited<ReturnType<typeof getStageTemplateHistory>>, TError = unknown>(
+ id: string,
+    params?: GetStageTemplateHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageTemplateHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStageTemplateHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getStageTemplateHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStageTemplateHistory<TData = Awaited<ReturnType<typeof getStageTemplateHistory>>, TError = unknown>(
+ id: string,
+    params?: GetStageTemplateHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageTemplateHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetStageTemplateHistory<TData = Awaited<ReturnType<typeof getStageTemplateHistory>>, TError = unknown>(
+ id: string,
+    params?: GetStageTemplateHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStageTemplateHistory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStageTemplateHistoryQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSetDefaultStageTemplateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/stage-templates/${id}/default`
+}
+
+export const setDefaultStageTemplate = async (id: string,
+    stageTemplateVersionInput: StageTemplateVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<StageTemplateDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StageTemplateDetail>(getSetDefaultStageTemplateUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stageTemplateVersionInput)
+  }
+);}
+
+
+
+
+
+export const getSetDefaultStageTemplateMutationKey = () => ['setDefaultStageTemplate'] as const;
+
+export const getSetDefaultStageTemplateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setDefaultStageTemplate>>, TError,SetDefaultStageTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setDefaultStageTemplate>>, TError,SetDefaultStageTemplateMutationVariables, TContext> => {
+
+const mutationKey = getSetDefaultStageTemplateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setDefaultStageTemplate>>, SetDefaultStageTemplateMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  setDefaultStageTemplate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetDefaultStageTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof setDefaultStageTemplate>>>
+    export type SetDefaultStageTemplateMutationBody = StageTemplateVersionInput
+    export type SetDefaultStageTemplateMutationError = unknown
+    export type SetDefaultStageTemplateMutationVariables = {id: string;data: StageTemplateVersionInput}
+
+    export const useSetDefaultStageTemplate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setDefaultStageTemplate>>, TError,SetDefaultStageTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setDefaultStageTemplate>>,
+        TError,
+        SetDefaultStageTemplateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetDefaultStageTemplateMutationOptions(options), queryClient);
+    }
+
+export const getInactivateStageTemplateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/stage-templates/${id}/inactivate`
+}
+
+export const inactivateStageTemplate = async (id: string,
+    stageTemplateVersionInput: StageTemplateVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<StageTemplateDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StageTemplateDetail>(getInactivateStageTemplateUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stageTemplateVersionInput)
+  }
+);}
+
+
+
+
+
+export const getInactivateStageTemplateMutationKey = () => ['inactivateStageTemplate'] as const;
+
+export const getInactivateStageTemplateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateStageTemplate>>, TError,InactivateStageTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inactivateStageTemplate>>, TError,InactivateStageTemplateMutationVariables, TContext> => {
+
+const mutationKey = getInactivateStageTemplateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inactivateStageTemplate>>, InactivateStageTemplateMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  inactivateStageTemplate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InactivateStageTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof inactivateStageTemplate>>>
+    export type InactivateStageTemplateMutationBody = StageTemplateVersionInput
+    export type InactivateStageTemplateMutationError = unknown
+    export type InactivateStageTemplateMutationVariables = {id: string;data: StageTemplateVersionInput}
+
+    export const useInactivateStageTemplate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivateStageTemplate>>, TError,InactivateStageTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof inactivateStageTemplate>>,
+        TError,
+        InactivateStageTemplateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInactivateStageTemplateMutationOptions(options), queryClient);
+    }
+
+export const getActivateStageTemplateUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/stage-templates/${id}/activate`
+}
+
+export const activateStageTemplate = async (id: string,
+    stageTemplateVersionInput: StageTemplateVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<StageTemplateDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StageTemplateDetail>(getActivateStageTemplateUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stageTemplateVersionInput)
+  }
+);}
+
+
+
+
+
+export const getActivateStageTemplateMutationKey = () => ['activateStageTemplate'] as const;
+
+export const getActivateStageTemplateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateStageTemplate>>, TError,ActivateStageTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof activateStageTemplate>>, TError,ActivateStageTemplateMutationVariables, TContext> => {
+
+const mutationKey = getActivateStageTemplateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activateStageTemplate>>, ActivateStageTemplateMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  activateStageTemplate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ActivateStageTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof activateStageTemplate>>>
+    export type ActivateStageTemplateMutationBody = StageTemplateVersionInput
+    export type ActivateStageTemplateMutationError = unknown
+    export type ActivateStageTemplateMutationVariables = {id: string;data: StageTemplateVersionInput}
+
+    export const useActivateStageTemplate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateStageTemplate>>, TError,ActivateStageTemplateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof activateStageTemplate>>,
+        TError,
+        ActivateStageTemplateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getActivateStageTemplateMutationOptions(options), queryClient);
+    }
+
+export const getListStageTemplateItemsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/stage-templates/${id}/items`
+}
+
+export const listStageTemplateItems = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<StageTemplateItemView[]> => {
+
+  return apiFetch<StageTemplateItemView[]>(getListStageTemplateItemsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStageTemplateItemsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/stage-templates/${id}/items`
+    ] as const;
+    }
+
+
+export const getListStageTemplateItemsQueryOptions = <TData = Awaited<ReturnType<typeof listStageTemplateItems>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStageTemplateItemsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStageTemplateItems>>> = ({ signal }) => listStageTemplateItems(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateItems>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListStageTemplateItemsQueryResult = NonNullable<Awaited<ReturnType<typeof listStageTemplateItems>>>
+export type ListStageTemplateItemsQueryError = unknown
+
+
+export function useListStageTemplateItems<TData = Awaited<ReturnType<typeof listStageTemplateItems>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateItems>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStageTemplateItems>>,
+          TError,
+          Awaited<ReturnType<typeof listStageTemplateItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStageTemplateItems<TData = Awaited<ReturnType<typeof listStageTemplateItems>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateItems>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listStageTemplateItems>>,
+          TError,
+          Awaited<ReturnType<typeof listStageTemplateItems>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListStageTemplateItems<TData = Awaited<ReturnType<typeof listStageTemplateItems>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListStageTemplateItems<TData = Awaited<ReturnType<typeof listStageTemplateItems>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStageTemplateItems>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListStageTemplateItemsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLinkStageTemplateItemUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/stage-templates/${id}/items`
+}
+
+export const linkStageTemplateItem = async (id: string,
+    stageTemplateItemLinkInput: StageTemplateItemLinkInput, options?: Parameters<typeof apiFetch>[1]): Promise<StageTemplateItemView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<StageTemplateItemView>(getLinkStageTemplateItemUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(stageTemplateItemLinkInput)
+  }
+);}
+
+
+
+
+
+export const getLinkStageTemplateItemMutationKey = () => ['linkStageTemplateItem'] as const;
+
+export const getLinkStageTemplateItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkStageTemplateItem>>, TError,LinkStageTemplateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof linkStageTemplateItem>>, TError,LinkStageTemplateItemMutationVariables, TContext> => {
+
+const mutationKey = getLinkStageTemplateItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof linkStageTemplateItem>>, LinkStageTemplateItemMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  linkStageTemplateItem(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LinkStageTemplateItemMutationResult = NonNullable<Awaited<ReturnType<typeof linkStageTemplateItem>>>
+    export type LinkStageTemplateItemMutationBody = StageTemplateItemLinkInput
+    export type LinkStageTemplateItemMutationError = unknown
+    export type LinkStageTemplateItemMutationVariables = {id: string;data: StageTemplateItemLinkInput}
+
+    export const useLinkStageTemplateItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkStageTemplateItem>>, TError,LinkStageTemplateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof linkStageTemplateItem>>,
+        TError,
+        LinkStageTemplateItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLinkStageTemplateItemMutationOptions(options), queryClient);
+    }
+
+export const getUnlinkStageTemplateItemUrl = (id: string,
+    linkId: string,) => {
+
+
+
+
+  return `/api/v1/stage-templates/${id}/items/${linkId}`
+}
+
+export const unlinkStageTemplateItem = async (id: string,
+    linkId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getUnlinkStageTemplateItemUrl(id,linkId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getUnlinkStageTemplateItemMutationKey = () => ['unlinkStageTemplateItem'] as const;
+
+export const getUnlinkStageTemplateItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkStageTemplateItem>>, TError,UnlinkStageTemplateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof unlinkStageTemplateItem>>, TError,UnlinkStageTemplateItemMutationVariables, TContext> => {
+
+const mutationKey = getUnlinkStageTemplateItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unlinkStageTemplateItem>>, UnlinkStageTemplateItemMutationVariables> = (props) => {
+          const {id,linkId} = props ?? {};
+
+          return  unlinkStageTemplateItem(id,linkId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnlinkStageTemplateItemMutationResult = NonNullable<Awaited<ReturnType<typeof unlinkStageTemplateItem>>>
+
+    export type UnlinkStageTemplateItemMutationError = unknown
+    export type UnlinkStageTemplateItemMutationVariables = {id: string;linkId: string}
+
+    export const useUnlinkStageTemplateItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkStageTemplateItem>>, TError,UnlinkStageTemplateItemMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof unlinkStageTemplateItem>>,
+        TError,
+        UnlinkStageTemplateItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUnlinkStageTemplateItemMutationOptions(options), queryClient);
     }
 
 export const getGetCommercialParametersUrl = () => {

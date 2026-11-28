@@ -47,6 +47,13 @@ public interface ICommercialDb
 
     DbSet<ContractAmendmentReduction> ContractAmendmentReductions { get; }
 
+    /// <summary>Modelos de etapas do projeto de serviço (EXE-02), com as etapas e os itens de serviço vinculados.</summary>
+    DbSet<StageTemplate> StageTemplates { get; }
+
+    DbSet<StageTemplateStep> StageTemplateSteps { get; }
+
+    DbSet<StageTemplateItem> StageTemplateItems { get; }
+
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
