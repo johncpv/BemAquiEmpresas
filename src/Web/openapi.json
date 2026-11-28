@@ -15981,6 +15981,592 @@
         }
       }
     },
+    "/api/v1/stage-templates": {
+      "get": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "ListStageTemplates",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "situation",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfStageTemplateSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "CreateStageTemplate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StageTemplateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageTemplateDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stage-templates/lookups/positions": {
+      "get": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "ListStageTemplatePositions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StagePositionOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stage-templates/lookups/segments": {
+      "get": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "ListStageTemplateSegments",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StageSegmentOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stage-templates/lookups/items": {
+      "get": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "ListStageTemplateItemOptions",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StageItemOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stage-templates/by-item/{itemId}": {
+      "get": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "GetItemStageTemplate",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemStageTemplateView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stage-templates/suggested": {
+      "post": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "SeedSuggestedStageTemplates",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageTemplateSeedResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stage-templates/{id}": {
+      "get": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "GetStageTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageTemplateDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "UpdateStageTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StageTemplateUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageTemplateDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "DeleteStageTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "uint32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/stage-templates/{id}/history": {
+      "get": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "GetStageTemplateHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedListOfRelatedAuditEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stage-templates/{id}/default": {
+      "post": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "SetDefaultStageTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StageTemplateVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageTemplateDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stage-templates/{id}/inactivate": {
+      "post": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "InactivateStageTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StageTemplateVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageTemplateDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stage-templates/{id}/activate": {
+      "post": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "ActivateStageTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StageTemplateVersionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageTemplateDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stage-templates/{id}/items": {
+      "get": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "ListStageTemplateItems",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StageTemplateItemView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "LinkStageTemplateItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StageTemplateItemLinkInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageTemplateItemView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stage-templates/{id}/items/{linkId}": {
+      "delete": {
+        "tags": [
+          "Modelos de etapas"
+        ],
+        "operationId": "UnlinkStageTemplateItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "linkId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/commercial/parameters": {
       "get": {
         "tags": [
@@ -74083,6 +74669,28 @@
           }
         }
       },
+      "ItemStageTemplateView": {
+        "required": [
+          "stageTemplateId",
+          "stageTemplateName"
+        ],
+        "type": "object",
+        "properties": {
+          "stageTemplateId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "stageTemplateName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ItemSuggestion": {
         "required": [
           "itemId",
@@ -85478,6 +86086,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ShortageRow"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedListOfStageTemplateSummary": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageTemplateSummary"
             }
           },
           "page": {
@@ -114492,6 +115129,501 @@
           }
         }
       },
+      "StageItemOption": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "stageTemplateId",
+          "stageTemplateName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "stageTemplateId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "stageTemplateName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "StagePositionOption": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "StageRole": {
+        "enum": [
+          "Execution",
+          "Delivery",
+          "Acceptance"
+        ]
+      },
+      "StageSegmentOption": {
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "StageStepInput": {
+        "required": [
+          "id",
+          "name",
+          "code",
+          "role",
+          "standardHoursPerUnit",
+          "positionId",
+          "requiresApproval",
+          "checklist"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/StageRole"
+          },
+          "standardHoursPerUnit": {
+            "type": "number",
+            "format": "double"
+          },
+          "positionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "requiresApproval": {
+            "type": "boolean"
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "StageStepView": {
+        "required": [
+          "id",
+          "sequence",
+          "code",
+          "name",
+          "role",
+          "standardHoursPerUnit",
+          "positionId",
+          "positionName",
+          "positionActive",
+          "requiresApproval",
+          "checklist"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/StageRole"
+          },
+          "standardHoursPerUnit": {
+            "type": "number",
+            "format": "double"
+          },
+          "positionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "positionName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "positionActive": {
+            "type": "boolean"
+          },
+          "requiresApproval": {
+            "type": "boolean"
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "StageTemplateDetail": {
+        "required": [
+          "id",
+          "name",
+          "segment",
+          "segmentName",
+          "isDefault",
+          "isSuggested",
+          "isActive",
+          "revision",
+          "totalHoursPerUnit",
+          "itemCount",
+          "usageCount",
+          "steps",
+          "suggestedMilestones",
+          "version",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "segment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "segmentName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isSuggested": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalHoursPerUnit": {
+            "type": "number",
+            "format": "double"
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageStepView"
+            }
+          },
+          "suggestedMilestones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SuggestedMilestone"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "StageTemplateInput": {
+        "required": [
+          "name",
+          "segment",
+          "steps",
+          "suggestedMilestones"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "segment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageStepInput"
+            }
+          },
+          "suggestedMilestones": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SuggestedMilestoneInput"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "StageTemplateItemLinkInput": {
+        "required": [
+          "itemId"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StageTemplateItemView": {
+        "required": [
+          "id",
+          "itemId",
+          "code",
+          "name",
+          "isActive",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "StageTemplateSeedResult": {
+        "required": [
+          "created"
+        ],
+        "type": "object",
+        "properties": {
+          "created": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "StageTemplateSummary": {
+        "required": [
+          "id",
+          "name",
+          "segment",
+          "segmentName",
+          "isDefault",
+          "isSuggested",
+          "isActive",
+          "codes",
+          "stepNames",
+          "totalHoursPerUnit",
+          "itemCount",
+          "usageCount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "segment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "segmentName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isSuggested": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "stepNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "totalHoursPerUnit": {
+            "type": "number",
+            "format": "double"
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usageCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "StageTemplateUpdate": {
+        "required": [
+          "name",
+          "segment",
+          "steps",
+          "suggestedMilestones",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "segment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageStepInput"
+            }
+          },
+          "suggestedMilestones": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SuggestedMilestoneInput"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StageTemplateVersionInput": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "additionalProperties": false
+      },
       "StatementLine": {
         "required": [
           "transactionId",
@@ -116409,6 +117541,71 @@
             "default": 3
           }
         }
+      },
+      "SuggestedMilestone": {
+        "required": [
+          "percent",
+          "trigger",
+          "stageCode",
+          "daysAfterEvent"
+        ],
+        "type": "object",
+        "properties": {
+          "percent": {
+            "type": "number",
+            "format": "double"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/SuggestedMilestoneTrigger"
+          },
+          "stageCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "daysAfterEvent": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SuggestedMilestoneInput": {
+        "required": [
+          "percent",
+          "trigger",
+          "stageCode",
+          "daysAfterEvent"
+        ],
+        "type": "object",
+        "properties": {
+          "percent": {
+            "type": "number",
+            "format": "double"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/SuggestedMilestoneTrigger"
+          },
+          "stageCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "daysAfterEvent": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SuggestedMilestoneTrigger": {
+        "enum": [
+          "Signature",
+          "StageCompleted",
+          "Delivered",
+          "TechnicalAcceptance"
+        ]
       },
       "SuggestedWorkCenter": {
         "required": [
@@ -123608,6 +124805,9 @@
     },
     {
       "name": "Contratos e projetos"
+    },
+    {
+      "name": "Modelos de etapas"
     },
     {
       "name": "Engenharia"
