@@ -159,8 +159,8 @@ public partial class PaymentOrderTests
             var decision = await WithDbAsync(db => db.PaymentOrderApprovals.SingleAsync(a => a.PaymentOrderId == neverId && a.Kind == BemAqui.Finance.Domain.PaymentOrderDecisionKind.Decision));
             decision.SelfApprovalMode.Should().Be(SelfApprovalMode.OwnerOnly, "CA 8: o modo vigente fica na decisão");
             decision.DecidedBy.Should().Be(ownerId);
-            (await WithDbAsync(db => db.AuditEntries.AnyAsync(a => a.Entity == "PaymentOrderApproval" && a.EntityId == decision.Id.ToString() && a.UserId == ownerId && a.Changes.Contains("selfApprovalMode"))))
-                .Should().BeTrue("a auditoria da decisão registra quem e o modo");
+            (await WithDbAsync(db => db.AuditEntries.AsNoTracking().Where(a => a.Entity == "PaymentOrderApproval" && a.EntityId == decision.Id.ToString() && a.UserId == ownerId).ToListAsync()))
+                .Should().Contain(a => a.Changes.Contains("selfApprovalMode", StringComparison.OrdinalIgnoreCase), "a auditoria da decisão registra quem e o modo");
             var (outsiderOrderId, outsiderOrder) = await OwnOrderAsync(outsider, owner);
             Code(await JsonAsync(await ApproveAsync(outsider, outsiderOrderId, outsiderOrder))).Should().Be("own_payment_order");
 
@@ -202,8 +202,9 @@ public partial class PaymentOrderTests
             // CA 10: PDF e exportação mostram o selo; o filtro continua.
             (await PdfAsync(owner, neverId)).Should().Contain(PayablesTests.Flat("Aprovada pelo próprio solicitante"));
             var number = approved.GetProperty("summary").GetProperty("number").GetString()!;
-            var csv = await owner.GetStringAsync($"{Base}/export?format=csv&selfApproved=true");
-            csv.Should().Contain("Autoaprovada").And.Contain(number);
+            var exported = await owner.GetAsync($"{Base}/export?format=pdf&selfApproved=true");
+            exported.StatusCode.Should().Be(HttpStatusCode.OK, await exported.Content.ReadAsStringAsync());
+            PdfText(await exported.Content.ReadAsByteArrayAsync()).Should().Contain("Autoaprovada").And.Contain(number).And.Contain("Sim");
             (await JsonAsync(await owner.GetAsync($"{Base}?selfApproved=true"))).GetProperty("items").EnumerateArray()
                 .Should().Contain(i => i.GetProperty("id").GetGuid() == neverId);
 

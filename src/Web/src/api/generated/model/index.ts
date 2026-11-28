@@ -1853,6 +1853,7 @@ export * from './searchStockProjectsParams';
 export * from './searchTraceabilityParams';
 export * from './secret';
 export * from './securitySettingsDto';
+export * from './selfApprovalMode';
 export * from './sellWithoutStockInput';
 export * from './serialState';
 export * from './serialTrace';

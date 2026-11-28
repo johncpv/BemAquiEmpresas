@@ -4,17 +4,23 @@
  * BemAqui.Host | v1
  * OpenAPI spec version: 1.0.0
  */
+import type { SelfApprovalMode } from './selfApprovalMode';
 
 export interface FinanceLimitsInput {
   discountApprovalPct: number;
   discountApprovalAmount: number;
   cancelApprovalAmount: number;
   backdateDays: number;
-  ownerCanApproveOwn?: boolean;
+  /** @nullable */
+  ownerCanApproveOwn?: boolean | null;
   paymentTolerance?: number;
   transferNotifyAmount?: number;
   /** @nullable */
   adjustedDefaultThresholdPct?: number | null;
   /** @nullable */
   ofxBankEntryCap?: number | null;
+  selfApprovalMode?: null | SelfApprovalMode;
+  selfApprovalModeSeen?: null | SelfApprovalMode;
+  /** @nullable */
+  code?: string | null;
 }

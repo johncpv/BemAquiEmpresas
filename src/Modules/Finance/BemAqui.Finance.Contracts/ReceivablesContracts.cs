@@ -52,6 +52,7 @@ public sealed record FinanceLimits(
 /// Autoaprovação da OP (FIN-10a, ADR 0054), gravada em <c>finance.owner_can_approve_own</c> como 0, 1 ou 2: Nunca (só a exceção do
 /// Proprietário único, FIN-03a D6 a), Só o Proprietário e Qualquer aprovador (só no 1º nível da alçada).
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<SelfApprovalMode>))]
 public enum SelfApprovalMode
 {
     Never = 0,

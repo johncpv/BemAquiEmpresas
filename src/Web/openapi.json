@@ -64332,6 +64332,9 @@
             "type": "number",
             "format": "double",
             "default": 500
+          },
+          "selfApprovalMode": {
+            "$ref": "#/components/schemas/SelfApprovalMode"
           }
         }
       },
@@ -64361,8 +64364,10 @@
             "format": "int32"
           },
           "ownerCanApproveOwn": {
-            "type": "boolean",
-            "default": false
+            "type": [
+              "null",
+              "boolean"
+            ]
           },
           "paymentTolerance": {
             "type": "number",
@@ -64387,6 +64392,32 @@
               "number"
             ],
             "format": "double"
+          },
+          "selfApprovalMode": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SelfApprovalMode"
+              }
+            ]
+          },
+          "selfApprovalModeSeen": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SelfApprovalMode"
+              }
+            ]
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         },
         "additionalProperties": false
@@ -111725,6 +111756,14 @@
             "type": "boolean"
           }
         }
+      },
+      "SelfApprovalMode": {
+        "enum": [
+          "Never",
+          "OwnerOnly",
+          "AnyApprover"
+        ],
+        "default": "Never"
       },
       "SellWithoutStockInput": {
         "required": [
