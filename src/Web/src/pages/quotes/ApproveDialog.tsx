@@ -2,6 +2,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { approveQuote, useGetQuoteApproval, useGetQuoteApprovalCosts } from '@/api/generated/bemaqui'
 import type { ApprovalResult, QuoteDetail } from '@/api/generated/model'
+import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
 import { inputClass } from '@/components/form/form-utils'
 import { DateInput } from '@/components/form/inputs'
@@ -34,6 +35,8 @@ export function ApproveDialog({ quote, open, onOpenChange, onApproved }: { quote
   const [account, setAccount] = useState('')
   const [onboarding, setOnboarding] = useState<OnboardingDraft>({ enabled: false, milestones: {} })
   const idempotency = useIdempotencyKey()
+  // EXE-01b CA 15: o 422 de marco inválido para serviço (EXE-01a CA 27) abre a aba Condições com o marco em destaque.
+  const [badMilestone, setBadMilestone] = useState<number | null>(null)
   const p = preview.data
   const revenueAccountId = account || p?.suggestedRevenueAccountId || ''
   const fix = (tab: string | null | undefined) => tab ? { label: 'Corrigir', onSelect: () => { setOpen(false); void navigate({ to: '/app/orcamentos/$id', params: { id: quote.id }, search: { aba: tab } } as never) } } : undefined
@@ -63,10 +66,17 @@ export function ApproveDialog({ quote, open, onOpenChange, onApproved }: { quote
         </div>
       ) : null}
       onConfirm={async () => {
-        const result = await approveQuote(quote.id, { signedAt, revenueAccountId, version: quote.version, ...onboardingBody(onboarding) }, idempotency.options)
+        let result: ApprovalResult
+        try {
+          result = await approveQuote(quote.id, { signedAt, revenueAccountId, version: quote.version, ...onboardingBody(onboarding) }, idempotency.options)
+        } catch (e) {
+          setBadMilestone(e instanceof ApiError && e.code === 'milestone_trigger_not_allowed' && typeof e.data.milestoneIndex === 'number' ? e.data.milestoneIndex : null)
+          throw e
+        }
         idempotency.renew()
         onApproved(result)
       }}
+      recovery={{ verb: 'Abrir as condições', when: (code) => code === 'milestone_trigger_not_allowed', onSelect: async () => { await navigate({ to: '/app/orcamentos/$id', params: { id: quote.id }, search: { aba: 'condicoes', ...(badMilestone !== null ? { marco: badMilestone + 1 } : {}) } } as never) } }}
       trigger={open === undefined ? <button type="button" className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Aprovar e gerar contrato</button> : undefined}>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label className="space-y-1 text-sm font-medium"><span className="inline-flex items-center">Data de assinatura<Dica nome="Data de assinatura" texto={CONTRACT_DICAS.assinatura} /></span>

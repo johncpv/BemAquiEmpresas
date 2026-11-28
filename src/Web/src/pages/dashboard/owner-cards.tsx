@@ -7,12 +7,11 @@ import type { ActiveProjectItem } from '@/api/generated/model'
 import { ColumnChart } from '@/components/ui/column-chart'
 import { Kpi } from '@/components/ui/kpi'
 import { Money } from '@/components/ui/money'
-import { StageIndicator } from '@/components/ui/stage-indicator'
 import { StatusChip } from '@/components/ui/status-chip'
 import { Dica } from '@/help/Dica'
 import { formatDate, formatMoney } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import { PROJECT_LETTERS, PROJECT_STAGES, projectStage } from '@/pages/contracts/contracts'
+import { ProjectStageIndicator } from '@/pages/projects/ProjectStageIndicator'
 import { costLabel, MARGIN_DICAS, marginContext, NO_COST_BUDGET, pct1, pp } from '@/pages/projects/margins/margins'
 import { useCan } from '@/pages/use-can'
 import { PanelCard, primaryAction } from './cards'
@@ -140,7 +139,6 @@ export function ActiveProjectsPanel({ className }: { className?: string }) {
               {card.items.map((item) => {
                 const m = marginOf(item.id)
                 const r = receivedOf(item.id)
-                const stage = projectStage(item.status)
                 return (
                   <tr key={item.id} data-risk={item.risk} className={cn('border-b border-border align-top last:border-0', item.risk === 'Late' && 'border-l-4 border-l-crit', item.risk === 'AtRisk' && 'border-l-4 border-l-warn')}>
                     <td className="py-2 pr-2 pl-2">
@@ -151,7 +149,7 @@ export function ActiveProjectsPanel({ className }: { className?: string }) {
                         <Extra item={item} />
                       </details>
                     </td>
-                    <td className="py-2 pr-2">{stage < 0 ? <StatusChip tone="neutral">Cancelado</StatusChip> : <StageIndicator stages={PROJECT_STAGES} letters={PROJECT_LETTERS} current={stage} />}</td>
+                    <td className="py-2 pr-2"><ProjectStageIndicator project={item} /></td>
                     <td className="py-2 pr-2"><Delivery item={item} /></td>
                     <td className="hidden py-2 pr-2 text-right sm:table-cell"><Money value={item.contractedAmount} cents={false} /></td>
                     {canCost ? <td className="hidden py-2 pr-2 text-right tabular-nums sm:table-cell">{m?.noCostBudget ? <span className="text-warn-ink">{NO_COST_BUDGET}</span> : m ? <>{pct1(m.budgetedMarginPct)} → <b className={(m.deviationPp ?? 0) < 0 ? 'text-warn-ink' : undefined}>{pct1(m.projectedMarginPct)}</b></> : '—'}</td> : null}

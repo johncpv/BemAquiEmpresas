@@ -4,14 +4,15 @@ import { DateInput, PercentInput } from '@/components/form/inputs'
 import type { RowsColumn } from '@/components/form/rows-editor'
 import { Money } from '@/components/ui/money'
 import { cn } from '@/lib/utils'
-import { EVENTS, type MilestoneDraft } from './milestones'
+import { eventsFor, type MilestoneDraft } from './milestones'
 
 /**
  * Colunas do editor de marcos (CA 1 e 2): descrição, %, valor ao lado, gatilho e quando (data ou evento + prazo). O "Quando" tem
  * largura mínima para mostrar o evento inteiro ("Assinatura do contrato", "Fabricação concluída") com o prazo ao lado; numa tela
  * estreita a grade rola dentro do próprio editor.
  */
-export function milestoneColumns(values: number[]): RowsColumn<MilestoneDraft>[] {
+/** `kind`: tipo do orçamento pelos itens (EXE-01b CA 15); no serviço, o gatilho "Fabricação concluída" não é oferecido. */
+export function milestoneColumns(values: number[], kind?: string | null): RowsColumn<MilestoneDraft>[] {
   return [
     { label: 'Descrição', width: 'minmax(8rem, 1fr)', render: (r, i, set) => <input aria-label={`Descrição do marco ${i + 1}`} value={r.description} maxLength={120} onChange={(e) => set({ description: e.target.value })} className={inputClass} /> },
     { label: '%', width: '7rem', render: (r, i, set) => <PercentInput aria-label={`Percentual do marco ${i + 1}`} scale={4} value={r.percent} onChange={(v) => set({ percent: v })} /> },
@@ -21,7 +22,7 @@ export function milestoneColumns(values: number[]): RowsColumn<MilestoneDraft>[]
       ? <DateInput aria-label={`Data do marco ${i + 1}`} value={r.dueDate} onChange={(v) => set({ dueDate: v })} />
       : (
         <span className="flex gap-1">
-          <select aria-label={`Evento do marco ${i + 1}`} value={r.triggerEvent} onChange={(e) => set({ triggerEvent: e.target.value as NonNullable<TriggerEvent> })} className={cn(inputClass, 'min-w-0 flex-1')}>{EVENTS.map((ev) => <option key={ev.value} value={ev.value}>{ev.label}</option>)}</select>
+          <select aria-label={`Evento do marco ${i + 1}`} value={r.triggerEvent} onChange={(e) => set({ triggerEvent: e.target.value as NonNullable<TriggerEvent> })} className={cn(inputClass, 'min-w-0 flex-1')}>{eventsFor(kind, r.triggerEvent).map((ev) => <option key={ev.value} value={ev.value}>{ev.label}</option>)}</select>
           <input aria-label={`Prazo após o evento do marco ${i + 1}`} inputMode="numeric" maxLength={4} value={r.days} onChange={(e) => set({ days: e.target.value.replace(/\D/g, '') })} className={cn(inputClass, 'w-16 shrink-0 tabular-nums')} />
         </span>
       )) },

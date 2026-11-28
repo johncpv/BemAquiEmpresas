@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { createAmendment, updateAmendment, useGetAmendmentContext } from '@/api/generated/bemaqui'
+import { createAmendment, updateAmendment, useGetAmendmentContext, useGetContract } from '@/api/generated/bemaqui'
 import type { AmendmentDetail } from '@/api/generated/model'
 import { ApiError } from '@/api/http'
 import { useIdempotencyKey } from '@/api/idempotency'
@@ -24,6 +24,7 @@ const addDays = (iso: string, days: number) => { const d = new Date(iso + 'T00:0
 export function AmendmentForm({ contractId, amendment }: { contractId: string; amendment?: AmendmentDetail }) {
   const navigate = useNavigate()
   const context = useGetAmendmentContext(contractId)
+  const contract = useGetContract(contractId)
   const idempotency = useIdempotencyKey()
   const [description, setDescription] = useState(amendment?.description ?? '')
   const [kind, setKind] = useState<'more' | 'less' | 'days'>(amendment ? (amendment.valueDelta > 0 ? 'more' : amendment.valueDelta < 0 ? 'less' : 'days') : 'more')
@@ -77,7 +78,7 @@ export function AmendmentForm({ contractId, amendment }: { contractId: string; a
         {kind !== 'days' ? <Field label={kind === 'more' ? 'Valor do acréscimo' : 'Valor da redução'} required size="sm" error={field('valueDelta')}>{(p) => <MoneyInput {...p} value={amount} onChange={setAmount} />}</Field> : null}
         <Field label="Variação de prazo (dias)" size="sm" error={field('daysDelta')}>{(p) => <input {...p} inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/[^\d-]/g, ''))} className={inputClass} />}</Field>
       </FormSection>
-      {kind === 'more' ? <FormSection title="Marcos do acréscimo" description="Os marcos precisam somar 100% do acréscimo." grid="none"><AmendmentMilestones value={value} rows={rows} onChange={setRows} /></FormSection> : null}
+      {kind === 'more' ? <FormSection title="Marcos do acréscimo" description="Os marcos precisam somar 100% do acréscimo." grid="none"><AmendmentMilestones value={value} rows={rows} onChange={setRows} kind={contract.data?.executionKind} /></FormSection> : null}
       {kind === 'less' ? (
         <FormSection title="Redução dos títulos futuros" description={AMENDMENT_DICAS.reducao} grid="none">
           {proposal === null ? <p className="text-sm text-crit-ink">A redução é maior que o saldo a receber sem baixa.</p> : (

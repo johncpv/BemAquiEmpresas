@@ -33,10 +33,13 @@ export const RECEIVABLE_DICAS = {
   vencido: 'Título em aberto com vencimento antes de hoje. Vencimento em dia não útil passa a vencido só no dia seguinte.',
 }
 
+const SERVICE_AWAITS: Record<string, string> = { TechnicalAcceptance: 'aceite do cliente', FabricationDone: 'conclusão da execução (antes: fabricação concluída)' }
 const AWAITS: Record<string, string> = { FabricationDone: 'fabricação concluída', Delivered: 'entrega', TechnicalAcceptance: 'aceite técnico', Signature: 'assinatura' }
 
-/** "Aguarda: fabricação concluída" na parcela prevista do contrato (COM-04b). */
-export const awaits = (r: Pick<ReceivableDetail, 'status' | 'triggerEvent'>) => (r.status === 'Planned' && r.triggerEvent ? `Aguarda: ${AWAITS[r.triggerEvent] ?? r.triggerEvent}` : null)
+/** "Aguarda: fabricação concluída" na parcela prevista do contrato (COM-04b); no projeto de serviço, "aceite do cliente" (EXE-01b CA 15). */
+export const awaits = (r: Pick<ReceivableDetail, 'status' | 'triggerEvent'> & { projectExecutionKind?: string | null }) => (r.status === 'Planned' && r.triggerEvent
+  ? `Aguarda: ${(r.projectExecutionKind === 'Service' ? SERVICE_AWAITS[r.triggerEvent] : undefined) ?? AWAITS[r.triggerEvent] ?? r.triggerEvent}`
+  : null)
 
 export const toNumber = (s: string | null | undefined) => (s === null || s === undefined || s === '' ? 0 : Number(s))
 

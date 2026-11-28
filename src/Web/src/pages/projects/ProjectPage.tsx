@@ -21,6 +21,7 @@ import { ProjectFinancialTab } from './ProjectFinancialTab'
 import { ProjectItemsTab } from './ProjectItemsTab'
 import { ProjectSummaryTab } from './ProjectSummaryTab'
 import { ProjectTimelineTab } from './ProjectTimelineTab'
+import { ServiceProjectView } from './service/ServiceProjectView'
 
 /** Projeto 360 (COM-05): cabeçalho com a etapa e as ações; abas na URL; aba sem permissão some (o Cronograma, PLN-03, pede production.view). */
 export function ProjectPage() {
@@ -37,6 +38,12 @@ export function ProjectPage() {
   if (query.isPending) return <Skeleton className="h-96" />
   if (query.isError) return <ErrorState title="Não foi possível carregar o projeto." onRetry={() => query.refetch()} />
   const p = query.data
+  const refresh = async () => {
+    await client.invalidateQueries({ queryKey: getGetProjectQueryKey(id) })
+    await client.invalidateQueries({ queryKey: getGetContractQueryKey(p.contractId) })
+  }
+  // EXE-01b: o projeto de serviço tem a própria página (próximo passo, P · I · E · A · C); a de fabricação segue igual.
+  if (p.executionKind === 'Service') return <ServiceProjectView project={p} refresh={refresh} />
   const stage = projectStage(p.status ?? '')
   const active = p.contractStatus === 'Active'
   const inProduction = p.status === 'Planned' || p.status === 'InProgress'
@@ -46,10 +53,6 @@ export function ProjectPage() {
   // COM-04b CA 10: "Registrar entrega" é só para venda sem instalação; com instalação, a entrega e o aceite técnico vêm da OS.
   const installationPending = active && !!p.hasInstallation && (inProduction || p.status === 'Fabricated')
   const canDeliver = active && canApprove && !p.hasInstallation && (p.status === 'Fabricated' || (inProduction && !p.hasFabricationMilestone))
-  const refresh = async () => {
-    await client.invalidateQueries({ queryKey: getGetProjectQueryKey(id) })
-    await client.invalidateQueries({ queryKey: getGetContractQueryKey(p.contractId) })
-  }
 
   return (
     <>

@@ -82,3 +82,11 @@ export function riskStripe(risk: DeliveryRisk | null | undefined): string | unde
   if (risk === 'AtRisk') return 'border-l-4 border-l-warn'
   return undefined
 }
+
+/**
+ * Projeto de serviço entregue sem aceite, com aceite exigido (EXE-01b CA 5 e 12): faixa lateral âmbar na linha e no cartão. Pela etapa do
+ * servidor: no "E" com o "A" não dispensado.
+ */
+export function awaitingAcceptance(p: { executionKind?: string | null; status?: string | null; stage?: { letter?: string | null; acceptanceWaived?: boolean } | null }): boolean {
+  return p.executionKind === 'Service' && p.status === 'Delivered' && p.stage?.letter === 'E' && p.stage.acceptanceWaived === false
+}
