@@ -17551,1091 +17551,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getIntegrationPatchCustomerMutationOptions(options), queryClient);
     }
 
-export const getListPositionsUrl = (params?: ListPositionsParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/hr/positions?${stringifiedParams}` : `/api/v1/hr/positions`
-}
-
-export const listPositions = async (params?: ListPositionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfPositionDetail> => {
-
-  return apiFetch<PagedListOfPositionDetail>(getListPositionsUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getListPositionsQueryKey = (params?: ListPositionsParams,) => {
-    return [
-    `/api/v1/hr/positions`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getListPositionsQueryOptions = <TData = Awaited<ReturnType<typeof listPositions>>, TError = unknown>(params?: ListPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListPositionsQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPositions>>> = ({ signal }) => listPositions(params, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPositions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListPositionsQueryResult = NonNullable<Awaited<ReturnType<typeof listPositions>>>
-export type ListPositionsQueryError = unknown
-
-
-export function useListPositions<TData = Awaited<ReturnType<typeof listPositions>>, TError = unknown>(
- params: undefined |  ListPositionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositions>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listPositions>>,
-          TError,
-          Awaited<ReturnType<typeof listPositions>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPositions<TData = Awaited<ReturnType<typeof listPositions>>, TError = unknown>(
- params?: ListPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositions>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listPositions>>,
-          TError,
-          Awaited<ReturnType<typeof listPositions>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPositions<TData = Awaited<ReturnType<typeof listPositions>>, TError = unknown>(
- params?: ListPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListPositions<TData = Awaited<ReturnType<typeof listPositions>>, TError = unknown>(
- params?: ListPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListPositionsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getCreatePositionUrl = () => {
-
-
-
-
-  return `/api/v1/hr/positions`
-}
-
-export const createPosition = async (positionInput: PositionInput, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<PositionDetail>(getCreatePositionUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(positionInput)
-  }
-);}
-
-
-
-
-
-export const getCreatePositionMutationKey = () => ['createPosition'] as const;
-
-export const getCreatePositionMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPosition>>, TError,CreatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof createPosition>>, TError,CreatePositionMutationVariables, TContext> => {
-
-const mutationKey = getCreatePositionMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPosition>>, CreatePositionMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  createPosition(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreatePositionMutationResult = NonNullable<Awaited<ReturnType<typeof createPosition>>>
-    export type CreatePositionMutationBody = PositionInput
-    export type CreatePositionMutationError = unknown
-    export type CreatePositionMutationVariables = {data: PositionInput}
-
-    export const useCreatePosition = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPosition>>, TError,CreatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof createPosition>>,
-        TError,
-        CreatePositionMutationVariables,
-        TContext
-      > => {
-      return useMutation(getCreatePositionMutationOptions(options), queryClient);
-    }
-
-export const getGetPositionsSummaryUrl = () => {
-
-
-
-
-  return `/api/v1/hr/positions/summary`
-}
-
-export const getPositionsSummary = async ( options?: Parameters<typeof apiFetch>[1]): Promise<PositionSummary> => {
-
-  return apiFetch<PositionSummary>(getGetPositionsSummaryUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetPositionsSummaryQueryKey = () => {
-    return [
-    `/api/v1/hr/positions/summary`
-    ] as const;
-    }
-
-
-export const getGetPositionsSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getPositionsSummary>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionsSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetPositionsSummaryQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPositionsSummary>>> = ({ signal }) => getPositionsSummary({ signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPositionsSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetPositionsSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getPositionsSummary>>>
-export type GetPositionsSummaryQueryError = unknown
-
-
-export function useGetPositionsSummary<TData = Awaited<ReturnType<typeof getPositionsSummary>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionsSummary>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getPositionsSummary>>,
-          TError,
-          Awaited<ReturnType<typeof getPositionsSummary>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPositionsSummary<TData = Awaited<ReturnType<typeof getPositionsSummary>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionsSummary>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getPositionsSummary>>,
-          TError,
-          Awaited<ReturnType<typeof getPositionsSummary>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPositionsSummary<TData = Awaited<ReturnType<typeof getPositionsSummary>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionsSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetPositionsSummary<TData = Awaited<ReturnType<typeof getPositionsSummary>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionsSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetPositionsSummaryQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getListPositionWorkCentersUrl = () => {
-
-
-
-
-  return `/api/v1/hr/positions/work-centers`
-}
-
-export const listPositionWorkCenters = async ( options?: Parameters<typeof apiFetch>[1]): Promise<WorkCenterChoice[]> => {
-
-  return apiFetch<WorkCenterChoice[]>(getListPositionWorkCentersUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getListPositionWorkCentersQueryKey = () => {
-    return [
-    `/api/v1/hr/positions/work-centers`
-    ] as const;
-    }
-
-
-export const getListPositionWorkCentersQueryOptions = <TData = Awaited<ReturnType<typeof listPositionWorkCenters>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositionWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListPositionWorkCentersQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPositionWorkCenters>>> = ({ signal }) => listPositionWorkCenters({ signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPositionWorkCenters>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListPositionWorkCentersQueryResult = NonNullable<Awaited<ReturnType<typeof listPositionWorkCenters>>>
-export type ListPositionWorkCentersQueryError = unknown
-
-
-export function useListPositionWorkCenters<TData = Awaited<ReturnType<typeof listPositionWorkCenters>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositionWorkCenters>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listPositionWorkCenters>>,
-          TError,
-          Awaited<ReturnType<typeof listPositionWorkCenters>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPositionWorkCenters<TData = Awaited<ReturnType<typeof listPositionWorkCenters>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositionWorkCenters>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listPositionWorkCenters>>,
-          TError,
-          Awaited<ReturnType<typeof listPositionWorkCenters>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPositionWorkCenters<TData = Awaited<ReturnType<typeof listPositionWorkCenters>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositionWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListPositionWorkCenters<TData = Awaited<ReturnType<typeof listPositionWorkCenters>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositionWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListPositionWorkCentersQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getGetPositionUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/positions/${id}`
-}
-
-export const getPosition = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
-
-  return apiFetch<PositionDetail>(getGetPositionUrl(id),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetPositionQueryKey = (id: string,) => {
-    return [
-    `/api/v1/hr/positions/${id}`
-    ] as const;
-    }
-
-
-export const getGetPositionQueryOptions = <TData = Awaited<ReturnType<typeof getPosition>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosition>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetPositionQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPosition>>> = ({ signal }) => getPosition(id, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPosition>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetPositionQueryResult = NonNullable<Awaited<ReturnType<typeof getPosition>>>
-export type GetPositionQueryError = unknown
-
-
-export function useGetPosition<TData = Awaited<ReturnType<typeof getPosition>>, TError = unknown>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosition>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getPosition>>,
-          TError,
-          Awaited<ReturnType<typeof getPosition>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPosition<TData = Awaited<ReturnType<typeof getPosition>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosition>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getPosition>>,
-          TError,
-          Awaited<ReturnType<typeof getPosition>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPosition<TData = Awaited<ReturnType<typeof getPosition>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosition>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetPosition<TData = Awaited<ReturnType<typeof getPosition>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosition>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetPositionQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getUpdatePositionUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/positions/${id}`
-}
-
-export const updatePosition = async (id: string,
-    positionInput: PositionInput, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<PositionDetail>(getUpdatePositionUrl(id),
-  {
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(positionInput)
-  }
-);}
-
-
-
-
-
-export const getUpdatePositionMutationKey = () => ['updatePosition'] as const;
-
-export const getUpdatePositionMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePosition>>, TError,UpdatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof updatePosition>>, TError,UpdatePositionMutationVariables, TContext> => {
-
-const mutationKey = getUpdatePositionMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePosition>>, UpdatePositionMutationVariables> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  updatePosition(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdatePositionMutationResult = NonNullable<Awaited<ReturnType<typeof updatePosition>>>
-    export type UpdatePositionMutationBody = PositionInput
-    export type UpdatePositionMutationError = unknown
-    export type UpdatePositionMutationVariables = {id: string;data: PositionInput}
-
-    export const useUpdatePosition = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePosition>>, TError,UpdatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof updatePosition>>,
-        TError,
-        UpdatePositionMutationVariables,
-        TContext
-      > => {
-      return useMutation(getUpdatePositionMutationOptions(options), queryClient);
-    }
-
-export const getDeletePositionUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/positions/${id}`
-}
-
-export const deletePosition = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
-
-  return apiFetch<void>(getDeletePositionUrl(id),
-  {
-    ...options,
-    method: 'DELETE'
-
-
-  }
-);}
-
-
-
-
-
-export const getDeletePositionMutationKey = () => ['deletePosition'] as const;
-
-export const getDeletePositionMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePosition>>, TError,DeletePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof deletePosition>>, TError,DeletePositionMutationVariables, TContext> => {
-
-const mutationKey = getDeletePositionMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePosition>>, DeletePositionMutationVariables> = (props) => {
-          const {id} = props ?? {};
-
-          return  deletePosition(id,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DeletePositionMutationResult = NonNullable<Awaited<ReturnType<typeof deletePosition>>>
-
-    export type DeletePositionMutationError = unknown
-    export type DeletePositionMutationVariables = {id: string}
-
-    export const useDeletePosition = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePosition>>, TError,DeletePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deletePosition>>,
-        TError,
-        DeletePositionMutationVariables,
-        TContext
-      > => {
-      return useMutation(getDeletePositionMutationOptions(options), queryClient);
-    }
-
-export const getGetPositionSalaryUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/positions/${id}/sensitive`
-}
-
-export const getPositionSalary = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PositionSalaryDetail> => {
-
-  return apiFetch<PositionSalaryDetail>(getGetPositionSalaryUrl(id),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetPositionSalaryQueryKey = (id: string,) => {
-    return [
-    `/api/v1/hr/positions/${id}/sensitive`
-    ] as const;
-    }
-
-
-export const getGetPositionSalaryQueryOptions = <TData = Awaited<ReturnType<typeof getPositionSalary>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionSalary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetPositionSalaryQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPositionSalary>>> = ({ signal }) => getPositionSalary(id, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPositionSalary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetPositionSalaryQueryResult = NonNullable<Awaited<ReturnType<typeof getPositionSalary>>>
-export type GetPositionSalaryQueryError = unknown
-
-
-export function useGetPositionSalary<TData = Awaited<ReturnType<typeof getPositionSalary>>, TError = unknown>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionSalary>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getPositionSalary>>,
-          TError,
-          Awaited<ReturnType<typeof getPositionSalary>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPositionSalary<TData = Awaited<ReturnType<typeof getPositionSalary>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionSalary>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getPositionSalary>>,
-          TError,
-          Awaited<ReturnType<typeof getPositionSalary>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPositionSalary<TData = Awaited<ReturnType<typeof getPositionSalary>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionSalary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetPositionSalary<TData = Awaited<ReturnType<typeof getPositionSalary>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionSalary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetPositionSalaryQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getUpdatePositionSalaryUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/positions/${id}/salary`
-}
-
-export const updatePositionSalary = async (id: string,
-    positionSalaryInput: PositionSalaryInput, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<PositionDetail>(getUpdatePositionSalaryUrl(id),
-  {
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(positionSalaryInput)
-  }
-);}
-
-
-
-
-
-export const getUpdatePositionSalaryMutationKey = () => ['updatePositionSalary'] as const;
-
-export const getUpdatePositionSalaryMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePositionSalary>>, TError,UpdatePositionSalaryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof updatePositionSalary>>, TError,UpdatePositionSalaryMutationVariables, TContext> => {
-
-const mutationKey = getUpdatePositionSalaryMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePositionSalary>>, UpdatePositionSalaryMutationVariables> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  updatePositionSalary(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdatePositionSalaryMutationResult = NonNullable<Awaited<ReturnType<typeof updatePositionSalary>>>
-    export type UpdatePositionSalaryMutationBody = PositionSalaryInput
-    export type UpdatePositionSalaryMutationError = unknown
-    export type UpdatePositionSalaryMutationVariables = {id: string;data: PositionSalaryInput}
-
-    export const useUpdatePositionSalary = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePositionSalary>>, TError,UpdatePositionSalaryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof updatePositionSalary>>,
-        TError,
-        UpdatePositionSalaryMutationVariables,
-        TContext
-      > => {
-      return useMutation(getUpdatePositionSalaryMutationOptions(options), queryClient);
-    }
-
-export const getSetPositionHourlyCostUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/positions/${id}/hourly-cost`
-}
-
-export const setPositionHourlyCost = async (id: string,
-    hourlyCostInput: HourlyCostInput, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<PositionDetail>(getSetPositionHourlyCostUrl(id),
-  {
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(hourlyCostInput)
-  }
-);}
-
-
-
-
-
-export const getSetPositionHourlyCostMutationKey = () => ['setPositionHourlyCost'] as const;
-
-export const getSetPositionHourlyCostMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setPositionHourlyCost>>, TError,SetPositionHourlyCostMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof setPositionHourlyCost>>, TError,SetPositionHourlyCostMutationVariables, TContext> => {
-
-const mutationKey = getSetPositionHourlyCostMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setPositionHourlyCost>>, SetPositionHourlyCostMutationVariables> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  setPositionHourlyCost(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type SetPositionHourlyCostMutationResult = NonNullable<Awaited<ReturnType<typeof setPositionHourlyCost>>>
-    export type SetPositionHourlyCostMutationBody = HourlyCostInput
-    export type SetPositionHourlyCostMutationError = unknown
-    export type SetPositionHourlyCostMutationVariables = {id: string;data: HourlyCostInput}
-
-    export const useSetPositionHourlyCost = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setPositionHourlyCost>>, TError,SetPositionHourlyCostMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof setPositionHourlyCost>>,
-        TError,
-        SetPositionHourlyCostMutationVariables,
-        TContext
-      > => {
-      return useMutation(getSetPositionHourlyCostMutationOptions(options), queryClient);
-    }
-
-export const getResetPositionHourlyCostUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/positions/${id}/hourly-cost`
-}
-
-export const resetPositionHourlyCost = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
-
-  return apiFetch<PositionDetail>(getResetPositionHourlyCostUrl(id),
-  {
-    ...options,
-    method: 'DELETE'
-
-
-  }
-);}
-
-
-
-
-
-export const getResetPositionHourlyCostMutationKey = () => ['resetPositionHourlyCost'] as const;
-
-export const getResetPositionHourlyCostMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPositionHourlyCost>>, TError,ResetPositionHourlyCostMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof resetPositionHourlyCost>>, TError,ResetPositionHourlyCostMutationVariables, TContext> => {
-
-const mutationKey = getResetPositionHourlyCostMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resetPositionHourlyCost>>, ResetPositionHourlyCostMutationVariables> = (props) => {
-          const {id} = props ?? {};
-
-          return  resetPositionHourlyCost(id,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ResetPositionHourlyCostMutationResult = NonNullable<Awaited<ReturnType<typeof resetPositionHourlyCost>>>
-
-    export type ResetPositionHourlyCostMutationError = unknown
-    export type ResetPositionHourlyCostMutationVariables = {id: string}
-
-    export const useResetPositionHourlyCost = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPositionHourlyCost>>, TError,ResetPositionHourlyCostMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof resetPositionHourlyCost>>,
-        TError,
-        ResetPositionHourlyCostMutationVariables,
-        TContext
-      > => {
-      return useMutation(getResetPositionHourlyCostMutationOptions(options), queryClient);
-    }
-
-export const getInactivatePositionUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/positions/${id}/inactivate`
-}
-
-export const inactivatePosition = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
-
-  return apiFetch<PositionDetail>(getInactivatePositionUrl(id),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-
-export const getInactivatePositionMutationKey = () => ['inactivatePosition'] as const;
-
-export const getInactivatePositionMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivatePosition>>, TError,InactivatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof inactivatePosition>>, TError,InactivatePositionMutationVariables, TContext> => {
-
-const mutationKey = getInactivatePositionMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inactivatePosition>>, InactivatePositionMutationVariables> = (props) => {
-          const {id} = props ?? {};
-
-          return  inactivatePosition(id,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type InactivatePositionMutationResult = NonNullable<Awaited<ReturnType<typeof inactivatePosition>>>
-
-    export type InactivatePositionMutationError = unknown
-    export type InactivatePositionMutationVariables = {id: string}
-
-    export const useInactivatePosition = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivatePosition>>, TError,InactivatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof inactivatePosition>>,
-        TError,
-        InactivatePositionMutationVariables,
-        TContext
-      > => {
-      return useMutation(getInactivatePositionMutationOptions(options), queryClient);
-    }
-
-export const getReactivatePositionUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/positions/${id}/reactivate`
-}
-
-export const reactivatePosition = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
-
-  return apiFetch<PositionDetail>(getReactivatePositionUrl(id),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-
-export const getReactivatePositionMutationKey = () => ['reactivatePosition'] as const;
-
-export const getReactivatePositionMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivatePosition>>, TError,ReactivatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof reactivatePosition>>, TError,ReactivatePositionMutationVariables, TContext> => {
-
-const mutationKey = getReactivatePositionMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reactivatePosition>>, ReactivatePositionMutationVariables> = (props) => {
-          const {id} = props ?? {};
-
-          return  reactivatePosition(id,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ReactivatePositionMutationResult = NonNullable<Awaited<ReturnType<typeof reactivatePosition>>>
-
-    export type ReactivatePositionMutationError = unknown
-    export type ReactivatePositionMutationVariables = {id: string}
-
-    export const useReactivatePosition = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivatePosition>>, TError,ReactivatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof reactivatePosition>>,
-        TError,
-        ReactivatePositionMutationVariables,
-        TContext
-      > => {
-      return useMutation(getReactivatePositionMutationOptions(options), queryClient);
-    }
-
 export const getListSchedulesUrl = () => {
 
 
@@ -19564,899 +18479,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getReactivateUnionMutationOptions(options), queryClient);
     }
 
-export const getListEmployeesUrl = (params?: ListEmployeesParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/hr/employees?${stringifiedParams}` : `/api/v1/hr/employees`
-}
-
-export const listEmployees = async (params?: ListEmployeesParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfEmployeeDetail> => {
-
-  return apiFetch<PagedListOfEmployeeDetail>(getListEmployeesUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getListEmployeesQueryKey = (params?: ListEmployeesParams,) => {
-    return [
-    `/api/v1/hr/employees`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getListEmployeesQueryOptions = <TData = Awaited<ReturnType<typeof listEmployees>>, TError = unknown>(params?: ListEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListEmployeesQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEmployees>>> = ({ signal }) => listEmployees(params, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEmployees>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListEmployeesQueryResult = NonNullable<Awaited<ReturnType<typeof listEmployees>>>
-export type ListEmployeesQueryError = unknown
-
-
-export function useListEmployees<TData = Awaited<ReturnType<typeof listEmployees>>, TError = unknown>(
- params: undefined |  ListEmployeesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployees>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listEmployees>>,
-          TError,
-          Awaited<ReturnType<typeof listEmployees>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListEmployees<TData = Awaited<ReturnType<typeof listEmployees>>, TError = unknown>(
- params?: ListEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployees>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listEmployees>>,
-          TError,
-          Awaited<ReturnType<typeof listEmployees>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListEmployees<TData = Awaited<ReturnType<typeof listEmployees>>, TError = unknown>(
- params?: ListEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListEmployees<TData = Awaited<ReturnType<typeof listEmployees>>, TError = unknown>(
- params?: ListEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListEmployeesQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getCreateEmployeeUrl = () => {
-
-
-
-
-  return `/api/v1/hr/employees`
-}
-
-export const createEmployee = async (employeeCreateInput: EmployeeCreateInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeCreated> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<EmployeeCreated>(getCreateEmployeeUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(employeeCreateInput)
-  }
-);}
-
-
-
-
-
-export const getCreateEmployeeMutationKey = () => ['createEmployee'] as const;
-
-export const getCreateEmployeeMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmployee>>, TError,CreateEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof createEmployee>>, TError,CreateEmployeeMutationVariables, TContext> => {
-
-const mutationKey = getCreateEmployeeMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createEmployee>>, CreateEmployeeMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  createEmployee(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateEmployeeMutationResult = NonNullable<Awaited<ReturnType<typeof createEmployee>>>
-    export type CreateEmployeeMutationBody = EmployeeCreateInput
-    export type CreateEmployeeMutationError = unknown
-    export type CreateEmployeeMutationVariables = {data: EmployeeCreateInput}
-
-    export const useCreateEmployee = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmployee>>, TError,CreateEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof createEmployee>>,
-        TError,
-        CreateEmployeeMutationVariables,
-        TContext
-      > => {
-      return useMutation(getCreateEmployeeMutationOptions(options), queryClient);
-    }
-
-export const getListLinkableUsersUrl = () => {
-
-
-
-
-  return `/api/v1/hr/employees/linkable-users`
-}
-
-export const listLinkableUsers = async ( options?: Parameters<typeof apiFetch>[1]): Promise<LinkableUser[]> => {
-
-  return apiFetch<LinkableUser[]>(getListLinkableUsersUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getListLinkableUsersQueryKey = () => {
-    return [
-    `/api/v1/hr/employees/linkable-users`
-    ] as const;
-    }
-
-
-export const getListLinkableUsersQueryOptions = <TData = Awaited<ReturnType<typeof listLinkableUsers>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLinkableUsers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListLinkableUsersQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLinkableUsers>>> = ({ signal }) => listLinkableUsers({ signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLinkableUsers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListLinkableUsersQueryResult = NonNullable<Awaited<ReturnType<typeof listLinkableUsers>>>
-export type ListLinkableUsersQueryError = unknown
-
-
-export function useListLinkableUsers<TData = Awaited<ReturnType<typeof listLinkableUsers>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLinkableUsers>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listLinkableUsers>>,
-          TError,
-          Awaited<ReturnType<typeof listLinkableUsers>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListLinkableUsers<TData = Awaited<ReturnType<typeof listLinkableUsers>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLinkableUsers>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listLinkableUsers>>,
-          TError,
-          Awaited<ReturnType<typeof listLinkableUsers>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListLinkableUsers<TData = Awaited<ReturnType<typeof listLinkableUsers>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLinkableUsers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListLinkableUsers<TData = Awaited<ReturnType<typeof listLinkableUsers>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLinkableUsers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListLinkableUsersQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getLookupEmployeeCepUrl = (cep: string,) => {
-
-
-
-
-  return `/api/v1/hr/employees/cep/${cep}`
-}
-
-export const lookupEmployeeCep = async (cep: string, options?: Parameters<typeof apiFetch>[1]): Promise<AddressData> => {
-
-  return apiFetch<AddressData>(getLookupEmployeeCepUrl(cep),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getLookupEmployeeCepQueryKey = (cep: string,) => {
-    return [
-    `/api/v1/hr/employees/cep/${cep}`
-    ] as const;
-    }
-
-
-export const getLookupEmployeeCepQueryOptions = <TData = Awaited<ReturnType<typeof lookupEmployeeCep>>, TError = unknown>(cep: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupEmployeeCep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getLookupEmployeeCepQueryKey(cep);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof lookupEmployeeCep>>> = ({ signal }) => lookupEmployeeCep(cep, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: cep !== null && cep !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof lookupEmployeeCep>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type LookupEmployeeCepQueryResult = NonNullable<Awaited<ReturnType<typeof lookupEmployeeCep>>>
-export type LookupEmployeeCepQueryError = unknown
-
-
-export function useLookupEmployeeCep<TData = Awaited<ReturnType<typeof lookupEmployeeCep>>, TError = unknown>(
- cep: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupEmployeeCep>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof lookupEmployeeCep>>,
-          TError,
-          Awaited<ReturnType<typeof lookupEmployeeCep>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useLookupEmployeeCep<TData = Awaited<ReturnType<typeof lookupEmployeeCep>>, TError = unknown>(
- cep: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupEmployeeCep>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof lookupEmployeeCep>>,
-          TError,
-          Awaited<ReturnType<typeof lookupEmployeeCep>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useLookupEmployeeCep<TData = Awaited<ReturnType<typeof lookupEmployeeCep>>, TError = unknown>(
- cep: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupEmployeeCep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useLookupEmployeeCep<TData = Awaited<ReturnType<typeof lookupEmployeeCep>>, TError = unknown>(
- cep: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupEmployeeCep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getLookupEmployeeCepQueryOptions(cep,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getGetEmployeeUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/employees/${id}`
-}
-
-export const getEmployee = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDetail> => {
-
-  return apiFetch<EmployeeDetail>(getGetEmployeeUrl(id),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetEmployeeQueryKey = (id: string,) => {
-    return [
-    `/api/v1/hr/employees/${id}`
-    ] as const;
-    }
-
-
-export const getGetEmployeeQueryOptions = <TData = Awaited<ReturnType<typeof getEmployee>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployee>>> = ({ signal }) => getEmployee(id, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetEmployeeQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployee>>>
-export type GetEmployeeQueryError = unknown
-
-
-export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, TError = unknown>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getEmployee>>,
-          TError,
-          Awaited<ReturnType<typeof getEmployee>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getEmployee>>,
-          TError,
-          Awaited<ReturnType<typeof getEmployee>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetEmployeeQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getUpdateEmployeeUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/employees/${id}`
-}
-
-export const updateEmployee = async (id: string,
-    employeeGeneralInput: EmployeeGeneralInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDetail> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<EmployeeDetail>(getUpdateEmployeeUrl(id),
-  {
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(employeeGeneralInput)
-  }
-);}
-
-
-
-
-
-export const getUpdateEmployeeMutationKey = () => ['updateEmployee'] as const;
-
-export const getUpdateEmployeeMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmployee>>, TError,UpdateEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof updateEmployee>>, TError,UpdateEmployeeMutationVariables, TContext> => {
-
-const mutationKey = getUpdateEmployeeMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateEmployee>>, UpdateEmployeeMutationVariables> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  updateEmployee(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdateEmployeeMutationResult = NonNullable<Awaited<ReturnType<typeof updateEmployee>>>
-    export type UpdateEmployeeMutationBody = EmployeeGeneralInput
-    export type UpdateEmployeeMutationError = unknown
-    export type UpdateEmployeeMutationVariables = {id: string;data: EmployeeGeneralInput}
-
-    export const useUpdateEmployee = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmployee>>, TError,UpdateEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof updateEmployee>>,
-        TError,
-        UpdateEmployeeMutationVariables,
-        TContext
-      > => {
-      return useMutation(getUpdateEmployeeMutationOptions(options), queryClient);
-    }
-
-export const getDeleteEmployeeUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/employees/${id}`
-}
-
-export const deleteEmployee = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
-
-  return apiFetch<void>(getDeleteEmployeeUrl(id),
-  {
-    ...options,
-    method: 'DELETE'
-
-
-  }
-);}
-
-
-
-
-
-export const getDeleteEmployeeMutationKey = () => ['deleteEmployee'] as const;
-
-export const getDeleteEmployeeMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEmployee>>, TError,DeleteEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteEmployee>>, TError,DeleteEmployeeMutationVariables, TContext> => {
-
-const mutationKey = getDeleteEmployeeMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteEmployee>>, DeleteEmployeeMutationVariables> = (props) => {
-          const {id} = props ?? {};
-
-          return  deleteEmployee(id,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DeleteEmployeeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteEmployee>>>
-
-    export type DeleteEmployeeMutationError = unknown
-    export type DeleteEmployeeMutationVariables = {id: string}
-
-    export const useDeleteEmployee = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEmployee>>, TError,DeleteEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteEmployee>>,
-        TError,
-        DeleteEmployeeMutationVariables,
-        TContext
-      > => {
-      return useMutation(getDeleteEmployeeMutationOptions(options), queryClient);
-    }
-
-export const getGetEmployeeSensitiveUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/employees/${id}/sensitive`
-}
-
-export const getEmployeeSensitive = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeSensitiveDetail> => {
-
-  return apiFetch<EmployeeSensitiveDetail>(getGetEmployeeSensitiveUrl(id),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetEmployeeSensitiveQueryKey = (id: string,) => {
-    return [
-    `/api/v1/hr/employees/${id}/sensitive`
-    ] as const;
-    }
-
-
-export const getGetEmployeeSensitiveQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeSensitive>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeSensitiveQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeSensitive>>> = ({ signal }) => getEmployeeSensitive(id, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeSensitive>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetEmployeeSensitiveQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeSensitive>>>
-export type GetEmployeeSensitiveQueryError = unknown
-
-
-export function useGetEmployeeSensitive<TData = Awaited<ReturnType<typeof getEmployeeSensitive>>, TError = unknown>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeSensitive>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getEmployeeSensitive>>,
-          TError,
-          Awaited<ReturnType<typeof getEmployeeSensitive>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEmployeeSensitive<TData = Awaited<ReturnType<typeof getEmployeeSensitive>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeSensitive>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getEmployeeSensitive>>,
-          TError,
-          Awaited<ReturnType<typeof getEmployeeSensitive>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEmployeeSensitive<TData = Awaited<ReturnType<typeof getEmployeeSensitive>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetEmployeeSensitive<TData = Awaited<ReturnType<typeof getEmployeeSensitive>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetEmployeeSensitiveQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getGetEmployeeTimelineUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/employees/${id}/timeline`
-}
-
-export const getEmployeeTimeline = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<TimelineEntry[]> => {
-
-  return apiFetch<TimelineEntry[]>(getGetEmployeeTimelineUrl(id),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetEmployeeTimelineQueryKey = (id: string,) => {
-    return [
-    `/api/v1/hr/employees/${id}/timeline`
-    ] as const;
-    }
-
-
-export const getGetEmployeeTimelineQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeTimeline>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeline>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeTimelineQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeTimeline>>> = ({ signal }) => getEmployeeTimeline(id, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeline>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetEmployeeTimelineQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeTimeline>>>
-export type GetEmployeeTimelineQueryError = unknown
-
-
-export function useGetEmployeeTimeline<TData = Awaited<ReturnType<typeof getEmployeeTimeline>>, TError = unknown>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeline>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getEmployeeTimeline>>,
-          TError,
-          Awaited<ReturnType<typeof getEmployeeTimeline>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEmployeeTimeline<TData = Awaited<ReturnType<typeof getEmployeeTimeline>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeline>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getEmployeeTimeline>>,
-          TError,
-          Awaited<ReturnType<typeof getEmployeeTimeline>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEmployeeTimeline<TData = Awaited<ReturnType<typeof getEmployeeTimeline>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeline>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetEmployeeTimeline<TData = Awaited<ReturnType<typeof getEmployeeTimeline>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeline>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetEmployeeTimelineQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getUpdateEmployeePersonalUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/employees/${id}/personal`
-}
-
-export const updateEmployeePersonal = async (id: string,
-    employeePersonalInput: EmployeePersonalInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDetail> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<EmployeeDetail>(getUpdateEmployeePersonalUrl(id),
-  {
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(employeePersonalInput)
-  }
-);}
-
-
-
-
-
-export const getUpdateEmployeePersonalMutationKey = () => ['updateEmployeePersonal'] as const;
-
-export const getUpdateEmployeePersonalMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmployeePersonal>>, TError,UpdateEmployeePersonalMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof updateEmployeePersonal>>, TError,UpdateEmployeePersonalMutationVariables, TContext> => {
-
-const mutationKey = getUpdateEmployeePersonalMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateEmployeePersonal>>, UpdateEmployeePersonalMutationVariables> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  updateEmployeePersonal(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdateEmployeePersonalMutationResult = NonNullable<Awaited<ReturnType<typeof updateEmployeePersonal>>>
-    export type UpdateEmployeePersonalMutationBody = EmployeePersonalInput
-    export type UpdateEmployeePersonalMutationError = unknown
-    export type UpdateEmployeePersonalMutationVariables = {id: string;data: EmployeePersonalInput}
-
-    export const useUpdateEmployeePersonal = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmployeePersonal>>, TError,UpdateEmployeePersonalMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof updateEmployeePersonal>>,
-        TError,
-        UpdateEmployeePersonalMutationVariables,
-        TContext
-      > => {
-      return useMutation(getUpdateEmployeePersonalMutationOptions(options), queryClient);
-    }
-
 export const getChangeEmployeeSalaryUrl = (id: string,) => {
 
 
@@ -20539,362 +18561,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getChangeEmployeeSalaryMutationOptions(options), queryClient);
     }
-
-export const getChangeEmployeePositionUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/employees/${id}/position`
-}
-
-export const changeEmployeePosition = async (id: string,
-    positionChangeInput: PositionChangeInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDetail> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<EmployeeDetail>(getChangeEmployeePositionUrl(id),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(positionChangeInput)
-  }
-);}
-
-
-
-
-
-export const getChangeEmployeePositionMutationKey = () => ['changeEmployeePosition'] as const;
-
-export const getChangeEmployeePositionMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeEmployeePosition>>, TError,ChangeEmployeePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof changeEmployeePosition>>, TError,ChangeEmployeePositionMutationVariables, TContext> => {
-
-const mutationKey = getChangeEmployeePositionMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeEmployeePosition>>, ChangeEmployeePositionMutationVariables> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  changeEmployeePosition(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ChangeEmployeePositionMutationResult = NonNullable<Awaited<ReturnType<typeof changeEmployeePosition>>>
-    export type ChangeEmployeePositionMutationBody = PositionChangeInput
-    export type ChangeEmployeePositionMutationError = unknown
-    export type ChangeEmployeePositionMutationVariables = {id: string;data: PositionChangeInput}
-
-    export const useChangeEmployeePosition = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeEmployeePosition>>, TError,ChangeEmployeePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof changeEmployeePosition>>,
-        TError,
-        ChangeEmployeePositionMutationVariables,
-        TContext
-      > => {
-      return useMutation(getChangeEmployeePositionMutationOptions(options), queryClient);
-    }
-
-export const getTerminateEmployeeUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/employees/${id}/termination`
-}
-
-export const terminateEmployee = async (id: string,
-    terminationInput: TerminationInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeTerminationDone> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<EmployeeTerminationDone>(getTerminateEmployeeUrl(id),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(terminationInput)
-  }
-);}
-
-
-
-
-
-export const getTerminateEmployeeMutationKey = () => ['terminateEmployee'] as const;
-
-export const getTerminateEmployeeMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof terminateEmployee>>, TError,TerminateEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof terminateEmployee>>, TError,TerminateEmployeeMutationVariables, TContext> => {
-
-const mutationKey = getTerminateEmployeeMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof terminateEmployee>>, TerminateEmployeeMutationVariables> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  terminateEmployee(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type TerminateEmployeeMutationResult = NonNullable<Awaited<ReturnType<typeof terminateEmployee>>>
-    export type TerminateEmployeeMutationBody = TerminationInput
-    export type TerminateEmployeeMutationError = unknown
-    export type TerminateEmployeeMutationVariables = {id: string;data: TerminationInput}
-
-    export const useTerminateEmployee = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof terminateEmployee>>, TError,TerminateEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof terminateEmployee>>,
-        TError,
-        TerminateEmployeeMutationVariables,
-        TContext
-      > => {
-      return useMutation(getTerminateEmployeeMutationOptions(options), queryClient);
-    }
-
-export const getGetEmployeeTerminationUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/employees/${id}/termination`
-}
-
-export const getEmployeeTermination = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<TerminationView> => {
-
-  return apiFetch<TerminationView>(getGetEmployeeTerminationUrl(id),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetEmployeeTerminationQueryKey = (id: string,) => {
-    return [
-    `/api/v1/hr/employees/${id}/termination`
-    ] as const;
-    }
-
-
-export const getGetEmployeeTerminationQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeTerminationQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeTermination>>> = ({ signal }) => getEmployeeTermination(id, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetEmployeeTerminationQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeTermination>>>
-export type GetEmployeeTerminationQueryError = unknown
-
-
-export function useGetEmployeeTermination<TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getEmployeeTermination>>,
-          TError,
-          Awaited<ReturnType<typeof getEmployeeTermination>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEmployeeTermination<TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getEmployeeTermination>>,
-          TError,
-          Awaited<ReturnType<typeof getEmployeeTermination>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEmployeeTermination<TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetEmployeeTermination<TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetEmployeeTerminationQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getListInvitableEmployeesUrl = () => {
-
-
-
-
-  return `/api/v1/hr/employees/invitable`
-}
-
-export const listInvitableEmployees = async ( options?: Parameters<typeof apiFetch>[1]): Promise<InvitableEmployee[]> => {
-
-  return apiFetch<InvitableEmployee[]>(getListInvitableEmployeesUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getListInvitableEmployeesQueryKey = () => {
-    return [
-    `/api/v1/hr/employees/invitable`
-    ] as const;
-    }
-
-
-export const getListInvitableEmployeesQueryOptions = <TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListInvitableEmployeesQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInvitableEmployees>>> = ({ signal }) => listInvitableEmployees({ signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListInvitableEmployeesQueryResult = NonNullable<Awaited<ReturnType<typeof listInvitableEmployees>>>
-export type ListInvitableEmployeesQueryError = unknown
-
-
-export function useListInvitableEmployees<TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listInvitableEmployees>>,
-          TError,
-          Awaited<ReturnType<typeof listInvitableEmployees>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListInvitableEmployees<TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listInvitableEmployees>>,
-          TError,
-          Awaited<ReturnType<typeof listInvitableEmployees>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListInvitableEmployees<TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListInvitableEmployees<TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListInvitableEmployeesQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
 
 export const getRegisterEmployeeLeaveUrl = (id: string,) => {
 
@@ -21327,252 +18993,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getCancelEmployeeLeaveMutationOptions(options), queryClient);
-    }
-
-export const getGetEmployeeUserUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/employees/${id}/user`
-}
-
-export const getEmployeeUser = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<LinkedUserView> => {
-
-  return apiFetch<LinkedUserView>(getGetEmployeeUserUrl(id),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetEmployeeUserQueryKey = (id: string,) => {
-    return [
-    `/api/v1/hr/employees/${id}/user`
-    ] as const;
-    }
-
-
-export const getGetEmployeeUserQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeUser>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeUser>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeUserQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeUser>>> = ({ signal }) => getEmployeeUser(id, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeUser>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetEmployeeUserQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeUser>>>
-export type GetEmployeeUserQueryError = unknown
-
-
-export function useGetEmployeeUser<TData = Awaited<ReturnType<typeof getEmployeeUser>>, TError = unknown>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeUser>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getEmployeeUser>>,
-          TError,
-          Awaited<ReturnType<typeof getEmployeeUser>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEmployeeUser<TData = Awaited<ReturnType<typeof getEmployeeUser>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeUser>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getEmployeeUser>>,
-          TError,
-          Awaited<ReturnType<typeof getEmployeeUser>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEmployeeUser<TData = Awaited<ReturnType<typeof getEmployeeUser>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeUser>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetEmployeeUser<TData = Awaited<ReturnType<typeof getEmployeeUser>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeUser>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetEmployeeUserQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getLinkEmployeeUserUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/employees/${id}/user`
-}
-
-export const linkEmployeeUser = async (id: string,
-    userLinkInput: UserLinkInput, options?: Parameters<typeof apiFetch>[1]): Promise<LinkableUser> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<LinkableUser>(getLinkEmployeeUserUrl(id),
-  {
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(userLinkInput)
-  }
-);}
-
-
-
-
-
-export const getLinkEmployeeUserMutationKey = () => ['linkEmployeeUser'] as const;
-
-export const getLinkEmployeeUserMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkEmployeeUser>>, TError,LinkEmployeeUserMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof linkEmployeeUser>>, TError,LinkEmployeeUserMutationVariables, TContext> => {
-
-const mutationKey = getLinkEmployeeUserMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof linkEmployeeUser>>, LinkEmployeeUserMutationVariables> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  linkEmployeeUser(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type LinkEmployeeUserMutationResult = NonNullable<Awaited<ReturnType<typeof linkEmployeeUser>>>
-    export type LinkEmployeeUserMutationBody = UserLinkInput
-    export type LinkEmployeeUserMutationError = unknown
-    export type LinkEmployeeUserMutationVariables = {id: string;data: UserLinkInput}
-
-    export const useLinkEmployeeUser = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkEmployeeUser>>, TError,LinkEmployeeUserMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof linkEmployeeUser>>,
-        TError,
-        LinkEmployeeUserMutationVariables,
-        TContext
-      > => {
-      return useMutation(getLinkEmployeeUserMutationOptions(options), queryClient);
-    }
-
-export const getUnlinkEmployeeUserUrl = (id: string,) => {
-
-
-
-
-  return `/api/v1/hr/employees/${id}/user`
-}
-
-export const unlinkEmployeeUser = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
-
-  return apiFetch<void>(getUnlinkEmployeeUserUrl(id),
-  {
-    ...options,
-    method: 'DELETE'
-
-
-  }
-);}
-
-
-
-
-
-export const getUnlinkEmployeeUserMutationKey = () => ['unlinkEmployeeUser'] as const;
-
-export const getUnlinkEmployeeUserMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkEmployeeUser>>, TError,UnlinkEmployeeUserMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof unlinkEmployeeUser>>, TError,UnlinkEmployeeUserMutationVariables, TContext> => {
-
-const mutationKey = getUnlinkEmployeeUserMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unlinkEmployeeUser>>, UnlinkEmployeeUserMutationVariables> = (props) => {
-          const {id} = props ?? {};
-
-          return  unlinkEmployeeUser(id,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UnlinkEmployeeUserMutationResult = NonNullable<Awaited<ReturnType<typeof unlinkEmployeeUser>>>
-
-    export type UnlinkEmployeeUserMutationError = unknown
-    export type UnlinkEmployeeUserMutationVariables = {id: string}
-
-    export const useUnlinkEmployeeUser = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkEmployeeUser>>, TError,UnlinkEmployeeUserMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof unlinkEmployeeUser>>,
-        TError,
-        UnlinkEmployeeUserMutationVariables,
-        TContext
-      > => {
-      return useMutation(getUnlinkEmployeeUserMutationOptions(options), queryClient);
     }
 
 export const getListEmployeeDependentsSensitiveUrl = (id: string,) => {
@@ -24451,6 +21871,184 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getScheduleVacationMutationOptions(options), queryClient);
     }
 
+export const getGetEmployeeTerminationUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/termination`
+}
+
+export const getEmployeeTermination = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<TerminationView> => {
+
+  return apiFetch<TerminationView>(getGetEmployeeTerminationUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmployeeTerminationQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/termination`
+    ] as const;
+    }
+
+
+export const getGetEmployeeTerminationQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeTerminationQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeTermination>>> = ({ signal }) => getEmployeeTermination(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEmployeeTerminationQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeTermination>>>
+export type GetEmployeeTerminationQueryError = unknown
+
+
+export function useGetEmployeeTermination<TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeTermination>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeTermination>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeTermination<TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeTermination>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeTermination>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeTermination<TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEmployeeTermination<TData = Awaited<ReturnType<typeof getEmployeeTermination>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTermination>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEmployeeTerminationQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getTerminateEmployeeUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/termination`
+}
+
+export const terminateEmployee = async (id: string,
+    terminationInput: TerminationInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeTerminationDone> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeeTerminationDone>(getTerminateEmployeeUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(terminationInput)
+  }
+);}
+
+
+
+
+
+export const getTerminateEmployeeMutationKey = () => ['terminateEmployee'] as const;
+
+export const getTerminateEmployeeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof terminateEmployee>>, TError,TerminateEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof terminateEmployee>>, TError,TerminateEmployeeMutationVariables, TContext> => {
+
+const mutationKey = getTerminateEmployeeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof terminateEmployee>>, TerminateEmployeeMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  terminateEmployee(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TerminateEmployeeMutationResult = NonNullable<Awaited<ReturnType<typeof terminateEmployee>>>
+    export type TerminateEmployeeMutationBody = TerminationInput
+    export type TerminateEmployeeMutationError = unknown
+    export type TerminateEmployeeMutationVariables = {id: string;data: TerminationInput}
+
+    export const useTerminateEmployee = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof terminateEmployee>>, TError,TerminateEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof terminateEmployee>>,
+        TError,
+        TerminateEmployeeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTerminateEmployeeMutationOptions(options), queryClient);
+    }
+
 export const getSimulateTerminationUrl = (id: string,) => {
 
 
@@ -24616,108 +22214,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getCalculateTerminationMutationOptions(options), queryClient);
     }
-
-export const getExportEmployeesUrl = (params?: ExportEmployeesParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/hr/employees/export?${stringifiedParams}` : `/api/v1/hr/employees/export`
-}
-
-export const exportEmployees = async (params?: ExportEmployeesParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
-
-  return apiFetch<void>(getExportEmployeesUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getExportEmployeesQueryKey = (params?: ExportEmployeesParams,) => {
-    return [
-    `/api/v1/hr/employees/export`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getExportEmployeesQueryOptions = <TData = Awaited<ReturnType<typeof exportEmployees>>, TError = unknown>(params?: ExportEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getExportEmployeesQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportEmployees>>> = ({ signal }) => exportEmployees(params, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportEmployees>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ExportEmployeesQueryResult = NonNullable<Awaited<ReturnType<typeof exportEmployees>>>
-export type ExportEmployeesQueryError = unknown
-
-
-export function useExportEmployees<TData = Awaited<ReturnType<typeof exportEmployees>>, TError = unknown>(
- params: undefined |  ExportEmployeesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportEmployees>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof exportEmployees>>,
-          TError,
-          Awaited<ReturnType<typeof exportEmployees>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useExportEmployees<TData = Awaited<ReturnType<typeof exportEmployees>>, TError = unknown>(
- params?: ExportEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportEmployees>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof exportEmployees>>,
-          TError,
-          Awaited<ReturnType<typeof exportEmployees>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useExportEmployees<TData = Awaited<ReturnType<typeof exportEmployees>>, TError = unknown>(
- params?: ExportEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useExportEmployees<TData = Awaited<ReturnType<typeof exportEmployees>>, TError = unknown>(
- params?: ExportEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getExportEmployeesQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
 
 export const getListPayrollItemsUrl = () => {
 
@@ -32096,108 +29592,6 @@ export function useExportTimesheetOverview<TData = Awaited<ReturnType<typeof exp
 
 
 
-export const getExportPositionsUrl = (params?: ExportPositionsParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/hr/positions/export?${stringifiedParams}` : `/api/v1/hr/positions/export`
-}
-
-export const exportPositions = async (params?: ExportPositionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
-
-  return apiFetch<void>(getExportPositionsUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getExportPositionsQueryKey = (params?: ExportPositionsParams,) => {
-    return [
-    `/api/v1/hr/positions/export`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getExportPositionsQueryOptions = <TData = Awaited<ReturnType<typeof exportPositions>>, TError = unknown>(params?: ExportPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getExportPositionsQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportPositions>>> = ({ signal }) => exportPositions(params, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportPositions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ExportPositionsQueryResult = NonNullable<Awaited<ReturnType<typeof exportPositions>>>
-export type ExportPositionsQueryError = unknown
-
-
-export function useExportPositions<TData = Awaited<ReturnType<typeof exportPositions>>, TError = unknown>(
- params: undefined |  ExportPositionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPositions>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof exportPositions>>,
-          TError,
-          Awaited<ReturnType<typeof exportPositions>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useExportPositions<TData = Awaited<ReturnType<typeof exportPositions>>, TError = unknown>(
- params?: ExportPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPositions>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof exportPositions>>,
-          TError,
-          Awaited<ReturnType<typeof exportPositions>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useExportPositions<TData = Awaited<ReturnType<typeof exportPositions>>, TError = unknown>(
- params?: ExportPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useExportPositions<TData = Awaited<ReturnType<typeof exportPositions>>, TError = unknown>(
- params?: ExportPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getExportPositionsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
 export const getListTimeAdjustmentsUrl = (params?: ListTimeAdjustmentsParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -33770,6 +31164,2612 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getCancelTerminationMutationOptions(options), queryClient);
     }
+
+export const getListPositionsUrl = (params?: ListPositionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/hr/positions?${stringifiedParams}` : `/api/v1/hr/positions`
+}
+
+export const listPositions = async (params?: ListPositionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfPositionDetail> => {
+
+  return apiFetch<PagedListOfPositionDetail>(getListPositionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPositionsQueryKey = (params?: ListPositionsParams,) => {
+    return [
+    `/api/v1/hr/positions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListPositionsQueryOptions = <TData = Awaited<ReturnType<typeof listPositions>>, TError = unknown>(params?: ListPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPositionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPositions>>> = ({ signal }) => listPositions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPositions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPositionsQueryResult = NonNullable<Awaited<ReturnType<typeof listPositions>>>
+export type ListPositionsQueryError = unknown
+
+
+export function useListPositions<TData = Awaited<ReturnType<typeof listPositions>>, TError = unknown>(
+ params: undefined |  ListPositionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPositions>>,
+          TError,
+          Awaited<ReturnType<typeof listPositions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPositions<TData = Awaited<ReturnType<typeof listPositions>>, TError = unknown>(
+ params?: ListPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPositions>>,
+          TError,
+          Awaited<ReturnType<typeof listPositions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPositions<TData = Awaited<ReturnType<typeof listPositions>>, TError = unknown>(
+ params?: ListPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPositions<TData = Awaited<ReturnType<typeof listPositions>>, TError = unknown>(
+ params?: ListPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPositionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreatePositionUrl = () => {
+
+
+
+
+  return `/api/v1/hr/positions`
+}
+
+export const createPosition = async (positionInput: PositionInput, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PositionDetail>(getCreatePositionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(positionInput)
+  }
+);}
+
+
+
+
+
+export const getCreatePositionMutationKey = () => ['createPosition'] as const;
+
+export const getCreatePositionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPosition>>, TError,CreatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPosition>>, TError,CreatePositionMutationVariables, TContext> => {
+
+const mutationKey = getCreatePositionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPosition>>, CreatePositionMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPosition(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePositionMutationResult = NonNullable<Awaited<ReturnType<typeof createPosition>>>
+    export type CreatePositionMutationBody = PositionInput
+    export type CreatePositionMutationError = unknown
+    export type CreatePositionMutationVariables = {data: PositionInput}
+
+    export const useCreatePosition = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPosition>>, TError,CreatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createPosition>>,
+        TError,
+        CreatePositionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreatePositionMutationOptions(options), queryClient);
+    }
+
+export const getGetPositionsSummaryUrl = () => {
+
+
+
+
+  return `/api/v1/hr/positions/summary`
+}
+
+export const getPositionsSummary = async ( options?: Parameters<typeof apiFetch>[1]): Promise<PositionSummary> => {
+
+  return apiFetch<PositionSummary>(getGetPositionsSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPositionsSummaryQueryKey = () => {
+    return [
+    `/api/v1/hr/positions/summary`
+    ] as const;
+    }
+
+
+export const getGetPositionsSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getPositionsSummary>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionsSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPositionsSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPositionsSummary>>> = ({ signal }) => getPositionsSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPositionsSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPositionsSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getPositionsSummary>>>
+export type GetPositionsSummaryQueryError = unknown
+
+
+export function useGetPositionsSummary<TData = Awaited<ReturnType<typeof getPositionsSummary>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionsSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPositionsSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getPositionsSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPositionsSummary<TData = Awaited<ReturnType<typeof getPositionsSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionsSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPositionsSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getPositionsSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPositionsSummary<TData = Awaited<ReturnType<typeof getPositionsSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionsSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPositionsSummary<TData = Awaited<ReturnType<typeof getPositionsSummary>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionsSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPositionsSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListPositionWorkCentersUrl = () => {
+
+
+
+
+  return `/api/v1/hr/positions/work-centers`
+}
+
+export const listPositionWorkCenters = async ( options?: Parameters<typeof apiFetch>[1]): Promise<WorkCenterChoice[]> => {
+
+  return apiFetch<WorkCenterChoice[]>(getListPositionWorkCentersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPositionWorkCentersQueryKey = () => {
+    return [
+    `/api/v1/hr/positions/work-centers`
+    ] as const;
+    }
+
+
+export const getListPositionWorkCentersQueryOptions = <TData = Awaited<ReturnType<typeof listPositionWorkCenters>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositionWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPositionWorkCentersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPositionWorkCenters>>> = ({ signal }) => listPositionWorkCenters({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPositionWorkCenters>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPositionWorkCentersQueryResult = NonNullable<Awaited<ReturnType<typeof listPositionWorkCenters>>>
+export type ListPositionWorkCentersQueryError = unknown
+
+
+export function useListPositionWorkCenters<TData = Awaited<ReturnType<typeof listPositionWorkCenters>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositionWorkCenters>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPositionWorkCenters>>,
+          TError,
+          Awaited<ReturnType<typeof listPositionWorkCenters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPositionWorkCenters<TData = Awaited<ReturnType<typeof listPositionWorkCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositionWorkCenters>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPositionWorkCenters>>,
+          TError,
+          Awaited<ReturnType<typeof listPositionWorkCenters>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPositionWorkCenters<TData = Awaited<ReturnType<typeof listPositionWorkCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositionWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListPositionWorkCenters<TData = Awaited<ReturnType<typeof listPositionWorkCenters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPositionWorkCenters>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPositionWorkCentersQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPositionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/positions/${id}`
+}
+
+export const getPosition = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
+
+  return apiFetch<PositionDetail>(getGetPositionUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPositionQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/positions/${id}`
+    ] as const;
+    }
+
+
+export const getGetPositionQueryOptions = <TData = Awaited<ReturnType<typeof getPosition>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosition>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPositionQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPosition>>> = ({ signal }) => getPosition(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPosition>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPositionQueryResult = NonNullable<Awaited<ReturnType<typeof getPosition>>>
+export type GetPositionQueryError = unknown
+
+
+export function useGetPosition<TData = Awaited<ReturnType<typeof getPosition>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosition>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPosition>>,
+          TError,
+          Awaited<ReturnType<typeof getPosition>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPosition<TData = Awaited<ReturnType<typeof getPosition>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosition>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPosition>>,
+          TError,
+          Awaited<ReturnType<typeof getPosition>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPosition<TData = Awaited<ReturnType<typeof getPosition>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosition>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPosition<TData = Awaited<ReturnType<typeof getPosition>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPosition>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPositionQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdatePositionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/positions/${id}`
+}
+
+export const updatePosition = async (id: string,
+    positionInput: PositionInput, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PositionDetail>(getUpdatePositionUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(positionInput)
+  }
+);}
+
+
+
+
+
+export const getUpdatePositionMutationKey = () => ['updatePosition'] as const;
+
+export const getUpdatePositionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePosition>>, TError,UpdatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePosition>>, TError,UpdatePositionMutationVariables, TContext> => {
+
+const mutationKey = getUpdatePositionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePosition>>, UpdatePositionMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updatePosition(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePositionMutationResult = NonNullable<Awaited<ReturnType<typeof updatePosition>>>
+    export type UpdatePositionMutationBody = PositionInput
+    export type UpdatePositionMutationError = unknown
+    export type UpdatePositionMutationVariables = {id: string;data: PositionInput}
+
+    export const useUpdatePosition = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePosition>>, TError,UpdatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updatePosition>>,
+        TError,
+        UpdatePositionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdatePositionMutationOptions(options), queryClient);
+    }
+
+export const getDeletePositionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/positions/${id}`
+}
+
+export const deletePosition = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeletePositionUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeletePositionMutationKey = () => ['deletePosition'] as const;
+
+export const getDeletePositionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePosition>>, TError,DeletePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deletePosition>>, TError,DeletePositionMutationVariables, TContext> => {
+
+const mutationKey = getDeletePositionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePosition>>, DeletePositionMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deletePosition(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeletePositionMutationResult = NonNullable<Awaited<ReturnType<typeof deletePosition>>>
+
+    export type DeletePositionMutationError = unknown
+    export type DeletePositionMutationVariables = {id: string}
+
+    export const useDeletePosition = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePosition>>, TError,DeletePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deletePosition>>,
+        TError,
+        DeletePositionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeletePositionMutationOptions(options), queryClient);
+    }
+
+export const getGetPositionSalaryUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/positions/${id}/sensitive`
+}
+
+export const getPositionSalary = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PositionSalaryDetail> => {
+
+  return apiFetch<PositionSalaryDetail>(getGetPositionSalaryUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPositionSalaryQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/positions/${id}/sensitive`
+    ] as const;
+    }
+
+
+export const getGetPositionSalaryQueryOptions = <TData = Awaited<ReturnType<typeof getPositionSalary>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionSalary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPositionSalaryQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPositionSalary>>> = ({ signal }) => getPositionSalary(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPositionSalary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPositionSalaryQueryResult = NonNullable<Awaited<ReturnType<typeof getPositionSalary>>>
+export type GetPositionSalaryQueryError = unknown
+
+
+export function useGetPositionSalary<TData = Awaited<ReturnType<typeof getPositionSalary>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionSalary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPositionSalary>>,
+          TError,
+          Awaited<ReturnType<typeof getPositionSalary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPositionSalary<TData = Awaited<ReturnType<typeof getPositionSalary>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionSalary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPositionSalary>>,
+          TError,
+          Awaited<ReturnType<typeof getPositionSalary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPositionSalary<TData = Awaited<ReturnType<typeof getPositionSalary>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionSalary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPositionSalary<TData = Awaited<ReturnType<typeof getPositionSalary>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPositionSalary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPositionSalaryQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdatePositionSalaryUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/positions/${id}/salary`
+}
+
+export const updatePositionSalary = async (id: string,
+    positionSalaryInput: PositionSalaryInput, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PositionDetail>(getUpdatePositionSalaryUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(positionSalaryInput)
+  }
+);}
+
+
+
+
+
+export const getUpdatePositionSalaryMutationKey = () => ['updatePositionSalary'] as const;
+
+export const getUpdatePositionSalaryMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePositionSalary>>, TError,UpdatePositionSalaryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePositionSalary>>, TError,UpdatePositionSalaryMutationVariables, TContext> => {
+
+const mutationKey = getUpdatePositionSalaryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePositionSalary>>, UpdatePositionSalaryMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updatePositionSalary(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePositionSalaryMutationResult = NonNullable<Awaited<ReturnType<typeof updatePositionSalary>>>
+    export type UpdatePositionSalaryMutationBody = PositionSalaryInput
+    export type UpdatePositionSalaryMutationError = unknown
+    export type UpdatePositionSalaryMutationVariables = {id: string;data: PositionSalaryInput}
+
+    export const useUpdatePositionSalary = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePositionSalary>>, TError,UpdatePositionSalaryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updatePositionSalary>>,
+        TError,
+        UpdatePositionSalaryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdatePositionSalaryMutationOptions(options), queryClient);
+    }
+
+export const getSetPositionHourlyCostUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/positions/${id}/hourly-cost`
+}
+
+export const setPositionHourlyCost = async (id: string,
+    hourlyCostInput: HourlyCostInput, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<PositionDetail>(getSetPositionHourlyCostUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(hourlyCostInput)
+  }
+);}
+
+
+
+
+
+export const getSetPositionHourlyCostMutationKey = () => ['setPositionHourlyCost'] as const;
+
+export const getSetPositionHourlyCostMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setPositionHourlyCost>>, TError,SetPositionHourlyCostMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setPositionHourlyCost>>, TError,SetPositionHourlyCostMutationVariables, TContext> => {
+
+const mutationKey = getSetPositionHourlyCostMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setPositionHourlyCost>>, SetPositionHourlyCostMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  setPositionHourlyCost(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetPositionHourlyCostMutationResult = NonNullable<Awaited<ReturnType<typeof setPositionHourlyCost>>>
+    export type SetPositionHourlyCostMutationBody = HourlyCostInput
+    export type SetPositionHourlyCostMutationError = unknown
+    export type SetPositionHourlyCostMutationVariables = {id: string;data: HourlyCostInput}
+
+    export const useSetPositionHourlyCost = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setPositionHourlyCost>>, TError,SetPositionHourlyCostMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setPositionHourlyCost>>,
+        TError,
+        SetPositionHourlyCostMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetPositionHourlyCostMutationOptions(options), queryClient);
+    }
+
+export const getResetPositionHourlyCostUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/positions/${id}/hourly-cost`
+}
+
+export const resetPositionHourlyCost = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
+
+  return apiFetch<PositionDetail>(getResetPositionHourlyCostUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getResetPositionHourlyCostMutationKey = () => ['resetPositionHourlyCost'] as const;
+
+export const getResetPositionHourlyCostMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPositionHourlyCost>>, TError,ResetPositionHourlyCostMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resetPositionHourlyCost>>, TError,ResetPositionHourlyCostMutationVariables, TContext> => {
+
+const mutationKey = getResetPositionHourlyCostMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resetPositionHourlyCost>>, ResetPositionHourlyCostMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  resetPositionHourlyCost(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResetPositionHourlyCostMutationResult = NonNullable<Awaited<ReturnType<typeof resetPositionHourlyCost>>>
+
+    export type ResetPositionHourlyCostMutationError = unknown
+    export type ResetPositionHourlyCostMutationVariables = {id: string}
+
+    export const useResetPositionHourlyCost = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPositionHourlyCost>>, TError,ResetPositionHourlyCostMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof resetPositionHourlyCost>>,
+        TError,
+        ResetPositionHourlyCostMutationVariables,
+        TContext
+      > => {
+      return useMutation(getResetPositionHourlyCostMutationOptions(options), queryClient);
+    }
+
+export const getInactivatePositionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/positions/${id}/inactivate`
+}
+
+export const inactivatePosition = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
+
+  return apiFetch<PositionDetail>(getInactivatePositionUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getInactivatePositionMutationKey = () => ['inactivatePosition'] as const;
+
+export const getInactivatePositionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivatePosition>>, TError,InactivatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inactivatePosition>>, TError,InactivatePositionMutationVariables, TContext> => {
+
+const mutationKey = getInactivatePositionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inactivatePosition>>, InactivatePositionMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  inactivatePosition(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InactivatePositionMutationResult = NonNullable<Awaited<ReturnType<typeof inactivatePosition>>>
+
+    export type InactivatePositionMutationError = unknown
+    export type InactivatePositionMutationVariables = {id: string}
+
+    export const useInactivatePosition = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inactivatePosition>>, TError,InactivatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof inactivatePosition>>,
+        TError,
+        InactivatePositionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInactivatePositionMutationOptions(options), queryClient);
+    }
+
+export const getReactivatePositionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/positions/${id}/reactivate`
+}
+
+export const reactivatePosition = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<PositionDetail> => {
+
+  return apiFetch<PositionDetail>(getReactivatePositionUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getReactivatePositionMutationKey = () => ['reactivatePosition'] as const;
+
+export const getReactivatePositionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivatePosition>>, TError,ReactivatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reactivatePosition>>, TError,ReactivatePositionMutationVariables, TContext> => {
+
+const mutationKey = getReactivatePositionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reactivatePosition>>, ReactivatePositionMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  reactivatePosition(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReactivatePositionMutationResult = NonNullable<Awaited<ReturnType<typeof reactivatePosition>>>
+
+    export type ReactivatePositionMutationError = unknown
+    export type ReactivatePositionMutationVariables = {id: string}
+
+    export const useReactivatePosition = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reactivatePosition>>, TError,ReactivatePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reactivatePosition>>,
+        TError,
+        ReactivatePositionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReactivatePositionMutationOptions(options), queryClient);
+    }
+
+export const getListEmployeesUrl = (params?: ListEmployeesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/hr/employees?${stringifiedParams}` : `/api/v1/hr/employees`
+}
+
+export const listEmployees = async (params?: ListEmployeesParams, options?: Parameters<typeof apiFetch>[1]): Promise<PagedListOfEmployeeDetail> => {
+
+  return apiFetch<PagedListOfEmployeeDetail>(getListEmployeesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEmployeesQueryKey = (params?: ListEmployeesParams,) => {
+    return [
+    `/api/v1/hr/employees`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListEmployeesQueryOptions = <TData = Awaited<ReturnType<typeof listEmployees>>, TError = unknown>(params?: ListEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEmployeesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEmployees>>> = ({ signal }) => listEmployees(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEmployees>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListEmployeesQueryResult = NonNullable<Awaited<ReturnType<typeof listEmployees>>>
+export type ListEmployeesQueryError = unknown
+
+
+export function useListEmployees<TData = Awaited<ReturnType<typeof listEmployees>>, TError = unknown>(
+ params: undefined |  ListEmployeesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployees>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEmployees>>,
+          TError,
+          Awaited<ReturnType<typeof listEmployees>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEmployees<TData = Awaited<ReturnType<typeof listEmployees>>, TError = unknown>(
+ params?: ListEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployees>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEmployees>>,
+          TError,
+          Awaited<ReturnType<typeof listEmployees>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEmployees<TData = Awaited<ReturnType<typeof listEmployees>>, TError = unknown>(
+ params?: ListEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListEmployees<TData = Awaited<ReturnType<typeof listEmployees>>, TError = unknown>(
+ params?: ListEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListEmployeesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateEmployeeUrl = () => {
+
+
+
+
+  return `/api/v1/hr/employees`
+}
+
+export const createEmployee = async (employeeCreateInput: EmployeeCreateInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeCreated> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeeCreated>(getCreateEmployeeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(employeeCreateInput)
+  }
+);}
+
+
+
+
+
+export const getCreateEmployeeMutationKey = () => ['createEmployee'] as const;
+
+export const getCreateEmployeeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmployee>>, TError,CreateEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createEmployee>>, TError,CreateEmployeeMutationVariables, TContext> => {
+
+const mutationKey = getCreateEmployeeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createEmployee>>, CreateEmployeeMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createEmployee(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateEmployeeMutationResult = NonNullable<Awaited<ReturnType<typeof createEmployee>>>
+    export type CreateEmployeeMutationBody = EmployeeCreateInput
+    export type CreateEmployeeMutationError = unknown
+    export type CreateEmployeeMutationVariables = {data: EmployeeCreateInput}
+
+    export const useCreateEmployee = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmployee>>, TError,CreateEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createEmployee>>,
+        TError,
+        CreateEmployeeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateEmployeeMutationOptions(options), queryClient);
+    }
+
+export const getListLinkableUsersUrl = () => {
+
+
+
+
+  return `/api/v1/hr/employees/linkable-users`
+}
+
+export const listLinkableUsers = async ( options?: Parameters<typeof apiFetch>[1]): Promise<LinkableUser[]> => {
+
+  return apiFetch<LinkableUser[]>(getListLinkableUsersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListLinkableUsersQueryKey = () => {
+    return [
+    `/api/v1/hr/employees/linkable-users`
+    ] as const;
+    }
+
+
+export const getListLinkableUsersQueryOptions = <TData = Awaited<ReturnType<typeof listLinkableUsers>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLinkableUsers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListLinkableUsersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLinkableUsers>>> = ({ signal }) => listLinkableUsers({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLinkableUsers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListLinkableUsersQueryResult = NonNullable<Awaited<ReturnType<typeof listLinkableUsers>>>
+export type ListLinkableUsersQueryError = unknown
+
+
+export function useListLinkableUsers<TData = Awaited<ReturnType<typeof listLinkableUsers>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLinkableUsers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLinkableUsers>>,
+          TError,
+          Awaited<ReturnType<typeof listLinkableUsers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLinkableUsers<TData = Awaited<ReturnType<typeof listLinkableUsers>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLinkableUsers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLinkableUsers>>,
+          TError,
+          Awaited<ReturnType<typeof listLinkableUsers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLinkableUsers<TData = Awaited<ReturnType<typeof listLinkableUsers>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLinkableUsers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListLinkableUsers<TData = Awaited<ReturnType<typeof listLinkableUsers>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLinkableUsers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListLinkableUsersQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLookupEmployeeCepUrl = (cep: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/cep/${cep}`
+}
+
+export const lookupEmployeeCep = async (cep: string, options?: Parameters<typeof apiFetch>[1]): Promise<AddressData> => {
+
+  return apiFetch<AddressData>(getLookupEmployeeCepUrl(cep),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getLookupEmployeeCepQueryKey = (cep: string,) => {
+    return [
+    `/api/v1/hr/employees/cep/${cep}`
+    ] as const;
+    }
+
+
+export const getLookupEmployeeCepQueryOptions = <TData = Awaited<ReturnType<typeof lookupEmployeeCep>>, TError = unknown>(cep: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupEmployeeCep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getLookupEmployeeCepQueryKey(cep);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof lookupEmployeeCep>>> = ({ signal }) => lookupEmployeeCep(cep, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: cep !== null && cep !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof lookupEmployeeCep>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type LookupEmployeeCepQueryResult = NonNullable<Awaited<ReturnType<typeof lookupEmployeeCep>>>
+export type LookupEmployeeCepQueryError = unknown
+
+
+export function useLookupEmployeeCep<TData = Awaited<ReturnType<typeof lookupEmployeeCep>>, TError = unknown>(
+ cep: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupEmployeeCep>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof lookupEmployeeCep>>,
+          TError,
+          Awaited<ReturnType<typeof lookupEmployeeCep>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLookupEmployeeCep<TData = Awaited<ReturnType<typeof lookupEmployeeCep>>, TError = unknown>(
+ cep: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupEmployeeCep>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof lookupEmployeeCep>>,
+          TError,
+          Awaited<ReturnType<typeof lookupEmployeeCep>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLookupEmployeeCep<TData = Awaited<ReturnType<typeof lookupEmployeeCep>>, TError = unknown>(
+ cep: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupEmployeeCep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useLookupEmployeeCep<TData = Awaited<ReturnType<typeof lookupEmployeeCep>>, TError = unknown>(
+ cep: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof lookupEmployeeCep>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getLookupEmployeeCepQueryOptions(cep,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetEmployeeUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}`
+}
+
+export const getEmployee = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDetail> => {
+
+  return apiFetch<EmployeeDetail>(getGetEmployeeUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmployeeQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}`
+    ] as const;
+    }
+
+
+export const getGetEmployeeQueryOptions = <TData = Awaited<ReturnType<typeof getEmployee>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployee>>> = ({ signal }) => getEmployee(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEmployeeQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployee>>>
+export type GetEmployeeQueryError = unknown
+
+
+export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployee>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployee>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployee>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployee>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEmployeeQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateEmployeeUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}`
+}
+
+export const updateEmployee = async (id: string,
+    employeeGeneralInput: EmployeeGeneralInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeeDetail>(getUpdateEmployeeUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(employeeGeneralInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateEmployeeMutationKey = () => ['updateEmployee'] as const;
+
+export const getUpdateEmployeeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmployee>>, TError,UpdateEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateEmployee>>, TError,UpdateEmployeeMutationVariables, TContext> => {
+
+const mutationKey = getUpdateEmployeeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateEmployee>>, UpdateEmployeeMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateEmployee(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateEmployeeMutationResult = NonNullable<Awaited<ReturnType<typeof updateEmployee>>>
+    export type UpdateEmployeeMutationBody = EmployeeGeneralInput
+    export type UpdateEmployeeMutationError = unknown
+    export type UpdateEmployeeMutationVariables = {id: string;data: EmployeeGeneralInput}
+
+    export const useUpdateEmployee = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmployee>>, TError,UpdateEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateEmployee>>,
+        TError,
+        UpdateEmployeeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateEmployeeMutationOptions(options), queryClient);
+    }
+
+export const getDeleteEmployeeUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}`
+}
+
+export const deleteEmployee = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDeleteEmployeeUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteEmployeeMutationKey = () => ['deleteEmployee'] as const;
+
+export const getDeleteEmployeeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEmployee>>, TError,DeleteEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteEmployee>>, TError,DeleteEmployeeMutationVariables, TContext> => {
+
+const mutationKey = getDeleteEmployeeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteEmployee>>, DeleteEmployeeMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteEmployee(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteEmployeeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteEmployee>>>
+
+    export type DeleteEmployeeMutationError = unknown
+    export type DeleteEmployeeMutationVariables = {id: string}
+
+    export const useDeleteEmployee = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEmployee>>, TError,DeleteEmployeeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteEmployee>>,
+        TError,
+        DeleteEmployeeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteEmployeeMutationOptions(options), queryClient);
+    }
+
+export const getGetEmployeeSensitiveUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/sensitive`
+}
+
+export const getEmployeeSensitive = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeSensitiveDetail> => {
+
+  return apiFetch<EmployeeSensitiveDetail>(getGetEmployeeSensitiveUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmployeeSensitiveQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/sensitive`
+    ] as const;
+    }
+
+
+export const getGetEmployeeSensitiveQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeSensitive>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeSensitiveQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeSensitive>>> = ({ signal }) => getEmployeeSensitive(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeSensitive>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEmployeeSensitiveQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeSensitive>>>
+export type GetEmployeeSensitiveQueryError = unknown
+
+
+export function useGetEmployeeSensitive<TData = Awaited<ReturnType<typeof getEmployeeSensitive>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeSensitive>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeSensitive>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeSensitive>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeSensitive<TData = Awaited<ReturnType<typeof getEmployeeSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeSensitive>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeSensitive>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeSensitive>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeSensitive<TData = Awaited<ReturnType<typeof getEmployeeSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEmployeeSensitive<TData = Awaited<ReturnType<typeof getEmployeeSensitive>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeSensitive>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEmployeeSensitiveQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetEmployeeTimelineUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/timeline`
+}
+
+export const getEmployeeTimeline = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<TimelineEntry[]> => {
+
+  return apiFetch<TimelineEntry[]>(getGetEmployeeTimelineUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmployeeTimelineQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/timeline`
+    ] as const;
+    }
+
+
+export const getGetEmployeeTimelineQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeTimeline>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeline>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeTimelineQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeTimeline>>> = ({ signal }) => getEmployeeTimeline(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeline>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEmployeeTimelineQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeTimeline>>>
+export type GetEmployeeTimelineQueryError = unknown
+
+
+export function useGetEmployeeTimeline<TData = Awaited<ReturnType<typeof getEmployeeTimeline>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeline>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeTimeline>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeTimeline>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeTimeline<TData = Awaited<ReturnType<typeof getEmployeeTimeline>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeline>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeTimeline>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeTimeline>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeTimeline<TData = Awaited<ReturnType<typeof getEmployeeTimeline>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeline>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEmployeeTimeline<TData = Awaited<ReturnType<typeof getEmployeeTimeline>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeTimeline>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEmployeeTimelineQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateEmployeePersonalUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/personal`
+}
+
+export const updateEmployeePersonal = async (id: string,
+    employeePersonalInput: EmployeePersonalInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeeDetail>(getUpdateEmployeePersonalUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(employeePersonalInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateEmployeePersonalMutationKey = () => ['updateEmployeePersonal'] as const;
+
+export const getUpdateEmployeePersonalMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmployeePersonal>>, TError,UpdateEmployeePersonalMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateEmployeePersonal>>, TError,UpdateEmployeePersonalMutationVariables, TContext> => {
+
+const mutationKey = getUpdateEmployeePersonalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateEmployeePersonal>>, UpdateEmployeePersonalMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateEmployeePersonal(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateEmployeePersonalMutationResult = NonNullable<Awaited<ReturnType<typeof updateEmployeePersonal>>>
+    export type UpdateEmployeePersonalMutationBody = EmployeePersonalInput
+    export type UpdateEmployeePersonalMutationError = unknown
+    export type UpdateEmployeePersonalMutationVariables = {id: string;data: EmployeePersonalInput}
+
+    export const useUpdateEmployeePersonal = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmployeePersonal>>, TError,UpdateEmployeePersonalMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateEmployeePersonal>>,
+        TError,
+        UpdateEmployeePersonalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateEmployeePersonalMutationOptions(options), queryClient);
+    }
+
+export const getChangeEmployeePositionUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/position`
+}
+
+export const changeEmployeePosition = async (id: string,
+    positionChangeInput: PositionChangeInput, options?: Parameters<typeof apiFetch>[1]): Promise<EmployeeDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<EmployeeDetail>(getChangeEmployeePositionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(positionChangeInput)
+  }
+);}
+
+
+
+
+
+export const getChangeEmployeePositionMutationKey = () => ['changeEmployeePosition'] as const;
+
+export const getChangeEmployeePositionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeEmployeePosition>>, TError,ChangeEmployeePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changeEmployeePosition>>, TError,ChangeEmployeePositionMutationVariables, TContext> => {
+
+const mutationKey = getChangeEmployeePositionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeEmployeePosition>>, ChangeEmployeePositionMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  changeEmployeePosition(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangeEmployeePositionMutationResult = NonNullable<Awaited<ReturnType<typeof changeEmployeePosition>>>
+    export type ChangeEmployeePositionMutationBody = PositionChangeInput
+    export type ChangeEmployeePositionMutationError = unknown
+    export type ChangeEmployeePositionMutationVariables = {id: string;data: PositionChangeInput}
+
+    export const useChangeEmployeePosition = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeEmployeePosition>>, TError,ChangeEmployeePositionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof changeEmployeePosition>>,
+        TError,
+        ChangeEmployeePositionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChangeEmployeePositionMutationOptions(options), queryClient);
+    }
+
+export const getListInvitableEmployeesUrl = () => {
+
+
+
+
+  return `/api/v1/hr/employees/invitable`
+}
+
+export const listInvitableEmployees = async ( options?: Parameters<typeof apiFetch>[1]): Promise<InvitableEmployee[]> => {
+
+  return apiFetch<InvitableEmployee[]>(getListInvitableEmployeesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListInvitableEmployeesQueryKey = () => {
+    return [
+    `/api/v1/hr/employees/invitable`
+    ] as const;
+    }
+
+
+export const getListInvitableEmployeesQueryOptions = <TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListInvitableEmployeesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInvitableEmployees>>> = ({ signal }) => listInvitableEmployees({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListInvitableEmployeesQueryResult = NonNullable<Awaited<ReturnType<typeof listInvitableEmployees>>>
+export type ListInvitableEmployeesQueryError = unknown
+
+
+export function useListInvitableEmployees<TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listInvitableEmployees>>,
+          TError,
+          Awaited<ReturnType<typeof listInvitableEmployees>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListInvitableEmployees<TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listInvitableEmployees>>,
+          TError,
+          Awaited<ReturnType<typeof listInvitableEmployees>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListInvitableEmployees<TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListInvitableEmployees<TData = Awaited<ReturnType<typeof listInvitableEmployees>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listInvitableEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListInvitableEmployeesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetEmployeeUserUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/user`
+}
+
+export const getEmployeeUser = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<LinkedUserView> => {
+
+  return apiFetch<LinkedUserView>(getGetEmployeeUserUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmployeeUserQueryKey = (id: string,) => {
+    return [
+    `/api/v1/hr/employees/${id}/user`
+    ] as const;
+    }
+
+
+export const getGetEmployeeUserQueryOptions = <TData = Awaited<ReturnType<typeof getEmployeeUser>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeUser>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeUserQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployeeUser>>> = ({ signal }) => getEmployeeUser(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployeeUser>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEmployeeUserQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployeeUser>>>
+export type GetEmployeeUserQueryError = unknown
+
+
+export function useGetEmployeeUser<TData = Awaited<ReturnType<typeof getEmployeeUser>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeUser>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeUser>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeUser>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeUser<TData = Awaited<ReturnType<typeof getEmployeeUser>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeUser>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEmployeeUser>>,
+          TError,
+          Awaited<ReturnType<typeof getEmployeeUser>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEmployeeUser<TData = Awaited<ReturnType<typeof getEmployeeUser>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeUser>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEmployeeUser<TData = Awaited<ReturnType<typeof getEmployeeUser>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployeeUser>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEmployeeUserQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLinkEmployeeUserUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/user`
+}
+
+export const linkEmployeeUser = async (id: string,
+    userLinkInput: UserLinkInput, options?: Parameters<typeof apiFetch>[1]): Promise<LinkableUser> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<LinkableUser>(getLinkEmployeeUserUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(userLinkInput)
+  }
+);}
+
+
+
+
+
+export const getLinkEmployeeUserMutationKey = () => ['linkEmployeeUser'] as const;
+
+export const getLinkEmployeeUserMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkEmployeeUser>>, TError,LinkEmployeeUserMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof linkEmployeeUser>>, TError,LinkEmployeeUserMutationVariables, TContext> => {
+
+const mutationKey = getLinkEmployeeUserMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof linkEmployeeUser>>, LinkEmployeeUserMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  linkEmployeeUser(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LinkEmployeeUserMutationResult = NonNullable<Awaited<ReturnType<typeof linkEmployeeUser>>>
+    export type LinkEmployeeUserMutationBody = UserLinkInput
+    export type LinkEmployeeUserMutationError = unknown
+    export type LinkEmployeeUserMutationVariables = {id: string;data: UserLinkInput}
+
+    export const useLinkEmployeeUser = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkEmployeeUser>>, TError,LinkEmployeeUserMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof linkEmployeeUser>>,
+        TError,
+        LinkEmployeeUserMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLinkEmployeeUserMutationOptions(options), queryClient);
+    }
+
+export const getUnlinkEmployeeUserUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/hr/employees/${id}/user`
+}
+
+export const unlinkEmployeeUser = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getUnlinkEmployeeUserUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getUnlinkEmployeeUserMutationKey = () => ['unlinkEmployeeUser'] as const;
+
+export const getUnlinkEmployeeUserMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkEmployeeUser>>, TError,UnlinkEmployeeUserMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof unlinkEmployeeUser>>, TError,UnlinkEmployeeUserMutationVariables, TContext> => {
+
+const mutationKey = getUnlinkEmployeeUserMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unlinkEmployeeUser>>, UnlinkEmployeeUserMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  unlinkEmployeeUser(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnlinkEmployeeUserMutationResult = NonNullable<Awaited<ReturnType<typeof unlinkEmployeeUser>>>
+
+    export type UnlinkEmployeeUserMutationError = unknown
+    export type UnlinkEmployeeUserMutationVariables = {id: string}
+
+    export const useUnlinkEmployeeUser = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkEmployeeUser>>, TError,UnlinkEmployeeUserMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof unlinkEmployeeUser>>,
+        TError,
+        UnlinkEmployeeUserMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUnlinkEmployeeUserMutationOptions(options), queryClient);
+    }
+
+export const getExportEmployeesUrl = (params?: ExportEmployeesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/hr/employees/export?${stringifiedParams}` : `/api/v1/hr/employees/export`
+}
+
+export const exportEmployees = async (params?: ExportEmployeesParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getExportEmployeesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportEmployeesQueryKey = (params?: ExportEmployeesParams,) => {
+    return [
+    `/api/v1/hr/employees/export`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getExportEmployeesQueryOptions = <TData = Awaited<ReturnType<typeof exportEmployees>>, TError = unknown>(params?: ExportEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportEmployeesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportEmployees>>> = ({ signal }) => exportEmployees(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportEmployees>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportEmployeesQueryResult = NonNullable<Awaited<ReturnType<typeof exportEmployees>>>
+export type ExportEmployeesQueryError = unknown
+
+
+export function useExportEmployees<TData = Awaited<ReturnType<typeof exportEmployees>>, TError = unknown>(
+ params: undefined |  ExportEmployeesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportEmployees>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportEmployees>>,
+          TError,
+          Awaited<ReturnType<typeof exportEmployees>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportEmployees<TData = Awaited<ReturnType<typeof exportEmployees>>, TError = unknown>(
+ params?: ExportEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportEmployees>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportEmployees>>,
+          TError,
+          Awaited<ReturnType<typeof exportEmployees>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportEmployees<TData = Awaited<ReturnType<typeof exportEmployees>>, TError = unknown>(
+ params?: ExportEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useExportEmployees<TData = Awaited<ReturnType<typeof exportEmployees>>, TError = unknown>(
+ params?: ExportEmployeesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportEmployees>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExportEmployeesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getExportPositionsUrl = (params?: ExportPositionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/hr/positions/export?${stringifiedParams}` : `/api/v1/hr/positions/export`
+}
+
+export const exportPositions = async (params?: ExportPositionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getExportPositionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportPositionsQueryKey = (params?: ExportPositionsParams,) => {
+    return [
+    `/api/v1/hr/positions/export`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getExportPositionsQueryOptions = <TData = Awaited<ReturnType<typeof exportPositions>>, TError = unknown>(params?: ExportPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportPositionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportPositions>>> = ({ signal }) => exportPositions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportPositions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportPositionsQueryResult = NonNullable<Awaited<ReturnType<typeof exportPositions>>>
+export type ExportPositionsQueryError = unknown
+
+
+export function useExportPositions<TData = Awaited<ReturnType<typeof exportPositions>>, TError = unknown>(
+ params: undefined |  ExportPositionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPositions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportPositions>>,
+          TError,
+          Awaited<ReturnType<typeof exportPositions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportPositions<TData = Awaited<ReturnType<typeof exportPositions>>, TError = unknown>(
+ params?: ExportPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPositions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportPositions>>,
+          TError,
+          Awaited<ReturnType<typeof exportPositions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportPositions<TData = Awaited<ReturnType<typeof exportPositions>>, TError = unknown>(
+ params?: ExportPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useExportPositions<TData = Awaited<ReturnType<typeof exportPositions>>, TError = unknown>(
+ params?: ExportPositionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPositions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExportPositionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetMyEmployeeLinkUrl = () => {
 
