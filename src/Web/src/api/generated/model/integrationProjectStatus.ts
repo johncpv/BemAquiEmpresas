@@ -14,4 +14,5 @@ export interface IntegrationProjectStatus {
   situation: string;
   /** @nullable */
   promisedDate: string | null;
+  executionKind?: string;
 }

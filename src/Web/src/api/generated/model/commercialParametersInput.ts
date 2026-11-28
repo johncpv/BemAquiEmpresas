@@ -9,4 +9,6 @@ export interface CommercialParametersInput {
   /** @nullable */
   defaultPct: number | null;
   validityDays?: number;
+  /** @nullable */
+  acceptanceSegregation?: boolean | null;
 }

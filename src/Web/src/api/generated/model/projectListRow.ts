@@ -5,6 +5,8 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { DeliveryRisk } from './deliveryRisk';
+import type { ExecutionKind } from './executionKind';
+import type { ProjectStage } from './projectStage';
 import type { ProjectStatus } from './projectStatus';
 
 export interface ProjectListRow {
@@ -31,4 +33,6 @@ export interface ProjectListRow {
   risk?: DeliveryRisk;
   /** @nullable */
   forecastReason?: string | null;
+  executionKind?: ExecutionKind;
+  stage?: null | ProjectStage;
 }

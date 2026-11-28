@@ -119,7 +119,7 @@ public partial class QuoteTests
             (await OutboxCountAsync("ProjectFabricated", projectId.ToString())).Should().Be(0, "sem marco de fabricação");
 
             // CA 25: anexo que não é do aceite deste projeto, 422 no campo; projeto inexistente, 404. CA 13: aceite antes da entrega, 422.
-            var idor = await owner.SendAsync(Post($"/api/v1/projects/{projectId}/acceptance", Accept(project, deliveredOn, attachmentId: Guid.NewGuid())));
+            var idor = await owner.SendAsync(Post($"/api/v1/projects/{projectId}/acceptance", Accept(project, Today, attachmentId: Guid.NewGuid())));
             idor.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
             (await JsonAsync(idor)).GetProperty("errors").TryGetProperty("attachmentId", out _).Should().BeTrue();
             (await owner.SendAsync(Post($"/api/v1/projects/{Guid.NewGuid()}/acceptance", Accept(project, Today)))).StatusCode.Should().Be(HttpStatusCode.NotFound);

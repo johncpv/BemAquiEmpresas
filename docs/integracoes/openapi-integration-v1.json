@@ -1574,6 +1574,10 @@
               "string"
             ],
             "format": "date"
+          },
+          "executionKind": {
+            "type": "string",
+            "default": "Fabrication"
           }
         }
       },
