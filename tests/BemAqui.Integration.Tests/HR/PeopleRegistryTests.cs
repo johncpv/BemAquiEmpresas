@@ -213,7 +213,7 @@ public class PeopleRegistryTests(TenancyFixture tenancy) : IClassFixture<Tenancy
         var today = BemAqui.BuildingBlocks.Time.BusinessTime.Today(TimeProvider.System);
         var leave = await owner.PostAsJsonAsync($"{Hr}/employees/{sick}/leaves", new
         {
-            type = "MedicalCertificate", startDate = today.ToString("yyyy-MM-dd"), expectedEndDate = today.AddDays(5).ToString("yyyy-MM-dd"), reason = HealthCanary, version,
+            type = "MedicalCertificate", startDate = today.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), expectedEndDate = today.AddDays(5).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), reason = HealthCanary, version,
         });
         leave.StatusCode.Should().Be(HttpStatusCode.OK, await leave.Content.ReadAsStringAsync());
 
@@ -256,7 +256,7 @@ public class PeopleRegistryTests(TenancyFixture tenancy) : IClassFixture<Tenancy
             (await sensitive.GetAsync($"{Hr}/positions/{position}/sensitive")).StatusCode.Should().Be(HttpStatusCode.OK);
             await using (var scope = await ScopeAsync())
             {
-                (await scope.ServiceProvider.GetRequiredService<BemAqui.Host.Persistence.BemAquiDbContext>().AuditEntries
+                (await scope.ServiceProvider.GetRequiredService<BemAqui.BuildingBlocks.Persistence.BemAquiDbContext>().AuditEntries
                         .AnyAsync(a => a.Entity == "JobPosition" && a.EntityId == position.ToString() && a.Action == "SensitiveRead"))
                     .Should().BeTrue("leitura do salário de referência na auditoria");
             }
